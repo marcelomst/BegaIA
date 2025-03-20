@@ -1,0 +1,39 @@
+@startuml BegAI
+title Arquitectura del Proyecto
+
+package "Frontend (Next.js + React)" {
+  component UI <<React>> 
+  UI -[#red]-> "API / Backend"
+}
+
+package "Backend (Next.js API)" {
+  component API <<Node.js>>
+  API -[#blue]-> "LangChain"
+  API -[#blue]-> "AstraDB"
+}
+
+package "LangChain" {
+  component "Procesamiento de IA" <<LangChain>>
+  "Procesamiento de IA" -[#green]-> "OpenAI API"
+  "Procesamiento de IA" -[#green]-> "Vector Store"
+}
+
+package "AstraDB" {
+  component "Base de Datos NoSQL" <<AstraDB>>
+  "Base de Datos NoSQL" -[#purple]-> "Vector Store"
+}
+
+package "OpenAI API" {
+  component "Embeddings" <<OpenAI>>
+  component "LLM GPT-4o" <<OpenAI>>
+  "Embeddings" -[#orange]-> "Vector Store"
+  "LLM GPT-4o" -[#orange]-> "Procesamiento de IA"
+}
+
+package "Vercel" {
+  component "Despliegue" <<Vercel>>
+  "Despliegue" -[#black]-> UI
+  "Despliegue" -[#black]-> API
+}
+
+@enduml

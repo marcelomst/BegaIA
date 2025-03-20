@@ -1,0 +1,957 @@
+📂 Estructura del Proyecto
+=========================
+.
+├── ChatGPT Installer.exe
+├── ChatGPT Installer.exe:Zone.Identifier
+├── Proyecto_Ragbot_Hotel_optimizado.zip
+├── Proyecto_Ragbot_Hotel_optimizado.zip:Zone.Identifier
+├── README.md
+├── app
+│   ├── Proyecto Ragbot Hotel.zip
+│   ├── agents
+│   │   ├── billing.ts
+│   │   ├── classifier.ts
+│   │   ├── defaultResponse.ts
+│   │   ├── index.ts
+│   │   ├── internal_support.ts
+│   │   ├── reservations.ts
+│   │   ├── services
+│   │   │   └── whatsapp.ts
+│   │   └── services.ts
+│   ├── api
+│   │   ├── chat
+│   │   │   ├── route.ts
+│   │   │   └── route.ts:Zone.Identifier
+│   │   ├── email 
+│   │   └── whatsapp
+│   ├── favicon.ico
+│   ├── generatePDF.js
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── lib
+│   │   ├── Hotel_Demo.pdf
+│   │   ├── astra.ts
+│   │   ├── astra.ts:Zone.Identifier
+│   │   ├── classifier.ts
+│   │   ├── graph.ts
+│   │   ├── hotel_demo_ant.pdf
+│   │   ├── load_hotel_data.ts
+│   │   ├── load_hotel_data.zip
+│   │   └── translation.ts
+│   ├── page.tsx
+│   ├── pms
+│   │   └── index.ts
+│   └── retrieval
+│       └── index.ts
+├── arquitectura.puml
+├── arquitectura.txt
+├── arquitectura_fisico.puml
+├── documentacion
+├── eslint.config.mjs
+├── estructura_del_proyecto.txt
+├── generate_architecture.sh
+├── hotel_data.json
+├── info.txt
+├── next
+├── next-env.d.ts
+├── next.config.ts
+├── out
+│   └── arquitectura
+├── package-lock.json
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── respaldo rag bot funcionando.zip
+├── scripts
+│   ├── listCollections.js
+│   └── listDocuments.ts
+├── src
+│   ├── app.ts
+│   ├── config.ts
+│   ├── hotel_agent_uml.uml
+│   └── utils
+├── tailwind.config.ts
+├── test
+│   └── data
+│       ├── 05-versions-space.pdf
+│       └── 05-versions-space.pdf.txt
+├── testAstraConnection.ts
+├── tsconfig.json
+└── tsconfig.tsbuildinfo
+
+20 directories, 64 files
+
+=========================
+
+📜 Scripts Claves
+=================
+
+🔹 Archivo: ./testAstraConnection.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db('https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com');
+
+async function testConnection() {
+  try {
+    const collections = await db.listCollections();
+    console.log("✅ Conectado a AstraDB. Colecciones disponibles:", collections);
+  } catch (error) {
+    console.error("❌ Error al conectar con AstraDB:", error);
+  }
+}
+
+testConnection();
+
+---------------------------------
+
+
+🔹 Archivo: ./src/config.ts
+---------------------------------
+import * as dotenv from "dotenv";
+dotenv.config();
+
+---------------------------------
+
+
+🔹 Archivo: ./src/app.ts
+---------------------------------
+
+---------------------------------
+
+
+🔹 Archivo: ./scripts/listDocuments.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import dotenv from "dotenv";
+dotenv.config();
+
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_COLLECTION_NAME = "begaia";
+
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db("https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com");
+const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
+
+async function listDocuments() {
+  try {
+    // Convertir el cursor en un array usando .toArray()
+    const documents = await collection.find({}, { projection: { $vector: 1, idea: 1, metadata: 1 } }).toArray();
+
+    if (!documents || documents.length === 0) {
+      console.warn("⚠ No se encontraron documentos en AstraDB.");
+      return;
+    }
+
+    console.log("📄 Documentos en AstraDB:");
+    documents.forEach((doc: any) => {
+      console.log(`🆔 ID: ${doc._id}`);
+      console.log(`💡 Idea (Texto): ${doc.idea?.substring(0, 100) || "No disponible"}...`); // Solo primeros 100 caracteres
+      console.log(`📏 Dimensión del embedding: ${doc.$vector?.length || "No encontrado"}`);
+      console.log(`📆 Metadata:`, doc.metadata);
+      console.log("------------------------------------------------------");
+    });
+
+  } catch (error) {
+    console.error("❌ Error al listar documentos en AstraDB:", error);
+  }
+}
+
+listDocuments();
+
+---------------------------------
+
+
+🔹 Archivo: ./scripts/listCollections.js
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db('https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com');
+try{
+    (async () => {
+    const collections = await db.listCollections();
+    console.log('Connected to AstraDB:',collections);
+    })();
+
+  } catch (error) {
+    console.error("Error al obtener colecciones:", error);
+  }
+
+
+---------------------------------
+
+
+🔹 Archivo: ./next.config.ts
+---------------------------------
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+---------------------------------
+
+
+🔹 Archivo: ./app/generatePDF.js
+---------------------------------
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+async function generatePDF() {
+    try {
+        // Crear un nuevo documento PDF
+        const doc = new PDFDocument({ margin: 50 });
+
+        // Guardar el PDF en un archivo
+        const outputFile = 'Hotel_Demo_Extendido.pdf';
+        const stream = fs.createWriteStream(outputFile);
+        doc.pipe(stream);
+
+        // Configuración de fuente
+        doc.font('Helvetica').fontSize(12);
+
+        // Contenido del PDF
+        const content = `
+Hotel Demo - Punta del Este (4 Estrellas)
+
+Ubicación:
+Hotel Demo Punta del Este
+Avenida Gorlero 1234, Punta del Este, Maldonado, Uruguay
+Teléfono: +598 4244 5678
+Email: contacto@hoteldemo.com
+Web: www.hoteldemo.com
+
+Horarios de Atención:
+- Check-in: 14:00 hrs
+- Check-out: 11:00 hrs
+- Recepción 24/7
+- Desayuno buffet: 07:00 - 10:30 hrs
+- Piscina y spa: 08:00 - 22:00 hrs
+- Restaurante Gourmet: 12:00 - 23:00 hrs
+- Bar Lounge: 17:00 - 01:00 hrs
+- Gimnasio: 06:00 - 22:00 hrs
+
+Servicios del Hotel:
+- Wi-Fi gratuito en todas las instalaciones
+- Servicio de habitaciones 24/7
+- Piscina climatizada y spa
+- Restaurante gourmet con vista al mar
+- Gimnasio equipado
+- Sala de conferencias y eventos
+- Servicio de lavandería y tintorería
+- Traslado al aeropuerto (con costo adicional)
+- Alquiler de bicicletas y autos
+- Servicio de concierge para reservas y recomendaciones
+- Atención personalizada en español, inglés y portugués
+
+Disponibilidad de Habitaciones:
+- Habitación estándar: 10 disponibles
+- Habitación superior: 5 disponibles
+- Suite de lujo: 3 disponibles
+- Suite presidencial: 1 disponible
+
+Reglas del Hotel:
+1. No fumar en las habitaciones y áreas comunes interiores.
+2. Mascotas permitidas (con tarifa adicional y reserva previa).
+3. Silencio en pasillos y zonas comunes después de las 22:00 hrs.
+4. Uso exclusivo de la piscina y spa para huéspedes.
+5. No se permite el ingreso de personas no registradas a las habitaciones.
+6. El hotel no se hace responsable por objetos de valor no depositados en la caja fuerte.
+7. Servicio de cancelación y reembolso según política de reservas.
+
+Gestión de Reservas:
+- Consultas y reservas a través de WhatsApp, Email y Redes Sociales (Facebook, Instagram, X)
+- Confirmaciones y cancelaciones en línea
+- Ofertas especiales para reservas directas desde la web
+
+Atracciones Cercanas:
+- Playa Brava y La Mano de Punta del Este (a 5 min)
+- Puerto de Punta del Este (a 10 min)
+- Casapueblo (Museo y Galería de Arte) (a 15 min)
+- Isla Gorriti (acceso en barco)
+- Punta Ballena y mirador panorámico
+- Casino Conrad Enjoy Punta del Este
+- Centro comercial Punta Shopping
+- Feria de Artesanos en Plaza Artigas
+
+Información Adicional:
+- Promociones especiales para reservas directas en nuestra web.
+- Descuentos exclusivos para estadías prolongadas.
+- Asistencia para excursiones y tours por la ciudad y alrededores.
+- Contacto rápido a través de WhatsApp para información y reservas.
+`;
+
+        // Agregar contenido al PDF línea por línea
+        content.split('\n').forEach(line => {
+            doc.text(line, { align: 'left' });
+        });
+
+        // Manejo de errores del stream
+        stream.on('error', (err) => {
+            console.error('❌ Error al escribir el PDF:', err);
+        });
+
+        // Manejo del evento de finalización
+        stream.on('finish', () => {
+            console.log(`✅ PDF generado con éxito: ${outputFile}`);
+        });
+
+        // Finalizar y guardar el PDF
+        doc.end();
+
+    } catch (error) {
+        console.error("❌ Error al generar el PDF:", error);
+    }
+}
+
+// Ejecutar la función
+generatePDF();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/pms/index.ts
+---------------------------------
+export type ReservationStatus = "confirmed" | "cancelled";
+
+export interface Reservation {
+  guest: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  status: ReservationStatus;
+}
+
+export class PMS {
+  private reservations: Record<string, Reservation> = {}; // 🔥 Reemplazamos `any` por `Reservation`
+
+  createReservation(guest: string, roomType: string, checkIn: string, checkOut: string): Reservation & { id: string } {
+    const id = `res-${Date.now()}`;
+    this.reservations[id] = { guest, roomType, checkIn, checkOut, status: "confirmed" };
+    return { id, ...this.reservations[id] };
+  }
+
+  getReservation(id: string): Reservation | null {
+    return this.reservations[id] || null;
+  }
+
+  cancelReservation(id: string): Reservation | null {
+    if (this.reservations[id]) {
+      this.reservations[id].status = "cancelled";
+      return this.reservations[id];
+    }
+    return null;
+  }
+}
+
+export const pms = new PMS();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/retrieval/index.ts
+---------------------------------
+import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+
+const urls = [
+  "https://hotelwebsite.com/faqs",
+  "https://hotelwebsite.com/policies",
+];
+
+export async function loadDocuments() {
+  const docs = await Promise.all(urls.map((url) => new CheerioWebBaseLoader(url).load()));
+  const docsList = docs.flat();
+
+  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const docSplits = await textSplitter.splitDocuments(docsList);
+
+  return await MemoryVectorStore.fromDocuments(docSplits, new OpenAIEmbeddings());
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/graph.ts
+---------------------------------
+import { StateGraph } from "@langchain/langgraph";
+import { classify } from "@/agents/classifier";
+import { handleReservation } from "@/agents/reservations";
+import { handleServices } from "@/agents/services";
+import { handleBilling } from "@/agents/billing";
+import { handleSupport } from "@/agents/internal_support";
+import { defaultResponse } from "@/agents/defaultResponse";
+import { Annotation } from "@langchain/langgraph";
+import { BaseMessage } from "@langchain/core/messages";
+
+const GraphState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y),
+    default: () => [],
+  }),
+  category: Annotation<string>({
+    value: (prev, next) => next, // Usa el último valor recibido
+    default: () => "other",
+  }),
+});
+
+const graph = new StateGraph(GraphState)
+  .addNode("classify", classify)
+  .addNode("handle_reservation", handleReservation)
+  .addNode("handle_services", handleServices)
+  .addNode("handle_billing", handleBilling)
+  .addNode("handle_support", handleSupport) // ✅ Fijado
+  .addNode("default_response", defaultResponse) // ✅ Fijado
+  .addConditionalEdges("classify", (state) => state.category, {
+    reservation: "handle_reservation",
+    services: "handle_services",
+    billing: "handle_billing",
+    support: "handle_support",
+    other: "default_response",
+  });
+
+export const agentGraph = graph.compile();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/load_hotel_data.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import OpenAI from "openai";
+import fs from "fs";
+import pdf from "pdf-parse";
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
+
+const ASTRA_DB_APPLICATION_TOKEN: string = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_COLLECTION_NAME: string = "begaia";
+const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
+const PDF_FILE_PATH = path.resolve("app/lib/hotel_demo.pdf");
+const JSON_OUTPUT_PATH = path.resolve("hotel_data.json");
+
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db("https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com");
+const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+// Función para generar embeddings con OpenAI sin reducción
+async function generateEmbeddings(text: string): Promise<number[]> {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002", // Usa 1536 dimensiones
+    input: text,
+  });
+  return response.data[0].embedding;
+}
+
+// Función para verificar la configuración de la colección en AstraDB
+async function checkCollectionConfig() {
+  const collectionInfo = await collection.options();
+  console.log("📌 Configuración REAL de la colección en AstraDB:", JSON.stringify(collectionInfo, null, 2));
+
+  if (collectionInfo.vector?.dimension !== 1536) {
+    console.warn("⚠ ADVERTENCIA: La colección no está configurada para embeddings de 1536 dimensiones.");
+  }
+}
+
+// Carga de datos en AstraDB y guardado en JSON
+async function loadHotelData(): Promise<void> {
+  try {
+    // Verificar la configuración de la colección antes de cargar datos
+    await checkCollectionConfig();
+
+    const pdfBuffer: Buffer = fs.readFileSync(PDF_FILE_PATH);
+    const pdfData = await pdf(pdfBuffer);
+    const hotelData: string = pdfData.text;
+
+    console.log("🔍 Generando embedding para el texto completo...");
+    const embedding: number[] = await generateEmbeddings(hotelData);
+    console.log("💪 Dimensión del embedding generado:", embedding.length);
+
+    if (embedding.length !== 1536) {
+      console.warn("⚠ ADVERTENCIA: El embedding generado no tiene 1536 dimensiones.");
+    }
+
+    const document = {
+      idea: hotelData, // Se usa 'idea' como campo de texto
+      $vector: embedding, // Usa el campo correcto para AstraDB
+      metadata: {
+        source: "Hotel Demo Punta del Este",
+        createdAt: new Date().toISOString(),
+      },
+    };
+
+    // Guardar en archivo JSON
+    fs.writeFileSync(JSON_OUTPUT_PATH, JSON.stringify(document, null, 2));
+    console.log("✅ Documento guardado en hotel_data.json");
+
+    // Insertar en AstraDB
+    await collection.insertOne(document);
+    console.log("✅ Documento insertado en AstraDB con éxito.");
+
+  } catch (error) {
+    console.error("❌ Error cargando datos en AstraDB:", error);
+  }
+}
+
+// Ejecutar la carga de datos
+loadHotelData();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/classifier.ts
+---------------------------------
+export async function classifyQuery(question: string): Promise<string> {
+    // Simulación de clasificación basada en palabras clave
+    if (question.toLowerCase().includes("reserva")) return "reservation";
+    if (question.toLowerCase().includes("servicio")) return "services";
+    if (question.toLowerCase().includes("factura")) return "billing";
+    if (question.toLowerCase().includes("soporte")) return "support";
+    return "other";
+  }
+  
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/translation.ts
+---------------------------------
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
+
+export async function translate(text: string, targetLanguage: string) {
+  return await model.invoke([{ role: "system", content: `Translate this to ${targetLanguage}: ${text}` }]);
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/astra.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_COLLECTION_NAME = "begaia";
+
+export async function searchAstraDB(query: string) {
+  try {
+    const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+    const db = client.db('https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com');
+    const collections = await db.listCollections();
+    console.log("📂 Colecciones en AstraDB:", collections);
+
+    const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
+    if (!collection) {
+      throw new Error(`No se encontró la colección: ${ASTRA_DB_COLLECTION_NAME}`);
+    }
+
+    // Generar embedding de la consulta con OpenAI
+    const response = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "text-embedding-ada-002",
+        input: query,
+      }),
+    });
+
+    const { data } = await response.json();
+    let queryVector = data[0].embedding;
+
+    console.log("🔢 Dimensión del embedding de la consulta:", queryVector.length);
+
+    if (queryVector.length !== 1536) {
+      console.warn("⚠ ADVERTENCIA: El embedding de la consulta no tiene 1536 dimensiones.");
+    }
+
+    // Verificar la configuración de la colección en AstraDB
+    const collectionInfo = await collection.options();
+    console.log("📌 Configuración de la colección en AstraDB:", JSON.stringify(collectionInfo, null, 2));
+
+    // Realizar búsqueda vectorial
+    console.log("🔍 Ejecutando búsqueda vectorial...");
+    const cursor = await collection.find({}, {
+      sort: { $vector: queryVector },
+      limit: 10,
+      includeSimilarity: true,
+    });
+
+    const results = await cursor.toArray();
+    console.log("📄 Documentos obtenidos:", JSON.stringify(results, null, 2));
+
+    return results;
+  } catch (error) {
+    console.error("❌ Error en searchAstraDB:", error);
+    throw error;
+  }
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/services/whatsapp.ts
+---------------------------------
+import { Client, Message } from "whatsapp-web.js";
+import { agentGraph } from "@/lib/graph";
+import { HumanMessage } from "@langchain/core/messages";
+
+const client = new Client({
+  puppeteer: { headless: true }  // ✅ Agregar opciones necesarias
+});
+
+client.on("message", async (message: Message) => {
+  console.log(`Received: ${message.body}`);
+
+  const response = await agentGraph.invoke({
+    messages: [new HumanMessage(message.body)]
+  });
+
+  if (response.messages.length > 0) {
+    const reply = response.messages[0].content;
+    if (typeof reply === "string") {
+      message.reply(reply);
+    } else {
+      console.error("Unexpected response format:", response.messages[0]);
+    }
+  }
+});
+
+client.initialize();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/billing.ts
+---------------------------------
+// app/agents/billings.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleBilling() {
+    return { messages: [new AIMessage("Handling billings query")] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/defaultResponse.ts
+---------------------------------
+// app/agents/defaultResponse.ts
+import { AIMessage } from "@langchain/core/messages";
+export function defaultResponse() {
+    return { messages: [new AIMessage("Handling default respponse query")] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/reservations.ts
+---------------------------------
+import { pms } from "@/pms";
+
+export async function handleReservation(state: { messages: { content: string }[] }) {
+  const userMessage = state.messages[0].content; // Extraer el mensaje del usuario
+  console.log(`User request: ${userMessage}`); // Se usa para evitar el error de variable no utilizada
+
+  const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
+  return { messages: [`Reservation confirmed: ${response.id}`] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/classifier.ts
+---------------------------------
+import { classifyQuery } from "../lib/classifier";
+
+export async function classify(state: { messages: { content: string }[] }) {
+  const category = await classifyQuery(state.messages[0].content);
+  return { category };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/services.ts
+---------------------------------
+// app/agents/services.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleServices() {
+    return { messages: [new AIMessage("Handling services query")] };
+}
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/internal_support.ts
+---------------------------------
+// app/agents/internal_support.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleSupport() {
+    return { messages: [new AIMessage("Handling support query")] };
+}
+
+
+---------------------------------
+
+
+🔹 Archivo: ./app/agents/index.ts
+---------------------------------
+import { StateGraph } from "@langchain/langgraph";
+import { classifyQuery } from "../lib/classifier";
+import { pms } from "../pms";
+import { loadDocuments } from "../retrieval/index";
+import { ChatOpenAI } from "@langchain/openai";
+import { createRetrieverTool } from "langchain/tools/retriever";
+import { Annotation } from "@langchain/langgraph";
+import { BaseMessage } from "@langchain/core/messages";
+
+// Definir el estado del grafo correctamente
+const GraphState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y), // Se mantiene así
+    default: () => [] as BaseMessage[], // Se asegura el tipo correcto
+  }),
+  category: Annotation<string>({
+    reducer: (x, y) => y, // Se agrega un `reducer` explícito
+    default: () => "other", // Se asegura el tipo string
+  }),
+});
+
+
+// Cargar documentos y configurar herramientas
+const vectorStore = await loadDocuments();
+const retriever = createRetrieverTool(vectorStore.asRetriever(), {
+  name: "retrieve_hotel_info",
+  description: "Search hotel FAQs and policies.",
+});
+const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+
+// 🔹 Función para clasificar la consulta del usuario
+async function classifyNode(state: typeof GraphState.State) {
+  const category = await classifyQuery(String(state.messages[0].content));
+  return { category };
+}
+
+// 🔹 Función para manejar reservas en el PMS
+async function handleReservationNode() {
+  const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
+  return { messages: [`Reservation confirmed: ${response.id}`] };
+}
+
+// 🔹 Función para manejar solicitudes de información de habitaciones
+async function handleRoomInfoNode(state: typeof GraphState.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+// 🔹 Función para manejar respuestas predeterminadas
+async function defaultResponseNode() {
+  return { messages: ["I'm sorry, I couldn't understand your request. Please try again."] };
+}
+
+// 🔹 Construcción del grafo de estados
+const graph = new StateGraph(GraphState)
+  .addNode("classify", classifyNode)
+  .addNode("handle_reservation", handleReservationNode)
+  .addNode("handle_room_info", handleRoomInfoNode)
+  .addNode("handle_amenities", async () => ({ messages: ["Here are our amenities..."] }))
+  .addNode("handle_cancellation", async () => ({ messages: ["Cancellation policy details..."] }))
+  .addNode("default_response", defaultResponseNode)
+  .addEdge("__start__", "classify") // Agregar el nodo de inicio explícito
+  .addConditionalEdges("classify", (state) => state.category, {
+    reservation: "handle_reservation",
+    room_info: "handle_room_info",
+    amenities: "handle_amenities",
+    cancellation: "handle_cancellation",
+    other: "default_response",
+  })
+  .addEdge("default_response", "__end__"); // Definir el nodo final correctamente
+
+
+
+
+// Exportar el grafo compilado
+export const agentGraph = graph.compile();
+
+---------------------------------
+
+
+🔹 Archivo: ./app/layout.tsx
+---------------------------------
+import type { Metadata } from "next";
+import { Inter, Roboto_Mono } from "next/font/google";
+
+import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const robotoMono = Roboto_Mono({
+  variable: "--font-roboto-mono",
+  subsets: ["latin"],
+});
+
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/page.tsx
+---------------------------------
+"use client";
+
+import { useState } from "react";
+
+export default function ChatPage() {
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const sendQuery = async () => {
+    if (!query.trim()) return;
+    
+    setLoading(true);
+    setResponse(""); 
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await res.json();
+      setResponse(data.answer || "No se encontró una respuesta.");
+    } catch (error) {
+      console.error("Error en la consulta:", error);
+      setResponse("Error al obtener respuesta.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-200 p-6">
+      <h1 className="text-3xl font-bold mb-4 text-white">💬 Chat con IA</h1>
+      
+      <div className="w-full max-w-lg bg-gray-800 p-4 shadow-md rounded-lg">
+        <textarea
+          className="w-full border border-gray-700 bg-gray-900 text-gray-200 p-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+          rows={3}
+          placeholder="Escribe tu pregunta..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+
+        <button
+          className="w-full bg-blue-600 text-white p-2 mt-3 rounded-md hover:bg-blue-700 transition"
+          onClick={sendQuery}
+          disabled={loading}
+        >
+          {loading ? "Pensando..." : "Preguntar"}
+        </button>
+      </div>
+
+      {response && (
+        <div className="w-full max-w-lg bg-gray-800 p-4 mt-4 shadow-md rounded-lg">
+          <h2 className="text-lg font-semibold text-white">🤖 Respuesta:</h2>
+          <p className="mt-2 text-gray-300">{response}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/api/chat/route.ts
+---------------------------------
+import { agentGraph } from "@/lib/graph";
+import { NextResponse } from "next/server";
+import { HumanMessage } from "@langchain/core/messages"; // Importar HumanMessage
+
+export async function POST(req: Request) {
+  const { message } = await req.json();
+
+  const response = await agentGraph.invoke({
+    messages: [new HumanMessage(message)], // Usar HumanMessage en lugar de un objeto literal
+  });
+
+  return NextResponse.json(response.messages[0].content);
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./tailwind.config.ts
+---------------------------------
+import type { Config } from "tailwindcss";
+
+export default {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
+
+---------------------------------
+
+
+🔹 Archivo: ./next-env.d.ts
+---------------------------------
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+---------------------------------
+

@@ -1,0 +1,53 @@
+@startuml BegAI
+title Arquitectura del Proyecto BegaIA
+
+package "Frontend (Next.js)" {
+    component "page.tsx" as Page
+    note right of Page
+        - Renderiza la interfaz gráfica
+        - Envía consultas a la API
+        - Muestra la respuesta del modelo
+    end note
+}
+
+package "Backend (API Next.js)" {
+    component "route.ts (API)" as Route
+    note right of Route
+        - Recibe solicitudes POST de /api/chat
+        - Llama a searchAstraDB() en astra.ts
+        - Procesa respuestas con LangChain
+    end note
+
+    component "astra.ts (DB Handler)" as Astra
+    note right of Astra
+        - Conecta con AstraDB
+        - Ejecuta búsquedas vectoriales
+        - Devuelve documentos relevantes
+    end note
+
+    component "LangChain" as LangChain
+    note right of LangChain
+        - Manejo de embeddings (OpenAI)
+        - Creación de contexto
+        - Generación de respuestas
+    end note
+}
+
+package "Base de Datos (AstraDB)" {
+    database "AstraDB" as DB
+    note right of DB
+        - Almacena documentos y embeddings
+        - Permite búsquedas semánticas
+    end note
+}
+
+Page --> Route : Envía consulta del usuario
+Route --> Astra : Busca en AstraDB
+Astra --> DB : Consulta documentos por embeddings
+DB --> Astra : Retorna documentos relacionados
+Astra --> Route : Devuelve los resultados
+Route --> LangChain : Procesa la respuesta
+LangChain --> Route : Responde con información útil
+Route --> Page : Envía respuesta al frontend
+
+@enduml

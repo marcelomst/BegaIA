@@ -1,0 +1,11 @@
+{
+    "plantuml.render": "PlantUMLServer",
+    "plantuml.exportFormat": "html",
+    "plantuml.server": "https://www.plantuml.com/plantuml ",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+    "typescript.tsserver.useSeparateSyntaxServer": false,
+    "typescript.tsserver.log": "verbose",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "git.ignoreLimitWarning": true
+  }

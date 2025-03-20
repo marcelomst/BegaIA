@@ -1,0 +1,64 @@
+@startuml hotel_agent
+
+package "app/api" {
+    class ChatAPI {
+        +POST(Request req)
+    }
+    class EmailAPI
+    class WhatsAppAPI
+}
+
+package "src/agents" {
+    class AgentGraph {
+        +invoke(messages: HumanMessage[]): Response
+    }
+    class Classifier {
+        +classifyQuery(query: string): string
+    }
+    AgentGraph --> Classifier : Uses
+}
+
+package "src/pms" {
+    class PMS {
+        +createReservation(guest: string, roomType: string, checkIn: string, checkOut: string): Reservation
+        +getReservation(id: string): Reservation
+        +cancelReservation(id: string): Reservation
+    }
+    class Reservation {
+        -guest: string
+        -roomType: string
+        -checkIn: string
+        -checkOut: string
+        -status: "confirmed" | "cancelled"
+    }
+    PMS --> Reservation
+}
+
+package "src/retrieval" {
+    class DocumentLoader {
+        +loadDocuments(): VectorStore
+    }
+    class VectorStore {
+        +retrieve(query: string): Document[]
+    }
+    DocumentLoader --> VectorStore
+}
+
+package "src/services" {
+    class WhatsAppService {
+        +onMessage(message: string): void
+    }
+    WhatsAppService --> AgentGraph : Calls
+}
+
+package "src/utils" {
+    class ConfigLoader {
+        +loadEnv(): void
+    }
+}
+
+AgentGraph --> PMS : Uses
+AgentGraph --> DocumentLoader : Uses
+WhatsAppService --> AgentGraph
+
+@enduml

@@ -1,0 +1,20 @@
+
+Operating System:
+  Platform: linux
+  Arch: x64
+  Version: #1 SMP Tue Nov 5 00:21:55 UTC 2024
+  Available memory (MB): 15700
+  Available CPU cores: 22
+Binaries:
+  Node: 22.13.1
+  npm: 10.9.2
+  Yarn: N/A
+  pnpm: 10.2.0
+Relevant Packages:
+  next: 15.1.7 // Latest available version is detected (15.1.7).
+  eslint-config-next: 15.1.7
+  react: 19.0.0
+  react-dom: 19.0.0
+  typescript: 5.7.3
+Next.js Config:
+  output: N/A

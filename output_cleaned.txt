@@ -1,0 +1,614 @@
+[
+  {
+    "pageContent": "HOME\nROOMS & SERVICES\nGALLERY\nLOCATION\nCONTACTS\n IT\nBOOK NOW\n BOOK DIRECTLY!\nTASTY BREAKFAST AND THE BEST RATE GUARANTEED!\nHOTEL DEMÒ\nNear the Milan Central Station\n\nAll rooms are sanitized daily according to the new regulations.\n\nSo whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 1,
+          "to": 15
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "It is a stone's throw from the Milan Central railway station and close to all necessary public transportation for visiting Milan and its outskirts.\nOnly 100 meters away from the Stazione Centrale and from the bus terminal for the airports of Linate, Malpensa and Orio al Serio.\nJust 100 meters from the Stazione Centrale underground stop.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 17,
+          "to": 19
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó of Milan is a modern and cozy facility, embellished with the works of art of its owner, Enrico Nicodemo (also known as Demó), on display in the reception area.\n\nDuring your stay in Milan, the hotel's staff will be pleased to provide information and great advice on how to get around the city and how to spend your free time. They will also reserve tickets for any cultural, sports or musical event at, for example, the San Siro Stadium.\n\nReception 24/24h",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 21,
+          "to": 25
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Reception 24/24h\n\nThe establishment is open 24 hours a day with a multilingual staff.\n\nLuggage Storage\n\nOur facility has a left-luggage area.\n\nPets are allowed\n\nPets are allowed on request. No extra charges.\n\nFree WiFi Internet\n\nFree Wi-Fi is available throughout the property.\n\nAir Conditioning\n\nAll rooms are equipped with air conditioning.\n\nSafety Deposit Boxes\n\nA safety deposit box service is available.\n\nNON-Smoking Rooms\n\nSmoking is prohibited in all our rooms.\n\nQuick Info",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 25,
+          "to": 53
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Quick Info\n\nCheck-in up to 01pm.\nCheck-out by 12pm.\nBreakfast from 07am to 10am.\n\nHOTEL DEMÒ\nOur Rooms",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 53,
+          "to": 60
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "All rooms are sanitized daily according to the new regulations. So whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.\nWith all the best comforts and with warm wood floors, the rooms of Hotel Demó in Milan are elegantly, simply and functionally furnished.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 62,
+          "to": 63
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Perfect for a weekend getaway or for a business trip, the rooms are also available as triple and quadruple, making them ideal for a family vacation or a trip with friends in Milan.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 64,
+          "to": 64
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "GREAT DEAL!\nSingle Room\n\nThe room is equipped with 1 single bed. It has an area of 11 square meters which allows you to comfortably pass your stay.\n\nPrivate Bathroom\nPhone\nHairdryer\nAir Conditioning\nFree Wi-Fi\nSafe\nNon-smoking\nTowels\nHeating\nLCD TV with satellite channels\n1 single bed\nBOOK NOW\nBEST RATE!\nTwin room\n\nThe room is equipped with 2 single beds. It has an area of 17 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 66,
+          "to": 86
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n2 single beds\nBOOK NOW\nJUST BOOKED!\nDouble room\n\nThe room is equipped with 1 double bed. It has an area of 17 square meters which allows you to comfortably pass your stay.\n\nPrivate bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed\nBOOK NOW\nLOWEST PRICE!\nTriple room",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 88,
+          "to": 118
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The room is equipped with 1 double bed + 1 single bed. It has an area of 23 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 120,
+          "to": 120
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed + 1 single bed\nBOOK NOW\n Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience\nThe best rate and tasty breakfast!\nBook directly on our official website and enjoy an additional discount!\nDon't miss our \"LAST MINUTE\" offers",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 122,
+          "to": 137
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "BOOK NOW\n\nHOTEL DEMÒ\nGallery\nMORE PHOTOS  \nEverything you need to spend a stay\nUNFORGETTABLE\nPARKING\n\nThe hotel has a private car park, just 100 meters, where you can leave your car and safely visit the city. Cost of 25,00 € per day.\n\nSUBWAY\n\nMetro stop CENTRALE FS (line 2 green and line 3 yellow) two minutes from the hotel. Public Bike Sharing nearby.\n\nRESTAURANT SCHALET",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 139,
+          "to": 154
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "RESTAURANT SCHALET\n\nJust 100 meters away, the Schalet Restaurant, which has an agreement with the hotel, offers a rich menu with a wide choice of seafood, land and pizzas.\n\nAIRPORT TERMINAL\n\nHotel Demó is located just 100 meters from the bus terminal for the airports of Linate, Malpensa and Bergamo Orio al Serio, located next to the Central Station.\n\nONLY 100 M FROM MILAN CENTRAL STATION\nStrategic location in the heart of the city",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 154,
+          "to": 163
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó is located along a quiet side street, only 100 meters away from the Stazione Centrale of Milan, from the bus stops for Malpensa, Linate and Orio al Serio and from the subway station (yellow MM3 and green MM2) for the Rho Milan Expo Area, that in only 5 minutes takes you to Piazza del Duomo.\n\nClick here to reach us",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 165,
+          "to": 167
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Click here to reach us\n\nNEAR HOTEL DEMÓ\nBusiness and Shopping\nEntertainment\nPoints of interest\nDistances from most important points of interest in Milan\nHOTEL DEMÒ\nHow to reach us\nBy Plane\nBy Car\nBy Train\nFiera Rho Pero\n Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó\nIt is in this world where I find my peace and appease my soul...\nENRICO NICODEMO - IN ART DEMÓ",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 167,
+          "to": 182
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Via Tonale, 14 Milano (Mi)\n\nTEL.\n+39 02 67074322\nWHATSAPP\n+39 02 67074322\nEMAIL\ninfo@hoteldemo.com\n \n \n \n \n \nPARTNERS\nDemó - Arte Design And More\nGioielli Demó\nOrologi Demó\nHotel della Volta - Brescia\nContact us\nName\nSurname\nEmail\nPhone\nMessage\nI have read the privacy policy and I acknowledge that the processing of data will be carried out within the limits set by Regulation (EU) 2016/679 and AUTHORIZE for the sole purpose of satisfying the request\n Refresh SpamCode",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 184,
+          "to": 209
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "©2024/2025 · Hotel Demó · P.I IT06145640154 · Privacy/Policy · CIN IT015146A1XC7SOVT5 - IT015146A1UDK5CLUI · WebPlan",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/rooms",
+      "loc": {
+        "lines": {
+          "from": 211,
+          "to": 211
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "HOME\nROOMS & SERVICES\nGALLERY\nLOCATION\nCONTACTS\nIT\nBOOK NOW\nBOOK DIRECTLY!\nTASTY BREAKFAST AND THE BEST RATE GUARANTEED!\nHOTEL DEMÒ\nNear the Milan Central Station\n\nAll rooms are sanitized daily according to the new regulations.\n\nSo whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 1,
+          "to": 15
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "It is a stone's throw from the Milan Central railway station and close to all necessary public transportation for visiting Milan and its outskirts.\nOnly 100 meters away from the Stazione Centrale and from the bus terminal for the airports of Linate, Malpensa and Orio al Serio.\nJust 100 meters from the Stazione Centrale underground stop.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 17,
+          "to": 19
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó of Milan is a modern and cozy facility, embellished with the works of art of its owner, Enrico Nicodemo (also known as Demó), on display in the reception area.\n\nDuring your stay in Milan, the hotel's staff will be pleased to provide information and great advice on how to get around the city and how to spend your free time. They will also reserve tickets for any cultural, sports or musical event at, for example, the San Siro Stadium.\n\nReception 24/24h",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 21,
+          "to": 25
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Reception 24/24h\n\nThe establishment is open 24 hours a day with a multilingual staff.\n\nLuggage Storage\n\nOur facility has a left-luggage area.\n\nPets are allowed\n\nPets are allowed on request. No extra charges.\n\nFree WiFi Internet\n\nFree Wi-Fi is available throughout the property.\n\nAir Conditioning\n\nAll rooms are equipped with air conditioning.\n\nSafety Deposit Boxes\n\nA safety deposit box service is available.\n\nNON-Smoking Rooms\n\nSmoking is prohibited in all our rooms.\n\nQuick Info",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 25,
+          "to": 53
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Quick Info\n\nCheck-in up to 01pm.\nCheck-out by 12pm.\nBreakfast from 07am to 10am.\n\nHOTEL DEMÒ\nOur Rooms",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 53,
+          "to": 60
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "All rooms are sanitized daily according to the new regulations. So whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.\nWith all the best comforts and with warm wood floors, the rooms of Hotel Demó in Milan are elegantly, simply and functionally furnished.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 62,
+          "to": 63
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Perfect for a weekend getaway or for a business trip, the rooms are also available as triple and quadruple, making them ideal for a family vacation or a trip with friends in Milan.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 64,
+          "to": 64
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "GREAT DEAL!\nSingle Room\n\nThe room is equipped with 1 single bed. It has an area of 11 square meters which allows you to comfortably pass your stay.\n\nPrivate Bathroom\nPhone\nHairdryer\nAir Conditioning\nFree Wi-Fi\nSafe\nNon-smoking\nTowels\nHeating\nLCD TV with satellite channels\n1 single bed\nBOOK NOW\nBEST RATE!\nTwin room\n\nThe room is equipped with 2 single beds. It has an area of 17 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 66,
+          "to": 86
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n2 single beds\nBOOK NOW\nJUST BOOKED!\nDouble room\n\nThe room is equipped with 1 double bed. It has an area of 17 square meters which allows you to comfortably pass your stay.\n\nPrivate bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed\nBOOK NOW\nLOWEST PRICE!\nTriple room",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 88,
+          "to": 118
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The room is equipped with 1 double bed + 1 single bed. It has an area of 23 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 120,
+          "to": 120
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed + 1 single bed\nBOOK NOW\nRelax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience\nThe best rate and tasty breakfast!\nBook directly on our official website and enjoy an additional discount!\nDon't miss our \"LAST MINUTE\" offers",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 122,
+          "to": 137
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "BOOK NOW\n\nHOTEL DEMÒ\nGallery\nMORE PHOTOS\nEverything you need to spend a stay\nUNFORGETTABLE\nPARKING\n\nThe hotel has a private car park, just 100 meters, where you can leave your car and safely visit the city. Cost of 25,00 € per day.\n\nSUBWAY\n\nMetro stop CENTRALE FS (line 2 green and line 3 yellow) two minutes from the hotel. Public Bike Sharing nearby.\n\nRESTAURANT SCHALET",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 139,
+          "to": 154
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "RESTAURANT SCHALET\n\nJust 100 meters away, the Schalet Restaurant, which has an agreement with the hotel, offers a rich menu with a wide choice of seafood, land and pizzas.\n\nAIRPORT TERMINAL\n\nHotel Demó is located just 100 meters from the bus terminal for the airports of Linate, Malpensa and Bergamo Orio al Serio, located next to the Central Station.\n\nONLY 100 M FROM MILAN CENTRAL STATION\nStrategic location in the heart of the city",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 154,
+          "to": 163
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó is located along a quiet side street, only 100 meters away from the Stazione Centrale of Milan, from the bus stops for Malpensa, Linate and Orio al Serio and from the subway station (yellow MM3 and green MM2) for the Rho Milan Expo Area, that in only 5 minutes takes you to Piazza del Duomo.\n\nClick here to reach us",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 165,
+          "to": 167
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Click here to reach us\n\nNEAR HOTEL DEMÓ\nBusiness and Shopping\nEntertainment\nPoints of interest\nDistances from most important points of interest in Milan\nHOTEL DEMÒ\nHow to reach us\nBy Plane\nBy Car\nBy Train\nFiera Rho Pero\nEnrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó\nIt is in this world where I find my peace and appease my soul...\nENRICO NICODEMO - IN ART DEMÓ",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 167,
+          "to": 182
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Via Tonale, 14 Milano (Mi)\n\nTEL.\n+39 02 67074322\nWHATSAPP\n+39 02 67074322\nEMAIL\ninfo@hoteldemo.com\n\nPARTNERS\nDemó - Arte Design And More\nGioielli Demó\nOrologi Demó\nHotel della Volta - Brescia\nContact us\nName\nSurname\nEmail\nPhone\nMessage\nI have read the privacy policy and I acknowledge that the processing of data will be carried out within the limits set by Regulation (EU) 2016/679 and AUTHORIZE for the sole purpose of satisfying the request\nRefresh SpamCode",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 184,
+          "to": 205
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "©2024/2025 · Hotel Demó · P.I IT06145640154 · Privacy/Policy · CIN IT015146A1XC7SOVT5 - IT015146A1UDK5CLUI · WebPlan",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/services",
+      "loc": {
+        "lines": {
+          "from": 207,
+          "to": 207
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "HOME\nROOMS & SERVICES\nGALLERY\nLOCATION\nCONTACTS\nIT\nBOOK NOW\nBOOK DIRECTLY!\nTASTY BREAKFAST AND THE BEST RATE GUARANTEED!\nHOTEL DEMÒ\nNear the Milan Central Station\n\nAll rooms are sanitized daily according to the new regulations.\n\nSo whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 1,
+          "to": 15
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "It is a stone's throw from the Milan Central railway station and close to all necessary public transportation for visiting Milan and its outskirts.\nOnly 100 meters away from the Stazione Centrale and from the bus terminal for the airports of Linate, Malpensa and Orio al Serio.\nJust 100 meters from the Stazione Centrale underground stop.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 17,
+          "to": 19
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó of Milan is a modern and cozy facility, embellished with the works of art of its owner, Enrico Nicodemo (also known as Demó), on display in the reception area.\n\nDuring your stay in Milan, the hotel's staff will be pleased to provide information and great advice on how to get around the city and how to spend your free time. They will also reserve tickets for any cultural, sports or musical event at, for example, the San Siro Stadium.\n\nReception 24/24h",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 21,
+          "to": 25
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Reception 24/24h\n\nThe establishment is open 24 hours a day with a multilingual staff.\n\nLuggage Storage\n\nOur facility has a left-luggage area.\n\nPets are allowed\n\nPets are allowed on request. No extra charges.\n\nFree WiFi Internet\n\nFree Wi-Fi is available throughout the property.\n\nAir Conditioning\n\nAll rooms are equipped with air conditioning.\n\nSafety Deposit Boxes\n\nA safety deposit box service is available.\n\nNON-Smoking Rooms\n\nSmoking is prohibited in all our rooms.\n\nQuick Info",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 25,
+          "to": 53
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Quick Info\n\nCheck-in up to 01pm.\nCheck-out by 12pm.\nBreakfast from 07am to 10am.\n\nHOTEL DEMÒ\nOur Rooms",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 53,
+          "to": 60
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "All rooms are sanitized daily according to the new regulations. So whatever the choice made, the level of services and the use of common areas will be able to fully meet your expectations.\nWith all the best comforts and with warm wood floors, the rooms of Hotel Demó in Milan are elegantly, simply and functionally furnished.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 62,
+          "to": 63
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Perfect for a weekend getaway or for a business trip, the rooms are also available as triple and quadruple, making them ideal for a family vacation or a trip with friends in Milan.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 64,
+          "to": 64
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "GREAT DEAL!\nSingle Room\n\nThe room is equipped with 1 single bed. It has an area of 11 square meters which allows you to comfortably pass your stay.\n\nPrivate Bathroom\nPhone\nHairdryer\nAir Conditioning\nFree Wi-Fi\nSafe\nNon-smoking\nTowels\nHeating\nLCD TV with satellite channels\n1 single bed\nBOOK NOW\nBEST RATE!\nTwin room\n\nThe room is equipped with 2 single beds. It has an area of 17 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 66,
+          "to": 86
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n2 single beds\nBOOK NOW\nJUST BOOKED!\nDouble room\n\nThe room is equipped with 1 double bed. It has an area of 17 square meters which allows you to comfortably pass your stay.\n\nPrivate bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed\nBOOK NOW\nLOWEST PRICE!\nTriple room",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 88,
+          "to": 118
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The room is equipped with 1 double bed + 1 single bed. It has an area of 23 square meters which allows you to comfortably pass your stay.",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 120,
+          "to": 120
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Private bathroom\nPhone\nLCD TV with satellite channels\nHairdryer\nAir conditioning\nFree WiFi\nSafe\nNon-smoking\nTowels\nHeating\n1 double bed + 1 single bed\nBOOK NOW\nRelax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience Relax Enjoy Holiday Travel Discover Experience\nThe best rate and tasty breakfast!\nBook directly on our official website and enjoy an additional discount!\nDon't miss our \"LAST MINUTE\" offers",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 122,
+          "to": 137
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "BOOK NOW\n\nHOTEL DEMÒ\nGallery\nMORE PHOTOS\nEverything you need to spend a stay\nUNFORGETTABLE\nPARKING\n\nThe hotel has a private car park, just 100 meters, where you can leave your car and safely visit the city. Cost of 25,00 € per day.\n\nSUBWAY\n\nMetro stop CENTRALE FS (line 2 green and line 3 yellow) two minutes from the hotel. Public Bike Sharing nearby.\n\nRESTAURANT SCHALET",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 139,
+          "to": 154
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "RESTAURANT SCHALET\n\nJust 100 meters away, the Schalet Restaurant, which has an agreement with the hotel, offers a rich menu with a wide choice of seafood, land and pizzas.\n\nAIRPORT TERMINAL\n\nHotel Demó is located just 100 meters from the bus terminal for the airports of Linate, Malpensa and Bergamo Orio al Serio, located next to the Central Station.\n\nONLY 100 M FROM MILAN CENTRAL STATION\nStrategic location in the heart of the city",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 154,
+          "to": 163
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "The Hotel Demó is located along a quiet side street, only 100 meters away from the Stazione Centrale of Milan, from the bus stops for Malpensa, Linate and Orio al Serio and from the subway station (yellow MM3 and green MM2) for the Rho Milan Expo Area, that in only 5 minutes takes you to Piazza del Duomo.\n\nClick here to reach us",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 165,
+          "to": 167
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Click here to reach us\n\nNEAR HOTEL DEMÓ\nBusiness and Shopping\nEntertainment\nPoints of interest\nDistances from most important points of interest in Milan\nHOTEL DEMÒ\nHow to reach us\nBy Plane\nBy Car\nBy Train\nFiera Rho Pero\nEnrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó\nIt is in this world where I find my peace and appease my soul...\nENRICO NICODEMO - IN ART DEMÓ",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 167,
+          "to": 182
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "Via Tonale, 14 Milano (Mi)\n\nTEL.\n+39 02 67074322\nWHATSAPP\n+39 02 67074322\nEMAIL\ninfo@hoteldemo.com\n\nPARTNERS\nDemó - Arte Design And More\nGioielli Demó\nOrologi Demó\nHotel della Volta - Brescia\nContact us\nName\nSurname\nEmail\nPhone\nMessage\nI have read the privacy policy and I acknowledge that the processing of data will be carried out within the limits set by Regulation (EU) 2016/679 and AUTHORIZE for the sole purpose of satisfying the request\nRefresh SpamCode",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 184,
+          "to": 205
+        }
+      }
+    }
+  },
+  {
+    "pageContent": "©2024/2025 · Hotel Demó · P.I IT06145640154 · Privacy/Policy · CIN IT015146A1XC7SOVT5 - IT015146A1UDK5CLUI · WebPlan",
+    "metadata": {
+      "source": "https://www.hoteldemo.com/contact",
+      "loc": {
+        "lines": {
+          "from": 207,
+          "to": 207
+        }
+      }
+    }
+  }
+]
