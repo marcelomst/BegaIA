@@ -1,0 +1,1041 @@
+📂 Estructura del Proyecto
+=========================
+.
+├── README.md
+├── app
+│   ├── api
+│   │   ├── chat
+│   │   │   ├── route.ts
+│   │   │   └── route.ts:Zone.Identifier
+│   │   ├── email 
+│   │   └── whatsapp
+│   ├── favicon.ico
+│   ├── generatePDF.js
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── lib
+│   │   └── translation.ts
+│   └── page.tsx
+├── arquitectura.txt
+├── documentacion
+├── eslint.config.mjs
+├── estructura_del_proyecto.txt
+├── generate_architecture.sh
+├── info.txt
+├── lib
+│   ├── agents
+│   │   ├── billing.ts
+│   │   ├── classifier.ts
+│   │   ├── defaultResponse.ts
+│   │   ├── index.ts
+│   │   ├── internal_support.ts
+│   │   ├── reservations.ts
+│   │   ├── room_info.ts
+│   │   └── services.ts
+│   ├── pms
+│   │   └── index.ts
+│   ├── retrieval
+│   │   └── index.ts
+│   └── services
+│       └── whatsapp.ts
+├── next
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.cjs
+├── public
+│   ├── file.svg
+│   ├── fonts
+│   │   ├── geist-latin-ext.woff2
+│   │   ├── geist-latin.woff2
+│   │   ├── geist-mono-latin-ext.woff2
+│   │   └── geist-mono-latin.woff2
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── src
+│   ├── app.ts
+│   ├── config.ts
+│   ├── hotel_agent_uml.uml
+│   └── utils
+├── tailwind.config.cjs
+├── test
+│   ├── agents.test.ts
+│   ├── chat.test.ts
+│   ├── data
+│   │   ├── 05-versions-space.pdf
+│   │   └── 05-versions-space.pdf.txt
+│   ├── presentacion.test.ts
+│   ├── retrieval.test.ts
+│   └── ui.test.tsx
+├── testAstraConnection.ts
+├── touch @types
+│   └── rehype-raw.d.ts
+├── tsconfig.json
+├── tsconfig.tsbuildinfo
+├── vitest.config.ts
+└── vitest.setup.ts
+
+20 directories, 57 files
+
+=========================
+
+📜 Scripts Claves
+=================
+
+🔹 Archivo: ./lib/services/whatsapp.ts
+---------------------------------
+import { Client, Message } from "whatsapp-web.js";
+import { agentGraph } from "../agents";  // ✅ Ajustar ruta de importación
+import { HumanMessage } from "@langchain/core/messages";
+
+const client = new Client({
+  puppeteer: { headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] }
+});
+
+client.on("qr", (qr) => {
+  console.log("⚡ Scan this QR code to connect WhatsApp:");
+  console.log(qr);
+});
+
+client.on("ready", () => {
+  console.log("✅ WhatsApp Bot is ready!");
+});
+
+client.on("message", async (message: Message) => {
+  try {
+    console.log(`📩 Received: ${message.body}`);
+
+    const response = await agentGraph.invoke({
+      messages: [new HumanMessage(message.body)]
+    });
+
+    if (response.messages.length > 0) {
+      const reply = response.messages[0].content;
+      if (typeof reply === "string" && reply.trim() !== "") {
+        message.reply(reply);
+        console.log(`📤 Sent: ${reply}`);
+      } else {
+        console.error("⚠️ Unexpected response format:", response.messages[0]);
+      }
+    } else {
+      console.warn("⚠️ No response from agent.");
+    }
+  } catch (error) {
+    console.error("⛔ Error processing message:", error);
+    message.reply("⚠️ Lo siento, hubo un problema procesando tu solicitud.");
+  }
+});
+
+client.initialize();
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/pms/index.ts
+---------------------------------
+export type ReservationStatus = "confirmed" | "cancelled";
+
+export interface Reservation {
+  guest: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  status: ReservationStatus;
+}
+
+export class PMS {
+  private reservations: Record<string, Reservation> = {}; // 🔥 Reemplazamos `any` por `Reservation`
+
+  createReservation(guest: string, roomType: string, checkIn: string, checkOut: string): Reservation & { id: string } {
+    const id = `res-${Date.now()}`;
+    this.reservations[id] = { guest, roomType, checkIn, checkOut, status: "confirmed" };
+    return { id, ...this.reservations[id] };
+  }
+
+  getReservation(id: string): Reservation | null {
+    return this.reservations[id] || null;
+  }
+
+  cancelReservation(id: string): Reservation | null {
+    if (this.reservations[id]) {
+      this.reservations[id].status = "cancelled";
+      return this.reservations[id];
+    }
+    return null;
+  }
+}
+
+export const pms = new PMS();
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/retrieval/index.ts
+---------------------------------
+import puppeteer from "puppeteer";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { writeFile } from "fs/promises";
+import { Document } from "@langchain/core/documents";
+import { ChatOpenAI } from "@langchain/openai";
+import dotenv from "dotenv";
+import { translationModel } from "@/lib/translation";
+
+dotenv.config(); // Carga las variables de entorno
+
+
+// 🔄 Función para traducir texto con manejo de errores
+export async function translateText(text: string) {
+  try {
+    console.log(`🔄 Traduciendo consulta: "${text}"`);
+
+    const translatedQuery = await translationModel(text, "Spanish");
+
+
+    const translatedText =
+      typeof translatedQuery.content === "string"
+        ? translatedQuery.content
+        : JSON.stringify(translatedQuery.content);
+
+    console.log(`🌍 Traducción completa: "${translatedText}"`);
+    return translatedText;
+  } catch (error) {
+    console.error("⛔ Error en traducción:", error);
+    return text; // En caso de fallo, devolver el texto original
+  }
+}
+
+
+// 🌐 URLs a extraer
+const urls = [
+  "https://www.hoteldemo.com/en/index.php",
+];
+
+// 🖥 Función para extraer texto con Puppeteer
+async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
+  console.log(`🖥 Cargando página con Puppeteer: ${url}`);
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 }); // 60 segundos
+    await page.waitForSelector("body", { timeout: 120000 });
+
+    const pageContent = await page.evaluate(() => document.body.innerText);
+    return pageContent;
+  } catch (error) {
+    console.error(`❌ Error con Puppeteer al acceder a ${url}:`, error);
+    return null;
+  } finally {
+    await browser.close();
+  }
+}
+
+// 📥 Función para cargar y procesar documentos
+export async function loadDocuments() {
+  console.log("🔍 Iniciando carga de documentos con Puppeteer...");
+
+  const docs = await Promise.all(
+    urls.map(async (url) => {
+      const html = await fetchPageWithPuppeteer(url);
+      if (!html) return null;
+
+      const translatedContent = await translateText(html);
+
+      return new Document({
+        pageContent: translatedContent,
+        metadata: { source: url },
+      });
+    })
+  );
+
+  const docsList = docs.filter((doc) => doc !== null);
+  console.log(`✅ Documentos extraídos y traducidos: ${docsList.length}`);
+
+  // 🛠 **Dividir el texto en fragmentos para mejor indexación**
+  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const docSplits = await textSplitter.splitDocuments(docsList);
+
+  // 💾 Guardar datos en un archivo de depuración
+  await saveDocsToFile(docSplits);
+
+  // 📚 Crear base vectorial con textos en español
+  return await MemoryVectorStore.fromDocuments(docSplits, new OpenAIEmbeddings());
+}
+
+// 💾 Función para guardar datos en un archivo
+async function saveDocsToFile(docSplits: Document[]) {
+  try {
+    const textContent = JSON.stringify(docSplits, null, 2);
+    await writeFile("output_cleaned.txt", textContent, "utf-8");
+    console.log("📂 Datos guardados en output_cleaned.txt");
+  } catch (error) {
+    console.error("❌ Error al escribir el archivo:", error);
+  }
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/billing.ts
+---------------------------------
+// app/agents/billings.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleBilling() {
+    return { messages: [new AIMessage("Handling billings query")] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/defaultResponse.ts
+---------------------------------
+// app/agents/defaultResponse.ts
+import { AIMessage } from "@langchain/core/messages";
+export function defaultResponse() {
+    return { messages: [new AIMessage("Handling default respponse query")] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/reservations.ts
+---------------------------------
+import { pms } from "lib/pms";
+
+export async function handleReservation(state: { messages: { content: string }[] }) {
+  const userMessage = state.messages[0].content; // Extraer el mensaje del usuario
+  console.log(`User request: ${userMessage}`); // Se usa para evitar el error de variable no utilizada
+
+  const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
+  return { messages: [`Reservation confirmed: ${response.id}`] };
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/classifier.ts
+---------------------------------
+export async function classifyQuery(question: string): Promise<string> {
+  const lowerCaseQ = question.toLowerCase();
+  let category = "other"; // Categoría por defecto
+
+  if (
+    lowerCaseQ.includes("reservar") ||
+    lowerCaseQ.includes("reserva") ||
+    lowerCaseQ.includes("quiero reservar") ||
+    lowerCaseQ.includes("hacer una reserva")
+  ) {
+    category = "reservation";
+  } else if (
+    lowerCaseQ.includes("habitacion") ||
+    lowerCaseQ.includes("cuarto") ||
+    lowerCaseQ.includes("vista al mar") ||
+    lowerCaseQ.includes("frente al mar") ||
+    lowerCaseQ.includes("tipo de habitacion") ||
+    lowerCaseQ.includes("comodidades")
+  ) {
+    category = "room_info";
+  } else if (
+    lowerCaseQ.includes("servicio") ||
+    lowerCaseQ.includes("spa") ||
+    lowerCaseQ.includes("gimnasio") ||
+    lowerCaseQ.includes("restaurante")
+  ) {
+    category = "services";
+  } else if (
+    lowerCaseQ.includes("factura") ||
+    lowerCaseQ.includes("pago") ||
+    lowerCaseQ.includes("cobro") ||
+    lowerCaseQ.includes("precio")
+  ) {
+    category = "billing";
+  } else if (
+    lowerCaseQ.includes("soporte") ||
+    lowerCaseQ.includes("problema") ||
+    lowerCaseQ.includes("ayuda")
+  ) {
+    category = "support";
+  }
+
+  console.log(`✅ Consulta clasificada como: ${category}`); // 🔍 LOG ÚTIL PARA DEPURACIÓN
+  return category;
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/services.ts
+---------------------------------
+// app/agents/services.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleServices() {
+    return { messages: [new AIMessage("Handling services query")] };
+}
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/internal_support.ts
+---------------------------------
+// app/agents/internal_support.ts
+import { AIMessage } from "@langchain/core/messages";
+export function handleSupport() {
+    return { messages: [new AIMessage("Handling support query")] };
+}
+
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/room_info.ts
+---------------------------------
+import { ChatOpenAI } from "@langchain/openai";
+import { GraphState, model, vectorStore } from "./index"
+import { AIMessage } from "@langchain/core/messages";
+
+const translationModel = new ChatOpenAI({ model: "gpt-4o" });
+
+async function translateResponseBack(originalLang: string, content: string): Promise<string> {
+  if (originalLang === process.env.SYSTEM_NATIVE_LANGUAGE) return content;
+
+  const translated = await translationModel.invoke([
+    {
+      role: "system",
+      content: `Traduce el siguiente contenido al idioma '${originalLang}' manteniendo emojis y formato Markdown.`,
+    },
+    {
+      role: "user",
+      content,
+    },
+  ]);
+
+  return typeof translated.content === "string" ? translated.content : content;
+}
+
+export async function retrieve_hotel_info(query: string, lang: string) {
+    console.log(`🔍 Buscando información en la base vectorial: ${query}`);
+ 
+
+    const translatedQuery = lang === process.env.SYSTEM_NATIVE_LANGUAGE
+    ? { content: query }
+    : await translationModel.invoke([
+        {
+          role: "system",
+          content: `Translate this query to ${process.env.SYSTEM_NATIVE_LANGUAGE}:`,
+        },
+        {
+          role: "user",
+          content: query,
+        },
+    ]);
+  
+  
+  
+    console.log("🌍 Consulta traducida: ${translatedQuery.content}");
+    console.log("📌 Tipo de translatedQuery.content:", typeof translatedQuery.content, translatedQuery.content);
+  
+    // 🔍 Buscamos en la base vectorial
+    const searchQuery = typeof translatedQuery.content === "string"
+    ? translatedQuery.content
+    : JSON.stringify(translatedQuery.content);
+    const results = await vectorStore.similaritySearch(searchQuery, 5);
+  
+    console.log("📄 Resultados encontrados:", results.map(r => r.pageContent));
+  
+    return results.map(doc => doc.pageContent).join("\n\n");
+  }
+
+export async function handleRoomInfoNode(state: typeof GraphState.State) {
+  // 📝 Obtener la consulta del usuario
+  const userQuery = state.messages.length > 0 ? String(state.messages[state.messages.length - 1]?.content) : "";
+  const lang = state.detectedLanguage ?? process.env.SYSTEM_NATIVE_LANGUAGE;
+  
+  // Validar entrada
+  if (!userQuery.trim()) {
+    return { messages: [new AIMessage("Consulta vacía o inválida.")] };
+  }
+
+ // Recuperar info en idioma nativo
+  const retrievedInfo = await retrieve_hotel_info(userQuery, lang);
+
+  if (!retrievedInfo.trim()) {
+    console.log("🚫 No se encontraron coincidencias en la base vectorial. Usando modelo de IA sin contexto.");
+    const response = await model.invoke(state.messages);
+    const responseText = typeof response.content === "string" ? response.content.trim() : "";
+    return { messages: [new AIMessage(responseText || "Lo siento, no encontré información sobre habitaciones.")] };
+  }
+
+  // 🔹 Construir el prompt con formato mejorado
+  const formattedPrompt = `
+  Usa la siguiente información del hotel para responder de manera clara y bien estructurada.
+
+  **Formato requerido:**
+  - Usa **Markdown** con listas y tablas para alineación.
+  - La tabla **sin líneas de separación entre filas**.
+  - Usa títulos en **negrita** con el emoji 🏨 antes del nombre de la habitación.
+  - **Añade un doble salto de línea entre cada tipo de habitación.**
+  - **Finaliza con una invitación a reservar.**
+
+  Ejemplo de formato esperado:
+  \`\`\`md
+  **🏨 Habitación Doble**  
+
+  | 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  
+  | 🚿 Baño privado       | 📞 Teléfono                    |  
+  | 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  
+  | ❄️ Aire acondicionado | 📶 WiFi gratis                 |  
+  | 🔒 Caja fuerte        | 🚭 No fumadores                |  
+  | 🛁 Toallas            | 🔥 Calefacción                 |  
+
+  <br><br>
+
+  **🏨 Habitación Triple**  
+
+  | 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  
+  | 🚿 Baño privado               | 📞 Teléfono                    |  
+  | 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  
+  | ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  
+  | 🔒 Caja fuerte                | 🚭 No fumadores                |  
+  | 🛁 Toallas                    | 🔥 Calefacción                 |  
+
+  <br><br>
+
+  📅 **¡Reserva ahora para obtener el mejor precio!** 💰  
+  🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)
+
+  \`\`\`
+
+  **Aquí está la información relevante del hotel:**  
+
+  ${retrievedInfo}
+
+  **Asegúrate de seguir estrictamente este formato.**
+  `.trim();
+
+
+  // 🔥 Enviar la consulta mejorada al modelo de IA
+  const response = await model.invoke([
+    { role: "system", content: String(formattedPrompt) }, // Convertir a string por seguridad
+    { role: "user", content: String(userQuery) }
+  ]);
+
+  const responseText = typeof response.content === "string" ? response.content.trim() : "";
+  // Traducir la salida si corresponde
+  const finalResponse = lang === process.env.SYSTEM_NATIVE_LANGUAGE
+  ? responseText
+  : await translateResponseBack(lang, responseText);
+  return { messages: [new AIMessage(responseText || "Lo siento, no encontré información sobre habitaciones.")] };
+}
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/index.ts
+---------------------------------
+/// fusión de:
+// handleRoomInfoNode_001 F app/agents/index.ts F formattedPrompt_001
+
+import { StateGraph } from "@langchain/langgraph";
+import { classifyQuery } from "./classifier";
+import { AIMessage } from "@langchain/core/messages";
+import { pms } from "../pms";
+import { loadDocuments } from "../retrieval/index";
+import { ChatOpenAI } from "@langchain/openai";
+import { createRetrieverTool } from "langchain/tools/retriever";
+import { Annotation } from "@langchain/langgraph";
+import { BaseMessage } from "@langchain/core/messages";
+import { handleRoomInfoNode } from "./room_info";
+
+// Definir el estado del grafo correctamente
+export const GraphState = Annotation.Root({
+    messages: Annotation<BaseMessage[]>({
+      reducer: (x, y) => x.concat(y),
+      default: () => [] as BaseMessage[],
+    }),
+    category: Annotation<string>({
+      reducer: (x, y) => y,
+      default: () => "other",
+    }),
+    detectedLanguage: Annotation<string>({
+      reducer: (x, y) => y,
+      default: () => "en",
+    }),
+  });
+  
+
+// Cargar documentos y configurar herramientas
+export const vectorStore = await loadDocuments();
+const retriever = createRetrieverTool(vectorStore.asRetriever(), {
+  name: "retrieve_hotel_info",
+  description: "Search hotel FAQs and policies.",
+});
+export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+
+// 🔹 Función para clasificar la consulta del usuario
+async function classifyNode(state: typeof GraphState.State) {
+  try {
+    const contentText = typeof state.messages[0].content === "string" ? state.messages[0].content : "";
+    const category = await classifyQuery(contentText);
+
+    return { category };
+  } catch (error) {
+    console.error("⛔ Error en clasificación:", error);
+    return { category: "other" }; // Retornar una categoría segura
+  }
+}
+
+// 🔹 Función para manejar reservas en el PMS
+async function handleReservationNode() {
+  const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
+  return { messages: [new AIMessage(`Reservation confirmed: ${response.id}`)] };
+}
+
+
+// 🔹 Función para manejar respuestas predeterminadas
+async function defaultResponseNode() {
+  return { messages: [new AIMessage("Lo siento, no entendí la solicitud. Inténtalo nuevamente.")] };
+}
+
+// 🔹 Construcción del grafo de estados
+const graph = new StateGraph(GraphState)
+  .addNode("classify", classifyNode)
+  .addNode("handle_reservation", handleReservationNode)
+  .addNode("handle_room_info", async (state) => await handleRoomInfoNode(state))
+  .addNode("handle_amenities", async () => ({ messages: [new AIMessage("Aquí están nuestras comodidades.")] }))
+  .addNode("handle_cancellation", async () => ({ messages: [new AIMessage("Detalles de cancelación...")] }))
+  .addNode("default_response", defaultResponseNode)
+  .addEdge("__start__", "classify")
+  .addConditionalEdges("classify", (state) => state.category, {
+    room_info: "handle_room_info",
+    reservation: "handle_reservation",
+    amenities: "handle_amenities",
+    cancellation: "handle_cancellation",
+    other: "default_response",
+  })
+  .addEdge("default_response", "__end__");
+
+console.log("✅ Grafo compilado con éxito.");
+
+// Exportar el grafo compilado
+export const agentGraph = graph.compile();
+---------------------------------
+
+
+🔹 Archivo: ./test/agents.test.ts
+---------------------------------
+import { test, expect, vi, describe } from "vitest";
+import 'openai/shims/node';
+
+// 🛑 Mock de OpenAI para evitar llamadas reales
+vi.mock("@langchain/openai", () => ({
+  ChatOpenAI: vi.fn(() => ({
+    invoke: vi.fn(() =>
+      Promise.resolve({ content: "Sí, las habitaciones tienen WiFi gratis." })
+    ),
+  })),
+}));
+
+// 🛑 Mock de retrieve_hotel_info para evitar acceso a la base de datos
+vi.mock("@/agents/room_info", () => ({
+  retrieve_hotel_info: vi.fn(() => Promise.resolve("📶 WiFi gratis")),
+}));
+
+// 🔄 Ahora importamos después de los mocks
+import { ChatOpenAI } from "@langchain/openai";
+import * as Agents from "lib/agents/room_info";
+
+describe("Agente de hotel - Pruebas con respuestas mockeadas", () => {
+  test("El modelo usa correctamente la base vectorial", async () => {
+    const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
+    const query = "¿Las habitaciones tienen WiFi gratis?";
+    const lang = process.env.SYSTEM_NATIVE_LANGUAGE || 'es';
+    const vectorResponse = await Agents.retrieve_hotel_info("¿Qué tipos de habitaciones tienen?", lang);
+    const aiResponse = await model.invoke([{ role: "user", content: query }]);
+
+    console.log("📌 Respuesta del modelo:", aiResponse);
+    console.log("📌 Tipo de aiResponse:", typeof aiResponse);
+
+    expect(aiResponse.content).toContain("WiFi gratis");
+    expect(vectorResponse).toContain("📶 WiFi gratis");
+  });
+});
+
+---------------------------------
+
+
+🔹 Archivo: ./test/presentacion.test.ts
+---------------------------------
+import { test, expect } from "vitest";
+import { handleRoomInfoNode } from "../lib/agents/room_info";
+import { GraphState } from "../lib/agents"; // importa el GraphState para armar el estado
+import { HumanMessage } from "@langchain/core/messages";
+
+test("El formato contiene Markdown visual con emojis", async () => {
+  const testQuery = "¿Qué tipos de habitaciones tienen?";
+
+  // 🧠 Simular estado del grafo como si viniera del flujo real
+  const testState: typeof GraphState.State = {
+    messages: [new HumanMessage(testQuery)],
+    category: "room_info",
+    detectedLanguage: "es", // forzamos español para usar el prompt curado directamente
+  };
+
+  // ✅ Invocar el nodo como lo haría LangGraph
+  const result = await handleRoomInfoNode(testState);
+
+  // 🧾 Extraer respuesta
+  const response = result.messages[0].content;
+
+  // 🧪 Aserciones sobre el formato visual
+  expect(response).toMatch(/🏨/); // emoji título
+  expect(response).toMatch(/\| 🛏️/); // tabla
+  expect(response).toMatch(/\*\*¡Reserva ahora.*\*\*/); // llamado final en negrita
+});
+
+---------------------------------
+
+
+🔹 Archivo: ./test/retrieval.test.ts
+---------------------------------
+import { test, expect } from "vitest";
+
+import { retrieve_hotel_info } from "../lib/agents/room_info.ts";
+
+test("Recupera información sobre habitaciones correctamente", async () => {
+  const query = "¿Qué tipos de habitaciones tienen?";
+  const response = await retrieve_hotel_info(query, "es");
+  console.log("📌 Respuesta obtenida:", response);
+
+  expect(response).toContain("Habitación");
+  expect(response).toContain("área de");
+  expect(response).toContain("Baño privado");
+});
+
+
+
+---------------------------------
+
+
+🔹 Archivo: ./test/chat.test.ts
+---------------------------------
+import "openai/shims/node"; // Para arreglar el fetch de OpenAI
+import request from "supertest";
+import { createServer } from "http";
+import { POST } from "../app/api/chat/route.ts";
+import { test, expect, beforeAll, afterAll } from "vitest";
+
+// 📌 Servidor de pruebas
+let server: any;
+
+beforeAll(() => {
+  server = createServer(async (req, res) => {
+    try {
+      let data = "";
+      req.on("data", (chunk) => (data += chunk));
+      req.on("end", async () => {
+        try {
+          const body = JSON.parse(data);
+
+          // ✅ Aseguramos que la URL sea absoluta
+          const fullUrl = new URL(req.url ?? "/api/chat", "http://localhost:3001");
+
+          const nextReq = new Request(fullUrl.toString(), {
+            method: req.method ?? "POST",
+            headers: req.headers as HeadersInit,
+            body: JSON.stringify(body),
+          });
+
+          // Ejecutar la función POST de Next.js
+          const response = await POST(nextReq);
+          const responseData = await response.json();
+
+          // Responder con el contenido de Next.js
+          res.writeHead(response.status, { "Content-Type": "application/json" });
+          res.end(JSON.stringify(responseData));
+        } catch (error) {
+          console.error("❌ Error al parsear JSON:", error);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Solicitud inválida" }));
+        }
+      });
+    } catch (error) {
+      console.error("❌ Error en el servidor de pruebas:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error interno en el servidor" }));
+    }
+  });
+
+  server.listen(3001, () => {
+    console.log("🚀 Servidor de pruebas en ejecución en el puerto 3001");
+  });
+});
+
+afterAll(() => {
+  server.close();
+  console.log("🛑 Servidor de pruebas detenido.");
+});
+
+// 🔥 Test para validar la API de chat
+test("Debe responder con un mensaje válido del bot", async () => {
+  const response = await request(server)
+    .post("/api/chat")
+    .send({ query: "¿Qué tipos de habitaciones tienen?" });
+
+  console.log("📌 Respuesta del servidor:", response.body);
+
+  expect(response.status).toBe(200);
+  expect(response.body).toBeDefined();
+  expect(response.body.response).toBeDefined();
+  expect(response.body.response.length).toBeGreaterThan(0);
+});
+
+---------------------------------
+
+
+🔹 Archivo: ./test/ui.test.tsx
+---------------------------------
+import { test, expect } from "vitest";
+import "@testing-library/jest-dom"; // 👈 Agregar esto
+
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { describe, it} from "vitest";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+
+describe("ReactMarkdown", () => {
+  it("Renderiza un enlace en ReactMarkdown", () => {
+    render(
+      <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+        {"[Reserva aquí](https://booking.bedzzle.com/desktop/?&apikey=123&lang=es)"}
+      </ReactMarkdown>
+    );
+
+    const linkElement = screen.getByText("Reserva aquí");
+    expect(linkElement).toBeInTheDocument(); // ✅ Ahora funcionará
+  });
+});
+
+---------------------------------
+
+
+🔹 Archivo: ./app/lib/translation.ts
+---------------------------------
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
+
+export async function translationModel(text: string, targetLanguage: string) {
+  return await model.invoke([{ role: "system", content: `Translate this to ${targetLanguage}: ${text}` }]);
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/globals.css
+---------------------------------
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #1e40af;
+}
+
+
+
+---------------------------------
+
+
+🔹 Archivo: ./app/layout.tsx
+---------------------------------
+// @ts-nocheck
+import { Metadata } from "next";
+import localFont from "next/font/local"; // ✅ Importación correcta
+
+
+import "./globals.css";
+
+const inter = localFont({
+  src: "../public/fonts/geist-latin.woff2", // ✅ Ruta corregida
+  variable: "--font-inter",
+});
+
+const robotoMono = localFont({
+  src: "../public/fonts/geist-mono-latin.woff2", // ✅ Ruta corregida
+  variable: "--font-roboto-mono",
+});
+
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/page.tsx
+---------------------------------
+"use client";
+
+import { useState } from "react";
+import ReactMarkdown from "react-markdown"; // Importa react-markdown
+// import remarkGfm from "remark-gfm";
+
+export default function ChatPage() {
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const sendQuery = async () => {
+    if (!query.trim()) return;
+  
+    setLoading(true);
+    setResponse(""); 
+  
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
+  
+      const data = await res.json();
+      
+      // Verifica que la respuesta sea un string antes de actualizar el estado
+      const responseText = typeof data.response === "string" 
+        ? data.response 
+        : JSON.stringify(data.response, null, 2); // Convierte a string para depurar
+  
+      setResponse(responseText);
+    } catch (error) {
+      console.error("Error en la consulta:", error);
+      setResponse("Error al obtener respuesta.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-200 p-6">
+      <h1 className="text-3xl font-bold mb-4 text-white">💬 Chat con IA</h1>
+      <div className="w-full max-w-lg bg-gray-800 p-4 shadow-md rounded-lg">
+        <textarea
+          className="w-full border border-gray-700 bg-gray-900 text-gray-200 p-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+          rows={3}
+          placeholder="Escribe tu pregunta..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+
+        <button
+          className="w-full bg-blue-600 text-white p-2 mt-3 rounded-md hover:bg-blue-700 transition"
+          onClick={sendQuery}
+          disabled={loading}
+        >
+          {loading ? "Pensando..." : "Preguntar"}
+        </button>
+      </div>
+
+      {response && (
+        <div className="w-full max-w-lg bg-gray-800 p-4 mt-4 shadow-md rounded-lg">
+          <h2 className="text-lg font-semibold text-white">🤖 Respuesta:</h2>
+          <div className="mt-2 text-gray-300">
+          <ReactMarkdown
+            components={{
+              a: ({ ...props }) => (
+                <a className="text-blue-500 underline hover:text-blue-700" {...props} />
+              )
+            }}
+          >
+            {response}
+          </ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/api/chat/route.ts
+---------------------------------
+import { NextResponse } from "next/server";
+
+import { agentGraph } from "/..//lib/agents/index.ts";
+
+
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
+
+export async function POST(req: Request) {
+  try {
+    const { query } = await req.json();
+    console.log("🔍 Consulta recibida:", query);
+
+    const response = await agentGraph.invoke({
+      messages: [new HumanMessage(query)],
+    });
+
+    // Buscar el primer mensaje que sea un AIMessage y obtener su contenido
+    const aiMessage = response.messages.find(msg => msg instanceof AIMessage) as AIMessage | undefined;
+    const responseText = aiMessage?.content || "No se encontró una respuesta.";
+
+    console.log("📌 Respuesta enviada:", responseText);
+
+    return NextResponse.json({ response: responseText });
+  } catch (error) {
+    console.error("⛔ Error en la API /api/chat:", error);
+    return NextResponse.json({ response: "Ocurrió un error al procesar la solicitud." }, { status: 500 });
+  }
+}
+
+---------------------------------
+

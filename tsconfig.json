@@ -48,10 +48,10 @@
     "next-env.d.ts",
     "next-server.d.ts",
     "src/**/*.ts",
-    "tailwind.config.ts",
+    "tailwind.config.cjs",
     "test/**/*.ts",
     ".next/types/**/*.ts"
-  ],
+, "postcss.config.mjs"  ],
   "exclude": [
     "node_modules"
   ]

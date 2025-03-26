@@ -16,15 +16,15 @@ vi.mock("@/agents/room_info", () => ({
 }));
 
 // 🔄 Ahora importamos después de los mocks
-import { ChatOpenAI } from "@langchain/openai";w
+import { ChatOpenAI } from "@langchain/openai";
 import * as Agents from "lib/agents/room_info";
 
 describe("Agente de hotel - Pruebas con respuestas mockeadas", () => {
   test("El modelo usa correctamente la base vectorial", async () => {
     const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
     const query = "¿Las habitaciones tienen WiFi gratis?";
-    
-    const vectorResponse = await Agents.retrieve_hotel_info("¿Qué tipos de habitaciones tienen?");
+    const lang = process.env.SYSTEM_NATIVE_LANGUAGE || 'es';
+    const vectorResponse = await Agents.retrieve_hotel_info("¿Qué tipos de habitaciones tienen?", lang);
     const aiResponse = await model.invoke([{ role: "user", content: query }]);
 
     console.log("📌 Respuesta del modelo:", aiResponse);

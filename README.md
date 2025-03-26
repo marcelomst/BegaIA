@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏨 Hotel Assistant - Conversational Flow with LangGraph + LangChain
 
-## Getting Started
+Este proyecto implementa un **asistente conversacional para hotelería** utilizando **LangGraph** y **LangChain**, modelando la lógica de decisión mediante un grafo de estados. Cada nodo representa una intención o acción específica del usuario durante una conversación.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🧠 Tecnologías utilizadas
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **LangGraph**: Para modelar flujos de conversación como grafos de estados.
+- **LangChain**: Para construir, ejecutar y mantener agentes, cadenas, prompts e integraciones con modelos de lenguaje.
+- **Next.js**: Frontend/servidor para interacción con el usuario.
+- **WSL (Windows Subsystem for Linux)**: Entorno de desarrollo.
+- **Vitest**: Para plan de tests.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔁 Flujo Conversacional
 
-## Learn More
+```ts
+const graph = new StateGraph(GraphState)
+  .addNode("classify", classifyNode)
+  .addNode("handle_reservation", handleReservationNode)
+  .addNode("handle_room_info", async (state) => await handleRoomInfoNode(state))
+  .addNode("handle_amenities", async () => ({ messages: [new AIMessage("Aquí están nuestras comodidades.")] }))
+  .addNode("handle_cancellation", async () => ({ messages: [new AIMessage("Detalles de cancelación...")] }))
+  .addNode("default_response", defaultResponseNode)
+  .addEdge("__start__", "classify")
+  .addConditionalEdges("classify", (state) => state.category, {
+    room_info: "handle_room_info",
+    reservation: "handle_reservation",
+    amenities: "handle_amenities",
+    cancellation: "handle_cancellation",
+    other: "default_response",
+  })
+  .addEdge("default_response", "__end__");
+## 📚 Descripción de nodos
+- classifyNode: Usa LangChain para identificar la categoría del mensaje del usuario 
+    (por   ejemplo, reserva, habitación, etc.).
 
-To learn more about Next.js, take a look at the following resources:
+- handle_reservation: Gestiona solicitudes de reserva.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- handle_room_info: Responde con detalles sobre tipos de habitaciones.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- handle_amenities: Devuelve una lista de comodidades ofrecidas por el hotel.
 
-## Deploy on Vercel
+- handle_cancellation: Proporciona políticas de cancelación.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- default_response: Respuesta genérica para casos no contemplados.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🗂️ Ejemplos de flujo
+Mensaje del usuario	Nodo que responde
+"¿Qué tipos de habitaciones tienen?"	handle_room_info
+"Quiero reservar una habitación doble"	handle_reservation
+"¿Qué comodidades ofrece el hotel?"	handle_amenities
+"¿Cuál es la política de cancelación?"	handle_cancellation
+"¿Aceptan mascotas extraterrestres?"	default_response
+
+## 🎯 Objetivo
+
+Brindar un asistente virtual hotelero capaz de:
+
+Responder preguntas frecuentes de forma rápida y precisa.
+
+Automatizar tareas comunes como reservas y consultas.
+
+Integrarse con otros sistemas mediante LangChain para escalabilidad y personalización.
+
+## 🔧 Notas Técnicas
+
+### 🎨 Tailwind CSS: versión recomendada
+
+Este proyecto utiliza **Tailwind CSS `^3.4.1`**, ya que es la última versión completamente estable y compatible con:
+
+- **Next.js 15**
+- **Turbopack**
+- Configuración simple (`postcss.config.cjs` sin plugins adicionales)
+- Generación de estilos inmediata sin errores de CLI
+
+```json
+"devDependencies": {
+  "tailwindcss": "^3.4.1",
+  "postcss": "^8.4.38",
+  "autoprefixer": "^10.4.17"
+}

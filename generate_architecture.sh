@@ -11,16 +11,39 @@ echo "📂 Estructura del Proyecto" >> "$OUTPUT_FILE"
 echo "=========================" >> "$OUTPUT_FILE"
 
 # Generar tree sin node_modules ni .git
-tree -I "node_modules|.git|noselect|.vscode|.next" >> "$OUTPUT_FILE"
+tree -I "node_modules|.git|noselect|.vscode|.next|DALL*.*|*.exe|*.zip|C:UsersmarceAppDataLocalpnpmstorev3" >> "$OUTPUT_FILE"
 
 # Separador
 echo -e "\n=========================\n" >> "$OUTPUT_FILE"
 
+# # Buscar archivos clave y agregar su contenido
+# echo "📜 Scripts Claves" >> "$OUTPUT_FILE"
+# echo "=================" >> "$OUTPUT_FILE"
+# find ./lib/*/ \
+#      ./test \
+#      ./app/*/ \
+#      ./app/layout.tsx\
+#      ./app/globals.css\
+#      ./tailwind.config.cjs\
+#      ./postcss.config.cjs\
+#      -type f \
+#      \( -name "*.ts" \
+#      -o -name "*.tsx" \
+#      -o -name "*.css" \
+#      \) |
+# while read file; do
+#   echo -e "\n🔹 Archivo: $file" >> "$OUTPUT_FILE"
+#   echo "---------------------------------" >> "$OUTPUT_FILE"
+#   cat "$file" >> "$OUTPUT_FILE"
+#   echo -e "\n---------------------------------\n" >> "$OUTPUT_FILE"
+# done
+
 # Buscar archivos clave y agregar su contenido
 echo "📜 Scripts Claves" >> "$OUTPUT_FILE"
 echo "=================" >> "$OUTPUT_FILE"
-
-find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) ! -path "./node_modules/*" ! -path "./.git/*" ! -path "./.next/*" ! -path "./.vscode/*" ! -path "./noselect/*"| while read file; do
+find ./lib ./test ./app ./tailwind.config.cjs ./postcss.config.cjs \
+  -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.css" \) |
+while read file; do
   echo -e "\n🔹 Archivo: $file" >> "$OUTPUT_FILE"
   echo "---------------------------------" >> "$OUTPUT_FILE"
   cat "$file" >> "$OUTPUT_FILE"

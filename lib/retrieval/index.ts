@@ -1,22 +1,59 @@
-import puppeteer from "puppeteer";
+import { cache } from "react";
+import fs from "fs";
+import path from "path";
+import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { writeFile } from "fs/promises";
-import { Document } from "@langchain/core/documents";
-import { ChatOpenAI } from "@langchain/openai";
-import dotenv from "dotenv";
 import { translationModel } from "@/lib/translation";
+import puppeteer from "puppeteer";
+import dotenv from "dotenv";
 
 dotenv.config(); // Carga las variables de entorno
 
+// 🌐 URLs a extraer
+const urls = [
+  "https://www.hoteldemo.com/en/index.php",
+];
+
+const VECTOR_DIR = path.join(process.cwd(), "vector_cache");
+const VECTOR_PATH = path.join(VECTOR_DIR, "rooms_vectorstore.json");
+
+// 🖥 Función para extraer texto con Puppeteer
+async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
+  console.log(`🖥 Cargando página con Puppeteer: ${url}`);
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  const page = await browser.newPage();
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 }); // 60 segundos
+    await page.waitForSelector("body", { timeout: 120000 });
+
+    const pageContent = await page.evaluate(() => document.body.innerText);
+    return pageContent;
+  } catch (error) {
+    console.error(`❌ Error con Puppeteer al acceder a ${url}:`, error);
+    return null;
+  } finally {
+    await browser.close();
+  }
+}
 
 // 🔄 Función para traducir texto con manejo de errores
 export async function translateText(text: string) {
   try {
-    console.log(`🔄 Traduciendo consulta: "${text}"`);
+    console.log(`🔄 Traduciendo docs: "${text}"`);
+    const lang = process.env.SYSTEM_NATIVE_LANGUAGE;
+    if (!lang) {
+      throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in environment variables.");
+    }
+    
+    const translatedQuery = await translationModel(text, lang);
 
-    const translatedQuery = await translationModel(text, "English");
 
     const translatedText =
       typeof translatedQuery.content === "string"
@@ -31,76 +68,39 @@ export async function translateText(text: string) {
   }
 }
 
+// ✅ Esta función queda envuelta en cache()
+export const loadDocuments: () => Promise<MemoryVectorStore> = cache(async () => {
+  
+  // 1. Si ya existe el vector store guardado
+  // if (fs.existsSync(VECTOR_PATH)) {
+  //   console.log("📦 Cargando vectores desde caché local...");
+  //   const raw = fs.readFileSync(VECTOR_PATH, "utf-8");
+  //   return await MemoryVectorStore.fromJSON(JSON.parse(raw), new OpenAIEmbeddings());
+  // }
 
-// 🌐 URLs a extraer
-const urls = [
-  "https://www.hoteldemo.com/rooms",
-  "https://www.hoteldemo.com/services",
-  "https://www.hoteldemo.com/contact",
-];
-
-// 🖥 Función para extraer texto con Puppeteer
-async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
-  console.log(`🖥 Cargando página con Puppeteer: ${url}`);
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  const page = await browser.newPage();
-
-  try {
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 15000 });
-    await page.waitForSelector("body", { visible: true, timeout: 10000 });
-
-    const pageContent = await page.evaluate(() => document.body.innerText);
-    return pageContent;
-  } catch (error) {
-    console.error(`❌ Error con Puppeteer al acceder a ${url}:`, error);
-    return null;
-  } finally {
-    await browser.close();
-  }
-}
-
-// 📥 Función para cargar y procesar documentos
-export async function loadDocuments() {
-  console.log("🔍 Iniciando carga de documentos con Puppeteer...");
-
+  // 2. Scrapeo + traducción
+  console.log("🔍 Generando vectores desde cero...");
   const docs = await Promise.all(
     urls.map(async (url) => {
       const html = await fetchPageWithPuppeteer(url);
       if (!html) return null;
-
       const translatedContent = await translateText(html);
-
-      return new Document({
-        pageContent: translatedContent,
-        metadata: { source: url },
-      });
+      return new Document({ pageContent: translatedContent, metadata: { source: url } });
     })
   );
 
-  const docsList = docs.filter((doc) => doc !== null);
-  console.log(`✅ Documentos extraídos y traducidos: ${docsList.length}`);
+ 
+  const validDocs = docs.filter((d): d is Document<{ [key: string]: any }> => d !== null);
 
-  // 🛠 **Dividir el texto en fragmentos para mejor indexación**
-  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
-  const docSplits = await textSplitter.splitDocuments(docsList);
+  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const chunks = await splitter.splitDocuments(validDocs);
+  const vectorStore = await MemoryVectorStore.fromDocuments(chunks, new OpenAIEmbeddings());
 
-  // 💾 Guardar datos en un archivo de depuración
-  await saveDocsToFile(docSplits);
+  // 3. Guardar en caché local
+  if (!fs.existsSync(VECTOR_DIR)) fs.mkdirSync(VECTOR_DIR);
+  fs.writeFileSync(VECTOR_PATH, JSON.stringify(await vectorStore.toJSON()), "utf-8");
+  console.log("✅ Vectores guardados en vector_cache/");
 
-  // 📚 Crear base vectorial con textos en español
-  return await MemoryVectorStore.fromDocuments(docSplits, new OpenAIEmbeddings());
-}
+  return vectorStore;
+});
 
-// 💾 Función para guardar datos en un archivo
-async function saveDocsToFile(docSplits: Document[]) {
-  try {
-    const textContent = JSON.stringify(docSplits, null, 2);
-    await writeFile("output_cleaned.txt", textContent, "utf-8");
-    console.log("📂 Datos guardados en output_cleaned.txt");
-  } catch (error) {
-    console.error("❌ Error al escribir el archivo:", error);
-  }
-}

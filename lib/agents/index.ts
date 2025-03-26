@@ -14,15 +14,20 @@ import { handleRoomInfoNode } from "./room_info";
 
 // Definir el estado del grafo correctamente
 export const GraphState = Annotation.Root({
-  messages: Annotation<BaseMessage[]>({
-    reducer: (x, y) => x.concat(y),
-    default: () => [] as BaseMessage[],
-  }),
-  category: Annotation<string>({
-    reducer: (x, y) => y,
-    default: () => "other",
-  }),
-});
+    messages: Annotation<BaseMessage[]>({
+      reducer: (x, y) => x.concat(y),
+      default: () => [] as BaseMessage[],
+    }),
+    category: Annotation<string>({
+      reducer: (x, y) => y,
+      default: () => "other",
+    }),
+    detectedLanguage: Annotation<string>({
+      reducer: (x, y) => y,
+      default: () => "en",
+    }),
+  });
+  
 
 // Cargar documentos y configurar herramientas
 export const vectorStore = await loadDocuments();
@@ -48,7 +53,7 @@ async function classifyNode(state: typeof GraphState.State) {
 // 🔹 Función para manejar reservas en el PMS
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
-  return { messages: [new AIMessage({ content: "Reservation confirmed: ${response.id}"})] };
+  return { messages: [new AIMessage(`Reservation confirmed: ${response.id}`)] };
 }
 
 
@@ -61,7 +66,7 @@ async function defaultResponseNode() {
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_room_info", handleRoomInfoNode)
+  .addNode("handle_room_info", async (state) => await handleRoomInfoNode(state))
   .addNode("handle_amenities", async () => ({ messages: [new AIMessage("Aquí están nuestras comodidades.")] }))
   .addNode("handle_cancellation", async () => ({ messages: [new AIMessage("Detalles de cancelación...")] }))
   .addNode("default_response", defaultResponseNode)

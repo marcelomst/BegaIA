@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Metadata } from "next";
 import localFont from "next/font/local"; // ✅ Importación correcta
 
