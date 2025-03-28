@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "ts-check": "tsc --noEmit",
-    "ts-strict": "tsc --noEmit --strict"
+    "ts-strict": "tsc --noEmit --strict",
+    "test:classifier": "tsx scripts/testClassifier.ts"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "^1.5.0",
@@ -22,6 +23,7 @@
     "axios": "^1.8.3",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
+    "franc": "^6.2.0",
     "franc-min": "^6.2.0",
     "fs": "0.0.1-security",
     "glob": "^11.0.1",
@@ -69,7 +71,7 @@
     "postcss": "^8.5.3",
     "supertest": "^7.0.0",
     "tailwindcss": "3.4.1",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8"
   }

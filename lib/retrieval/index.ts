@@ -1,6 +1,4 @@
 import { cache } from "react";
-import fs from "fs";
-import path from "path";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -9,17 +7,13 @@ import { translationModel } from "@/lib/translation";
 import puppeteer from "puppeteer";
 import dotenv from "dotenv";
 
-dotenv.config(); // Carga las variables de entorno
+dotenv.config(); // Carga variables del entorno
 
-// 🌐 URLs a extraer
 const urls = [
   "https://www.hoteldemo.com/en/index.php",
 ];
 
-const VECTOR_DIR = path.join(process.cwd(), "vector_cache");
-const VECTOR_PATH = path.join(VECTOR_DIR, "rooms_vectorstore.json");
-
-// 🖥 Función para extraer texto con Puppeteer
+// 📥 Extrae texto crudo con Puppeteer
 async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
   console.log(`🖥 Cargando página con Puppeteer: ${url}`);
   const browser = await puppeteer.launch({
@@ -30,11 +24,9 @@ async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 }); // 60 segundos
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 });
     await page.waitForSelector("body", { timeout: 120000 });
-
-    const pageContent = await page.evaluate(() => document.body.innerText);
-    return pageContent;
+    return await page.evaluate(() => document.body.innerText);
   } catch (error) {
     console.error(`❌ Error con Puppeteer al acceder a ${url}:`, error);
     return null;
@@ -43,64 +35,60 @@ async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
   }
 }
 
-// 🔄 Función para traducir texto con manejo de errores
+// 🌍 Traducción al idioma nativo definido en .env
 export async function translateText(text: string) {
   try {
-    console.log(`🔄 Traduciendo docs: "${text}"`);
     const lang = process.env.SYSTEM_NATIVE_LANGUAGE;
-    if (!lang) {
-      throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in environment variables.");
-    }
-    
-    const translatedQuery = await translationModel(text, lang);
+    if (!lang) throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in .env");
 
-
-    const translatedText =
-      typeof translatedQuery.content === "string"
-        ? translatedQuery.content
-        : JSON.stringify(translatedQuery.content);
-
-    console.log(`🌍 Traducción completa: "${translatedText}"`);
-    return translatedText;
+    const translated = await translationModel(text, lang);
+    return typeof translated.content === "string"
+      ? translated.content
+      : JSON.stringify(translated.content);
   } catch (error) {
     console.error("⛔ Error en traducción:", error);
-    return text; // En caso de fallo, devolver el texto original
+    return text; // fallback
   }
 }
 
-// ✅ Esta función queda envuelta en cache()
+// 🔄 Carga y vectoriza documentos (cacheada por proceso)
 export const loadDocuments: () => Promise<MemoryVectorStore> = cache(async () => {
-  
-  // 1. Si ya existe el vector store guardado
-  // if (fs.existsSync(VECTOR_PATH)) {
-  //   console.log("📦 Cargando vectores desde caché local...");
-  //   const raw = fs.readFileSync(VECTOR_PATH, "utf-8");
-  //   return await MemoryVectorStore.fromJSON(JSON.parse(raw), new OpenAIEmbeddings());
-  // }
-
-  // 2. Scrapeo + traducción
   console.log("🔍 Generando vectores desde cero...");
+
   const docs = await Promise.all(
     urls.map(async (url) => {
       const html = await fetchPageWithPuppeteer(url);
       if (!html) return null;
-      const translatedContent = await translateText(html);
-      return new Document({ pageContent: translatedContent, metadata: { source: url } });
+
+      const translated = await translateText(html);
+      return new Document({
+        pageContent: translated,
+        metadata: { source: url },
+      });
     })
   );
 
- 
-  const validDocs = docs.filter((d): d is Document<{ [key: string]: any }> => d !== null);
+  const validDocs = docs.filter(
+    (d): d is NonNullable<typeof d> => d !== null
+  );
 
-  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 500,
+    chunkOverlap: 50,
+  });
+
   const chunks = await splitter.splitDocuments(validDocs);
-  const vectorStore = await MemoryVectorStore.fromDocuments(chunks, new OpenAIEmbeddings());
+  console.log("🧩 CHUNKS INDEXADOS:");
+  chunks.forEach((chunk, i) => {
+    console.log(`\n--- Chunk #${i + 1} ---`);
+    console.log(chunk.pageContent.slice(0, 300)); // los primeros 300 caracteres
+  });
 
-  // 3. Guardar en caché local
-  if (!fs.existsSync(VECTOR_DIR)) fs.mkdirSync(VECTOR_DIR);
-  fs.writeFileSync(VECTOR_PATH, JSON.stringify(await vectorStore.toJSON()), "utf-8");
-  console.log("✅ Vectores guardados en vector_cache/");
+
+  const vectorStore = await MemoryVectorStore.fromDocuments(
+    chunks,
+    new OpenAIEmbeddings()
+  );
 
   return vectorStore;
 });
-

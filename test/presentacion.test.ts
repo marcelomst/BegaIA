@@ -10,7 +10,8 @@ test("El formato contiene Markdown visual con emojis", async () => {
   const testState: typeof GraphState.State = {
     messages: [new HumanMessage(testQuery)],
     category: "room_info",
-    detectedLanguage: "es", // forzamos español para usar el prompt curado directamente
+    detectedLanguage: "es",
+    promptKey: null
   };
 
   // ✅ Invocar el nodo como lo haría LangGraph
