@@ -1,5 +1,4 @@
-/// fusión de:
-// handleRoomInfoNode_001 F app/agents/index.ts F formattedPrompt_001
+// 📍 lib/agents/index.ts
 
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
@@ -10,32 +9,30 @@ import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
-import { handleRoomInfoNode } from "./room_info";
-import {franc} from "franc";
+import { handleDefaultWithContext } from "./default_with_context";
+import { franc } from "franc";
 
-
-// Definir el estado del grafo correctamente
+// 🧠 Estado global del grafo
 export const GraphState = Annotation.Root({
-    messages: Annotation<BaseMessage[]>({
-      reducer: (x, y) => x.concat(y),
-      default: () => [] as BaseMessage[],
-    }),
-    category: Annotation<string>({
-      reducer: (x, y) => y,
-      default: () => "other",
-    }),
-    detectedLanguage: Annotation<string>({
-      reducer: (x, y) => y,
-      default: () => "en",
-    }),
-    promptKey: Annotation<string | null>({
-      reducer: (x, y) => y,
-      default: () => null,
-    }),
-  });
-  
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y),
+    default: () => [] as BaseMessage[],
+  }),
+  category: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "other",
+  }),
+  detectedLanguage: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "en",
+  }),
+  promptKey: Annotation<string | null>({
+    reducer: (x, y) => y,
+    default: () => null,
+  }),
+});
 
-// Cargar documentos y configurar herramientas
+// 📚 Cargar documentos y herramientas de recuperación
 export const vectorStore = await loadDocuments();
 const retriever = createRetrieverTool(vectorStore.asRetriever(), {
   name: "retrieve_hotel_info",
@@ -43,16 +40,11 @@ const retriever = createRetrieverTool(vectorStore.asRetriever(), {
 });
 export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
 
-// 🔹 Función para clasificar la consulta del usuario
+// 🔍 Nodo: Clasificador de intención + detección de idioma
 export async function classifyNode(state: any) {
-  const lastUserMessage = state.messages.findLast(
-    (m: any) => m instanceof HumanMessage
-  );
+  const lastUserMessage = state.messages.findLast((m: any) => m instanceof HumanMessage);
   const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
-  console.log("Pregunta recibida:", question);
-
   const detectedLang = franc(question, { minLength: 3 });
-  console.log("📢 Lenguaje detectado (ISO 639-3):", detectedLang);
 
   const { category, promptKey } = await classifyQuery(question);
 
@@ -68,50 +60,54 @@ export async function classifyNode(state: any) {
   };
 }
 
-// 🔹 Función para manejar reservas en el PMS
+// 📅 Nodo: Gestión de reservas (también maneja cancelaciones)
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
-  return { messages: [new AIMessage(`Reservation confirmed: ${response.id}`)] };
+  return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
 }
 
-
-// 🔹 Función para manejar respuestas predeterminadas
-async function defaultResponseNode() {
-  return { messages: [new AIMessage("Lo siento, no entendí la solicitud. Inténtalo nuevamente.")] };
+// 💳 Nodo: Facturación
+async function handleBillingNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
 
-// 🔹 Construcción del grafo de estados
+// 🛟 Nodo: Soporte
+async function handleSupportNode() {
+  return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
+}
+
+// 🤖 Nodo: IA + recuperación de contexto
+async function defaultWithContextNode(state: typeof GraphState.State) {
+  return await handleDefaultWithContext(state);
+}
+
+// 🕸️ Construcción del grafo de estados
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_room_info", async (state) => await handleRoomInfoNode(state))
-  .addNode("handle_amenities", async () => ({
-    messages: [new AIMessage("Aquí están nuestras comodidades.")],
-  }))
-  .addNode("handle_cancellation", async () => ({
-    messages: [new AIMessage("Detalles de cancelación...")],
-  }))
-  .addNode("default_response", defaultResponseNode)
+  .addNode("handle_cancellation", handleReservationNode) // misma lógica que reservas
+  .addNode("handle_billing", handleBillingNode)
+  .addNode("handle_support", handleSupportNode)
+  .addNode("handle_default_with_context", defaultWithContextNode)
 
   // 🔁 Transiciones
   .addEdge("__start__", "classify")
   .addConditionalEdges("classify", (state) => state.category, {
-    room_info: "handle_room_info",
     reservation: "handle_reservation",
-    amenities: "handle_amenities",
     cancellation: "handle_cancellation",
-    other: "default_response",
+    billing: "handle_billing",
+    support: "handle_support",
+    other: "handle_default_with_context",
   })
 
-  // 🔚 Finalización de cada rama
-  .addEdge("handle_room_info", "__end__")
+  // 🔚 Finales
   .addEdge("handle_reservation", "__end__")
-  .addEdge("handle_amenities", "__end__")
   .addEdge("handle_cancellation", "__end__")
-  .addEdge("default_response", "__end__");
-
+  .addEdge("handle_billing", "__end__")
+  .addEdge("handle_support", "__end__")
+  .addEdge("handle_default_with_context", "__end__");
 
 console.log("✅ Grafo compilado con éxito.");
 
-// Exportar el grafo compilado
+// 🚀 Exportar grafo compilado
 export const agentGraph = graph.compile();

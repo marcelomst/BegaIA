@@ -17,7 +17,7 @@ vi.mock("@/agents/room_info", () => ({
 
 // 🔄 Ahora importamos después de los mocks
 import { ChatOpenAI } from "@langchain/openai";
-import * as Agents from "lib/agents/room_info";
+import * as Agents from "lib/agents/retrieval_based";
 
 describe("Agente de hotel - Pruebas con respuestas mockeadas", () => {
   test("El modelo usa correctamente la base vectorial", async () => {

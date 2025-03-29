@@ -16,13 +16,13 @@ export async function classifyQuery(question: string): Promise<Classification> {
   const prompt = `
 Dada la siguiente consulta del usuario, responde solo con un JSON válido con dos campos:
 
-- "category": una de las siguientes: "room_info", "reservation", "services", "billing", "support", "location", "other"
+- "category": una de las siguientes: "billing", "reservation","cancellation","support","other"
 - "promptKey": si la categoría necesita un prompt curado especial, indica su clave. Si no, pon null.
 
 Ejemplo de respuesta:
 {
-  "category": "room_info",
-  "promptKey": "room_info"
+  "category": "reservation",
+  "promptKey": "reservation"
 }
 
 Consulta:
@@ -40,3 +40,4 @@ Consulta:
     return { category: "other", promptKey: null };
   }
 }
+

@@ -14,8 +14,9 @@ export async function POST(req: Request) {
       messages: [new HumanMessage(query)],
     });
 
-    // Buscar el primer mensaje que sea un AIMessage y obtener su contenido
-    const aiMessage = response.messages.find(msg => msg instanceof AIMessage) as AIMessage | undefined;
+    // Buscar el ultimo mensaje que sea un AIMessage y obtener su contenido
+    const aiMessage = response.messages.findLast(msg => msg instanceof AIMessage) as AIMessage | undefined;
+
     const responseText = aiMessage?.content || "No se encontró una respuesta.";
 
     console.log("📌 Respuesta enviada:", responseText);

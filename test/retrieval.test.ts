@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 
-import { retrieve_hotel_info } from "../lib/agents/room_info.ts";
+import { retrieve_hotel_info } from "../lib/agents/retrieval_based.ts";
 
 test("Recupera información sobre habitaciones correctamente", async () => {
   const query = "¿Qué tipos de habitaciones tienen?";
