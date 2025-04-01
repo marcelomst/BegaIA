@@ -1,43 +1,41 @@
-import { Client, Message } from "whatsapp-web.js";
-import { agentGraph } from "../agents";  // ✅ Ajustar ruta de importación
+// lib/services/whatsapp.ts
+
+import { Message } from "whatsapp-web.js";
+import { whatsappClient as client } from "./whatsappClient";
+import { agentGraph } from "../agents";
 import { HumanMessage } from "@langchain/core/messages";
+import qrcode from "qrcode-terminal";
 
-const client = new Client({
-  puppeteer: { headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] }
-});
+export function startWhatsappBot() {
+  client.on("qr", (qr) => {
+    console.log("⚡ Escaneá este código QR para conectar WhatsApp:");
+    qrcode.generate(qr, { small: true }); // Renderiza el QR como imagen en consola
+  });
 
-client.on("qr", (qr) => {
-  console.log("⚡ Scan this QR code to connect WhatsApp:");
-  console.log(qr);
-});
+  client.on("ready", () => {
+    console.log("✅ Bot de WhatsApp listo!");
+  });
 
-client.on("ready", () => {
-  console.log("✅ WhatsApp Bot is ready!");
-});
+  client.on("message", async (message: Message) => {
+    try {
+      console.log(`📩 Recibido: ${message.body}`);
 
-client.on("message", async (message: Message) => {
-  try {
-    console.log(`📩 Received: ${message.body}`);
+      const response = await agentGraph.invoke({
+        messages: [new HumanMessage(message.body)],
+      });
 
-    const response = await agentGraph.invoke({
-      messages: [new HumanMessage(message.body)]
-    });
-
-    if (response.messages.length > 0) {
-      const reply = response.messages[0].content;
-      if (typeof reply === "string" && reply.trim() !== "") {
-        message.reply(reply);
-        console.log(`📤 Sent: ${reply}`);
+      const reply = response.messages.at(-1)?.content;
+      if (typeof reply === "string" && reply.trim()) {
+        await message.reply(reply);
+        console.log(`📤 Enviado: ${reply}`);
       } else {
-        console.error("⚠️ Unexpected response format:", response.messages[0]);
+        console.warn("⚠️ Formato inesperado:", response.messages.at(-1));
       }
-    } else {
-      console.warn("⚠️ No response from agent.");
+    } catch (error) {
+      console.error("⛔ Error procesando mensaje:", error);
+      await message.reply("⚠️ Ocurrió un error procesando tu solicitud.");
     }
-  } catch (error) {
-    console.error("⛔ Error processing message:", error);
-    message.reply("⚠️ Lo siento, hubo un problema procesando tu solicitud.");
-  }
-});
+  });
 
-client.initialize();
+  client.initialize();
+}

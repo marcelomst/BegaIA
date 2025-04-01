@@ -1,6 +1,6 @@
 // lib/prompts/index.ts
 
-// 🧠 Prompt genérico, usado como fallback si no hay uno curado
+// 🧠 Prompt genérico
 export const defaultPrompt = `
 Responde la siguiente consulta usando exclusivamente la información proporcionada.
 
@@ -14,8 +14,7 @@ Información disponible:
 Consulta del usuario: "{{query}}"
 `.trim();
 
-
-// 🏨 Prompt curado para tipos de habitación (formato validado)
+// 🏨 Prompts curados por clave
 export const curatedPrompts: Record<string, string> = {
   room_info: `
 Usa la siguiente información del hotel para responder de manera clara y bien estructurada.
@@ -60,5 +59,5 @@ Ejemplo de formato esperado:
 {{retrieved}}
 
 **Asegúrate de seguir estrictamente este formato.**
-`.trim()
+`, 
 };

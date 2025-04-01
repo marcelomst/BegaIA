@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { handleDefaultWithContext } from "../lib/agents/retrieval_based";
+import { retrievalBased } from "../lib/agents/retrieval_based";
 import { GraphState } from "../lib/agents"; // importa el GraphState para armar el estado
 import { HumanMessage } from "@langchain/core/messages";
 
@@ -15,7 +15,7 @@ test("El formato contiene Markdown visual con emojis", async () => {
   };
 
   // ✅ Invocar el nodo como lo haría LangGraph
-  const result = await handleDefaultWithContext(testState);
+  const result = await retrievalBased(testState);
 
   // 🧾 Extraer respuesta
   const response = result.messages[0].content;

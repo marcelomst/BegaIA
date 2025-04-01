@@ -1,6 +1,8 @@
-// lib/classifier/index.ts
+// 📍 lib/classifier/index.ts
 
 import { ChatOpenAI } from "@langchain/openai";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { debugLog } from "../utils/debugLog";
 
 export type Classification = {
   category: string;
@@ -13,31 +15,50 @@ const classifierModel = new ChatOpenAI({
 });
 
 export async function classifyQuery(question: string): Promise<Classification> {
+  const allowedCategories = Object.keys(promptMetadata).join(", ");
+  const allPromptKeys = Object.entries(promptMetadata)
+    .flatMap(([_, keys]) => keys)
+    .filter(Boolean);
+
   const prompt = `
 Dada la siguiente consulta del usuario, responde solo con un JSON válido con dos campos:
 
-- "category": una de las siguientes: "billing", "reservation","cancellation","support","other"
-- "promptKey": si la categoría necesita un prompt curado especial, indica su clave. Si no, pon null.
+- "category": una de las siguientes: ${allowedCategories}
+- "promptKey": si la categoría necesita un prompt curado especial, elige una de: [${allPromptKeys.join(", ")}]; si no, pon null.
 
 Ejemplo de respuesta:
 {
-  "category": "reservation",
-  "promptKey": "reservation"
+  "category": "retrieval_based",
+  "promptKey": "room_info"
 }
 
 Consulta:
 "${question}"
-  `.trim();
+`.trim();
 
-  const res = await classifierModel.invoke([
-    { role: "user", content: prompt },
-  ]);
+  const res = await classifierModel.invoke([{ role: "user", content: prompt }]);
 
   try {
-    return JSON.parse(res.content as string);
+    const parsed = JSON.parse(res.content as string);
+
+    const category = parsed.category;
+    const promptKey = parsed.promptKey;
+
+    if (!promptMetadata[category]) {
+      throw new Error(`❌ Categoría inválida detectada: ${category}`);
+    }
+
+    const isValidPrompt =
+      promptKey === null || promptMetadata[category].includes(promptKey);
+
+    if (!isValidPrompt) {
+      throw new Error(`❌ Prompt key inválido: ${promptKey} para categoría: ${category}`);
+    }
+
+    debugLog("🧠 Clasificación final:", { category, promptKey });
+    return { category, promptKey };
   } catch (e) {
-    console.error("❌ Error al parsear respuesta del clasificador:", res.content);
-    return { category: "other", promptKey: null };
+    console.error("❌ Error al parsear o validar respuesta del clasificador:", res.content);
+    return { category: "retrieval_based", promptKey: null };
   }
 }
-

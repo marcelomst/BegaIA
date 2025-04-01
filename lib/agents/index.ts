@@ -2,15 +2,16 @@
 
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { pms } from "../pms";
 import { loadDocuments } from "../retrieval/index";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
-import { handleDefaultWithContext } from "./default_with_context";
+import { retrievalBased } from "./retrieval_based";
 import { franc } from "franc";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { debugLog } from "../utils/debugLog";
 
 // 🧠 Estado global del grafo
 export const GraphState = Annotation.Root({
@@ -41,21 +42,48 @@ const retriever = createRetrieverTool(vectorStore.asRetriever(), {
 export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
 
 // 🔍 Nodo: Clasificador de intención + detección de idioma
-export async function classifyNode(state: any) {
-  const lastUserMessage = state.messages.findLast((m: any) => m instanceof HumanMessage);
+export async function classifyNode(state: typeof GraphState.State) {
+  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
   const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
+
+  if (!question) {
+    return {
+      ...state,
+      category: "retrieval_based",
+      promptKey: null,
+      messages: [
+        ...state.messages,
+        new AIMessage("Consulta vacía o no válida. Intenta reformular tu pregunta."),
+      ],
+    };
+  }
+
   const detectedLang = franc(question, { minLength: 3 });
 
-  const { category, promptKey } = await classifyQuery(question);
+  let classification;
+  try {
+    classification = await classifyQuery(question);
+  } catch (e) {
+    console.error("❌ Error clasificando la consulta:", e);
+    classification = { category: "retrieval_based", promptKey: null };
+  }
+
+  const { category, promptKey } = classification;
+
+  // Validación defensiva (promptKey debe estar autorizado para esa categoría)
+  const validPromptKeys = promptMetadata[category] || [];
+  const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
+
+  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey });
 
   return {
     ...state,
     category,
-    promptKey,
+    promptKey: finalPromptKey,
     detectedLanguage: detectedLang || process.env.SYSTEM_NATIVE_LANGUAGE,
     messages: [
       ...state.messages,
-      new AIMessage(`Consulta clasificada como: ${category}`),
+      new AIMessage(`Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""}`),
     ],
   };
 }
@@ -77,18 +105,18 @@ async function handleSupportNode() {
 }
 
 // 🤖 Nodo: IA + recuperación de contexto
-async function defaultWithContextNode(state: typeof GraphState.State) {
-  return await handleDefaultWithContext(state);
+async function retrievalBasedNode(state: typeof GraphState.State) {
+  return await retrievalBased(state);
 }
 
 // 🕸️ Construcción del grafo de estados
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_cancellation", handleReservationNode) // misma lógica que reservas
+  .addNode("handle_cancellation", handleReservationNode)
   .addNode("handle_billing", handleBillingNode)
   .addNode("handle_support", handleSupportNode)
-  .addNode("handle_default_with_context", defaultWithContextNode)
+  .addNode("handle_retrieval_based", retrievalBasedNode)
 
   // 🔁 Transiciones
   .addEdge("__start__", "classify")
@@ -97,7 +125,7 @@ const graph = new StateGraph(GraphState)
     cancellation: "handle_cancellation",
     billing: "handle_billing",
     support: "handle_support",
-    other: "handle_default_with_context",
+    retrieval_based: "handle_retrieval_based",
   })
 
   // 🔚 Finales
@@ -105,7 +133,7 @@ const graph = new StateGraph(GraphState)
   .addEdge("handle_cancellation", "__end__")
   .addEdge("handle_billing", "__end__")
   .addEdge("handle_support", "__end__")
-  .addEdge("handle_default_with_context", "__end__");
+  .addEdge("handle_retrieval_based", "__end__");
 
 console.log("✅ Grafo compilado con éxito.");
 

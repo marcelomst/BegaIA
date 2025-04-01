@@ -17,14 +17,16 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
     "plugins": [
       {
         "name": "next"
@@ -39,6 +41,9 @@
         "./node_modules/*"
       ]
     }
+  },
+  "ts-node": {
+    "esm": true
   },
   "include": [
     "**/*.ts",

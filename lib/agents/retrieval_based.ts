@@ -1,12 +1,14 @@
-//root/begasist/lib/agents/room_info.ts
+// 📍 lib/agents/room_info.ts
 
 import { ChatOpenAI } from "@langchain/openai";
 import { GraphState, model, vectorStore } from "./index";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { defaultPrompt, curatedPrompts } from "../prompts";
+import { debugLog } from "../utils/debugLog";
 
 const translationModel = new ChatOpenAI({ model: "gpt-4o" });
 
+// 🌐 Traducción de respuesta al idioma original
 async function translateResponseBack(originalLang: string, content: string): Promise<string> {
   if (originalLang === process.env.SYSTEM_NATIVE_LANGUAGE) return content;
 
@@ -24,6 +26,7 @@ async function translateResponseBack(originalLang: string, content: string): Pro
   return typeof translated.content === "string" ? translated.content : content;
 }
 
+// 🔎 Búsqueda semántica de información
 export async function retrieve_hotel_info(query: string, lang: string) {
   const translatedQuery =
     lang === process.env.SYSTEM_NATIVE_LANGUAGE
@@ -46,10 +49,13 @@ export async function retrieve_hotel_info(query: string, lang: string) {
 
   const results = await vectorStore.similaritySearch(searchQuery, 5);
 
+  debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
+
   return results.map((doc) => doc.pageContent).join("\n\n");
 }
 
-export async function handleDefaultWithContext(state: typeof GraphState.State) {
+// 🔁 Nodo principal para manejo genérico con recuperación
+export async function retrievalBased(state: typeof GraphState.State) {
   const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
   const userQuery =
     typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
@@ -63,6 +69,7 @@ export async function handleDefaultWithContext(state: typeof GraphState.State) {
   const retrievedInfo = await retrieve_hotel_info(userQuery, lang);
 
   if (!retrievedInfo.trim()) {
+    debugLog("⚠️ No se encontró información relevante en los documentos.");
     const response = await model.invoke(state.messages);
     const responseText = typeof response.content === "string" ? response.content.trim() : "";
     return {
@@ -92,8 +99,7 @@ export async function handleDefaultWithContext(state: typeof GraphState.State) {
     ...state,
     messages: [
       ...state.messages,
-      new AIMessage(finalResponse || "Lo siento, no encontré información sobre habitaciones.")
+      new AIMessage(finalResponse || "Lo siento, no encontré información sobre habitaciones."),
     ],
   };
-      
 }
