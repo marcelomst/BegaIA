@@ -1,0 +1,11 @@
+{
+    "terminal": {
+        "defaultShell": "wsl",
+        "shellOptions": {
+            "wsl": {
+                "shell": "/bin/bash",
+                "args": ["-l"]
+            }
+        }
+    }
+} 

@@ -55,8 +55,10 @@
     "src/**/*.ts",
     "tailwind.config.cjs",
     "test/**/*.ts",
-    ".next/types/**/*.ts"
-, "postcss.config.mjs"  ],
+    ".next/types/**/*.ts",
+    "postcss.config.mjs",
+    "lib", 
+    "types" ],
   "exclude": [
     "node_modules"
   ]

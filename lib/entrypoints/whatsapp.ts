@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { startWhatsappBot } from "../services/whatsapp";
+import { startWhatsAppBot } from "../services/whatsapp";
 
 console.log("🚀 Iniciando bot de WhatsApp...");
-startWhatsappBot();
+startWhatsAppBot();

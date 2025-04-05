@@ -1,5 +1,3 @@
-// 📍 lib/classifier/index.ts
-
 import { ChatOpenAI } from "@langchain/openai";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
@@ -40,17 +38,13 @@ Consulta:
 
   try {
     const parsed = JSON.parse(res.content as string);
-
-    const category = parsed.category;
-    const promptKey = parsed.promptKey;
+    const { category, promptKey } = parsed;
 
     if (!promptMetadata[category]) {
       throw new Error(`❌ Categoría inválida detectada: ${category}`);
     }
 
-    const isValidPrompt =
-      promptKey === null || promptMetadata[category].includes(promptKey);
-
+    const isValidPrompt = promptKey === null || promptMetadata[category].includes(promptKey);
     if (!isValidPrompt) {
       throw new Error(`❌ Prompt key inválido: ${promptKey} para categoría: ${category}`);
     }

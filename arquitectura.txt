@@ -9,41 +9,59 @@
 │   │   │   └── route.ts:Zone.Identifier
 │   │   ├── email 
 │   │   └── whatsapp
+│   │       └── route.ts
 │   ├── favicon.ico
 │   ├── generatePDF.js
 │   ├── globals.css
 │   ├── layout.tsx
 │   ├── lib
 │   │   └── translation.ts
-│   └── page.tsx
+│   ├── page.tsx
+│   └── taildocs.txt
 ├── arquitectura.txt
 ├── documentacion
+├── ecosystem.config.js
 ├── eslint.config.mjs
 ├── estructura_del_proyecto.txt
 ├── generate_architecture.sh
+├── google-chrome-stable_current_amd64.deb
 ├── info.txt
 ├── lib
 │   ├── agents
 │   │   ├── billing.ts
-│   │   ├── classifier.ts
 │   │   ├── defaultResponse.ts
 │   │   ├── index.ts
 │   │   ├── internal_support.ts
 │   │   ├── reservations.ts
-│   │   ├── room_info.ts
+│   │   ├── retrieval_based.ts
 │   │   └── services.ts
+│   ├── classifier
+│   │   └── index.ts
+│   ├── config.ts
+│   ├── entrypoints
+│   │   ├── all.ts
+│   │   ├── email.ts
+│   │   └── whatsapp.ts
 │   ├── pms
 │   │   └── index.ts
+│   ├── prompts
+│   │   ├── index.ts
+│   │   └── promptMetadata.ts
 │   ├── retrieval
 │   │   └── index.ts
-│   └── services
-│       └── whatsapp.ts
+│   ├── services
+│   │   ├── email.ts
+│   │   ├── whatsapp.ts
+│   │   └── whatsappClient.ts
+│   └── utils
+│       └── debugLog.ts
 ├── next
 ├── next-env.d.ts
 ├── next.config.ts
+├── output_cleaned.txt
 ├── package.json
 ├── pnpm-lock.yaml
-├── postcss.config.cjs
+├── postcss.config.mjs
 ├── public
 │   ├── file.svg
 │   ├── fonts
@@ -55,12 +73,14 @@
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
+├── scripts
+│   └── testClassifier.ts
 ├── src
 │   ├── app.ts
 │   ├── config.ts
 │   ├── hotel_agent_uml.uml
 │   └── utils
-├── tailwind.config.cjs
+├── tailwind.config.ts
 ├── test
 │   ├── agents.test.ts
 │   ├── chat.test.ts
@@ -75,61 +95,307 @@
 │   └── rehype-raw.d.ts
 ├── tsconfig.json
 ├── tsconfig.tsbuildinfo
+├── types
+│   └── mailparser.d.ts
+├── vector_cache
+│   └── rooms_vectorstore.json
 ├── vitest.config.ts
 └── vitest.setup.ts
 
-20 directories, 57 files
+27 directories, 74 files
 
 =========================
 
 📜 Scripts Claves
 =================
 
-🔹 Archivo: ./lib/services/whatsapp.ts
+🔹 Archivo: ./lib/services/email.ts
 ---------------------------------
-import { Client, Message } from "whatsapp-web.js";
-import { agentGraph } from "../agents";  // ✅ Ajustar ruta de importación
+// lib/services/email.ts
+import { simpleParser } from "mailparser";
+import imaps from "imap-simple";
+import nodemailer from "nodemailer";
+import { agentGraph } from "../agents";
 import { HumanMessage } from "@langchain/core/messages";
+import dotenv from "dotenv";
 
-const client = new Client({
-  puppeteer: { headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] }
-});
+dotenv.config();
 
-client.on("qr", (qr) => {
-  console.log("⚡ Scan this QR code to connect WhatsApp:");
-  console.log(qr);
-});
+console.log("✅ Archivo email.ts cargado");
+console.log("✅ Grafo conversacional importado");
 
-client.on("ready", () => {
-  console.log("✅ WhatsApp Bot is ready!");
-});
+export async function startEmailBot() {
+  console.log("📥 Inicializando conexión IMAP...");
 
-client.on("message", async (message: Message) => {
   try {
-    console.log(`📩 Received: ${message.body}`);
+    const {
+      EMAIL_USER,
+      EMAIL_PASS,
+      IMAP_HOST,
+      IMAP_PORT,
+      SMTP_HOST,
+      SMTP_PORT,
+      EMAIL_SECURE,
+    } = process.env;
 
-    const response = await agentGraph.invoke({
-      messages: [new HumanMessage(message.body)]
+    if (!EMAIL_USER || !EMAIL_PASS || !IMAP_HOST || !SMTP_HOST) {
+      throw new Error("❌ Faltan variables de entorno críticas (EMAIL_USER, EMAIL_PASS, IMAP_HOST, SMTP_HOST)");
+    }
+
+    const imapConfig = {
+      imap: {
+        user: EMAIL_USER,
+        password: EMAIL_PASS,
+        host: IMAP_HOST,
+        port: Number(IMAP_PORT) || 993,
+        tls: true,
+        authTimeout: 3000,
+      },
+    };
+
+    console.log("📬 Configurando transporte SMTP...");
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT) || 587,
+      secure: EMAIL_SECURE === "true",
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
     });
 
-    if (response.messages.length > 0) {
-      const reply = response.messages[0].content;
-      if (typeof reply === "string" && reply.trim() !== "") {
-        message.reply(reply);
-        console.log(`📤 Sent: ${reply}`);
-      } else {
-        console.error("⚠️ Unexpected response format:", response.messages[0]);
+    console.log("🔌 Conectando a servidor IMAP...");
+    const connection = await imaps.connect(imapConfig);
+    console.log("📦 Conexión IMAP establecida correctamente.");
+
+    await connection.openBox("INBOX");
+    console.log("📨 Bot de email listo. Escuchando correos cada 15s...");
+
+    setInterval(async () => {
+      try {
+        const searchCriteria = ["UNSEEN"];
+        const fetchOptions = {
+          bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT"],
+          struct: true,
+        };
+
+        const messages = await connection.search(searchCriteria, fetchOptions);
+        console.log(`📬 Correos no leídos encontrados: ${messages.length}`);
+
+        for (const message of messages) {
+                   
+          console.log("🔍================= MENSAJE RECIBIDO =================");
+          console.dir(message, { depth: null });
+          console.log("🔍====================================================");
+          console.log("📦 message.parts:", message.parts);
+
+          const parts = imaps.getParts(message.attributes.struct);
+          const part = parts.find((p: any) => p.type === "text");
+          if (!part) continue;
+
+          const raw = await connection.getPartData(message, part);
+
+          const headerPart = message.parts.find((part: any) =>
+            part.which?.toLowerCase().includes("header")
+          );
+
+          const rawFrom = Array.isArray(headerPart?.body?.from)
+            ? headerPart.body.from[0]
+            : undefined;
+        
+          
+          const parsed = await simpleParser(raw);
+
+          // Asegurar que htmlRaw sea string
+          const htmlRaw = typeof parsed.html === "string"
+            ? parsed.html
+            : (typeof parsed.html === "object" && Buffer.isBuffer(parsed.html))
+              ? parsed.html.toString("utf-8")
+              : "";
+
+          const htmlClean = htmlRaw.replace(/<[^>]+>/g, "").trim();
+
+          console.log("🔍 headerLines:", parsed.headerLines);
+
+          const text =
+            parsed.text?.trim() ||
+            htmlClean ||
+            parsed.headerLines?.map((h: { key: string; line: string }) => h.line).join("\n").trim();
+
+          const from =
+            parsed.from?.text ||
+            rawFrom ||
+            parsed.headerLines?.find((h: { key: string; line: string }) =>
+              h.line.includes("@")
+            )?.line;
+
+          
+
+          if (text && from) {
+            console.log(`📧 Email recibido de ${from}:`, text);
+
+            const response = await agentGraph.invoke({
+              messages: [new HumanMessage(text)],
+            });
+
+            const reply = response.messages.at(-1)?.content;
+
+            if (typeof reply === "string") {
+              await transporter.sendMail({
+                from: EMAIL_USER,
+                to: from,
+                subject: "Re: " + (parsed.subject || "Consulta recibida"),
+                text: reply,
+              });
+
+              console.log(`📤 Respuesta enviada a ${from}`);
+            }
+          } else {
+            console.warn("⚠️ Email sin texto o sin remitente válido (tras fallback):", { from, text, parsed });
+          }
+        }
+      } catch (intervalErr) {
+        console.error("⛔ Error en el chequeo de correos:", intervalErr);
       }
-    } else {
-      console.warn("⚠️ No response from agent.");
-    }
-  } catch (error) {
-    console.error("⛔ Error processing message:", error);
-    message.reply("⚠️ Lo siento, hubo un problema procesando tu solicitud.");
+    }, 15000);
+  } catch (startupErr) {
+    console.error("💥 Error crítico en startEmailBot:\n", startupErr);
+    throw startupErr;
   }
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/services/whatsapp.ts
+---------------------------------
+// lib/services/whatsapp.ts
+
+import { Message } from "whatsapp-web.js";
+import { whatsappClient as client } from "./whatsappClient";
+import { agentGraph } from "../agents";
+import { HumanMessage } from "@langchain/core/messages";
+import qrcode from "qrcode-terminal";
+
+export function startWhatsappBot() {
+  client.on("qr", (qr) => {
+    console.log("⚡ Escaneá este código QR para conectar WhatsApp:");
+    qrcode.generate(qr, { small: true }); // Renderiza el QR como imagen en consola
+  });
+
+  client.on("ready", () => {
+    console.log("✅ Bot de WhatsApp listo!");
+  });
+
+  client.on("message", async (message: Message) => {
+    try {
+      console.log(`📩 Recibido: ${message.body}`);
+
+      const response = await agentGraph.invoke({
+        messages: [new HumanMessage(message.body)],
+      });
+
+      const reply = response.messages.at(-1)?.content;
+      if (typeof reply === "string" && reply.trim()) {
+        await message.reply(reply);
+        console.log(`📤 Enviado: ${reply}`);
+      } else {
+        console.warn("⚠️ Formato inesperado:", response.messages.at(-1));
+      }
+    } catch (error) {
+      console.error("⛔ Error procesando mensaje:", error);
+      await message.reply("⚠️ Ocurrió un error procesando tu solicitud.");
+    }
+  });
+
+  client.initialize();
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/services/whatsappClient.ts
+---------------------------------
+import { Client } from "whatsapp-web.js";
+import puppeteer from "puppeteer";
+
+export const whatsappClient = new Client({
+  puppeteer: {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: puppeteer.executablePath(), // 👈 Esto es lo clave
+  },
 });
 
-client.initialize();
+---------------------------------
+
+
+🔹 Archivo: ./lib/classifier/index.ts
+---------------------------------
+// 📍 lib/classifier/index.ts
+
+import { ChatOpenAI } from "@langchain/openai";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { debugLog } from "../utils/debugLog";
+
+export type Classification = {
+  category: string;
+  promptKey?: string | null;
+};
+
+const classifierModel = new ChatOpenAI({
+  modelName: "gpt-3.5-turbo",
+  temperature: 0,
+});
+
+export async function classifyQuery(question: string): Promise<Classification> {
+  const allowedCategories = Object.keys(promptMetadata).join(", ");
+  const allPromptKeys = Object.entries(promptMetadata)
+    .flatMap(([_, keys]) => keys)
+    .filter(Boolean);
+
+  const prompt = `
+Dada la siguiente consulta del usuario, responde solo con un JSON válido con dos campos:
+
+- "category": una de las siguientes: ${allowedCategories}
+- "promptKey": si la categoría necesita un prompt curado especial, elige una de: [${allPromptKeys.join(", ")}]; si no, pon null.
+
+Ejemplo de respuesta:
+{
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+
+Consulta:
+"${question}"
+`.trim();
+
+  const res = await classifierModel.invoke([{ role: "user", content: prompt }]);
+
+  try {
+    const parsed = JSON.parse(res.content as string);
+
+    const category = parsed.category;
+    const promptKey = parsed.promptKey;
+
+    if (!promptMetadata[category]) {
+      throw new Error(`❌ Categoría inválida detectada: ${category}`);
+    }
+
+    const isValidPrompt =
+      promptKey === null || promptMetadata[category].includes(promptKey);
+
+    if (!isValidPrompt) {
+      throw new Error(`❌ Prompt key inválido: ${promptKey} para categoría: ${category}`);
+    }
+
+    debugLog("🧠 Clasificación final:", { category, promptKey });
+    return { category, promptKey };
+  } catch (e) {
+    console.error("❌ Error al parsear o validar respuesta del clasificador:", res.content);
+    return { category: "retrieval_based", promptKey: null };
+  }
+}
 
 ---------------------------------
 
@@ -173,112 +439,415 @@ export const pms = new PMS();
 ---------------------------------
 
 
+🔹 Archivo: ./lib/prompts/promptMetadata.ts
+---------------------------------
+// lib/prompts/promptMetadata.ts
+
+/**
+ * Define qué promptKeys son válidas para cada categoría.
+ * Esto evita que el clasificador invente claves y permite escalar de forma controlada.
+ */
+export const promptMetadata: Record<string, string[]> = {
+    retrieval_based: ["room_info"],
+    reservation: [],
+    cancellation: [],
+    billing: [],
+    support: [],
+  };
+  
+  
+---------------------------------
+
+
+🔹 Archivo: ./lib/prompts/index.ts
+---------------------------------
+// lib/prompts/index.ts
+
+// 🧠 Prompt genérico
+export const defaultPrompt = `
+Responde la siguiente consulta usando exclusivamente la información proporcionada.
+
+- Sé claro y profesional.
+- Si no hay suficiente información, responde con cortesía sin inventar.
+
+Información disponible:
+
+{{retrieved}}
+
+Consulta del usuario: "{{query}}"
+`.trim();
+
+// 🏨 Prompts curados por clave
+export const curatedPrompts: Record<string, string> = {
+  room_info: `
+Usa la siguiente información del hotel para responder de manera clara y bien estructurada.
+
+**Formato requerido:**
+- Usa **Markdown** con listas y tablas para alineación.
+- La tabla **sin líneas de separación entre filas**.
+- Usa títulos en **negrita** con el emoji 🏨 antes del nombre de la habitación.
+- **Añade un doble salto de línea entre cada tipo de habitación.**
+- **Finaliza con una invitación a reservar.**
+
+Ejemplo de formato esperado:
+\`\`\`md
+**🏨 Habitación Doble**  
+
+| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  
+| 🚿 Baño privado       | 📞 Teléfono                    |  
+| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  
+| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  
+| 🔒 Caja fuerte        | 🚭 No fumadores                |  
+| 🛁 Toallas            | 🔥 Calefacción                 |  
+
+<br><br>
+
+**🏨 Habitación Triple**  
+
+| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  
+| 🚿 Baño privado               | 📞 Teléfono                    |  
+| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  
+| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  
+| 🔒 Caja fuerte                | 🚭 No fumadores                |  
+| 🛁 Toallas                    | 🔥 Calefacción                 |  
+
+<br><br>
+
+📅 **¡Reserva ahora para obtener el mejor precio!** 💰  
+🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)
+\`\`\`
+
+**Aquí está la información relevante del hotel:**  
+
+{{retrieved}}
+
+**Asegúrate de seguir estrictamente este formato.**
+`, 
+};
+
+---------------------------------
+
+
 🔹 Archivo: ./lib/retrieval/index.ts
 ---------------------------------
-import puppeteer from "puppeteer";
+import { cache } from "react";
+import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { writeFile } from "fs/promises";
-import { Document } from "@langchain/core/documents";
-import { ChatOpenAI } from "@langchain/openai";
+import { translationModel } from "../../app/lib/translation";
+import puppeteer from "puppeteer-extra";
 import dotenv from "dotenv";
-import { translationModel } from "@/lib/translation";
+import { debugLog } from "../utils/debugLog";
 
-dotenv.config(); // Carga las variables de entorno
+dotenv.config();
 
+const urls = ["https://www.hoteldemo.com/en/index.php"];
 
-// 🔄 Función para traducir texto con manejo de errores
-export async function translateText(text: string) {
-  try {
-    console.log(`🔄 Traduciendo consulta: "${text}"`);
-
-    const translatedQuery = await translationModel(text, "Spanish");
-
-
-    const translatedText =
-      typeof translatedQuery.content === "string"
-        ? translatedQuery.content
-        : JSON.stringify(translatedQuery.content);
-
-    console.log(`🌍 Traducción completa: "${translatedText}"`);
-    return translatedText;
-  } catch (error) {
-    console.error("⛔ Error en traducción:", error);
-    return text; // En caso de fallo, devolver el texto original
-  }
-}
-
-
-// 🌐 URLs a extraer
-const urls = [
-  "https://www.hoteldemo.com/en/index.php",
-];
-
-// 🖥 Función para extraer texto con Puppeteer
 async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
-  console.log(`🖥 Cargando página con Puppeteer: ${url}`);
+  debugLog("🖥 Cargando página con Puppeteer:", url);
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
+
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 }); // 60 segundos
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 });
     await page.waitForSelector("body", { timeout: 120000 });
-
-    const pageContent = await page.evaluate(() => document.body.innerText);
-    return pageContent;
+    return await page.evaluate(() => document.body.innerText);
   } catch (error) {
-    console.error(`❌ Error con Puppeteer al acceder a ${url}:`, error);
+    debugLog("❌ Error en Puppeteer:", error);
     return null;
   } finally {
     await browser.close();
   }
 }
 
-// 📥 Función para cargar y procesar documentos
-export async function loadDocuments() {
-  console.log("🔍 Iniciando carga de documentos con Puppeteer...");
+export async function translateText(text: string) {
+  try {
+    const lang = process.env.SYSTEM_NATIVE_LANGUAGE;
+    if (!lang) throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in .env");
+
+    const translated = await translationModel(text, lang);
+    return typeof translated.content === "string"
+      ? translated.content
+      : JSON.stringify(translated.content);
+  } catch (error) {
+    debugLog("⛔ Error en traducción:", error);
+    return text;
+  }
+}
+
+export const loadDocuments: () => Promise<MemoryVectorStore> = cache(async () => {
+  debugLog("📦 Cargando e indexando documentos...");
 
   const docs = await Promise.all(
     urls.map(async (url) => {
       const html = await fetchPageWithPuppeteer(url);
       if (!html) return null;
 
-      const translatedContent = await translateText(html);
-
+      const translated = await translateText(html);
       return new Document({
-        pageContent: translatedContent,
+        pageContent: translated,
         metadata: { source: url },
       });
     })
   );
 
-  const docsList = docs.filter((doc) => doc !== null);
-  console.log(`✅ Documentos extraídos y traducidos: ${docsList.length}`);
+  const validDocs = docs.filter(
+    (d): d is NonNullable<typeof d> => d !== null
+  );
 
-  // 🛠 **Dividir el texto en fragmentos para mejor indexación**
-  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
-  const docSplits = await textSplitter.splitDocuments(docsList);
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 500,
+    chunkOverlap: 50,
+  });
 
-  // 💾 Guardar datos en un archivo de depuración
-  await saveDocsToFile(docSplits);
+  const chunks = await splitter.splitDocuments(validDocs);
 
-  // 📚 Crear base vectorial con textos en español
-  return await MemoryVectorStore.fromDocuments(docSplits, new OpenAIEmbeddings());
+  return await MemoryVectorStore.fromDocuments(chunks, new OpenAIEmbeddings());
+});
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/config.ts
+---------------------------------
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const config = {
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    secure: process.env.EMAIL_SECURE === 'true',
+    user: process.env.EMAIL_USER || '',
+    password: process.env.EMAIL_PASSWORD || '',
+    from: process.env.EMAIL_FROM || '',
+  },
+  // ... otras configuraciones existentes
+}; 
+---------------------------------
+
+
+🔹 Archivo: ./lib/entrypoints/all.ts
+---------------------------------
+// lib/entrypoints/all.ts
+import dotenv from "dotenv";
+dotenv.config();
+
+process.on("uncaughtException", (err) => {
+  console.error("💥 Excepción no capturada:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 Promesa rechazada sin catch:", reason);
+});
+
+console.log("🚀 Iniciando todos los canales del asistente...");
+
+const promises: Promise<void>[] = [];
+
+if (process.env.ENABLE_WEB !== "false") {
+  console.log("🌐 Iniciando canal Web...");
+  const { startWebBot } = await import("../services/web");
+  promises.push(startWebBot());
 }
 
-// 💾 Función para guardar datos en un archivo
-async function saveDocsToFile(docSplits: Document[]) {
+if (process.env.ENABLE_WHATSAPP === "true") {
+  console.log("📱 Iniciando canal WhatsApp...");
+  const { startWhatsappBot } = await import("../services/whatsapp");
+  promises.push(startWhatsappBot());
+}
+
+if (process.env.ENABLE_EMAIL !== "false") {
+  console.log("📧 Iniciando canal Email...");
+  const { startEmailBot } = await import("../services/email");
+  promises.push(startEmailBot());
+}
+
+console.log("🔗 Iniciando canal Channel Manager...");
+async function startChannelManagerBot() {
+  console.log("📡 Simulando conexión con Channel Manager...");
+
+  setInterval(() => {
+    const dummyReservation = {
+      source: "Booking.com",
+      guestName: "Juan Pérez",
+      dates: "2025-04-10 al 2025-04-15",
+    };
+    console.log("📥 Reserva recibida desde Channel Manager:", dummyReservation);
+    // Aquí más adelante se podría hacer un `agentGraph.invoke()` o enviar al sistema
+  }, 30000);
+}
+
+promises.push(startChannelManagerBot());
+
+await Promise.all(promises);
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/entrypoints/email.ts
+---------------------------------
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+console.log("🟢 Entrando a email.ts");
+
+process.on("uncaughtException", (err) => {
+  console.error("💥 Excepción no capturada:");
+  console.error("Tipo:", typeof err);
+  console.error("Contenido:", err);
+  console.error("Inspección profunda:", require("util").inspect(err, { depth: null, colors: true }));
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("💥 Promesa rechazada sin catch:");
+  console.error("Tipo:", typeof reason);
+  console.error("Contenido:", reason);
+  console.error("Inspección profunda:", require("util").inspect(reason, { depth: null, colors: true }));
+});
+
+console.log("🛠️ Iniciando entrypoint email.ts");
+
+import { startEmailBot } from "../../lib/services/email";
+
+console.log("📥 startEmailBot importado");
+(async () => {
   try {
-    const textContent = JSON.stringify(docSplits, null, 2);
-    await writeFile("output_cleaned.txt", textContent, "utf-8");
-    console.log("📂 Datos guardados en output_cleaned.txt");
+    console.log("🚀 Iniciando bot de email...");
+    await startEmailBot();
   } catch (error) {
-    console.error("❌ Error al escribir el archivo:", error);
+    console.error("⛔ Error en el bot de email:", error instanceof Error ? error.message : error);
+    console.error(error); // 👈 esto imprime el stack completo
   }
+})();
+---------------------------------
+
+
+🔹 Archivo: ./lib/entrypoints/whatsapp.ts
+---------------------------------
+// lib/entrypoints/whatsapp.ts
+import dotenv from "dotenv";
+dotenv.config();
+
+import { startWhatsappBot } from "../services/whatsapp";
+
+console.log("🚀 Iniciando bot de WhatsApp...");
+startWhatsappBot();
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/agents/retrieval_based.ts
+---------------------------------
+// 📍 lib/agents/room_info.ts
+
+import { ChatOpenAI } from "@langchain/openai";
+import { GraphState, model, vectorStore } from "./index";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { defaultPrompt, curatedPrompts } from "../prompts";
+import { debugLog } from "../utils/debugLog";
+
+const translationModel = new ChatOpenAI({ model: "gpt-4o" });
+
+// 🌐 Traducción de respuesta al idioma original
+async function translateResponseBack(originalLang: string, content: string): Promise<string> {
+  if (originalLang === process.env.SYSTEM_NATIVE_LANGUAGE) return content;
+
+  const translated = await translationModel.invoke([
+    {
+      role: "system",
+      content: `Traduce el siguiente contenido al idioma '${originalLang}' manteniendo emojis y formato Markdown.`,
+    },
+    {
+      role: "user",
+      content,
+    },
+  ]);
+
+  return typeof translated.content === "string" ? translated.content : content;
+}
+
+// 🔎 Búsqueda semántica de información
+export async function retrieve_hotel_info(query: string, lang: string) {
+  const translatedQuery =
+    lang === process.env.SYSTEM_NATIVE_LANGUAGE
+      ? { content: query }
+      : await translationModel.invoke([
+          {
+            role: "system",
+            content: `Solo responde con la traducción literal de la siguiente consulta al idioma '${process.env.SYSTEM_NATIVE_LANGUAGE}'. No añadas ningún comentario ni explicación.`,
+          },
+          {
+            role: "user",
+            content: query,
+          },
+        ]);
+
+  const searchQuery =
+    typeof translatedQuery.content === "string"
+      ? translatedQuery.content
+      : JSON.stringify(translatedQuery.content);
+
+  const results = await vectorStore.similaritySearch(searchQuery, 5);
+
+  debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
+
+  return results.map((doc) => doc.pageContent).join("\n\n");
+}
+
+// 🔁 Nodo principal para manejo genérico con recuperación
+export async function retrievalBased(state: typeof GraphState.State) {
+  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
+  const userQuery =
+    typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
+  const lang = state.detectedLanguage ?? process.env.SYSTEM_NATIVE_LANGUAGE;
+  const promptKey = state.promptKey;
+
+  if (!userQuery.trim()) {
+    return { messages: [new AIMessage("Consulta vacía o inválida.")] };
+  }
+
+  const retrievedInfo = await retrieve_hotel_info(userQuery, lang);
+
+  if (!retrievedInfo.trim()) {
+    debugLog("⚠️ No se encontró información relevante en los documentos.");
+    const response = await model.invoke(state.messages);
+    const responseText = typeof response.content === "string" ? response.content.trim() : "";
+    return {
+      messages: [
+        new AIMessage(responseText || "Lo siento, no encontré información."),
+      ],
+    };
+  }
+
+  const promptTemplate = (promptKey && curatedPrompts[promptKey]) || defaultPrompt;
+  const finalPrompt = promptTemplate
+    .replace("{{retrieved}}", retrievedInfo)
+    .replace("{{query}}", userQuery);
+
+  const response = await model.invoke([
+    { role: "system", content: finalPrompt },
+    { role: "user", content: userQuery },
+  ]);
+
+  const responseText = typeof response.content === "string" ? response.content.trim() : "";
+  const finalResponse =
+    lang === process.env.SYSTEM_NATIVE_LANGUAGE
+      ? responseText
+      : await translateResponseBack(lang, responseText);
+
+  return {
+    ...state,
+    messages: [
+      ...state.messages,
+      new AIMessage(finalResponse || "Lo siento, no encontré información sobre habitaciones."),
+    ],
+  };
 }
 
 ---------------------------------
@@ -321,57 +890,6 @@ export async function handleReservation(state: { messages: { content: string }[]
 ---------------------------------
 
 
-🔹 Archivo: ./lib/agents/classifier.ts
----------------------------------
-export async function classifyQuery(question: string): Promise<string> {
-  const lowerCaseQ = question.toLowerCase();
-  let category = "other"; // Categoría por defecto
-
-  if (
-    lowerCaseQ.includes("reservar") ||
-    lowerCaseQ.includes("reserva") ||
-    lowerCaseQ.includes("quiero reservar") ||
-    lowerCaseQ.includes("hacer una reserva")
-  ) {
-    category = "reservation";
-  } else if (
-    lowerCaseQ.includes("habitacion") ||
-    lowerCaseQ.includes("cuarto") ||
-    lowerCaseQ.includes("vista al mar") ||
-    lowerCaseQ.includes("frente al mar") ||
-    lowerCaseQ.includes("tipo de habitacion") ||
-    lowerCaseQ.includes("comodidades")
-  ) {
-    category = "room_info";
-  } else if (
-    lowerCaseQ.includes("servicio") ||
-    lowerCaseQ.includes("spa") ||
-    lowerCaseQ.includes("gimnasio") ||
-    lowerCaseQ.includes("restaurante")
-  ) {
-    category = "services";
-  } else if (
-    lowerCaseQ.includes("factura") ||
-    lowerCaseQ.includes("pago") ||
-    lowerCaseQ.includes("cobro") ||
-    lowerCaseQ.includes("precio")
-  ) {
-    category = "billing";
-  } else if (
-    lowerCaseQ.includes("soporte") ||
-    lowerCaseQ.includes("problema") ||
-    lowerCaseQ.includes("ayuda")
-  ) {
-    category = "support";
-  }
-
-  console.log(`✅ Consulta clasificada como: ${category}`); // 🔍 LOG ÚTIL PARA DEPURACIÓN
-  return category;
-}
-
----------------------------------
-
-
 🔹 Archivo: ./lib/agents/services.ts
 ---------------------------------
 // app/agents/services.ts
@@ -394,182 +912,46 @@ export function handleSupport() {
 ---------------------------------
 
 
-🔹 Archivo: ./lib/agents/room_info.ts
----------------------------------
-import { ChatOpenAI } from "@langchain/openai";
-import { GraphState, model, vectorStore } from "./index"
-import { AIMessage } from "@langchain/core/messages";
-
-const translationModel = new ChatOpenAI({ model: "gpt-4o" });
-
-async function translateResponseBack(originalLang: string, content: string): Promise<string> {
-  if (originalLang === process.env.SYSTEM_NATIVE_LANGUAGE) return content;
-
-  const translated = await translationModel.invoke([
-    {
-      role: "system",
-      content: `Traduce el siguiente contenido al idioma '${originalLang}' manteniendo emojis y formato Markdown.`,
-    },
-    {
-      role: "user",
-      content,
-    },
-  ]);
-
-  return typeof translated.content === "string" ? translated.content : content;
-}
-
-export async function retrieve_hotel_info(query: string, lang: string) {
-    console.log(`🔍 Buscando información en la base vectorial: ${query}`);
- 
-
-    const translatedQuery = lang === process.env.SYSTEM_NATIVE_LANGUAGE
-    ? { content: query }
-    : await translationModel.invoke([
-        {
-          role: "system",
-          content: `Translate this query to ${process.env.SYSTEM_NATIVE_LANGUAGE}:`,
-        },
-        {
-          role: "user",
-          content: query,
-        },
-    ]);
-  
-  
-  
-    console.log("🌍 Consulta traducida: ${translatedQuery.content}");
-    console.log("📌 Tipo de translatedQuery.content:", typeof translatedQuery.content, translatedQuery.content);
-  
-    // 🔍 Buscamos en la base vectorial
-    const searchQuery = typeof translatedQuery.content === "string"
-    ? translatedQuery.content
-    : JSON.stringify(translatedQuery.content);
-    const results = await vectorStore.similaritySearch(searchQuery, 5);
-  
-    console.log("📄 Resultados encontrados:", results.map(r => r.pageContent));
-  
-    return results.map(doc => doc.pageContent).join("\n\n");
-  }
-
-export async function handleRoomInfoNode(state: typeof GraphState.State) {
-  // 📝 Obtener la consulta del usuario
-  const userQuery = state.messages.length > 0 ? String(state.messages[state.messages.length - 1]?.content) : "";
-  const lang = state.detectedLanguage ?? process.env.SYSTEM_NATIVE_LANGUAGE;
-  
-  // Validar entrada
-  if (!userQuery.trim()) {
-    return { messages: [new AIMessage("Consulta vacía o inválida.")] };
-  }
-
- // Recuperar info en idioma nativo
-  const retrievedInfo = await retrieve_hotel_info(userQuery, lang);
-
-  if (!retrievedInfo.trim()) {
-    console.log("🚫 No se encontraron coincidencias en la base vectorial. Usando modelo de IA sin contexto.");
-    const response = await model.invoke(state.messages);
-    const responseText = typeof response.content === "string" ? response.content.trim() : "";
-    return { messages: [new AIMessage(responseText || "Lo siento, no encontré información sobre habitaciones.")] };
-  }
-
-  // 🔹 Construir el prompt con formato mejorado
-  const formattedPrompt = `
-  Usa la siguiente información del hotel para responder de manera clara y bien estructurada.
-
-  **Formato requerido:**
-  - Usa **Markdown** con listas y tablas para alineación.
-  - La tabla **sin líneas de separación entre filas**.
-  - Usa títulos en **negrita** con el emoji 🏨 antes del nombre de la habitación.
-  - **Añade un doble salto de línea entre cada tipo de habitación.**
-  - **Finaliza con una invitación a reservar.**
-
-  Ejemplo de formato esperado:
-  \`\`\`md
-  **🏨 Habitación Doble**  
-
-  | 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  
-  | 🚿 Baño privado       | 📞 Teléfono                    |  
-  | 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  
-  | ❄️ Aire acondicionado | 📶 WiFi gratis                 |  
-  | 🔒 Caja fuerte        | 🚭 No fumadores                |  
-  | 🛁 Toallas            | 🔥 Calefacción                 |  
-
-  <br><br>
-
-  **🏨 Habitación Triple**  
-
-  | 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  
-  | 🚿 Baño privado               | 📞 Teléfono                    |  
-  | 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  
-  | ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  
-  | 🔒 Caja fuerte                | 🚭 No fumadores                |  
-  | 🛁 Toallas                    | 🔥 Calefacción                 |  
-
-  <br><br>
-
-  📅 **¡Reserva ahora para obtener el mejor precio!** 💰  
-  🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)
-
-  \`\`\`
-
-  **Aquí está la información relevante del hotel:**  
-
-  ${retrievedInfo}
-
-  **Asegúrate de seguir estrictamente este formato.**
-  `.trim();
-
-
-  // 🔥 Enviar la consulta mejorada al modelo de IA
-  const response = await model.invoke([
-    { role: "system", content: String(formattedPrompt) }, // Convertir a string por seguridad
-    { role: "user", content: String(userQuery) }
-  ]);
-
-  const responseText = typeof response.content === "string" ? response.content.trim() : "";
-  // Traducir la salida si corresponde
-  const finalResponse = lang === process.env.SYSTEM_NATIVE_LANGUAGE
-  ? responseText
-  : await translateResponseBack(lang, responseText);
-  return { messages: [new AIMessage(responseText || "Lo siento, no encontré información sobre habitaciones.")] };
-}
----------------------------------
-
-
 🔹 Archivo: ./lib/agents/index.ts
 ---------------------------------
-/// fusión de:
-// handleRoomInfoNode_001 F app/agents/index.ts F formattedPrompt_001
+// 📍 lib/agents/index.ts
 
 import { StateGraph } from "@langchain/langgraph";
-import { classifyQuery } from "./classifier";
-import { AIMessage } from "@langchain/core/messages";
+import { classifyQuery } from "../classifier";
+import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { pms } from "../pms";
 import { loadDocuments } from "../retrieval/index";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
-import { handleRoomInfoNode } from "./room_info";
+import { retrievalBased } from "./retrieval_based";
+import { franc } from "franc";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { debugLog } from "../utils/debugLog";
 
-// Definir el estado del grafo correctamente
+console.log("🔧 Compilando grafo conversacional...");
+
+// 🧠 Estado global del grafo
 export const GraphState = Annotation.Root({
-    messages: Annotation<BaseMessage[]>({
-      reducer: (x, y) => x.concat(y),
-      default: () => [] as BaseMessage[],
-    }),
-    category: Annotation<string>({
-      reducer: (x, y) => y,
-      default: () => "other",
-    }),
-    detectedLanguage: Annotation<string>({
-      reducer: (x, y) => y,
-      default: () => "en",
-    }),
-  });
-  
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y),
+    default: () => [] as BaseMessage[],
+  }),
+  category: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "other",
+  }),
+  detectedLanguage: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "en",
+  }),
+  promptKey: Annotation<string | null>({
+    reducer: (x, y) => y,
+    default: () => null,
+  }),
+});
 
-// Cargar documentos y configurar herramientas
+// 📚 Cargar documentos y herramientas de recuperación
 export const vectorStore = await loadDocuments();
 const retriever = createRetrieverTool(vectorStore.asRetriever(), {
   name: "retrieve_hotel_info",
@@ -577,53 +959,118 @@ const retriever = createRetrieverTool(vectorStore.asRetriever(), {
 });
 export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
 
-// 🔹 Función para clasificar la consulta del usuario
-async function classifyNode(state: typeof GraphState.State) {
-  try {
-    const contentText = typeof state.messages[0].content === "string" ? state.messages[0].content : "";
-    const category = await classifyQuery(contentText);
+// 🔍 Nodo: Clasificador de intención + detección de idioma
+export async function classifyNode(state: typeof GraphState.State) {
+  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
+  const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
 
-    return { category };
-  } catch (error) {
-    console.error("⛔ Error en clasificación:", error);
-    return { category: "other" }; // Retornar una categoría segura
+  if (!question) {
+    return {
+      ...state,
+      category: "retrieval_based",
+      promptKey: null,
+      messages: [
+        ...state.messages,
+        new AIMessage("Consulta vacía o no válida. Intenta reformular tu pregunta."),
+      ],
+    };
   }
+
+  const detectedLang = franc(question, { minLength: 3 });
+
+  let classification;
+  try {
+    classification = await classifyQuery(question);
+  } catch (e) {
+    console.error("❌ Error clasificando la consulta:", e);
+    classification = { category: "retrieval_based", promptKey: null };
+  }
+
+  const { category, promptKey } = classification;
+
+  // Validación defensiva (promptKey debe estar autorizado para esa categoría)
+  const validPromptKeys = promptMetadata[category] || [];
+  const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
+
+  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey });
+
+  return {
+    ...state,
+    category,
+    promptKey: finalPromptKey,
+    detectedLanguage: detectedLang || process.env.SYSTEM_NATIVE_LANGUAGE,
+    messages: [
+      ...state.messages,
+      new AIMessage(`Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""}`),
+    ],
+  };
 }
 
-// 🔹 Función para manejar reservas en el PMS
+// 📅 Nodo: Gestión de reservas (también maneja cancelaciones)
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
-  return { messages: [new AIMessage(`Reservation confirmed: ${response.id}`)] };
+  return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
 }
 
-
-// 🔹 Función para manejar respuestas predeterminadas
-async function defaultResponseNode() {
-  return { messages: [new AIMessage("Lo siento, no entendí la solicitud. Inténtalo nuevamente.")] };
+// 💳 Nodo: Facturación
+async function handleBillingNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
 
-// 🔹 Construcción del grafo de estados
+// 🛟 Nodo: Soporte
+async function handleSupportNode() {
+  return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
+}
+
+// 🤖 Nodo: IA + recuperación de contexto
+async function retrievalBasedNode(state: typeof GraphState.State) {
+  return await retrievalBased(state);
+}
+
+// 🕸️ Construcción del grafo de estados
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_room_info", async (state) => await handleRoomInfoNode(state))
-  .addNode("handle_amenities", async () => ({ messages: [new AIMessage("Aquí están nuestras comodidades.")] }))
-  .addNode("handle_cancellation", async () => ({ messages: [new AIMessage("Detalles de cancelación...")] }))
-  .addNode("default_response", defaultResponseNode)
+  .addNode("handle_cancellation", handleReservationNode)
+  .addNode("handle_billing", handleBillingNode)
+  .addNode("handle_support", handleSupportNode)
+  .addNode("handle_retrieval_based", retrievalBasedNode)
+
+  // 🔁 Transiciones
   .addEdge("__start__", "classify")
   .addConditionalEdges("classify", (state) => state.category, {
-    room_info: "handle_room_info",
     reservation: "handle_reservation",
-    amenities: "handle_amenities",
     cancellation: "handle_cancellation",
-    other: "default_response",
+    billing: "handle_billing",
+    support: "handle_support",
+    retrieval_based: "handle_retrieval_based",
   })
-  .addEdge("default_response", "__end__");
+
+  // 🔚 Finales
+  .addEdge("handle_reservation", "__end__")
+  .addEdge("handle_cancellation", "__end__")
+  .addEdge("handle_billing", "__end__")
+  .addEdge("handle_support", "__end__")
+  .addEdge("handle_retrieval_based", "__end__");
 
 console.log("✅ Grafo compilado con éxito.");
 
-// Exportar el grafo compilado
+// 🚀 Exportar grafo compilado
 export const agentGraph = graph.compile();
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/utils/debugLog.ts
+---------------------------------
+// lib/utils/debugLog.ts
+
+export function debugLog(...args: any[]) {
+    if (process.env.DEBUG === "true") {
+      console.log(...args);
+    }
+  }
+  
 ---------------------------------
 
 
@@ -648,7 +1095,7 @@ vi.mock("@/agents/room_info", () => ({
 
 // 🔄 Ahora importamos después de los mocks
 import { ChatOpenAI } from "@langchain/openai";
-import * as Agents from "lib/agents/room_info";
+import * as Agents from "lib/agents/retrieval_based";
 
 describe("Agente de hotel - Pruebas con respuestas mockeadas", () => {
   test("El modelo usa correctamente la base vectorial", async () => {
@@ -672,7 +1119,7 @@ describe("Agente de hotel - Pruebas con respuestas mockeadas", () => {
 🔹 Archivo: ./test/presentacion.test.ts
 ---------------------------------
 import { test, expect } from "vitest";
-import { handleRoomInfoNode } from "../lib/agents/room_info";
+import { retrievalBased } from "../lib/agents/retrieval_based";
 import { GraphState } from "../lib/agents"; // importa el GraphState para armar el estado
 import { HumanMessage } from "@langchain/core/messages";
 
@@ -683,11 +1130,12 @@ test("El formato contiene Markdown visual con emojis", async () => {
   const testState: typeof GraphState.State = {
     messages: [new HumanMessage(testQuery)],
     category: "room_info",
-    detectedLanguage: "es", // forzamos español para usar el prompt curado directamente
+    detectedLanguage: "es",
+    promptKey: null
   };
 
   // ✅ Invocar el nodo como lo haría LangGraph
-  const result = await handleRoomInfoNode(testState);
+  const result = await retrievalBased(testState);
 
   // 🧾 Extraer respuesta
   const response = result.messages[0].content;
@@ -705,7 +1153,7 @@ test("El formato contiene Markdown visual con emojis", async () => {
 ---------------------------------
 import { test, expect } from "vitest";
 
-import { retrieve_hotel_info } from "../lib/agents/room_info.ts";
+import { retrieve_hotel_info } from "../lib/agents/retrieval_based.ts";
 
 test("Recupera información sobre habitaciones correctamente", async () => {
   const query = "¿Qué tipos de habitaciones tienen?";
@@ -877,7 +1325,7 @@ a:hover {
 
 🔹 Archivo: ./app/layout.tsx
 ---------------------------------
-// @ts-nocheck
+
 import { Metadata } from "next";
 import localFont from "next/font/local"; // ✅ Importación correcta
 
@@ -1006,34 +1454,57 @@ export default function ChatPage() {
 ---------------------------------
 
 
-🔹 Archivo: ./app/api/chat/route.ts
+🔹 Archivo: ./app/api/whatsapp/route.ts
 ---------------------------------
+// app/api/whatsapp/route.ts
+
 import { NextResponse } from "next/server";
 
-import { agentGraph } from "/..//lib/agents/index.ts";
+export async function GET() {
+  return NextResponse.json({ status: "🟢 WhatsApp bot is running." });
+}
+
+export async function POST() {
+  return NextResponse.json({ status: "🟢 WhatsApp bot is running independently and does not require webhooks." });
+}
+
+---------------------------------
 
 
+🔹 Archivo: ./app/api/chat/route.ts
+---------------------------------
+// /root/begasist/app/api/chat/route.ts
+
+import { NextResponse } from "next/server";
+import { agentGraph } from "/../lib/agents/index.ts";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { debugLog } from "../../../lib/utils/debugLog";
 
 export async function POST(req: Request) {
   try {
     const { query } = await req.json();
-    console.log("🔍 Consulta recibida:", query);
+    debugLog("🔍 Consulta recibida:", query);
 
     const response = await agentGraph.invoke({
       messages: [new HumanMessage(query)],
     });
 
-    // Buscar el primer mensaje que sea un AIMessage y obtener su contenido
-    const aiMessage = response.messages.find(msg => msg instanceof AIMessage) as AIMessage | undefined;
+    // Buscar el último mensaje que sea un AIMessage y obtener su contenido
+    const aiMessage = response.messages.findLast(
+      (msg) => msg instanceof AIMessage
+    ) as AIMessage | undefined;
+
     const responseText = aiMessage?.content || "No se encontró una respuesta.";
 
-    console.log("📌 Respuesta enviada:", responseText);
+    debugLog("📌 Respuesta enviada:", responseText);
 
     return NextResponse.json({ response: responseText });
   } catch (error) {
     console.error("⛔ Error en la API /api/chat:", error);
-    return NextResponse.json({ response: "Ocurrió un error al procesar la solicitud." }, { status: 500 });
+    return NextResponse.json(
+      { response: "Ocurrió un error al procesar la solicitud." },
+      { status: 500 }
+    );
   }
 }
 

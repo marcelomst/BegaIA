@@ -4,7 +4,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { translationModel } from "../../app/lib/translation";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
 import dotenv from "dotenv";
 import { debugLog } from "../utils/debugLog";
 
@@ -13,7 +13,8 @@ dotenv.config();
 const urls = ["https://www.hoteldemo.com/en/index.php"];
 
 async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
-  debugLog("🖥 Cargando página con Puppeteer:", url);
+  debugLog("🌐 Cargando página con Puppeteer:", url);
+
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
