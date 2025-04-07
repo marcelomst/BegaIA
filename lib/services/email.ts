@@ -1,4 +1,3 @@
-// lib/services/email.ts
 import { simpleParser } from "mailparser";
 import imaps from "imap-simple";
 import nodemailer from "nodemailer";
@@ -7,7 +6,6 @@ import { HumanMessage } from "@langchain/core/messages";
 import dotenv from "dotenv";
 
 dotenv.config();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 export async function startEmailBot() {
   console.log("📥 [email] Iniciando bot de correo...");
@@ -34,14 +32,15 @@ export async function startEmailBot() {
         host: IMAP_HOST,
         port: Number(IMAP_PORT) || 993,
         tls: true,
-        authTimeout: 3000,
+        tlsOptions: { rejectUnauthorized: false }, // ⬅️ Clave para evitar errores SSL locales
+        authTimeout: 10000,
       },
     };
 
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT) || 587,
-      secure: EMAIL_SECURE === "true",
+      secure: false, // usar STARTTLS (para puerto 587)
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
@@ -50,8 +49,7 @@ export async function startEmailBot() {
 
     const connection = await imaps.connect(imapConfig);
     await connection.openBox("INBOX");
-
-    console.log("✅ [email] Bot de email conectado y escuchando (cada 15s)");
+    console.log("✅ [email] Conectado a IMAP. Escuchando correos cada 15s...");
 
     setInterval(async () => {
       try {
@@ -60,65 +58,70 @@ export async function startEmailBot() {
           struct: true,
         });
 
-        if (messages.length > 0) {
-          console.log(`📬 [email] Correos no leídos: ${messages.length}`);
-        }
+        if (!messages.length) return;
+
+        console.log(`📬 [email] Correos no leídos: ${messages.length}`);
 
         for (const message of messages) {
           const parts = imaps.getParts(message.attributes.struct);
           const part = parts.find((p: any) => p.type === "text");
           if (!part) continue;
-
+        
           const raw = await connection.getPartData(message, part);
-          const headerPart = message.parts.find((p: any) => p.which?.toLowerCase().includes("header"));
-          const rawFrom = Array.isArray(headerPart?.body?.from) ? headerPart.body.from[0] : undefined;
-
           const parsed = await simpleParser(raw);
-
+        
           const htmlRaw =
             typeof parsed.html === "string"
               ? parsed.html
               : Buffer.isBuffer(parsed.html)
               ? parsed.html.toString("utf-8")
               : "";
-
-          const htmlClean = htmlRaw.replace(/<[^>]+>/g, "").trim();
-
-          const text =
+        
+          const cleanText =
             parsed.text?.trim() ||
-            htmlClean ||
+            htmlRaw.replace(/<[^>]+>/g, "").trim() ||
             parsed.headerLines?.map((h: { key: string; line: string }) => h.line).join("\n").trim();
-
+        
+          const headerPart = message.parts.find((p: any) => p.which?.toLowerCase().includes("header"));
+          const rawFrom = Array.isArray(headerPart?.body?.from) ? headerPart.body.from[0] : undefined;
+        
           const from =
             parsed.from?.text ||
             rawFrom ||
             parsed.headerLines?.find((h: { key: string; line: string }) => h.line.includes("@"))?.line;
-
-          if (text && from) {
-            console.log(`📧 [email] Email de ${from}`);
-
-            const response = await agentGraph.invoke({
-              messages: [new HumanMessage(text)],
+        
+          if (!cleanText || !from) {
+            console.warn("⚠️ [email] Email ignorado: sin texto o remitente válido.", {
+              fromFallback: rawFrom,
+              parsedFrom: parsed.from?.text,
+              parsedText: parsed.text,
+              parsedHTML: parsed.html,
+              headerLines: parsed.headerLines,
             });
-
-            const reply = response.messages.at(-1)?.content;
-
-            if (typeof reply === "string") {
-              await transporter.sendMail({
-                from: EMAIL_USER,
-                to: from,
-                subject: "Re: " + (parsed.subject || "Consulta recibida"),
-                text: reply,
-              });
-
-              console.log(`📤 [email] Respuesta enviada a ${from}`);
-            }
-          } else {
-            console.warn("⚠️ [email] Email sin texto o sin remitente válido", { from, text });
+            continue;
+          }
+        
+          console.log(`📧 [email] Procesando email de ${from}`);
+        
+          const response = await agentGraph.invoke({
+            messages: [new HumanMessage(cleanText)],
+          });
+        
+          const reply = response.messages.at(-1)?.content;
+          if (typeof reply === "string") {
+            await transporter.sendMail({
+              from: EMAIL_USER,
+              to: from,
+              subject: "Re: " + (parsed.subject || "Consulta recibida"),
+              text: reply,
+            });
+        
+            console.log(`📤 [email] Respuesta enviada a ${from}`);
           }
         }
-      } catch (intervalErr) {
-        console.error("⛔ [email] Error procesando correos:", intervalErr);
+        
+      } catch (err) {
+        console.error("⛔ [email] Error procesando correos:", err);
       }
     }, 15000);
   } catch (startupErr) {

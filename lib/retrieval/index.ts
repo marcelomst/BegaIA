@@ -1,3 +1,4 @@
+process.env.OPENAI_LOG = "off";
 import { cache } from "react";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -76,5 +77,7 @@ export const loadDocuments: () => Promise<MemoryVectorStore> = cache(async () =>
 
   const chunks = await splitter.splitDocuments(validDocs);
 
-  return await MemoryVectorStore.fromDocuments(chunks, new OpenAIEmbeddings());
+  return await MemoryVectorStore.fromDocuments(
+    chunks,
+    new OpenAIEmbeddings({ verbose: false }));
 });

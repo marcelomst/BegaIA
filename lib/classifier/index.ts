@@ -6,6 +6,7 @@ export type Classification = {
   category: string;
   promptKey?: string | null;
 };
+process.env.OPENAI_LOG = "off";
 
 const classifierModel = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",

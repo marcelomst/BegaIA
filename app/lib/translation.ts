@@ -1,3 +1,4 @@
+process.env.OPENAI_LOG = "off";
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { agentGraph } from "/../lib/agents/index.ts";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { debugLog } from "../../../lib/utils/debugLog";
-
+process.env.OPENAI_LOG = "off";
 export async function POST(req: Request) {
   try {
     const { query } = await req.json();

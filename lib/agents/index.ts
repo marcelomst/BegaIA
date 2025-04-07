@@ -10,6 +10,7 @@ import { retrievalBased } from "./retrieval_based";
 import { franc } from "franc";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
+process.env.OPENAI_LOG = "off";
 
 debugLog("🔧 Compilando grafo conversacional...");
 

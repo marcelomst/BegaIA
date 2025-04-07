@@ -1,5 +1,5 @@
 // 📍 lib/agents/room_info.ts
-
+process.env.OPENAI_LOG = "off";
 import { ChatOpenAI } from "@langchain/openai";
 import { GraphState, model, vectorStore } from "./index";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
@@ -49,7 +49,7 @@ export async function retrieve_hotel_info(query: string, lang: string) {
 
   const results = await vectorStore.similaritySearch(searchQuery, 5);
 
-  debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
+  // debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
 
   return results.map((doc) => doc.pageContent).join("\n\n");
 }
