@@ -51,7 +51,7 @@ export async function retrieve_hotel_info(query: string, lang: string) {
 
   // debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
 
-  return results.map((doc) => doc.pageContent).join("\n\n");
+  return results.map((doc: { pageContent: string }) => doc.pageContent).join("\n\n");
 }
 
 // 🔁 Nodo principal para manejo genérico con recuperación

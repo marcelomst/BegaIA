@@ -33,12 +33,18 @@ export const GraphState = Annotation.Root({
   }),
 });
 
-export const vectorStore = await loadDocuments();
-const retriever = createRetrieverTool(vectorStore.asRetriever(), {
-  name: "retrieve_hotel_info",
-  description: "Search hotel FAQs and policies.",
-});
-export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+export let  vectorStore: any;
+let retriever: any;
+export let model: any;
+
+(async () => {
+  vectorStore = await loadDocuments("defaultHotelId");
+  retriever = createRetrieverTool(vectorStore.asRetriever(), {
+    name: "retrieve_hotel_info",
+    description: "Search hotel FAQs and policies.",
+  });
+  model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+})();
 
 export async function classifyNode(state: typeof GraphState.State) {
   const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
