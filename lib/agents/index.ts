@@ -94,7 +94,9 @@ async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
   return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
 }
-
+async function handleAmenitiesionNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de amenities.")] };
+}
 async function handleBillingNode() {
   return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
@@ -110,20 +112,20 @@ async function retrievalBasedNode(state: typeof GraphState.State) {
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_cancellation", handleReservationNode)
+  .addNode("handle_amenities", handleAmenitiesionNode)
   .addNode("handle_billing", handleBillingNode)
   .addNode("handle_support", handleSupportNode)
   .addNode("handle_retrieval_based", retrievalBasedNode)
   .addEdge("__start__", "classify")
   .addConditionalEdges("classify", (state) => state.category, {
     reservation: "handle_reservation",
-    cancellation: "handle_cancellation",
+    amenities: "handle_amenities",
     billing: "handle_billing",
     support: "handle_support",
     retrieval_based: "handle_retrieval_based",
   })
   .addEdge("handle_reservation", "__end__")
-  .addEdge("handle_cancellation", "__end__")
+  .addEdge("handle_amenities", "__end__")
   .addEdge("handle_billing", "__end__")
   .addEdge("handle_support", "__end__")
   .addEdge("handle_retrieval_based", "__end__");
