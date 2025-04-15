@@ -1,0 +1,329 @@
+
+Eres un experto en hospitalidad. Vas a clasificar fragmentos de texto provenientes de documentos de hoteles en una de las siguientes categorías:
+
+- reservation
+- billing
+- support
+- amenities
+- retrieval_based
+
+Además, si corresponde, asignarás una clave de prompt especializada (promptKey) como por ejemplo: room_info, cancellation_policy, breakfast_details, etc. Si no hay un promptKey aplicable, devuélvelo como null.
+
+Devuelve **exclusivamente** un JSON válido con esta estructura (una lista con un objeto por fragmento):
+
+[
+  {
+    "category": "reservation",
+    "promptKey": "cancellation_policy"
+  },
+  ...
+]
+
+Ahora analiza los siguientes fragmentos:
+
+Fragmento 1: """HOGAR
+HABITACIONES Y SERVICIOS
+GALERÍA
+UBICACIÓN
+CONTACTOS
+IT
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+HOTEL DEMÒ
+Hotel de Arte, embellecido con obras de arte
+RESERVAR AHORA
+¡RESERVA DIRECTAMENTE!
+¡DESAYUNO DELICIOSO Y LA MEJOR TARIFA GARANTIZADA!
+HOTEL DEMÒ
+Cerca de la Estación Central de Milán
+
+Todas las habitaciones se desinfectan diariamente según las nuevas regulaciones.
+
+Así que, sea cual sea la elección realizada, el nivel de servicios y el uso de las áreas comunes podrán satisfacer plenamente sus expectativas.
+
+Está a un paso de la estación de trenes Central de Milán y cerca de todos los transportes públicos necesarios para visitar Milán y sus alrededores.
+A solo 100 metros de la Stazione Centrale y de la terminal de autobuses para los aeropuertos de Linate, Malpensa y Orio al Serio.
+A solo 100 metros de la parada de metro Stazione Centrale.
+
+El Hotel Demó de Milán es una instalación moderna y acogedora, embellecida con las obras de arte de su propietario, Enrico Nicodemo (también conocido como Demó), expuestas en el área de recepción."""
+
+Fragmento 2: """El Hotel Demó de Milán es una instalación moderna y acogedora, embellecida con las obras de arte de su propietario, Enrico Nicodemo (también conocido como Demó), expuestas en el área de recepción.
+
+Durante su estancia en Milán, el personal del hotel estará encantado de proporcionar información y excelentes consejos sobre cómo moverse por la ciudad y cómo pasar su tiempo libre. También reservarán entradas para cualquier evento cultural, deportivo o musical, por ejemplo, en el Estadio San Siro.
+
+Recepción 24/24h
+
+El establecimiento está abierto las 24 horas del día con un personal multilingüe.
+
+Depósito de equipaje
+
+Nuestra instalación cuenta con un área de consigna de equipaje.
+
+Se admiten mascotas
+
+Se admiten mascotas bajo petición. Sin cargos adicionales.
+
+Internet WiFi gratis
+
+Wi-Fi gratuito disponible en toda la propiedad.
+
+Aire acondicionado
+
+Todas las habitaciones están equipadas con aire acondicionado.
+
+Cajas de seguridad
+
+Servicio de caja de seguridad disponible.
+
+Habitaciones para no fumadores
+
+Está prohibido fumar en todas nuestras habitaciones.
+
+Información rápida
+
+Check-in hasta la 01pm.
+Check-out antes de las 12pm.
+Desayuno de 07am a 10am.
+
+HOTEL DEMÒ
+Nuestras habitaciones"""
+
+Fragmento 3: """Está prohibido fumar en todas nuestras habitaciones.
+
+Información rápida
+
+Check-in hasta la 01pm.
+Check-out antes de las 12pm.
+Desayuno de 07am a 10am.
+
+HOTEL DEMÒ
+Nuestras habitaciones
+
+Todas las habitaciones se desinfectan diariamente según las nuevas regulaciones. Así que, sea cual sea la elección realizada, el nivel de servicios y el uso de las áreas comunes podrán satisfacer plenamente sus expectativas.
+Con todas las mejores comodidades y con cálidos suelos de madera, las habitaciones del Hotel Demó en Milán están elegantemente, simplemente y funcionalmente amuebladas.
+Perfectas para una escapada de fin de semana o para un viaje de negocios, las habitaciones también están disponibles como triples y cuádruples, lo que las hace ideales para unas vacaciones familiares o un viaje con amigos en Milán.
+
+¡GRAN OFERTA!
+Habitación individual
+
+La habitación está equipada con 1 cama individual. Tiene un área de 11 metros cuadrados que le permite pasar su estancia cómodamente.
+
+Baño privado
+Teléfono
+Secador de pelo
+Aire acondicionado
+Wi-Fi gratis
+Caja fuerte
+No fumadores
+Toallas
+Calefacción
+TV LCD con canales satelitales
+1 cama individual
+RESERVAR AHORA
+¡MEJOR TARIFA!
+Habitación doble
+
+La habitación está equipada con 2 camas individuales. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente."""
+
+Fragmento 4: """La habitación está equipada con 2 camas individuales. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente.
+
+Baño privado
+Teléfono
+TV LCD con canales satelitales
+Secador de pelo
+Aire acondicionado
+Wi-Fi gratis
+Caja fuerte
+No fumadores
+Toallas
+Calefacción
+2 camas individuales
+RESERVAR AHORA
+¡RECIÉN RESERVADO!
+Habitación doble
+
+La habitación está equipada con 1 cama doble. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente.
+
+Baño privado
+Teléfono
+TV LCD con canales satelitales
+Secador de pelo
+Aire acondicionado
+Wi-Fi gratis
+Caja fuerte
+No fumadores
+Toallas
+Calefacción
+1 cama doble
+RESERVAR AHORA
+¡PRECIO MÁS BAJO!
+Habitación triple
+
+La habitación está equipada con 1 cama doble + 1 cama individual. Tiene un área de 23 metros cuadrados que le permite pasar su estancia cómodamente.
+
+Baño privado
+Teléfono
+TV LCD con canales satelitales
+Secador de pelo
+Aire acondicionado
+Wi-Fi gratis
+Caja fuerte
+No fumadores
+Toallas
+Calefacción
+1 cama doble + 1 cama individual
+RESERVAR AHORA
+Relájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente
+HOTEL DEMÒ
+Galería
+MÁS FOTOS
+Todo lo que necesitas para pasar una estancia
+INOLVIDABLE
+ESTACIONAMIENTO"""
+
+Fragmento 5: """El hotel cuenta con un aparcamiento privado, a solo 100 metros, donde puede dejar su coche y visitar la ciudad de manera segura. Costo de 25,00 € por día.
+
+METRO
+
+Parada de metro CENTRALE FS (línea 2 verde y línea 3 amarilla) a dos minutos del hotel. Bicicletas públicas compartidas cercanas.
+
+RESTAURANTE SCHALET
+
+A solo 100 metros, el Restaurante Schalet, que tiene un acuerdo con el hotel, ofrece un rico menú con una amplia selección de mariscos, platos de tierra y pizzas.
+
+TERMINAL DE AEROPUERTO
+
+El Hotel Demó está ubicado a solo 100 metros de la terminal de autobuses para los aeropuertos de Linate, Malpensa y Bergamo Orio al Serio, ubicada junto a la Estación Central.
+
+A SOLO 100 M DE LA ESTACIÓN CENTRAL DE MILÁN
+Ubicación estratégica en el corazón de la ciudad
+
+El Hotel Demó está ubicado en una tranquila calle lateral, a solo 100 metros de la Stazione Centrale de Milán, de las paradas de autobús para Malpensa, Linate y Orio al Serio y de la estación de metro (amarilla MM3 y verde MM2) para el Área Expo de Rho Milán, que en solo 5 minutos te lleva a la Piazza del Duomo.
+
+Haga clic aquí para llegar a nosotros"""
+
+Fragmento 6: """Haga clic aquí para llegar a nosotros
+
+CERCA DEL HOTEL DEMÓ
+Negocios y Compras
+Entretenimiento
+Puntos de interés
+Distancias desde los puntos de interés más importantes en Milán
+HOTEL DEMÒ
+Cómo llegar
+En avión
+En coche
+En tren
+Fiera Rho Pero
+Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó
+Es en este mundo donde encuentro mi paz y apaciguo mi alma...
+ENRICO NICODEMO - EN ARTE DEMÓ
+GIOIELLI DEMÓ
+Productos exclusivos y únicos
+
+Las creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.
+
+Visita el sitio
+
+OROLOGI DEMÓ
+Profesionalismo y garantía de 2 años
+
+¡No solo arte, sino también relojes! Descubre entre los muchos modelos un reloj Demó exclusivo del que nunca te separarás. Explora nuestra colección de relojes para hombres y mujeres, con modelos en acero inoxidable, mecánicos y más.
+
+Visita el sitio
+
+DEMÓ
+Desde 1988 hasta hoy
+
+Artista contemporáneo italiano, pintor, escultor, estilista y joyero de fama internacional. Obras que se materializan en moda, joyería, relojes y muebles, convirtiéndose en verdaderos objetos de colección únicos.
+
+Visita el sitio
+
+GIOIELLI DEMÓ
+Productos exclusivos y únicos"""
+
+Fragmento 7: """Visita el sitio
+
+GIOIELLI DEMÓ
+Productos exclusivos y únicos
+
+Las creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.
+
+Visita el sitio
+
+OROLOGI DEMÓ
+Profesionalismo y garantía de 2 años
+
+¡No solo arte, sino también relojes! Descubre entre los muchos modelos un reloj Demó exclusivo del que nunca te separarás. Explora nuestra colección de relojes para hombres y mujeres, con modelos en acero inoxidable, mecánicos y más.
+
+Visita el sitio
+
+DEMÓ
+Desde 1988 hasta hoy
+
+Artista contemporáneo italiano, pintor, escultor, estilista y joyero de fama internacional. Obras que se materializan en moda, joyería, relojes y muebles, convirtiéndose en verdaderos objetos de colección únicos.
+
+Visita el sitio
+
+GIOIELLI DEMÓ
+Productos exclusivos y únicos
+
+Las creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.
+
+Visita el sitio
+
+Via Tonale, 14 Milano (Mi)
+
+TEL.
++39 02 67074322
+WHATSAPP
++39 02 67074322
+EMAIL
+info@hoteldemo.com"""
+
+Fragmento 8: """Visita el sitio
+
+Via Tonale, 14 Milano (Mi)
+
+TEL.
++39 02 67074322
+WHATSAPP
++39 02 67074322
+EMAIL
+info@hoteldemo.com
+
+SOCIOS
+Demó - Arte Diseño Y Más
+Gioielli Demó
+Orologi Demó
+Hotel della Volta - Brescia
+Contáctenos
+Nombre
+Apellido
+Correo electrónico
+Teléfono
+Mensaje
+He leído la política de privacidad y reconozco que el procesamiento de datos se llevará a cabo dentro de los límites establecidos por el Reglamento (UE) 2016/679 y AUTORIZO con el único propósito de satisfacer la solicitud
+Actualizar Código de Spam
+
+©2024/2025 · Hotel Demó · P.I IT06145640154 · Privacidad/Política · CIN IT015146A1XC7SOVT5 - IT015146A1UDK5CLUI · WebPlan
+
+DIVULGACIÓN: Este sitio web o herramientas de terceros utilizadas en este hacen uso de cookies necesarias para operar y útiles para los fines descritos en la política de cookies. Si desea obtener más información o excluirse de todas o algunas cookies, consulte la política de cookies. Al cerrar este banner, desplazarse por esta página, hacer clic en cualquier enlace o continuar la navegación de cualquier otra manera, usted consiente el uso de cookies.
+Aceptar No Aceptar X"""

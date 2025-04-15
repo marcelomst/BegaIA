@@ -2,7 +2,6 @@ import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { pms } from "../pms";
-import { loadDocuments } from "../retrieval/index";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
@@ -10,10 +9,15 @@ import { retrievalBased } from "./retrieval_based";
 import { franc } from "franc";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
-process.env.OPENAI_LOG = "off";
+import { searchFromAstra } from "../retrieval";
+import { detectLanguage } from "../utils/language";
 
+
+process.env.OPENAI_LOG = "off";
 debugLog("🔧 Compilando grafo conversacional...");
 
+// ----------------------------
+// Estado del grafo
 export const GraphState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: (x, y) => x.concat(y),
@@ -31,21 +35,45 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => y,
     default: () => null,
   }),
+  hotelId: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "hotel123",
+  }),
 });
 
-export let  vectorStore: any;
+// ----------------------------
+// Vector store y modelo (usado por retrievalBased)
+export let vectorStore: any;
 let retriever: any;
 export let model: any;
 
-(async () => {
-  vectorStore = await loadDocuments("defaultHotelId");
-  retriever = createRetrieverTool(vectorStore.asRetriever(), {
-    name: "retrieve_hotel_info",
-    description: "Search hotel FAQs and policies.",
-  });
-  model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
-})();
+export async function initializeVectorStore() {
+  if (!vectorStore) {
+    // Simula un retriever a partir de AstraDB
+    vectorStore = {
+      asRetriever: () => ({
+        getRelevantDocuments: async (query: string) => {
+          const results = await searchFromAstra(query, "hotel123");
+          return results.map((text) => ({
+            pageContent: text,
+            metadata: {},
+          }));
+        },
+      }),
+    };
 
+    retriever = createRetrieverTool(vectorStore.asRetriever(), {
+      name: "retrieve_hotel_info",
+      description: "Search hotel FAQs and policies.",
+    });
+
+    model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+    debugLog("✅ Vector store inicializado desde AstraDB (sin Puppeteer)");
+  }
+}
+
+// ----------------------------
+// Nodo de clasificación
 export async function classifyNode(state: typeof GraphState.State) {
   const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
   const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
@@ -62,11 +90,13 @@ export async function classifyNode(state: typeof GraphState.State) {
     };
   }
 
-  const detectedLang = franc(question, { minLength: 3 });
+  const detectedLang = detectLanguage(question);
+
 
   let classification;
   try {
     classification = await classifyQuery(question);
+    debugLog("🔀 Clasificación detectada:", classification);
   } catch (e) {
     console.error("❌ Error clasificando la consulta:", e);
     classification = { category: "retrieval_based", promptKey: null };
@@ -90,6 +120,8 @@ export async function classifyNode(state: typeof GraphState.State) {
   };
 }
 
+// ----------------------------
+// Nodos funcionales del grafo
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
   return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
@@ -100,15 +132,15 @@ async function handleAmenitiesionNode() {
 async function handleBillingNode() {
   return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
-
 async function handleSupportNode() {
   return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
 }
-
 async function retrievalBasedNode(state: typeof GraphState.State) {
   return await retrievalBased(state);
 }
 
+// ----------------------------
+// Definición del grafo
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
@@ -131,5 +163,4 @@ const graph = new StateGraph(GraphState)
   .addEdge("handle_retrieval_based", "__end__");
 
 debugLog("✅ Grafo compilado con éxito.");
-
 export const agentGraph = graph.compile();

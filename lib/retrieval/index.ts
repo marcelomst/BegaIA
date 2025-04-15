@@ -1,7 +1,7 @@
 // /root/begasist/lib/retrieval/index.ts
 
 import { cache } from "react";
-import dotenv from "dotenv";
+
 import puppeteer from "puppeteer-extra";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -12,7 +12,11 @@ import { DataAPIClient } from "@datastax/astra-db-ts";
 import { ChatOpenAI } from "@langchain/openai";
 import { validateClassification } from "./validateClassification"; 
 import fs from "fs";
+import { cosineSimilarity } from "../utils/similarity";
+import type { ChunkResult, InsertableChunk } from "../../types/chunk.ts"; // o el path relativo según tu setup
 
+ 
+import dotenv from "dotenv";
 dotenv.config();
 
 const urls = ["https://www.hoteldemo.com/en/index.php"];
@@ -157,16 +161,27 @@ export async function loadDocuments(hotelId: string) {
   const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
   const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
   const collectionName = getCollectionName(hotelId);
-  const collection = await db.collection(collectionName);
+
+  const collection = await db.collection<InsertableChunk >(collectionName);
+
 
   for (const doc of enrichedChunks) {
     const embedding = await embedder.embedQuery(doc.pageContent);
+    const { hotelId, category, promptKey } = doc.metadata;
+  
+    if (!hotelId || !category) {
+      throw new Error("Faltan hotelId o category en el metadata del chunk.");
+    }
+  
     await collection.insertOne({
-      ...doc.metadata,
+      hotelId,
+      category,
+      promptKey: promptKey ?? null, // opcional, aseguramos que sea null o string
       text: doc.pageContent,
       $vector: embedding,
     });
   }
+  
 
   debugLog(`✅ Insertados ${enrichedChunks.length} chunks en colección ${collectionName}`);
 }
@@ -178,33 +193,102 @@ type SearchFilters = {
 
 export async function searchFromAstra(
   query: string,
-  hotelId: string = "defaultHotelId",
+  hotelId: string = "hotel123",
   filters: SearchFilters = {}
 ) {
+  if (!hotelId || hotelId === "hotel123") {
+    console.warn("⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel123'");
+  }
   const embedder = new OpenAIEmbeddings();
   const queryVector = await embedder.embedQuery(query);
 
   const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
   const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
   const collectionName = getCollectionName(hotelId);
-  const collection = await db.collection(collectionName);
+  const collection = await db.collection<ChunkResult>(collectionName);
 
-  const findFilter: Record<string, any> = { hotelId };
-
-  if (filters.category) {
-    findFilter.category = filters.category;
-  }
+  debugLog("Collection name:", collection);
+  // 🧠 Primer intento: por promptKey (si está)
   if (filters.promptKey) {
-    findFilter.promptKey = filters.promptKey;
+    const promptKeyFilter = {
+      hotelId,
+      promptKey: filters.promptKey,
+    };
+    debugLog("🔍 Filtro por promptKey:", promptKeyFilter);
+
+    const cursor = await collection.find(promptKeyFilter, {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    });
+    const results = await cursor.toArray();
+    if (results.length > 0) {
+      return results.map((r: any) => r.text);
+    }
   }
 
-  const cursor = await collection.find(findFilter, {
-    sort: { $vector: queryVector },
-    limit: 5,
-    includeSimilarity: true,
-  });
+  // 🌀 No hubo resultados → intentar por category si existe
+  if (filters.category) {
+    const categoryFilter = {
+      hotelId,
+      category: filters.category,
+    };
+    debugLog("🔁 Fallback por category:", categoryFilter);
+  
+    const fallbackCursor = await collection.find(categoryFilter, {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    });
+  
+    type ChunkResult = {
+      _id: string;
+      text: string;
+      $similarity: number;
+      $vector: number[];
+      [key: string]: any;
+    };
+  
+    const fallbackResults = (await fallbackCursor.toArray()) as ChunkResult[];
+  
+    debugLog("🔁 FallbackResults por category:", fallbackResults);
+    for (const r of fallbackResults) {
+      if (!Array.isArray(r.$vector)) {
+        console.warn("⚠️ Chunk con vector inválido:", r);
+      }
+    }
+    
+    const SIMILARITY_THRESHOLD = 0.95;
+  
+    const relevantResults = fallbackResults
+      .filter((r) => Array.isArray(r.$vector)&& r.$vector.length === queryVector.length) // defensivo
+      .map((r) => ({
+        ...r,
+        semanticRelevance: cosineSimilarity(queryVector, r.$vector),
+      }))
+      .filter((r) => r.semanticRelevance > SIMILARITY_THRESHOLD)
+      .sort((a, b) => b.semanticRelevance - a.semanticRelevance);
+  
+    if (relevantResults.length > 0) {
+      debugLog("✅ Resultados relevantes por similitud semántica:", relevantResults);
+      return relevantResults.map((r) => r.text);
+    }
+  
+    console.warn("⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...");
+  }
+  
+  // 🔚 Sin promptKey ni category → buscar solo por hotelId
+  debugLog("🔍 Búsqueda sin filtro adicional (solo hotelId):", { hotelId });
 
-  const results = await cursor.toArray();
-  return results.map((r: any) => r.text);
-}
-
+  const fallbackCursor = await collection.find(
+    { hotelId },
+    {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    }
+  );
+  const fallbackResults = await fallbackCursor.toArray();
+  return fallbackResults.map((r: any) => r.text);
+    
+  }

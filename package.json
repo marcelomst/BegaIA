@@ -15,7 +15,8 @@
     "test:watch": "vitest --watch",
     "ts-check": "tsc --noEmit",
     "ts-strict": "tsc --noEmit --strict",
-    "test:classifier": "tsx scripts/testClassifier.ts"
+    "test:classifier": "tsx scripts/testClassifier.ts",
+    "init:config": "tsx scripts/init-config.ts"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "^1.5.0",
@@ -33,6 +34,7 @@
     "glob": "^11.0.1",
     "imap-simple": "^5.1.0",
     "langchain": "0.3.19",
+    "lucide-react": "^0.487.0",
     "mailparser": "^3.7.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.10.0",
@@ -40,6 +42,7 @@
     "pdf-parse": "^1.1.1",
     "pdfkit": "^0.16.0",
     "puppeteer": "^24.4.0",
+    "puppeteer-core": "^24.6.1",
     "puppeteer-extra": "^3.3.6",
     "qrcode-terminal": "^0.12.0",
     "react": "^19.0.0",

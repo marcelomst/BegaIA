@@ -2,11 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 🎨 Variables de tema */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --border: #e5e7eb;
+  --muted-foreground: #6b7280;
 }
 
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --border: #444;
+  --muted-foreground: #a1a1aa;
+}
+
+/* 💡 Fallback si el usuario prefiere dark */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -14,11 +25,15 @@
   }
 }
 
+/* 🌍 Estilo global del body */
 body {
+  background-color: var(--background);
   color: var(--foreground);
-  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
 }
+
+/* 🔗 Estilos de links */
 a {
   color: #2563eb;
   text-decoration: underline;
@@ -27,5 +42,3 @@ a {
 a:hover {
   color: #1e40af;
 }
-
-

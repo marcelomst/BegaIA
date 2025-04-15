@@ -7,7 +7,7 @@
 export const promptMetadata: Record<string, string[]> = {
     retrieval_based: ["room_info"],
     reservation: [],
-    cancellation: [],
+    amenities: [],
     billing: [],
     support: [],
   };

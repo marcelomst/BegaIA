@@ -1,8 +1,18 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphState, model, vectorStore } from "./index";
+import { GraphState} from "./index";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { defaultPrompt, curatedPrompts } from "../prompts";
 import { debugLog } from "../utils/debugLog";
+import { searchFromAstra } from "../retrieval";
+
+let localModel: ChatOpenAI | null = null;
+
+export function setRetrievalModel(model: ChatOpenAI) {
+  localModel = model;
+}
+
+// ✅ Seteo por defecto
+setRetrievalModel(new ChatOpenAI({ modelName: "gpt-4o", temperature: 0 }));
 
 process.env.OPENAI_LOG = "off";
 
@@ -25,6 +35,7 @@ async function translateResponseBack(originalLang: string, content: string): Pro
 export async function retrieve_hotel_info(
   query: string,
   lang: string,
+  hotelId: string,
   category?: string,
   promptKey?: string | null
 ) {
@@ -42,14 +53,12 @@ export async function retrieve_hotel_info(
     ? translated.content
     : JSON.stringify(translated.content);
 
-  const results = await vectorStore.similaritySearch(searchQuery, 5, {
-    filter: {
-      ...(category ? { category } : {}),
-      ...(promptKey ? { promptKey } : {}),
-    },
+  const docs = await searchFromAstra(searchQuery, hotelId, {
+    category,
+    promptKey: promptKey ?? undefined,
   });
 
-  return results.map((doc: { pageContent: string }) => doc.pageContent).join("\n\n");
+  return docs.join("\n\n");
 }
 
 export async function retrievalBased(state: typeof GraphState.State) {
@@ -57,16 +66,20 @@ export async function retrievalBased(state: typeof GraphState.State) {
   const userQuery = typeof lastMessage?.content === "string" ? lastMessage.content.trim() : "";
   const lang = state.detectedLanguage ?? process.env.SYSTEM_NATIVE_LANGUAGE;
   const promptKey = state.promptKey;
+  const hotelId = (state as any).hotelId ?? "defaultHotelId"; // fallback por si no viene
 
   if (!userQuery) {
     return { messages: [new AIMessage("Consulta vacía o inválida.")] };
   }
 
-  const retrievedInfo = await retrieve_hotel_info(userQuery, lang, state.category, promptKey);
+  const retrievedInfo = await retrieve_hotel_info(userQuery, lang, hotelId, state.category, promptKey);
 
   if (!retrievedInfo) {
     debugLog("⚠️ No se encontró información relevante en los documentos.");
-    const response = await model.invoke(state.messages);
+    if (!localModel) {
+      throw new Error("localModel is not initialized.");
+    }
+    const response = await localModel.invoke(state.messages);
     const responseText = typeof response.content === "string" ? response.content.trim() : "";
     return {
       messages: [new AIMessage(responseText || "Lo siento, no encontré información.")],
@@ -78,7 +91,10 @@ export async function retrievalBased(state: typeof GraphState.State) {
     .replace("{{retrieved}}", retrievedInfo)
     .replace("{{query}}", userQuery);
 
-  const response = await model.invoke([
+  if (!localModel) {
+    throw new Error("localModel is not initialized.");
+  }
+  const response = await localModel.invoke([
     { role: "system", content: finalPrompt },
     { role: "user", content: userQuery },
   ]);

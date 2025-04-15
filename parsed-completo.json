@@ -1,0 +1,34 @@
+[
+  {
+    "category": "reservation",
+    "promptKey": null
+  },
+  {
+    "category": "amenities",
+    "promptKey": null
+  },
+  {
+    "category": "amenities",
+    "promptKey": "room_info"
+  },
+  {
+    "category": "amenities",
+    "promptKey": "room_info"
+  },
+  {
+    "category": "amenities",
+    "promptKey": null
+  },
+  {
+    "category": "retrieval_based",
+    "promptKey": null
+  },
+  {
+    "category": "retrieval_based",
+    "promptKey": null
+  },
+  {
+    "category": "support",
+    "promptKey": null
+  }
+]

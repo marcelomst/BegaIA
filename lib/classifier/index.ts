@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
-
+import { normalizeCategory } from "./categoryAliases";
 export type Classification = {
   category: string;
   promptKey?: string | null;
@@ -39,8 +39,9 @@ Consulta:
 
   try {
     const parsed = JSON.parse(res.content as string);
-    const { category, promptKey } = parsed;
-
+    let { category, promptKey } = parsed;
+      // 🔄 Normalizar la categoría
+    category = normalizeCategory(category);
     if (!promptMetadata[category]) {
       throw new Error(`❌ Categoría inválida detectada: ${category}`);
     }
