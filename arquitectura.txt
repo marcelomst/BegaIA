@@ -3,10 +3,32 @@
 .
 ├── README.md
 ├── app
+│   ├── admin
+│   │   ├── channels
+│   │   │   └── page.tsx
+│   │   ├── embeddings
+│   │   │   └── page.tsx
+│   │   ├── hotels
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── logs
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── prompts
+│   │   │   └── page.tsx
+│   │   └── upload
+│   │       └── page.tsx
 │   ├── api
 │   │   ├── chat
 │   │   │   ├── route.ts
 │   │   │   └── route.ts:Zone.Identifier
+│   │   ├── config
+│   │   │   ├── add
+│   │   │   │   └── route.ts
+│   │   │   ├── mode
+│   │   │   │   └── route.ts
+│   │   │   └── toggle
+│   │   │       └── route.ts
 │   │   ├── email 
 │   │   └── whatsapp
 │   │       └── route.ts
@@ -15,16 +37,33 @@
 │   ├── globals.css
 │   ├── layout.tsx
 │   ├── lib
+│   │   ├── Hotel_Demo.pdf
 │   │   └── translation.ts
 │   ├── page.tsx
 │   └── taildocs.txt
 ├── arquitectura.txt
+├── aux.json
+├── components
+│   ├── admin
+│   │   ├── ChannelMessages.tsx
+│   │   └── ChannelsClient.tsx
+│   ├── ui
+│   │   ├── DarkCard.tsx
+│   │   ├── SidebarLink.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   ├── button.tsx
+│   │   └── card.tsx
+│   └── utils
+│       └── ApplyThemeClass.tsx
+├── context
+│   └── ThemeContext.tsx
 ├── documentacion
 ├── ecosystem.config.js
 ├── eslint.config.mjs
 ├── estructura_del_proyecto.txt
 ├── generate_architecture.sh
 ├── google-chrome-stable_current_amd64.deb
+├── index.modified.ts:Zone.Identifier
 ├── info.txt
 ├── lib
 │   ├── agents
@@ -35,9 +74,18 @@
 │   │   ├── reservations.ts
 │   │   ├── retrieval_based.ts
 │   │   └── services.ts
+│   ├── astra
+│   │   ├── index.ts
+│   │   └── load_from_pdf.ts
 │   ├── classifier
+│   │   ├── categoryAliases.ts
 │   │   └── index.ts
-│   ├── config.ts
+│   ├── config
+│   │   ├── hotelConfig.server.ts
+│   │   ├── hotelConfig.ts
+│   │   ├── initHotelConfig.ts
+│   │   └── toggle
+│   │       └── route.ts
 │   ├── entrypoints
 │   │   ├── all.ts
 │   │   ├── email.ts
@@ -48,20 +96,27 @@
 │   │   ├── index.ts
 │   │   └── promptMetadata.ts
 │   ├── retrieval
-│   │   └── index.ts
+│   │   ├── index.ts
+│   │   └── validateClassification.ts
 │   ├── services
+│   │   ├── channelManager.ts
 │   │   ├── email.ts
 │   │   ├── whatsapp.ts
 │   │   └── whatsappClient.ts
-│   └── utils
-│       └── debugLog.ts
+│   ├── utils
+│   │   ├── debugLog.ts
+│   │   ├── language.ts
+│   │   └── similarity.ts
+│   └── utils.ts
 ├── next
 ├── next-env.d.ts
 ├── next.config.ts
 ├── output_cleaned.txt
 ├── package.json
+├── parsed-completo.json
 ├── pnpm-lock.yaml
 ├── postcss.config.mjs
+├── prompt-clasificador.txt
 ├── public
 │   ├── file.svg
 │   ├── fonts
@@ -74,7 +129,13 @@
 │   ├── vercel.svg
 │   └── window.svg
 ├── scripts
-│   └── testClassifier.ts
+│   ├── init-config.ts
+│   ├── setupHotel.ts
+│   ├── test-astra.ts
+│   ├── test-retrievalBased.ts
+│   ├── test-search-wifi.ts
+│   ├── testClassifier.ts
+│   └── test_search.ts
 ├── src
 │   ├── app.ts
 │   ├── config.ts
@@ -90,28 +151,72 @@
 │   ├── presentacion.test.ts
 │   ├── retrieval.test.ts
 │   └── ui.test.tsx
+├── test-imap-connection.ts
+├── test-imap-simple.ts
 ├── testAstraConnection.ts
+├── texto.json
 ├── touch @types
 │   └── rehype-raw.d.ts
 ├── tsconfig.json
 ├── tsconfig.tsbuildinfo
 ├── types
+│   ├── chunk.ts
 │   └── mailparser.d.ts
 ├── vector_cache
 │   └── rooms_vectorstore.json
 ├── vitest.config.ts
-└── vitest.setup.ts
+├── vitest.setup.ts
+└── zzaux.aux
 
-27 directories, 74 files
+46 directories, 121 files
 
 =========================
 
 📜 Scripts Claves
 =================
 
+🔹 Archivo: ./lib/services/channelManager.ts
+---------------------------------
+// lib/services/channelManager.ts
+import { agentGraph } from "../agents";
+import { HumanMessage } from "@langchain/core/messages";
+
+const simulatedReservations = [
+  "Quiero reservar una habitación doble para el 10 de junio al 12 de junio.",
+  "¿Tienen disponibilidad para una suite del 5 al 7 de mayo?",
+  "Necesito una habitación individual para esta noche.",
+];
+
+export async function startChannelManagerBot() {
+  console.log("🛰️ [channelManager] Iniciado. Simulando reservas cada 15s...");
+
+  setInterval(async () => {
+    try {
+      const randomMessage =
+        simulatedReservations[Math.floor(Math.random() * simulatedReservations.length)];
+
+      console.log("📥 [channelManager] Reserva simulada:", randomMessage);
+
+      const response = await agentGraph.invoke({
+        messages: [new HumanMessage(randomMessage)],
+      });
+
+      const reply = response.messages.at(-1)?.content;
+
+      if (reply) {
+        console.log("📤 [channelManager] Respuesta del asistente:", reply);
+      }
+    } catch (err) {
+      console.error("⛔ [channelManager] Error procesando reserva:", err);
+    }
+  }, 15000);
+}
+
+---------------------------------
+
+
 🔹 Archivo: ./lib/services/email.ts
 ---------------------------------
-// lib/services/email.ts
 import { simpleParser } from "mailparser";
 import imaps from "imap-simple";
 import nodemailer from "nodemailer";
@@ -121,11 +226,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-console.log("✅ Archivo email.ts cargado");
-console.log("✅ Grafo conversacional importado");
-
 export async function startEmailBot() {
-  console.log("📥 Inicializando conexión IMAP...");
+  console.log("📥 [email] Iniciando bot de correo...");
 
   try {
     const {
@@ -149,117 +251,100 @@ export async function startEmailBot() {
         host: IMAP_HOST,
         port: Number(IMAP_PORT) || 993,
         tls: true,
-        authTimeout: 3000,
+        tlsOptions: { rejectUnauthorized: false }, // ⬅️ Clave para evitar errores SSL locales
+        authTimeout: 10000,
       },
     };
 
-    console.log("📬 Configurando transporte SMTP...");
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT) || 587,
-      secure: EMAIL_SECURE === "true",
+      secure: false, // usar STARTTLS (para puerto 587)
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
       },
     });
 
-    console.log("🔌 Conectando a servidor IMAP...");
     const connection = await imaps.connect(imapConfig);
-    console.log("📦 Conexión IMAP establecida correctamente.");
-
     await connection.openBox("INBOX");
-    console.log("📨 Bot de email listo. Escuchando correos cada 15s...");
+    console.log("✅ [email] Conectado a IMAP. Escuchando correos cada 15s...");
 
     setInterval(async () => {
       try {
-        const searchCriteria = ["UNSEEN"];
-        const fetchOptions = {
+        const messages = await connection.search(["UNSEEN"], {
           bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT"],
           struct: true,
-        };
+        });
 
-        const messages = await connection.search(searchCriteria, fetchOptions);
-        console.log(`📬 Correos no leídos encontrados: ${messages.length}`);
+        if (!messages.length) return;
+
+        console.log(`📬 [email] Correos no leídos: ${messages.length}`);
 
         for (const message of messages) {
-                   
-          console.log("🔍================= MENSAJE RECIBIDO =================");
-          console.dir(message, { depth: null });
-          console.log("🔍====================================================");
-          console.log("📦 message.parts:", message.parts);
-
           const parts = imaps.getParts(message.attributes.struct);
           const part = parts.find((p: any) => p.type === "text");
           if (!part) continue;
-
-          const raw = await connection.getPartData(message, part);
-
-          const headerPart = message.parts.find((part: any) =>
-            part.which?.toLowerCase().includes("header")
-          );
-
-          const rawFrom = Array.isArray(headerPart?.body?.from)
-            ? headerPart.body.from[0]
-            : undefined;
         
-          
+          const raw = await connection.getPartData(message, part);
           const parsed = await simpleParser(raw);
-
-          // Asegurar que htmlRaw sea string
-          const htmlRaw = typeof parsed.html === "string"
-            ? parsed.html
-            : (typeof parsed.html === "object" && Buffer.isBuffer(parsed.html))
+        
+          const htmlRaw =
+            typeof parsed.html === "string"
+              ? parsed.html
+              : Buffer.isBuffer(parsed.html)
               ? parsed.html.toString("utf-8")
               : "";
-
-          const htmlClean = htmlRaw.replace(/<[^>]+>/g, "").trim();
-
-          console.log("🔍 headerLines:", parsed.headerLines);
-
-          const text =
+        
+          const cleanText =
             parsed.text?.trim() ||
-            htmlClean ||
+            htmlRaw.replace(/<[^>]+>/g, "").trim() ||
             parsed.headerLines?.map((h: { key: string; line: string }) => h.line).join("\n").trim();
-
+        
+          const headerPart = message.parts.find((p: any) => p.which?.toLowerCase().includes("header"));
+          const rawFrom = Array.isArray(headerPart?.body?.from) ? headerPart.body.from[0] : undefined;
+        
           const from =
             parsed.from?.text ||
             rawFrom ||
-            parsed.headerLines?.find((h: { key: string; line: string }) =>
-              h.line.includes("@")
-            )?.line;
-
-          
-
-          if (text && from) {
-            console.log(`📧 Email recibido de ${from}:`, text);
-
-            const response = await agentGraph.invoke({
-              messages: [new HumanMessage(text)],
+            parsed.headerLines?.find((h: { key: string; line: string }) => h.line.includes("@"))?.line;
+        
+          if (!cleanText || !from) {
+            console.warn("⚠️ [email] Email ignorado: sin texto o remitente válido.", {
+              fromFallback: rawFrom,
+              parsedFrom: parsed.from?.text,
+              parsedText: parsed.text,
+              parsedHTML: parsed.html,
+              headerLines: parsed.headerLines,
             });
-
-            const reply = response.messages.at(-1)?.content;
-
-            if (typeof reply === "string") {
-              await transporter.sendMail({
-                from: EMAIL_USER,
-                to: from,
-                subject: "Re: " + (parsed.subject || "Consulta recibida"),
-                text: reply,
-              });
-
-              console.log(`📤 Respuesta enviada a ${from}`);
-            }
-          } else {
-            console.warn("⚠️ Email sin texto o sin remitente válido (tras fallback):", { from, text, parsed });
+            continue;
+          }
+        
+          console.log(`📧 [email] Procesando email de ${from}`);
+        
+          const response = await agentGraph.invoke({
+            messages: [new HumanMessage(cleanText)],
+          });
+        
+          const reply = response.messages.at(-1)?.content;
+          if (typeof reply === "string") {
+            await transporter.sendMail({
+              from: EMAIL_USER,
+              to: from,
+              subject: "Re: " + (parsed.subject || "Consulta recibida"),
+              text: reply,
+            });
+        
+            console.log(`📤 [email] Respuesta enviada a ${from}`);
           }
         }
-      } catch (intervalErr) {
-        console.error("⛔ Error en el chequeo de correos:", intervalErr);
+        
+      } catch (err) {
+        console.error("⛔ [email] Error procesando correos:", err);
       }
     }, 15000);
   } catch (startupErr) {
-    console.error("💥 Error crítico en startEmailBot:\n", startupErr);
+    console.error("💥 [email] Error crítico al iniciar el bot:", startupErr);
     throw startupErr;
   }
 }
@@ -277,34 +362,35 @@ import { agentGraph } from "../agents";
 import { HumanMessage } from "@langchain/core/messages";
 import qrcode from "qrcode-terminal";
 
-export function startWhatsappBot() {
+export function startWhatsAppBot() {
   client.on("qr", (qr) => {
-    console.log("⚡ Escaneá este código QR para conectar WhatsApp:");
-    qrcode.generate(qr, { small: true }); // Renderiza el QR como imagen en consola
+    console.log("⚡ [whatsapp] Escaneá este código QR para conectar:");
+    qrcode.generate(qr, { small: true });
   });
 
   client.on("ready", () => {
-    console.log("✅ Bot de WhatsApp listo!");
+    console.log("✅ [whatsapp] Bot listo para recibir mensajes.");
   });
 
   client.on("message", async (message: Message) => {
     try {
-      console.log(`📩 Recibido: ${message.body}`);
+      console.log(`📩 [whatsapp] Mensaje recibido: ${message.body}`);
 
       const response = await agentGraph.invoke({
         messages: [new HumanMessage(message.body)],
       });
 
       const reply = response.messages.at(-1)?.content;
+
       if (typeof reply === "string" && reply.trim()) {
         await message.reply(reply);
-        console.log(`📤 Enviado: ${reply}`);
+        console.log(`📤 [whatsapp] Respuesta enviada.`);
       } else {
-        console.warn("⚠️ Formato inesperado:", response.messages.at(-1));
+        console.warn("⚠️ [whatsapp] Respuesta vacía o malformada.");
       }
     } catch (error) {
-      console.error("⛔ Error procesando mensaje:", error);
-      await message.reply("⚠️ Ocurrió un error procesando tu solicitud.");
+      console.error("⛔ [whatsapp] Error procesando mensaje:", error);
+      await message.reply("⚠️ Hubo un error procesando tu solicitud.");
     }
   });
 
@@ -330,18 +416,35 @@ export const whatsappClient = new Client({
 ---------------------------------
 
 
+🔹 Archivo: ./lib/classifier/categoryAliases.ts
+---------------------------------
+// /lib/classifier/categoryAliases.ts
+const CATEGORY_ALIASES: Record<string, string> = {
+    cancellation: "reservation",
+    // futuros alias
+    checkin: "reservation",
+    checkout: "reservation",
+    modification: "reservation",
+  };
+  
+  export function normalizeCategory(category: string): string {
+    return CATEGORY_ALIASES[category] ?? category;
+  }
+  
+---------------------------------
+
+
 🔹 Archivo: ./lib/classifier/index.ts
 ---------------------------------
-// 📍 lib/classifier/index.ts
-
 import { ChatOpenAI } from "@langchain/openai";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
-
+import { normalizeCategory } from "./categoryAliases";
 export type Classification = {
   category: string;
   promptKey?: string | null;
 };
+process.env.OPENAI_LOG = "off";
 
 const classifierModel = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
@@ -374,17 +477,14 @@ Consulta:
 
   try {
     const parsed = JSON.parse(res.content as string);
-
-    const category = parsed.category;
-    const promptKey = parsed.promptKey;
-
+    let { category, promptKey } = parsed;
+      // 🔄 Normalizar la categoría
+    category = normalizeCategory(category);
     if (!promptMetadata[category]) {
       throw new Error(`❌ Categoría inválida detectada: ${category}`);
     }
 
-    const isValidPrompt =
-      promptKey === null || promptMetadata[category].includes(promptKey);
-
+    const isValidPrompt = promptKey === null || promptMetadata[category].includes(promptKey);
     if (!isValidPrompt) {
       throw new Error(`❌ Prompt key inválido: ${promptKey} para categoría: ${category}`);
     }
@@ -450,7 +550,7 @@ export const pms = new PMS();
 export const promptMetadata: Record<string, string[]> = {
     retrieval_based: ["room_info"],
     reservation: [],
-    cancellation: [],
+    amenities: [],
     billing: [],
     support: [],
   };
@@ -528,31 +628,155 @@ Ejemplo de formato esperado:
 ---------------------------------
 
 
+🔹 Archivo: ./lib/retrieval/validateClassification.ts
+---------------------------------
+type Classification = {
+    category: string;
+    promptKey: string | null;
+  };
+  
+  const validCategories = [
+    "reservation",
+    "billing",
+    "support",
+    "amenities",
+    "retrieval_based",
+  ];
+  
+  export function validateClassification(item: any): Classification {
+    const fallback: Classification = {
+      category: "retrieval_based",
+      promptKey: null,
+    };
+  
+    if (!item || typeof item !== "object") return fallback;
+  
+    const { category, promptKey } = item;
+  
+    const isValidCategory = validCategories.includes(category);
+    const isValidPromptKey =
+      promptKey === null || typeof promptKey === "string";
+  
+    return {
+      category: isValidCategory ? category : fallback.category,
+      promptKey: isValidPromptKey ? promptKey : fallback.promptKey,
+    };
+  }
+  
+---------------------------------
+
+
 🔹 Archivo: ./lib/retrieval/index.ts
 ---------------------------------
+// /root/begasist/lib/retrieval/index.ts
+
 import { cache } from "react";
+
+import puppeteer from "puppeteer-extra";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { translationModel } from "../../app/lib/translation";
-import puppeteer from "puppeteer-extra";
-import dotenv from "dotenv";
 import { debugLog } from "../utils/debugLog";
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import { ChatOpenAI } from "@langchain/openai";
+import { validateClassification } from "./validateClassification"; 
+import fs from "fs";
+import { cosineSimilarity } from "../utils/similarity";
+import type { ChunkResult, InsertableChunk } from "../../types/chunk.ts"; // o el path relativo según tu setup
 
+ 
+import dotenv from "dotenv";
 dotenv.config();
 
 const urls = ["https://www.hoteldemo.com/en/index.php"];
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
+const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
+
+export const getCollectionName = (hotelId: string) => `${hotelId}_collection`;
+
+const curationAssistant = new ChatOpenAI({
+  modelName: "gpt-4",
+  temperature: 0,
+});
+
+const classificationPrompt = `
+Eres un experto en hospitalidad. Vas a clasificar fragmentos de texto provenientes de documentos de hoteles en una de las siguientes categorías:
+
+- reservation
+- billing
+- support
+- amenities
+- retrieval_based
+
+Además, si corresponde, asignarás una clave de prompt especializada (promptKey) como por ejemplo: room_info, cancellation_policy, breakfast_details, etc. Si no hay un promptKey aplicable, devuélvelo como null.
+
+Devuelve **exclusivamente** un JSON válido con esta estructura (una lista con un objeto por fragmento):
+
+[
+  {
+    "category": "reservation",
+    "promptKey": "cancellation_policy"
+  },
+  ...
+]
+
+Ahora analiza los siguientes fragmentos:
+
+{fragments}
+`;
+
+
+async function classifyFragmentsWithCurationAssistant(documents: Document[]): Promise<Document[]> {
+  const inputChunks = documents.map((doc) => doc.pageContent);
+  const promptText = classificationPrompt.replace(
+    "{fragments}",
+    inputChunks.map((t, i) => `Fragmento ${i + 1}: """${t}"""`).join("\n\n")
+  );
+  fs.writeFileSync("prompt-clasificador.txt", promptText, "utf8");
+  console.log("🧠 Prompt guardado en prompt-clasificador.txt");
+  
+  const response = await curationAssistant.invoke([{ role: "user", content: promptText }]);
+  
+  function extractTextContent(content: any): string {
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) {
+      return content.map((c) => c?.text || "").join("\n");
+    }
+    return JSON.stringify(content);
+  }
+  
+  let parsed: any[] = [];
+  try {
+    parsed = JSON.parse(extractTextContent(response.content) || "[]");
+    
+
+  } catch (e) {
+    debugLog("⛔ Error al parsear JSON del clasificador:", e);
+  }
+  fs.writeFileSync("parsed-completo.json", JSON.stringify(parsed, null, 2));
+
+  return documents.map((doc, i) => {
+    const classification = validateClassification(parsed[i] || {});
+    return new Document({
+      pageContent: doc.pageContent,
+      metadata: {
+        ...doc.metadata,
+        category: classification.category,
+        promptKey: classification.promptKey,
+      },
+    });
+  });
+}
 
 async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
-  debugLog("🖥 Cargando página con Puppeteer:", url);
+  debugLog("🌐 Cargando página con Puppeteer:", url);
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
-
   const page = await browser.newPage();
-
   try {
     await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 });
     await page.waitForSelector("body", { timeout: 120000 });
@@ -569,7 +793,6 @@ export async function translateText(text: string) {
   try {
     const lang = process.env.SYSTEM_NATIVE_LANGUAGE;
     if (!lang) throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in .env");
-
     const translated = await translationModel(text, lang);
     return typeof translated.content === "string"
       ? translated.content
@@ -580,120 +803,392 @@ export async function translateText(text: string) {
   }
 }
 
-export const loadDocuments: () => Promise<MemoryVectorStore> = cache(async () => {
-  debugLog("📦 Cargando e indexando documentos...");
+export async function loadDocuments(hotelId: string) {
+  debugLog(`📦 Cargando documentos para hotel ${hotelId}`);
 
   const docs = await Promise.all(
     urls.map(async (url) => {
       const html = await fetchPageWithPuppeteer(url);
       if (!html) return null;
-
       const translated = await translateText(html);
-      return new Document({
+      return new Document<{ source: string; hotelId: string }>({
         pageContent: translated,
-        metadata: { source: url },
+        metadata: { source: url, hotelId },
       });
     })
   );
 
-  const validDocs = docs.filter(
-    (d): d is NonNullable<typeof d> => d !== null
-  );
+  const validDocs = docs.filter((d): d is Document<{ source: string; hotelId: string }> => d !== null);
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 500,
-    chunkOverlap: 50,
-  });
-
+  // 🧩 Primero fragmentamos
+  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1500, chunkOverlap: 200 });
   const chunks = await splitter.splitDocuments(validDocs);
 
-  return await MemoryVectorStore.fromDocuments(chunks, new OpenAIEmbeddings());
-});
+  // 🧠 Luego clasificamos
+  const enrichedChunks = await classifyFragmentsWithCurationAssistant(chunks);
+  
+  const embedder = new OpenAIEmbeddings();
+  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  const collectionName = getCollectionName(hotelId);
+
+  const collection = await db.collection<InsertableChunk >(collectionName);
+
+
+  for (const doc of enrichedChunks) {
+    const embedding = await embedder.embedQuery(doc.pageContent);
+    const { hotelId, category, promptKey } = doc.metadata;
+  
+    if (!hotelId || !category) {
+      throw new Error("Faltan hotelId o category en el metadata del chunk.");
+    }
+  
+    await collection.insertOne({
+      hotelId,
+      category,
+      promptKey: promptKey ?? null, // opcional, aseguramos que sea null o string
+      text: doc.pageContent,
+      $vector: embedding,
+    });
+  }
+  
+
+  debugLog(`✅ Insertados ${enrichedChunks.length} chunks en colección ${collectionName}`);
+}
+
+type SearchFilters = {
+  category?: string;
+  promptKey?: string;
+};
+
+export async function searchFromAstra(
+  query: string,
+  hotelId: string = "hotel123",
+  filters: SearchFilters = {}
+) {
+  if (!hotelId || hotelId === "hotel123") {
+    console.warn("⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel123'");
+  }
+  const embedder = new OpenAIEmbeddings();
+  const queryVector = await embedder.embedQuery(query);
+
+  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  const collectionName = getCollectionName(hotelId);
+  const collection = await db.collection<ChunkResult>(collectionName);
+
+  debugLog("Collection name:", collection);
+  // 🧠 Primer intento: por promptKey (si está)
+  if (filters.promptKey) {
+    const promptKeyFilter = {
+      hotelId,
+      promptKey: filters.promptKey,
+    };
+    debugLog("🔍 Filtro por promptKey:", promptKeyFilter);
+
+    const cursor = await collection.find(promptKeyFilter, {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    });
+    const results = await cursor.toArray();
+    if (results.length > 0) {
+      return results.map((r: any) => r.text);
+    }
+  }
+
+  // 🌀 No hubo resultados → intentar por category si existe
+  if (filters.category) {
+    const categoryFilter = {
+      hotelId,
+      category: filters.category,
+    };
+    debugLog("🔁 Fallback por category:", categoryFilter);
+  
+    const fallbackCursor = await collection.find(categoryFilter, {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    });
+  
+    type ChunkResult = {
+      _id: string;
+      text: string;
+      $similarity: number;
+      $vector: number[];
+      [key: string]: any;
+    };
+  
+    const fallbackResults = (await fallbackCursor.toArray()) as ChunkResult[];
+  
+    debugLog("🔁 FallbackResults por category:", fallbackResults);
+    for (const r of fallbackResults) {
+      if (!Array.isArray(r.$vector)) {
+        console.warn("⚠️ Chunk con vector inválido:", r);
+      }
+    }
+    
+    const SIMILARITY_THRESHOLD = 0.95;
+  
+    const relevantResults = fallbackResults
+      .filter((r) => Array.isArray(r.$vector)&& r.$vector.length === queryVector.length) // defensivo
+      .map((r) => ({
+        ...r,
+        semanticRelevance: cosineSimilarity(queryVector, r.$vector),
+      }))
+      .filter((r) => r.semanticRelevance > SIMILARITY_THRESHOLD)
+      .sort((a, b) => b.semanticRelevance - a.semanticRelevance);
+  
+    if (relevantResults.length > 0) {
+      debugLog("✅ Resultados relevantes por similitud semántica:", relevantResults);
+      return relevantResults.map((r) => r.text);
+    }
+  
+    console.warn("⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...");
+  }
+  
+  // 🔚 Sin promptKey ni category → buscar solo por hotelId
+  debugLog("🔍 Búsqueda sin filtro adicional (solo hotelId):", { hotelId });
+
+  const fallbackCursor = await collection.find(
+    { hotelId },
+    {
+      sort: { $vector: queryVector },
+      limit: 5,
+      includeSimilarity: true,
+    }
+  );
+  const fallbackResults = await fallbackCursor.toArray();
+  return fallbackResults.map((r: any) => r.text);
+    
+  }
 
 ---------------------------------
 
 
-🔹 Archivo: ./lib/config.ts
+🔹 Archivo: ./lib/config/hotelConfig.ts
 ---------------------------------
-import dotenv from 'dotenv';
-
+// /lib/config/hotelConfig.ts
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import dotenv from "dotenv";
 dotenv.config();
 
-export const config = {
-  email: {
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_SECURE === 'true',
-    user: process.env.EMAIL_USER || '',
-    password: process.env.EMAIL_PASSWORD || '',
-    from: process.env.EMAIL_FROM || '',
-  },
-  // ... otras configuraciones existentes
-}; 
+
+const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
+console.log("DEBUG ASTRA_DB_URL", ASTRA_DB_URL); // 👈 esto debería mostrar una URL real
+
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+export const collection = db.collection("hotel_config");
+
+// Tipo base de configuración por canal
+type ChannelMode = "auto" | "manual";
+
+export type HotelChannelConfig = {
+  mode: ChannelMode;
+  enabled: boolean;
+  [key: string]: any;
+};
+
+export type HotelConfig = {
+  hotelId: string;
+  channelConfigs: {
+    [channel: string]: HotelChannelConfig;
+  };
+  lastUpdated?: string;
+};
+
+export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
+  const result = await collection.findOne({ hotelId });
+  return result as HotelConfig | null;
+}
+
+export async function updateHotelConfig(hotelId: string, updates: Partial<HotelConfig>) {
+  const now = new Date().toISOString();
+  await collection.updateOne(
+    { hotelId },
+    { $set: { ...updates, lastUpdated: now } },
+    { upsert: true }
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/config/initHotelConfig.ts
+---------------------------------
+// /lib/config/initHotelConfig.ts
+import { HotelConfig, collection } from "./hotelConfig";
+
+export async function initHotelConfig(hotelId: string) {
+  const existing = await collection.findOne({ hotelId });
+
+  if (existing) {
+    console.log(`ℹ️ Configuración ya existente para ${hotelId}`);
+    return;
+  }
+
+  const mockConfig: HotelConfig = {
+    hotelId,
+    channelConfigs: {
+      email: {
+        enabled: true,
+        mode: "manual",
+        imap: {
+          host: "imap.gmail.com",
+          port: 993,
+          user: "hotel@example.com",
+          password: "app-password",
+        },
+        smtp: {
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: false,
+        },
+      },
+      whatsapp: {
+        enabled: true,
+        mode: "manual",
+        botNumber: "+34 123 456 789",
+      },
+      channelManager: {
+        enabled: true,
+        mode: "manual",
+        pollingInterval: 15000,
+      },
+    },
+    lastUpdated: new Date().toISOString(),
+  };
+
+  await collection.insertOne(mockConfig);
+  console.log(`✅ Configuración inicial creada para ${hotelId}`);
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/config/hotelConfig.server.ts
+---------------------------------
+// /lib/config/hotelConfig.server.ts
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
+
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+export const collection = db.collection("hotel_config");
+
+export type ChannelMode = "auto" | "manual";
+
+export type HotelChannelConfig = {
+  mode: ChannelMode;
+  enabled: boolean;
+  [key: string]: any;
+};
+
+export type HotelConfig = {
+  hotelId: string;
+  channelConfigs: {
+    [channel: string]: HotelChannelConfig;
+  };
+  lastUpdated?: string;
+};
+
+export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
+  const result = await collection.findOne({ hotelId });
+  return result as HotelConfig | null;
+}
+
+export async function updateHotelConfig(hotelId: string, updates: Partial<HotelConfig>) {
+  const now = new Date().toISOString();
+  await collection.updateOne(
+    { hotelId },
+    { $set: { ...updates, lastUpdated: now } },
+    { upsert: true }
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/config/toggle/route.ts
+---------------------------------
+// /app/api/config/toggle/route.ts
+import { NextResponse } from "next/server";
+import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const channel = url.searchParams.get("channel");
+
+  if (!channel) {
+    return NextResponse.json({ error: "Channel is required" }, { status: 400 });
+  }
+
+  const hotelId = "hotel123"; // Simulado
+  const config = await getHotelConfig(hotelId);
+  const current = config?.channelConfigs?.[channel];
+
+  if (!current) {
+    return NextResponse.json({ error: "Canal no configurado" }, { status: 404 });
+  }
+
+  const updated = {
+    ...config.channelConfigs,
+    [channel]: {
+      ...current,
+      enabled: !current.enabled,
+    },
+  };
+
+  await updateHotelConfig(hotelId, { channelConfigs: updated });
+
+  return NextResponse.redirect(new URL("/admin/channels", req.url));
+}
+
 ---------------------------------
 
 
 🔹 Archivo: ./lib/entrypoints/all.ts
 ---------------------------------
-// lib/entrypoints/all.ts
-import dotenv from "dotenv";
-dotenv.config();
-
 process.on("uncaughtException", (err) => {
-  console.error("💥 Excepción no capturada:", err);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("💥 Promesa rechazada sin catch:", reason);
-});
-
-console.log("🚀 Iniciando todos los canales del asistente...");
-
-const promises: Promise<void>[] = [];
-
-if (process.env.ENABLE_WEB !== "false") {
-  console.log("🌐 Iniciando canal Web...");
-  const { startWebBot } = await import("../services/web");
-  promises.push(startWebBot());
-}
-
-if (process.env.ENABLE_WHATSAPP === "true") {
-  console.log("📱 Iniciando canal WhatsApp...");
-  const { startWhatsappBot } = await import("../services/whatsapp");
-  promises.push(startWhatsappBot());
-}
-
-if (process.env.ENABLE_EMAIL !== "false") {
-  console.log("📧 Iniciando canal Email...");
-  const { startEmailBot } = await import("../services/email");
-  promises.push(startEmailBot());
-}
-
-console.log("🔗 Iniciando canal Channel Manager...");
-async function startChannelManagerBot() {
-  console.log("📡 Simulando conexión con Channel Manager...");
-
-  setInterval(() => {
-    const dummyReservation = {
-      source: "Booking.com",
-      guestName: "Juan Pérez",
-      dates: "2025-04-10 al 2025-04-15",
-    };
-    console.log("📥 Reserva recibida desde Channel Manager:", dummyReservation);
-    // Aquí más adelante se podría hacer un `agentGraph.invoke()` o enviar al sistema
-  }, 30000);
-}
-
-promises.push(startChannelManagerBot());
-
-await Promise.all(promises);
-
+    console.error("💥 Excepción no capturada:", err);
+  });
+  
+  process.on("unhandledRejection", (reason) => {
+    console.error("💥 Promesa rechazada sin catch:", reason);
+  });
+  
+  console.log("🟢 Iniciando entrypoint all.ts...");
+  
+  import { startEmailBot } from "../services/email";
+  import { startWhatsAppBot } from "../services/whatsapp";
+  import { startChannelManagerBot } from "../services/channelManager";
+  
+  async function startAll() {
+    try {
+      await Promise.all([
+        startEmailBot(),
+        startWhatsAppBot(),
+        startChannelManagerBot(),
+      ]);
+      console.log("✅ Todos los canales iniciados correctamente.");
+    } catch (err) {
+      console.error("❌ Error al iniciar uno o más canales:", err);
+    }
+  }
+  
+  startAll();
+  
 ---------------------------------
 
 
 🔹 Archivo: ./lib/entrypoints/email.ts
 ---------------------------------
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 console.log("🟢 Entrando a email.ts");
 
@@ -734,27 +1229,188 @@ console.log("📥 startEmailBot importado");
 import dotenv from "dotenv";
 dotenv.config();
 
-import { startWhatsappBot } from "../services/whatsapp";
+import { startWhatsAppBot } from "../services/whatsapp";
 
 console.log("🚀 Iniciando bot de WhatsApp...");
-startWhatsappBot();
+startWhatsAppBot();
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/astra/index.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_COLLECTION_NAME = "begaia";
+
+export async function searchAstraDB(query: string) {
+  try {
+    const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+    const db = client.db('https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com');
+    const collections = await db.listCollections();
+    console.log("📂 Colecciones en AstraDB:", collections);
+
+    const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
+    if (!collection) {
+      throw new Error(`No se encontró la colección: ${ASTRA_DB_COLLECTION_NAME}`);
+    }
+
+    // Generar embedding de la consulta con OpenAI
+    const response = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "text-embedding-ada-002",
+        input: query,
+      }),
+    });
+
+    const { data } = await response.json();
+    let queryVector = data[0].embedding;
+
+    console.log("🔢 Dimensión del embedding de la consulta:", queryVector.length);
+
+    if (queryVector.length !== 1536) {
+      console.warn("⚠ ADVERTENCIA: El embedding de la consulta no tiene 1536 dimensiones.");
+    }
+
+    // Verificar la configuración de la colección en AstraDB
+    const collectionInfo = await collection.options();
+    console.log("📌 Configuración de la colección en AstraDB:", JSON.stringify(collectionInfo, null, 2));
+
+    // Realizar búsqueda vectorial
+    console.log("🔍 Ejecutando búsqueda vectorial...");
+    const cursor = await collection.find({}, {
+      sort: { $vector: queryVector },
+      limit: 10,
+      includeSimilarity: true,
+    });
+
+    const results = await cursor.toArray();
+    console.log("📄 Documentos obtenidos:", JSON.stringify(results, null, 2));
+
+    return results;
+  } catch (error) {
+    console.error("❌ Error en searchAstraDB:", error);
+    throw error;
+  }
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/astra/load_from_pdf.ts
+---------------------------------
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import OpenAI from "openai";
+import fs from "fs";
+import pdf from "pdf-parse";
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
+
+const ASTRA_DB_APPLICATION_TOKEN: string = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+const ASTRA_DB_COLLECTION_NAME: string = "begaia";
+const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
+const PDF_FILE_PATH = path.resolve("app/lib/hotel_demo.pdf");
+const JSON_OUTPUT_PATH = path.resolve("hotel_data.json");
+
+const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+const db = client.db("https://bd3a9cf5-660d-4c90-ad58-39a03af1fed2-us-east-2.apps.astra.datastax.com");
+const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+// Función para generar embeddings con OpenAI sin reducción
+async function generateEmbeddings(text: string): Promise<number[]> {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002", // Usa 1536 dimensiones
+    input: text,
+  });
+  return response.data[0].embedding;
+}
+
+// Función para verificar la configuración de la colección en AstraDB
+async function checkCollectionConfig() {
+  const collectionInfo = await collection.options();
+  console.log("📌 Configuración REAL de la colección en AstraDB:", JSON.stringify(collectionInfo, null, 2));
+
+  if (collectionInfo.vector?.dimension !== 1536) {
+    console.warn("⚠ ADVERTENCIA: La colección no está configurada para embeddings de 1536 dimensiones.");
+  }
+}
+
+// Carga de datos en AstraDB y guardado en JSON
+async function loadHotelData(): Promise<void> {
+  try {
+    // Verificar la configuración de la colección antes de cargar datos
+    await checkCollectionConfig();
+
+    const pdfBuffer: Buffer = fs.readFileSync(PDF_FILE_PATH);
+    const pdfData = await pdf(pdfBuffer);
+    const hotelData: string = pdfData.text;
+
+    console.log("🔍 Generando embedding para el texto completo...");
+    const embedding: number[] = await generateEmbeddings(hotelData);
+    console.log("💪 Dimensión del embedding generado:", embedding.length);
+
+    if (embedding.length !== 1536) {
+      console.warn("⚠ ADVERTENCIA: El embedding generado no tiene 1536 dimensiones.");
+    }
+
+    const document = {
+      idea: hotelData, // Se usa 'idea' como campo de texto
+      $vector: embedding, // Usa el campo correcto para AstraDB
+      metadata: {
+        source: "Hotel Demo Punta del Este",
+        createdAt: new Date().toISOString(),
+      },
+    };
+
+    // Guardar en archivo JSON
+    fs.writeFileSync(JSON_OUTPUT_PATH, JSON.stringify(document, null, 2));
+    console.log("✅ Documento guardado en hotel_data.json");
+
+    // Insertar en AstraDB
+    await collection.insertOne(document);
+    console.log("✅ Documento insertado en AstraDB con éxito.");
+
+  } catch (error) {
+    console.error("❌ Error cargando datos en AstraDB:", error);
+  }
+}
+
+// Ejecutar la carga de datos
+loadHotelData();
 
 ---------------------------------
 
 
 🔹 Archivo: ./lib/agents/retrieval_based.ts
 ---------------------------------
-// 📍 lib/agents/room_info.ts
-
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphState, model, vectorStore } from "./index";
+import { GraphState} from "./index";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { defaultPrompt, curatedPrompts } from "../prompts";
 import { debugLog } from "../utils/debugLog";
+import { searchFromAstra } from "../retrieval";
+
+let localModel: ChatOpenAI | null = null;
+
+export function setRetrievalModel(model: ChatOpenAI) {
+  localModel = model;
+}
+
+// ✅ Seteo por defecto
+setRetrievalModel(new ChatOpenAI({ modelName: "gpt-4o", temperature: 0 }));
+
+process.env.OPENAI_LOG = "off";
 
 const translationModel = new ChatOpenAI({ model: "gpt-4o" });
 
-// 🌐 Traducción de respuesta al idioma original
 async function translateResponseBack(originalLang: string, content: string): Promise<string> {
   if (originalLang === process.env.SYSTEM_NATIVE_LANGUAGE) return content;
 
@@ -763,65 +1419,63 @@ async function translateResponseBack(originalLang: string, content: string): Pro
       role: "system",
       content: `Traduce el siguiente contenido al idioma '${originalLang}' manteniendo emojis y formato Markdown.`,
     },
-    {
-      role: "user",
-      content,
-    },
+    { role: "user", content },
   ]);
 
   return typeof translated.content === "string" ? translated.content : content;
 }
 
-// 🔎 Búsqueda semántica de información
-export async function retrieve_hotel_info(query: string, lang: string) {
-  const translatedQuery =
-    lang === process.env.SYSTEM_NATIVE_LANGUAGE
-      ? { content: query }
-      : await translationModel.invoke([
-          {
-            role: "system",
-            content: `Solo responde con la traducción literal de la siguiente consulta al idioma '${process.env.SYSTEM_NATIVE_LANGUAGE}'. No añadas ningún comentario ni explicación.`,
-          },
-          {
-            role: "user",
-            content: query,
-          },
-        ]);
+export async function retrieve_hotel_info(
+  query: string,
+  lang: string,
+  hotelId: string,
+  category?: string,
+  promptKey?: string | null
+) {
+  const translated = lang === process.env.SYSTEM_NATIVE_LANGUAGE
+    ? { content: query }
+    : await translationModel.invoke([
+        {
+          role: "system",
+          content: `Solo responde con la traducción literal de la siguiente consulta al idioma '${process.env.SYSTEM_NATIVE_LANGUAGE}'.`,
+        },
+        { role: "user", content: query },
+      ]);
 
-  const searchQuery =
-    typeof translatedQuery.content === "string"
-      ? translatedQuery.content
-      : JSON.stringify(translatedQuery.content);
+  const searchQuery = typeof translated.content === "string"
+    ? translated.content
+    : JSON.stringify(translated.content);
 
-  const results = await vectorStore.similaritySearch(searchQuery, 5);
+  const docs = await searchFromAstra(searchQuery, hotelId, {
+    category,
+    promptKey: promptKey ?? undefined,
+  });
 
-  debugLog("🔍 Resultados de búsqueda:", results.map(r => r.pageContent.slice(0, 100)));
-
-  return results.map((doc) => doc.pageContent).join("\n\n");
+  return docs.join("\n\n");
 }
 
-// 🔁 Nodo principal para manejo genérico con recuperación
 export async function retrievalBased(state: typeof GraphState.State) {
-  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
-  const userQuery =
-    typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
+  const lastMessage = state.messages.findLast((m) => m instanceof HumanMessage);
+  const userQuery = typeof lastMessage?.content === "string" ? lastMessage.content.trim() : "";
   const lang = state.detectedLanguage ?? process.env.SYSTEM_NATIVE_LANGUAGE;
   const promptKey = state.promptKey;
+  const hotelId = (state as any).hotelId ?? "defaultHotelId"; // fallback por si no viene
 
-  if (!userQuery.trim()) {
+  if (!userQuery) {
     return { messages: [new AIMessage("Consulta vacía o inválida.")] };
   }
 
-  const retrievedInfo = await retrieve_hotel_info(userQuery, lang);
+  const retrievedInfo = await retrieve_hotel_info(userQuery, lang, hotelId, state.category, promptKey);
 
-  if (!retrievedInfo.trim()) {
+  if (!retrievedInfo) {
     debugLog("⚠️ No se encontró información relevante en los documentos.");
-    const response = await model.invoke(state.messages);
+    if (!localModel) {
+      throw new Error("localModel is not initialized.");
+    }
+    const response = await localModel.invoke(state.messages);
     const responseText = typeof response.content === "string" ? response.content.trim() : "";
     return {
-      messages: [
-        new AIMessage(responseText || "Lo siento, no encontré información."),
-      ],
+      messages: [new AIMessage(responseText || "Lo siento, no encontré información.")],
     };
   }
 
@@ -830,23 +1484,22 @@ export async function retrievalBased(state: typeof GraphState.State) {
     .replace("{{retrieved}}", retrievedInfo)
     .replace("{{query}}", userQuery);
 
-  const response = await model.invoke([
+  if (!localModel) {
+    throw new Error("localModel is not initialized.");
+  }
+  const response = await localModel.invoke([
     { role: "system", content: finalPrompt },
     { role: "user", content: userQuery },
   ]);
 
   const responseText = typeof response.content === "string" ? response.content.trim() : "";
-  const finalResponse =
-    lang === process.env.SYSTEM_NATIVE_LANGUAGE
-      ? responseText
-      : await translateResponseBack(lang, responseText);
+  const finalResponse = lang === process.env.SYSTEM_NATIVE_LANGUAGE
+    ? responseText
+    : await translateResponseBack(lang, responseText);
 
   return {
     ...state,
-    messages: [
-      ...state.messages,
-      new AIMessage(finalResponse || "Lo siento, no encontré información sobre habitaciones."),
-    ],
+    messages: [...state.messages, new AIMessage(finalResponse || "Lo siento, no encontré información.")],
   };
 }
 
@@ -914,13 +1567,10 @@ export function handleSupport() {
 
 🔹 Archivo: ./lib/agents/index.ts
 ---------------------------------
-// 📍 lib/agents/index.ts
-
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { pms } from "../pms";
-import { loadDocuments } from "../retrieval/index";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
@@ -928,10 +1578,15 @@ import { retrievalBased } from "./retrieval_based";
 import { franc } from "franc";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
+import { searchFromAstra } from "../retrieval";
+import { detectLanguage } from "../utils/language";
 
-console.log("🔧 Compilando grafo conversacional...");
 
-// 🧠 Estado global del grafo
+process.env.OPENAI_LOG = "off";
+debugLog("🔧 Compilando grafo conversacional...");
+
+// ----------------------------
+// Estado del grafo
 export const GraphState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: (x, y) => x.concat(y),
@@ -949,17 +1604,45 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => y,
     default: () => null,
   }),
+  hotelId: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "hotel123",
+  }),
 });
 
-// 📚 Cargar documentos y herramientas de recuperación
-export const vectorStore = await loadDocuments();
-const retriever = createRetrieverTool(vectorStore.asRetriever(), {
-  name: "retrieve_hotel_info",
-  description: "Search hotel FAQs and policies.",
-});
-export const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+// ----------------------------
+// Vector store y modelo (usado por retrievalBased)
+export let vectorStore: any;
+let retriever: any;
+export let model: any;
 
-// 🔍 Nodo: Clasificador de intención + detección de idioma
+export async function initializeVectorStore() {
+  if (!vectorStore) {
+    // Simula un retriever a partir de AstraDB
+    vectorStore = {
+      asRetriever: () => ({
+        getRelevantDocuments: async (query: string) => {
+          const results = await searchFromAstra(query, "hotel123");
+          return results.map((text) => ({
+            pageContent: text,
+            metadata: {},
+          }));
+        },
+      }),
+    };
+
+    retriever = createRetrieverTool(vectorStore.asRetriever(), {
+      name: "retrieve_hotel_info",
+      description: "Search hotel FAQs and policies.",
+    });
+
+    model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+    debugLog("✅ Vector store inicializado desde AstraDB (sin Puppeteer)");
+  }
+}
+
+// ----------------------------
+// Nodo de clasificación
 export async function classifyNode(state: typeof GraphState.State) {
   const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
   const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
@@ -976,19 +1659,19 @@ export async function classifyNode(state: typeof GraphState.State) {
     };
   }
 
-  const detectedLang = franc(question, { minLength: 3 });
+  const detectedLang = detectLanguage(question);
+
 
   let classification;
   try {
     classification = await classifyQuery(question);
+    debugLog("🔀 Clasificación detectada:", classification);
   } catch (e) {
     console.error("❌ Error clasificando la consulta:", e);
     classification = { category: "retrieval_based", promptKey: null };
   }
 
   const { category, promptKey } = classification;
-
-  // Validación defensiva (promptKey debe estar autorizado para esa categoría)
   const validPromptKeys = promptMetadata[category] || [];
   const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
 
@@ -1006,56 +1689,49 @@ export async function classifyNode(state: typeof GraphState.State) {
   };
 }
 
-// 📅 Nodo: Gestión de reservas (también maneja cancelaciones)
+// ----------------------------
+// Nodos funcionales del grafo
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
   return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
 }
-
-// 💳 Nodo: Facturación
+async function handleAmenitiesionNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de amenities.")] };
+}
 async function handleBillingNode() {
   return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
-
-// 🛟 Nodo: Soporte
 async function handleSupportNode() {
   return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
 }
-
-// 🤖 Nodo: IA + recuperación de contexto
 async function retrievalBasedNode(state: typeof GraphState.State) {
   return await retrievalBased(state);
 }
 
-// 🕸️ Construcción del grafo de estados
+// ----------------------------
+// Definición del grafo
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_cancellation", handleReservationNode)
+  .addNode("handle_amenities", handleAmenitiesionNode)
   .addNode("handle_billing", handleBillingNode)
   .addNode("handle_support", handleSupportNode)
   .addNode("handle_retrieval_based", retrievalBasedNode)
-
-  // 🔁 Transiciones
   .addEdge("__start__", "classify")
   .addConditionalEdges("classify", (state) => state.category, {
     reservation: "handle_reservation",
-    cancellation: "handle_cancellation",
+    amenities: "handle_amenities",
     billing: "handle_billing",
     support: "handle_support",
     retrieval_based: "handle_retrieval_based",
   })
-
-  // 🔚 Finales
   .addEdge("handle_reservation", "__end__")
-  .addEdge("handle_cancellation", "__end__")
+  .addEdge("handle_amenities", "__end__")
   .addEdge("handle_billing", "__end__")
   .addEdge("handle_support", "__end__")
   .addEdge("handle_retrieval_based", "__end__");
 
-console.log("✅ Grafo compilado con éxito.");
-
-// 🚀 Exportar grafo compilado
+debugLog("✅ Grafo compilado con éxito.");
 export const agentGraph = graph.compile();
 
 ---------------------------------
@@ -1066,9 +1742,49 @@ export const agentGraph = graph.compile();
 // lib/utils/debugLog.ts
 
 export function debugLog(...args: any[]) {
-    if (process.env.DEBUG === "true") {
-      console.log(...args);
-    }
+  if (process.env.DEBUG === "true") {
+    console.log("🐞 DEBUG:", ...args);
+  }
+}
+
+  
+---------------------------------
+
+
+🔹 Archivo: ./lib/utils/language.ts
+---------------------------------
+import { franc } from "franc";
+
+const supportedLanguages = new Set(["spa", "eng", "ita", "fra", "por"]);
+
+export function detectLanguage(text: string): string {
+  if (!text || text.trim().length < 10) return "spa";
+
+  const lang = franc(text.trim(), { minLength: 3 });
+
+  return supportedLanguages.has(lang) ? lang : "spa";
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./lib/utils/similarity.ts
+---------------------------------
+export function cosineSimilarity(a: number[], b: number[]): number {
+    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+    const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+    const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+    return dotProduct / (normA * normB);
+  }
+  
+---------------------------------
+
+
+🔹 Archivo: ./lib/utils.ts
+---------------------------------
+// lib/utils.ts
+export function cn(...classes: (string | undefined | false | null)[]) {
+    return classes.filter(Boolean).join(" ");
   }
   
 ---------------------------------
@@ -1273,8 +1989,287 @@ describe("ReactMarkdown", () => {
 ---------------------------------
 
 
+🔹 Archivo: ./app/admin/embeddings/page.tsx
+---------------------------------
+// /app/admin/embeddings/page.tsx
+export default function EmbeddingsPage() {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Embeddings</h1>
+        <p className="text-gray-500">Esta sección estará disponible próximamente.</p>
+      </div>
+    );
+  }
+  
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/prompts/page.tsx
+---------------------------------
+// /app/admin/prompts/page.tsx
+export default function PromptsPage() {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Prompts</h1>
+        <p className="text-gray-500">Esta sección estará disponible próximamente.</p>
+      </div>
+    );
+  }
+  
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/channels/page.tsx
+---------------------------------
+// /app/admin/channels/page.tsx
+
+// ✅ Página de administración de canales
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import ChannelsClient from "@/components/admin/ChannelsClient";
+import { BarChart3 } from "lucide-react";
+
+export default async function ChannelsPage() {
+  const hotelId = "hotel123";
+  const config = await getHotelConfig(hotelId);
+
+  if (!config) {
+    return (
+      <div className="min-h-screen bg-background text-foreground py-12 px-6">
+        <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6" />
+          Estado de Canales
+        </h1>
+        <p className="text-red-500">❌ Error: no se pudo cargar la configuración del hotel.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground py-12 px-6">
+      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+        <BarChart3 className="w-6 h-6" />
+        Estado de Canales
+      </h1>
+
+      <ChannelsClient initialConfig={config.channelConfigs} />
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/upload/page.tsx
+---------------------------------
+// /app/admin/upload/page.tsx
+export default function UploadPage() {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Upload</h1>
+        <p className="text-gray-500">Esta sección estará disponible próximamente.</p>
+      </div>
+    );
+  }
+  
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/layout.tsx
+---------------------------------
+// /app/admin/layout.tsx
+"use client";
+
+import { ReactNode } from "react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SidebarLink } from "@/components/ui/SidebarLink";
+import {
+  Home,
+  Hotel,
+  Upload,
+  Brain,
+  FileText,
+} from "lucide-react";
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
+      {/* Sidebar */}
+      <aside className="w-64 bg-gray-900 p-4 flex flex-col justify-between text-foreground">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold">Begasist Admin</h1>
+            <ThemeToggle />
+          </div>
+          <nav className="space-y-2">
+            <SidebarLink href="/admin" icon={<Home className="w-5 h-5" />} label="Inicio" />
+            <SidebarLink href="/admin/hotels" icon={<Hotel className="w-5 h-5" />} label="Hoteles" />
+            <SidebarLink href="/admin/upload" icon={<Upload className="w-5 h-5" />} label="Carga de datos" />
+            <SidebarLink href="/admin/prompts" icon={<Brain className="w-5 h-5" />} label="Prompts" />
+            <SidebarLink href="/admin/logs" icon={<FileText className="w-5 h-5" />} label="Logs" />
+          </nav>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/page.tsx
+---------------------------------
+// /app/admin/page.tsx
+"use client";
+
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { DarkCard } from "@/components/ui/DarkCard";
+import {
+  Hotel,
+  Upload,
+  Brain,
+  BookOpen,
+  Server,
+  FileText,
+  Settings,
+} from "lucide-react";
+
+export default function AdminDashboard() {
+  return (
+    <div className="min-h-screen bg-background text-foreground py-12 px-6">
+      <h1 className="text-3xl font-bold text-center mb-10 flex items-center justify-center gap-3">
+        <Settings className="w-6 h-6" />
+        Panel de Control
+      </h1>
+
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <Hotel className="w-5 h-5" />
+              Hoteles
+            </div>
+          }
+          description="Gestioná tus hoteles registrados en el sistema."
+        >
+          <Link href="/admin/hotels">
+            <Button>Ver hoteles</Button>
+          </Link>
+        </DarkCard>
+
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Carga de Datos
+            </div>
+          }
+          description="Subí documentos o URLs para enriquecer la base de conocimiento."
+        >
+          <Link href="/admin/upload">
+            <Button>Cargar datos</Button>
+          </Link>
+        </DarkCard>
+
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <Brain className="w-5 h-5" />
+              Embeddings
+            </div>
+          }
+          description="Consultá y gestioná la base vectorial por hotel y categoría."
+        >
+          <Link href="/admin/embeddings">
+            <Button>Ver embeddings</Button>
+          </Link>
+        </DarkCard>
+
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              Prompts Curados
+            </div>
+          }
+          description="Editá prompts por categoría y subcategoría."
+        >
+          <Link href="/admin/prompts">
+            <Button>Editar prompts</Button>
+          </Link>
+        </DarkCard>
+
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <Server className="w-5 h-5" />
+              Canales
+            </div>
+          }
+          description="Estado de los canales conectados: web, email, WhatsApp, channel manager."
+        >
+          <Link href="/admin/channels">
+            <Button>Ver estado</Button>
+          </Link>
+        </DarkCard>
+
+        <DarkCard
+          title={
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Logs y Debug
+            </div>
+          }
+          description="Revisá errores, ejecuciones recientes y trazas de flujo."
+        >
+          <Link href="/admin/logs">
+            <Button>Ver logs</Button>
+          </Link>
+        </DarkCard>
+      </div>
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/hotels/page.tsx
+---------------------------------
+// /app/admin/hotels/page.tsx
+export default function HotelsPage() {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Hotels</h1>
+      <p className="text-gray-500">Esta sección estará disponible próximamente.</p>
+    </div>
+  );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/admin/logs/page.tsx
+---------------------------------
+// /app/admin/logs/page.tsx
+export default function LogsPage() {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Logs</h1>
+        <p className="text-gray-500">Esta sección estará disponible próximamente.</p>
+      </div>
+    );
+  }
+  
+---------------------------------
+
+
 🔹 Archivo: ./app/lib/translation.ts
 ---------------------------------
+process.env.OPENAI_LOG = "off";
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
@@ -1292,11 +2287,22 @@ export async function translationModel(text: string, targetLanguage: string) {
 @tailwind components;
 @tailwind utilities;
 
+/* 🎨 Variables de tema */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --border: #e5e7eb;
+  --muted-foreground: #6b7280;
 }
 
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --border: #444;
+  --muted-foreground: #a1a1aa;
+}
+
+/* 💡 Fallback si el usuario prefiere dark */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -1304,11 +2310,15 @@ export async function translationModel(text: string, targetLanguage: string) {
   }
 }
 
+/* 🌍 Estilo global del body */
 body {
+  background-color: var(--background);
   color: var(--foreground);
-  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
 }
+
+/* 🔗 Estilos de links */
 a {
   color: #2563eb;
   text-decoration: underline;
@@ -1318,45 +2328,30 @@ a:hover {
   color: #1e40af;
 }
 
-
-
 ---------------------------------
 
 
 🔹 Archivo: ./app/layout.tsx
 ---------------------------------
-
+// /app/layout.tsx
 import { Metadata } from "next";
-import localFont from "next/font/local"; // ✅ Importación correcta
-
-
+import { ThemeProvider } from "@/context/ThemeContext";
+import { ApplyThemeClass } from "@/components/utils/ApplyThemeClass";
 import "./globals.css";
 
-const inter = localFont({
-  src: "../public/fonts/geist-latin.woff2", // ✅ Ruta corregida
-  variable: "--font-inter",
-});
-
-const robotoMono = localFont({
-  src: "../public/fonts/geist-mono-latin.woff2", // ✅ Ruta corregida
-  variable: "--font-roboto-mono",
-});
-
-
 export const metadata: Metadata = {
-  title: "Create Next App",
-  description: "Generated by create next app",
+  title: "Begasist",
+  description: "Asistente conversacional hotelero",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-foreground transition-colors duration-300">
+        <ThemeProvider>
+          <ApplyThemeClass />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
@@ -1367,11 +2362,11 @@ export default function RootLayout({
 
 🔹 Archivo: ./app/page.tsx
 ---------------------------------
+// /app/page.tsx
 "use client";
 
 import { useState } from "react";
-import ReactMarkdown from "react-markdown"; // Importa react-markdown
-// import remarkGfm from "remark-gfm";
+import ReactMarkdown from "react-markdown";
 
 export default function ChatPage() {
   const [query, setQuery] = useState("");
@@ -1380,26 +2375,23 @@ export default function ChatPage() {
 
   const sendQuery = async () => {
     if (!query.trim()) return;
-  
+
     setLoading(true);
-    setResponse(""); 
-  
+    setResponse("");
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
-  
+
       const data = await res.json();
-      
-      // Verifica que la respuesta sea un string antes de actualizar el estado
-      const responseText = typeof data.response === "string" 
-        ? data.response 
-        : JSON.stringify(data.response, null, 2); // Convierte a string para depurar
-  
+      const responseText =
+        typeof data.response === "string"
+          ? data.response
+          : JSON.stringify(data.response, null, 2);
+
       setResponse(responseText);
     } catch (error) {
       console.error("Error en la consulta:", error);
@@ -1410,13 +2402,14 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-200 p-6">
-      <h1 className="text-3xl font-bold mb-4 text-white">💬 Chat con IA</h1>
-      <div className="w-full max-w-lg bg-gray-800 p-4 shadow-md rounded-lg">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 transition-colors">
+      <h1 className="text-3xl font-bold mb-4">💬 Chat con IA</h1>
+
+      <div className="w-full max-w-lg bg-muted p-4 shadow-md rounded-lg border border-border">
         <textarea
-          className="w-full border border-gray-700 bg-gray-900 text-gray-200 p-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full border border-border bg-background text-foreground p-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition"
           rows={3}
-          placeholder="Escribe tu pregunta..."
+          placeholder="Escribí tu pregunta..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -1431,24 +2424,147 @@ export default function ChatPage() {
       </div>
 
       {response && (
-        <div className="w-full max-w-lg bg-gray-800 p-4 mt-4 shadow-md rounded-lg">
-          <h2 className="text-lg font-semibold text-white">🤖 Respuesta:</h2>
-          <div className="mt-2 text-gray-300">
-          <ReactMarkdown
-            components={{
-              a: ({ ...props }) => (
-                <a className="text-blue-500 underline hover:text-blue-700" {...props} />
-              )
-            }}
-          >
-            {response}
-          </ReactMarkdown>
+        <div className="w-full max-w-lg bg-muted p-4 mt-4 shadow-md rounded-lg border border-border text-foreground">
+          <h2 className="text-lg font-semibold">🤖 Respuesta:</h2>
+          <div className="mt-2 text-muted-foreground">
+            <ReactMarkdown
+              components={{
+                a: ({ ...props }) => (
+                  <a
+                    className="text-blue-500 underline hover:text-blue-700"
+                    {...props}
+                  />
+                ),
+              }}
+            >
+              {response}
+            </ReactMarkdown>
           </div>
         </div>
       )}
-
     </div>
   );
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/api/config/add/route.ts
+---------------------------------
+// /app/api/config/add/route.ts
+import { NextResponse } from "next/server";
+import { getHotelConfig, updateHotelConfig, type ChannelMode } from "@/lib/config/hotelConfig.server";
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const channel = url.searchParams.get("channel");
+
+  const allowedChannels = ["web", "email", "whatsapp", "channelManager"];
+
+  // 🚫 Verificamos si es un canal permitido
+  if (!channel || !allowedChannels.includes(channel)) {
+    return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
+  }
+
+  const hotelId = "hotel123"; // Simulado
+  const config = await getHotelConfig(hotelId);
+
+  // ✅ Si ya existe, no hacer nada
+  if (config?.channelConfigs?.[channel]) {
+    return NextResponse.json({ message: "Canal ya está configurado" }, { status: 200 });
+  }
+
+  // ✅ Agrega el canal a la configuración
+  const updatedConfigs = {
+    ...config?.channelConfigs,
+    [channel]: {
+      enabled: false,
+      mode: "manual" as ChannelMode,
+    },
+  };
+
+  await updateHotelConfig(hotelId, { channelConfigs: updatedConfigs });
+
+  // ✅ Redirige de nuevo a la página de canales
+  return NextResponse.redirect(new URL("/admin/channels", req.url));
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/api/config/mode/route.ts
+---------------------------------
+// /app/api/config/mode/route.ts
+import { NextResponse } from "next/server";
+import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const channel = url.searchParams.get("channel");
+
+  if (!channel) {
+    return NextResponse.json({ error: "Falta el parámetro 'channel'" }, { status: 400 });
+  }
+
+  const hotelId = "hotel123"; // simulado
+  const config = await getHotelConfig(hotelId);
+  const current = config?.channelConfigs?.[channel];
+
+  if (!current) {
+    return NextResponse.json({ error: "Canal no configurado" }, { status: 404 });
+  }
+
+  const newMode = current.mode === "auto" ? "manual" : "auto";
+
+  await updateHotelConfig(hotelId, {
+    channelConfigs: {
+      ...config.channelConfigs,
+      [channel]: {
+        ...current,
+        mode: newMode,
+      },
+    },
+  });
+
+  return NextResponse.redirect(new URL("/admin/channels", req.url));
+}
+
+---------------------------------
+
+
+🔹 Archivo: ./app/api/config/toggle/route.ts
+---------------------------------
+// /app/api/config/toggle/route.ts
+import { NextResponse } from "next/server";
+import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const channel = url.searchParams.get("channel");
+
+  if (!channel) {
+    return NextResponse.json({ error: "Falta el parámetro 'channel'" }, { status: 400 });
+  }
+
+  const hotelId = "hotel123"; // ← Simulado
+  const config = await getHotelConfig(hotelId);
+
+  const current = config?.channelConfigs?.[channel];
+  if (!current) {
+    return NextResponse.json({ error: "Canal no configurado" }, { status: 404 });
+  }
+
+  const updatedConfigs = {
+    ...config.channelConfigs,
+    [channel]: {
+      ...current,
+      enabled: !current.enabled, // ← alternamos el valor
+    },
+  };
+
+  await updateHotelConfig(hotelId, { channelConfigs: updatedConfigs });
+
+  return NextResponse.redirect(new URL("/admin/channels", req.url));
 }
 
 ---------------------------------
@@ -1476,19 +2592,28 @@ export async function POST() {
 // /root/begasist/app/api/chat/route.ts
 
 import { NextResponse } from "next/server";
-import { agentGraph } from "/../lib/agents/index.ts";
+import { agentGraph } from "@/lib/agents";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { debugLog } from "../../../lib/utils/debugLog";
 
+process.env.OPENAI_LOG = "off";
 export async function POST(req: Request) {
   try {
     const { query } = await req.json();
+    
     debugLog("🔍 Consulta recibida:", query);
+
+    const hotelId = "hotel123"; // fallback
+
+    if (!hotelId) {
+      console.warn("⚠️ [API /chat] hotelId no proporcionado. Usando fallback: 'hotel123'");
+    }
 
     const response = await agentGraph.invoke({
       messages: [new HumanMessage(query)],
+      hotelId,
     });
-
+    
     // Buscar el último mensaje que sea un AIMessage y obtener su contenido
     const aiMessage = response.messages.findLast(
       (msg) => msg instanceof AIMessage

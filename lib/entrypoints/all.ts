@@ -11,6 +11,7 @@ process.on("uncaughtException", (err) => {
   import { startEmailBot } from "../services/email";
   import { startWhatsAppBot } from "../services/whatsapp";
   import { startChannelManagerBot } from "../services/channelManager";
+  import { webMemory } from "@/lib/services/webMemory";
   
   async function startAll() {
     try {
@@ -19,6 +20,8 @@ process.on("uncaughtException", (err) => {
         startWhatsAppBot(),
         startChannelManagerBot(),
       ]);
+      webMemory.clearMessages();
+      console.log("🧹 Memoria web limpia");
       console.log("✅ Todos los canales iniciados correctamente.");
     } catch (err) {
       console.error("❌ Error al iniciar uno o más canales:", err);

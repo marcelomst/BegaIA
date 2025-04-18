@@ -1,20 +1,15 @@
-// /lib/config/hotelConfig.ts
+// /lib/config/hotelConfig.server.ts
 import { DataAPIClient } from "@datastax/astra-db-ts";
-import dotenv from "dotenv";
-dotenv.config();
-
 
 const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
 const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
 const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-console.log("DEBUG ASTRA_DB_URL", ASTRA_DB_URL); // 👈 esto debería mostrar una URL real
 
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
-// Tipo base de configuración por canal
-type ChannelMode = "auto" | "manual";
+export type ChannelMode = "auto" | "manual";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;

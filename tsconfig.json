@@ -27,6 +27,7 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
+    
     "plugins": [
       {
         "name": "next"

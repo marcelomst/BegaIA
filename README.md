@@ -505,3 +505,96 @@ Este comando ejecuta el entrypoint lib/entrypoints/all.ts, que inicia simultáne
 
 ⚙️ El sistema está diseñado como una solución omnicanal, donde todos los mensajes entrantes, sin importar el origen, son procesados por el mismo grafo conversacional.
 
+## Seguridad
+
+🔒 Seguridad en endpoints de configuración
+Al trabajar con endpoints dinámicos como /api/config/add?channel=..., es importante validar los valores permitidos para evitar:
+
+Configuraciones no deseadas (inyección de propiedades).
+
+Canales inexistentes o mal tipados.
+
+Confusión o corrupción de datos en AstraDB.
+
+### ✅ Recomendación aplicada
+En el endpoint /api/config/add, se valida que el canal esté en la lista explícita de canales permitidos:
+
+const allowedChannels = ["web", "email", "whatsapp", "channelManager"];
+if (!allowedChannels.includes(channel)) {
+  return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
+}
+Esta validación:
+
+Previene registros maliciosos o accidentales.
+
+Refuerza el control de configuración.
+
+Mejora la integridad de los datos multihotel.
+
+
+## ✅ Solución al modo dark/light inconsistente en los Cards (DarkCard)
+
+**Problema:** El modo oscuro no se aplicaba correctamente en los componentes `DarkCard`, incluso cuando el `<html class="dark">` estaba activo.
+
+**Causa raíz:** El componente base `Card` en `components/ui/card.tsx` tenía la clase fija `bg-white`, lo que forzaba fondo blanco incluso en modo oscuro.
+
+**Solución:** Se reemplazó:
+
+tsx
+<div className="rounded-lg border bg-white shadow">
+por:
+
+<div className="rounded-lg border bg-background text-foreground shadow transition-colors duration-300">
+Resultado: Los estilos ahora se heredan correctamente desde las variables CSS definidas en globals.css, y los Cards respetan el tema dark/light.
+
+🕓 Última modificación: 2025-04-15 09:07:02
+
+
+## 🧩 Panel de Canales – Supervisión y Configuración
+El archivo /app/admin/channels/page.tsx se encarga de obtener la configuración de canales del hotel desde Astra DB (server-side) y delega la interfaz interactiva al componente cliente ChannelsClient.
+
+📦 Diseño modular
+Cada canal (Web, Email, WhatsApp, Channel Manager) tiene:
+
+Estado de conexión (activo/inactivo)
+
+Modo de operación (🧠 Automático / 🧍 Supervisado)
+
+Botones de acción:
+
+Cambiar modo
+
+Activar/desactivar
+
+Ver logs
+
+💬 Visualización de mensajes por canal
+La UI de cada canal incluye una lista de mensajes con:
+
+Datos simulados (mock)
+
+Scroll vertical (overflow-y-auto)
+
+Paginación cliente-side
+
+⚠️ Importante: Los mensajes simulados están comentados en el código (ChannelsClient.tsx) y se eliminarán una vez que se integren datos reales desde los canales.
+
+🧪 Mock de mensajes
+Cada canal tiene su función mock:
+
+// ./mock-messages/web.ts
+export const webMessages = [{ sender: "Usuario Web", ... }]
+En ChannelsClient.tsx, estas funciones se importan pero están comentadas temporalmente:
+
+ts
+Copiar
+Editar
+// const webMessages = getWebMessages(); // simulación (desactivado)
+Esto facilita:
+
+🔁 Reemplazo progresivo por datos reales
+
+📦 Mantenimiento de estructura consistente por canal
+
+👨‍💻 Entendimiento claro para futuros desarrolladores
+
