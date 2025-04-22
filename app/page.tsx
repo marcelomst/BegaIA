@@ -19,7 +19,10 @@ export default function ChatPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({
+          query: query,
+          channel: "web", // 👈 canal explícito
+        }),
       });
 
       const data = await res.json();

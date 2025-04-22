@@ -14,7 +14,7 @@ export async function initHotelConfig(hotelId: string) {
     channelConfigs: {
       email: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         imap: {
           host: "imap.gmail.com",
           port: 993,
@@ -29,12 +29,12 @@ export async function initHotelConfig(hotelId: string) {
       },
       whatsapp: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         botNumber: "+34 123 456 789",
       },
       channelManager: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         pollingInterval: 15000,
       },
     },

@@ -1,7 +1,8 @@
-///root/begasist/components/admin/ChannelMessages.tsx
+// /root/begasist/components/admin/ChannelMessages.tsx
 
 import React, { useState, useEffect } from "react";
 import { RefreshCcw } from "lucide-react";
+
 
 interface ChannelMessage {
   id: string;
@@ -11,19 +12,24 @@ interface ChannelMessage {
   response: string;
   status: "pending" | "sent" | "rejected";
   edited: boolean;
+  respondedBy?: string;
 }
 
 interface Props {
   channelId: string;
+  userEmail: string;
+  mode: "auto" | "supervised";
 }
 
-const ChannelMessages: React.FC<Props> = ({ channelId }) => {
+const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const signedEmail = mode === "auto" ? "asistente@hotel.com" : userEmail;
 
   const loadMessages = async () => {
     try {
@@ -74,13 +80,22 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
         id: msg.id,
         approvedResponse: editingText,
         status: "pending",
+        respondedBy: signedEmail,
+        channelId,
       }),
     });
+
     if (res.ok) {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === msg.id
-            ? { ...m, response: editingText, status: "pending", edited: true }
+            ? {
+                ...m,
+                response: editingText,
+                status: "pending",
+                edited: true,
+                respondedBy: signedEmail,
+              }
             : m
         )
       );
@@ -90,25 +105,49 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
   };
 
   const handleSend = async (msg: ChannelMessage) => {
-    await fetch("/api/messages", {
+    const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: msg.id, status: "sent" }),
+      body: JSON.stringify({
+        id: msg.id,
+        status: "sent",
+        respondedBy: signedEmail,
+        channelId,
+      }),
     });
-    setMessages((prev) =>
-      prev.map((m) => (m.id === msg.id ? { ...m, status: "sent" } : m))
-    );
+
+    if (res.ok) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msg.id
+            ? { ...m, status: "sent", respondedBy: signedEmail }
+            : m
+        )
+      );
+    }
   };
 
   const handleReject = async (msg: ChannelMessage) => {
-    await fetch("/api/messages", {
+    const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: msg.id, status: "rejected" }),
+      body: JSON.stringify({
+        id: msg.id,
+        status: "rejected",
+        respondedBy: signedEmail,
+        channelId,
+      }),
     });
-    setMessages((prev) =>
-      prev.map((m) => (m.id === msg.id ? { ...m, status: "rejected" } : m))
-    );
+
+    if (res.ok) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msg.id
+            ? { ...m, status: "rejected", respondedBy: signedEmail }
+            : m
+        )
+      );
+    }
   };
 
   const pageSize = 2;
@@ -118,7 +157,6 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
 
   return (
     <div>
-      {/* Botón para recargar */}
       <div className="flex justify-end mb-2">
         <button
           className="text-xs flex items-center gap-1 text-blue-500 hover:underline"
@@ -134,7 +172,9 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
 
       {currentMessages.map((msg) => {
         const isEditing = msg.id === editingMessageId;
-        const origin = msg.edited ? "✍️ Editado por recepción" : "🤖 Sugerencia del asistente";
+        const origin = msg.edited
+          ? "✍️ Editado por recepción"
+          : "🤖 Sugerencia del asistente";
         const status =
           msg.status === "sent"
             ? "✅ Enviado"
@@ -142,12 +182,18 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
             ? "❌ Rechazado"
             : "🕓 Pendiente";
         const formattedTime = new Date(msg.timestamp).toLocaleString("es-ES");
+        console.log("MENSAJES EN PANTALLA (página " + currentPage + "):", currentMessages.map(m => m.content));
 
         return (
-          <div key={msg.id} className="border border-border p-4 mb-4 rounded-md bg-background text-foreground">
+          <div
+            key={msg.id}
+            className="border border-border p-4 mb-4 rounded-md bg-background text-foreground"
+          >
             <div className="font-semibold mb-1">
               {msg.sender} —{" "}
-              <span className="text-muted-foreground text-xs font-normal">{formattedTime}</span>
+              <span className="text-muted-foreground text-xs font-normal">
+                {formattedTime}
+              </span>
             </div>
             <div className="mb-2">{msg.content}</div>
 
@@ -161,7 +207,11 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
               }`}
             />
 
-            <div className="text-xs text-muted-foreground mt-2 mb-1 flex justify-between">
+            <div className="text-xs text-muted-foreground mt-2">
+              Respondido por: {msg.respondedBy ?? "—"}
+            </div>
+
+            <div className="text-xs text-muted-foreground mt-1 mb-1 flex justify-between">
               <span>{origin}</span>
               <span>{status}</span>
             </div>
@@ -169,22 +219,37 @@ const ChannelMessages: React.FC<Props> = ({ channelId }) => {
             <div className="flex gap-2 text-xs">
               {isEditing ? (
                 <>
-                  <button className="text-green-600 hover:underline" onClick={() => handleSaveEditing(msg)}>
+                  <button
+                    className="text-green-600 hover:underline"
+                    onClick={() => handleSaveEditing(msg)}
+                  >
                     ✅ Guardar
                   </button>
-                  <button className="text-red-500 hover:underline" onClick={handleCancelEditing}>
+                  <button
+                    className="text-red-500 hover:underline"
+                    onClick={handleCancelEditing}
+                  >
                     ❌ Cancelar
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="text-blue-500 hover:underline" onClick={() => handleStartEditing(msg)}>
+                  <button
+                    className="text-blue-500 hover:underline"
+                    onClick={() => handleStartEditing(msg)}
+                  >
                     ✏️ Editar
                   </button>
-                  <button className="text-green-600 hover:underline" onClick={() => handleSend(msg)}>
+                  <button
+                    className="text-green-600 hover:underline"
+                    onClick={() => handleSend(msg)}
+                  >
                     {msg.status === "sent" ? "🔁 Reenviar" : "✅ Enviar"}
                   </button>
-                  <button className="text-red-500 hover:underline" onClick={() => handleReject(msg)}>
+                  <button
+                    className="text-red-500 hover:underline"
+                    onClick={() => handleReject(msg)}
+                  >
                     ❌ Rechazar
                   </button>
                 </>

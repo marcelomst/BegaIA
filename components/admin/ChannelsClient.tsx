@@ -10,10 +10,11 @@ import {
 import { DarkCard } from "@/components/ui/DarkCard";
 import Link from "next/link";
 import ChannelMessages from "@/components/admin/ChannelMessages";
+import { getCurrentUserEmail } from "@/lib/auth/getCurrentUserEmail";
 
 type ChannelConfig = {
   enabled: boolean;
-  mode: "auto" | "manual";
+  mode: "auto" | "supervised";
 };
 
 type Props = {
@@ -24,6 +25,9 @@ const expectedChannels = ["web", "email", "whatsapp", "channelManager"];
 
 export default function ChannelsClient({ initialConfig }: Props) {
   const config = initialConfig;
+  const userEmail = getCurrentUserEmail();
+
+  const allChannels = Array.from(new Set([...expectedChannels, ...Object.keys(config)]));
 
   const getStatusIcon = (status?: "active" | "inactive" | "missing") => {
     const base = "w-5 h-5";
@@ -34,9 +38,10 @@ export default function ChannelsClient({ initialConfig }: Props) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {expectedChannels.map((key) => {
+      {allChannels.map((key) => {
         const channelConfig = config[key];
         const isMissing = !channelConfig;
+        const isDynamic = !expectedChannels.includes(key);
 
         return (
           <DarkCard
@@ -51,6 +56,7 @@ export default function ChannelsClient({ initialConfig }: Props) {
                     : "inactive"
                 )}
                 {key}
+                {isDynamic && <span className="ml-1 text-yellow-400 text-xs">✨</span>}
               </span>
             }
             description={
@@ -84,7 +90,13 @@ export default function ChannelsClient({ initialConfig }: Props) {
                   </Link>
                 </div>
 
-                {key === "web" && <ChannelMessages channelId="web" />}
+                {["web", "email", "whatsapp", "channelManager"].includes(key) && (
+                  <ChannelMessages
+                    channelId={key}
+                    userEmail={userEmail}
+                    mode={channelConfig.mode}
+                  />
+                )}
               </>
             )}
           </DarkCard>

@@ -14,7 +14,7 @@ const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
 // Tipo base de configuración por canal
-type ChannelMode = "auto" | "manual";
+type ChannelMode = "automatic" | "supervised";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;
@@ -36,10 +36,26 @@ export async function getHotelConfig(hotelId: string): Promise<HotelConfig | nul
 }
 
 export async function updateHotelConfig(hotelId: string, updates: Partial<HotelConfig>) {
-  const now = new Date().toISOString();
-  await collection.updateOne(
-    { hotelId },
-    { $set: { ...updates, lastUpdated: now } },
-    { upsert: true }
-  );
+  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
+  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  const collection = db.collection("hotel_config");
+
+  const current = await collection.findOne({ hotelId });
+
+  const merged = {
+    ...current,
+    ...updates,
+    channelConfigs: {
+      ...current?.channelConfigs,
+      ...updates.channelConfigs,
+    },
+    lastUpdated: new Date().toISOString(),
+  };
+
+  // ❌ remover _id antes de hacer $set
+  delete (merged as any)._id;
+
+  await collection.updateOne({ hotelId }, { $set: merged }, { upsert: true });
+
+  return merged;
 }

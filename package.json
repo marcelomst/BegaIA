@@ -19,7 +19,7 @@
     "init:config": "tsx scripts/init-config.ts"
   },
   "dependencies": {
-    "@datastax/astra-db-ts": "^1.5.0",
+    "@datastax/astra-db-ts": "github:datastax/astra-db-ts",
     "@langchain/community": "^0.3.34",
     "@langchain/core": "^0.3.42",
     "@langchain/langgraph": "^0.2.55",
@@ -76,6 +76,7 @@
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-c8": "^0.33.0",
+    "@vitest/coverage-v8": "3.1.1",
     "autoprefixer": "^10.4.21",
     "cross-env": "^7.0.3",
     "eslint": "^9.22.0",
@@ -91,5 +92,10 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.1.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@datastax/astra-db-ts": "2.0.1"
+    }
   }
 }

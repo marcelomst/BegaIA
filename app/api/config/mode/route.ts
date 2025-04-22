@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Canal no configurado" }, { status: 404 });
   }
 
-  const newMode = current.mode === "auto" ? "manual" : "auto";
+  const newMode = current.mode === "auto" ? "supervised" : "auto";
 
   await updateHotelConfig(hotelId, {
     channelConfigs: {

@@ -1,0 +1,35 @@
+// ✅ Ejemplo de uso en tu script:
+// Reemplazás:
+// const rawFallbackResults = await fallbackCursor.toArray() as WithSim<FoundDoc<ChunkResult>>[];
+// const fallbackResults: ChunkResult[] = rawFallbackResults.map(r => ({
+//   ...r.document.document,
+//   $similarity: r.similarity,
+// }));
+type FoundDoc<T> = {
+  document: T;
+};
+
+type WithSim<T> = {
+  document: T;
+  similarity: number;
+};
+
+/**
+ * Convierte resultados anidados de AstraDB en una lista plana de resultados con $similarity.
+ */
+export function normalizeAstraResults<T extends object>(
+  raw: WithSim<FoundDoc<T>>[]
+): (T & { $similarity: number })[] {
+  return raw.map((r) => ({
+    ...r.document.document, // Flatten
+    $similarity: r.similarity,
+  }));
+}
+/**
+ * Convierte resultados anidados de AstraDB en una lista plana de resultados sin $similarity.
+ */
+export function normalizeAstraResultsWithoutSim<T extends object>(
+  raw: FoundDoc<T>[]
+): T[] {
+  return raw.map((r) => r.document); // Flatten without similarity
+}

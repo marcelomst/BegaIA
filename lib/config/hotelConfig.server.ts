@@ -9,7 +9,7 @@ const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
-export type ChannelMode = "auto" | "manual";
+export type ChannelMode = "auto" | "supervised";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;

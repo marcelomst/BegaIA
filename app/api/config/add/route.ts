@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     ...config?.channelConfigs,
     [channel]: {
       enabled: false,
-      mode: "manual" as ChannelMode,
+      mode: "supervised" as ChannelMode,
     },
   };
 

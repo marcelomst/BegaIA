@@ -1,49 +1,43 @@
 // /app/api/messages/route.ts
 
 import { NextResponse } from "next/server";
-import { webMemory } from "@/lib/services/webMemory";
+import {
+  getMessagesFromChannel,
+  updateMessageInChannel,
+} from "@/lib/services/messages";
+import { channelHandlers } from "@/lib/services/channelHandlers";
+import type { Channel } from "@/types/channel";
+import { channelMemory } from "@/lib/services/channelMemory";
+
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const channelId = url.searchParams.get("channelId");
 
-  if (!channelId) {
-    return NextResponse.json({ error: "Falta channelId" }, { status: 400 });
+  if (!channelId || !(channelId in channelHandlers)) {
+    return NextResponse.json({ error: "Canal no soportado o inválido" }, { status: 400 });
   }
 
-  switch (channelId) {
-    case "web":
-      console.log("📥 GET /api/messages → Canal web");
-      return NextResponse.json({ messages: webMemory.getMessages() });
-
-    // case "whatsapp":
-    //   return NextResponse.json({ messages: whatsappMemory.getMessages() });
-    // case "email":
-    //   return NextResponse.json({ messages: emailMemory.getMessages() });
-    // case "channelManager":
-    //   return NextResponse.json({ messages: channelManagerMemory.getMessages() });
-
-    default:
-      return NextResponse.json({ error: "Canal no soportado" }, { status: 400 });
-  }
+  const messages = await getMessagesFromChannel(channelId as Channel);
+  return NextResponse.json({ messages });
 }
 
 export async function POST(req: Request) {
   try {
-    const { id, approvedResponse, status } = await req.json();
+    const { id, approvedResponse, status, respondedBy, channelId } = await req.json();
 
-    if (!id) {
-      return NextResponse.json({ error: "Falta ID de mensaje" }, { status: 400 });
+    if (!id || !channelId || !(channelId in channelHandlers)) {
+      return NextResponse.json({ error: "Datos inválidos o canal no soportado" }, { status: 400 });
     }
 
-    const updated = webMemory.updateMessage(id, {
+    const updateResult = await updateMessageInChannel(channelId as Channel, id, {
       ...(approvedResponse && { approvedResponse }),
       ...(status && { status }),
-      ...(approvedResponse && { edited: true }), // marca como editado si hay nueva respuesta
+      ...(respondedBy && { respondedBy }),
     });
 
-    if (!updated) {
-      return NextResponse.json({ error: "Mensaje no encontrado" }, { status: 404 });
+    if (updateResult === undefined || updateResult === null) {
+      return NextResponse.json({ error: "Mensaje no encontrado o sin cambios" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });

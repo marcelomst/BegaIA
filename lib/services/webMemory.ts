@@ -1,18 +1,23 @@
 // /lib/services/webMemory.ts
-
-// /lib/services/webMemory.ts
-
+import dotenv from "dotenv";
+import type { Channel } from "@/types/channel";
+dotenv.config();
+const MAX_MESSAGES = process.env.MAX_MESSAGES || 100;
 export type WebMessage = {
   id: string;
   sender: string;
-  time: string; // hora legible tipo "10:45"
-  timestamp: string; // nueva propiedad para ordenación ISO
+  time: string;
+  timestamp: string;
   content: string;
   suggestion: string;
   approvedResponse?: string;
   status?: "pending" | "approved" | "rejected" | "sent";
   edited?: boolean;
+  respondedBy?: string; // 🆕 email del asistente o recepcionista
+  channel: Channel;
 };
+
+
 
 
 // ⛑️ Aseguramos una única instancia viva durante dev (para mantener memoria compartida)
@@ -33,6 +38,9 @@ export const webMemory = {
 
   addMessage: (msg: WebMessage) => {
     memory.messages.push(msg);
+    if (memory.messages.length > MAX_MESSAGES) {
+      memory.messages = memory.messages.slice(-MAX_MESSAGES);
+    }
   },
 
   updateMessage: (id: string, updates: Partial<WebMessage>): boolean => {

@@ -14,7 +14,7 @@ import { validateClassification } from "./validateClassification";
 import fs from "fs";
 import { cosineSimilarity } from "../utils/similarity";
 import type { ChunkResult, InsertableChunk } from "../../types/chunk.ts"; // o el path relativo según tu setup
-import type { WithSim, FoundDoc } from "@datastax/astra-db-ts";
+
  
 import dotenv from "dotenv";
 dotenv.config();
@@ -241,44 +241,22 @@ export async function searchFromAstra(
       includeSimilarity: true,
     });
   
-    type WithSim<T> = {
-      document: T;
-      similarity: number;
-    };
-    
-    type FoundDoc<T> = {
-      document: T;
-    };
-
-
     type ChunkResult = {
       _id: string;
       text: string;
+      $similarity: number;
       $vector: number[];
-      $similarity?: number; // opcional para evitar que TypeScript se queje
       [key: string]: any;
     };
-    
-    const rawFallbackResults = await fallbackCursor.toArray() as unknown as WithSim<FoundDoc<ChunkResult>>[];
-
-    
-    const fallbackResults: ChunkResult[] = rawFallbackResults
-    .filter(r => r?.document?.document) // solo aquellos bien formateados
-    .map(r => ({
-      ...r.document.document,
-      $similarity: r.similarity,
-    }));
   
-    
-    
+    const fallbackResults = (await fallbackCursor.toArray()) as ChunkResult[];
+  
     debugLog("🔁 FallbackResults por category:", fallbackResults);
-    
     for (const r of fallbackResults) {
       if (!Array.isArray(r.$vector)) {
         console.warn("⚠️ Chunk con vector inválido:", r);
       }
     }
-    
     
     const SIMILARITY_THRESHOLD = 0.95;
   

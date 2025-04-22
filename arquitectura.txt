@@ -984,7 +984,7 @@ const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
 // Tipo base de configuración por canal
-type ChannelMode = "auto" | "manual";
+type ChannelMode = "auto" | "supervised";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;
@@ -1035,7 +1035,7 @@ export async function initHotelConfig(hotelId: string) {
     channelConfigs: {
       email: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         imap: {
           host: "imap.gmail.com",
           port: 993,
@@ -1050,12 +1050,12 @@ export async function initHotelConfig(hotelId: string) {
       },
       whatsapp: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         botNumber: "+34 123 456 789",
       },
       channelManager: {
         enabled: true,
-        mode: "manual",
+        mode: "supervised",
         pollingInterval: 15000,
       },
     },
@@ -1082,7 +1082,7 @@ const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
-export type ChannelMode = "auto" | "manual";
+export type ChannelMode = "auto" | "supervised";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;
@@ -2479,7 +2479,7 @@ export async function POST(req: Request) {
     ...config?.channelConfigs,
     [channel]: {
       enabled: false,
-      mode: "manual" as ChannelMode,
+      mode: "supervised" as ChannelMode,
     },
   };
 
@@ -2514,7 +2514,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Canal no configurado" }, { status: 404 });
   }
 
-  const newMode = current.mode === "auto" ? "manual" : "auto";
+  const newMode = current.mode === "auto" ? "supervised" : "auto";
 
   await updateHotelConfig(hotelId, {
     channelConfigs: {
