@@ -6,7 +6,7 @@ import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { debugLog } from "@/lib/utils/debugLog";
 import { channelMemory } from "@/lib/services/channelMemory";
 import { v4 as uuidv4 } from "uuid";
-import type { Channel, ChannelMode} from "@/types/channel";
+import type { Channel, ChannelStatus} from "@/types/channel";
 
 import { getHotelConfig } from "@/lib/config/hotelConfig"; // 👈 importá esto
 
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
     
     // ✅ Obtenemos la config real del hotel
     const config = await getHotelConfig(hotelId);
-    const mode: ChannelMode = config?.channelConfigs[channel]?.mode || "automatic"; // fallback a "automatic"
-
+    const mode: string = config?.channelConfigs[channel]?.mode || "automatic"; // fallback a "automatic"
+    
     const response = await agentGraph.invoke({
       messages: [new HumanMessage(query)],
       hotelId,
@@ -40,11 +40,15 @@ export async function POST(req: Request) {
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       timestamp: new Date().toISOString(),
       content: query,
+      hotelId: "hotel123",
+      channel
     };
-
+    let status:ChannelStatus = "pending"
     if (mode === "automatic" ) {
+      status = "sent";
       channelMemory.addMessage({
         ...msg,
+        suggestion: String(responseText),
         approvedResponse: String(responseText),
         status: "sent",
         respondedBy: "assistant",
@@ -54,13 +58,16 @@ export async function POST(req: Request) {
         ...msg,
         suggestion: String(responseText),
         status: "pending",
-        channel,
       });
     }
 
     debugLog("📌 Respuesta enviada:", responseText);
 
-    return NextResponse.json({ response: responseText });
+    return NextResponse.json({
+      response: responseText,
+      status,
+    });
+    
   } catch (error) {
     console.error("⛔ Error en la API /api/chat:", error);
     return NextResponse.json(

@@ -8,6 +8,8 @@ export default function ChatPage() {
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"sent" | "pending" | null>(null);
+
 
   const sendQuery = async () => {
     if (!query.trim()) return;
@@ -32,6 +34,7 @@ export default function ChatPage() {
           : JSON.stringify(data.response, null, 2);
 
       setResponse(responseText);
+      setStatus(data.status ?? null);
     } catch (error) {
       console.error("Error en la consulta:", error);
       setResponse("Error al obtener respuesta.");
@@ -67,6 +70,7 @@ export default function ChatPage() {
           <h2 className="text-lg font-semibold">🤖 Respuesta:</h2>
           <div className="mt-2 text-muted-foreground">
             <ReactMarkdown
+              
               components={{
                 a: ({ ...props }) => (
                   <a
@@ -76,11 +80,19 @@ export default function ChatPage() {
                 ),
               }}
             >
-              {response}
+              {status === "sent"
+                ? response
+                : "🕓Tu consulta fue enviada. Un recepcionista está revisando tu solicitud..."}
             </ReactMarkdown>
           </div>
         </div>
       )}
+
+
+
+      <p className="mt-2 text-sm text-yellow-600">
+         {status}
+      </p>
     </div>
   );
 }

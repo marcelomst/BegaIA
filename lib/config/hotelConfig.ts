@@ -1,5 +1,7 @@
 // /lib/config/hotelConfig.ts
 import { DataAPIClient } from "@datastax/astra-db-ts";
+import type { ChannelMode } from "@/types/channel"; // ✅
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -13,8 +15,6 @@ const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
 
-// Tipo base de configuración por canal
-type ChannelMode = "automatic" | "supervised";
 
 export type HotelChannelConfig = {
   mode: ChannelMode;

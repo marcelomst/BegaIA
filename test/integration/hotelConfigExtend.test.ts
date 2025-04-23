@@ -12,7 +12,7 @@ describe("🧩 Hotel Config Extend (Astra DB)", () => {
   it("agrega un nuevo canal (email) y valida todos los canales", async () => {
     await updateHotelConfig(hotelId, {
       channelConfigs: {
-        email: { enabled: true, mode: "auto" }, // ✅ aseguramos que sea "auto"
+        email: { enabled: true, mode: "automatic" }, // ✅ aseguramos que sea "auto"
       },
     });
 

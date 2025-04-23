@@ -12,7 +12,7 @@ describe("🧩 Hotel Config Dynamic Channel (Astra DB)", () => {
   it("agrega un canal dinámico (tiktok) y lo recupera correctamente", async () => {
     await updateHotelConfig(hotelId, {
       channelConfigs: {
-        tiktok: { enabled: true, mode: "auto" }, // ✅ creación asegurada
+        tiktok: { enabled: true, mode: "automatic" }, // ✅ creación asegurada
       },
     });
 
