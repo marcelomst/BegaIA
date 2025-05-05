@@ -4,7 +4,8 @@
       "next",
       "node",
       "react",
-      "react-dom"
+      "react-dom",
+      "vitest/globals"
     ],
     "target": "ES2022",
     "lib": [
@@ -27,7 +28,6 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
-    
     "plugins": [
       {
         "name": "next"
@@ -54,8 +54,8 @@
     ".next/types/**/*.ts",
     "postcss.config.mjs",
     "lib", 
-    "types" ],
-  "exclude": [
-    "node_modules"
-  ]
+    "types",
+    "middleware.ts" ],
+  "exclude": ["dist"],
+
 }

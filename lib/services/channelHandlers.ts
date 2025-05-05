@@ -1,16 +1,16 @@
 // /root/begasist/lib/services/channelHandlers.ts
 
-import { Message } from "@/types/message";
+import { ChannelMessage } from "@/types/channel";
 
 // 🔧 Define la interfaz que deben implementar todos los handlers
 export interface ChannelHandler {
-  process: (msg: Message) => Promise<void>;
+  process: (msg: ChannelMessage) => Promise<void>;
 }
 
 // 🧩 Handler para canal Web
 const webHandler: ChannelHandler = {
   async process(msg) {
-    console.log("🌐 [webHandler] Procesando mensaje:", msg.id);
+    console.log("🌐 [webHandler] Procesando mensaje:", msg.messageId);
     // Aquí podrías guardar el mensaje, actualizar estado, etc.
     // Ejemplo:
     // await saveMessageToAstra(msg);
@@ -20,7 +20,7 @@ const webHandler: ChannelHandler = {
 // 📩 Handler para canal Email
 const emailHandler: ChannelHandler = {
   async process(msg) {
-    console.log("📧 [emailHandler] Procesando mensaje:", msg.id);
+    console.log("📧 [emailHandler] Procesando mensaje:", msg.messageId);
     // Lógica propia del canal email
   },
 };
@@ -28,7 +28,7 @@ const emailHandler: ChannelHandler = {
 // 💬 Handler para canal WhatsApp
 const whatsappHandler: ChannelHandler = {
   async process(msg) {
-    console.log("📱 [whatsappHandler] Procesando mensaje:", msg.id);
+    console.log("📱 [whatsappHandler] Procesando mensaje:", msg.messageId);
     // Lógica específica para WhatsApp
   },
 };
@@ -36,7 +36,7 @@ const whatsappHandler: ChannelHandler = {
 // 🛰️ Handler para Channel Manager
 const channelManagerHandler: ChannelHandler = {
   async process(msg) {
-    console.log("📡 [channelManagerHandler] Procesando mensaje:", msg.id);
+    console.log("📡 [channelManagerHandler] Procesando mensaje:", msg.messageId);
     // Procesamiento de reservas u otros eventos desde el channel manager
   },
 };

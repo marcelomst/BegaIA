@@ -13,6 +13,7 @@ import {
   FileText,
   Settings,
 } from "lucide-react";
+import UserStatus from "@/components/UsertStatus";
 
 export default function AdminDashboard() {
   return (
@@ -107,6 +108,7 @@ export default function AdminDashboard() {
           </Link>
         </DarkCard>
       </div>
+      <UserStatus />
     </div>
   );
 }

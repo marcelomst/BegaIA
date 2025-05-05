@@ -39,6 +39,10 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => y,
     default: () => "hotel123",
   }),
+  conversationId: Annotation<string | null>({        // 🔥 agregar esto
+    reducer: (x, y) => y,
+    default: () => null,
+  }),
 });
 
 // ----------------------------
@@ -90,7 +94,8 @@ export async function classifyNode(state: typeof GraphState.State) {
     };
   }
 
-  const detectedLang = detectLanguage(question);
+  const detectedLang = await detectLanguage(question, state.hotelId);
+
 
 
   let classification;

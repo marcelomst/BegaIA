@@ -4,10 +4,9 @@ import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ChannelMessages from "@/components/admin/ChannelMessages";
-import type { Message } from "@/types/message";
-import type { Channel } from "@/types/channel";
+import type { ChannelMessage, Channel } from "@/types/channel";
 
-function mockFetchResponse(messages: Message[]) {
+function mockFetchResponse(messages: ChannelMessage[]) {
   vi.stubGlobal("fetch", vi.fn(async () => ({
     ok: true,
     json: async () => ({ messages }),
@@ -26,7 +25,7 @@ vi.mock("@/lib/services/webMemory", () => ({
   webMemory: {
     getMessages: () => [
       {
-        id: "msg-1",
+        messageId: "msg-1",
         ...baseMessage,
         timestamp: new Date("2025-04-17T18:39:58.000Z").toISOString(),
         content: "¿Hasta qué hora es el check-in?",
@@ -42,12 +41,13 @@ beforeEach(() => {
   vi.resetAllMocks();
   mockFetchResponse([
     {
-      id: "msg-1",
+      messageId: "msg-1",
       ...baseMessage,
       timestamp: new Date("2025-04-17T18:39:58.000Z").toISOString(),
       content: "¿Hasta qué hora es el check-in?",
       suggestion: "El check-in es hasta la 1 pm.",
       status: "pending",
+      time: "",
     },
   ]);
 });
@@ -97,12 +97,13 @@ describe("<ChannelMessages />", () => {
   it("muestra '🔁 Reenviar' si el mensaje ya fue enviado", async () => {
     mockFetchResponse([
       {
-        id: "msg-2",
+        messageId: "msg-2",
         ...baseMessage,
         timestamp: new Date().toISOString(),
         content: "¿Hay estacionamiento?",
         suggestion: "Sí, tenemos estacionamiento gratuito.",
         status: "sent",
+        time: ""
       },
     ]);
     render(<ChannelMessages channelId={channelId} userEmail={userEmail} mode="supervised" />);
@@ -110,13 +111,14 @@ describe("<ChannelMessages />", () => {
   });
 
   it("muestra solo 2 mensajes por página y permite paginar", async () => {
-    const mockMessages: Message[] = Array.from({ length: 4 }).map((_, i) => ({
-      id: `msg-${i + 1}`,
+    const mockMessages: ChannelMessage[] = Array.from({ length: 4 }).map((_, i) => ({
+      messageId: `msg-${i + 1}`,
       ...baseMessage,
       timestamp: new Date(`2025-04-17T1${i}:00:00.000Z`).toISOString(),
       content: `Mensaje número ${i + 1}`,
       suggestion: `Respuesta ${i + 1}`,
       status: "pending",
+      time: "",
     }));
     mockMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     mockFetchResponse(mockMessages);
@@ -141,12 +143,13 @@ describe("<ChannelMessages />", () => {
   it("permite reenviar un mensaje con '🔁 Reenviar' y muestra '✅ Enviado'", async () => {
     mockFetchResponse([
       {
-        id: "msg-2",
+        messageId: "msg-2",
         ...baseMessage,
         timestamp: new Date().toISOString(),
         content: "¿Hay estacionamiento?",
         suggestion: "Sí, tenemos estacionamiento gratuito.",
         status: "sent",
+        time: "",
       },
     ]);
     render(<ChannelMessages channelId={channelId} userEmail={userEmail} mode="supervised" />);

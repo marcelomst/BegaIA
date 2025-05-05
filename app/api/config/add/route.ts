@@ -1,15 +1,14 @@
 // /app/api/config/add/route.ts
 import { NextResponse } from "next/server";
-import { getHotelConfig, updateHotelConfig, type ChannelMode } from "@/lib/config/hotelConfig.server";
-
+import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+import { ChannelMode } from "@/types/channel";
+import { parseChannel } from "@/lib/utils/parseChannel";
 export async function POST(req: Request) {
   const url = new URL(req.url);
-  const channel = url.searchParams.get("channel");
+  const rawChannel = url.searchParams.get("channel");
+  const channel = parseChannel(rawChannel);
 
-  const allowedChannels = ["web", "email", "whatsapp", "channelManager"];
-
-  // 🚫 Verificamos si es un canal permitido
-  if (!channel || !allowedChannels.includes(channel)) {
+  if (!channel) {
     return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
   }
 

@@ -6,38 +6,63 @@ import {
   updateMessageInChannel,
 } from "@/lib/services/messages";
 import { channelHandlers } from "@/lib/services/channelHandlers";
-import type { Channel } from "@/types/channel";
-import { channelMemory } from "@/lib/services/channelMemory";
-
+import { parseChannel } from "@/lib/utils/parseChannel";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const channelId = url.searchParams.get("channelId");
-
-  if (!channelId || !(channelId in channelHandlers)) {
-    return NextResponse.json({ error: "Canal no soportado o inválido" }, { status: 400 });
+  const rawChannel = url.searchParams.get("channelId");
+  const channel = parseChannel(rawChannel);
+  
+  if (!channel) {
+    return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
   }
 
-  const messages = await getMessagesFromChannel(channelId as Channel);
+  const messages = await getMessagesFromChannel(channel);
   return NextResponse.json({ messages });
 }
 
 export async function POST(req: Request) {
   try {
-    const { id, approvedResponse, status, respondedBy, channelId } = await req.json();
+    const {
+      messageId,
+      approvedResponse,
+      status,
+      respondedBy,
+      channel: rawChannel,
+    } = await req.json();
+      
+    const channel = parseChannel(rawChannel);
 
-    if (!id || !channelId || !(channelId in channelHandlers)) {
-      return NextResponse.json({ error: "Datos inválidos o canal no soportado" }, { status: 400 });
-    }
-
-    const updateResult = await updateMessageInChannel(channelId as Channel, id, {
-      ...(approvedResponse && { approvedResponse }),
-      ...(status && { status }),
-      ...(respondedBy && { respondedBy }),
+    console.log("🧪 Update recibido:", {
+      messageId,
+      approvedResponse,
+      status,
+      respondedBy,
+      channel,
     });
 
-    if (updateResult === undefined || updateResult === null) {
-      return NextResponse.json({ error: "Mensaje no encontrado o sin cambios" }, { status: 404 });
+    if (!messageId || !channel || !(channel in channelHandlers)) {
+      return NextResponse.json(
+        { error: "Datos inválidos o canal no soportado" },
+        { status: 400 }
+      );
+    }
+
+    const updateResult = await updateMessageInChannel(
+      channel,
+      messageId,
+      {
+        ...(approvedResponse && { approvedResponse }),
+        ...(status && { status }),
+        ...(respondedBy && { respondedBy }),
+      }
+    );
+
+    if (!updateResult) {
+      return NextResponse.json(
+        { error: "Mensaje no encontrado o sin cambios" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ success: true });

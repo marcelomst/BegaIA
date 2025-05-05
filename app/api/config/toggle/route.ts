@@ -1,13 +1,15 @@
 // /app/api/config/toggle/route.ts
 import { NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+import { parseChannel } from "@/lib/utils/parseChannel";
 
 export async function POST(req: Request) {
   const url = new URL(req.url);
-  const channel = url.searchParams.get("channel");
-
+  const rawChannel = url.searchParams.get("channel");
+  const channel = parseChannel(rawChannel);
+  
   if (!channel) {
-    return NextResponse.json({ error: "Falta el parámetro 'channel'" }, { status: 400 });
+    return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
   }
 
   const hotelId = "hotel123"; // ← Simulado

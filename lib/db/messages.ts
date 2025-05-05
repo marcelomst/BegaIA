@@ -2,9 +2,8 @@
 
 import { DataAPIClient } from "@datastax/astra-db-ts";
 import dotenv from "dotenv";
-import type { Message, MessageStatus } from "@/types/message";
 import type { Channel } from "@/types/channel";
-
+import type { ChannelMessage, MessageStatus } from "@/types/channel";
 dotenv.config();
 
 const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
@@ -15,14 +14,14 @@ const MESSAGES_COLLECTION = "messages";
 const getCollection = () => {
   const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
   const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
-  return db.collection<Message>(MESSAGES_COLLECTION);
+  return db.collection<ChannelMessage>(MESSAGES_COLLECTION);
 };
 
-export async function saveMessageToAstra(message: Message) {
+export async function saveMessageToAstra(message: ChannelMessage) {
   try {
     const collection = getCollection();
     await collection.insertOne(message);
-    console.log("✅ Mensaje guardado en Astra DB:", message.id);
+    console.log("✅ Mensaje guardado en Astra DB:", message.messageId);
   } catch (err) {
     console.error("❌ Error guardando el mensaje en Astra DB:", err);
     throw err;
@@ -43,22 +42,22 @@ export async function getMessagesFromAstra(hotelId: string, channel: Channel, li
   }
 }
 
-export async function updateMessageInAstra(id: string, changes: Partial<Message>) {
+export async function updateMessageInAstra(messageId: string, changes: Partial<ChannelMessage>) {
   try {
     const collection = getCollection();
-    await collection.updateOne({ id }, { $set: changes });
-    console.log("🔁 Mensaje actualizado en Astra DB:", id);
+    await collection.updateOne({ messageId }, { $set: changes });
+    console.log("🔁 Mensaje actualizado en Astra DB:", messageId);
   } catch (err) {
     console.error("❌ Error actualizando el mensaje en Astra DB:", err);
     throw err;
   }
 }
 
-export async function deleteMessageFromAstra(id: string) {
+export async function deleteMessageFromAstra(messageId: string) {
   try {
     const collection = getCollection();
-    await collection.deleteOne({ id });
-    console.log("🗑️ Mensaje eliminado de Astra DB:", id);
+    await collection.deleteOne({ messageId });
+    console.log("🗑️ Mensaje eliminado de Astra DB:", messageId);
   } catch (err) {
     console.error("❌ Error eliminando el mensaje de Astra DB:", err);
     throw err;
@@ -93,16 +92,16 @@ export async function deleteTestMessagesFromAstra() {
     const cursor = await collection.find({});
     const allMessages = await cursor.toArray();
 
-    const idsToDelete = allMessages
-      .filter((msg) => msg.id?.startsWith("test-") || msg.id?.startsWith("msg-"))
-      .map((msg) => msg.id);
+    const messageIdsToDelete = allMessages
+      .filter((msg) => msg.messageId?.startsWith("test-") || msg.messageId?.startsWith("msg-"))
+      .map((msg) => msg.messageId);
 
-    if (idsToDelete.length === 0) {
+    if (messageIdsToDelete.length === 0) {
       console.log("ℹ️ No hay mensajes de prueba para eliminar.");
       return { deletedCount: 0 };
     }
 
-    const result = await collection.deleteMany({ id: { $in: idsToDelete } });
+    const result = await collection.deleteMany({ messageId: { $in: messageIdsToDelete } });
     console.log(`🧹 Mensajes de prueba eliminados: ${result.deletedCount}`);
     return result;
   } catch (err) {
@@ -137,6 +136,20 @@ export async function getMessagesFromAstraByHotelIdAndChannelAndSender(
     return await cursor.toArray();
   } catch (err) {
     console.error("❌ Error al obtener mensajes desde AstraDB:", err);
+    throw err;
+  }
+}
+export async function getMessagesFromAstraByConversation(
+  hotelId: string,
+  channel: Channel,
+  conversationId: string
+) {
+  try {
+    const collection = getCollection();
+    const cursor = await collection.find({ hotelId, channel, conversationId });
+    return await cursor.toArray();
+  } catch (err) {
+    console.error("❌ Error al obtener mensajes por conversación desde Astra DB:", err);
     throw err;
   }
 }

@@ -1,7 +1,6 @@
 // /lib/config/hotelConfig.ts
 import { DataAPIClient } from "@datastax/astra-db-ts";
-import type { ChannelMode } from "@/types/channel"; // ✅
-
+import type { HotelConfig } from "@/types/channel";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -14,21 +13,6 @@ console.log("DEBUG ASTRA_DB_URL", ASTRA_DB_URL); // 👈 esto debería mostrar u
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 export const collection = db.collection("hotel_config");
-
-
-export type HotelChannelConfig = {
-  mode: ChannelMode;
-  enabled: boolean;
-  [key: string]: any;
-};
-
-export type HotelConfig = {
-  hotelId: string;
-  channelConfigs: {
-    [channel: string]: HotelChannelConfig;
-  };
-  lastUpdated?: string;
-};
 
 export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
   const result = await collection.findOne({ hotelId });

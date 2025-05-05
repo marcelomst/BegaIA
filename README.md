@@ -598,3 +598,11 @@ Esto facilita:
 
 👨‍💻 Entendimiento claro para futuros desarrolladores
 
+### 📲 Flujo de conversación para WhatsApp
+
+Hemos definido un flujo seguro y escalable para manejar interacciones entre huéspedes (PAX) y el asistente hotelero a través de WhatsApp.
+
+➡️ [Ver el flujo detallado de conversación de WhatsApp](./Whatsapp-Conversation-Flow.md)
+
+### Sistema de caching en memoria para hotelPhoneMap
+➡️ [Ver informe implementacion de cache](./cache_para_hotel_phone_map.md)

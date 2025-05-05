@@ -1,7 +1,14 @@
 // /root/begasist/test/integration/hotelConfig.test.ts
 import { describe, it, expect } from "vitest";
-import { getHotelConfig, updateHotelConfig, HotelConfig } from "@/lib/config/hotelConfig";
+import { getHotelConfig, updateHotelConfig} from "@/lib/config/hotelConfig.server.ts";
+import { HotelConfig } from "@/types/channel"
+type Props = {}
 
+const hotelConfig.test = (props: Props) => {
+  return (
+    <div>hotelConfig.test</div>
+  )
+}"
 describe("Hotel Config (Astra DB)", () => {
   it("actualiza y recupera la configuración de canales para hotel123", async () => {
     const hotelId = "hotel123";
@@ -21,10 +28,10 @@ describe("Hotel Config (Astra DB)", () => {
 
     expect(config).not.toBeNull();
     expect(config?.hotelId).toBe(hotelId);
-    expect(config?.channelConfigs.web.enabled).toBe(true);
-    expect(config?.channelConfigs.web.mode).toBe("supervised");
-    expect(config?.channelConfigs.whatsapp.enabled).toBe(true);
-    expect(config?.channelConfigs.whatsapp.mode).toBe("supervised");
+    expect(config?.channelConfigs.web?.enabled).toBe(true);
+    expect(config?.channelConfigs.web?.mode).toBe("supervised");
+    expect(config?.channelConfigs.whatsapp?.enabled).toBe(true);
+    expect(config?.channelConfigs.whatsapp?.mode).toBe("supervised");
     expect(typeof config?.lastUpdated).toBe("string");
     
   });

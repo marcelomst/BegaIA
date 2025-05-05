@@ -11,23 +11,23 @@ import { DarkCard } from "@/components/ui/DarkCard";
 import Link from "next/link";
 import ChannelMessages from "@/components/admin/ChannelMessages";
 import { getCurrentUserEmail } from "@/lib/auth/getCurrentUserEmail";
+import { Channel, ALL_CHANNELS, ChannelMode } from "@/types/channel"; // 👈 importa los tipos correctos
 
-type ChannelConfig = {
+type SingleChannelConfig = {
   enabled: boolean;
-  mode: "auto" | "supervised";
+  mode: ChannelMode;
 };
 
+// Ahora el Props completo:
 type Props = {
-  initialConfig: Record<string, ChannelConfig>;
+  initialConfig: Partial<Record<Channel, SingleChannelConfig>>;
 };
-
-const expectedChannels = ["web", "email", "whatsapp", "channelManager"];
 
 export default function ChannelsClient({ initialConfig }: Props) {
   const config = initialConfig;
   const userEmail = getCurrentUserEmail();
 
-  const allChannels = Array.from(new Set([...expectedChannels, ...Object.keys(config)]));
+  const allChannels = Array.from(new Set([...ALL_CHANNELS, ...Object.keys(config)]));
 
   const getStatusIcon = (status?: "active" | "inactive" | "missing") => {
     const base = "w-5 h-5";
@@ -39,13 +39,14 @@ export default function ChannelsClient({ initialConfig }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {allChannels.map((key) => {
-        const channelConfig = config[key];
+        const channelKey = key as Channel; // 👈 casteo correcto
+        const channelConfig = config[channelKey];
         const isMissing = !channelConfig;
-        const isDynamic = !expectedChannels.includes(key);
+        const isDynamic = !ALL_CHANNELS.includes(channelKey);
 
         return (
           <DarkCard
-            key={key}
+            key={channelKey}
             title={
               <span className="flex items-center gap-2 capitalize">
                 {getStatusIcon(
@@ -55,18 +56,18 @@ export default function ChannelsClient({ initialConfig }: Props) {
                     ? "active"
                     : "inactive"
                 )}
-                {key}
+                {channelKey}
                 {isDynamic && <span className="ml-1 text-yellow-400 text-xs">✨</span>}
               </span>
             }
             description={
               isMissing
                 ? "⚠️ Canal no configurado"
-                : `Modo actual: ${channelConfig.mode === "auto" ? "🧠 Automático" : "🧍 Supervisado"}`
+                : `Modo actual: ${channelConfig.mode === "automatic" ? "🧠 Automático" : "🧍 Supervisado"}`
             }
           >
             {isMissing ? (
-              <form action={`/api/config/add?channel=${key}`} method="POST">
+              <form action={`/api/config/add?channelId=${channelKey}`} method="POST">
                 <button className="flex items-center gap-1 text-blue-500 hover:underline text-sm">
                   <PlusCircle className="w-4 h-4" />
                   Agregar configuración
@@ -75,12 +76,12 @@ export default function ChannelsClient({ initialConfig }: Props) {
             ) : (
               <>
                 <div className="text-sm text-muted-foreground flex flex-col gap-2 mb-4">
-                  <form action={`/api/config/mode?channel=${key}`} method="POST">
+                  <form action={`/api/config/mode?channelId=${channelKey}`} method="POST">
                     <button className="text-blue-500 hover:underline" type="submit">
-                      Cambiar a modo {channelConfig.mode === "auto" ? "🧍 Supervisado" : "🧠 Automático"}
+                      Cambiar a modo {channelConfig.mode === "automatic" ? "🧍 Supervisado" : "🧠 Automático"}
                     </button>
                   </form>
-                  <form action={`/api/config/toggle?channel=${key}`} method="POST">
+                  <form action={`/api/config/toggle?channelId=${channelKey}`} method="POST">
                     <button className="text-blue-500 hover:underline" type="submit">
                       {channelConfig.enabled ? "Desactivar canal" : "Activar canal"}
                     </button>
@@ -90,9 +91,9 @@ export default function ChannelsClient({ initialConfig }: Props) {
                   </Link>
                 </div>
 
-                {["web", "email", "whatsapp", "channelManager"].includes(key) && (
+                {ALL_CHANNELS.includes(channelKey) && (
                   <ChannelMessages
-                    channelId={key}
+                    channelId={channelKey}
                     userEmail={userEmail}
                     mode={channelConfig.mode}
                   />

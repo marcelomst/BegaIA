@@ -1,36 +1,41 @@
-// /lib/services/messages/index.ts (refactorizado con tipos y lógica desacoplada)
+import {
+  getMessagesFromAstra,
+  updateMessageInAstra,
+  getMessagesFromAstraByConversation, // 👈 agregalo
+} from "@/lib/db/messages";
 
-import { getMessagesFromAstra, updateMessageInAstra } from "@/lib/db/messages";
 import { channelMemory } from "@/lib/services/channelMemory";
-import type { Channel } from "@/types/channel";
-import type { Message } from "@/types/message";
-import type { ChannelMessage, ChannelStatus } from "@/types/channel"; // Ensure this path is correct
+import type { Channel, ChannelMessage } from "@/types/channel";
 
 const HOTEL_ID = "hotel123";
 
-// ✅ Lectura unificada por canal
-export async function getMessagesFromChannel(channel: Channel) {
+export async function getMessagesFromChannel(channel: Channel, conversationId?: string) {
   if (process.env.NODE_ENV === "development") {
-    return channelMemory.getMessages(channel);
+    const msgs = channelMemory.getMessages(channel);
+    return conversationId ? msgs.filter(m => m.conversationId === conversationId) : msgs;
   }
+  const parsedLimit = conversationId ? parseInt(conversationId, 10) : undefined;
+  return await getMessagesFromAstra(HOTEL_ID, channel, parsedLimit);
 
-  return await getMessagesFromAstra(HOTEL_ID, channel);
-}
+ }
 
-// ✅ Actualización unificada por canal
 export async function updateMessageInChannel(
   channel: Channel,
-  id: string,
-  changes: Partial<Message>
+  messageId: string,
+  changes: Partial<ChannelMessage>
 ) {
   if (process.env.NODE_ENV === "development") {
-    const mappedChanges: Partial<ChannelMessage> = {
-      ...changes,
-      status: changes.status as ChannelStatus | undefined,
-    };
-    return channelMemory.updateMessage(channel, id, mappedChanges);
+    return channelMemory.updateMessage(channel, messageId, changes);
   }
-  
 
-  return await updateMessageInAstra(id, changes);
+  return await updateMessageInAstra(messageId, changes);
 }
+export async function getMessagesByConversation(channel: Channel, conversationId: string) {
+  if (process.env.NODE_ENV === "development") {
+    const all = channelMemory.getMessages(channel);
+    return all.filter((msg) => msg.conversationId === conversationId);
+  }
+
+  return await getMessagesFromAstraByConversation(HOTEL_ID, channel, conversationId);
+}
+

@@ -1,33 +1,38 @@
-// /root/begasist/test/services/channelMemory.test.ts
+// /test/services/webMemory.test.ts
 import { describe, it, expect, beforeEach } from "vitest";
 import { channelMemory } from "@/lib/services/channelMemory";
+import type { ChannelMessage } from "@/types/channel";
 
-describe("channelMemory", () => {
-  const channel = "web";
-  const hotelId = "hotel123";
+describe("channelMemory (web)", () => {
+  const baseMessage: Omit<ChannelMessage, "messageId"> = {
+    hotelId: "hotel123",
+    channel: "web",
+    sender: "Test",
+    content: "Mensaje de prueba",
+    timestamp: new Date().toISOString(),
+    time: "10:00",
+    suggestion: "Sugerencia de prueba",
+    status: "pending",
+  };
 
   beforeEach(() => {
-    channelMemory.getMessages(channel).splice(0); // limpia el array
+    // 🔁 Reset del almacenamiento en memoria para pruebas
+    // @ts-ignore
+    globalThis.__channel_memory__ = {};
   });
 
   it("debe mantener solo los últimos 100 mensajes", () => {
     for (let i = 0; i < 110; i++) {
-      channelMemory.addMessage({
-        id: `msg-${i}`,
-        channel,
-        hotelId,
-        sender: "Test",
-        time: "10:00",
-        timestamp: new Date().toISOString(),
-        content: `Mensaje ${i}`,
-        suggestion: `Sugerencia ${i}`,
-        status: "pending",
-      });
+      const msg: ChannelMessage = {
+        ...baseMessage,
+        messageId: `msg-${i}`,
+      };
+      channelMemory.addMessage(msg);
     }
 
-    const messages = channelMemory.getMessages(channel);
+    const messages = channelMemory.getMessages("web");
     expect(messages.length).toBe(100);
-    expect(messages[0].id).toBe("msg-10");
-    expect(messages[99].id).toBe("msg-109");
+    expect(messages[0].messageId).toBe("msg-10");
+    expect(messages[99].messageId).toBe("msg-109");
   });
 });

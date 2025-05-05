@@ -2,23 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { RefreshCcw } from "lucide-react";
-
-
-interface ChannelMessage {
-  id: string;
-  sender: string;
-  timestamp: string;
-  content: string;
-  response: string;
-  status: "pending" | "sent" | "rejected";
-  edited: boolean;
-  respondedBy?: string;
-}
+import type { ChannelMessage, ChannelMode } from "@/types/channel";
+import { fetchWithAuth } from "@/lib/api/fetchWithAuth";
 
 interface Props {
   channelId: string;
   userEmail: string;
-  mode: "auto" | "supervised";
+  mode: ChannelMode;
 }
 
 const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
@@ -28,27 +18,45 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   const [editingText, setEditingText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
 
-  const signedEmail = mode === "auto" ? "asistente@hotel.com" : userEmail;
+  const signedEmail = mode === "automatic" ? "asistente@hotel.com" : userEmail;
 
   const loadMessages = async () => {
     try {
-      const res = await fetch(`/api/messages?channelId=${channelId}`);
-      if (!res.ok) throw new Error("Error al obtener mensajes");
+      console.log("🌐 [DEBUG] Llamando /api/messages para canal:", channelId);
+      const res = await fetchWithAuth(`/api/messages?channelId=${channelId}`);
+      if (!res.ok) throw new Error("❌ Error al obtener mensajes");
 
       const data = await res.json();
-      const sorted = (data.messages || [])
-        .map((msg: any) => ({
+      console.log("📦 Mensajes recibidos (raw):", data.messages);
+
+      interface ProcessedMessage extends ChannelMessage {
+        response: string;
+        edited: boolean;
+      }
+
+      const sorted: ProcessedMessage[] = (data.messages || [])
+        .filter((msg: ChannelMessage): boolean => {
+          const keep = msg.status !== "expired";
+          if (!keep) {
+        console.log("🧹 Mensaje filtrado por 'expired':", msg);
+          }
+          return keep;
+        })
+        .map((msg: ChannelMessage): ProcessedMessage => ({
           ...msg,
           response: msg.approvedResponse ?? msg.suggestion,
-          edited: msg.edited ?? false,
+          edited: Boolean(msg.approvedResponse && msg.approvedResponse !== msg.suggestion),
         }))
-        .sort((a: ChannelMessage, b: ChannelMessage) =>
+        .sort((a: ProcessedMessage, b: ProcessedMessage): number => 
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
+
+      console.log("✅ Mensajes procesados:", sorted);
       setMessages(sorted);
     } catch (err) {
-      console.error(err);
+      console.error("⛔ Error al cargar mensajes:", err);
       setError("Error al cargar los mensajes.");
     } finally {
       setLoading(false);
@@ -63,8 +71,8 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   }, [channelId]);
 
   const handleStartEditing = (msg: ChannelMessage) => {
-    setEditingMessageId(msg.id);
-    setEditingText(msg.response);
+    setEditingMessageId(msg.messageId);
+    setEditingText(msg.approvedResponse ?? msg.suggestion);
   };
 
   const handleCancelEditing = () => {
@@ -73,27 +81,26 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   };
 
   const handleSaveEditing = async (msg: ChannelMessage) => {
-    const res = await fetch("/api/messages", {
+    const res = await fetchWithAuth("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: msg.id,
+        messageId: msg.messageId,
         approvedResponse: editingText,
         status: "pending",
         respondedBy: signedEmail,
-        channelId,
+        channel: channelId,
       }),
     });
 
     if (res.ok) {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === msg.id
+          m.messageId === msg.messageId
             ? {
                 ...m,
-                response: editingText,
+                approvedResponse: editingText,
                 status: "pending",
-                edited: true,
                 respondedBy: signedEmail,
               }
             : m
@@ -105,21 +112,22 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   };
 
   const handleSend = async (msg: ChannelMessage) => {
-    const res = await fetch("/api/messages", {
+    const res = await fetchWithAuth("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: msg.id,
+        messageId: msg.messageId,
+        approvedResponse: msg.approvedResponse ?? msg.suggestion,
         status: "sent",
         respondedBy: signedEmail,
-        channelId,
+        channel: channelId,
       }),
     });
 
     if (res.ok) {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === msg.id
+          m.messageId === msg.messageId
             ? { ...m, status: "sent", respondedBy: signedEmail }
             : m
         )
@@ -128,21 +136,21 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
   };
 
   const handleReject = async (msg: ChannelMessage) => {
-    const res = await fetch("/api/messages", {
+    const res = await fetchWithAuth("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: msg.id,
+        messageId: msg.messageId,
         status: "rejected",
         respondedBy: signedEmail,
-        channelId,
+        channel: channelId,
       }),
     });
 
     if (res.ok) {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === msg.id
+          m.messageId === msg.messageId
             ? { ...m, status: "rejected", respondedBy: signedEmail }
             : m
         )
@@ -171,22 +179,21 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {currentMessages.map((msg) => {
-        const isEditing = msg.id === editingMessageId;
-        const origin = msg.edited
+        const isEditing = msg.messageId === editingMessageId;
+        const origin = msg.approvedResponse && msg.approvedResponse !== msg.suggestion
           ? "✍️ Editado por recepción"
           : "🤖 Sugerencia del asistente";
-        const status =
+        const statusLabel =
           msg.status === "sent"
             ? "✅ Enviado"
             : msg.status === "rejected"
             ? "❌ Rechazado"
             : "🕓 Pendiente";
         const formattedTime = new Date(msg.timestamp).toLocaleString("es-ES");
-        console.log("MENSAJES EN PANTALLA (página " + currentPage + "):", currentMessages.map(m => m.content));
 
         return (
           <div
-            key={msg.id}
+            key={msg.messageId}
             className="border border-border p-4 mb-4 rounded-md bg-background text-foreground"
           >
             <div className="font-semibold mb-1">
@@ -199,7 +206,7 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
 
             <textarea
               rows={4}
-              value={isEditing ? editingText : msg.response}
+              value={isEditing ? editingText : msg.approvedResponse ?? msg.suggestion}
               readOnly={!isEditing}
               onChange={(e) => isEditing && setEditingText(e.target.value)}
               className={`w-full bg-background border border-border rounded-md p-2 text-sm ${
@@ -213,7 +220,7 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
 
             <div className="text-xs text-muted-foreground mt-1 mb-1 flex justify-between">
               <span>{origin}</span>
-              <span>{status}</span>
+              <span>{statusLabel}</span>
             </div>
 
             <div className="flex gap-2 text-xs">

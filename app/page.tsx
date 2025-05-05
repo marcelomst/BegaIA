@@ -1,7 +1,7 @@
-// /app/page.tsx
+// /root/begasist/app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function ChatPage() {
@@ -9,13 +9,15 @@ export default function ChatPage() {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"sent" | "pending" | null>(null);
-
+  const [messageId, setMessageId] = useState<string | null>(null);
 
   const sendQuery = async () => {
     if (!query.trim()) return;
 
     setLoading(true);
     setResponse("");
+    setStatus(null);
+    setMessageId(null);
 
     try {
       const res = await fetch("/api/chat", {
@@ -23,7 +25,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: query,
-          channel: "web", // 👈 canal explícito
+          channel: "web",
         }),
       });
 
@@ -35,6 +37,7 @@ export default function ChatPage() {
 
       setResponse(responseText);
       setStatus(data.status ?? null);
+      setMessageId(data.messageId ?? null); // ✅ Usar messageId correctamente
     } catch (error) {
       console.error("Error en la consulta:", error);
       setResponse("Error al obtener respuesta.");
@@ -42,6 +45,25 @@ export default function ChatPage() {
       setLoading(false);
     }
   };
+
+  // 🔁 Polling si está en modo supervisado
+  useEffect(() => {
+    if (status === "pending" && messageId) {
+      const interval = setInterval(async () => {
+        const res = await fetch(`/api/messages?channelId=web`);
+        const data = await res.json();
+        const updated = data.messages?.find((m: any) => m.messageId === messageId); // ✅ Buscar por messageId
+
+        if (updated?.status === "sent") {
+          setResponse(updated.approvedResponse ?? updated.suggestion ?? "");
+          setStatus("sent");
+          clearInterval(interval);
+        }
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [status, messageId]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 transition-colors">
@@ -70,7 +92,6 @@ export default function ChatPage() {
           <h2 className="text-lg font-semibold">🤖 Respuesta:</h2>
           <div className="mt-2 text-muted-foreground">
             <ReactMarkdown
-              
               components={{
                 a: ({ ...props }) => (
                   <a
@@ -82,17 +103,13 @@ export default function ChatPage() {
             >
               {status === "sent"
                 ? response
-                : "🕓Tu consulta fue enviada. Un recepcionista está revisando tu solicitud..."}
+                : "🕓 Tu consulta fue enviada. Un recepcionista está revisando tu solicitud..."}
             </ReactMarkdown>
           </div>
         </div>
       )}
 
-
-
-      <p className="mt-2 text-sm text-yellow-600">
-         {status}
-      </p>
+      <p className="mt-2 text-sm text-yellow-600">{status}</p>
     </div>
   );
 }
