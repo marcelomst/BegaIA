@@ -1,3 +1,4 @@
+// /lib/context/UserContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { fetchWithAuth } from "@/lib/client/fetchWithAuth";
 export type CurrentUser = {
   email: string;
   hotelId: string;
+  hotelName: string; // 👈 agregamos esto
   roleLevel: number;
   userId: string;
 };

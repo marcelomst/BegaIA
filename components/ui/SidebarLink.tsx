@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 type SidebarLinkProps = {
   href: string;
-  icon: ReactNode;
   label: string;
+  icon?: ReactNode; // 👈 ahora es opcional
 };
+
 
 export function SidebarLink({ href, icon, label }: SidebarLinkProps) {
   const pathname = usePathname();
@@ -23,7 +24,8 @@ export function SidebarLink({ href, icon, label }: SidebarLinkProps) {
         isActive && "bg-gray-800 font-semibold"
       )}
     >
-      <span className="text-lg">{icon}</span>
+      {/* Si no hay icono, no se renderiza el span */}
+      {icon && <span className="text-lg">{icon}</span>}
       <span>{label}</span>
     </Link>
   );

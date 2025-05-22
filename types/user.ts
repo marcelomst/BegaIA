@@ -2,15 +2,38 @@
 
 import type { RoleLevel } from "./roles";
 
+/**
+ * Usuario persistido en hotel_config.users[]
+ */
 export interface HotelUser {
-  userId: string;         // UUID o string único
+  userId: string;
   email: string;
   name?: string;
-  position?: string;      // ej: "Recepcionista", "Gerente"
+  position?: string;
   roleLevel: RoleLevel;
   active: boolean;
-  passwordHash?: string;  // login local
+
+  // Login local
+  passwordHash?: string;
+
+  // Login federado
   federatedProvider?: "google" | "microsoft" | "okta";
-  federatedId?: string;   // ID del proveedor externo
+  federatedId?: string;
+
+  // Tokens y timestamps
   createdAt?: string;
+  verificationToken?: string;
+  resetToken?: string;
+  resetTokenExpires?: string;
+}
+
+/**
+ * Usuario activo durante la sesión (respuesta de /api/me)
+ */
+export interface CurrentUser {
+  userId: string;
+  email: string;
+  hotelId: string;
+  hotelName: string;
+  roleLevel: RoleLevel;
 }

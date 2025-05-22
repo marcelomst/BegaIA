@@ -1,0 +1,63 @@
+# ✅ Mapa seguro de rutas de usuarios
+
+## 📂 API
+
+### 🔓 Rutas públicas (excluidas en middleware)
+
+* `/api/login`                    → Login (POST)
+* `/api/users/send-recovery-email` → Enviar email de recuperación (POST)
+* `/api/users/verify-account`      → Verificar cuenta por token (POST)
+* `/api/users/validate-reset-token` → Validar token de recuperación (POST)
+* `/api/users/reset-password`      → Cambiar contraseña con token (POST)
+* `/api/test/*`                    → Rutas internas de test (opcional, solo si existen)
+
+### 🔒 Rutas privadas (requieren JWT válido)
+
+* `/api/users/create`              → Crear usuario (POST)
+* `/api/users/update`              → Actualizar usuario (POST)
+* `/api/users/delete`              → Eliminar usuario (POST)
+* `/api/users/get`                 → Obtener usuario por `userId` (POST)
+* `/api/users/list`                → Listar usuarios del hotel (POST)
+* `/api/users/toggle-active`       → Activar/desactivar usuario (POST)
+* `/api/users/change-password`     → Cambio de contraseña propia (POST)
+
+## 📂 Frontend (React Pages)
+
+### 🔓 Rutas públicas
+
+* `/auth/login`
+* `/auth/forgot-password`
+* `/auth/reset-password`
+* `/auth/verify-account`
+
+### 🔒 Rutas privadas (requieren JWT válido)
+
+* `/admin/users/manage`
+* `/admin/users/manage/new`
+* `/admin/users/manage/[userId]`
+
+---
+
+## 🔒 Recordatorio de seguridad en middleware
+
+```ts
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/verify-account",
+  "/api/login",
+  "/api/users/send-recovery-email",
+  "/api/users/verify-account",
+  "/api/users/validate-reset-token",
+  "/api/users/reset-password",
+  "/api/test"
+];
+```
+
+Todo lo demás bajo `/api/users/*` será **protegido automáticamente por JWT**.
+
+---
+
+¿Querés que te pase ahora **el mismo esquema para hoteles (`/api/hotels`) con el mismo enfoque seguro?**
+Si querés solo dime `sí hoteles seguro`.

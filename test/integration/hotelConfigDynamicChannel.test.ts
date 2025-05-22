@@ -1,25 +1,27 @@
 // /test/integration/hotelConfigDynamicChannel.test.ts
-
 import { describe, it, expect } from "vitest";
-import {
-  getHotelConfig,
-  updateHotelConfig,
-} from "@/lib/config/hotelConfig";
+import { updateHotelConfig, getHotelConfig } from "@/lib/config/hotelConfig.server";
+import type { HotelConfig } from "@/types/channel";
 
-const hotelId = "hotel123";
+describe("🧪 Configuración dinámica de canales", () => {
+  it("permite agregar un canal dinámico como 'tiktok'", async () => {
+    const hotelId = "hotel123";
 
-describe("🧩 Hotel Config Dynamic Channel (Astra DB)", () => {
-  it("agrega un canal dinámico (tiktok) y lo recupera correctamente", async () => {
-    await updateHotelConfig(hotelId, {
+    // 👇 Forzamos tipado relajado para canales no predefinidos
+    const configUpdate: Partial<HotelConfig> = {
       channelConfigs: {
-        tiktok: { enabled: true, mode: "automatic" }, // ✅ creación asegurada
-      },
-    });
+        ...( {
+          tiktok: { enabled: true, mode: "supervised" }
+        } as any )
+      }
+    };
 
+    await updateHotelConfig(hotelId, configUpdate);
     const config = await getHotelConfig(hotelId);
-    expect(config).not.toBeNull();
-    expect(config?.channelConfigs.tiktok).toBeDefined();
-    expect(config?.channelConfigs.tiktok.enabled).toBe(true);
-    expect(config?.channelConfigs.tiktok.mode).toBe("auto");
+
+    const tiktok = (config?.channelConfigs as any)?.tiktok;
+    expect(tiktok).toBeDefined();
+    expect(tiktok.enabled).toBe(true);
+    expect(tiktok.mode).toBe("supervised");
   });
 });

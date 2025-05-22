@@ -14,4 +14,7 @@ export default defineConfig({
     setupFiles: "./vitest.setup.ts",
     testTimeout: 15000,
   },
+  esbuild: {
+    jsx: "automatic", // esto equivale a jsx: "react-jsx"
+  },
 });

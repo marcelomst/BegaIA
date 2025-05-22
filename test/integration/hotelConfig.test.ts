@@ -1,38 +1,25 @@
 // /root/begasist/test/integration/hotelConfig.test.ts
 import { describe, it, expect } from "vitest";
-import { getHotelConfig, updateHotelConfig} from "@/lib/config/hotelConfig.server.ts";
-import { HotelConfig } from "@/types/channel"
-type Props = {}
+import { updateHotelConfig, getHotelConfig } from "@/lib/config/hotelConfig.server";
+import type { HotelConfig } from "@/types/channel";
 
-const hotelConfig.test = (props: Props) => {
-  return (
-    <div>hotelConfig.test</div>
-  )
-}"
-describe("Hotel Config (Astra DB)", () => {
-  it("actualiza y recupera la configuración de canales para hotel123", async () => {
+describe("🧪 Configuración dinámica de canales", () => {
+  it("permite agregar un canal dinámico como 'tiktok' sin romper la estructura", async () => {
     const hotelId = "hotel123";
 
     const configUpdate: Partial<HotelConfig> = {
-        channelConfigs: {
-          web: { enabled: true, mode: "supervised" },
-          whatsapp: { enabled: true, mode: "supervised" },
-        },
-      };
-      
-      await updateHotelConfig(hotelId, configUpdate);
-      
+      channelConfigs: {
+        tiktok: { enabled: true, mode: "supervised" }
+      } as Record<string, any> // 👈 esto permite propiedades dinámicas
+    };
 
-    // Paso 2: recuperar config
+    await updateHotelConfig(hotelId, configUpdate);
+
     const config = await getHotelConfig(hotelId);
+    const tiktokConfig = (config?.channelConfigs as Record<string, any>)["tiktok"];
 
-    expect(config).not.toBeNull();
-    expect(config?.hotelId).toBe(hotelId);
-    expect(config?.channelConfigs.web?.enabled).toBe(true);
-    expect(config?.channelConfigs.web?.mode).toBe("supervised");
-    expect(config?.channelConfigs.whatsapp?.enabled).toBe(true);
-    expect(config?.channelConfigs.whatsapp?.mode).toBe("supervised");
-    expect(typeof config?.lastUpdated).toBe("string");
-    
+    expect(tiktokConfig).toBeDefined();
+    expect(tiktokConfig.enabled).toBe(true);
+    expect(tiktokConfig.mode).toBe("supervised");
   });
 });

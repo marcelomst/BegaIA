@@ -5,7 +5,7 @@ import { debugLog } from "@/lib/utils/debugLog";
 import { channelMemory } from "@/lib/services/channelMemory";
 import { v4 as uuidv4 } from "uuid";
 import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/types/channel";
-import { getHotelConfig } from "@/lib/config/hotelConfig";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 export async function POST(req: Request) {
   try {

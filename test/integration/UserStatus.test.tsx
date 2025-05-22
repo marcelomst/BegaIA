@@ -1,7 +1,10 @@
 // /root/begasist/test/integration/UserStatus.test.tsx
-/// <reference types="vitest" />
+import React, { useState, useEffect, createContext, useContext } from "react";
+import { describe, it, expect, beforeEach } from "vitest";
+import { vi, Mock } from "vitest";
+import "@testing-library/jest-dom";
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import UserStatus from "@/components/UsertStatus.tsx";
 import { UserProvider } from "@/lib/context/UserContext";
@@ -12,7 +15,8 @@ vi.mock("@/lib/client/fetchWithAuth", () => ({
 }));
 
 import { fetchWithAuth as fetchWithAuthOriginal } from "@/lib/client/fetchWithAuth";
-const fetchWithAuth = fetchWithAuthOriginal as unknown as vi.Mock;
+const fetchWithAuth = fetchWithAuthOriginal as unknown as Mock;
+
 
 describe("<UserStatus />", () => {
   beforeEach(() => {
@@ -42,7 +46,7 @@ describe("<UserStatus />", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/admin@hotel\.com/i)).toBeInTheDocument();
-      expect(screen.getByText(/hotel123/i)).toBeInTheDocument();
+      expect(screen.getByText((t) => t.includes("hotel123"))).toBeInTheDocument();
       expect(screen.getByText(/0/)).toBeInTheDocument(); // roleLevel
     });
   });
@@ -76,12 +80,38 @@ describe("<UserStatus />", () => {
       </UserProvider>
     );
 
-    await screen.findByText("admin@hotel.com");
+    await screen.findByText((t) => t.includes("admin@hotel.com"));
+
+
     const btn = screen.getByRole("button", { name: /refrescar/i });
     fireEvent.click(btn);
 
     await waitFor(() => {
-      expect(screen.getByText("1")).toBeInTheDocument(); // nuevo roleLevel
+      expect(
+        screen.getByText((t) => t.includes("Rol") && t.includes("1"))
+      ).toBeInTheDocument();
+       // nuevo roleLevel
+    });
+  });
+  it("muestra error si el usuario no está autenticado (401)", async () => {
+    fetchWithAuth.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: "No autorizado" }),
+    } as Response);
+  
+    render(
+      <UserProvider>
+        <UserStatus />
+      </UserProvider>
+    );
+  
+    await waitFor(() => {
+      expect(
+        screen.getByText((text) => text.toLowerCase().includes("no autorizado"))
+      ).toBeInTheDocument();
+      
     });
   });
 });
+

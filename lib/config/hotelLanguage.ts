@@ -1,5 +1,5 @@
 // /lib/config/hotelLanguage.ts
-import { getHotelConfig } from "./hotelConfig";
+import { getHotelConfig } from "./hotelConfig.server";
 
 /**
  * Devuelve el idioma nativo configurado para el hotel (formato ISO 639-3, ej: "spa", "eng").

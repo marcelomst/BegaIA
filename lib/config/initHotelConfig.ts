@@ -1,5 +1,5 @@
 // /lib/config/initHotelConfig.ts
-import { collection } from "./hotelConfig";
+import { collection } from "./hotelConfig.server";
 import type { HotelConfig } from "@/types/channel";
 
 export async function initHotelConfig(hotelId: string) {

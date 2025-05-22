@@ -2,6 +2,7 @@
 import { Metadata } from "next";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ApplyThemeClass } from "@/components/utils/ApplyThemeClass";
+import { Toaster } from "sonner"; // 👈 importá el componente
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ApplyThemeClass />
           {children}
         </ThemeProvider>
+
+        {/* ✅ Toasts globales */}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

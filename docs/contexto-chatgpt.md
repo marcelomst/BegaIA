@@ -59,14 +59,35 @@ Los roles se usan para controlar acceso al panel admin:
 
 ```ts
 {
-  hotelId: "hotel123",
-  hotelName: "Hotel Demo",
-  defaultLanguage: "spa",
-  timezone: "America/Montevideo",
-  channelConfigs: { web: { enabled: true, mode: "supervised" }, ... },
-  users: [
-    { email: "admin@hotel.com", roleLevel: 0, passwordHash: "...", ... }
-  ]
+   hotelId: string;
+  hotelName: string;
+  defaultLanguage: string;
+  timezone: string;
+  channelConfigs: Partial<ChannelConfigMap>;
+  users?: HotelUser[];
+  verification?: {
+    baseUrl?: string;
+  };
+  emailSettings?: {
+    emailAddress: string;         // cuenta completa (ej: info@hotel.com)
+    password: string;             // ⚠️ considerar encriptación si se almacena
+    imapHost: string;
+    imapPort: number;
+    smtpHost: string;
+    smtpPort: number;
+    secure?: boolean;             // para SMTP
+    checkInterval?: number;       // intervalo en ms (ej. 15000)
+  };
+  
+  whatsappSettings?: {
+    number: string;
+    apiKey?: string;
+  };
+  retrievalSettings?: {
+    useAstra: boolean;
+    fallbackUrl?: string;
+  };
+  lastUpdated?: string;
 }
 ```
 
@@ -74,15 +95,18 @@ Los roles se usan para controlar acceso al panel admin:
 
 ```ts
 {
-  messageId: "uuid",
-  hotelId: "hotel123",
-  channel: "web",
-  content: "¿Tienen desayuno?",
-  status: "pending" | "sent" | "rejected",
-  suggestion: "Sí, tenemos desayuno buffet incluido.",
-  approvedResponse?: "...",
-  respondedBy?: "recepcion@hotel.com",
-  timestamp: "...",
+  messageId: string;        // ID lógico único
+  conversationId?: string;  // opcional, para agrupar hilos
+  hotelId: string;
+  channel: Channel;
+  sender: string;
+  content: string;
+  timestamp: string;        // formato ISO
+  time: string;             // hora legible
+  suggestion: string;       // sugerencia original del asistente
+  approvedResponse?: string; // respuesta aprobada por el recepcionista
+  respondedBy?: string;     // email o identificador del recepcionista
+  status: MessageStatus;    // pending, sent, rejected, expired
 }
 ```
 
@@ -94,3 +118,7 @@ Tener un sistema funcional multihotel con:
 * Control de roles
 * Canales supervisados funcionando
 * Panel administrativo operativo
+* Menu de registro de usuarios en proceso
+* Flujo de Mantenimiento de Hotel
+** Alta de Hotel
+*** Alta de Usuario Administrador

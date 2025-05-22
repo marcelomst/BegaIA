@@ -1,3 +1,4 @@
+// /lib/services/email.ts
 import { simpleParser } from "mailparser";
 import imaps from "imap-simple";
 import nodemailer from "nodemailer";

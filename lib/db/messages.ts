@@ -1,7 +1,8 @@
 // /lib/db/messages.ts (refactorizado con tipado fuerte)
 
 import { DataAPIClient } from "@datastax/astra-db-ts";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
+
 import type { Channel } from "@/types/channel";
 import type { ChannelMessage, MessageStatus } from "@/types/channel";
 dotenv.config();
@@ -11,7 +12,7 @@ const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
 const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
 const MESSAGES_COLLECTION = "messages";
 
-const getCollection = () => {
+export const getCollection = () => {
   const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
   const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
   return db.collection<ChannelMessage>(MESSAGES_COLLECTION);
@@ -42,16 +43,31 @@ export async function getMessagesFromAstra(hotelId: string, channel: Channel, li
   }
 }
 
-export async function updateMessageInAstra(messageId: string, changes: Partial<ChannelMessage>) {
+export async function updateMessageInAstra(
+  hotelId: string,
+  messageId: string,
+  changes: Partial<ChannelMessage>
+) {
   try {
     const collection = getCollection();
-    await collection.updateOne({ messageId }, { $set: changes });
+    const result = await collection.updateOne(
+      { hotelId, messageId }, // ✅ se asegura que el mensaje pertenece a ese hotel
+      { $set: changes }
+    );
+
+    if (result.matchedCount === 0) {
+      console.warn(`⚠️ No se encontró el mensaje ${messageId} para hotel ${hotelId}`);
+      return false;
+    }
+
     console.log("🔁 Mensaje actualizado en Astra DB:", messageId);
+    return true;
   } catch (err) {
     console.error("❌ Error actualizando el mensaje en Astra DB:", err);
     throw err;
   }
 }
+
 
 export async function deleteMessageFromAstra(messageId: string) {
   try {

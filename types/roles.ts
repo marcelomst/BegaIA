@@ -1,5 +1,6 @@
 // /root/begasist/types/roles.ts
-export type RoleLevel = 0 | 10 | 20; // técnico, gerencial, estándar
+export type RoleLevel = number;
+
 
 // 🛠️ Opcional: constantes legibles
 export const ROLE_TECHNICAL = 0;

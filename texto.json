@@ -1,23 +1,29 @@
 {
-    "_id": "ebee362d-aa0b-43db-ae36-2daa0b43db24",
-    "hotelId": "hotel123",
-    "channelConfigs": {
-        "web": {
-            "enabled": true,
-            "mode": "auto"
-        },
-        "whatsapp": {
-            "enabled": true,
-            "mode": "auto"
-        },
-        "channelManager": {
-            "enabled": true,
-            "mode": "auto"
-        },
-        "email": {
-            "enabled": true,
-            "mode": "supervised"
-        }
-    },
-    "lastUpdated": "2025-04-19T10:47:03.688Z"
+  "_id": "2802ca92-a3cf-46d3-82ca-92a3cfe6d38d",
+  "hotelId": "system",
+  "channelConfigs": { "web": { "enabled": true, "mode": "supervised" } },
+  "defaultLanguage": "es",
+  "emailSettings": {
+    "imapHost": "imap.gmail.com",
+    "imapPort": 993,
+    "smtpHost": "smtp.gmail.com",
+    "smtpPort": 587,
+    "emailAddress": "begamshop.ventas@gmail.com",
+    "password": "umammswkuzoakqqu",
+    "secure": false
+  },
+  "hotelName": "Sistema Técnico",
+  "lastUpdated": "2025-05-15T18:50:01.644Z",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "users": [
+    {
+      "email": "marcelomst1@gmail.com",
+      "passwordHash": "$2b$10$8/LUYohBBvGS2lqjWEuI2OxUFDdez2U.EoC33WN4iB5780WUGBsrq",
+      "roleLevel": 0,
+      "active": true,
+      "verificationToken": "1f1215a6-3b68-4693-9296-f7ecaead7024",
+      "createdAt": "2025-05-15T18:50:01.643Z",
+      "userId": "cda81e9d-b439-45a2-8b45-e411403c1757"
+    }
+  ]
 }

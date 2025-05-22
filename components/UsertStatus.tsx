@@ -2,6 +2,8 @@
 "use client";
 
 import { useCurrentUser } from "@/lib/context/UserContext";
+import React from "react";
+
 
 export default function UserStatus() {
   const { user, loading, refreshUser } = useCurrentUser();

@@ -606,3 +606,29 @@ Hemos definido un flujo seguro y escalable para manejar interacciones entre hué
 
 ### Sistema de caching en memoria para hotelPhoneMap
 ➡️ [Ver informe implementacion de cache](./cache_para_hotel_phone_map.md)
+
+## 🛡️ Regla de Seguridad: SuperAdmin solo en "system"
+
+### 🚨 Regla de Oro
+**Nunca debe existir un usuario con `roleLevel: 0` fuera del hotel `system`.**
+- El usuario “SuperAdmin Técnico” (`roleLevel: 0`) está reservado **solo** para el hotel especial `system`.
+- Todos los hoteles operativos usan roles `roleLevel >= 10` (gerente, recepcionista, etc).
+
+### 🔍 Validaciones implementadas
+- **Creación de usuario**: Bloquea si se intenta crear un usuario con `roleLevel: 0` fuera de `system`.
+- **Edición de usuario**: Bloquea si se intenta editar un usuario para que tenga `roleLevel: 0` fuera de `system`.
+- **Eliminación de usuario**: Bloquea si se intenta eliminar un usuario con `roleLevel: 0` fuera de `system` (defensa extra).
+- **Script de auditoría**: `/scripts/fix-rolelevel-zero.ts` verifica y limpia inconsistencias legacy.
+
+### 🧩 Helper centralizado
+
+```ts
+// /lib/auth/checkRoleLevel.ts
+export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number) {
+  return !(roleLevel === 0 && hotelId !== "system");
+}
+```
+
+###  📝 Nota para futuros desarrolladores
+No modifiques esta lógica sin analizar implicancias de seguridad a nivel plataforma SaaS multihotel.
+Los SuperAdmin (roleLevel: 0) solo existen en el hotel “system” para fines de administración técnica global.

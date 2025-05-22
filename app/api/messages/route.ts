@@ -7,22 +7,33 @@ import {
 } from "@/lib/services/messages";
 import { channelHandlers } from "@/lib/services/channelHandlers";
 import { parseChannel } from "@/lib/utils/parseChannel";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
 export async function GET(req: Request) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const url = new URL(req.url);
   const rawChannel = url.searchParams.get("channelId");
   const channel = parseChannel(rawChannel);
-  
+
   if (!channel) {
     return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
   }
 
-  const messages = await getMessagesFromChannel(channel);
+  const messages = await getMessagesFromChannel(user.hotelId, channel);
   return NextResponse.json({ messages });
 }
 
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const {
       messageId,
       approvedResponse,
@@ -30,16 +41,8 @@ export async function POST(req: Request) {
       respondedBy,
       channel: rawChannel,
     } = await req.json();
-      
-    const channel = parseChannel(rawChannel);
 
-    console.log("🧪 Update recibido:", {
-      messageId,
-      approvedResponse,
-      status,
-      respondedBy,
-      channel,
-    });
+    const channel = parseChannel(rawChannel);
 
     if (!messageId || !channel || !(channel in channelHandlers)) {
       return NextResponse.json(
@@ -49,6 +52,7 @@ export async function POST(req: Request) {
     }
 
     const updateResult = await updateMessageInChannel(
+      user.hotelId,
       channel,
       messageId,
       {
@@ -71,3 +75,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
+

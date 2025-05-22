@@ -44,17 +44,29 @@ export type ChannelConfigMap = {
 export type HotelConfig = {
   hotelId: string;
   hotelName: string;
+  country?: string;
+  city?: string;
+  address?: string;
+  postalCode?: string;
+  phone?: string;
   defaultLanguage: string;
   timezone: string;
   channelConfigs: Partial<ChannelConfigMap>;
   users?: HotelUser[];
+  verification?: {
+    baseUrl?: string;
+  };
   emailSettings?: {
+    emailAddress: string;         // cuenta completa (ej: info@hotel.com)
+    password: string;             // ⚠️ considerar encriptación si se almacena
     imapHost: string;
     imapPort: number;
     smtpHost: string;
     smtpPort: number;
-    emailAddress: string;
+    secure?: boolean;             // para SMTP
+    checkInterval?: number;       // intervalo en ms (ej. 15000)
   };
+  
   whatsappSettings?: {
     number: string;
     apiKey?: string;
@@ -81,4 +93,5 @@ export interface ChannelMessage {
   respondedBy?: string;     // email o identificador del recepcionista
   status: MessageStatus;    // pending, sent, rejected, expired
 }
+export type EmailSettings = HotelConfig["emailSettings"];
 

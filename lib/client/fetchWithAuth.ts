@@ -20,7 +20,7 @@ export async function fetchWithAuth(
   
     // ❌ Si la renovación también falló → redirigir al login
     if (typeof window !== "undefined") {
-      window.location.href = "/login";
+      window.location.href = "/auth/login";
     }
   
     return res; // por si es usado en lógica que espera una Response

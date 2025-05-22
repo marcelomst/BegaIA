@@ -1,3 +1,4 @@
+// /root/begasist/lib/astra/index.ts
 import { DataAPIClient } from "@datastax/astra-db-ts";
 
 const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
