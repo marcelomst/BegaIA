@@ -1,163 +1,123 @@
-# 🏨 Hotel Assistant - Conversational Flow con LangGraph + LangChain
-
-Este proyecto implementa un **asistente conversacional hotelero omnicanal**, capaz de operar en múltiples canales (web, email, WhatsApp, channelManager) utilizando **LangGraph**, **LangChain**, y una arquitectura escalable con almacenamiento en AstraDB.
-
----
-
-## 🧠 Tecnologías principales
-
-* **LangGraph**: Grafo conversacional modelado como FSM.
-* **LangChain**: Agentes, prompts curados, vectorización y herramientas.
-* **Next.js**: UI (SSR + CSR), API Routes, middleware.
-* **Astra DB (DataStax)**: Base de datos vectorial y documentos multitenant.
-* **Vitest / Playwright**: Testing unitario y de integración.
-* **Tailwind CSS**: UI moderna, soporte dark/light.
+¡Excelente el README!
+Está muy completo, claro y detalla bien el stack y el flujo de conversación.
+Voy a hacer un **análisis crítico enfocado en el aspecto RAG (Retrieval-Augmented Generation) y arquitectura bot/hotel** para que puedas tener una foto de “dónde estás” y qué faltaría o se puede reforzar.
 
 ---
 
-## 🗺️ Estructura conversacional
+## ✔️ **Lo que ya tenés implementado (respecto a RAG/Bot):**
 
-```ts
-const graph = new StateGraph(GraphState)
-  .addNode("classify", classifyNode)
-  .addNode("handle_reservation", handleReservationNode)
-  .addNode("handle_cancellation", handleReservationNode)
-  .addNode("handle_billing", handleBillingNode)
-  .addNode("handle_support", handleSupportNode)
-  .addNode("handle_retrieval_based", retrievalBasedNode)
-  .addEdge("__start__", "classify")
-  .addConditionalEdges("classify", (s) => s.category, {
-    reservation: "handle_reservation",
-    cancellation: "handle_cancellation",
-    billing: "handle_billing",
-    support: "handle_support",
-    retrieval_based: "handle_retrieval_based",
-  })
-  .addEdge("handle_reservation", "__end__")
-  .addEdge("handle_cancellation", "__end__")
-  .addEdge("handle_billing", "__end__")
-  .addEdge("handle_support", "__end__")
-  .addEdge("handle_retrieval_based", "__end__");
-```
+### 1. **Arquitectura y Grafo Conversacional**
 
----
+* Usás **LangGraph** para el flujo de estados (cada nodo es una intención del usuario).
+* **Clasificador** (nodo `classify`) basado en LLM (GPT-3.5), y la lógica de detección de idioma (franc).
+* Rutas claras según categoría: reservas, soporte, billing, retrieval, etc.
 
-## 🎯 Objetivos del sistema
+### 2. **RAG: Recuperación + Generación**
 
-* Responder automáticamente preguntas frecuentes del huésped
-* Operar en múltiples canales (web, email, WhatsApp, etc.)
-* Supervisar respuestas en modo "supervised" desde un panel admin
-* Integrarse con fuentes dinámicas (crawling, PDFs, etc.)
-* Proveer trazabilidad de mensajes y control de versiones
+* El nodo `retrievalBasedNode` hace retrieval+generación usando el vector store (`vectorStore`) y un retriever LangChain.
+* La función `retrievalBased` es plug & play, lo cual es lo ideal.
+* Carga de documentos vía `loadDocuments()`, vectorización (aunque no queda explícito si los datos por hotel son multitenant/persistentes o solo en memoria).
+
+### 3. **Integración de canales**
+
+* El mismo grafo se usa para web, email, WhatsApp y otros canales (entrypoints separados, pero lógica centralizada).
+* Mocks y canal de mensajes por channel.
+* Entrada uniforme a la API (`/api/chat/route.ts`) para consultas de usuario.
+
+### 4. **Prompts curados y clasificación**
+
+* Uso de `promptMetadata` para prompts especiales por categoría/subcategoría.
+* El clasificador puede devolver promptKey para usar un prompt curado en vez del retrieval default.
+
+### 5. **Frontend/Admin**
+
+* Interfaz Next.js para gestión de hoteles, canales, usuarios, configuración.
+* Estructura de roles bien definida (superadmin solo en “system”).
+* Carga inicial de canales/configuración mínima para cualquier hotel nuevo.
 
 ---
 
-## 🗃️ Colecciones clave en AstraDB
+## 🔎 **Puntos a reforzar o aclarar (visión RAG y multitenant)**
 
-### 1. `hotel_config`
+### 1. **Vector Store y Base de Conocimiento**
 
-Contiene la configuración por hotel (canales, zona horaria, idioma, usuarios):
+* **¿Cada hotel tiene su propia colección/vector store en AstraDB o se comparte?**
 
-```ts
-{
-  hotelId: "hotel123",
-  hotelName: "Hotel Demó",
-  timezone: "America/Montevideo",
-  defaultLanguage: "spa",
-  channelConfigs: { web, email, whatsapp, ... },
-  users: [
-    { email: "admin@hotel.com", roleLevel: 0, passwordHash: "..." }
-  ]
-}
-```
+  * Ideal: **Una colección por hotel** (más seguro, fácil de borrar/migrar, evita contaminación de datos).
+  * Alternativa: colección global con filtro por `hotelId`.
 
-### 2. `messages`
+* **¿Cómo se cargan los datos personalizados de cada hotel?**
 
-Mensajes de todos los canales, trazables por `messageId`, `conversationId`, `hotelId`.
+  * README menciona carga de documentos, pero no queda claro si:
 
-### 3. `hotel123_collection` (o colección única `begaia`)
+    * Hay un endpoint o admin para subir PDFs/URLs.
+    * El almacenamiento es realmente persistente y separado por hotel.
+    * Los documentos están versionados o sólo se pueden sobrescribir.
 
-Base vectorizada por chunks + metadata para recuperación semántica.
+* **¿Los prompts curados se heredan del “hotel system” y se pueden sobrescribir por hotel?**
 
----
+  * ¿Tenés lógica para copiar los prompts default al dar de alta un hotel?
+  * Si no, es el siguiente paso clave.
 
-## 🧩 Seguridad y autenticación
+### 2. **Configuración y setup mínimo**
 
-* Autenticación JWT + refresh token (cookie HttpOnly)
-* Middleware global `/middleware.ts` que:
+* ¿Al crear hotel se asegura que tenga todos los canales configurados al menos en modo “desactivado” o default?
+* ¿Se fuerza la existencia de al menos un usuario admin activo y correo de verificación sí o sí?
 
-  * Valida token JWT
-  * Redirige a `/login` si es inválido
-  * Protege rutas `/admin/**` según `roleLevel`
+### 3. **Flow de RAG real**
 
-Roles definidos:
+* ¿El retrieval basado en vector store está activo por canal y por hotel?
+* ¿El frontend/admin permite ver la base de conocimiento cargada para cada hotel?
 
-```ts
-export type RoleLevel = 0 | 10 | 20; // técnico, gerencial, estándar
-```
+### 4. **Seguridad de datos y multitenancy**
 
----
+* ¿La autenticación y autorización asegura que un admin de hotel A no puede ver/modificar nada del hotel B?
+* ¿Los datos en endpoints (API REST o admin) filtran todo por hotelId y/o roles?
+* ¿Los canales nuevos pueden tener lógica custom por hotel (ejemplo: branding, idioma, tono)?
 
-## 👥 Flujo multicanal con supervisión
+### 5. **Documentación interna**
 
-Cada canal opera en modo `automatic` o `supervised`, configurado por hotel.
+* Faltaría agregar una sección de **“RAG y almacenamiento vectorial por hotel”** en el README:
 
-En modo `supervised`:
-
-* El asistente sugiere una respuesta
-* El recepcionista aprueba, edita o rechaza desde `/admin/channels`
-* El mensaje se marca como `sent`, `pending` o `rejected`
+  * Explicando la estrategia adoptada.
+  * Ejemplo de cómo se cargan los datos de cada hotel.
+  * Flujo de actualización/eliminación de la base de conocimiento.
 
 ---
 
-## 🚀 Inicio del sistema
+## ✍️ **Sugerencias inmediatas para reforzar el README (y el sistema)**
 
-Terminal 1:
+1. **Aclarar el modelo de almacenamiento de documentos/vector store por hotel**
 
-```bash
-pnpm run dev     # Canal web con Next.js
-```
+   * ¿Dónde se guarda?
+   * ¿Cómo se consulta y actualiza?
+   * ¿Cómo se protegen los datos?
 
-Terminal 2:
+2. **Incluir un diagrama/scheme de flujo de RAG por canal**
 
-```bash
-pnpm run start:all  # Email, WhatsApp, channelManager
-```
+   * Entrada del usuario → grafo → retrieval → LLM → respuesta → canal de salida.
 
----
+3. **Ejemplo real de cómo un hotel sube su información**
 
-## 🛠️ Administración
+   * “El admin puede cargar un PDF vía panel o API, el sistema lo vectoriza y lo asocia a su hotel.”
+   * ¿Qué pasa si borra el hotel?
 
-* `/admin` → Panel general (modo oscuro, sidebar, Tailwind)
-* `/admin/channels` → Supervisión por canal (modo, logs, mensajes)
-* `/login` → Autenticación y persistencia de sesión
-* Refresh token → manejado automáticamente desde el cliente (`fetchWithRefresh`)
+4. **Prompt curado y fallback**
 
----
-
-## 📄 Archivos clave
-
-* `/lib/agents/index.ts`: definición de nodos y grafo
-* `/lib/classifier/index.ts`: clasificador de categoría y promptKey
-* `/lib/config/hotelConfig.server.ts`: acceso a `hotel_config`
-* `/lib/services/channelMemory.ts`: caché en desarrollo
-* `/lib/db/messages.ts`: persistencia en AstraDB
-* `/lib/auth/jwt.ts`: generación y verificación JWT
-* `/middleware.ts`: protección global de rutas admin
+   * ¿El hotel puede customizar prompts?
+   * ¿Si no los tiene, hereda del “system”?
+   * ¿Cómo se versionan?
 
 ---
 
-## ✅ Estado actual
+## 🚦 **Próximos pasos sugeridos**
 
-* ✅ Frontend Next.js funcional
-* ✅ Panel admin con autenticación JWT
-* ✅ Canales funcionales (web completo, email básico)
-* ✅ AstraDB conectado (config + mensajes)
-* ✅ Vectorización y recuperación
-* ⏳ Faltan: completar interfaces de email, WhatsApp, channelManager
+1. **Agregar o revisar endpoint de carga de documentos (por hotel, seguro y versionable).**
+2. **Automatizar copia de prompts default al crear hotel.**
+3. **Revisar y documentar la arquitectura de canales, para asegurar onboarding progresivo (web→email→WhatsApp, etc).**
+4. **Ampliar la sección de RAG en el README con detalles multitenant y de protección de datos.**
+5. **Agregar un diagrama visual (ya tenés uno, pero podríamos actualizarlo para mostrar bien RAG y canales).**
 
 ---
 
-Última actualización: 2025-05-02
-
-¿Querés que lo actualice también en el archivo `README.md` real del proyecto?
+¿Querés que haga un “borrador” de una sección README con enfoque RAG-multitenant/hotel para agregar, o preferís ajustar alguno de los puntos críticos antes?

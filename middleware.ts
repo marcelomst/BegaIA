@@ -1,6 +1,7 @@
 // /middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/auth/jwt";
+import { canAccessHotelsSection, canAccessAdminRoute } from "@/lib/auth/roles";
 
 const PUBLIC_PATHS = [
   "/auth/login",
@@ -13,6 +14,7 @@ const PUBLIC_PATHS = [
   "/api/users/verify-account",
   "/api/users/validate-reset-token",
   "/api/test",
+  "/api/chat",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -29,28 +31,20 @@ export async function middleware(req: NextRequest) {
   const payload = await verifyJWT(token);
   if (!payload) return NextResponse.redirect(new URL("/auth/login", req.url));
 
-  // 🔒 Accesos especiales
-  // Recepcionistas (>=20) no pueden entrar a nada en /admin excepto canales, cambiar contraseña y home
-  if (pathname.startsWith("/admin") && payload.roleLevel >= 20) {
-    if (
-      !pathname.startsWith("/admin/channels") &&
-      !pathname.startsWith("/auth/change-password") &&
-      !pathname.startsWith("/admin")
-    ) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
-    }
+// 🔒 Recepcionistas: sólo canales, cambio de contraseña y home
+  if (pathname.startsWith("/admin") && !canAccessAdminRoute(payload.roleLevel, pathname)) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  // Gerentes (>=10) no pueden entrar a /admin/hotels, /admin/data, /admin/prompts, /admin/logs
+  // 🔒 Restricción a /admin/hotels, /admin/data, etc.
   if (
-    pathname.startsWith("/admin/hotels") ||
-    pathname.startsWith("/admin/data") ||
-    pathname.startsWith("/admin/prompts") ||
-    pathname.startsWith("/admin/logs")
+    (pathname.startsWith("/admin/hotels") ||
+      pathname.startsWith("/admin/data") ||
+      pathname.startsWith("/admin/prompts") ||
+      pathname.startsWith("/admin/logs")) &&
+    !canAccessHotelsSection(payload.roleLevel)
   ) {
-    if (payload.roleLevel > 0) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
-    }
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   return NextResponse.next();

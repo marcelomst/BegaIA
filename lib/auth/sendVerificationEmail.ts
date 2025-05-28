@@ -16,7 +16,7 @@ export async function sendVerificationEmail({
   emailSettings: EmailSettings;
 }) {
   // 1. Construir URL de verificación (usando el helper ya existente)
-  const verificationUrl = await buildVerificationUrl("auth/verify-account", verificationToken, hotelId);
+  const verificationUrl = await buildVerificationUrl("verify-account", verificationToken, hotelId);
 
   
   if (!emailSettings) {

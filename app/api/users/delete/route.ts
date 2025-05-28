@@ -1,7 +1,7 @@
 // /app/api/users/delete/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
-import { isRoleLevelZeroAllowed } from "@/lib/auth/checkRoleLevel";
+import { isRoleLevelZeroAllowed } from "@/lib/auth/roles";
 
 export async function POST(req: NextRequest) {
   const { hotelId, userId } = await req.json();

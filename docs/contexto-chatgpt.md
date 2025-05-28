@@ -55,7 +55,7 @@ Los roles se usan para controlar acceso al panel admin:
 
 ## 📦 Colecciones clave en AstraDB
 
-### hotel\_config
+### hotel_config
 
 ```ts
 {
@@ -118,7 +118,8 @@ Tener un sistema funcional multihotel con:
 * Control de roles
 * Canales supervisados funcionando
 * Panel administrativo operativo
-* Menu de registro de usuarios en proceso
+* Flujo de Mantenimiento de Usuarios
 * Flujo de Mantenimiento de Hotel
-** Alta de Hotel
-*** Alta de Usuario Administrador
+* Carga de Documentos para la Base de Conocimiento
+** Con control de versiones en proceso de ajuste
+

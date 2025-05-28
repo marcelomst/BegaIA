@@ -11,16 +11,25 @@ import { UserProvider } from "@/lib/context/UserContext";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarGroup } from "@/components/ui/SidebarGroup";
 import { ADMIN_MENU_ITEMS } from "@/lib/constants/adminMenu";
+import {
+  canAccessHotelsSection,
+  canAccessUploadSection,
+  canAccessEmbeddingsSection,
+  canAccessPromptsSection,
+  canAccessChannelsSection,
+  canAccessLogsSection,
+  canAccessUsersSection,
+  canAccessChangePasswordSection,
+} from "@/lib/auth/roles";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-const [user, setUser] = useState<{
-  email: string;
-  hotelId: string;
-  hotelName: string; // 👈 agregá esto
-  roleLevel: number;
-  userId?: string; // opcional si lo necesitás
-} | null>(null);
-
+  const [user, setUser] = useState<{
+    email: string;
+    hotelId: string;
+    hotelName: string;
+    roleLevel: number;
+    userId?: string;
+  } | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -55,26 +64,38 @@ const [user, setUser] = useState<{
               {user.hotelName} <span className="text-[10px] text-gray-400">(ID: {user.hotelId})</span>
             </div>
             <nav className="space-y-2">
-              {ADMIN_MENU_ITEMS.filter(
-                (item) =>
-                  user.roleLevel >= item.minRole &&
-                  (item.maxRole === undefined || user.roleLevel <= item.maxRole)
-              ).map((item) => (
-                <SidebarLink 
-                  key={item.href} 
-                  href={item.href} 
-                  icon={<item.icon className="w-5 h-5" />}
-                  label={item.label} />
-              ))}
+              {canAccessHotelsSection(user.roleLevel) && (
+                <SidebarLink href="/admin/hotels" label="Hoteles" icon={<Users className="w-5 h-5" />} />
+              )}
 
-              {(user.roleLevel < 20 || user.roleLevel === 0) && (
+              {canAccessUploadSection(user.roleLevel) && (
+                <SidebarLink href="/admin/upload" label="Carga de Datos" icon={<Users className="w-5 h-5" />} />
+              )}
+
+              {canAccessEmbeddingsSection(user.roleLevel) && (
+                <SidebarLink href="/admin/embeddings" label="Embeddings" icon={<Users className="w-5 h-5" />} />
+              )}
+
+              {canAccessPromptsSection(user.roleLevel) && (
+                <SidebarLink href="/admin/prompts" label="Prompts Curados" icon={<Users className="w-5 h-5" />} />
+              )}
+
+              {canAccessChannelsSection(user.roleLevel) && (
+                <SidebarLink href="/admin/channels" label="Canales" icon={<Users className="w-5 h-5" />} />
+              )}
+
+              {canAccessLogsSection(user.roleLevel) && (
+                <SidebarLink href="/admin/logs" label="Logs y Debug" icon={<Users className="w-5 h-5" />} />
+              )}
+
+              {canAccessUsersSection(user.roleLevel) && (
                 <SidebarGroup icon={<Users className="w-5 h-5" />} label="Usuarios">
                   <SidebarLink href="/admin/users/manage" label="Administración" />
                   <SidebarLink href="/auth/change-password" icon={<KeyRound className="w-4 h-4" />} label="Cambiar contraseña" />
                 </SidebarGroup>
               )}
 
-              {user.roleLevel >= 20 && (
+              {canAccessChangePasswordSection(user.roleLevel) && (
                 <SidebarLink href="/auth/change-password" icon={<KeyRound className="w-5 h-5" />} label="Cambiar contraseña" />
               )}
             </nav>

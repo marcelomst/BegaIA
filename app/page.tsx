@@ -3,8 +3,12 @@
 
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { useSearchParams } from "next/navigation";
 
 export default function ChatPage() {
+  const searchParams = useSearchParams();
+  // 👇 Leé el hotelId del query param, o default
+  const hotelId = searchParams.get("hotelId") || "hotel123";
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -12,8 +16,9 @@ export default function ChatPage() {
   const [messageId, setMessageId] = useState<string | null>(null);
 
   const sendQuery = async () => {
+    console.log("Verificando estado de !query.trim()...", !query.trim()); // <-- nuevo
     if (!query.trim()) return;
-
+    console.log("Enviando consulta:", query); // <-- nuevo
     setLoading(true);
     setResponse("");
     setStatus(null);
@@ -26,10 +31,19 @@ export default function ChatPage() {
         body: JSON.stringify({
           query: query,
           channel: "web",
+          hotelId: hotelId,
         }),
       });
-
-      const data = await res.json();
+      let data: any = null;
+      const text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // No era JSON, probablemente HTML
+        setResponse("⚠️ Error del servidor o la ruta no existe. Consulta el backend.");
+        setLoading(false);
+        return;
+      }
       const responseText =
         typeof data.response === "string"
           ? data.response

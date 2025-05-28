@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       adminEmail,
       adminPassword,
       adminRoleLevel,
+      emailSettings, // <-- extrae emailSettings del body
     } = await req.json();
 
     // Usa la función centralizada para crear hotel y admin
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
       adminEmail,
       adminPassword,
       adminRoleLevel,
+      emailSettings, // <-- pásalo a la función
     });
 
     return NextResponse.json(result);

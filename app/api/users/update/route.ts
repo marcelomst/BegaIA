@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import type { HotelUser } from "@/types/user";
-import { isRoleLevelZeroAllowed } from "@/lib/auth/checkRoleLevel";
+import { isRoleLevelZeroAllowed } from "@/lib/auth/roles";
 
 export async function POST(req: NextRequest) {
   const { hotelId, user }: { hotelId: string; user: HotelUser } = await req.json();

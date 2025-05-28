@@ -1,3 +1,4 @@
+// app/api/chat/route.ts
 import { NextResponse } from "next/server";
 import { agentGraph } from "@/lib/agents";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
@@ -9,18 +10,17 @@ import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 export async function POST(req: Request) {
   try {
-    const { query, channel }: { query: string; channel: Channel } = await req.json();
+    const { query, channel, hotelId }: { query: string; channel: Channel; hotelId?: string } = await req.json();
 
     debugLog("🔍 Consulta recibida:", query);
 
-    const hotelId = "hotel123"; // fallback para pruebas
-
-    const config = await getHotelConfig(hotelId);
+    const realHotelId = hotelId || "hotel123";
+    const config = await getHotelConfig(realHotelId);
     const mode: ChannelMode = config?.channelConfigs[channel]?.mode || "automatic";
 
     const response = await agentGraph.invoke({
       messages: [new HumanMessage(query)],
-      hotelId,
+      hotelId: realHotelId,
     });
 
     const aiMessage = response.messages.findLast(
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       time: new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       timestamp,
       content: query,
-      hotelId,
+      hotelId: realHotelId,
       channel,
       suggestion: String(responseText),
       status,

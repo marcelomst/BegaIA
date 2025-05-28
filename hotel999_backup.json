@@ -1,0 +1,130 @@
+[
+  {
+    "_id": "9f3456ab-0d41-4f6f-b456-ab0d417f6f47",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 72,
+        "to": 107
+      }
+    },
+    "category": "amenities",
+    "promptKey": "room_info",
+    "text": "Está prohibido fumar en todas nuestras habitaciones.\n\nInformación rápida\n\nCheck-in hasta la 01pm.\nCheck-out antes de las 12pm.\nDesayuno de 07am a 10am.\n\nHOTEL DEMÒ\nNuestras habitaciones\n\nTodas las habitaciones se desinfectan diariamente según las nuevas regulaciones. Así que, sea cual sea la elección realizada, el nivel de servicios y el uso de las áreas comunes podrán satisfacer plenamente sus expectativas.\nCon todas las mejores comodidades y con cálidos suelos de madera, las habitaciones del Hotel Demó en Milán están elegantemente, simplemente y funcionalmente amuebladas.\nPerfectas para una escapada de fin de semana o para un viaje de negocios, las habitaciones también están disponibles como triples y cuádruples, lo que las hace ideales para unas vacaciones familiares o un viaje con amigos en Milán.\n\n¡GRAN OFERTA!\nHabitación individual\n\nLa habitación está equipada con 1 cama individual. Tiene un área de 11 metros cuadrados que le permite pasar su estancia cómodamente.\n\nBaño privado\nTeléfono\nSecador de pelo\nAire acondicionado\nWi-Fi gratis\nCaja fuerte\nNo fumadores\nToallas\nCalefacción\nTV LCD con canales satelitales\n1 cama individual\nRESERVAR AHORA\n¡MEJOR TARIFA!\nHabitación doble\n\nLa habitación está equipada con 2 camas individuales. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente.",
+    "uploadedAt": "2025-05-26T09:17:16.476Z",
+    "version": "v1"
+  },
+  {
+    "_id": "b856f04b-4509-4d55-96f0-4b4509ad557f",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 245,
+        "to": 273
+      }
+    },
+    "category": "support",
+    "promptKey": null,
+    "text": "Visita el sitio\n\nVia Tonale, 14 Milano (Mi)\n\nTEL.\n+39 02 67074322\nWHATSAPP\n+39 02 67074322\nEMAIL\ninfo@hoteldemo.com\n\nSOCIOS\nDemó - Arte Diseño Y Más\nGioielli Demó\nOrologi Demó\nHotel della Volta - Brescia\nContáctenos\nNombre\nApellido\nCorreo electrónico\nTeléfono\nMensaje\nHe leído la política de privacidad y reconozco que el procesamiento de datos se llevará a cabo dentro de los límites establecidos por el Reglamento (UE) 2016/679 y AUTORIZO con el único propósito de satisfacer la solicitud\nActualizar Código de Spam\n\n©2024/2025 · Hotel Demó · P.I IT06145640154 · Privacidad/Política · CIN IT015146A1XC7SOVT5 - IT015146A1UDK5CLUI · WebPlan\n\nDIVULGACIÓN: Este sitio web o herramientas de terceros utilizadas en este hacen uso de cookies necesarias para operar y útiles para los fines descritos en la política de cookies. Si desea obtener más información o excluirse de todas o algunas cookies, consulte la política de cookies. Al cerrar este banner, desplazarse por esta página, hacer clic en cualquier enlace o continuar la navegación de cualquier otra manera, usted consiente el uso de cookies.\nAceptar No Aceptar X",
+    "uploadedAt": "2025-05-26T09:17:17.054Z",
+    "version": "v1"
+  },
+  {
+    "_id": "592dddd9-5502-46f1-addd-d95502d6f163",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 182,
+        "to": 220
+      }
+    },
+    "category": "retrieval_based",
+    "promptKey": null,
+    "text": "Haga clic aquí para llegar a nosotros\n\nCERCA DEL HOTEL DEMÓ\nNegocios y Compras\nEntretenimiento\nPuntos de interés\nDistancias desde los puntos de interés más importantes en Milán\nHOTEL DEMÒ\nCómo llegar\nEn avión\nEn coche\nEn tren\nFiera Rho Pero\nEnrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó Enrico Nicodemo Gioielli Demó Orogologi Demó\nEs en este mundo donde encuentro mi paz y apaciguo mi alma...\nENRICO NICODEMO - EN ARTE DEMÓ\nGIOIELLI DEMÓ\nProductos exclusivos y únicos\n\nLas creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.\n\nVisita el sitio\n\nOROLOGI DEMÓ\nProfesionalismo y garantía de 2 años\n\n¡No solo arte, sino también relojes! Descubre entre los muchos modelos un reloj Demó exclusivo del que nunca te separarás. Explora nuestra colección de relojes para hombres y mujeres, con modelos en acero inoxidable, mecánicos y más.\n\nVisita el sitio\n\nDEMÓ\nDesde 1988 hasta hoy\n\nArtista contemporáneo italiano, pintor, escultor, estilista y joyero de fama internacional. Obras que se materializan en moda, joyería, relojes y muebles, convirtiéndose en verdaderos objetos de colección únicos.\n\nVisita el sitio\n\nGIOIELLI DEMÓ\nProductos exclusivos y únicos",
+    "uploadedAt": "2025-05-26T09:17:17.270Z",
+    "version": "v1"
+  },
+  {
+    "_id": "33f25d60-7124-453d-b25d-607124d53d39",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 1,
+        "to": 42
+      }
+    },
+    "category": "reservation",
+    "promptKey": null,
+    "text": "HOGAR\nHABITACIONES Y SERVICIOS\nGALERÍA\nUBICACIÓN\nCONTACTOS\nIT\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\nHOTEL DEMÒ\nHotel de Arte, embellecido con obras de arte\nRESERVAR AHORA\n¡RESERVA DIRECTAMENTE!\n¡DESAYUNO DELICIOSO Y LA MEJOR TARIFA GARANTIZADA!\nHOTEL DEMÒ\nCerca de la Estación Central de Milán\n\nTodas las habitaciones se desinfectan diariamente según las nuevas regulaciones.\n\nAsí que, sea cual sea la elección realizada, el nivel de servicios y el uso de las áreas comunes podrán satisfacer plenamente sus expectativas.\n\nEstá a un paso de la estación de trenes Central de Milán y cerca de todos los transportes públicos necesarios para visitar Milán y sus alrededores.\nA solo 100 metros de la Stazione Centrale y de la terminal de autobuses para los aeropuertos de Linate, Malpensa y Orio al Serio.\nA solo 100 metros de la parada de metro Stazione Centrale.\n\nEl Hotel Demó de Milán es una instalación moderna y acogedora, embellecida con las obras de arte de su propietario, Enrico Nicodemo (también conocido como Demó), expuestas en el área de recepción.",
+    "uploadedAt": "2025-05-26T09:17:17.435Z",
+    "version": "v1"
+  },
+  {
+    "_id": "46a664b1-c525-48a5-a664-b1c52598a5ca",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 163,
+        "to": 182
+      }
+    },
+    "category": "amenities",
+    "promptKey": null,
+    "text": "El hotel cuenta con un aparcamiento privado, a solo 100 metros, donde puede dejar su coche y visitar la ciudad de manera segura. Costo de 25,00 € por día.\n\nMETRO\n\nParada de metro CENTRALE FS (línea 2 verde y línea 3 amarilla) a dos minutos del hotel. Bicicletas públicas compartidas cercanas.\n\nRESTAURANTE SCHALET\n\nA solo 100 metros, el Restaurante Schalet, que tiene un acuerdo con el hotel, ofrece un rico menú con una amplia selección de mariscos, platos de tierra y pizzas.\n\nTERMINAL DE AEROPUERTO\n\nEl Hotel Demó está ubicado a solo 100 metros de la terminal de autobuses para los aeropuertos de Linate, Malpensa y Bergamo Orio al Serio, ubicada junto a la Estación Central.\n\nA SOLO 100 M DE LA ESTACIÓN CENTRAL DE MILÁN\nUbicación estratégica en el corazón de la ciudad\n\nEl Hotel Demó está ubicado en una tranquila calle lateral, a solo 100 metros de la Stazione Centrale de Milán, de las paradas de autobús para Malpensa, Linate y Orio al Serio y de la estación de metro (amarilla MM3 y verde MM2) para el Área Expo de Rho Milán, que en solo 5 minutos te lleva a la Piazza del Duomo.\n\nHaga clic aquí para llegar a nosotros",
+    "uploadedAt": "2025-05-26T09:17:17.636Z",
+    "version": "v1"
+  },
+  {
+    "_id": "68a23e82-24a8-4ceb-a23e-8224a83ceb95",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 107,
+        "to": 161
+      }
+    },
+    "category": "amenities",
+    "promptKey": "room_info",
+    "text": "La habitación está equipada con 2 camas individuales. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente.\n\nBaño privado\nTeléfono\nTV LCD con canales satelitales\nSecador de pelo\nAire acondicionado\nWi-Fi gratis\nCaja fuerte\nNo fumadores\nToallas\nCalefacción\n2 camas individuales\nRESERVAR AHORA\n¡RECIÉN RESERVADO!\nHabitación doble\n\nLa habitación está equipada con 1 cama doble. Tiene un área de 17 metros cuadrados que le permite pasar su estancia cómodamente.\n\nBaño privado\nTeléfono\nTV LCD con canales satelitales\nSecador de pelo\nAire acondicionado\nWi-Fi gratis\nCaja fuerte\nNo fumadores\nToallas\nCalefacción\n1 cama doble\nRESERVAR AHORA\n¡PRECIO MÁS BAJO!\nHabitación triple\n\nLa habitación está equipada con 1 cama doble + 1 cama individual. Tiene un área de 23 metros cuadrados que le permite pasar su estancia cómodamente.\n\nBaño privado\nTeléfono\nTV LCD con canales satelitales\nSecador de pelo\nAire acondicionado\nWi-Fi gratis\nCaja fuerte\nNo fumadores\nToallas\nCalefacción\n1 cama doble + 1 cama individual\nRESERVAR AHORA\nRelájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente Relájese Disfrute Vacaciones Viaje Descubra Experimente\nHOTEL DEMÒ\nGalería\nMÁS FOTOS\nTodo lo que necesitas para pasar una estancia\nINOLVIDABLE\nESTACIONAMIENTO",
+    "uploadedAt": "2025-05-26T09:17:17.811Z",
+    "version": "v1"
+  },
+  {
+    "_id": "41fbafca-47ef-4335-bbaf-ca47ef4335ce",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 42,
+        "to": 81
+      }
+    },
+    "category": "amenities",
+    "promptKey": null,
+    "text": "El Hotel Demó de Milán es una instalación moderna y acogedora, embellecida con las obras de arte de su propietario, Enrico Nicodemo (también conocido como Demó), expuestas en el área de recepción.\n\nDurante su estancia en Milán, el personal del hotel estará encantado de proporcionar información y excelentes consejos sobre cómo moverse por la ciudad y cómo pasar su tiempo libre. También reservarán entradas para cualquier evento cultural, deportivo o musical, por ejemplo, en el Estadio San Siro.\n\nRecepción 24/24h\n\nEl establecimiento está abierto las 24 horas del día con un personal multilingüe.\n\nDepósito de equipaje\n\nNuestra instalación cuenta con un área de consigna de equipaje.\n\nSe admiten mascotas\n\nSe admiten mascotas bajo petición. Sin cargos adicionales.\n\nInternet WiFi gratis\n\nWi-Fi gratuito disponible en toda la propiedad.\n\nAire acondicionado\n\nTodas las habitaciones están equipadas con aire acondicionado.\n\nCajas de seguridad\n\nServicio de caja de seguridad disponible.\n\nHabitaciones para no fumadores\n\nEstá prohibido fumar en todas nuestras habitaciones.\n\nInformación rápida\n\nCheck-in hasta la 01pm.\nCheck-out antes de las 12pm.\nDesayuno de 07am a 10am.\n\nHOTEL DEMÒ\nNuestras habitaciones",
+    "uploadedAt": "2025-05-26T09:17:17.978Z",
+    "version": "v1"
+  },
+  {
+    "_id": "e3f395b8-59c0-4f5e-b395-b859c0cf5e10",
+    "source": "https://www.hoteldemo.com/en/index.php",
+    "hotelId": "hotel999",
+    "loc": {
+      "lines": {
+        "from": 217,
+        "to": 254
+      }
+    },
+    "category": "retrieval_based",
+    "promptKey": null,
+    "text": "Visita el sitio\n\nGIOIELLI DEMÓ\nProductos exclusivos y únicos\n\nLas creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.\n\nVisita el sitio\n\nOROLOGI DEMÓ\nProfesionalismo y garantía de 2 años\n\n¡No solo arte, sino también relojes! Descubre entre los muchos modelos un reloj Demó exclusivo del que nunca te separarás. Explora nuestra colección de relojes para hombres y mujeres, con modelos en acero inoxidable, mecánicos y más.\n\nVisita el sitio\n\nDEMÓ\nDesde 1988 hasta hoy\n\nArtista contemporáneo italiano, pintor, escultor, estilista y joyero de fama internacional. Obras que se materializan en moda, joyería, relojes y muebles, convirtiéndose en verdaderos objetos de colección únicos.\n\nVisita el sitio\n\nGIOIELLI DEMÓ\nProductos exclusivos y únicos\n\nLas creaciones de joyería Demó son productos exclusivos y únicos con un alto nivel de artesanía y diseño típico Made in Italy. Cada creación siempre está firmada por la marca Demó.\n\nVisita el sitio\n\nVia Tonale, 14 Milano (Mi)\n\nTEL.\n+39 02 67074322\nWHATSAPP\n+39 02 67074322\nEMAIL\ninfo@hoteldemo.com",
+    "uploadedAt": "2025-05-26T09:17:18.145Z",
+    "version": "v1"
+  }
+]
