@@ -1,12 +1,15 @@
 // /app/admin/channels/page.tsx
 
-// ✅ Página de administración de canales
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import ChannelsClient from "@/components/admin/ChannelsClient";
 import { BarChart3 } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser"; // 👈 Ajustá el import si tu función está en otro lado
 
 export default async function ChannelsPage() {
-  const hotelId = "hotel123";
+  // 🔐 Obtené el usuario logueado del contexto server-side
+  const user = await getCurrentUser();
+  const hotelId = user?.hotelId || "hotel999"; // Fallback razonable
+
   const config = await getHotelConfig(hotelId);
 
   if (!config) {
@@ -27,8 +30,7 @@ export default async function ChannelsPage() {
         <BarChart3 className="w-6 h-6" />
         Estado de Canales
       </h1>
-
-      <ChannelsClient initialConfig={config.channelConfigs} />
+      <ChannelsClient initialConfig={config.channelConfigs} hotelId={hotelId} />
     </div>
   );
 }

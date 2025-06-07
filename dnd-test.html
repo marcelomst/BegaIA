@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+  <div id="dropzone" style="border:2px dashed blue;padding:60px;text-align:center;">
+    Arrastrá un archivo aquí
+  </div>
+  <script>
+    document.getElementById('dropzone').addEventListener('drop', function(e) {
+      e.preventDefault();
+      alert('DROP: ' + (e.dataTransfer?.files?.length || 0));
+    });
+    document.getElementById('dropzone').addEventListener('dragover', function(e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>

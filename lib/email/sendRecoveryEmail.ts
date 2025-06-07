@@ -1,4 +1,5 @@
 // /lib/email/sendRecoveryEmail.ts
+
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { sendEmail } from "@/lib/email/sendEmail";
@@ -12,7 +13,9 @@ export async function sendRecoveryEmail(options: { email: string; token: string;
   const recoveryUrl = await buildVerificationUrl("reset-password", token, hotelId);
 
   const config = await getHotelConfig(hotelId);
-  if (!config?.emailSettings) {
+  const emailConfig = config?.channelConfigs.email;
+
+  if (!emailConfig) {
     throw new Error(`Configuración de email no encontrada para hotel ${hotelId}`);
   }
 
@@ -30,11 +33,11 @@ export async function sendRecoveryEmail(options: { email: string; token: string;
 
   await sendEmail(
     {
-      host: config.emailSettings.smtpHost,
-      port: config.emailSettings.smtpPort,
-      user: config.emailSettings.emailAddress,
-      pass: config.emailSettings.password,
-      secure: config.emailSettings.secure ?? false,
+      host: emailConfig.smtpHost,
+      port: emailConfig.smtpPort,
+      user: emailConfig.dirEmail,
+      pass: emailConfig.password,
+      secure: emailConfig.secure ?? false,
     },
     email,
     subject,

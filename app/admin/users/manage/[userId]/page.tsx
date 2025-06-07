@@ -8,7 +8,12 @@ import { useCurrentUser } from "@/lib/context/UserContext";
 import type { HotelUser } from "@/types/user";
 
 export default function EditUserPage() {
-  const { userId } = useParams();
+  const params = useParams();
+  if (!params) {
+    return <p className="p-6">No se especificó el ID del usuario.</p>;
+  }
+  const userId = Array.isArray(params.userId) ? params.userId[0] : params.userId; // acceso seguro
+
   const router = useRouter();
   const { user } = useCurrentUser();
   const [targetUser, setTargetUser] = useState<HotelUser | null>(null);

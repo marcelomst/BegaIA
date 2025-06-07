@@ -5,10 +5,6 @@
   },
   {
     "category": "amenities",
-    "promptKey": null
-  },
-  {
-    "category": "amenities",
     "promptKey": "room_info"
   },
   {
@@ -16,12 +12,12 @@
     "promptKey": "room_info"
   },
   {
-    "category": "amenities",
-    "promptKey": null
+    "category": "reservation",
+    "promptKey": "room_info"
   },
   {
-    "category": "retrieval_based",
-    "promptKey": null
+    "category": "amenities",
+    "promptKey": "parking_info"
   },
   {
     "category": "retrieval_based",
@@ -29,6 +25,10 @@
   },
   {
     "category": "support",
-    "promptKey": null
+    "promptKey": "contact_info"
+  },
+  {
+    "category": "support",
+    "promptKey": "privacy_policy"
   }
 ]

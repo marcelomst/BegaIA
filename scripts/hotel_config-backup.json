@@ -1,0 +1,189 @@
+[
+  {
+    "_id": "ebee362d-aa0b-43db-ae36-2daa0b43db24",
+    "hotelId": "hotel123",
+    "channelConfigs": {
+      "tiktok": {
+        "enabled": true,
+        "mode": "supervised"
+      },
+      "email": {
+        "enabled": true,
+        "mode": "automatic",
+        "dirEmail": "hotel@example.com",
+        "imapHost": "imap.example.com",
+        "smtpHost": "smtp.example.com",
+        "imapPort": 993,
+        "smtpPort": 587
+      }
+    },
+    "lastUpdated": "2025-05-15T14:11:10.182Z",
+    "users": [
+      {
+        "userId": "ab8ac42e-1acc-4c7b-a642-59750389941b",
+        "email": "admin@hotel.com",
+        "name": "Administrador Tecnico",
+        "roleLevel": 10,
+        "active": true,
+        "passwordHash": "$2b$10$WWLX6t/E68AbRWHpDddVb.ASo4Xc9/.8yNLtAoyEjPlZ3coDQMkki",
+        "createdAt": "2025-05-02T08:33:17.833Z",
+        "position": "Tecnico SaaS"
+      },
+      {
+        "userId": "2288e580-f0ff-40df-b7f6-5d244097f161",
+        "email": "marcelomst1@gmail.com",
+        "name": "Marcelo Martinez",
+        "position": "Tecnico SaaS",
+        "roleLevel": 10,
+        "active": false,
+        "verificationToken": "80057a87-cae2-4159-aeda-828632a2d887",
+        "createdAt": "2025-05-15T14:11:10.182Z"
+      }
+    ],
+    "verification": {}
+  },
+  {
+    "_id": "2b079ba8-55e6-46e4-879b-a855e6d6e453",
+    "hotelId": "hotel999",
+    "channelConfigs": {
+      "web": {
+        "enabled": true,
+        "mode": "automatic"
+      },
+      "whatsapp": {
+        "enabled": true,
+        "mode": "supervised",
+        "celNumber": "+59898835914",
+        "apiKey": ""
+      }
+    },
+    "defaultLanguage": "es",
+    "hotelName": "Hotel Demo",
+    "lastUpdated": "2025-06-04T12:15:49.928Z",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "users": [
+      {
+        "email": "marcelomst1@gmail.com",
+        "passwordHash": "$2b$10$tA3bsRsszWpTk48Vaz6cH.MSQIekSRjaNrEQex5IKpdVy8lPPfwYu",
+        "roleLevel": 10,
+        "active": true,
+        "createdAt": "2025-05-06T11:47:43.939Z",
+        "userId": "6d4eda74-2c25-40c4-9c32-7a0050082ab4",
+        "name": "Marcelo Martinez",
+        "position": "Tecnico SaaS",
+        "resetToken": "5dad9fc4bda5bd838f6274d42364750ccb362949df24e9e8ff47721af3f8969c",
+        "resetTokenExpires": "2025-05-17T15:15:35.454Z"
+      },
+      {
+        "userId": "7394c102-20ba-4fb4-8bae-83759895cf09",
+        "email": "marcelomst@protonmail.com",
+        "name": "Marcelo Recepcionista",
+        "position": "Recepcionista",
+        "roleLevel": 10,
+        "active": true,
+        "createdAt": "2025-05-19T10:44:32.164Z",
+        "passwordHash": "$2b$10$DawZTIppXZwmAgc7JPfq6uIroHOM9jKlRDxfwSaQ4k8djKInvUJxi"
+      },
+      {
+        "userId": "f689b1f2-05c3-4ab4-bf11-9c807083b9c1",
+        "email": "begamshop.ventas@gmail.com",
+        "name": "Ana Gomez",
+        "position": "Recepcionista",
+        "roleLevel": 20,
+        "active": true,
+        "createdAt": "2025-05-22T11:21:03.488Z",
+        "passwordHash": "$2b$10$yImRrQgjzNh6iSwZFLXqJ.cqq9X7zq1n2INUuJWWCcPF1y42JZr5G"
+      }
+    ],
+    "emailSettings": {
+      "imapHost": "imap.gmail.com",
+      "imapPort": 993,
+      "smtpHost": "smtp.gmail.com",
+      "smtpPort": 587,
+      "emailAddress": "begamshop.ventas@gmail.com",
+      "password": "umammswkuzoakqqu",
+      "secure": false
+    },
+    "verification": {}
+  },
+  {
+    "_id": "6935a673-9c18-44da-b5a6-739c1874daf8",
+    "hotelId": "hotelplaza",
+    "hotelName": "Hotel Plaza",
+    "timezone": "America/Montevideo",
+    "defaultLanguage": "spa",
+    "channelConfigs": {},
+    "emailSettings": {
+      "emailAddress": "begamshop.ventas@gmail.com",
+      "password": "umammswkuzoakqqu",
+      "imapHost": "imap.gmail.com",
+      "imapPort": 993,
+      "smtpHost": "smtp.gmail.com",
+      "smtpPort": 587,
+      "secure": false
+    },
+    "users": [
+      {
+        "userId": "4e76a1cf-f669-4bb0-bf52-ea60cced25cf",
+        "email": "marcelomst1@gmail.com",
+        "passwordHash": "$2b$10$iMYgQxOMVRKqExaOfZGf5.6IPhcbOt94/VI2Gxir0oaxkEBh5jHcG",
+        "roleLevel": 1,
+        "active": true,
+        "createdAt": "2025-05-22T11:10:26.544Z",
+        "name": "Marcelo Martinez",
+        "position": "Administrador"
+      }
+    ],
+    "lastUpdated": "2025-05-22T11:13:55.807Z"
+  },
+  {
+    "_id": "2802ca92-a3cf-46d3-82ca-92a3cfe6d38d",
+    "hotelId": "system",
+    "channelConfigs": {
+      "web": {
+        "enabled": true,
+        "mode": "supervised"
+      }
+    },
+    "defaultLanguage": "es",
+    "emailSettings": {
+      "imapHost": "imap.gmail.com",
+      "imapPort": 993,
+      "smtpHost": "smtp.gmail.com",
+      "smtpPort": 587,
+      "emailAddress": "begamshop.ventas@gmail.com",
+      "password": "umammswkuzoakqqu",
+      "secure": false
+    },
+    "hotelName": "Sistema Técnico",
+    "lastUpdated": "2025-05-31T10:34:06.762Z",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "users": [
+      {
+        "email": "marcelomst1@gmail.com",
+        "passwordHash": "$2b$10$8/LUYohBBvGS2lqjWEuI2OxUFDdez2U.EoC33WN4iB5780WUGBsrq",
+        "roleLevel": 0,
+        "active": true,
+        "verificationToken": "1f1215a6-3b68-4693-9296-f7ecaead7024",
+        "createdAt": "2025-05-15T18:50:01.643Z",
+        "userId": "cda81e9d-b439-45a2-8b45-e411403c1757"
+      }
+    ],
+    "iso3to1": {
+      "spa": "es",
+      "eng": "en",
+      "fra": "fr",
+      "por": "pt",
+      "ita": "it",
+      "deu": "de",
+      "rus": "ru",
+      "nld": "nl",
+      "zho": "zh",
+      "jpn": "ja",
+      "kor": "ko",
+      "cat": "ca",
+      "glg": "gl",
+      "eus": "eu"
+    }
+  }
+]

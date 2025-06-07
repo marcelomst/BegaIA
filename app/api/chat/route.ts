@@ -7,6 +7,7 @@ import { channelMemory } from "@/lib/services/channelMemory";
 import { v4 as uuidv4 } from "uuid";
 import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/types/channel";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import { saveMessageToAstra } from "@/lib/db/messages"; // 👈 helper real AstraDB
 
 export async function POST(req: Request) {
   try {
@@ -46,12 +47,22 @@ export async function POST(req: Request) {
       approvedResponse: status === "sent" ? String(responseText) : undefined,
       respondedBy: status === "sent" ? "assistant" : undefined,
     };
-    
-    
 
-    console.log("🧠 Agregando mensaje en memoria:", newMessage);
-
-    channelMemory.addMessage(newMessage);
+    // Guardado condicional según entorno
+    // if (process.env.NODE_ENV === "production") {
+    if (true) {
+      try {
+        await saveMessageToAstra(newMessage);
+        console.log("✅ Mensaje guardado en AstraDB:", newMessage.messageId);
+      } catch (err) {
+        console.error("⛔ Error guardando en AstraDB:", err);
+        // (Opcional: también guardalo en memoria como backup en caso de error)
+        channelMemory.addMessage(newMessage);
+      }
+    } else {
+      channelMemory.addMessage(newMessage);
+      console.log("🧠 Mensaje guardado en memoria:", newMessage.messageId);
+    }
 
     debugLog("📌 Respuesta enviada:", responseText);
 

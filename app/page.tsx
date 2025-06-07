@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 export default function ChatPage() {
   const searchParams = useSearchParams();
   // 👇 Leé el hotelId del query param, o default
-  const hotelId = searchParams.get("hotelId") || "hotel123";
+  const hotelId = searchParams?.get("hotelId") ?? "";
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);

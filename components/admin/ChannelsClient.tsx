@@ -11,21 +11,27 @@ import { DarkCard } from "@/components/ui/DarkCard";
 import Link from "next/link";
 import ChannelMessages from "@/components/admin/ChannelMessages";
 import { getCurrentUserEmail } from "@/lib/auth/getCurrentUserEmail";
-import { Channel, ALL_CHANNELS, ChannelMode } from "@/types/channel"; // 👈 importa los tipos correctos
+import { Channel, ALL_CHANNELS, ChannelMode } from "@/types/channel";
+import { useState } from "react";
+import WhatsAppConfigForm from "@/components/admin/WhatsAppConfigForm";
 
 type SingleChannelConfig = {
   enabled: boolean;
   mode: ChannelMode;
+  celNumber?: string;
+  apiKey?: string;
 };
 
-// Ahora el Props completo:
 type Props = {
   initialConfig: Partial<Record<Channel, SingleChannelConfig>>;
+  hotelId: string; // multi-hotel
 };
 
-export default function ChannelsClient({ initialConfig }: Props) {
+export default function ChannelsClient({ initialConfig, hotelId }: Props) {
   const config = initialConfig;
   const userEmail = getCurrentUserEmail();
+
+  const [showWhatsAppConfig, setShowWhatsAppConfig] = useState(false);
 
   const allChannels = Array.from(new Set([...ALL_CHANNELS, ...Object.keys(config)]));
 
@@ -39,10 +45,14 @@ export default function ChannelsClient({ initialConfig }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {allChannels.map((key) => {
-        const channelKey = key as Channel; // 👈 casteo correcto
+        const channelKey = key as Channel;
         const channelConfig = config[channelKey];
         const isMissing = !channelConfig;
-        const isDynamic = !ALL_CHANNELS.includes(channelKey);
+        const isWhatsApp = channelKey === "whatsapp";
+        const needsConfig =
+          isWhatsApp &&
+          channelConfig &&
+          (!("celNumber" in channelConfig) || !channelConfig.celNumber);
 
         return (
           <DarkCard
@@ -57,7 +67,6 @@ export default function ChannelsClient({ initialConfig }: Props) {
                     : "inactive"
                 )}
                 {channelKey}
-                {isDynamic && <span className="ml-1 text-yellow-400 text-xs">✨</span>}
               </span>
             }
             description={
@@ -67,7 +76,7 @@ export default function ChannelsClient({ initialConfig }: Props) {
             }
           >
             {isMissing ? (
-              <form action={`/api/config/add?channelId=${channelKey}`} method="POST">
+              <form action={`/api/config/add?channel=${channelKey}&hotelId=${hotelId}`} method="POST">
                 <button className="flex items-center gap-1 text-blue-500 hover:underline text-sm">
                   <PlusCircle className="w-4 h-4" />
                   Agregar configuración
@@ -75,13 +84,46 @@ export default function ChannelsClient({ initialConfig }: Props) {
               </form>
             ) : (
               <>
+                {/* Banner de advertencia si WhatsApp está activo pero sin configurar */}
+                {needsConfig && (
+                  <div className="mb-3 bg-yellow-100 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded px-4 py-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        ⚠️ <strong>WhatsApp sin configurar</strong>
+                        <div className="text-xs mt-1">
+                          Por favor, ingresa el número de WhatsApp antes de activar el canal.
+                        </div>
+                      </div>
+                      <button
+                        className="ml-4 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                        onClick={() => setShowWhatsAppConfig(true)}
+                      >
+                        Configurar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal para configuración WhatsApp */}
+                {showWhatsAppConfig && (
+                  <WhatsAppConfigForm
+                    hotelId={hotelId}
+                    initial={{
+                      celNumber: channelConfig?.celNumber,
+                      apiKey: channelConfig?.apiKey,
+                    }}
+                    onClose={() => setShowWhatsAppConfig(false)}
+                    onSaved={() => window.location.reload()}
+                  />
+                )}
+
                 <div className="text-sm text-muted-foreground flex flex-col gap-2 mb-4">
-                  <form action={`/api/config/mode?channelId=${channelKey}`} method="POST">
+                  <form action={`/api/config/mode?channel=${channelKey}&hotelId=${hotelId}`} method="POST">
                     <button className="text-blue-500 hover:underline" type="submit">
                       Cambiar a modo {channelConfig.mode === "automatic" ? "🧍 Supervisado" : "🧠 Automático"}
                     </button>
                   </form>
-                  <form action={`/api/config/toggle?channelId=${channelKey}`} method="POST">
+                  <form action={`/api/config/toggle?channel=${channelKey}&hotelId=${hotelId}`} method="POST">
                     <button className="text-blue-500 hover:underline" type="submit">
                       {channelConfig.enabled ? "Desactivar canal" : "Activar canal"}
                     </button>

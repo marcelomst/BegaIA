@@ -2,7 +2,8 @@
 
 import { collection } from "@/lib/config/hotelConfig.server";
 import { randomUUID } from "crypto";
-import { sendVerificationEmail } from "@/lib/auth/sendVerificationEmail"; // 👈 Import
+import { sendVerificationEmail } from "@/lib/auth/sendVerificationEmail";
+import type { EmailConfig } from "@/types/channel";
 
 /**
  * Crea un nuevo hotel y usuario administrador inicial, enviando email de verificación.
@@ -16,7 +17,7 @@ export async function createHotelWithAdmin({
   adminEmail,
   adminPassword,
   adminRoleLevel = 10,
-  emailSettings, // 👈 Agregá este campo
+  emailChannelConfig, // <-- EmailConfig completo
 }: {
   hotelId: string;
   hotelName: string;
@@ -25,18 +26,9 @@ export async function createHotelWithAdmin({
   adminEmail: string;
   adminPassword: string;
   adminRoleLevel?: number;
-  emailSettings: { // ⬅️ asegurate de tipar igual que tu definición
-    emailAddress: string;
-    password: string;
-    imapHost: string;
-    imapPort: number;
-    smtpHost: string;
-    smtpPort: number;
-    secure?: boolean;
-    checkInterval?: number;
-  };
+  emailChannelConfig: EmailConfig; // <-- tipo correcto
 }) {
-  if (!hotelId || !hotelName || !timezone || !adminEmail || !adminPassword || !emailSettings) {
+  if (!hotelId || !hotelName || !timezone || !adminEmail || !adminPassword || !emailChannelConfig) {
     throw new Error("Faltan datos obligatorios");
   }
 
@@ -62,15 +54,16 @@ export async function createHotelWithAdmin({
     hotelName,
     timezone,
     defaultLanguage,
-    channelConfigs: {},
-    emailSettings, // 👈 Guardá directamente la config de mail que recibiste
+    channelConfigs: {
+      email: emailChannelConfig, // <-- Ahora en channelConfigs
+    },
     users: [
       {
         userId: randomUUID(),
         email: adminEmail,
         passwordHash,
         roleLevel: adminRoleLevel,
-        active: false, // ⚠️ Inactivo hasta verificar email
+        active: false,
         verificationToken,
         createdAt: new Date().toISOString(),
       },
@@ -86,14 +79,12 @@ export async function createHotelWithAdmin({
       email: adminEmail,
       verificationToken,
       hotelId,
-      emailSettings, // <-- No hay que buscarla, la recibís y reenviás
+      emailSettings: emailChannelConfig, // <-- tipo EmailConfig
     });
-
   } catch (err) {
     console.error("Error enviando email de verificación al admin:", err);
     throw new Error("Error enviando email de verificación al admin.");
   }
 
   return { ok: true, hotelId, verificationEmailSent: true };
-
 }

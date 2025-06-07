@@ -30,3 +30,10 @@ export function getHotelAstraCollection<T extends Record<string, any> = any>(
   const collectionName = `${hotelId}${suffix}`;
   return getAstraDB().collection<T>(collectionName);
 }
+
+/**
+ * Retorna la colección global hotel_config como documento (NO vector).
+ */
+export function getHotelConfigCollection<T extends Record<string, any> = any>() {
+  return getAstraDB().collection<T>("hotel_config");
+}

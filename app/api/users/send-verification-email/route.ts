@@ -4,6 +4,7 @@ import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.serv
 import { randomUUID } from "crypto";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
+import type { EmailConfig } from "@/types/channel";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -18,9 +19,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Configuración del hotel no encontrada" }, { status: 404 });
   }
 
-  const smtp = config.emailSettings;
-  if (!smtp?.smtpHost || !smtp?.smtpPort || !smtp?.emailAddress || !smtp?.password) {
-    return NextResponse.json({ error: "Configuración SMTP incompleta" }, { status: 500 });
+  // Nuevo: tomamos el emailConfig desde channelConfigs
+  const emailConfig = config.channelConfigs?.email as EmailConfig | undefined;
+  if (
+    !emailConfig ||
+    !emailConfig.smtpHost ||
+    !emailConfig.smtpPort ||
+    !emailConfig.dirEmail ||
+    !emailConfig.password
+  ) {
+    return NextResponse.json({ error: "Configuración SMTP de canal email incompleta" }, { status: 500 });
   }
 
   const user = config.users.find((u) => u.email === email);
@@ -34,17 +42,15 @@ export async function POST(req: NextRequest) {
 
   await updateHotelConfig(hotelId, { users: config.users });
 
-  
   const verifyUrl = await buildVerificationUrl("verify-account", token, hotelId);
-
 
   await sendEmail(
     {
-      host: smtp.smtpHost,
-      port: smtp.smtpPort,
-      user: smtp.emailAddress,
-      pass: smtp.password,
-      secure: smtp.secure ?? false,
+      host: emailConfig.smtpHost,
+      port: emailConfig.smtpPort,
+      user: emailConfig.dirEmail,      // ahora "dirEmail" es el correo usado para enviar
+      pass: emailConfig.password,
+      secure: emailConfig.secure ?? false,
     },
     email,
     "Verificación de cuenta",

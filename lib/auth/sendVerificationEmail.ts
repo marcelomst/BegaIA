@@ -3,7 +3,8 @@
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
 import nodemailer from "nodemailer";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import type { EmailSettings } from "@/types/channel";
+import type { EmailConfig } from "@/types/channel"; // 👈 Usa EmailConfig
+
 export async function sendVerificationEmail({
   email,
   verificationToken,
@@ -13,12 +14,11 @@ export async function sendVerificationEmail({
   email: string;
   verificationToken: string;
   hotelId: string;
-  emailSettings: EmailSettings;
+  emailSettings: EmailConfig;  // 👈 Tipo correcto
 }) {
   // 1. Construir URL de verificación (usando el helper ya existente)
   const verificationUrl = await buildVerificationUrl("verify-account", verificationToken, hotelId);
 
-  
   if (!emailSettings) {
     throw new Error(`No hay configuración de email para el hotel ${hotelId}`);
   }
@@ -29,14 +29,14 @@ export async function sendVerificationEmail({
     port: emailSettings.smtpPort,
     secure: !!emailSettings.secure,
     auth: {
-      user: emailSettings.emailAddress,
+      user: emailSettings.dirEmail,    // 👈 Usa dirEmail, no emailAddress
       pass: emailSettings.password,
     },
   });
 
   // 4. Enviar el email
   await transporter.sendMail({
-    from: emailSettings.emailAddress,
+    from: emailSettings.dirEmail, // 👈 Usa dirEmail
     to: email,
     subject: "Activa tu cuenta de administrador",
     text: `Bienvenido/a, activa tu cuenta usando el siguiente enlace: ${verificationUrl}`,

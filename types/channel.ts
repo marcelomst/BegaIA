@@ -1,14 +1,23 @@
 // /root/begasist/types/channel.ts
 
-// 🛡️ Definiciones básicas de canal, modo y estados
 export type ChannelMode = "supervised" | "automatic";
 export type MessageStatus = "pending" | "sent" | "rejected" | "expired";
-export const ALL_CHANNELS = ["web", "email", "whatsapp", "channelManager"] as const;
+
+export const ALL_CHANNELS = [
+  "web",
+  "email",
+  "whatsapp",
+  "channelManager",
+  "tiktok",
+  "telegram",
+  "instagram",
+  "x",        // X (antes Twitter)
+  "facebook",
+] as const;
+
 export type Channel = typeof ALL_CHANNELS[number];
 import type { HotelUser } from "./user";
 
-
-// 🛠️ Configuraciones básicas por canal
 export type BaseChannelConfig = {
   enabled: boolean;
   mode: ChannelMode;
@@ -16,31 +25,64 @@ export type BaseChannelConfig = {
 
 export type WhatsAppConfig = BaseChannelConfig & {
   celNumber: string;
-  apiKey?: string; // opcional si usamos integraciones reales
+  apiKey?: string;
 };
 
 export type EmailConfig = BaseChannelConfig & {
   dirEmail: string;
+  password: string; // Puedes dejar este campo
   imapHost: string;
-  smtpHost: string;
   imapPort: number;
+  smtpHost: string;
   smtpPort: number;
+  secure?: boolean;
+  checkInterval?: number;
 };
 
 export type ChannelManagerConfig = BaseChannelConfig & {
   pollingInterval: number;
 };
 
+export type TelegramConfig = BaseChannelConfig & {
+  botToken: string;
+  chatId?: string;
+};
+
+export type InstagramConfig = BaseChannelConfig & {
+  accessToken: string;
+  pageId?: string;
+};
+
+export type TikTokConfig = BaseChannelConfig & {
+  accessToken: string;
+  accountId?: string;
+};
+
+export type XConfig = BaseChannelConfig & {
+  apiKey: string;
+  apiSecret: string;
+  accessToken: string;
+  accessTokenSecret: string;
+};
+
+export type FacebookConfig = BaseChannelConfig & {
+  pageToken: string;
+  pageId?: string;
+};
+
+// Si querés un campo genérico, podés dejarlo, pero recomiendo usar los específicos para producción
 export type ChannelConfigMap = {
   web: BaseChannelConfig;
   whatsapp: WhatsAppConfig;
   email: EmailConfig;
-  channelManager: ChannelManagerConfig; // ✅ Ahora acepta pollingInterval
+  channelManager: ChannelManagerConfig;
+  telegram: TelegramConfig;
+  instagram: InstagramConfig;
+  tiktok: TikTokConfig;
+  x: XConfig;
+  facebook: FacebookConfig;
 };
 
-
-
-// 🏨 Configuración general del hotel
 export type HotelConfig = {
   hotelId: string;
   hotelName: string;
@@ -51,25 +93,11 @@ export type HotelConfig = {
   phone?: string;
   defaultLanguage: string;
   timezone: string;
+  iso3to1?: Record<string, string>;
   channelConfigs: Partial<ChannelConfigMap>;
   users?: HotelUser[];
   verification?: {
     baseUrl?: string;
-  };
-  emailSettings?: {
-    emailAddress: string;         // cuenta completa (ej: info@hotel.com)
-    password: string;             // ⚠️ considerar encriptación si se almacena
-    imapHost: string;
-    imapPort: number;
-    smtpHost: string;
-    smtpPort: number;
-    secure?: boolean;             // para SMTP
-    checkInterval?: number;       // intervalo en ms (ej. 15000)
-  };
-  
-  whatsappSettings?: {
-    number: string;
-    apiKey?: string;
   };
   retrievalSettings?: {
     useAstra: boolean;
@@ -78,20 +106,30 @@ export type HotelConfig = {
   lastUpdated?: string;
 };
 
-// 💬 Mensaje de canal
 export interface ChannelMessage {
-  messageId: string;        // ID lógico único
-  conversationId?: string;  // opcional, para agrupar hilos
+  messageId: string;
+  conversationId?: string;
   hotelId: string;
   channel: Channel;
   sender: string;
   content: string;
-  timestamp: string;        // formato ISO
-  time: string;             // hora legible
-  suggestion: string;       // sugerencia original del asistente
-  approvedResponse?: string; // respuesta aprobada por el recepcionista
-  respondedBy?: string;     // email o identificador del recepcionista
-  status: MessageStatus;    // pending, sent, rejected, expired
+  timestamp: string;
+  time: string;
+  suggestion: string;
+  approvedResponse?: string;
+  respondedBy?: string;
+  status: MessageStatus;
 }
-export type EmailSettings = HotelConfig["emailSettings"];
 
+export interface Conversation {
+  conversationId: string; // UUID generado al iniciar conversación
+  hotelId: string;
+  channel: Channel; // "web", "whatsapp", etc.
+  startedAt: string; // ISO date
+  lastUpdatedAt: string; // ISO date
+  lang: string; // idioma preferido de la conversación
+  userId?: string; // si es usuario logueado, opcional
+  guestId?: string; // para guests anónimos, puedes usar UUID (en cookie)
+  status?: "active" | "closed" | "archived";
+  metadata?: Record<string, any>; // extensible para otras necesidades
+}

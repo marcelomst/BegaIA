@@ -15,6 +15,8 @@ const PUBLIC_PATHS = [
   "/api/users/validate-reset-token",
   "/api/test",
   "/api/chat",
+  "/api/upload-hotel-document",
+  "/api/hotel-documents",
 ];
 
 export async function middleware(req: NextRequest) {

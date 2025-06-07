@@ -16,9 +16,9 @@ process.on("uncaughtException", (err) => {
   async function startAll() {
     try {
       await Promise.all([
-        startEmailBot(),
+        // startEmailBot(),
         startWhatsAppBot(),
-        startChannelManagerBot(),
+        // startChannelManagerBot(),
       ]);
       webMemory.clearMessages();
       console.log("🧹 Memoria web limpia");

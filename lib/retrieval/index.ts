@@ -1,34 +1,30 @@
 // /root/begasist/lib/retrieval/index.ts
 
-import { cache } from "react";
 import puppeteer from "puppeteer-extra";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { translationModel } from "../../app/lib/translation";
 import { debugLog } from "../utils/debugLog";
-import { DataAPIClient } from "@datastax/astra-db-ts";
 import { ChatOpenAI } from "@langchain/openai";
 import { validateClassification } from "./validateClassification";
 import fs from "fs";
 import { cosineSimilarity } from "../utils/similarity";
 import type { ChunkResult, InsertableChunk, SearchFilters } from "../../types/chunk";
-import type { WithSim, FoundDoc } from "@datastax/astra-db-ts";
-import path from "path";
 import pdfParse from "pdf-parse";
 import dotenv from "dotenv";
+import { getHotelAstraCollection } from "../astra/connection";
+import { getHotelConfig } from "../config/hotelConfig.server";
+import { franc } from "franc";
+import { iso3To1 } from "@/lib/utils/lang";
+import { saveOriginalTextChunksToAstra } from "../astra/hotelTextCollection";
+
 dotenv.config();
 
-const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN!);
-const db = client.db(process.env.ASTRA_DB_URL!, { keyspace: process.env.ASTRA_DB_KEYSPACE! });
-
 const urls = ["https://www.hoteldemo.com/en/index.php"];
-
-export const getCollectionName = (hotelId: string) => `${hotelId}_collection`;
-
+export function getCollectionName(hotelId: string) {
+  return `${hotelId}_collection`;
+}
 const curationAssistant = new ChatOpenAI({
   modelName: "gpt-4",
   temperature: 0,
@@ -60,6 +56,40 @@ Ahora analiza los siguientes fragmentos:
 {fragments}
 `;
 
+// Traducción robusta a cualquier idioma destino (usada abajo)
+async function translateTextToLang(text: string, lang: string) {
+  try {
+    const translated = await translationModel(text, lang);
+    if (typeof translated.content === "string") {
+      return translated.content;
+    }
+    return JSON.stringify(translated.content);
+  } catch (err) {
+    debugLog("❌ Error en traducción:", err);
+    return text; // fallback al texto original
+  }
+}
+
+/**
+ * Calcula la próxima versión ("v1", "v2", ...) según los documentos ya presentes
+ * Ahora: busca la versión máxima en TODA la colección, no solo por originalName
+ */
+async function getNextVersionForCollection(collection: any, hotelId: string) {
+  const docs = await collection.find({ hotelId }).toArray();
+  let maxVersion = 0;
+  for (const doc of docs) {
+    const m = (doc.version || "").match(/^v(\d+)$/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > maxVersion) maxVersion = n;
+    }
+  }
+  return `v${maxVersion + 1}`;
+}
+
+/**
+ * 🛠️ FIX: Clasifica cada chunk antes de guardar y guarda el texto original dividido en chunks en hotel_text_collection.
+ */
 export async function loadDocumentFileForHotel({
   hotelId,
   filePath,
@@ -67,7 +97,6 @@ export async function loadDocumentFileForHotel({
   uploader,
   mimeType,
   metadata = {},
-  version = "v1",
 }: {
   hotelId: string;
   filePath: string;
@@ -75,7 +104,6 @@ export async function loadDocumentFileForHotel({
   uploader: string;
   mimeType?: string;
   metadata?: Record<string, any>;
-  version?: string | number | Date;
 }) {
   // 1. Leer y extraer texto (PDF o TXT)
   let text = "";
@@ -89,38 +117,64 @@ export async function loadDocumentFileForHotel({
     throw new Error("Formato no soportado. Solo PDF/TXT por ahora.");
   }
 
-  // 2. Chunking
-  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1500, chunkOverlap: 200 });
-  const chunks = await splitter.createDocuments([text]);
+  // 2. Detección y normalización de idioma (usa franc → iso3 → iso1)
+  let translatedText = text;
+  let detectedLang3 = "und";
+  let detectedIso1 = "und";
+  let targetLang = "es";
+  try {
+    const config = await getHotelConfig(hotelId);
+    targetLang = config?.defaultLanguage || "es";
+    detectedLang3 = franc(text); // ej: "spa"
+    detectedIso1 = await iso3To1(detectedLang3); // ej: "es"
 
-  // 3. Vectorización y guardado
-  const embedder = new OpenAIEmbeddings();
-  
-  const collectionName = `${hotelId}_collection`;
-  const collection = await db.collection<InsertableChunk>(collectionName);
+    debugLog(`[Vectorización] Idioma detectado (franc/iso3): ${detectedLang3}, iso1: ${detectedIso1}, destino: ${targetLang}`);
+    // Si el idioma detectado es distinto al objetivo, traducir
+    if (targetLang && detectedIso1 !== "und" && detectedIso1 !== targetLang) {
+      debugLog("[Vectorización] Traduciendo texto al idioma destino…");
+      translatedText = await translateTextToLang(text, targetLang);
+    } else {
+      debugLog("[Vectorización] No es necesario traducir.");
+    }
+  } catch (err) {
+    debugLog("⚠️ No se pudo obtener idioma destino desde config o traducir:", err);
+  }
 
+  // 3. Guardar texto original en hotel_text_collection (en chunks de 8000 caracteres)
   const now = new Date().toISOString();
-  const versionTag =
-    version ||
-    metadata.version ||
-    now.slice(0, 10) + "-" + now.slice(11, 19).replace(/:/g, ""); // "2025-05-23-102045"
+  const collection = getHotelAstraCollection<InsertableChunk>(hotelId);
+  const versionTag = await getNextVersionForCollection(collection, hotelId);
+  await saveOriginalTextChunksToAstra({
+    hotelId,
+    originalName,
+    version: versionTag,
+    uploader,
+    author: metadata.author ?? null,
+    uploadedAt: now,
+    textContent: text, // el texto crudo antes de chunkear
+  });
 
-  for (const [i, doc] of chunks.entries()) {
+  // 4. Chunking
+  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1500, chunkOverlap: 200 });
+  const chunks = await splitter.createDocuments([translatedText]);
+
+  // 5. 🧠 Clasificación de chunks antes de guardar (el FIX aquí)
+  const enrichedChunks = await classifyFragmentsWithCurationAssistant(chunks);
+
+  // 6. Vectorización y guardado
+  const embedder = new OpenAIEmbeddings();
+
+  for (const [i, doc] of enrichedChunks.entries()) {
     const embedding = await embedder.embedQuery(doc.pageContent);
-
-    // Estructura recomendada para AstraDB
     const record = {
-      // --- Clave primaria si la coleccion lo requiere ---
-      // key: uuidv4(), // opcional si Astra lo genera, usar si no
-      
       hotelId,
       category: doc.metadata.category || metadata.category || "retrieval_based",
       promptKey: doc.metadata.promptKey ?? metadata.promptKey ?? null,
       version: versionTag,
-      author: metadata.author ?? null,            // soportado si lo querés
+      author: metadata.author ?? null,
       uploader,
       text: doc.pageContent,
-      query_vector_value: embedding,              // embbeding OpenAI (1536 floats)
+      $vector: embedding,
       uploadedAt: now,
       doc_json: JSON.stringify({
         ...doc,
@@ -131,16 +185,20 @@ export async function loadDocumentFileForHotel({
         mimeType,
         uploadedAt: now,
         version: versionTag,
-      }), // guarda TODO el chunk + metadata en JSON por trazabilidad
+        detectedLang: detectedIso1,
+        targetLang,
+      }),
       originalName,
+      detectedLang: detectedIso1,
+      targetLang,
     };
-
     await collection.insertOne(record);
   }
 
-  return { ok: true, count: chunks.length, version: versionTag };
+  return { ok: true, count: enrichedChunks.length, version: versionTag };
 }
 
+// --- El resto de helpers y retrieval (sin cambios importantes) ---
 
 async function classifyFragmentsWithCurationAssistant(documents: Document[]): Promise<Document[]> {
   const inputChunks = documents.map((doc) => doc.pageContent);
@@ -221,7 +279,7 @@ export async function loadDocuments(
 ) {
   debugLog(`📦 Cargando documentos para hotel ${hotelId}`);
 
-  const version = opts.version ?? "v1"; // 👈 default "v1"
+  const version = opts.version ?? "v1";
 
   const docs = await Promise.all(
     urls.map(async (url) => {
@@ -237,49 +295,35 @@ export async function loadDocuments(
 
   const validDocs = docs.filter((d): d is Document<{ source: string; hotelId: string }> => d !== null);
 
-  // 🧩 Primero fragmentamos
   const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1500, chunkOverlap: 200 });
   const chunks = await splitter.splitDocuments(validDocs);
 
-  // 🧠 Luego clasificamos
   const enrichedChunks = await classifyFragmentsWithCurationAssistant(chunks);
 
   const embedder = new OpenAIEmbeddings();
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
-  const collectionName = getCollectionName(hotelId);
-  const collection = await db.collection<InsertableChunk>(collectionName);
+  const collection = getHotelAstraCollection<InsertableChunk>(hotelId);
 
   for (const doc of enrichedChunks) {
     const embedding = await embedder.embedQuery(doc.pageContent);
-    // Asegura que los campos hotelId y category estén en doc.metadata
     if (!doc.metadata.hotelId || !doc.metadata.category) {
       throw new Error("Faltan hotelId o category en el metadata del chunk.");
     }
-
     await collection.insertOne({
       hotelId,
       category: doc.metadata.category || "retrieval_based",
       promptKey: doc.metadata.promptKey ?? null,
       text: doc.pageContent,
       $vector: embedding,
-      version,  // 👈 versión del documento
+      version,
       ...doc.metadata,
     });
   }
 
-  debugLog(`✅ Insertados ${enrichedChunks.length} chunks en colección ${collectionName}`);
+  debugLog(`✅ Insertados ${enrichedChunks.length} chunks en colección ${hotelId}_collection`);
 }
 
-/**
- * Devuelve el valor de versión más reciente para los chunks de un hotel.
- * Si no hay ninguna, devuelve undefined.
- */
 async function getLatestVersionForHotel(collection: any, hotelId: string) {
-  // Astra Data API: NO aggregate → filtramos y agrupamos en JS
   const docs = await collection.find({ hotelId }).toArray();
-
-  // Group by version and pick max uploadedAt
   const byVersion = new Map<string, { version: string, uploadedAt: string }>();
   for (const doc of docs) {
     if (
@@ -306,19 +350,14 @@ export async function searchFromAstra(
   const embedder = new OpenAIEmbeddings();
   const queryVector = await embedder.embedQuery(query);
 
-  const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN!);
-  const db = client.db(process.env.ASTRA_DB_URL!, { keyspace: process.env.ASTRA_DB_KEYSPACE! });
-  const collectionName = `${hotelId}_collection`;
-  const collection = await db.collection<ChunkResult>(collectionName);
+  const collection = getHotelAstraCollection<ChunkResult>(hotelId);
 
   // 👉 Nueva lógica de versión
   let version = filters.version;
   if (!version) {
-    // Si no pasan versión, se usa la más reciente (o undefined si no hay nada)
     version = await getLatestVersionForHotel(collection, hotelId);
     debugLog("🔄 Usando versión más reciente:", version);
   }
-  // Arma el filtro base con hotelId y version (si existe alguna)
   const baseFilter: Record<string, any> = { hotelId };
   if (version) baseFilter.version = version;
 
@@ -410,7 +449,6 @@ export async function searchFromAstra(
 
   // 🔚 Sin promptKey ni category → buscar solo por hotelId y version
   debugLog("🔍 Búsqueda sin filtro adicional (hotelId + version):", baseFilter);
-  const filterWithoutVersion = { ...baseFilter };
   const fallbackCursor = await collection.find(
     baseFilter,
     {
@@ -420,6 +458,6 @@ export async function searchFromAstra(
     }
   );
   const fallbackResults = await fallbackCursor.toArray();
-  
+
   return fallbackResults.map((r: any) => r.text);
 }

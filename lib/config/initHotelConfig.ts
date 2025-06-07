@@ -20,10 +20,13 @@ export async function initHotelConfig(hotelId: string) {
         enabled: true,
         mode: "supervised",
         dirEmail: "hotel@example.com",
+        password: "123456", // 👈 ¡AGREGADO! (modifica por tu valor real)
         imapHost: "imap.gmail.com",
         smtpHost: "smtp.gmail.com",
         imapPort: 993,
         smtpPort: 587,
+        secure: false,      // (opcional)
+        checkInterval: 15000, // (opcional)
       },
       whatsapp: {
         enabled: true,
@@ -34,12 +37,13 @@ export async function initHotelConfig(hotelId: string) {
       channelManager: {
         enabled: true,
         mode: "supervised",
-        pollingInterval: 15000, // ✅ ¡Ahora es válido!
+        pollingInterval: 15000,
       },
-      
+      // Agregá aquí otros canales mock si querés inicializar más
     },
     lastUpdated: new Date().toISOString(),
   };
+
   // 🛡️ Validación de pollingInterval en channelManager
   if (mockConfig.channelConfigs.channelManager && "pollingInterval" in mockConfig.channelConfigs.channelManager) {
     const polling = mockConfig.channelConfigs.channelManager.pollingInterval;
@@ -48,7 +52,6 @@ export async function initHotelConfig(hotelId: string) {
       mockConfig.channelConfigs.channelManager.pollingInterval = 15000;
     }
   }
-
 
   await collection.insertOne(mockConfig);
   console.log(`✅ Configuración inicial creada para ${hotelId}`);

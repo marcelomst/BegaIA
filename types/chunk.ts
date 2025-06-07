@@ -1,21 +1,22 @@
 // /root/begasist/types/chunk.ts
 
-export interface ChunkResult {
-  _id: string;
+export type ChunkResult = {
+  _id?: string;
   hotelId: string;
-  category: string;
+  category?: string | null;
   promptKey?: string | null;
-  text: string;
-  $vector: number[];
-  $similarity: number;
-  originalName?: string;
-  uploader?: string;
-  chunkIndex?: number;
-  mimeType?: string;
-  uploadedAt?: string;
   version?: string;
-  // ...otros metadatos que quieras persistir
-}
+  uploader?: string;
+  author?: string | null; // 👈 AGREGAR
+  originalName?: string;
+  uploadedAt?: string;
+  text: string;
+  $vector: number[];      // puede ser number[] o cualquier tipo si lo pedís así
+  detectedLang?: string | null; // 👈 AGREGAR
+  targetLang?: string | null;   // 👈 AGREGAR
+  // ... cualquier otro campo custom
+};
+
 
 // Permite omitir campos que no son obligatorios al insertar (como _id y $similarity)
 export type InsertableChunk = Omit<ChunkResult, "_id" | "$similarity">;

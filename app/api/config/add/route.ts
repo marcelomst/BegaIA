@@ -6,13 +6,16 @@ import { parseChannel } from "@/lib/utils/parseChannel";
 export async function POST(req: Request) {
   const url = new URL(req.url);
   const rawChannel = url.searchParams.get("channel");
+  const hotelId = url.searchParams.get("hotelId"); 
   const channel = parseChannel(rawChannel);
-
+  if (!hotelId) {
+      return NextResponse.json({ error: "Falta hotelId" }, { status: 400 });
+  }
   if (!channel) {
     return NextResponse.json({ error: "Canal no permitido" }, { status: 400 });
   }
 
-  const hotelId = "hotel123"; // Simulado
+  
   const config = await getHotelConfig(hotelId);
 
   // ✅ Si ya existe, no hacer nada
@@ -32,5 +35,8 @@ export async function POST(req: Request) {
   await updateHotelConfig(hotelId, { channelConfigs: updatedConfigs });
 
   // ✅ Redirige de nuevo a la página de canales
-  return NextResponse.redirect(new URL("/admin/channels", req.url));
+  const redirectUrl = new URL("/admin/channels", req.url);
+  redirectUrl.searchParams.set("hotelId", hotelId);
+  return NextResponse.redirect(redirectUrl);
+
 }

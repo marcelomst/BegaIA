@@ -11,7 +11,7 @@ type Status = "idle" | "validating" | "validated" | "submitting" | "success" | "
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
+  const token = searchParams?.get("token");
 
   const [status, setStatus] = useState<Status>("validating");
   const [message, setMessage] = useState("");

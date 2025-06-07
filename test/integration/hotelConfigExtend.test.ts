@@ -16,10 +16,13 @@ describe("🧩 Hotel Config Extend (Astra DB)", () => {
           enabled: true,
           mode: "automatic",
           dirEmail: "hotel@example.com",
+          password: "secret-password",      // <-- Obligatorio!
           imapHost: "imap.example.com",
           smtpHost: "smtp.example.com",
           imapPort: 993,
           smtpPort: 587,
+          // secure: false, // opcional
+          // checkInterval: 15000, // opcional
         },
       },
     });
@@ -29,5 +32,6 @@ describe("🧩 Hotel Config Extend (Astra DB)", () => {
     expect(config?.channelConfigs.email?.enabled).toBe(true);
     expect(config?.channelConfigs.email?.mode).toBe("automatic");
     expect(config?.channelConfigs.email?.dirEmail).toBe("hotel@example.com");
+    expect(config?.channelConfigs.email?.password).toBe("secret-password");
   });
 });

@@ -14,7 +14,8 @@ export async function getMessagesFromChannel(
   channel: Channel,
   conversationId?: string
 ) {
-  if (process.env.NODE_ENV === "development") {
+  // if (process.env.NODE_ENV === "development") {
+  if (false) {
     const msgs = channelMemory.getMessages(channel);
     return conversationId ? msgs.filter(m => m.conversationId === conversationId) : msgs;
   }
@@ -30,7 +31,8 @@ export async function updateMessageInChannel(
   messageId: string,
   changes: Partial<ChannelMessage>
 ) {
-  if (process.env.NODE_ENV === "development") {
+   // if (process.env.NODE_ENV === "development") {
+  if (false) {
     return channelMemory.updateMessage(channel, messageId, changes);
   }
 
@@ -42,7 +44,8 @@ export async function getMessagesByConversation(
   channel: Channel,
   conversationId: string
 ) {
-  if (process.env.NODE_ENV === "development") {
+  // if (process.env.NODE_ENV === "development") {
+  if (false) {
     const all = channelMemory.getMessages(channel);
     return all.filter((msg) => msg.conversationId === conversationId);
   }

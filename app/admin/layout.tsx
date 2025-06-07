@@ -6,11 +6,22 @@ import { ReactNode, useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/client/fetchWithAuth";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SidebarLink } from "@/components/ui/SidebarLink";
-import { Users, KeyRound } from "lucide-react";
+import { 
+  Users, 
+  KeyRound,
+  Hotel,
+  Upload,
+  Brain,
+  BookOpen,
+  Server,
+  FileText,
+  Settings
+} from "lucide-react";
 import { UserProvider } from "@/lib/context/UserContext";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarGroup } from "@/components/ui/SidebarGroup";
-import { ADMIN_MENU_ITEMS } from "@/lib/constants/adminMenu";
+// import { ADMIN_MENU_ITEMS } from "@/lib/constants/adminMenu"; // ← si no lo usás, podés borrar este import
+
 import {
   canAccessHotelsSection,
   canAccessUploadSection,
@@ -64,34 +75,34 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {user.hotelName} <span className="text-[10px] text-gray-400">(ID: {user.hotelId})</span>
             </div>
             <nav className="space-y-2">
+
               {canAccessHotelsSection(user.roleLevel) && (
-                <SidebarLink href="/admin/hotels" label="Hoteles" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/hotels" label="Hoteles" icon={<Hotel className="w-5 h-5" />} />
               )}
 
               {canAccessUploadSection(user.roleLevel) && (
-                <SidebarLink href="/admin/upload" label="Carga de Datos" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/upload" label="Carga de Datos" icon={<Upload className="w-5 h-5" />} />
               )}
 
               {canAccessEmbeddingsSection(user.roleLevel) && (
-                <SidebarLink href="/admin/embeddings" label="Embeddings" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/embeddings" label="Embeddings" icon={<Brain className="w-5 h-5" />} />
               )}
 
               {canAccessPromptsSection(user.roleLevel) && (
-                <SidebarLink href="/admin/prompts" label="Prompts Curados" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/prompts" label="Prompts Curados" icon={<BookOpen className="w-5 h-5" />} />
               )}
 
               {canAccessChannelsSection(user.roleLevel) && (
-                <SidebarLink href="/admin/channels" label="Canales" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/channels" label="Canales" icon={<Server className="w-5 h-5" />} />
               )}
 
               {canAccessLogsSection(user.roleLevel) && (
-                <SidebarLink href="/admin/logs" label="Logs y Debug" icon={<Users className="w-5 h-5" />} />
+                <SidebarLink href="/admin/logs" label="Logs y Debug" icon={<FileText className="w-5 h-5" />} />
               )}
 
               {canAccessUsersSection(user.roleLevel) && (
                 <SidebarGroup icon={<Users className="w-5 h-5" />} label="Usuarios">
-                  <SidebarLink href="/admin/users/manage" label="Administración" />
-                  <SidebarLink href="/auth/change-password" icon={<KeyRound className="w-4 h-4" />} label="Cambiar contraseña" />
+                  <SidebarLink href="/admin/users/manage" label="Administración" icon={<Users className="w-4 h-4" />} />
                 </SidebarGroup>
               )}
 
