@@ -17,6 +17,8 @@ interface CreateConversationOptions {
   guestId?: string;  // si es guest anónimo (guardalo en cookie)
   metadata?: Record<string, any>;
   status?: "active" | "closed" | "archived";
+  conversationId?: string; // ← AGREGALO
+  subject?: string;        // ← AGREGALO
 }
 
 /**
@@ -47,6 +49,41 @@ export async function createConversation(opts: CreateConversationOptions): Promi
  * Recupera una conversación por ID.
  */
 export async function getConversationById(conversationId: string): Promise<Conversation | null> {
+  console.log("🔍 Buscando conversación por ID:", conversationId);
   const collection = getConversationsCollection();
   return await collection.findOne({ conversationId });
+}
+
+
+export async function getAllConversationsForHotel(hotelId: string) {
+  const collection = getConversationsCollection();
+  return await collection.find({ hotelId }, { sort: { lastUpdatedAt: -1 }, limit: 100 }).toArray();
+}
+
+export async function getConversationsByUser(
+  hotelId: string,
+  id: string // puede ser userId o guestId
+): Promise<Conversation[]> {
+  const collection = getConversationsCollection();
+  const c1 = await collection.find({ hotelId, userId: id }).toArray();
+  const c2 = await collection.find({ hotelId, guestId: id }).toArray();
+  const merged = [...c1, ...c2];
+  const unique = Array.from(new Map(merged.map(c => [c.conversationId, c])).values());
+  return unique;
+}
+
+/**
+ * Actualiza una conversación existente.
+ */
+// Path: /root/begasist/lib/db/conversations.ts
+
+export async function updateConversation(
+  conversationId: string,
+  changes: Partial<Conversation>
+) {
+  const collection = getConversationsCollection();
+  await collection.updateOne(
+    { conversationId },
+    { $set: changes }
+  );
 }

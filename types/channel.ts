@@ -119,6 +119,7 @@ export interface ChannelMessage {
   approvedResponse?: string;
   respondedBy?: string;
   status: MessageStatus;
+  guestId?: string;    // ← AGREGALO
 }
 
 export interface Conversation {
@@ -132,4 +133,5 @@ export interface Conversation {
   guestId?: string; // para guests anónimos, puedes usar UUID (en cookie)
   status?: "active" | "closed" | "archived";
   metadata?: Record<string, any>; // extensible para otras necesidades
+  subject?: string | null; // Asunto de la conversación, opcional
 }

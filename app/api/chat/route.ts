@@ -1,4 +1,5 @@
-// app/api/chat/route.ts
+// Path: /root/begasist/app/api/chat/route.ts
+
 import { NextResponse } from "next/server";
 import { agentGraph } from "@/lib/agents";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
@@ -7,21 +8,105 @@ import { channelMemory } from "@/lib/services/channelMemory";
 import { v4 as uuidv4 } from "uuid";
 import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/types/channel";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import { saveMessageToAstra } from "@/lib/db/messages"; // 👈 helper real AstraDB
+import { saveMessageToAstra } from "@/lib/db/messages";
+import { createConversation, getConversationById, updateConversation } from "@/lib/db/conversations";
 
 export async function POST(req: Request) {
   try {
-    const { query, channel, hotelId }: { query: string; channel: Channel; hotelId?: string } = await req.json();
+    const {
+      query,
+      channel,
+      hotelId,
+      lang,
+      conversationId,
+      subject,
+      guestId,
+    }: {
+      query: string;
+      channel: Channel;
+      hotelId?: string;
+      lang?: string;
+      conversationId?: string;
+      subject?: string;
+      guestId?: string;
+    } = await req.json();
 
     debugLog("🔍 Consulta recibida:", query);
 
     const realHotelId = hotelId || "hotel123";
     const config = await getHotelConfig(realHotelId);
     const mode: ChannelMode = config?.channelConfigs[channel]?.mode || "automatic";
+    const idiomaFinal = lang || config?.defaultLanguage || "es";
 
-    const response = await agentGraph.invoke({
-      messages: [new HumanMessage(query)],
+    // Asegurarse de siempre usar el conversationId recién creado para los mensajes
+    let currentConversationId = conversationId;
+    try {
+      if (!currentConversationId) {
+        const convo = await createConversation({
+          hotelId: realHotelId,
+          channel,
+          lang: idiomaFinal,
+          guestId,
+          subject: subject ?? "",
+        });
+        currentConversationId = convo.conversationId;
+      } else {
+        const existing = await getConversationById(currentConversationId);
+        if (!existing) {
+          const convo = await createConversation({
+            hotelId: realHotelId,
+            channel,
+            lang: idiomaFinal,
+            conversationId: currentConversationId,
+            guestId,
+            subject: subject ?? "",
+          });
+        } else {
+          await updateConversation(currentConversationId, {
+            lastUpdatedAt: new Date().toISOString(),
+            lang: idiomaFinal,
+            subject: typeof subject === "string" ? subject : undefined,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("⛔ Error persistiendo conversación en AstraDB:", err);
+      return NextResponse.json(
+        { response: "Error creando/conectando conversación." },
+        { status: 500 }
+      );
+    }
+
+    // ---- Guardar mensaje del usuario ----
+    const timestampUser = new Date().toISOString();
+    const userMessage: ChannelMessage = {
+      messageId: uuidv4(),
+      sender: guestId || "Usuario Web",
+      time: new Date(timestampUser).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: timestampUser,
+      content: query,
       hotelId: realHotelId,
+      channel,
+      suggestion: "",
+      status: "sent",
+      conversationId: currentConversationId, // <--- SIEMPRE este id, recién generado si aplica
+      guestId,
+    };
+    try {
+      await saveMessageToAstra(userMessage);
+      console.log("✅ Mensaje de usuario guardado en AstraDB:", userMessage.messageId);
+    } catch (err) {
+      console.error("⛔ Error guardando mensaje usuario en AstraDB:", err);
+      channelMemory.addMessage(userMessage);
+    }
+
+    // ---- Guardar mensaje de IA ----
+    const prompt = `Responde SIEMPRE en ${idiomaFinal}. ${query}`;
+    const response = await agentGraph.invoke({
+      messages: [new HumanMessage(prompt)],
+      hotelId: realHotelId,
+      conversationId: currentConversationId,
+      // preferredLanguage: idiomaFinal, // si tu agentGraph lo acepta
     });
 
     const aiMessage = response.messages.findLast(
@@ -29,39 +114,30 @@ export async function POST(req: Request) {
     ) as AIMessage | undefined;
 
     const responseText = aiMessage?.content || "No se encontró una respuesta.";
-
-    const timestamp = new Date().toISOString();
-
+    const timestampAI = new Date().toISOString();
     const status: MessageStatus = mode === "automatic" ? "sent" : "pending";
 
-    const newMessage: ChannelMessage = {
+    const assistantMessage: ChannelMessage = {
       messageId: uuidv4(),
-      sender: "Usuario Web",
-      time: new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      timestamp,
-      content: query,
+      sender: "assistant",
+      time: new Date(timestampAI).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: timestampAI,
+      content: "",
       hotelId: realHotelId,
       channel,
       suggestion: String(responseText),
       status,
       approvedResponse: status === "sent" ? String(responseText) : undefined,
       respondedBy: status === "sent" ? "assistant" : undefined,
+      conversationId: currentConversationId, // <--- SIEMPRE el id correcto
+      guestId,
     };
-
-    // Guardado condicional según entorno
-    // if (process.env.NODE_ENV === "production") {
-    if (true) {
-      try {
-        await saveMessageToAstra(newMessage);
-        console.log("✅ Mensaje guardado en AstraDB:", newMessage.messageId);
-      } catch (err) {
-        console.error("⛔ Error guardando en AstraDB:", err);
-        // (Opcional: también guardalo en memoria como backup en caso de error)
-        channelMemory.addMessage(newMessage);
-      }
-    } else {
-      channelMemory.addMessage(newMessage);
-      console.log("🧠 Mensaje guardado en memoria:", newMessage.messageId);
+    try {
+      await saveMessageToAstra(assistantMessage);
+      console.log("✅ Mensaje IA guardado en AstraDB:", assistantMessage.messageId);
+    } catch (err) {
+      console.error("⛔ Error guardando mensaje IA en AstraDB:", err);
+      channelMemory.addMessage(assistantMessage);
     }
 
     debugLog("📌 Respuesta enviada:", responseText);
@@ -69,7 +145,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       response: responseText,
       status,
-      messageId: newMessage.messageId,
+      messageId: assistantMessage.messageId,
+      conversationId: currentConversationId, // <--- DEVOLVE el id real al front!
+      lang: idiomaFinal,
+      subject: typeof subject === "string" ? subject : undefined,
     });
 
   } catch (error) {

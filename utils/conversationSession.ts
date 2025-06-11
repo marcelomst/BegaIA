@@ -1,7 +1,17 @@
 // /utils/conversationSession.ts
 export function getConversationId(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("conversationId") || getCookie("conversationId");
+  const localValue = localStorage.getItem("conversationId");
+  if (localValue !== null) return localValue;
+  const cookieValue = getCookie("conversationId");
+  return cookieValue !== undefined ? cookieValue : null;
+}
+export function hasConversationId(): boolean {
+  if (typeof window === "undefined") return false;
+  const localValue = localStorage.getItem("conversationId");
+  if (localValue !== null) return true;
+  const cookieValue = getCookie("conversationId");
+  return cookieValue !== undefined;
 }
 
 export function setConversationId(id: string) {
@@ -32,4 +42,19 @@ function setCookie(name: string, value: string, days: number) {
   const d = new Date();
   d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
   document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
+}
+// Resetea la sesión de conversación y el idioma
+// (por ejemplo, al cerrar sesión o al cambiar de usuario)
+// Se usa para limpiar el estado del usuario en la aplicación
+// y en el servidor.
+// También borra las cookies asociadas.
+// por ejemplo, al cerrar sesión o al cambiar de usuario.
+export function resetConversationSession() {
+  try {
+    localStorage.removeItem("conversationId");
+    localStorage.removeItem("lang");
+    // También borrá el cookie (lo setea con expiración pasada)
+    document.cookie = "conversationId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "lang=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  } catch {}
 }

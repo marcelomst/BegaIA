@@ -17,7 +17,10 @@ const PUBLIC_PATHS = [
   "/api/chat",
   "/api/upload-hotel-document",
   "/api/hotel-documents",
+  "/api/conversations/list",         // 👈 AGREGÁ ESTAS DOS
+  "/api/messages/by-conversation",   // 👈
 ];
+
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

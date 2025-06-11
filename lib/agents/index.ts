@@ -31,6 +31,10 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => y,
     default: () => "en",
   }),
+    preferredLanguage: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "en",
+  }),
   promptKey: Annotation<string | null>({
     reducer: (x, y) => y,
     default: () => null,
