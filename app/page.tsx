@@ -10,28 +10,17 @@ import {
   getLang,
   setLang,
   resetConversationSession,
-  hasConversationId,
 } from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
-
-type ChatTurn = {
-  role: "user" | "ai";
-  text: string;
-  timestamp: string;
-};
-
-type ConversationSummary = {
-  conversationId: string;
-  startedAt: string;
-  lastUpdatedAt: string;
-  lang: string;
-  status: string;
-  subject?: string;
-};
+import type { ChatTurn, ConversationSummary } from "@/types/channel";
+import { fetchAndOrderConversationsByChannel } from "@/utils/fetchAndOrderConversations";
+import { fetchAndMapMessagesWithSubject } from "@/utils/fetchAndMapMessagesWithSubject";
 
 export default function ChatPage() {
   const searchParams = useSearchParams();
   const hotelId = searchParams?.get("hotelId") ?? "";
+  const channel = searchParams?.get("channel") ?? "web";
+
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,11 +31,12 @@ export default function ChatPage() {
   const [history, setHistory] = useState<ChatTurn[]>([]);
   const [myConversations, setMyConversations] = useState<ConversationSummary[]>([]);
   const [activeConv, setActiveConv] = useState<string | null>(null);
+  const [pendingNewConversation, setPendingNewConversation] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const guestId = typeof window !== "undefined" ? getOrCreateGuestId() : "";
-  
+
   // Scroll automático al final
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,62 +48,45 @@ export default function ChatPage() {
     setConvId(convId);
     setActiveConv(convId);
     setLangState(getLang());
-    console.log("Conversación actual:", convId);
-    // 👉 Cargar historial si hay conversationId
-    if (convId) {
-      (async () => {
-        try {
-          const res = await fetch(
-            `/api/messages/by-conversation?channelId=web&conversationId=${convId}&hotelId=${hotelId}`
-          );
 
-          const data = await res.json();
-          if (Array.isArray(data.messages)) {
-          const mensajesOrdenados = [...data.messages].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
+    // Siempre cargar la lista de conversaciones previas
+    fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+      .then((ordered) => setMyConversations(ordered))
+      .catch(() => setMyConversations([]));
 
-          setHistory(
-            mensajesOrdenados.map((msg: any) => {
-              if (msg.sender === "assistant") {
-                return {
-                  role: "ai",
-                  text: msg.approvedResponse ?? msg.suggestion ?? "",
-                  timestamp: msg.timestamp,
-                };
-              } else {
-                return {
-                  role: "user",
-                  text: msg.content ?? "",
-                  timestamp: msg.timestamp,
-                };
-              }
-            })
-          );
-
-
-          }
-        } catch (e) {
-          setHistory([]);
-          console.error("Error al cargar historial de mensajes:", e);
-        }
-      })();
+    if (!convId) {
+      // Si no hay conversationId, no hacer nada más
+      return;
     }
 
-    // 👉 Cargar lista de conversaciones previas
-    (async () => {
-      try {
-        const res = await fetch(`/api/conversations/list?hotelId=${hotelId}&guestId=${guestId}`);
-        const data = await res.json();
-        if (Array.isArray(data.conversations)) {
-          setMyConversations(data.conversations);
-          console.log("Conversaciones previas cargadas:", data.conversations);  
-        }
-      } catch (e) {
-        setMyConversations([]);
+    // Verificar si la conversación guardada sigue existiendo en backend
+    fetchAndOrderConversationsByChannel(hotelId, guestId, channel).then((ordered) => {
+      const existe = ordered.some((c) => c.conversationId === convId);
+      if (!existe) {
+        resetConversationSession();
+        setConvId(null);
+        setActiveConv(null);
+        setSubject("");
+        setHistory([]);
+        return;
       }
-    })();
+    });
+
+    // Cargar historial si hay conversationId válido
+    fetchAndMapMessagesWithSubject(channel, convId, hotelId)
+      .then(({ messages, subject }) => {
+        setHistory(messages);
+        setSubject(subject ?? "");
+      })
+      .catch(() => setHistory([]));
   }, []);
+
+  // Nuevo useEffect para actualizar subject cuando cargan las conversaciones
+  useEffect(() => {
+    if (!conversationId) return;
+    const convData = myConversations.find((c) => c.conversationId === conversationId);
+    setSubject(convData?.subject ?? "");
+  }, [myConversations, conversationId]);
 
   function handleLangChange(newLang: string) {
     setLang(newLang);
@@ -125,42 +98,41 @@ export default function ChatPage() {
     setConvId(conversationId);
     setActiveConv(conversationId);
     setConversationId(conversationId);
+    setPendingNewConversation(false);
 
-    const res = await fetch(
-      `/api/messages/by-conversation?channelId=web&conversationId=${conversationId}&hotelId=${hotelId}`
+    const { messages, subject: newSubject } = await fetchAndMapMessagesWithSubject(
+      channel,
+      conversationId,
+      hotelId
     );
+    setHistory(messages);
+    setSubject(newSubject ?? "");
 
-    const data = await res.json();
-    if (Array.isArray(data.messages)) {
-      // Cuando traés el historial del backend
-      const mensajesOrdenados = [...data.messages].sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
-      setHistory(
-        mensajesOrdenados.map((msg: any) => {
-          if (msg.sender === "assistant") {
-            return {
-              role: "ai",
-              text: msg.approvedResponse ?? msg.suggestion ?? "",
-              timestamp: msg.timestamp,
-            };
-          } else {
-            return {
-              role: "user",
-              text: msg.content ?? "",
-              timestamp: msg.timestamp,
-            };
-          }
-        })
-      );
-
-    }
+    // Cargar el subject de la conversación seleccionada desde la lista
+    const convData = myConversations.find((c) => c.conversationId === conversationId);
+    setSubject(convData?.subject ?? "");
     setQuery("");
     textareaRef.current?.focus();
   }
 
-  // 👉 Nueva conversación
+  // 👉 Permitir editar el subject en cualquier momento (salvo loading)
+  const handleSubjectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSubject(e.target.value);
+
+    // Actualización optimista en la lista
+    if (conversationId && e.target.value !== undefined) {
+      setMyConversations((prev) =>
+        prev.map((c) =>
+          c.conversationId === conversationId
+            ? { ...c, subject: e.target.value }
+            : c
+        )
+      );
+    }
+  };
+
+
+  // 👉 Nueva conversación: solo limpia estados del front, no toca storage/cookie
   async function handleNewConversation() {
     if (conversationId) {
       try {
@@ -171,7 +143,6 @@ export default function ChatPage() {
         });
       } catch (err) {}
     }
-    resetConversationSession();
     setConvId(null);
     setActiveConv(null);
     setStatus(null);
@@ -181,119 +152,115 @@ export default function ChatPage() {
     setLangState("es");
     setLang("es");
     setHistory([]);
+    setPendingNewConversation(true);
     textareaRef.current?.focus();
 
-    // Ahora sí: recargá la lista de conversaciones previas (usá conversations/list)
     setTimeout(() => {
-      fetch(`/api/conversations/list?hotelId=${hotelId}&guestId=${guestId}`)
-        .then(res => res.json())
-        .then(data => setMyConversations(data.conversations ?? []));
+      fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+        .then((ordered) => setMyConversations(ordered))
+        .catch(() => setMyConversations([]));
     }, 200);
   }
 
-
   // 👉 Enviar mensaje
-const sendQuery = async () => {
-  if (!query.trim()) return;
-  setLoading(true);
-  setStatus(null);
-  setMessageId(null);
+  const sendQuery = async () => {
+    if (!query.trim()) return;
+    setLoading(true);
+    setStatus(null);
+    setMessageId(null);
 
-  setHistory((h) => [
-    ...h,
-    { role: "user", text: query, timestamp: new Date().toISOString() },
-  ]);
+    setHistory((h) => [
+      ...h,
+      { role: "user", text: query, timestamp: new Date().toISOString() },
+    ]);
 
-  const currentConversationId = getConversationId() || undefined;
-  console.log("⏩ conversationId usado para enviar:", currentConversationId);
-  const currentLang = getLang();
+    const useConversationId = pendingNewConversation ? undefined : getConversationId() || undefined;
+    const currentLang = getLang();
 
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: query,
-        channel: "web",
-        hotelId: hotelId,
-        conversationId: null,
-        lang: currentLang,
-        subject: subject,
-        guestId,
-      }),
-    });
-    let data: any = null;
-    const textResp = await res.text();
     try {
-      data = JSON.parse(textResp);
-    } catch {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: query,
+          channel: channel,
+          hotelId: hotelId,
+          conversationId: useConversationId,
+          lang: currentLang,
+          subject: subject,
+          guestId,
+        }),
+      });
+      let data: any = null;
+      const textResp = await res.text();
+      try {
+        data = JSON.parse(textResp);
+      } catch {
+        setHistory((h) => [
+          ...h,
+          {
+            role: "ai",
+            text: "⚠️ Error del servidor o la ruta no existe. Consulta el backend.",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        setLoading(false);
+        setQuery("");
+        return;
+      }
+      const responseText =
+        typeof data.response === "string"
+          ? data.response
+          : JSON.stringify(data.response, null, 2);
+
+      setStatus(data.status ?? null);
+      setMessageId(data.messageId ?? null);
+
       setHistory((h) => [
         ...h,
         {
           role: "ai",
-          text: "⚠️ Error del servidor o la ruta no existe. Consulta el backend.",
+          text:
+            data.status === "sent"
+              ? responseText
+              : "🕓 Tu consulta fue enviada. Un recepcionista está revisando tu solicitud...",
           timestamp: new Date().toISOString(),
         },
       ]);
+
+      if (data.conversationId) {
+        setConversationId(data.conversationId);
+        setConvId(data.conversationId);
+        setActiveConv(data.conversationId);
+        setPendingNewConversation(false);
+      }
+      if (data.lang) {
+        setLang(data.lang);
+        setLangState(data.lang);
+      }
+      fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+        .then((ordered) => setMyConversations(ordered))
+        .catch(() => setMyConversations([]));
+    } catch (error) {
+      setHistory((h) => [
+        ...h,
+        {
+          role: "ai",
+          text: "Error al obtener respuesta.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
       setLoading(false);
       setQuery("");
-      return;
     }
-    const responseText =
-      typeof data.response === "string"
-        ? data.response
-        : JSON.stringify(data.response, null, 2);
-
-    setStatus(data.status ?? null);
-    setMessageId(data.messageId ?? null);
-
-    setHistory((h) => [
-      ...h,
-      {
-        role: "ai",
-        text:
-          data.status === "sent"
-            ? responseText
-            : "🕓 Tu consulta fue enviada. Un recepcionista está revisando tu solicitud...",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-
-    // --- FIX CLAVE: actualizá siempre la session con el conversationId real ---
-    if (data.conversationId) {
-      setConversationId(data.conversationId);  // ← actualiza cookie y localStorage
-      setConvId(data.conversationId);
-      setActiveConv(data.conversationId);
-    }
-    if (data.lang) {
-      setLang(data.lang);
-      setLangState(data.lang);
-    }
-    // Recargá lista de conversaciones tras el envío
-    fetch(`/api/conversations/list?hotelId=${hotelId}&guestId=${guestId}`)
-      .then(res => res.json())
-      .then(data => setMyConversations(data.conversations ?? []));
-  } catch (error) {
-    setHistory((h) => [
-      ...h,
-      {
-        role: "ai",
-        text: "Error al obtener respuesta.",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-  } finally {
-    setLoading(false);
-    setQuery("");
-  }
-};
-
+  };
 
   // Polling: actualizá respuesta de AI cuando se aprueba en modo supervisado
   useEffect(() => {
     if (status === "pending" && messageId) {
       const interval = setInterval(async () => {
-        const res = await fetch(`/api/messages?channelId=web`);
+        const res = await fetch(`/api/messages?channelId=${channel}`);
         const data = await res.json();
         const updated = data.messages?.find((m: any) => m.messageId === messageId);
 
@@ -317,122 +284,133 @@ const sendQuery = async () => {
 
       return () => clearInterval(interval);
     }
-  }, [status, messageId]);
+  }, [status, messageId, channel]);
 
+  // -------- JSX Render --------
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 transition-colors">
-      <h1 className="text-3xl font-bold mb-4">💬 Chat con IA</h1>
+    <div className="flex flex-col items-center min-h-screen bg-background text-foreground p-0 transition-colors">
 
-      {/* Mis conversaciones */}
-      <div className="w-full max-w-lg mb-4">
-        <h2 className="text-lg font-semibold mb-2">Mis conversaciones</h2>
-        {myConversations.length === 0 && (
-          <div className="text-sm text-muted-foreground">No hay chats previos.</div>
-        )}
-        <ul className="space-y-1">
-          {myConversations.map((c) => (
-            <li key={c.conversationId}>
-              <button
-                className={`text-left w-full px-2 py-1 rounded border transition ${
-                  activeConv === c.conversationId
-                    ? "bg-blue-200 font-bold border-blue-400"
-                    : "hover:bg-blue-100 border"
-                }`}
-                onClick={() => handleSelectConversation(c.conversationId)}
-              >
-                <span className="font-semibold">#{c.conversationId.slice(0, 8)}</span>
-                <span className="ml-2 text-sm italic text-gray-600">{c.subject ?? "Sin asunto"}</span>
-                <span className="ml-2 text-xs">{new Date(c.lastUpdatedAt).toLocaleString()}</span>
-                <span className="ml-2 text-xs text-gray-500">({c.lang})</span>
-                <span className="ml-2 text-xs">{c.status}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      {/* Cabecera Fija */}
+      <div className="w-full max-w-lg sticky top-0 bg-background/95 z-20 pb-2 pt-6 px-6" style={{ backdropFilter: "blur(4px)" }}>
+        <h1 className="text-3xl font-bold mb-0">💬 Chat con IA</h1>
       </div>
 
-      {/* Bloque de chat principal */}
-      <div className="w-full max-w-lg bg-muted p-4 shadow-md rounded-lg border border-border">
-        {/* Mostrar asunto en cabecera */}
-        {subject && (
-          <div className="mb-2 text-base font-semibold text-blue-800">
-            <span>Asunto: </span>
-            <span className="italic">{subject}</span>
-          </div>
-        )}
+      {/* Contenedor principal */}
+      <div className="w-full max-w-lg flex flex-col gap-4 px-6">
 
-        {/* Chat History */}
-        <div
-          className="mb-4 max-h-[340px] overflow-y-auto flex flex-col gap-2"
-          style={{ minHeight: 120 }}
-        >
-          {history.map((msg, idx) => (
-            <div
-              key={idx}
-              className={
-                msg.role === "user"
-                  ? "self-end bg-blue-200 text-blue-900 px-3 py-2 rounded-lg max-w-[70%]"
-                  : "self-start bg-gray-200 text-gray-900 px-3 py-2 rounded-lg max-w-[80%]"
-              }
-              title={msg.timestamp}
-            >
-              <ReactMarkdown>{msg.text}</ReactMarkdown>
-            </div>
-          ))}
-          <div ref={chatEndRef} />
+        {/* Mis conversaciones (cabecera fija + lista scrollable) */}
+        <div className="relative">
+          <div className="sticky top-[64px] bg-background/90 z-10 pb-2 pt-3">
+            <h2 className="text-lg font-semibold mb-0">Mis conversaciones</h2>
+          </div>
+          <div
+            className="overflow-y-auto max-h-[140px] border-b border-border"
+            style={{ minHeight: 44 }}
+          >
+            {myConversations.length === 0 && (
+              <div className="text-sm text-muted-foreground p-2">No hay chats previos.</div>
+            )}
+            <ul className="space-y-1">
+              {myConversations.map((c) => (
+                <li key={c.conversationId}>
+                  <button
+                    className={`text-left w-full px-2 py-1 rounded border transition ${
+                      activeConv === c.conversationId
+                        ? "bg-blue-200 font-bold border-blue-400 dark:bg-primary/10 dark:border-primary"
+                        : "hover:bg-blue-100 border dark:hover:bg-primary/10"
+                    }`}
+                    onClick={() => handleSelectConversation(c.conversationId)}
+                  >
+                    <span className="ml-2 text-sm font-semibold italic text-blue-700 dark:text-primary">
+                      {c.subject?.trim() ? c.subject : "Sin asunto"}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">{c.status}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Input para asunto */}
-        {!conversationId && (
-          <input
-            type="text"
-            className="w-full border border-border bg-background text-foreground p-2 rounded-md mb-2"
-            placeholder="Asunto de la consulta (opcional)"
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            disabled={loading}
-            maxLength={100}
-          />
-        )}
+        {/* Bloque de chat principal */}
+        <div className="w-full bg-muted p-4 shadow-md rounded-lg border border-border flex flex-col gap-2">
 
-        <textarea
-          ref={textareaRef}
-          className="w-full border border-border bg-background text-foreground p-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition"
-          rows={3}
-          placeholder="Escribí tu pregunta..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          disabled={loading}
-        />
+          {/* Mostrar asunto editable */}
+          <div className="mb-2 text-base font-bold flex items-center gap-2">
+            <span className="text-muted-foreground">Asunto:</span>
+            <input
+              type="text"
+              className="px-2 py-1 rounded-full bg-muted text-primary font-semibold shadow-sm border border-border w-full max-w-xs"
+              placeholder="Sin asunto"
+              value={subject}
+              onChange={handleSubjectChange}
+              disabled={loading}
+              maxLength={100}
+              autoComplete="off"
+            />
+          </div>
 
-        <button
-          className="w-full bg-blue-600 text-white p-2 mt-3 rounded-md hover:bg-blue-700 transition"
-          onClick={sendQuery}
-          disabled={loading}
-        >
-          {loading ? "Pensando..." : "Preguntar"}
-        </button>
-
-        {/* Botón para nueva conversación */}
-        <button
-          className="w-full bg-gray-200 text-gray-900 p-2 mt-2 rounded-md border border-gray-300 hover:bg-gray-300 transition"
-          onClick={handleNewConversation}
-          disabled={loading}
-        >
-          Nueva conversación
-        </button>
-
-        <div className="mt-2">
-          <label className="mr-2">Idioma:</label>
-          <select
-            value={lang}
-            onChange={(e) => handleLangChange(e.target.value)}
-            className="border p-1 rounded"
+          {/* Chat History (scrollable) */}
+          <div
+            className="mb-2 max-h-[340px] overflow-y-auto flex flex-col gap-2"
+            style={{ minHeight: 120 }}
           >
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
-            <option value="pt">Portugués</option>
-          </select>
+            {history.map((msg, idx) => (
+              <div
+                key={idx}
+                className={
+                  msg.role === "user"
+                    ? "self-end px-3 py-2 rounded-lg max-w-[70%] bg-blue-100 text-blue-900 dark:bg-blue-700 dark:text-white"
+                    : "self-start px-3 py-2 rounded-lg max-w-[80%] bg-gray-100 text-gray-900 dark:bg-zinc-800 dark:text-white"
+                }
+                title={msg.timestamp}
+              >
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          <textarea
+            ref={textareaRef}
+            className="w-full border border-border p-2 rounded-md focus:ring-2 focus:ring-primary outline-none transition
+              bg-white text-black dark:bg-zinc-900 dark:text-white
+              placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            rows={3}
+            placeholder="Escribí tu pregunta..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            disabled={loading}
+          />
+
+          <button
+            className="w-full bg-blue-600 dark:bg-primary text-white dark:text-background p-2 mt-3 rounded-md hover:bg-blue-700 dark:hover:bg-primary/90 transition"
+            onClick={sendQuery}
+            disabled={loading}
+          >
+            {loading ? "Pensando..." : "Preguntar"}
+          </button>
+
+          <button
+            className="w-full bg-gray-200 dark:bg-muted text-gray-900 dark:text-foreground p-2 mt-2 rounded-md border border-gray-300 dark:border-border hover:bg-gray-300 dark:hover:bg-muted/80 transition"
+            onClick={handleNewConversation}
+            disabled={loading}
+          >
+            Nueva conversación
+          </button>
+
+          <div className="mt-2">
+            <label className="mr-2">Idioma:</label>
+            <select
+              value={lang}
+              onChange={(e) => handleLangChange(e.target.value)}
+              className="border p-1 rounded bg-background text-foreground"
+            >
+              <option value="es">Español</option>
+              <option value="en">Inglés</option>
+              <option value="pt">Portugués</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>

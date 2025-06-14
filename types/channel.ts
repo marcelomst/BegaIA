@@ -135,3 +135,17 @@ export interface Conversation {
   metadata?: Record<string, any>; // extensible para otras necesidades
   subject?: string | null; // Asunto de la conversación, opcional
 }
+export type ChatTurn = {
+  role: "user" | "ai";
+  text: string;
+  timestamp: string;
+};
+
+export type ConversationSummary = {
+  conversationId: string;
+  startedAt: string;
+  lastUpdatedAt: string;
+  lang: string;
+  status: string;
+  subject?: string;
+};

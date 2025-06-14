@@ -37,6 +37,7 @@ export async function createConversation(opts: CreateConversationOptions): Promi
     guestId: opts.guestId,
     status: opts.status ?? "active",
     metadata: opts.metadata ?? {},
+    subject: opts.subject ?? "", // ← AGREGALO
   };
 
   const collection = getConversationsCollection();
