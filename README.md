@@ -632,3 +632,59 @@ export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number) {
 ###  📝 Nota para futuros desarrolladores
 No modifiques esta lógica sin analizar implicancias de seguridad a nivel plataforma SaaS multihotel.
 Los SuperAdmin (roleLevel: 0) solo existen en el hotel “system” para fines de administración técnica global.
+¡Perfecto! Te armo un **ERD sencillo en ASCII** (para README) y te lo dejo listo para copiar/pegar/documentar la arquitectura de tu sistema Hotel Assistant multicanal. También incluyo breve explicación y recomendaciones para mantenerlo actualizado.
+
+---
+
+````md
+## 🗂️ Organigrama de entidades y relaciones Hotel Assistant (ERD)
+
+```text
+┌────────────┐       ┌───────────┐      ┌───────────────┐
+│   Hotel    │1─────N│   Guest   │1────N│  Conversation │1───N┐
+└────────────┘       └───────────┘      └───────────────┘     │
+   │   ▲                    │  ▲                │             │
+   │   │                    │  │                │             │
+   │   │                ┌───┘  └────────────┐   │             │
+   │   │                │                   │   │             │
+   ▼   │           ┌─────────┐        ┌───────────────┐       │
+┌────────────┐     │  User   │        │ ChannelMessage│◀─────┘
+│ HotelConfig│     └─────────┘        └───────────────┘
+└────────────┘
+
+Leyenda:
+- 1────N: relación uno a muchos (ej: un hotel tiene muchos guests)
+- Guest y User referencian hotelId
+- Conversation une a Guest + canal + asunto
+- ChannelMessage pertenece a una Conversation
+````
+
+---
+
+### 📚 Descripción de entidades
+
+* **Hotel**: Entidad principal, agrupa toda la información de cada hotel.
+* **HotelConfig**: Configuración y modos de canal para cada hotel.
+* **Guest**: Cliente/visitante. Puede tener varios canales (web, whatsapp, email, etc), y un modo de supervisión personalizado.
+* **User**: Personal autenticado del hotel, con roles y permisos.
+* **Conversation**: Hilo de conversación entre un guest y el hotel por un canal/tema.
+* **ChannelMessage**: Mensajes enviados/recibidos en cada conversación (IA, recepcionista o guest).
+
+### 📝 Notas de diseño
+
+* El **modo de supervisión** del guest (`mode`) prevalece sobre el modo del canal.
+* El guest puede tener un **nombre personalizado** para seguimiento, editable por el staff.
+* El mismo guest puede comunicarse por varios canales bajo el mismo hotel.
+* Los mensajes tienen `status`, `respondedBy`, y permiten tracking granular (quién, cuándo y cómo respondió).
+
+---
+
+### 🚩 Recomendaciones para mantener el ERD
+
+* Actualizá este diagrama y la descripción si se agregan nuevas entidades o relaciones.
+* Usá los nombres de campo en minúscula/camelCase como referencia a los modelos reales en `/types`.
+* Si implementás features avanzados (multi-hotel admin, merge de guests cross-channel, etc), extendé el organigrama.
+
+---
+
+¿Lo querés con ejemplo de documento de cada colección/tipo, o agrego un resumen visual más detallado?

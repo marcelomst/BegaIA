@@ -27,6 +27,6 @@ export async function GET(req: NextRequest) {
   }
 
   const messages = await getMessagesByConversation(hotelId, channel, conversationId);
-  console.log(`Recuperando mensajes para conversación ${conversationId} en canal ${channel}`, messages);
+  
   return NextResponse.json({ messages });
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/lib/context/ThemeContext";
 
 export function ApplyThemeClass() {
   const { theme } = useTheme();

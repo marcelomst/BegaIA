@@ -10,6 +10,7 @@ import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/type
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { saveMessageToAstra } from "@/lib/db/messages";
 import { createConversation, getConversationById, updateConversation } from "@/lib/db/conversations";
+import { getGuest } from "@/lib/db/guest"; // 👈 Import correcto para backend
 
 export async function POST(req: Request) {
   try {
@@ -115,7 +116,20 @@ export async function POST(req: Request) {
 
     const responseText = aiMessage?.content || "No se encontró una respuesta.";
     const timestampAI = new Date().toISOString();
-    const status: MessageStatus = mode === "automatic" ? "sent" : "pending";
+
+    // 👇 **PRIORIDAD: guest.mode > channel.mode**
+    let effectiveMode: ChannelMode = mode;
+    if (guestId) {
+      try {
+        const guestProfile = await getGuest(realHotelId, guestId);
+        if (guestProfile && guestProfile.mode) {
+          effectiveMode = guestProfile.mode;
+        }
+      } catch (err) {
+        console.warn("No se pudo obtener el perfil del guest para modo personalizado:", err);
+      }
+    }
+    const status: MessageStatus = effectiveMode === "automatic" ? "sent" : "pending";
 
     const assistantMessage: ChannelMessage = {
       messageId: uuidv4(),
@@ -129,7 +143,7 @@ export async function POST(req: Request) {
       status,
       approvedResponse: status === "sent" ? String(responseText) : undefined,
       respondedBy: status === "sent" ? "assistant" : undefined,
-      conversationId: currentConversationId, // <--- SIEMPRE el id correcto
+      conversationId: currentConversationId,
       guestId,
     };
     try {
@@ -146,7 +160,7 @@ export async function POST(req: Request) {
       response: responseText,
       status,
       messageId: assistantMessage.messageId,
-      conversationId: currentConversationId, // <--- DEVOLVE el id real al front!
+      conversationId: currentConversationId,
       lang: idiomaFinal,
       subject: typeof subject === "string" ? subject : undefined,
     });

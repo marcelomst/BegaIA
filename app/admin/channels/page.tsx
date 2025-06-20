@@ -1,36 +1,23 @@
-// /app/admin/channels/page.tsx
+// Path: /root/begasist/app/admin/channels/page.tsx
+"use client";
 
-import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import ChannelsClient from "@/components/admin/ChannelsClient";
-import { BarChart3 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth/getCurrentUser"; // 👈 Ajustá el import si tu función está en otro lado
+import { useState } from "react";
+import ChannelSidebar from "@/components/admin/ChannelSidebar";
+import ChannelPanel from "@/components/admin/ChannelPanel";
+import ChannelOverview from "@/components/admin/ChannelOverview";
 
-export default async function ChannelsPage() {
-  // 🔐 Obtené el usuario logueado del contexto server-side
-  const user = await getCurrentUser();
-  const hotelId = user?.hotelId || "hotel999"; // Fallback razonable
-
-  const config = await getHotelConfig(hotelId);
-
-  if (!config) {
-    return (
-      <div className="min-h-screen bg-background text-foreground py-12 px-6">
-        <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6" />
-          Estado de Canales
-        </h1>
-        <p className="text-red-500">❌ Error: no se pudo cargar la configuración del hotel.</p>
-      </div>
-    );
-  }
+export default function AdminChannelsPage() {
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12 px-6">
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-        <BarChart3 className="w-6 h-6" />
-        Estado de Canales
-      </h1>
-      <ChannelsClient initialConfig={config.channelConfigs} hotelId={hotelId} />
+    <div className="flex min-h-screen bg-background text-foreground">
+      <ChannelSidebar selected={selected || ""} onSelect={setSelected} />
+      <main className="flex-1 flex flex-col">
+        <div className="flex-1">
+          {!selected && <ChannelOverview hotelId="yourHotelIdHere" />}
+          {selected && <ChannelPanel channel={selected} />}
+        </div>
+      </main>
     </div>
   );
 }

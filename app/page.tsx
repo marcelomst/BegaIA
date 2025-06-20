@@ -13,7 +13,7 @@ import {
 } from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
 import type { ChatTurn, ConversationSummary } from "@/types/channel";
-import { fetchAndOrderConversationsByChannel } from "@/utils/fetchAndOrderConversations";
+import { fetchConversationsByChannelAndGuest } from "@/utils/fetchAndOrderConversations";
 import { fetchAndMapMessagesWithSubject } from "@/utils/fetchAndMapMessagesWithSubject";
 
 export default function ChatPage() {
@@ -50,7 +50,7 @@ export default function ChatPage() {
     setLangState(getLang());
 
     // Siempre cargar la lista de conversaciones previas
-    fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+    fetchConversationsByChannelAndGuest(hotelId, guestId, channel)
       .then((ordered) => setMyConversations(ordered))
       .catch(() => setMyConversations([]));
 
@@ -60,7 +60,7 @@ export default function ChatPage() {
     }
 
     // Verificar si la conversación guardada sigue existiendo en backend
-    fetchAndOrderConversationsByChannel(hotelId, guestId, channel).then((ordered) => {
+    fetchConversationsByChannelAndGuest(hotelId, guestId, channel).then((ordered) => {
       const existe = ordered.some((c) => c.conversationId === convId);
       if (!existe) {
         resetConversationSession();
@@ -156,7 +156,7 @@ export default function ChatPage() {
     textareaRef.current?.focus();
 
     setTimeout(() => {
-      fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+      fetchConversationsByChannelAndGuest(hotelId, guestId, channel)
         .then((ordered) => setMyConversations(ordered))
         .catch(() => setMyConversations([]));
     }, 200);
@@ -238,7 +238,7 @@ export default function ChatPage() {
         setLang(data.lang);
         setLangState(data.lang);
       }
-      fetchAndOrderConversationsByChannel(hotelId, guestId, channel)
+      fetchConversationsByChannelAndGuest(hotelId, guestId, channel)
         .then((ordered) => setMyConversations(ordered))
         .catch(() => setMyConversations([]));
     } catch (error) {

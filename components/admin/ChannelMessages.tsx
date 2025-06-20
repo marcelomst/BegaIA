@@ -1,4 +1,5 @@
 // /root/begasist/components/admin/ChannelMessages.tsx
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { RefreshCcw } from "lucide-react";

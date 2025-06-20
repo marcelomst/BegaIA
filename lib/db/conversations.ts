@@ -65,6 +65,7 @@ export async function getConversationsByUser(
   hotelId: string,
   id: string // puede ser userId o guestId
 ): Promise<Conversation[]> {
+  console.log("🔍 Buscando conversaciones para hotel:", hotelId, "y usuario/guest ID:", id);
   const collection = getConversationsCollection();
   const c1 = await collection.find({ hotelId, userId: id }).toArray();
   const c2 = await collection.find({ hotelId, guestId: id }).toArray();
@@ -88,3 +89,18 @@ export async function updateConversation(
     { $set: changes }
   );
 }
+
+/**
+ * Trae todas las conversaciones de un hotel+canal (sin importar guestId/userId)
+ */
+export async function getConversationsByHotelAndChannel(
+  hotelId: string,
+  channel: Channel // <-- use the Channel type instead of string
+): Promise<Conversation[]> {
+  const collection = getConversationsCollection();
+  // Devuelve las más recientes primero, límite 200 (ajustá a gusto)
+  return await collection
+    .find({ hotelId, channel }, { sort: { lastUpdatedAt: -1 }, limit: 200 })
+    .toArray();
+}
+

@@ -141,6 +141,20 @@ export type ChatTurn = {
   timestamp: string;
 };
 
+
+export type ChatTurnWithMeta = {
+  role: "user" | "ai";
+  text: string;
+  timestamp: string;
+
+  // Nuevos campos para soporte admin
+  status?: string;
+  respondedBy?: string;
+  approvedResponse?: string;
+  suggestion?: string;    // Sugerencia original del asistente (para “Ver original”)
+  messageId?: string;     // Para acciones de editar/enviar/identificar mensaje
+};
+
 export type ConversationSummary = {
   conversationId: string;
   startedAt: string;
@@ -148,4 +162,22 @@ export type ConversationSummary = {
   lang: string;
   status: string;
   subject?: string;
+  guestId?: string; // ID del guest si es anónimo
+  channel?: Channel
 };
+
+export type GuestMode = "automatic" | "supervised";
+
+export interface Guest {
+  guestId: string;        // UUID único por guest
+  hotelId: string;        // Hotel propietario del guest
+  name?: string;          // Nombre visible (asignado por guest o recepcionista)
+  createdAt: string;      // ISO date
+  updatedAt?: string;     // ISO date
+  mode?: GuestMode;       // Modo preferido para este guest (opcional)
+  tags?: string[];        // Etiquetas, VIP, grupo, etc.
+  email?: string;
+  phone?: string;
+  mergedIds?: string[]; // opcional: guests fusionados
+  // Podés agregar otros campos según evolucione
+}
