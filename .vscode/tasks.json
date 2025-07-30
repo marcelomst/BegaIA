@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Buscar carpeta",
+      "type": "shell",
+      "command": "./fifo.sh",
+      "problemMatcher": []
+    }
+  ]
+}

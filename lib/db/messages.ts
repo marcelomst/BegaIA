@@ -1,21 +1,13 @@
-// /lib/db/messages.ts (refactorizado con tipado fuerte)
+// Path: /root/begasist/lib/db/messages.ts
 
-import { DataAPIClient } from "@datastax/astra-db-ts";
-import * as dotenv from "dotenv";
-
+import { getAstraDB } from "@/lib/astra/connection";
 import type { Channel } from "@/types/channel";
 import type { ChannelMessage, MessageStatus } from "@/types/channel";
-dotenv.config();
 
-const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
 const MESSAGES_COLLECTION = "messages";
 
 export const getCollection = () => {
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
-  return db.collection<ChannelMessage>(MESSAGES_COLLECTION);
+  return getAstraDB().collection<ChannelMessage>(MESSAGES_COLLECTION);
 };
 
 export async function saveMessageToAstra(message: ChannelMessage) {
@@ -51,7 +43,7 @@ export async function updateMessageInAstra(
   try {
     const collection = getCollection();
     const result = await collection.updateOne(
-      { hotelId, messageId }, // ✅ se asegura que el mensaje pertenece a ese hotel
+      { hotelId, messageId },
       { $set: changes }
     );
 
@@ -67,7 +59,6 @@ export async function updateMessageInAstra(
     throw err;
   }
 }
-
 
 export async function deleteMessageFromAstra(messageId: string) {
   try {
@@ -155,6 +146,7 @@ export async function getMessagesFromAstraByHotelIdAndChannelAndSender(
     throw err;
   }
 }
+
 export async function getMessagesFromAstraByConversation(
   hotelId: string,
   channel: Channel,
@@ -166,6 +158,23 @@ export async function getMessagesFromAstraByConversation(
     return await cursor.toArray();
   } catch (err) {
     console.error("❌ Error al obtener mensajes por conversación desde Astra DB:", err);
+    throw err;
+  }
+}
+
+/**
+ * Busca un mensaje por su originalMessageId para idempotencia (por ej: Message-ID del email recibido).
+ * Devuelve el mensaje si existe, o null si no existe.
+ * 
+ * ⚠️ Asegurate de que guardás el campo originalMessageId en todos los ChannelMessage entrantes (email).
+ */
+export async function getMessageByOriginalId(originalMessageId: string): Promise<ChannelMessage | null> {
+  try {
+    const collection = getCollection();
+    const doc = await collection.findOne({ originalMessageId });
+    return doc || null;
+  } catch (err) {
+    console.error("❌ Error buscando mensaje por originalMessageId en Astra DB:", err);
     throw err;
   }
 }

@@ -1,132 +1,153 @@
-// /app/admin/page.tsx
+// Path: /root/begasist/app/admin/hotels/page.tsx
+
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DarkCard } from "@/components/ui/DarkCard";
-import {
-  Hotel,
-  Upload,
-  Brain,
-  BookOpen,
-  Server,
-  FileText,
-  Settings,
-} from "lucide-react";
-import UserStatus from "@/components/UsertStatus";
-import { useCurrentUser } from "@/lib/context/UserContext"; // 👈
+import { Button } from "@/components/ui/button";
+import { Hotel, Loader, PlusCircle, Pencil, Trash2 } from "lucide-react";
+import type { HotelConfig, Channel } from "@/types/channel";
+import { getChannelIcon } from "@/lib/utils/getChannelIcon";
 
-export default function AdminDashboard() {
-  const { user, loading } = useCurrentUser();
-  console.log("👤 user desde contexto:", user, "loading:", loading);
-  if (loading) {
-    return <div className="p-6 text-center text-gray-500">Cargando usuario...</div>;
+export default function HotelsAdminPage() {
+  const [hotels, setHotels] = useState<HotelConfig[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Cargar hoteles (puede ser llamado después de borrar)
+  const fetchHotels = () => {
+    setLoading(true);
+    fetch("/api/hotels/list")
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener hoteles");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setHotels(data);
+        } else if (Array.isArray(data.hotels)) {
+          setHotels(data.hotels);
+        } else {
+          setHotels([]);
+        }
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchHotels();
+  }, []);
+
+  // Borrar hotel con confirmación
+  async function handleDelete(hotelId: string) {
+    if (!window.confirm("¿Seguro que deseas borrar este hotel?")) return;
+    setDeletingId(hotelId);
+    try {
+      const res = await fetch(`/api/hotels/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotelId }),
+      });
+      if (!res.ok) throw new Error("Error al borrar hotel");
+      fetchHotels(); // refresca la lista
+    } catch (err) {
+      alert("No se pudo borrar el hotel.");
+    } finally {
+      setDeletingId(null);
+    }
   }
-  if (!user) {
-    return <div className="p-6 text-center text-red-600">No se pudo cargar el usuario.</div>;
-  }
-
-  // Cards configurados por roles
-  const allCards = [
-    {
-      key: "hotels",
-      roleMin: 0,
-      roleMax: 19,
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><Hotel className="w-5 h-5" />Hoteles</div>}
-          description="Gestioná tus hoteles registrados en el sistema."
-        >
-          <Link href="/admin/hotels"><Button>Ver hoteles</Button></Link>
-        </DarkCard>
-      ),
-    },
-    {
-      key: "upload",
-      roleMin: 0,
-      roleMax: 19,
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><Upload className="w-5 h-5" />Carga de Datos</div>}
-          description="Subí documentos o URLs para enriquecer la base de conocimiento."
-        >
-          <Link href="/admin/upload"><Button>Cargar datos</Button></Link>
-        </DarkCard>
-      ),
-    },
-    {
-      key: "embeddings",
-      roleMin: 0,
-      roleMax: 19,
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><Brain className="w-5 h-5" />Embeddings</div>}
-          description="Consultá y gestioná la base vectorial por hotel y categoría."
-        >
-          <Link href="/admin/embeddings"><Button>Ver embeddings</Button></Link>
-        </DarkCard>
-      ),
-    },
-    {
-      key: "prompts",
-      roleMin: 0,
-      roleMax: 19,
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><BookOpen className="w-5 h-5" />Prompts Curados</div>}
-          description="Editá prompts por categoría y subcategoría."
-        >
-          <Link href="/admin/prompts"><Button>Editar prompts</Button></Link>
-        </DarkCard>
-      ),
-    },
-    {
-      key: "channels",
-      roleMin: 0,
-      roleMax: 99, // todos los roles ven canales
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><Server className="w-5 h-5" />Canales</div>}
-          description="Estado de los canales conectados: web, email, WhatsApp, channel manager."
-        >
-          <Link href="/admin/channels"><Button>Ver estado</Button></Link>
-        </DarkCard>
-      ),
-    },
-    {
-      key: "logs",
-      roleMin: 0,
-      roleMax: 19,
-      node: (
-        <DarkCard
-          title={<div className="flex items-center gap-2"><FileText className="w-5 h-5" />Logs y Debug</div>}
-          description="Revisá errores, ejecuciones recientes y trazas de flujo."
-        >
-          <Link href="/admin/logs"><Button>Ver logs</Button></Link>
-        </DarkCard>
-      ),
-    },
-  ];
-
-  // Solo muestra los cards según el roleLevel
-  const visibleCards = allCards.filter(
-    (card) =>
-      user.roleLevel >= card.roleMin && user.roleLevel <= card.roleMax
-  );
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12 px-6">
-      <h1 className="text-3xl font-bold text-center mb-10 flex items-center justify-center gap-3">
-        <Settings className="w-6 h-6" />
-        Panel de Control
-      </h1>
+    <div className="min-h-screen bg-background text-foreground py-10 px-4">
+      <div className="max-w-4xl mx-auto flex flex-col gap-8">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <Hotel className="w-7 h-7" />
+          Hoteles registrados
+        </h1>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {visibleCards.map(card => (
-          <div key={card.key}>{card.node}</div>
-        ))}
+        <div className="flex items-center mb-4 gap-3">
+          <Link href="/admin/hotels/new">
+            <Button className="flex items-center gap-2">
+              <PlusCircle className="w-4 h-4" />
+              Agregar hotel
+            </Button>
+          </Link>
+        </div>
+
+        {loading && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader className="animate-spin w-5 h-5" />
+            Cargando hoteles...
+          </div>
+        )}
+
+        {error && (
+          <div className="text-red-500 font-medium">{error}</div>
+        )}
+
+        {!loading && !error && hotels.length === 0 && (
+          <div className="text-muted-foreground">No hay hoteles registrados aún.</div>
+        )}
+
+        {!loading && !error && hotels.length > 0 && (
+          <div className="bg-muted border border-border rounded-lg shadow p-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left py-2">ID</th>
+                  <th className="text-left py-2">Nombre</th>
+                  <th className="text-left py-2">Email</th>
+                  <th className="text-left py-2">Canales activos</th>
+                  <th className="text-left py-2">País</th>
+                  <th className="text-left py-2">Fecha alta</th>
+                  <th className="text-left py-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hotels.map((hotel) => (
+                  <tr key={hotel.hotelId} className="border-t border-border">
+                    <td className="py-2 font-mono">{hotel.hotelId}</td>
+                    <td className="py-2">{hotel.hotelName}</td>
+                    <td className="py-2">{hotel.users?.[0]?.email ?? "-"}</td>
+                    <td className="py-2 flex flex-wrap items-center gap-2">
+                      {hotel.channelConfigs &&
+                        Object.entries(hotel.channelConfigs)
+                          .filter(([_, cfg]) => cfg?.enabled)
+                          .map(([channel]) => (
+                            <span title={channel} key={channel}>
+                              {getChannelIcon(channel as Channel, 18)}
+                            </span>
+                          ))}
+                    </td>
+                    <td className="py-2">{hotel.country ?? "-"}</td>
+                    <td className="py-2">
+                      {hotel.lastUpdated ? new Date(hotel.lastUpdated).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="py-2 flex gap-2">
+                      <Link href={`/admin/hotels/${hotel.hotelId}/edit`}>
+                        <Button size="sm" variant="outline">
+                          <Pencil className="w-4 h-4 mr-1" /> Editar
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={deletingId === hotel.hotelId}
+                        onClick={() => handleDelete(hotel.hotelId)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        {deletingId === hotel.hotelId ? "Borrando..." : "Borrar"}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-      <UserStatus />
     </div>
   );
 }

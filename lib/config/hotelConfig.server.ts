@@ -1,11 +1,12 @@
-// /root/begasist/lib/config/hotelConfig.server.ts
+// Path: /root/begasist/lib/config/hotelConfig.server.ts
 
 import type { ChannelMode, HotelConfig } from "@/types/channel";
 import { getAstraDB } from "@/lib/astra/connection";
-import dotenv from "dotenv";
-dotenv.config();
 
-export const collection = getAstraDB().collection("hotel_config");
+// ✅ Ahora es un helper local, NO global.
+export function getHotelConfigCollection() {
+  return getAstraDB().collection("hotel_config");
+}
 
 export type HotelChannelConfig = {
   mode: ChannelMode;
@@ -15,6 +16,7 @@ export type HotelChannelConfig = {
 
 // Obtiene la configuración de un hotel por su ID.
 export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
+  const collection = getHotelConfigCollection();
   const result = await collection.findOne({ hotelId });
   // ⚠️ fallback para iso3to1 si es system
   if (result && hotelId === "system" && !result.iso3to1) {
@@ -31,6 +33,7 @@ export async function getHotelConfig(hotelId: string): Promise<HotelConfig | nul
 
 // Lista completa de hoteles (garantiza channelConfigs existe)
 export async function getAllHotelConfigs(): Promise<HotelConfig[]> {
+  const collection = getHotelConfigCollection();
   const result = await collection.find({}).toArray();
 
   return result
@@ -56,6 +59,7 @@ export async function getAllHotelConfigs(): Promise<HotelConfig[]> {
 
 // Actualiza la configuración de un hotel por su ID.
 export async function updateHotelConfig(hotelId: string, updates: Partial<HotelConfig>) {
+  const collection = getHotelConfigCollection();
   const current = await collection.findOne({ hotelId });
 
   // Merge profundo solo en channelConfigs
@@ -76,3 +80,16 @@ export async function updateHotelConfig(hotelId: string, updates: Partial<HotelC
 
   return merged;
 }
+
+export async function deleteHotelConfig(hotelId: string) {
+  const collection = getHotelConfigCollection();
+  await collection.deleteOne({ hotelId });
+}
+
+export async function createHotelConfig(hotelConfig: HotelConfig) {
+  const collection = getHotelConfigCollection();
+  // ❌ remover _id antes de insertar
+  delete (hotelConfig as any)._id;
+  await collection.insertOne(hotelConfig);
+  return hotelConfig;
+} 

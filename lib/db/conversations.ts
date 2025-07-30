@@ -104,3 +104,46 @@ export async function getConversationsByHotelAndChannel(
     .toArray();
 }
 
+
+
+/**
+ * Obtiene o crea una conversación de WhatsApp para un hotel+sender.
+ */
+export async function getOrCreateConversation({
+  conversationId,
+  hotelId,
+  channel,
+  guestId,
+  startedAt,
+  lastUpdatedAt,
+  lang = "es",
+  status = "active",
+  subject = "",
+}: {
+  conversationId: string;
+  hotelId: string;
+  channel: Channel;
+  guestId: string;
+  startedAt: string;
+  lastUpdatedAt: string;
+  lang?: string;
+  status?: "active" | "closed" | "archived";
+  subject?: string;
+}) {
+  const collection = getConversationsCollection();
+  const existing = await collection.findOne({ conversationId });
+  if (existing) return existing;
+  const conversation: Conversation = {
+    conversationId,
+    hotelId,
+    channel,
+    guestId,
+    startedAt,
+    lastUpdatedAt,
+    lang,
+    status,
+    subject,
+  };
+  await collection.insertOne(conversation);
+  return conversation;
+}

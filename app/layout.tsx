@@ -1,8 +1,9 @@
-// /app/layout.tsx
+// Path: /app/layout.tsx
 import { Metadata } from "next";
 import { ThemeProvider } from "@/lib/context/ThemeContext";
 import { ApplyThemeClass } from "@/components/utils/ApplyThemeClass";
-import { Toaster } from "sonner"; // 👈 importá el componente
+import { Toaster } from "sonner";
+import { TooltipProvider } from "@radix-ui/react-tooltip"; // 👈 IMPORTANTE
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-background text-foreground transition-colors duration-300">
         <ThemeProvider>
           <ApplyThemeClass />
-          {children}
+          {/* 👇 Envolvé children en el TooltipProvider */}
+          <TooltipProvider delayDuration={250}>
+            {children}
+          </TooltipProvider>
         </ThemeProvider>
 
         {/* ✅ Toasts globales */}

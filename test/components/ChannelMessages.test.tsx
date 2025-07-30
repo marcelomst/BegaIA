@@ -15,7 +15,7 @@ function mockFetchResponse(messages: ChannelMessage[]) {
 
 const baseMessage = {
   sender: "Usuario Web",
-  hotelId: "hotel123",
+  hotelId: "hotel999",
   channel: "web" as Channel,
   approvedResponse: undefined,
   respondedBy: "sofia@hotel.com",

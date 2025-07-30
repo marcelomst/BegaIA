@@ -1,0 +1,5 @@
+@startuml ejemplo
+actor Alice
+actor Bob
+Alice -> Bob : Hello!
+@enduml

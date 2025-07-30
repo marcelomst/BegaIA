@@ -1,20 +1,14 @@
-// /root/begasist/lib/astra/index.ts
-import { DataAPIClient } from "@datastax/astra-db-ts";
-import * as dotenv from "dotenv";
-dotenv.config();
+// Path: /root/begasist/lib/astra/index.ts
+import { getAstraDB } from "@/lib/astra/connection";
 
-const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
 const ASTRA_DB_COLLECTION_NAME = "begaia";
 
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
-
-
+/**
+ * Realiza una búsqueda vectorial en la colección global de Astra DB usando el embedding de OpenAI.
+ * @param query Consulta de texto
+ */
 export async function searchAstraDB(query: string) {
   try {
-    // const collection = db.collection(ASTRA_DB_COLLECTION_NAME); // Esta línea va abajo
     // Generar embedding de la consulta con OpenAI
     const response = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
@@ -35,15 +29,12 @@ export async function searchAstraDB(query: string) {
       console.warn("⚠ ADVERTENCIA: El embedding de la consulta no tiene 1536 dimensiones.");
     }
 
-    // 🔥 Esta es la forma correcta: usá el keyspace y la URL desde variables de entorno
+    // Usa el helper centralizado
+    const db = getAstraDB();
     const collection = db.collection(ASTRA_DB_COLLECTION_NAME);
     if (!collection) {
       throw new Error(`No se encontró la colección: ${ASTRA_DB_COLLECTION_NAME}`);
     }
-
-    // Verificar la configuración de la colección en AstraDB
-    const collectionInfo = await collection.options();
-    console.log("📌 Configuración de la colección en AstraDB:", JSON.stringify(collectionInfo, null, 2));
 
     // Realizar búsqueda vectorial
     console.log("🔍 Ejecutando búsqueda vectorial...");

@@ -1,49 +1,59 @@
 // Path: /root/begasist/components/admin/ChannelPanel.tsx
 "use client";
-import { Server, Mail, Smartphone, Globe, RefreshCcw, Repeat } from "lucide-react";
+
+import { RefreshCcw } from "lucide-react";
 import ChannelInbox from "@/components/admin/ChannelInbox";
 import { useCurrentUser } from "@/lib/context/UserContext";
 import { useEffect, useState } from "react";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
+import { CHANNELS, ChannelId, ChannelConfig } from "@/lib/config/channelsConfig";
+import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import EmailPollingToggle from "@/components/admin/EmailPollingToggle";
+import ModelSelector from "@/components/admin/ModelSelector";
+import type { CurationModel } from "@/types/channel";
 
-const icons: Record<string, any> = {
-  web: Globe,
-  email: Mail,
-  whatsapp: Smartphone,
-  channelManager: Server,
-};
-
-export default function ChannelPanel({ channel }: { channel: string }) {
+export default function ChannelPanel({ channel }: { channel: ChannelId }) {
   const { user } = useCurrentUser();
   const [mode, setMode] = useState<"automatic" | "supervised">("automatic");
+  const [curationModel, setCurationModel] = useState<CurationModel>("gpt-3.5-turbo");
   const [loading, setLoading] = useState(false);
-  const [reloadFlag, setReloadFlag] = useState(0); // para forzar refresh de mensajes
+  const [reloadFlag, setReloadFlag] = useState(0);
+  const [t, setT] = useState<any>(null);
 
-  // Traer config real de canal
+  const channelConfig: ChannelConfig | undefined = CHANNELS.find((ch) => ch.id === channel);
+
   useEffect(() => {
-    if (user?.hotelId) {
+    if (user?.hotelId && channel) {
       fetchHotelConfig(user.hotelId).then((cfg) => {
-        if (cfg && cfg.channelConfigs && (channel in cfg.channelConfigs)) {
-          setMode((cfg.channelConfigs as any)[channel]?.mode ?? "automatic");
-        } else {
-          setMode("automatic");
+        if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
+          const ch = (cfg.channelConfigs as any)[channel];
+          setMode(ch?.mode ?? "automatic");
+          if (channel === "email") {
+            setCurationModel(ch?.preferredCurationModel ?? "gpt-3.5-turbo");
+          }
         }
       });
     }
   }, [channel, user?.hotelId]);
 
-  // Alternar modo: POST a /api/config/mode
-  async function handleToggleMode() {
+  useEffect(() => {
+    if (!user?.defaultLanguage) return setT(null);
+    getDictionary(user.defaultLanguage)
+      .then(setT)
+      .catch(() => setT(null));
+  }, [user?.defaultLanguage]);
+
+  async function handleToggleMode(newMode: "automatic" | "supervised") {
     if (!user?.hotelId) return;
     setLoading(true);
     try {
-      await fetch(
-        `/api/config/mode?channel=${channel}&hotelId=${user.hotelId}`,
-        { method: "POST" }
-      );
-      // Forzar refresco de config
+      await fetch(`/api/config/mode?channel=${channel}&hotelId=${user.hotelId}&mode=${newMode}`, {
+        method: "POST",
+      });
       fetchHotelConfig(user.hotelId).then((cfg) => {
-        if (cfg && cfg.channelConfigs && (channel in cfg.channelConfigs)) {
+        if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
           setMode((cfg.channelConfigs as any)[channel]?.mode ?? "automatic");
         } else {
           setMode("automatic");
@@ -54,43 +64,95 @@ export default function ChannelPanel({ channel }: { channel: string }) {
     }
   }
 
-  // Forzar recarga de mensajes (ChannelInbox acepta prop reloadFlag)
   function handleReloadMessages() {
     setReloadFlag((f) => f + 1);
   }
 
-  const Icon = icons[channel] || Server;
+  if (!t) {
+    return (
+      <section className="flex-1 flex flex-col p-6">
+        <div className="text-muted-foreground">Cargando diccionario...</div>
+      </section>
+    );
+  }
 
   return (
     <section className="flex-1 flex flex-col p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <Icon className="w-6 h-6" />
-        <h2 className="text-xl font-bold">{channel.charAt(0).toUpperCase() + channel.slice(1)}</h2>
-        <span className="ml-2 text-xs bg-gray-200 dark:bg-zinc-800 px-2 py-1 rounded font-semibold">
-          {mode === "automatic" ? "🧠 Automático" : "🧍 Supervisado"}
-        </span>
-        {/* Botón de cambio de modo */}
-        <button
-          className="ml-4 px-3 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-700 transition"
-          onClick={handleToggleMode}
-          disabled={loading}
-          title={`Cambiar a modo ${mode === "automatic" ? "🧍 Supervisado" : "🧠 Automático"}`}
-        >
-          <Repeat className="w-4 h-4 inline -mt-1 mr-1" />
-          Cambiar a {mode === "automatic" ? "Supervisado" : "Automático"}
-        </button>
-        {/* Botón de recargar mensajes */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        {channelConfig?.icon ? (
+          <Image
+            src={channelConfig.icon}
+            alt={channelConfig.label}
+            width={28}
+            height={28}
+            className="w-7 h-7"
+            priority
+          />
+        ) : (
+          <span className="w-7 h-7 rounded bg-gray-200 flex items-center justify-center text-lg">❓</span>
+        )}
+
+        <h2 className="text-xl font-bold">
+          {t.sidebar[channelConfig?.id ?? channel] || channelConfig?.label || channel}
+        </h2>
+
+        <div className="flex items-center gap-2 ml-4">
+          <Switch
+            checked={mode === "supervised"}
+            onCheckedChange={(checked) => handleToggleMode(checked ? "supervised" : "automatic")}
+            disabled={loading}
+          />
+          <span
+            className={
+              "flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold " +
+              (mode === "supervised"
+                ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-200"
+                : "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200")
+            }
+          >
+            {mode === "supervised" ? (
+              <>
+                <span className="mr-1">🧍</span>
+                {t.channelPanel?.supervised || "Supervisado"}
+              </>
+            ) : (
+              <>
+                <span className="mr-1">🧠</span>
+                {t.channelPanel?.automatic || "Automático"}
+              </>
+            )}
+          </span>
+        </div>
+
+        {channel === "email" && (
+          <div className="flex items-center gap-3 ml-4">
+            <ModelSelector
+              hotelId={user?.hotelId || ""}
+              current={curationModel}
+              onChange={(newModel: CurationModel) => setCurationModel(newModel)}
+            />
+          </div>
+        )}
+
+        {channel === "email" && <EmailPollingToggle hotelId={user?.hotelId || ""} />}
+
         <button
           className="ml-2 px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300 dark:bg-zinc-800 dark:hover:bg-zinc-700"
           onClick={handleReloadMessages}
-          title="Recargar mensajes"
+          title={t.channelPanel?.reload || "Recargar mensajes"}
         >
           <RefreshCcw className="w-4 h-4 inline -mt-1 mr-1" />
-          Recargar
+          {t.channelPanel?.reload || "Recargar"}
         </button>
       </div>
-      {/* Pasamos reloadFlag como prop para forzar recarga */}
-      <ChannelInbox hotelId={user?.hotelId || ""} channel={channel} reloadFlag={reloadFlag} />
+
+      <ChannelInbox
+        hotelId={user?.hotelId || ""}
+        channel={channel}
+        reloadFlag={reloadFlag}
+        t={t}
+        curationModel={curationModel}
+      />
     </section>
   );
 }

@@ -1,6 +1,7 @@
-// lib/services/channelManager.ts
+// Path: /root/begasist/lib/services/channelManager.ts
 import { agentGraph } from "../agents";
 import { HumanMessage } from "@langchain/core/messages";
+import { startChannelHeartbeat } from "@/lib/services/heartbeat"; // 🆕 Importamos
 
 const simulatedReservations = [
   "Quiero reservar una habitación doble para el 10 de junio al 12 de junio.",
@@ -8,8 +9,11 @@ const simulatedReservations = [
   "Necesito una habitación individual para esta noche.",
 ];
 
-export async function startChannelManagerBot() {
+export async function startChannelManagerBot(hotelId: string) {
   console.log("🛰️ [channelManager] Iniciado. Simulando reservas cada 15s...");
+
+  // 🆕 Iniciar heartbeat para este hotel
+  startChannelHeartbeat("channelManager", hotelId);
 
   setInterval(async () => {
     try {

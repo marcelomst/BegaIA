@@ -12,14 +12,13 @@ import fs from "fs";
 import { cosineSimilarity } from "../utils/similarity";
 import type { ChunkResult, InsertableChunk, SearchFilters } from "../../types/chunk";
 import pdfParse from "pdf-parse";
-import dotenv from "dotenv";
 import { getHotelAstraCollection } from "../astra/connection";
 import { getHotelConfig } from "../config/hotelConfig.server";
 import { franc } from "franc";
 import { iso3To1 } from "@/lib/utils/lang";
 import { saveOriginalTextChunksToAstra } from "../astra/hotelTextCollection";
 
-dotenv.config();
+
 
 const urls = ["https://www.hoteldemo.com/en/index.php"];
 export function getCollectionName(hotelId: string) {
@@ -341,11 +340,11 @@ async function getLatestVersionForHotel(collection: any, hotelId: string) {
 
 export async function searchFromAstra(
   query: string,
-  hotelId: string = "hotel123",
+  hotelId: string = "hotel999",
   filters: SearchFilters = {}
 ) {
-  if (!hotelId || hotelId === "hotel123") {
-    console.warn("⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel123'");
+  if (!hotelId || hotelId === "hotel999") {
+    console.warn("⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'");
   }
   const embedder = new OpenAIEmbeddings();
   const queryVector = await embedder.embedQuery(query);

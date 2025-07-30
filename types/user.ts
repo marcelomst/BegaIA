@@ -36,4 +36,5 @@ export interface CurrentUser {
   hotelId: string;
   hotelName: string;
   roleLevel: RoleLevel;
+  defaultLanguage?: string;   // 👈 Agregá este campo
 }

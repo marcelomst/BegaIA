@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOriginalTextChunksFromAstra } from "@/lib/astra/hotelTextCollection";
 
-// GET /api/hotel-texts?hotelId=hotel123&originalName=hotel-demo-en-textonly.pdf&version=v1
+// GET /api/hotel-texts?hotelId=hotel999&originalName=hotel-demo-en-textonly.pdf&version=v1
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

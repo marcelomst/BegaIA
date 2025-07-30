@@ -4,7 +4,7 @@ import { getAllHotelConfigs } from "@/lib/config/hotelConfig.server";
 
 type HotelPhoneCache = Record<string, string>; // phone@c.us -> hotelId
 
-function normalizePhone(phone: string): string {
+export function normalizePhone(phone: string): string {
   // Borra no-dígitos y agrega @c.us
   return phone.replace(/\D/g, "") + "@c.us";
 }

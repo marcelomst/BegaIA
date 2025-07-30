@@ -1,0 +1,33 @@
+# Path: /docker-compose.dev.yml
+
+services:
+  suite:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev  # 👈 usamos Dockerfile.dev para entorno de desarrollo
+    image: begasist-suite:dev
+    container_name: begasist-suite
+    command: pnpm dev
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app                         # 👈 montamos el código
+      - /app/node_modules             # 👈 esto evita que se monte tu node_modules local
+      - /app/.next                    # 👈 permite persistir el build para hot reload
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: begasist-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

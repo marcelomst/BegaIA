@@ -1,0 +1,21 @@
+@startuml opinion_guest
+actor "Guest" as Guest
+actor "OTA (Booking.com)" as OTA
+actor "Channel Manager" as CM
+actor "PMS" as PMS
+actor "Hotel Assistant (Begasist)" as HA
+actor "Recepcionista" as Receptionist
+
+'--- FLUJO DE OPINIÓN/RESEÑA ---
+Guest --> OTA : Deja opinión/comentario\n(post-estadía)
+OTA --> CM : (opcional) Notifica nueva opinión\n(si soportado por API)
+OTA --> PMS : Notifica opinión (más comúnmente por email o portal)
+CM --> PMS : (opcional) Pasa opinión si hay API
+CM --> HA : (opcional) Notifica opinión guest\n(entrega texto, rating, etc.)
+PMS --> HA : (opcional) Notifica opinión guest\n(entrega texto, rating, etc.)
+HA --> Receptionist : Alerta, análisis de sentimiento,\nsugerencia de respuesta, tag “crítica positiva/negativa”
+Receptionist --> PMS : Responde opinión vía OTA (si canal lo permite)\no toma acción manual
+HA --> CM : (opcional) Automatiza respuesta si se autoriza
+CM --> OTA : OTA muestra respuesta a Guest
+
+@enduml

@@ -1,13 +1,18 @@
-// /app/api/users/create/route.ts
+// Path: /app/api/users/create/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
-  const { hotelId, email, name, position, roleLevel } = await req.json();
+  const { hotelId, email, name, position, roleLevel, password } = await req.json();
 
   if (!hotelId || !email) {
     return NextResponse.json({ error: "Faltan datos obligatorios (hotelId, email)" }, { status: 400 });
+  }
+
+  if (!password || password.length < 6) {
+    return NextResponse.json({ error: "La contraseña es obligatoria y debe tener al menos 6 caracteres" }, { status: 400 });
   }
 
   // ⛔️ Validación: sólo 'system' puede tener usuarios roleLevel 0
@@ -29,6 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const verificationToken = randomUUID();
+  const passwordHash = await bcrypt.hash(password, 10);
 
   const newUser = {
     userId: randomUUID(),
@@ -36,8 +42,9 @@ export async function POST(req: NextRequest) {
     name: name?.trim() || "",
     position: position?.trim() || "",
     roleLevel: roleLevel ?? 20,
+    passwordHash, // 👈 Ahora sí guarda el hash bcrypt
     active: false, // 👈 Por defecto inactivo hasta que verifique
-    verificationToken, // 👈 Token de verificación
+    verificationToken,
     createdAt: new Date().toISOString(),
   };
 

@@ -3,7 +3,6 @@ import React from "react";
 
 interface Channel {
   id: string;
-  name: string;
   icon: React.ReactNode;
   unread?: number;
 }
@@ -12,15 +11,17 @@ export function ChannelSidebar({
   channels,
   activeChannel,
   onSelectChannel,
+  t,
 }: {
   channels: Channel[];
   activeChannel: string;
   onSelectChannel: (id: string) => void;
+  t: any; // Diccionario i18n
 }) {
   return (
     <aside className="w-44 md:w-56 bg-muted border-r border-border h-full flex flex-col">
       <div className="px-4 py-5 border-b border-border font-bold text-lg">
-        Panel de Canales
+        {t.sidebar?.channelsPanel || "Panel de Canales"}
       </div>
       <nav className="flex-1 overflow-y-auto mt-2">
         <button
@@ -32,7 +33,7 @@ export function ChannelSidebar({
           onClick={() => onSelectChannel("overview")}
         >
           <span className="text-xl">📊</span>
-          <span>Visión general</span>
+          <span>{t.sidebar?.overview || "Visión general"}</span>
         </button>
         {channels.map((ch) => (
           <button
@@ -45,7 +46,7 @@ export function ChannelSidebar({
               }`}
           >
             <span className="text-xl">{ch.icon}</span>
-            <span>{ch.name}</span>
+            <span>{t.sidebar?.[ch.id] || t.sidebar?.unknown || ch.id}</span>
             {ch.unread ? (
               <span className="ml-auto bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
                 {ch.unread}

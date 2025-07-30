@@ -1,4 +1,4 @@
-// /app/api/users/delete/route.ts
+// /root/begasist/app/admin/users/delete/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 

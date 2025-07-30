@@ -1,0 +1,194 @@
+// Path: /root/begasist/lib/agents/index.ts
+import { StateGraph } from "@langchain/langgraph";
+import { classifyQuery } from "../classifier";
+import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
+import { pms } from "../pms";
+import { ChatOpenAI } from "@langchain/openai";
+import { createRetrieverTool } from "langchain/tools/retriever";
+import { Annotation } from "@langchain/langgraph";
+import { retrievalBased } from "./retrieval_based";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { debugLog } from "../utils/debugLog";
+import { searchFromAstra } from "../retrieval";
+import { detectLanguage } from "../utils/language";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+// import { RunnableRetriever } from "langchain/retrievers/runnable";
+import { RunnableRetriever } from "langchain/retrievers";
+
+
+
+process.env.OPENAI_LOG = "off";
+debugLog("🔧 Compilando grafo conversacional...");
+
+// ----------------------------
+// Estado del grafo
+export const GraphState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y),
+    default: () => [] as BaseMessage[],
+  }),
+  category: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "other",
+  }),
+  detectedLanguage: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "spa", // español por defecto
+  }),
+  preferredLanguage: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "spa",
+  }),
+  promptKey: Annotation<string | null>({
+    reducer: (x, y) => y,
+    default: () => null,
+  }),
+  hotelId: Annotation<string>({
+    reducer: (x, y) => y,
+    default: () => "hotel123",
+  }),
+  conversationId: Annotation<string | null>({
+    reducer: (x, y) => y,
+    default: () => null,
+  }),
+});
+
+// ----------------------------
+// Retriever y modelo (uno por hotel)
+let retrieverToolsByHotel: Record<string, any> = {};
+let model: any;
+
+export async function initializeVectorStore(hotelId: string) {
+  if (!retrieverToolsByHotel[hotelId]) {
+    const retriever = createRetrieverTool(
+      new RunnableRetriever({
+        getRelevantDocuments: async (query: string) => {
+          const results = await searchFromAstra(query, hotelId);
+          return results.map((text) => ({
+            pageContent: text,
+            metadata: {},
+          }));
+        }
+      }),
+      {
+        name: "retrieve_hotel_info",
+        description: "Search hotel FAQs and policies.",
+      }
+    );
+    retrieverToolsByHotel[hotelId] = retriever;
+    debugLog(`✅ Vector store inicializado desde AstraDB para hotelId=${hotelId}`);
+  }
+
+  if (!model) {
+    model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
+      Object.values(retrieverToolsByHotel)
+    );
+  }
+  return retrieverToolsByHotel[hotelId];
+}
+
+// ----------------------------
+// Nodo de clasificación
+export async function classifyNode(state: typeof GraphState.State) {
+  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
+  const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
+
+  // Leer idioma por defecto del hotel (seguridad/fallback)
+  let hotelConfig: any = undefined;
+  let defaultLang = "spa";
+  if (state.hotelId) {
+    try {
+      hotelConfig = await getHotelConfig(state.hotelId);
+      defaultLang = hotelConfig?.languageDefault || "spa";
+    } catch (e) {
+      debugLog("⚠️ No se pudo obtener hotelConfig:", e);
+    }
+  }
+
+  let detectedLang = defaultLang;
+  if (question) {
+    try {
+      detectedLang = await detectLanguage(question, state.hotelId);
+    } catch (e) {
+      detectedLang = defaultLang;
+    }
+  }
+
+  let classification;
+  try {
+    classification = await classifyQuery(question);
+    debugLog("🔀 Clasificación detectada:", classification);
+  } catch (e) {
+    console.error("❌ Error clasificando la consulta:", e);
+    classification = { category: "retrieval_based", promptKey: null };
+  }
+
+  const { category, promptKey } = classification;
+  const validPromptKeys = promptMetadata[category] || [];
+  const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
+
+  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey, detectedLang });
+
+  return {
+    ...state,
+    category,
+    promptKey: finalPromptKey,
+    detectedLanguage: detectedLang,
+    preferredLanguage: defaultLang,
+    messages: [
+      ...state.messages,
+      new AIMessage(
+        `Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""} (🌐 lang: ${detectedLang})`
+      ),
+    ],
+  };
+}
+
+// ----------------------------
+// Nodos funcionales del grafo
+async function handleReservationNode() {
+  const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
+  return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
+}
+async function handleAmenitiesionNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de amenities.")] };
+}
+async function handleBillingNode() {
+  return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
+}
+async function handleSupportNode() {
+  return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
+}
+async function retrievalBasedNode(state: typeof GraphState.State) {
+  // Usar el retriever específico del hotel actual
+  const hotelId = state.hotelId || "hotel123";
+  await initializeVectorStore(hotelId);
+  // SOLO PASÁ STATE, los demás datos están dentro del state
+  return await retrievalBased(state);
+}
+
+// ----------------------------
+// Definición del grafo
+const graph = new StateGraph(GraphState)
+  .addNode("classify", classifyNode)
+  .addNode("handle_reservation", handleReservationNode)
+  .addNode("handle_amenities", handleAmenitiesionNode)
+  .addNode("handle_billing", handleBillingNode)
+  .addNode("handle_support", handleSupportNode)
+  .addNode("handle_retrieval_based", retrievalBasedNode)
+  .addEdge("__start__", "classify")
+  .addConditionalEdges("classify", (state) => state.category, {
+    reservation: "handle_reservation",
+    amenities: "handle_amenities",
+    billing: "handle_billing",
+    support: "handle_support",
+    retrieval_based: "handle_retrieval_based",
+  })
+  .addEdge("handle_reservation", "__end__")
+  .addEdge("handle_amenities", "__end__")
+  .addEdge("handle_billing", "__end__")
+  .addEdge("handle_support", "__end__")
+  .addEdge("handle_retrieval_based", "__end__");
+
+debugLog("✅ Grafo compilado con éxito.");
+export const agentGraph = graph.compile();

@@ -10,7 +10,7 @@ import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/type
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { saveMessageToAstra } from "@/lib/db/messages";
 import { createConversation, getConversationById, updateConversation } from "@/lib/db/conversations";
-import { getGuest } from "@/lib/db/guest"; // 👈 Import correcto para backend
+import { getGuest } from "@/lib/db/guests"; // 👈 Import correcto para backend
 
 export async function POST(req: Request) {
   try {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     debugLog("🔍 Consulta recibida:", query);
 
-    const realHotelId = hotelId || "hotel123";
+    const realHotelId = hotelId || "hotel999";
     const config = await getHotelConfig(realHotelId);
     const mode: ChannelMode = config?.channelConfigs[channel]?.mode || "automatic";
     const idiomaFinal = lang || config?.defaultLanguage || "es";

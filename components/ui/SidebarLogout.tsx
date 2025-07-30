@@ -1,5 +1,4 @@
-// /root/begasist/components/ui/SidebarLogout.tsx
-
+// Path: /root/begasist/components/ui/SidebarLogout.tsx
 "use client";
 
 import { LogOut } from "lucide-react";
@@ -21,7 +20,7 @@ export function SidebarLogout() {
       className="w-full justify-start mt-4 text-red-500 hover:bg-red-500/10"
     >
       <LogOut className="w-5 h-5 mr-2" />
-      Cerrar sesión
+      <span className="truncate">Cerrar sesión</span>
     </Button>
   );
 }

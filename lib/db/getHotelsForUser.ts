@@ -1,6 +1,6 @@
 // /lib/db/getHotelsForUser.ts
 
-import { collection } from "@/lib/config/hotelConfig.server";
+import { getHotelConfigCollection } from "@/lib/config/hotelConfig.server";
 
 /**
  * Devuelve todos los hoteles donde el userId existe y está activo.
@@ -8,6 +8,7 @@ import { collection } from "@/lib/config/hotelConfig.server";
 export async function getHotelsForUser(
   userId: string
 ): Promise<{ hotelId: string; name: string }[]> {
+  const collection = getHotelConfigCollection();
   const results = await collection
     .find({ "users.userId": userId })
     .toArray();

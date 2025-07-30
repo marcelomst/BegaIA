@@ -16,7 +16,9 @@
     "ts-check": "tsc --noEmit",
     "ts-strict": "tsc --noEmit --strict",
     "test:classifier": "tsx scripts/testClassifier.ts",
-    "init:config": "tsx scripts/init-config.ts"
+    "init:config": "tsx scripts/init-config.ts",
+    "start:channelbot": "pnpm exec tsx lib/entrypoints/channelBot.ts",
+    "dev:channelbot": "nodemon --watch lib --exec tsx lib/entrypoints/channelBot.ts"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "github:datastax/astra-db-ts",
@@ -25,12 +27,15 @@
     "@langchain/langgraph": "^0.2.55",
     "@langchain/openai": "^0.4.9",
     "@radix-ui/react-dropdown-menu": "^2.1.14",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-tooltip": "^1.2.7",
     "@types/form-data": "^2.5.2",
     "axios": "^1.8.3",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "country-state-city": "^3.2.1",
     "dotenv": "^16.4.7",
     "esbuild": "^0.25.2",
     "form-data": "^4.0.2",
@@ -40,9 +45,10 @@
     "fs": "0.0.1-security",
     "glob": "^11.0.1",
     "imap-simple": "^5.1.0",
+    "ioredis": "^5.6.1",
     "jose": "^6.0.10",
     "jwt-decode": "^4.0.0",
-    "langchain": "0.3.19",
+    "langchain": "0.3.29",
     "lucide-react": "^0.487.0",
     "luxon": "^3.6.1",
     "mailparser": "^3.7.2",
@@ -51,10 +57,10 @@
     "openai": "^4.87.3",
     "pdf-parse": "^1.1.1",
     "pdfkit": "^0.16.0",
-    "puppeteer": "^24.4.0",
-    "puppeteer-core": "^24.6.1",
+    "puppeteer": "^24.11.0",
     "puppeteer-extra": "^3.3.6",
     "qrcode-terminal": "^0.12.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
@@ -69,7 +75,7 @@
     "twilio": "^5.5.0",
     "undici": "^7.4.0",
     "uuid": "^11.1.0",
-    "whatsapp-web.js": "^1.26.0",
+    "whatsapp-web.js": "^1.30.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
@@ -77,6 +83,7 @@
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-react": "^7.26.3",
     "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.30.0",
     "@langchain/textsplitters": "^0.1.0",
     "@tailwindcss/postcss": "^4.0.14",
     "@testing-library/jest-dom": "^6.6.3",
@@ -104,10 +111,12 @@
     "jsdom": "^26.0.0",
     "next": "15.2.2",
     "next-test-api-route-handler": "^4.0.15",
+    "nodemon": "^3.1.10",
     "postcss": "^8.5.3",
     "supertest": "^7.0.0",
     "tailwindcss": "3.4.1",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
@@ -116,6 +125,10 @@
   "pnpm": {
     "overrides": {
       "@datastax/astra-db-ts": "2.0.1"
-    }
-  }
+    },
+    "onlyBuiltDependencies": [
+      "puppeteer"
+    ]
+  },
+  "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417"
 }

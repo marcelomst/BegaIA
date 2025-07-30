@@ -6,7 +6,7 @@ import { ALL_CHANNELS, type Channel } from "@/types/channel";
 
 export async function GET(req: NextRequest) {
   try {
-    const hotelId = req.nextUrl.searchParams.get("hotelId") || "hotel123";
+    const hotelId = req.nextUrl.searchParams.get("hotelId") || "hotel999";
     const userId = req.nextUrl.searchParams.get("userId") || undefined;
     const guestId = req.nextUrl.searchParams.get("guestId") || undefined;
     const rawChannel = req.nextUrl.searchParams.get("channel") || undefined;

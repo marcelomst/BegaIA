@@ -1,5 +1,4 @@
-// /root/begasist/components/ui/SidebarLink.tsx
-
+// Path: /root/begasist/components/ui/SidebarLink.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,9 +9,8 @@ import { cn } from "@/lib/utils";
 type SidebarLinkProps = {
   href: string;
   label: string;
-  icon?: ReactNode; // 👈 ahora es opcional
+  icon?: ReactNode;
 };
-
 
 export function SidebarLink({ href, icon, label }: SidebarLinkProps) {
   const pathname = usePathname();
@@ -23,12 +21,12 @@ export function SidebarLink({ href, icon, label }: SidebarLinkProps) {
       href={href}
       className={cn(
         "flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-800 transition",
-        isActive && "bg-gray-800 font-semibold"
+        isActive && "bg-gray-800 font-semibold",
+        !label && "justify-center"
       )}
     >
-      {/* Si no hay icono, no se renderiza el span */}
       {icon && <span className="text-lg">{icon}</span>}
-      <span>{label}</span>
+      {label && <span>{label}</span>}
     </Link>
   );
 }

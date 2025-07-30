@@ -41,7 +41,7 @@ export const GraphState = Annotation.Root({
   }),
   hotelId: Annotation<string>({
     reducer: (x, y) => y,
-    default: () => "hotel123",
+    default: () => "hotel999",
   }),
   conversationId: Annotation<string | null>({        // 🔥 agregar esto
     reducer: (x, y) => y,
@@ -61,7 +61,7 @@ export async function initializeVectorStore() {
     vectorStore = {
       asRetriever: () => ({
         getRelevantDocuments: async (query: string) => {
-          const results = await searchFromAstra(query, "hotel123");
+          const results = await searchFromAstra(query, "hotel999");
           return results.map((text) => ({
             pageContent: text,
             metadata: {},

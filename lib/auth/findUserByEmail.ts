@@ -1,6 +1,6 @@
 // /lib/auth/findUserByEmail.ts
 
-import { collection } from "@/lib/config/hotelConfig.server";
+import { getHotelConfigCollection } from "@/lib/config/hotelConfig.server";
 import { HotelUser } from "@/types/user";
 
 /**
@@ -9,6 +9,7 @@ import { HotelUser } from "@/types/user";
  */
 export async function findUserByEmail(email: string): Promise<(HotelUser & { hotelId: string })[]> {
   // Traé TODOS los hoteles (sin filtro por email)
+  const collection = getHotelConfigCollection();
   const cursor = await collection.find({});
   const docs = await cursor.toArray();
 

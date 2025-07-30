@@ -1,8 +1,9 @@
 // /lib/auth/getCurrentUser.ts
 import { cookies } from "next/headers";
 import { verifyJWT } from "@/lib/auth/jwt";
-import { collection } from "@/lib/config/hotelConfig.server";
-import type { CurrentUser } from "@/lib/context/UserContext";
+import {getHotelConfigCollection} from "@/lib/config/hotelConfig.server";
+import type { CurrentUser } from "@/types/user";
+
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const cookieStore = await cookies(); // ⬅️ Await cookies() since it returns a Promise
@@ -11,7 +12,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const payload = await verifyJWT(token);
   if (!payload) return null;
-
+  const collection = getHotelConfigCollection();
   const config = await collection.findOne({ hotelId: payload.hotelId });
   const hotelName = config?.hotelName || payload.hotelId;
 

@@ -1,0 +1,28 @@
+# Path: /Dockerfile.dev
+
+# Imagen base
+FROM node:20-alpine
+
+# 1. Crea el directorio de trabajo
+WORKDIR /app
+
+# 2. Copia solo los archivos clave para cachear mejor
+COPY package.json pnpm-lock.yaml ./
+
+# 3. Prepara pnpm y habilita corepack
+RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+
+# 4. Instala dependencias
+RUN pnpm install
+
+# 5. Copia el resto del código (opcional si se usa volume)
+COPY . .
+
+# 6. Expone el puerto de desarrollo
+EXPOSE 3000
+
+# 7. Entorno de desarrollo
+ENV NODE_ENV=development
+
+# 8. Comando por defecto
+CMD ["pnpm", "dev"]

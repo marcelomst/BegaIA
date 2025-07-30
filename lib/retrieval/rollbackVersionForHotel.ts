@@ -1,23 +1,23 @@
-// /lib/retrieval/rollbackVersionForHotel.ts
+// Path: /root/begasist/lib/retrieval/rollbackVersionForHotel.ts
 
-import { DataAPIClient } from "@datastax/astra-db-ts";
-import dotenv from "dotenv";
-dotenv.config();
+import { getAstraDB } from "@/lib/astra/connection";
 
+/**
+ * Restaura una versión anterior de chunks del hotel creando una nueva versión.
+ * @param hotelId         - ID lógico del hotel
+ * @param sourceVersion   - Versión original que quieres restaurar
+ * @param targetVersion   - (opcional) Nombre custom para la nueva versión restaurada
+ * @param restoredBy      - (opcional) Quién hizo el restore (default: "system")
+ */
 export async function rollbackVersionForHotel(
   hotelId: string,
   sourceVersion: string,
-  targetVersion?: string,   // opcional, si querés customizar el nombre
+  targetVersion?: string,
   restoredBy: string = "system"
 ) {
-  const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-  const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-  const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  const db = getAstraDB();
   const collectionName = `${hotelId}_collection`;
-  const collection = await db.collection(collectionName);
+  const collection = db.collection(collectionName);
 
   // 1. Traer los chunks originales de la versión fuente
   const docs = await collection.find({ hotelId, version: sourceVersion }).toArray();
@@ -32,10 +32,7 @@ export async function rollbackVersionForHotel(
   // 3. Clonar los chunks con nueva versión y nueva marca de fecha
   let inserted = 0;
   for (const doc of docs) {
-    const {
-      _id,    // nunca copiar _id
-      ...rest
-    } = doc;
+    const { _id, ...rest } = doc; // nunca copiar _id
     await collection.insertOne({
       ...rest,
       version: newVersion,
@@ -48,7 +45,7 @@ export async function rollbackVersionForHotel(
 
   return {
     ok: true,
-     restoredChunks: inserted,
+    restoredChunks: inserted,
     newVersion,
   };
 }

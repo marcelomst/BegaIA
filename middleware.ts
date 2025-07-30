@@ -19,6 +19,11 @@ const PUBLIC_PATHS = [
   "/api/hotel-documents",
   "/api/conversations/list",         // 👈 AGREGÁ ESTAS DOS
   "/api/messages/by-conversation",   // 👈
+  "/api/whatsapp/qr",
+  "/api/debug/list-user-passwords", 
+  "/api/users/reset-password",
+  "/api/channel-status",
+  "/api/email/polling", // 👈 AGREGÁ ESTA RUTA TAMBIÉN
 ];
 
 

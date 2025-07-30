@@ -1,32 +1,24 @@
-process.on("uncaughtException", (err) => {
-    console.error("💥 Excepción no capturada:", err);
-  });
-  
-  process.on("unhandledRejection", (reason) => {
-    console.error("💥 Promesa rechazada sin catch:", reason);
-  });
-  
-  console.log("🟢 Iniciando entrypoint all.ts...");
-  
-  import { startEmailBot } from "../services/email";
-  import { startWhatsAppBot } from "../services/whatsapp";
-  import { startChannelManagerBot } from "../services/channelManager";
-  import { webMemory } from "@/lib/services/webMemory";
-  
-  async function startAll() {
+// Path: /root/begasist/lib/entrypoints/all.ts
+
+import { getAllHotelConfigs } from "@/lib/config/hotelConfig.server";
+import { startHotelBot } from "@/lib/entrypoints/channelBot";
+
+/**
+ * Inicia un proceso/bot por hotel activo, cada uno lanza sus canales configurados.
+ * Se ejecuta una vez al levantar el backend.
+ */
+async function main() {
+  const hotels = await getAllHotelConfigs();
+  console.log(`[all.ts] 🚀 Lanzando bots para ${hotels.length} hoteles...`);
+  for (const h of hotels) {
+    // Si querés, agregá un campo h.active o similar para pausar hoteles "borrados"
     try {
-      await Promise.all([
-        // startEmailBot(),
-        startWhatsAppBot(),
-        // startChannelManagerBot(),
-      ]);
-      webMemory.clearMessages();
-      console.log("🧹 Memoria web limpia");
-      console.log("✅ Todos los canales iniciados correctamente.");
+      await startHotelBot(h.hotelId);
     } catch (err) {
-      console.error("❌ Error al iniciar uno o más canales:", err);
+      console.error(`[all.ts] ❌ Error lanzando channelBot para ${h.hotelId}:`, err);
     }
   }
-  
-  startAll();
-  
+  console.log("[all.ts] ✅ Todos los hoteles inicializados.");
+}
+
+main();

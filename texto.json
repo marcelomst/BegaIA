@@ -1,29 +1,64 @@
 {
-  "_id": "2802ca92-a3cf-46d3-82ca-92a3cfe6d38d",
-  "hotelId": "system",
-  "channelConfigs": { "web": { "enabled": true, "mode": "supervised" } },
-  "defaultLanguage": "es",
-  "emailSettings": {
-    "imapHost": "imap.gmail.com",
-    "imapPort": 993,
-    "smtpHost": "smtp.gmail.com",
-    "smtpPort": 587,
-    "emailAddress": "begamshop.ventas@gmail.com",
-    "password": "umammswkuzoakqqu",
-    "secure": false
+  "_id": "95bc00be-9d3a-4281-bc00-be9d3af281dc",
+  "hotelId": "hotel999",
+  "channelConfigs": {
+    "web": { "enabled": true, "mode": "automatic" },
+    "whatsapp": {
+      "enabled": true,
+      "mode": "automatic",
+      "celNumber": "+59898835914",
+      "apiKey": ""
+    },
+    "email": {
+      "enabled": true,
+      "mode": "supervised",
+      "dirEmail": "begamshop.ventas@gmail.com",
+      "password": "umammswkuzoakqqu",
+      "imapHost": "imap.gmail.com",
+      "imapPort": 993,
+      "smtpHost": "smtp.gmail.com",
+      "smtpPort": 587,
+      "secure": false
+    }
   },
-  "hotelName": "Sistema Técnico",
-  "lastUpdated": "2025-05-15T18:50:01.644Z",
+  "defaultLanguage": "es",
+  "hotelName": "Hotel Demo",
+  "lastUpdated": "2025-07-02T08:29:40.486Z",
   "timezone": "America/Argentina/Buenos_Aires",
   "users": [
     {
       "email": "marcelomst1@gmail.com",
-      "passwordHash": "$2b$10$8/LUYohBBvGS2lqjWEuI2OxUFDdez2U.EoC33WN4iB5780WUGBsrq",
-      "roleLevel": 0,
+      "passwordHash": "$2b$10$tA3bsRsszWpTk48Vaz6cH.MSQIekSRjaNrEQex5IKpdVy8lPPfwYu",
+      "roleLevel": 10,
       "active": true,
-      "verificationToken": "1f1215a6-3b68-4693-9296-f7ecaead7024",
-      "createdAt": "2025-05-15T18:50:01.643Z",
-      "userId": "cda81e9d-b439-45a2-8b45-e411403c1757"
+      "createdAt": "2025-05-06T11:47:43.939Z",
+      "userId": "6d4eda74-2c25-40c4-9c32-7a0050082ab4",
+      "name": "Marcelo Martinez",
+      "position": "Tecnico SaaS",
+      "resetToken": "5dad9fc4bda5bd838f6274d42364750ccb362949df24e9e8ff47721af3f8969c",
+      "resetTokenExpires": "2025-05-17T15:15:35.454Z"
+    },
+    {
+      "userId": "f689b1f2-05c3-4ab4-bf11-9c807083b9c1",
+      "email": "begamshop.ventas@gmail.com",
+      "name": "Ana Gomez",
+      "position": "Recepcionista",
+      "roleLevel": 20,
+      "active": true,
+      "createdAt": "2025-05-22T11:21:03.488Z",
+      "passwordHash": "$2b$10$yImRrQgjzNh6iSwZFLXqJ.cqq9X7zq1n2INUuJWWCcPF1y42JZr5G"
+    },
+    {
+      "userId": "be3db25c-9e65-4594-b9d9-648482913a22",
+      "email": "marcelomst@protonmail.com",
+      "name": "AnaMaria",
+      "position": "Recepcionista",
+      "roleLevel": 20,
+      "active": true,
+      "createdAt": "2025-07-01T12:28:55.727Z",
+      "resetToken": "370839ae0bfd3de239e3c8f18aa201105aff195267877ae9c6d14de47a757bc7",
+      "resetTokenExpires": "2025-07-02T10:29:39.872Z"
     }
-  ]
+  ],
+  "verification": {}
 }

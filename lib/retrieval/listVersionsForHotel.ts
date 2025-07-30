@@ -1,18 +1,15 @@
-// /lib/retrieval/listVersionsForHotel.ts
+// Path: /root/begasist/lib/retrieval/listVersionsForHotel.ts
 
-import { DataAPIClient } from "@datastax/astra-db-ts";
-import dotenv from "dotenv";
-dotenv.config();
+import { getAstraDB } from "@/lib/astra/connection";
 
+/**
+ * Lista las versiones de documentos cargados para un hotel.
+ * Devuelve versión, cantidad de chunks y fecha más reciente.
+ */
 export async function listVersionsForHotel(hotelId: string) {
-  const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-  const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-  const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  const db = client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  const db = getAstraDB();
   const collectionName = `${hotelId}_collection`;
-  const collection = await db.collection(collectionName);
+  const collection = db.collection(collectionName);
 
   // 1. Traer solo los campos version y uploadedAt
   const cursor = await collection.find(

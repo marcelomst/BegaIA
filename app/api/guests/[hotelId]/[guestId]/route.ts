@@ -1,6 +1,6 @@
 // Path: /root/begasist/app/api/guests/[hotelId]/[guestId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getGuest, updateGuest, createGuest } from "@/lib/db/guest";
+import { getGuest, updateGuest, createGuest } from "@/lib/db/guests";
 
 // GET: Obtiene el perfil del guest (público)
 export async function GET(

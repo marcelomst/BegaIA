@@ -1,0 +1,46 @@
+# Path: /root/begasist/Dockerfile.channelbot
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copia solo dependencias primero (cache)
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+RUN pnpm install --frozen-lockfile
+
+# Copia el resto del código
+COPY . .
+
+# Compila (Next.js o tu TS)
+RUN pnpm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+
+# Copia el resultado del builder
+COPY --from=builder /app ./
+
+ENV NODE_ENV=production
+
+# Si necesitás Puppeteer/Chromium, esto es correcto:
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont \
+      nodejs \
+      yarn \
+      udev \
+      dbus
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Por si tu código lo necesita
+ENV HOTEL_ID=changeme
+
+# Entry point (asegurate de tenerlo en package.json)
+CMD ["pnpm", "start:channelbot"]

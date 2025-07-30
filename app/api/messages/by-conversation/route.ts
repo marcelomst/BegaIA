@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const rawChannel = url.searchParams.get("channelId");
   const conversationId = url.searchParams.get("conversationId");
-  const hotelId = url.searchParams.get("hotelId") || "hotel123";
+  const hotelId = url.searchParams.get("hotelId") || "hotel999";
   const guestId = url.searchParams.get("guestId");
 
   const channel = parseChannel(rawChannel);

@@ -1,7 +1,7 @@
-// /app/api/hotels/route.ts
+// Path: /root/begasist/app/api/hotels/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { collection } from "@/lib/config/hotelConfig.server";
+import { getHotelConfigCollection } from "@/lib/config/hotelConfig.server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const collection = getHotelConfigCollection();
 
     // Verificar si ya existe
     const existing = await collection.findOne({ hotelId });

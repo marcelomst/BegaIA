@@ -1,17 +1,21 @@
-// /components/ui/ThemeToggle.tsx
+// Path: /root/begasist/components/ui/ThemeToggle.tsx
 "use client";
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/lib/context/ThemeContext";
-import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-<Button onClick={toggleTheme} variant="ghost" size="sm">
-  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-</Button>
-
+    <button
+      className="ml-2 rounded p-1 bg-gray-800 hover:bg-gray-700 text-yellow-400 dark:text-blue-200 transition"
+      onClick={toggleTheme}
+      title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+      type="button"
+      tabIndex={0}
+    >
+      {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    </button>
   );
 }

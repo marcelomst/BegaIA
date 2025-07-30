@@ -1,0 +1,26 @@
+@startuml DiagramaDeCasoDeUsoExtendido
+actor "Guest" as Guest
+actor "OTA (Booking.com)" as OTA
+actor "Channel Manager" as CM
+actor "PMS" as PMS
+actor "Hotel Assistant (Begasist)" as HA
+actor "Recepcionista" as Receptionist
+
+'--- RESERVA Y MENSAJE INICIAL ---
+Guest --> OTA : Reserva + mensaje “¿Tienen cuna?”
+OTA --> CM : Reserva + mensaje (API)
+CM --> PMS : Reserva + mensaje (API)
+CM --> HA : Notifica reserva + mensaje guest (API/Webhook)
+PMS --> Receptionist : Muestra reserva + mensaje guest
+
+'--- RESPUESTA AUTOMATIZADA O SUGERIDA ---
+Receptionist --> HA : Solicita sugerencia (opcional)
+HA --> Receptionist : Sugiere respuesta (“Sí, tenemos cuna”)
+Receptionist --> PMS : Redacta o acepta sugerencia
+
+'--- ENVÍO DE RESPUESTA VÍA OTA ---
+PMS --> CM : (opcional) Envia respuesta huésped a canal
+HA --> CM : (opcional) Envía respuesta huésped a canal
+CM --> OTA : OTA muestra respuesta a Guest
+
+@enduml

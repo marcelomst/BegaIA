@@ -1,0 +1,91 @@
+{
+  "data": {
+    "documents": [
+      {
+        "_id": "5e4bf7c7-9e0a-4c21-8bf7-c79e0afc217d",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "A que hora es el check in?",
+        "timestamp": "2025-07-29T08:37:28.914Z"
+      },
+      {
+        "_id": "0ce9123f-c2d9-4179-a912-3fc2d9d17962",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "A que hora es el check in?",
+        "timestamp": "2025-07-29T08:37:29.785Z"
+      },
+      {
+        "_id": "f9408cbd-f54d-4877-808c-bdf54d287777",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "El check-in es hasta la 1 pm.",
+        "timestamp": "2025-07-29T08:37:34.294Z"
+      },
+      {
+        "_id": "f79f3b75-dcad-44d1-9f3b-75dcad34d1a6",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "El check-in es hasta la 1 pm.",
+        "timestamp": "2025-07-29T08:37:34.800Z"
+      },
+      {
+        "_id": "0943b21d-b824-43f7-83b2-1db82463f70e",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "A que hora es el check out? responda en español",
+        "timestamp": "2025-07-29T08:37:37.754Z"
+      },
+      {
+        "_id": "a8e49fc0-f191-43a5-a49f-c0f19133a579",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "A que hora es el check out? responda en español",
+        "timestamp": "2025-07-29T08:37:38.518Z"
+      },
+      {
+        "_id": "9f5480b7-9bb5-4263-9480-b79bb5f263e8",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "El check-out es antes de las 12pm.",
+        "timestamp": "2025-07-29T08:37:44.276Z"
+      },
+      {
+        "_id": "9890ef82-69b2-446a-90ef-8269b2b46a14",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "El check-out es antes de las 12pm.",
+        "timestamp": "2025-07-29T08:37:45.105Z"
+      },
+      {
+        "_id": "86298fe8-66d4-40a8-a98f-e866d490a803",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "Que comodidades tiene la habitación single?",
+        "timestamp": "2025-07-29T08:37:47.867Z"
+      },
+      {
+        "_id": "74596d24-5f83-43c5-996d-245f8323c528",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "Que comodidades tiene la habitación single?",
+        "timestamp": "2025-07-29T08:37:48.604Z"
+      },
+      {
+        "_id": "bf5f758f-1bb9-4707-9f75-8f1bb9d707e4",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "Aquí están los detalles de amenities.",
+        "timestamp": "2025-07-29T08:37:50.197Z"
+      },
+      {
+        "_id": "6dd446d5-e0a8-41ff-9446-d5e0a841fff6",
+        "channel": "email",
+        "guestId": "marcelomst@vera.com.uy",
+        "content": "Aquí están los detalles de amenities.",
+        "timestamp": "2025-07-29T08:37:50.333Z"
+      }
+    ],
+    "nextPageState": null
+  }
+}

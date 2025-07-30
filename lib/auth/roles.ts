@@ -77,6 +77,9 @@ export function canSeeUsersDashboard(roleLevel: number) {
 export function canAccessHotelsSection(roleLevel: number) {
   return isSystemUser(roleLevel);
 }
+export function canAccessHotelSection(roleLevel: number) {
+  return isHotelAdmin(roleLevel)|| isHotelTech(roleLevel) ;
+} 
 export function canAccessUploadSection(roleLevel: number) {
   return !isReception(roleLevel) && !isGuest(roleLevel);
 }

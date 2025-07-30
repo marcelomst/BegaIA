@@ -1,0 +1,369 @@
+.
+├── ARQUUITECTURA.txt
+├── C:UsersmarceAppDataLocalpnpmstorev3
+│   └── v10
+│       ├── files
+│       └── index
+├── ChatGPT Installer.exe
+├── README.dev.md
+├── README.md
+├── Whatsapp-Conversation-Flow.md
+├── app
+│   ├── Proyecto Ragbot Hotel.zip
+│   ├── admin
+│   │   ├── ChannelSidebar.tsx
+│   │   ├── channels
+│   │   ├── embeddings
+│   │   ├── hotels
+│   │   ├── layout.tsx
+│   │   ├── logs
+│   │   ├── page.tsx
+│   │   ├── prompts
+│   │   ├── roles
+│   │   ├── send-verification
+│   │   ├── test-toast
+│   │   ├── upload
+│   │   └── users
+│   ├── api
+│   │   ├── chat
+│   │   ├── config
+│   │   ├── conversations
+│   │   ├── debug
+│   │   ├── email 
+│   │   ├── guests
+│   │   ├── hotel-document-details
+│   │   ├── hotel-documents
+│   │   ├── hotel-texts
+│   │   ├── hotel-texts-rebuild
+│   │   ├── hotels
+│   │   ├── login
+│   │   ├── logout
+│   │   ├── me
+│   │   ├── messages
+│   │   ├── refresh
+│   │   ├── test
+│   │   ├── users
+│   │   └── whatsapp
+│   ├── auth
+│   │   ├── change-password
+│   │   ├── forgot-password
+│   │   ├── login
+│   │   ├── reset-password
+│   │   └── verify-account
+│   ├── favicon.ico
+│   ├── generatePDF.js
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── lib
+│   │   ├── Hotel_Demo.pdf
+│   │   └── translation.ts
+│   ├── page.tsx
+│   ├── taildocs.txt
+│   └── test-dnd
+│       └── page.tsx
+├── arbol.txt
+├── arquitectura.txt
+├── aux.json
+├── cache_para_hotel_phone_map.md
+├── components
+│   ├── UsertStatus.tsx
+│   ├── admin
+│   │   ├── ChannelInbox.tsx
+│   │   ├── ChannelMessages.tsx
+│   │   ├── ChannelOverview.tsx
+│   │   ├── ChannelPanel.tsx
+│   │   ├── ChannelSidebar.tsx
+│   │   ├── ChannelStatusCard.tsx
+│   │   ├── ChannelWhatsAppConfig.tsx
+│   │   ├── ChannelsClient.tsx
+│   │   ├── ChunkDetailsTable.tsx
+│   │   ├── HotelDocumentUploader.tsx
+│   │   ├── HotelTextViewer.tsx
+│   │   ├── ShowOriginalText.tsx
+│   │   ├── WhatsAppConfigForm.tsx
+│   │   ├── WhatsAppQrPanel.tsx
+│   │   └── guesteditor.tsx
+│   ├── ui
+│   │   ├── BegasistTable.tsx
+│   │   ├── DarkCard.tsx
+│   │   ├── Input.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── SidebarGroup.tsx
+│   │   ├── SidebarLink.tsx
+│   │   ├── SidebarLogout.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   ├── badge.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   └── toaster.tsx
+│   └── utils
+│       └── ApplyThemeClass.tsx
+├── components.json
+├── constants
+│   └── roles.ts
+├── convertir_pdf_a_txt.sh
+├── convertir_txt_a_pdf.sh
+├── deprecated
+│   ├── addChannelToHotelConfig.ts
+│   └── toggle
+│       └── route.ts
+├── dnd-test.html
+├── docs
+│   ├── Arquitectura_segura_gestion_de_usuarios.png
+│   ├── Arquitectura_segura_gestion_de_usuarios.png:Zone.Identifier
+│   ├── ChatGPT Image 23 may 2025, 05_30_52.png
+│   ├── ChatGPT Image 23 may 2025, 05_30_52.png:Zone.Identifier
+│   ├── ChatGPT Plus ¡Perfecto! Aquí tienes un documento en formato Markdown que resume y documenta claramente cómo funciona el manejo_centralizado_del_mapping_iso3to1.md
+│   ├── Checklist_de_Verificación_para_Desarrollo_Multihotel.md
+│   ├── Esquema_lógico_de_la_arquitectura_SaaS_Multihotel.md
+│   ├── Estructura_coleccion_base_conocimiento.md
+│   ├── contexto-chatgpt.md
+│   ├── esquema-roles.md
+│   ├── estructura_coleccion_base_de_conocimiento.md
+│   ├── gestion_de_idiomas_en_hotel_assistant.md
+│   ├── guia_de_helpers_de_roles_y_accesos.md
+│   ├── mapa_seguro_de_rutas_de_usuarios
+│   ├── navegacion_y_apis_en_nextjs.md
+│   ├── seguridad_manejo_de_cookies.md
+│   ├── userstatus-test-doc.md
+│   └── whatsapp_multibot.md
+├── ecosystem.config.js
+├── eslint.config.mjs
+├── estructura_del_proyecto.txt
+├── generate_architecture.sh
+├── google-chrome-stable_current_amd64.deb
+├── hotel-demo-en-textonly-v1-reconstruido.txt
+├── hotel-demo-en-textonly_copy-v2-reconstruido.txt
+├── hotel-demo-en-textonly_copy-v3-reconstruido.txt
+├── hotel999_backup.json
+├── index.modified.ts:Zone.Identifier
+├── info.txt
+├── knowledge_docs
+│   ├── hotel-demo-en-textonly.pdf
+│   ├── hotel-demo-en-textonly_copy.pdf
+│   └── hotel-demo-en-textonly_copy.txt
+├── lib
+│   ├── agents
+│   │   ├── billing.ts
+│   │   ├── defaultResponse.ts
+│   │   ├── index.ts
+│   │   ├── index_ant.txt
+│   │   ├── internal_support.ts
+│   │   ├── reservations.ts
+│   │   ├── retrieval_based.ts
+│   │   └── services.ts
+│   ├── api
+│   │   └── fetchWithAuth.ts
+│   ├── astra
+│   │   ├── connection.ts
+│   │   ├── hotelTextCollection.ts
+│   │   ├── index.ts
+│   │   └── load_from_pdf.ts
+│   ├── auth
+│   │   ├── findUserByEmail.ts
+│   │   ├── getCurrentUser.ts
+│   │   ├── getCurrentUserEmail.ts
+│   │   ├── jwt.ts
+│   │   ├── roles.ts
+│   │   ├── sendVerificationEmail.ts
+│   │   ├── tokenUtils.ts
+│   │   └── verifyUserAccount.ts
+│   ├── classifier
+│   │   ├── categoryAliases.ts
+│   │   └── index.ts
+│   ├── client
+│   │   └── fetchWithAuth.ts
+│   ├── config
+│   │   ├── channelsConfig.ts
+│   │   ├── getInitialHotelConfig.ts
+│   │   ├── hotelConfig.client.ts
+│   │   ├── hotelConfig.server.ts
+│   │   ├── hotelLanguage.ts
+│   │   ├── hotelPhoneMap.ts
+│   │   └── initHotelConfig.ts
+│   ├── constants
+│   │   └── adminMenu.ts
+│   ├── context
+│   │   ├── README.md
+│   │   ├── SidebarContext.tsx
+│   │   ├── ThemeContext.tsx
+│   │   └── UserContext.tsx
+│   ├── db
+│   │   ├── conversations.ts
+│   │   ├── getHotelsForUser.ts
+│   │   ├── guests.ts
+│   │   └── messages.ts
+│   ├── email
+│   │   ├── sendEmail.ts
+│   │   └── sendRecoveryEmail.ts
+│   ├── entrypoints
+│   │   ├── all.ts
+│   │   ├── email.ts
+│   │   └── whatsapp.ts
+│   ├── hooks
+│   │   ├── useChannelConfig.ts
+│   │   ├── useCurrentUser.ts
+│   │   └── useSession.ts
+│   ├── middleware
+│   ├── pms
+│   │   └── index.ts
+│   ├── prompts
+│   │   ├── index.ts
+│   │   └── promptMetadata.ts
+│   ├── retrieval
+│   │   ├── deleteVersionForHotel.ts
+│   │   ├── getHotelChunks.ts
+│   │   ├── index.ts
+│   │   ├── listVersionsForHotel.ts
+│   │   ├── rollbackVersionForHotel.ts
+│   │   └── validateClassification.ts
+│   ├── services
+│   │   ├── channelHandlers.ts
+│   │   ├── channelManager.ts
+│   │   ├── channelManagerMemory.ts
+│   │   ├── channelMemory.ts
+│   │   ├── email.ts
+│   │   ├── emailMemory.ts
+│   │   ├── hotel.ts
+│   │   ├── messages
+│   │   ├── redis.ts
+│   │   ├── webMemory.ts
+│   │   ├── whatsapp.ts
+│   │   ├── whatsappClient.ts
+│   │   ├── whatsappMemory.ts
+│   │   └── whatsappQrStore.ts
+│   ├── utils
+│   │   ├── buildVerificationUrl.ts
+│   │   ├── debugLog.ts
+│   │   ├── lang.ts
+│   │   ├── language.ts
+│   │   ├── parseChannel.ts
+│   │   ├── roles.ts
+│   │   ├── shortGuestId.ts
+│   │   ├── similarity.ts
+│   │   └── time.ts
+│   └── utils.ts
+├── middleware.ts
+├── next
+├── next-env.d.ts
+├── next.config.ts
+├── output_cleaned.txt
+├── package.json
+├── pages
+│   └── api
+│       └── upload-hotel-document.ts
+├── parsed-completo.json
+├── postcss.config.mjs
+├── prompt-clasificador.txt
+├── respaldo rag bot funcionando.zip
+├── scripts
+│   ├── add-userid-to-user.ts
+│   ├── backup-hotel.ts
+│   ├── clean-whatsapp-data.ts
+│   ├── cleanup-test-messages.ts
+│   ├── clone-hotel-collection.ts
+│   ├── create-test-conversation.ts
+│   ├── export-hotel-config.ts
+│   ├── fix-channel-modes.ts
+│   ├── fix-missing-verification-base.ts
+│   ├── fix-rolelevel-zero.ts
+│   ├── fix-users-add-userId.ts
+│   ├── generate-hotel-demo-pdf.ts
+│   ├── generate-new-token.ts
+│   ├── hotel_config-backup.json
+│   ├── init-admin.ts
+│   ├── init-config.ts
+│   ├── init-hotel-config.ts
+│   ├── init-hotel-text-collection.ts
+│   ├── init-new-hotel.ts
+│   ├── insert-test-message.ts
+│   ├── list-hotel-texts.ts
+│   ├── list-users-by-email.ts
+│   ├── list-users-in-hotel.ts
+│   ├── list-users.ts
+│   ├── migrate-hotel123-to-hotel999.ts.ts
+│   ├── migrate-id-to-messageId.ts
+│   ├── migrateHotelConfig.ts
+│   ├── normalize AstraResultas
+│   ├── patch-chunks-add-version.ts
+│   ├── patch-messages-add-fields.ts
+│   ├── removeVerificationBaseUrl.ts
+│   ├── restoreHotelConfig.ts
+│   ├── set-password.ts
+│   ├── set-smtp.ts
+│   ├── setupHotel.ts
+│   ├── show-system-iso3to1.ts
+│   ├── test-astra.ts
+│   ├── test-insert-hotel-text-collection.ts
+│   ├── test-retrievalBased.ts
+│   ├── test-search-wifi.ts
+│   ├── test-upload-hotel-doc.ts
+│   ├── testClassifier.ts
+│   ├── test_search.ts
+│   ├── update-conversation-subjects.ts
+│   ├── update-hotelId.ts
+│   ├── update-system-iso3to1.ts
+│   ├── update-user-in-hotel.ts
+│   └── update-user-password.ts
+├── src
+│   ├── app.ts
+│   ├── config.ts
+│   ├── hotel_agent_uml.uml
+│   └── utils
+├── tailwind.config.ts
+├── test
+│   ├── components
+│   │   └── ChannelMessages.test.tsx
+│   ├── data
+│   │   ├── 05-versions-space.pdf
+│   │   └── 05-versions-space.pdf.txt
+│   ├── integration
+│   │   ├── UserStatus.test.tsx
+│   │   ├── getAllHotelConfigs.test.ts
+│   │   ├── getMessagesFromAstra.test.ts
+│   │   ├── hotelConfig.test.ts
+│   │   ├── hotelConfigDynamicChannel.test.ts
+│   │   ├── hotelConfigExtend.test.ts
+│   │   ├── messagesByConversation.test.ts
+│   │   ├── persistApprovedResponse.test.ts
+│   │   ├── resetPassword.test.ts
+│   │   ├── roundTripMessages.test.ts
+│   │   ├── saveMessageToAstra.email.test.ts
+│   │   ├── saveMessageToAstra.test.ts
+│   │   └── updateMessageInAstra.test.ts
+│   ├── services
+│   │   └── channelMemory.test.ts
+│   └── setup,ts
+├── test-bcrypt.ts
+├── test-imap-connection.ts
+├── test-imap-simple.ts
+├── testAstraConnection.ts
+├── texto.json
+├── tsconfig.json
+├── tsconfig.tsbuildinfo
+├── types
+│   ├── channel.ts
+│   ├── chunk.ts
+│   ├── mailparser.d.ts
+│   ├── rehype-raw.d.ts
+│   ├── roles.ts
+│   └── user.ts
+├── upload_to_wsgpt
+├── utils
+│   ├── conversationSession.ts
+│   ├── fetchAndMapMessages.ts
+│   ├── fetchAndMapMessagesWithSubject.ts
+│   ├── fetchAndOrderConversations.ts
+│   ├── fetchGuest.ts
+│   ├── getChannelConfigs.ts
+│   └── guestSession.ts
+├── vector_cache
+│   └── rooms_vectorstore.json
+├── vitest.config.ts
+├── vitest.setup.ts
+└── zzaux.aux
+
+89 directories, 278 files

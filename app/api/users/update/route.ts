@@ -18,11 +18,12 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
+  console.log("Recibido update usuario", hotelId, user);
   const config = await getHotelConfig(hotelId);
   if (!config || !Array.isArray(config.users)) {
     return NextResponse.json({ error: "Hotel no encontrado o sin usuarios" }, { status: 404 });
   }
+  console.log("Estado actual usuarios:", config.users);
 
   const existingUserIndex = config.users.findIndex((u) => u.userId === user.userId);
   if (existingUserIndex === -1) {

@@ -1,0 +1,57 @@
+# Path: /root/begasist/docker-compose.bots.yml
+
+version: "3.9"
+
+services:
+  bot_hotel999:
+    build:
+      context: .
+      dockerfile: Dockerfile.channelbot
+    image: begasist-channelbot:dev
+    container_name: begasist-channelbot-hotel999
+    command: pnpm run dev:channelbot
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - HOTEL_ID=hotel999
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  bot_hotelconrad:
+    image: begasist-channelbot:latest
+    container_name: begasist-channelbot-hotelconrad
+    command: pnpm start:channelbot
+    env_file:
+      - .env
+    environment:
+      - HOTEL_ID=hotelconrad
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  bot_hotelplaza:
+    image: begasist-channelbot:latest
+    container_name: begasist-channelbot-hotelplaza
+    command: pnpm start:channelbot
+    env_file:
+      - .env
+    environment:
+      - HOTEL_ID=hotelplaza
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: begasist-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

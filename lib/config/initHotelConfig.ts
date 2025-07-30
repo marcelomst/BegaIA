@@ -1,8 +1,9 @@
 // /lib/config/initHotelConfig.ts
-import { collection } from "./hotelConfig.server";
+import {getHotelConfigCollection} from "./hotelConfig.server";
 import type { HotelConfig } from "@/types/channel";
 
 export async function initHotelConfig(hotelId: string) {
+  const collection = getHotelConfigCollection();
   const existing = await collection.findOne({ hotelId });
 
   if (existing) {

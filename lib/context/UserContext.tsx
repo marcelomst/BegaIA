@@ -3,16 +3,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/client/fetchWithAuth";
+import type { CurrentUser } from "@/types/user";
 
-export type CurrentUser = {
-  email: string;
-  hotelId: string;
-  hotelName: string; // 👈 agregamos esto
-  roleLevel: number;
-  userId: string;
-};
 
 type UserContextType = {
+  hotelId: string;
   user: CurrentUser | null;
   loading: boolean;
   refreshUser: () => Promise<void>;
@@ -45,8 +40,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, []);
 
+  const hotelId = user?.hotelId ?? "";
+
   return (
-    <UserContext.Provider value={{ user, loading, refreshUser: loadUser }}>
+    <UserContext.Provider value={{ hotelId, user, loading, refreshUser: loadUser }}>
       {children}
     </UserContext.Provider>
   );

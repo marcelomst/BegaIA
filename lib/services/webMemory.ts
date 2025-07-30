@@ -1,7 +1,6 @@
 // /lib/services/webMemory.ts
-import dotenv from "dotenv";
 import type { Channel } from "@/types/channel";
-dotenv.config();
+
 const MAX_MESSAGES = process.env.MAX_MESSAGES || 100;
 export type WebMessage = {
   id: string;

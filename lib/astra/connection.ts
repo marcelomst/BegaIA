@@ -1,19 +1,17 @@
-// /root/begasist/lib/astra/connection.ts
+// Path: /root/begasist/lib/astra/connection.ts
 
 import { DataAPIClient } from "@datastax/astra-db-ts";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config();
-
-const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-
-const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 
 /**
  * Devuelve la instancia de db con el keyspace configurado.
  */
 export function getAstraDB() {
+  const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
+  const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
+  const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
+  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
   return client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
 }
 

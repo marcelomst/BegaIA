@@ -1,0 +1,22 @@
+# Path: /.dockerignore
+
+# Evita copiar dependencias locales al contenedor
+node_modules
+.pnpm-store
+
+# Archivos de build de Next.js
+.next
+out
+dist
+
+# Archivos de entorno y configuración
+.env
+.env.*
+*.log
+.vscode
+.DS_Store
+.git
+coverage
+
+# Evita incluir archivos de lock corruptos temporales
+pnpm-lock.yaml*~

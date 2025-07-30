@@ -27,6 +27,7 @@ export async function fetchAllConversationsByChannel(
   const url = `/api/conversations/list?hotelId=${hotelId}&channel=${channel}`;
   const res = await fetch(url);
   const data = await res.json();
+  console.log(" 🎆fetchAllConversationsByChannel", data);
   return (data.conversations ?? []).slice().sort(
     (a: ConversationSummary, b: ConversationSummary) =>
       new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime()

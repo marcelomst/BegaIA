@@ -1,6 +1,6 @@
 // /lib/services/hotel.ts
 
-import { collection } from "@/lib/config/hotelConfig.server";
+import { getHotelConfigCollection} from "@/lib/config/hotelConfig.server";
 import { randomUUID } from "crypto";
 import { sendVerificationEmail } from "@/lib/auth/sendVerificationEmail";
 import type { EmailConfig } from "@/types/channel";
@@ -33,6 +33,7 @@ export async function createHotelWithAdmin({
   }
 
   // Chequeo de duplicados
+  const collection = getHotelConfigCollection();
   const existing = await collection.findOne({ hotelId });
   if (existing) throw new Error("Ya existe un hotel con ese ID");
 
@@ -70,7 +71,7 @@ export async function createHotelWithAdmin({
     ],
     lastUpdated: new Date().toISOString(),
   };
-
+  
   await collection.insertOne(hotelConfig);
 
   // 🚀 Envía el email de verificación usando la config recién cargada
