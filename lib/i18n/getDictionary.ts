@@ -1,14 +1,11 @@
-// Path: /lib/i18n/getDictionary.ts
-export async function getDictionary(lang: string) {
-  const code = lang?.slice(0, 2).toLowerCase();
-  switch (code) {
-    case "en":
-      return (await import("./en")).default;
-    case "pt":
-      return (await import("./pt")).default;
-    case "es":
-      return (await import("./es")).default;
-    default:
-      return (await import("./en")).default;
-  }
+// Path: /root/begasist/lib/i18n/getDictionary.ts
+
+import en from "./en";
+import es from "./es";
+import pt from "./pt";
+
+const DICTS = { en, es, pt };
+
+export async  function getDictionary(lang: string) {
+  return DICTS[lang as keyof typeof DICTS] || DICTS.en;
 }

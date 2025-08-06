@@ -40,7 +40,7 @@ importers:
         version: 2.5.2
       axios:
         specifier: ^1.8.3
-        version: 1.10.0(debug@4.4.1)
+        version: 1.10.0
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
@@ -152,6 +152,9 @@ importers:
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
+      soap:
+        specifier: ^1.2.1
+        version: 1.2.1
       sonner:
         specifier: ^2.0.3
         version: 2.0.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -243,6 +246,9 @@ importers:
       '@types/react-dropzone':
         specifier: ^5.1.0
         version: 5.1.0(react@19.1.0)
+      '@types/soap':
+        specifier: ^0.21.0
+        version: 0.21.0
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
@@ -2540,6 +2546,10 @@ packages:
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
 
+  '@types/soap@0.21.0':
+    resolution: {integrity: sha512-NFT751PfjmIMJz5m/AHfygq8x2svHU4Bi2CXATSjrk9S2Elv19yu6rDf6foER4+o/mwMESTZrvqq5BS91a0uAg==}
+    deprecated: This is a stub types definition for soap (https://www.npmjs.com/package/soap). soap provides its own type definitions, so you don't need @types/soap installed!
+
   '@types/strip-bom@3.0.0':
     resolution: {integrity: sha512-xevGOReSYGM7g/kUBZzPqCrR/KYAo+F0yiPc85WFTJa0MSLtyFTVTU6cJu/aV4mid7IffDIWqo69THF2o4JiEQ==}
 
@@ -2788,6 +2798,14 @@ packages:
     resolution: {integrity: sha512-GwpdMgUmwIp0jGjP535YtViP/nnmETAyHpGPWPZKdX++Qht/tSLbGXgFUMSsQvEACmZAR1lAPNu2CnYL1HpBgg==}
     engines: {node: '>=18.0.0'}
 
+  '@xmldom/is-dom-node@1.0.1':
+    resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
+    engines: {node: '>= 16'}
+
+  '@xmldom/xmldom@0.8.10':
+    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
+    engines: {node: '>=10.0.0'}
+
   abort-controller-x@0.4.3:
     resolution: {integrity: sha512-VtUwTNU8fpMwvWGn4xE93ywbogTYsuT+AUxAXOeelbXuQVIwNmC5YLeho9sH4vZ4ITW8414TTAOG1nW6uIVHCA==}
 
@@ -2961,8 +2979,14 @@ packages:
     resolution: {integrity: sha512-Xm7bpRXnDSX2YE2YFfBk2FnF0ep6tmG7xPh8iHee8MIcrgq762Nkce856dYtJYLkuIoYZvGfTs/PbZhideTcEg==}
     engines: {node: '>=4'}
 
+  axios-ntlm@1.4.4:
+    resolution: {integrity: sha512-kpCRdzMfL8gi0Z0o96P3QPAK4XuC8iciGgxGXe+PeQ4oyjI2LZN8WSOKbu0Y9Jo3T/A7pB81n6jYVPIpglEuRA==}
+
   axios@1.10.0:
     resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
+
+  axios@1.11.0:
+    resolution: {integrity: sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -3451,12 +3475,18 @@ packages:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
     engines: {node: '>=6'}
 
+  des.js@1.1.0:
+    resolution: {integrity: sha512-r17GxjhUCjSRy8aiJpr8/UadFIzMzJGexI3Nmz4ADi9LYSFx4gTBp80+NaX/YsXWWLhpZ7v/v/ubEc/bCNfKwg==}
+
   detect-libc@2.0.4:
     resolution: {integrity: sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA==}
     engines: {node: '>=8'}
 
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
+
+  dev-null@0.1.1:
+    resolution: {integrity: sha512-nMNZG0zfMgmdv8S5O0TM5cpwNbGKRGPCxVsr0SmA3NZZy9CYBbuNLL0PD3Acx9e5LIUgwONXtM9kM6RlawPxEQ==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -3889,6 +3919,10 @@ packages:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
     engines: {node: '>= 6'}
 
+  form-data@4.0.4:
+    resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
+    engines: {node: '>= 6'}
+
   formdata-node@4.4.1:
     resolution: {integrity: sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ==}
     engines: {node: '>= 12.20'}
@@ -3971,6 +4005,10 @@ packages:
   get-stream@5.2.0:
     resolution: {integrity: sha512-nBF+F1rAZVCu/p7rjzgA+Yb4lfYXrpl7a6VmJrU8wF9I1CKvP/QwPNZHnOlwbTkY6dvtFIzFMSyQXbLoTQPRpA==}
     engines: {node: '>=8'}
+
+  get-stream@6.0.1:
+    resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
+    engines: {node: '>=10'}
 
   get-symbol-description@1.1.0:
     resolution: {integrity: sha512-w9UMqWwJxHNOvoNzSJ2oPF5wvYcvP7jUvYzhp67yEhTi17ZDBBC1z9pTdGuzjD+EFIqLSYRweZjqfiPzQ06Ebg==}
@@ -4391,6 +4429,9 @@ packages:
 
   jpeg-exif@1.1.4:
     resolution: {integrity: sha512-a+bKEcCjtuW5WTdgeXFzswSrdqi0jk4XlEtZlx5A94wCoBpFjfFTbo/Tra5SpNCl/YFZPvcV1dJc+TAYeg6ROQ==}
+
+  js-md4@0.3.2:
+    resolution: {integrity: sha512-/GDnfQYsltsjRswQhN9fhv3EMw2sCpUdrdxyWDOUK7eyD++r3gRhzgiQgc/x4MAv2i1iuQ4lxO5mvqM3vj4bwA==}
 
   js-tiktoken@1.0.20:
     resolution: {integrity: sha512-Xlaqhhs8VfCd6Sh7a1cFkZHQbYTLCwVJJWiHVxBYzLPxW0XsoxBy1hitmjkdIjD3Aon5BXLHFwU5O8WUx6HH+A==}
@@ -4936,6 +4977,9 @@ packages:
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
+
+  minimalistic-assert@1.0.1:
+    resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
 
   minimatch@10.0.3:
     resolution: {integrity: sha512-IPZ167aShDZZUMdRk66cyQAW3qr0WzbHkPdMYa8bzZhlHhO3jALbKdxcaak7W9FfT2rZNpQuUu4Od7ILEpXSaw==}
@@ -5716,6 +5760,9 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
+  sax@1.4.1:
+    resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
+
   saxes@6.0.0:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
@@ -5808,6 +5855,10 @@ packages:
   smart-buffer@4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
+
+  soap@1.2.1:
+    resolution: {integrity: sha512-QRkgCb8C99x1SxZ84jCJAd5VDFpp0MNL5O1X6vKtHp3Hba6UnN1Wdy0Lq+o1CmvBkxyxBYIW/Y+xPQLPq+Sv6g==}
+    engines: {node: '>=14.17.0'}
 
   socks-proxy-agent@8.0.5:
     resolution: {integrity: sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw==}
@@ -6557,6 +6608,10 @@ packages:
       utf-8-validate:
         optional: true
 
+  xml-crypto@6.1.2:
+    resolution: {integrity: sha512-leBOVQdVi8FvPJrMYoum7Ici9qyxfE4kVi+AkpUoYCSXaQF4IlBm1cneTK9oAxR61LpYxTx7lNcsnBIeRpGW2w==}
+    engines: {node: '>=16'}
+
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
@@ -6567,6 +6622,10 @@ packages:
 
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
+
+  xpath@0.0.33:
+    resolution: {integrity: sha512-NNXnzrkDrAzalLhIUc01jO2mOzXGXh1JwPgkihcLLzw98c0WgYDmmjSh1Kl3wzaxSVWMuA+fe0WTWOBDWCBmNA==}
+    engines: {node: '>=0.6.0'}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -8564,6 +8623,12 @@ snapshots:
 
   '@types/retry@0.12.0': {}
 
+  '@types/soap@0.21.0':
+    dependencies:
+      soap: 1.2.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@types/strip-bom@3.0.0': {}
 
   '@types/strip-json-comments@0.0.30': {}
@@ -8844,6 +8909,10 @@ snapshots:
       '@whatwg-node/promise-helpers': 1.3.2
       tslib: 2.8.1
 
+  '@xmldom/is-dom-node@1.0.1': {}
+
+  '@xmldom/xmldom@0.8.10': {}
+
   abort-controller-x@0.4.3: {}
 
   abort-controller@3.0.0:
@@ -9057,10 +9126,27 @@ snapshots:
 
   axe-core@4.10.3: {}
 
-  axios@1.10.0(debug@4.4.1):
+  axios-ntlm@1.4.4(debug@4.4.1):
+    dependencies:
+      axios: 1.11.0(debug@4.4.1)
+      des.js: 1.1.0
+      dev-null: 0.1.1
+      js-md4: 0.3.2
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.10.0:
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
       form-data: 4.0.3
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.11.0(debug@4.4.1):
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.1)
+      form-data: 4.0.4
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -9560,9 +9646,16 @@ snapshots:
 
   dequal@2.0.3: {}
 
+  des.js@1.1.0:
+    dependencies:
+      inherits: 2.0.4
+      minimalistic-assert: 1.0.1
+
   detect-libc@2.0.4: {}
 
   detect-node-es@1.1.0: {}
+
+  dev-null@0.1.1: {}
 
   devlop@1.1.0:
     dependencies:
@@ -10168,6 +10261,14 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
 
+  form-data@4.0.4:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
+
   formdata-node@4.4.1:
     dependencies:
       node-domexception: 1.0.0
@@ -10260,6 +10361,8 @@ snapshots:
   get-stream@5.2.0:
     dependencies:
       pump: 3.0.3
+
+  get-stream@6.0.1: {}
 
   get-symbol-description@1.1.0:
     dependencies:
@@ -10500,7 +10603,7 @@ snapshots:
       '@types/debug': 4.1.12
       '@types/node': 18.19.112
       '@types/tough-cookie': 4.0.5
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.11.0(debug@4.4.1)
       camelcase: 6.3.0
       debug: 4.4.1(supports-color@5.5.0)
       dotenv: 16.6.0
@@ -10510,7 +10613,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.10.0)
+      retry-axios: 2.6.0(axios@1.11.0(debug@4.4.1))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -10786,6 +10889,8 @@ snapshots:
 
   jpeg-exif@1.1.4: {}
 
+  js-md4@0.3.2: {}
+
   js-tiktoken@1.0.20:
     dependencies:
       base64-js: 1.5.1
@@ -10910,7 +11015,7 @@ snapshots:
       yaml: 2.8.0
       zod: 3.25.67
     optionalDependencies:
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.10.0
       cheerio: 1.1.0
     transitivePeerDependencies:
       - encoding
@@ -11491,6 +11596,8 @@ snapshots:
   mime@3.0.0: {}
 
   min-indent@1.0.1: {}
+
+  minimalistic-assert@1.0.1: {}
 
   minimatch@10.0.3:
     dependencies:
@@ -12318,9 +12425,9 @@ snapshots:
 
   restructure@3.0.2: {}
 
-  retry-axios@2.6.0(axios@1.10.0):
+  retry-axios@2.6.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.11.0(debug@4.4.1)
 
   retry@0.13.1: {}
 
@@ -12398,6 +12505,8 @@ snapshots:
   safe-stable-stringify@2.5.0: {}
 
   safer-buffer@2.1.2: {}
+
+  sax@1.4.1: {}
 
   saxes@6.0.0:
     dependencies:
@@ -12521,6 +12630,21 @@ snapshots:
   simple-wcswidth@1.1.2: {}
 
   smart-buffer@4.2.0: {}
+
+  soap@1.2.1:
+    dependencies:
+      axios: 1.11.0(debug@4.4.1)
+      axios-ntlm: 1.4.4(debug@4.4.1)
+      debug: 4.4.1(supports-color@5.5.0)
+      formidable: 3.5.4
+      get-stream: 6.0.1
+      lodash: 4.17.21
+      sax: 1.4.1
+      strip-bom: 3.0.0
+      whatwg-mimetype: 4.0.0
+      xml-crypto: 6.1.2
+    transitivePeerDependencies:
+      - supports-color
 
   socks-proxy-agent@8.0.5:
     dependencies:
@@ -12989,7 +13113,7 @@ snapshots:
 
   twilio@5.7.1:
     dependencies:
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.10.0
       dayjs: 1.11.13
       https-proxy-agent: 5.0.1
       jsonwebtoken: 9.0.2
@@ -13450,11 +13574,19 @@ snapshots:
 
   ws@8.9.0: {}
 
+  xml-crypto@6.1.2:
+    dependencies:
+      '@xmldom/is-dom-node': 1.0.1
+      '@xmldom/xmldom': 0.8.10
+      xpath: 0.0.33
+
   xml-name-validator@5.0.0: {}
 
   xmlbuilder@13.0.2: {}
 
   xmlchars@2.2.0: {}
+
+  xpath@0.0.33: {}
 
   xtend@4.0.2: {}
 

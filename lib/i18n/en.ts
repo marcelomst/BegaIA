@@ -1,6 +1,33 @@
 
 // Path: /lib/i18n/en.ts
 export default {
+  hotelEdit: {
+    title: "Edit hotel",
+    country: "Country",
+    city: "City",
+    name: "Name",
+    address: "Address",
+    postalCode: "Postal Code",
+    phone: "Phone",
+    timezone: "Timezone",
+    defaultLanguage: "Language",
+    channels: "Channels",
+    whatsapp: "WhatsApp",
+    webChannel: "Web",
+    email: "Email",
+    celNumber: "Cell number",
+    dirEmail: "Email address",
+    enabled: "Enabled",
+    automatic: "Automatic",
+    supervised: "Supervised",
+    saving: "Saving...",
+    save: "Save changes",
+    cancel: "Cancel",
+    errors: {
+      saveHotel: "Error saving hotel",
+      unknown: "Unknown error",
+    },
+  },
   layout: {
     checkingSession: "Checking session...",
     panelTitle: "Control Panel",
@@ -61,33 +88,6 @@ export default {
     name: "Full name of the user.",
     position: "Example: Receptionist, Manager, Accountant, etc.",
     role: "Determines permissions: Receptionist, Technician, Admin, etc.",
-  },
-  hotelEdit: {
-    title: "Edit hotel",
-    name: "Hotel name",
-    country: "Country",
-    city: "City",
-    address: "Address",
-    postalCode: "Postal code",
-    phone: "Phone",
-    timezone: "Timezone",
-    defaultLanguage: "Default language",
-    channels: "Channels",
-    whatsapp: "WhatsApp",
-    celNumber: "WhatsApp number",
-    saving: "Saving...",
-    save: "Save changes",
-    cancel: "Cancel",
-    loading: "Loading...",
-    notFound: "Hotel not found",
-    success: "Hotel updated successfully!",
-    error: "An error occurred",
-    errors: {
-      fetchHotel: "Error loading hotel",
-      saveHotel: "Error saving hotel",
-      unknown: "Unexpected error",
-    },
-
   },
   chat: {
     title: "💬 Chat with AI",
@@ -164,6 +164,24 @@ export default {
       unknown: "Unknown",
     },
   },
+  classifierPrompt: `
+    Given the following user query, reply only with a valid JSON containing two fields:
+    - "category": one of the following: {{allowedCategories}}
+    - "promptKey": if the category requires a specific curated prompt, pick one from: [{{allPromptKeys}}]; if not, set it to null.
+
+    Sample response:
+    {
+      "category": "retrieval_based",
+      "promptKey": "room_info"
+    }
+    Query:
+    "{{question}}"
+    `.trim(),
+    sentimentPrompt: `Analyze the sentiment of the following hotel guest message. Reply with ONLY ONE WORD: "positive", "neutral" or "negative".
+    Message:
+    """
+    {{text}}
+    """`,
 };
 
   

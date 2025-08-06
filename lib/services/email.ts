@@ -1,11 +1,10 @@
-// Path: /root/begasist/lib/services/email.ts
-
 import { simpleParser } from "mailparser";
 import imaps from "imap-simple";
 import nodemailer from "nodemailer";
 import { flattenParts } from "@/lib/utils/emailParts";
 import { parseEmailToChannelMessage } from "@/lib/parsers/emailParser";
-import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+// 🔄 Cambia el import
+import { universalChannelEventHandler } from "@/lib/handlers/universalChannelEventHandler";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import type { EmailConfig } from "@/types/channel";
 import { standardCleanup } from "@/lib/utils/emailCleanup";
@@ -222,10 +221,12 @@ export async function startEmailBot({
             channelMsg.content = cleaned;
             console.log(`🧹 [email] Texto limpiado para UID ${uid}:`, cleaned);
 
-            await handleIncomingMessage(
+            // 🔄 Handler universal: detección idioma, sentimiento, channelMessage unificado
+            await universalChannelEventHandler(
               { ...channelMsg, content: cleaned },
+              hotelId,
               {
-                autoReply: mode === "automatic",
+                mode,
                 sendReply: async (reply: string) => {
                   await transporter.sendMail({
                     from: EMAIL_USER,
@@ -235,13 +236,12 @@ export async function startEmailBot({
                   });
                   console.log(`📤 [email] Respuesta enviada a ${from}`);
                 },
-                mode,
+                // Puedes agregar forceGuestId, etc., si es necesario
               }
             );
 
             // Marcar como leído solo los válidos procesados
             await connection.addFlags(uid, '\\Seen');
-
             if (failedUids[uid]) delete failedUids[uid];
           } catch (err) {
             console.error(`[email] Error en UID ${uid}:`, err);

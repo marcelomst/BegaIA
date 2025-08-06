@@ -1,37 +1,21 @@
-// /lib/config/hotelLanguage.ts
+// Path: /root/begasist/lib/config/hotelLanguage.ts
+
 import { getHotelConfig } from "./hotelConfig.server";
 
 /**
- * Devuelve el idioma nativo configurado para el hotel (formato ISO 639-3, ej: "spa", "eng").
- * Si no está definido, retorna "spa" como fallback.
+ * Devuelve el idioma nativo principal configurado para el hotel.
  */
-export async function getHotelLanguage(hotelId: string): Promise<string> {
-  try {
-    const config = await getHotelConfig(hotelId);
-    const lang = config?.defaultLanguage;
-
-    // Solo aceptamos formatos ISO 639-3
-    const iso639_3 = /^[a-z]{3}$/;
-    if (lang && iso639_3.test(lang)) {
-      return lang;
-    }
-    return "spa"; // fallback
-  } catch (err) {
-    console.error("❌ Error obteniendo idioma del hotel:", err);
-    return "spa";
-  }
+export async function getHotelNativeLanguage(hotelId: string): Promise<string> {
+  const config = await getHotelConfig(hotelId);
+  return config?.defaultLanguage || "en";
 }
 
 /**
- * Devuelve el timezone configurado para el hotel.
- * Si no está definido, retorna "UTC" como fallback.
+ * Devuelve la zona horaria configurada para el hotel.
+ * Si no está definida, retorna "UTC" por defecto.
  */
 export async function getHotelTimezone(hotelId: string): Promise<string> {
-  try {
-    const config = await getHotelConfig(hotelId);
-    return config?.timezone || "UTC";
-  } catch (err) {
-    console.error("❌ Error obteniendo timezone del hotel:", err);
-    return "UTC";
-  }
+  const config = await getHotelConfig(hotelId);
+  // Campo típico: config.timezone || config.hotelTimezone, adaptá según tu modelo
+  return config?.timezone || "UTC";
 }

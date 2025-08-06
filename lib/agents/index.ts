@@ -1,3 +1,5 @@
+// Path: /root/begasist/lib/agents/index.ts
+
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
@@ -6,18 +8,12 @@ import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
 import { retrievalBased } from "./retrieval_based";
-import { franc } from "franc";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
 import { searchFromAstra } from "../retrieval";
-import { detectLanguage } from "../utils/language";
-
-
-process.env.OPENAI_LOG = "off";
-debugLog("🔧 Compilando grafo conversacional...");
 
 // ----------------------------
-// Estado del grafo
+// Estado del grafo: SOLO recibe, no calcula idioma ni sentimiento
 export const GraphState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: (x, y) => x.concat(y),
@@ -29,9 +25,13 @@ export const GraphState = Annotation.Root({
   }),
   detectedLanguage: Annotation<string>({
     reducer: (x, y) => y,
-    default: () => "en",
+    default: () => "en", // Por defecto
   }),
-    preferredLanguage: Annotation<string>({
+  sentiment: Annotation<"positive" | "neutral" | "negative">({
+    reducer: (x, y) => y,
+    default: () => "neutral",
+  }),
+  preferredLanguage: Annotation<string>({
     reducer: (x, y) => y,
     default: () => "en",
   }),
@@ -43,7 +43,7 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => y,
     default: () => "hotel999",
   }),
-  conversationId: Annotation<string | null>({        // 🔥 agregar esto
+  conversationId: Annotation<string | null>({
     reducer: (x, y) => y,
     default: () => null,
   }),
@@ -57,7 +57,6 @@ export let model: any;
 
 export async function initializeVectorStore() {
   if (!vectorStore) {
-    // Simula un retriever a partir de AstraDB
     vectorStore = {
       asRetriever: () => ({
         getRelevantDocuments: async (query: string) => {
@@ -98,13 +97,12 @@ export async function classifyNode(state: typeof GraphState.State) {
     };
   }
 
-  const detectedLang = await detectLanguage(question, state.hotelId);
-
-
+  // Ya NO detecta lenguaje ni sentimiento: ¡DEBEN venir del handler universal!
+  // Usa el que ya está en state.detectedLanguage
 
   let classification;
   try {
-    classification = await classifyQuery(question);
+    classification = await classifyQuery(question, state.hotelId);
     debugLog("🔀 Clasificación detectada:", classification);
   } catch (e) {
     console.error("❌ Error clasificando la consulta:", e);
@@ -121,7 +119,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     ...state,
     category,
     promptKey: finalPromptKey,
-    detectedLanguage: detectedLang || process.env.SYSTEM_NATIVE_LANGUAGE,
+    // detectedLanguage, // NO lo recalcula
     messages: [
       ...state.messages,
       new AIMessage(`Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""}`),
@@ -130,7 +128,20 @@ export async function classifyNode(state: typeof GraphState.State) {
 }
 
 // ----------------------------
-// Nodos funcionales del grafo
+// Nodos funcionales del grafo (ejemplo de uso de sentimiento)
+async function handleSupportNode(state: typeof GraphState.State) {
+  const sent = state.sentiment ?? "neutral";
+  let reply = "";
+  if (sent === "negative") {
+    reply = "Lamento que estés teniendo una mala experiencia. ¿En qué puedo ayudarte para mejorar tu estancia?";
+  } else if (sent === "positive") {
+    reply = "¡Qué alegría saber que todo va bien! ¿Hay algo más en lo que te pueda ayudar?";
+  } else {
+    reply = "¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.";
+  }
+  return { messages: [new AIMessage(reply)] };
+}
+
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
   return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
@@ -140,9 +151,6 @@ async function handleAmenitiesionNode() {
 }
 async function handleBillingNode() {
   return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
-}
-async function handleSupportNode() {
-  return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
 }
 async function retrievalBasedNode(state: typeof GraphState.State) {
   return await retrievalBased(state);

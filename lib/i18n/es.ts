@@ -1,6 +1,33 @@
-// Path: /lib/i18n/es.ts
-export default {
-    layout: {
+// Path: /root/begasist/lib/i18n/es.ts
+const es = {
+  hotelEdit: {
+    title: "Editar hotel",
+    country: "País",
+    city: "Ciudad",
+    name: "Nombre",
+    address: "Dirección",
+    postalCode: "Código postal",
+    phone: "Teléfono",
+    timezone: "Zona horaria",
+    defaultLanguage: "Idioma",
+    channels: "Canales",
+    whatsapp: "WhatsApp",
+    webChannel: "Web",
+    email: "Correo electrónico",
+    celNumber: "Número de celular",
+    dirEmail: "Dirección de email",
+    enabled: "Habilitado",
+    automatic: "Automático",
+    supervised: "Supervisado",
+    saving: "Guardando...",
+    save: "Guardar cambios",
+    cancel: "Cancelar",
+    errors: {
+      saveHotel: "Error al guardar hotel",
+      unknown: "Error desconocido",
+    },
+  },
+  layout: {
     checkingSession: "Verificando sesión...",
     panelTitle: "Panel de Control",
     home: "Inicio",
@@ -61,7 +88,7 @@ export default {
     position: "Ejemplo: Recepcionista, Gerente, Contable, etc.",
     role: "Determina los permisos: Recepcionista, Técnico, Administrador, etc.",
   },
-  hotelEdit: {
+  hotelEditDetails: {
     title: "Editar hotel",
     name: "Nombre del hotel",
     country: "País",
@@ -81,7 +108,6 @@ export default {
     notFound: "No se encontró el hotel",
     success: "¡Hotel actualizado correctamente!",
     error: "Ocurrió un error",
-    // Errores
     errors: {
       fetchHotel: "Error al obtener el hotel",
       saveHotel: "Error al guardar el hotel",
@@ -143,10 +169,10 @@ export default {
       "log.whatsappConnected": "Canal WhatsApp conectado correctamente.",
       "log.webApproved": "Recepcionista aprobó respuesta a usuario Web.",
       "log.emailDiscarded": "Mensaje de Email sin remitente descartado.",
-    }
+    },
   },
   channelOverview: {
-    title: "Visión general de los canales",   // Traducción según idioma
+    title: "Visión general de los canales",
     loading: "Cargando estado de canales...",
     qrReady: "QR listo",
     scanQr: "Escaneá este QR desde WhatsApp Web:",
@@ -161,6 +187,29 @@ export default {
       disconnected: "Desconectado",
       notConfigured: "No configurado",
       unknown: "Desconocido",
-    }
+    },
   },
+  classifierPrompt: `
+    Dada la siguiente consulta del usuario, responde solo con un JSON válido con dos campos:
+    - "category": una de las siguientes: {{allowedCategories}}
+    - "promptKey": si la categoría necesita un prompt curado especial, elige una de: [{{allPromptKeys}}]; si no, pon null.
+
+    Ejemplo de respuesta:
+    {
+      "category": "retrieval_based",
+      "promptKey": "room_info"
+    }
+    Consulta:
+    "{{question}}"
+    `.trim(),
+  sentimentPrompt: `Analiza el sentimiento del siguiente mensaje de un huésped de hotel. Responde SOLO con una palabra: "positive", "neutral" o "negative".
+
+    Mensaje:
+    """
+    {{text}}
+    """`,
+      // ...
 };
+
+export default es;
+

@@ -8,6 +8,8 @@ const PUBLIC_PATHS = [
   "/auth/forgot-password",
   "/auth/reset-password",
   "/auth/verify-account",
+
+  // Rutas públicas de API
   "/api/login",
   "/api/users/hotels-for-user",
   "/api/users/send-recovery-email",
@@ -17,15 +19,17 @@ const PUBLIC_PATHS = [
   "/api/chat",
   "/api/upload-hotel-document",
   "/api/hotel-documents",
-  "/api/conversations/list",         // 👈 AGREGÁ ESTAS DOS
-  "/api/messages/by-conversation",   // 👈
+  "/api/conversations/list",
+  "/api/messages/by-conversation",
   "/api/whatsapp/qr",
-  "/api/debug/list-user-passwords", 
+  "/api/debug/list-user-passwords",
   "/api/users/reset-password",
   "/api/channel-status",
-  "/api/email/polling", // 👈 AGREGÁ ESTA RUTA TAMBIÉN
-];
+  "/api/email/polling",
 
+  // ← Añadimos estas dos líneas para permitir los simuladores
+  "/api/simulate",        
+];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -41,7 +45,7 @@ export async function middleware(req: NextRequest) {
   const payload = await verifyJWT(token);
   if (!payload) return NextResponse.redirect(new URL("/auth/login", req.url));
 
-// 🔒 Recepcionistas: sólo canales, cambio de contraseña y home
+  // 🔒 Recepcionistas: sólo canales, cambio de contraseña y home
   if (pathname.startsWith("/admin") && !canAccessAdminRoute(payload.roleLevel, pathname)) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }

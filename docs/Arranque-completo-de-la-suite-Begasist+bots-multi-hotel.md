@@ -243,6 +243,54 @@ Lo podés pegar tal cual después de la sección “Notas importantes”.
 
 **¿Otro caso? Podes consultar los logs y revisar el panel de control,
 o preguntarme para sumar más escenarios comunes.**
+Para levantar tu stack en modo desarrollo con hot-reload y asegurarte de que se reconstruyan las imágenes al cambiar el código, basta con:
+
+```bash
+# Desde la raíz de tu proyecto
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Si quieres que arranque en segundo plano (detached):
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+```
+
+Y si más adelante solo quieres reconstruir y reiniciar el servicio `suite`:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build suite
+```
+
+Con el volumen `.:/app` y el `.next` montado, tus cambios en el código se reflejarán al instante sin necesidad de volver a reconstruir la imagen cada vez.
+
+Para levantar **solo el bot de hotel999** en modo desarrollo (con rebuild y hot-reload), puedes usar:
+
+```bash
+# Reconstruye la imagen del bot_hotel999 y lo levanta en foreground
+docker compose -f docker-compose.bots.yml up --build bot_hotel999
+```
+
+O bien, en segundo plano (detached):
+
+```bash
+docker compose -f docker-compose.bots.yml up -d --build bot_hotel999
+```
+
+Si más tarde quieres reiniciar solo ese servicio sin reconstruir todo el stack:
+
+```bash
+docker compose -f docker-compose.bots.yml up -d --build bot_hotel999
+```
+
+Y para parar el bot:
+
+```bash
+docker compose -f docker-compose.bots.yml stop bot_hotel999
+```
+
+Con el volumen `.:/app` montado y tu script `dev:channelbot` configurado para hot-reload, cualquier cambio en el código de `hotel999` se reflejará al instante.
+
 
 
 

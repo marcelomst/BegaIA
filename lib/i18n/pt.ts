@@ -1,5 +1,32 @@
 // Path: /lib/i18n/pt.ts
 export default {
+    hotelEdit: {
+      title: "Editar hotel",
+      country: "País",
+      city: "Cidade",
+      name: "Nome",
+      address: "Endereço",
+      postalCode: "Código postal",
+      phone: "Telefone",
+      timezone: "Fuso horário",
+      defaultLanguage: "Idioma",
+      channels: "Canais",
+      whatsapp: "WhatsApp",
+      webChannel: "Web",
+      email: "Email",
+      celNumber: "Número de celular",
+      dirEmail: "Endereço de email",
+      enabled: "Habilitado",
+      automatic: "Automático",
+      supervised: "Supervisionado",
+      saving: "Salvando...",
+      save: "Salvar alterações",
+      cancel: "Cancelar",
+      errors: {
+        saveHotel: "Erro ao salvar hotel",
+        unknown: "Erro desconhecido",
+      },
+    },
   layout: {
     checkingSession: "Verificando sessão...",
     panelTitle: "Painel de Controle",
@@ -60,32 +87,6 @@ export default {
     name: "Nome completo do usuário.",
     position: "Exemplo: Recepcionista, Gerente, Contador, etc.",
     role: "Define permissões: Recepcionista, Técnico, Administrador, etc.",
-  },
-  hotelEdit: {
-    title: "Editar hotel",
-    name: "Nome do hotel",
-    country: "País",
-    city: "Cidade",
-    address: "Endereço",
-    postalCode: "Código Postal",
-    phone: "Telefone",
-    timezone: "Fuso horário",
-    defaultLanguage: "Idioma padrão",
-    channels: "Canais",
-    whatsapp: "WhatsApp",
-    celNumber: "Número do WhatsApp",
-    saving: "Salvando...",
-    save: "Salvar alterações",
-    cancel: "Cancelar",
-    loading: "Carregando...",
-    notFound: "Hotel não encontrado",
-    success: "Hotel atualizado com sucesso!",
-    error: "Ocorreu um erro",
-    errors: {
-      fetchHotel: "Erro ao carregar hotel",
-      saveHotel: "Erro ao salvar hotel",
-      unknown: "Erro inesperado",
-    },
   },
   chat: {
     title: "💬 Chat com IA",
@@ -162,4 +163,24 @@ export default {
       unknown: "Desconhecido",
     },
   },
-};
+  classifierPrompt: `
+    Dada a seguinte consulta do usuário, responda apenas com um JSON válido contendo dois campos:
+    - "category": um dos seguintes: {{allowedCategories}}
+    - "promptKey": se a categoria exigir um prompt curado específico, escolha um de: [{{allPromptKeys}}]; caso contrário, defina como null.
+
+    Exemplo de resposta:
+    {
+      "category": "retrieval_based",
+      "promptKey": "room_info"
+    }
+    Consulta:
+    "{{question}}"
+    `.trim(),
+  sentimentPrompt: `Analise o sentimento da seguinte mensagem de um hóspede de hotel. Responda com APENAS UMA PALAVRA: "positive", "neutral" ou "negative".
+
+    Mensagem:
+    """
+    {{text}}
+    """`,
+  // ...
+}

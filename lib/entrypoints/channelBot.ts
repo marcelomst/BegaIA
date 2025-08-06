@@ -31,18 +31,22 @@ export async function startHotelBot(hotelId: string) {
     //   console.log(`[hotelBot] NO inicia WhatsApp bot para ${hotelId}`);
     // }
 
-    // --- Email
-    if (isChannelEnabled(config, "email") && config.channelConfigs.email?.dirEmail) {
-      startEmailBot({ hotelId, emailConf: config.channelConfigs.email });
-      console.log(`[hotelBot] ✅ Email bot iniciado para ${hotelId}`);
-    } else {
-      console.log(`[hotelBot] NO inicia Email bot para ${hotelId}`);
-    }
+    // // --- Email
+    // if (isChannelEnabled(config, "email") && config.channelConfigs.email?.dirEmail) {
+    //   startEmailBot({ hotelId, emailConf: config.channelConfigs.email });
+    //   console.log(`[hotelBot] ✅  Email bot iniciado para ${hotelId}`);
+    // } else {
+    //   console.log(`[hotelBot] NO inicia Email bot para ${hotelId}`);
+    // }
 
     // --- Channel Manager
     if (isChannelEnabled(config, "channelManager")) {
-      startChannelManagerBot(hotelId);
-      console.log(`[hotelBot] ✅ ChannelManager bot iniciado para ${hotelId}`);
+      try {
+        startChannelManagerBot(hotelId);
+        console.log(`[hotelBot] ✅ ChannelManager bot iniciado para ${hotelId}`);
+      } catch (err) {
+        console.error(`[hotelBot] ❌ Error al iniciar ChannelManager para ${hotelId}:`, err);
+      }
     } else {
       console.log(`[hotelBot] NO inicia ChannelManager para ${hotelId}`);
     }
