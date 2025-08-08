@@ -1,5 +1,18 @@
 // Path: /root/begasist/lib/i18n/es.ts
 const es = {
+    reservation: {
+      slotFillingPrompt: (missing: string[]) =>
+        `¡Gracias por tu interés! Para avanzar con tu reserva, ¿podrías indicarme ${missing.join(", ")}?`,
+      confirmation: (resId?: string) =>
+        resId
+          ? `¡Reserva confirmada! Tu número de reserva es ${resId}.`
+          : "¡Reserva confirmada!",
+      cancellation: (resId?: string) =>
+        resId
+          ? `Tu reserva ${resId} ha sido cancelada exitosamente.`
+          : "Tu reserva ha sido cancelada exitosamente.",
+      // ...otros textos de reserva si necesitas
+  },
   hotelEdit: {
     title: "Editar hotel",
     country: "País",

@@ -11,6 +11,7 @@ import { standardCleanup } from "@/lib/utils/emailCleanup";
 import { disableEmailPolling } from "@/lib/services/emailPollControl";
 import { getEmailPollingState } from "./emailPollingState";
 import { getMessageByOriginalId } from "@/lib/db/messages"; // Idempotencia
+import { debugLog } from "../utils/debugLog";
 
 const MAX_UID_ERRORS = 3;
 const failedUids: Record<number, number> = {};
@@ -125,7 +126,7 @@ export async function startEmailBot({
             const parsed = await simpleParser(raw);
 
             // 🟦 DEBUG: Mostrá todo lo relevante ANTES del filtro
-            console.log("\n[DEBUG] EMAIL RECIBIDO UID", uid, {
+            debugLog("\n[DEBUG] EMAIL RECIBIDO UID", uid, {
               from: parsed.from?.text,
               subject: parsed.subject,
               text: parsed.text,
@@ -179,10 +180,13 @@ export async function startEmailBot({
               raw,
             });
 
-            // 💡 IDEMPOTENCIA ANTI-DUPLICADOS:
+            // 💡 IDEMPOTENCIA ANTI-DUPLICADOS con opción de ignorar (DEBUG):
+            const IGNORE_IDEMPOTENCY = process.env.EMAIL_BOT_IGNORE_IDEMPOTENCY === "true";
+
             // Usar el messageId del email como identificador único lógico
             let originalMessageId = parsed.messageId || channelMsg.originalMessageId || channelMsg.messageId;
             if (!originalMessageId) {
+              debugLog(`⚠️ [email] No se encontró messageId en el email, generando uno por hash...`);
               // Si no hay messageId, generá uno por hash de from+subject+date+body como fallback
               let hashVal = "";
               try {
@@ -202,15 +206,18 @@ export async function startEmailBot({
               channelMsg.originalMessageId = originalMessageId;
             }
 
-            // Consultar en Astra si ya existe este messageId
-            const alreadyExists = await getMessageByOriginalId(channelMsg.originalMessageId!);
-            if (alreadyExists) {
-              console.log(`[email] Mensaje duplicado detectado, no se guarda:`, channelMsg.originalMessageId);
-              // Marcar como leído igual para no reprocesar
-              await connection.addFlags(uid, '\\Seen');
-              if (failedUids[uid]) delete failedUids[uid];
-              continue;
+            // Consultar en Astra si ya existe este messageId (SOLO si no se ignora idempotencia)
+            if (!IGNORE_IDEMPOTENCY) {
+              const alreadyExists = await getMessageByOriginalId(channelMsg.originalMessageId!);
+              if (alreadyExists) {
+                console.log(`[email] Mensaje duplicado detectado, no se guarda:`, channelMsg.originalMessageId);
+                // Marcar como leído igual para no reprocesar
+                await connection.addFlags(uid, '\\Seen');
+                if (failedUids[uid]) delete failedUids[uid];
+                continue;
+              }
             }
+
 
             const from = channelMsg.sender || "";
             const subject = channelMsg.subject || "";
@@ -241,7 +248,7 @@ export async function startEmailBot({
             );
 
             // Marcar como leído solo los válidos procesados
-            await connection.addFlags(uid, '\\Seen');
+            // await connection.addFlags(uid, '\\Seen');
             if (failedUids[uid]) delete failedUids[uid];
           } catch (err) {
             console.error(`[email] Error en UID ${uid}:`, err);

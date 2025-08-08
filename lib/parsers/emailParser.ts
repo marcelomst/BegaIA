@@ -118,7 +118,7 @@ export async function extractAllTextFromParsed(parsed: any, raw?: Buffer | strin
     if (filtered.length > 0) candidates.push(filtered.join("\n"));
   }
 
-  await logToFile("warn", `parseEmailToChannelMessage.textCandidates: ${JSON.stringify(candidates)}`);
+  // await logToFile("warn", `parseEmailToChannelMessage.textCandidates: ${JSON.stringify(candidates)}`);
   const best = candidates
     .map(t => t.replace(/\s+/g, " ").trim())
     .filter(t => t.length > 0)
@@ -142,8 +142,8 @@ export async function parseEmailToChannelMessage({
   hotelId: string;
   raw?: Buffer | string;
 }): Promise<ChannelMessage> {
-  await logToFile("warn", `parseEmailToChannelMessage.parsed: ${JSON.stringify(parsed)}`);
-  if (raw) await logToFile("warn", `parseEmailToChannelMessage.raw: ${raw.toString()}`);
+  // await logToFile("warn", `parseEmailToChannelMessage.parsed: ${JSON.stringify(parsed)}`);
+  // if (raw) await logToFile("warn", `parseEmailToChannelMessage.raw: ${raw.toString()}`);
 
   const from = extractSender(parsed, raw);
   const to = parsed.to?.value?.[0]?.address || parsed.to?.text || "";
@@ -161,7 +161,7 @@ export async function parseEmailToChannelMessage({
 
   let content = await extractAllTextFromParsed(parsed, raw);
   if (!content && subject) {
-    await logToFile("warn", `parseEmailToChannelMessage.fallbackContent: ${subject}`);
+    // await logToFile("warn", `parseEmailToChannelMessage.fallbackContent: ${subject}`);
     content = subject;
   }
 

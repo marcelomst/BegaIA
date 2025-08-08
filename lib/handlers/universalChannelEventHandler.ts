@@ -5,6 +5,8 @@ import { analyzeSentiment } from "@/lib/utils/analyzeSentiment";
 import { detectLanguage } from "@/lib/utils/language";
 import crypto from "crypto";
 import type { ChannelMessage } from "@/types/channel";
+import { debugLog } from "@/lib/utils/debugLog";
+
 
 /**
  * Handler universal: procesa un evento crudo de cualquier canal y lo transforma a ChannelMessage,
@@ -22,6 +24,10 @@ export async function universalChannelEventHandler(
 ) {
   // 1. Detectar idioma del mensaje (usando tu helper)
   const lang = await detectLanguage(rawEvent.content, hotelId);
+  if (!lang) {
+    debugLog("No se pudo detectar el idioma del mensaje, usando 'en' por defecto");
+  }
+  debugLog("Idioma detectado:", lang);
 
   // 2. Analizar sentimiento del mensaje
   const sentiment = await analyzeSentiment(rawEvent.content, lang);

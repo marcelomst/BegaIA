@@ -1,27 +1,30 @@
 
-````markdown
-# Guía Rápida: Build, Deploy y Logs de bots por hotel
+### Sólo Suite (frontend/backend + Redis)
 
----
+```sh
+docker compose -f docker-compose.dev.yml up -d
+```
+
 
 ## 🏨 **Resumen ultra-rápido: build y deploy de UN bot hotelero**
 
 **Ejemplo:** Para `hotel999`
 
-```sh
+# 3. Levantar solo ese bot (multi-canal, ejemplo WhatsApp, Email, etc)
+docker compose -f docker-compose.bots.yml up -d bot_hotel999
+# 2. Rebuild solo el bot (fuerza recompilado y copia de .env, etc)
+docker compose -f docker-compose.bots.yml build --no-cache bot_hotel999
+
 # 1. Parar y eliminar el bot (si ya existe)
 docker stop begasist-channelbot-hotel999 || true
 docker rm begasist-channelbot-hotel999 || true
 
-# 2. Rebuild solo el bot (fuerza recompilado y copia de .env, etc)
-docker compose -f docker-compose.bots.yml build --no-cache bot_hotel999
 
-# 3. Levantar solo ese bot (multi-canal, ejemplo WhatsApp, Email, etc)
-docker compose -f docker-compose.bots.yml up -d bot_hotel999
+
 
 # 4. Ver logs en tiempo real de ese bot
 docker compose -f docker-compose.bots.yml logs -f bot_hotel999
-````
+
 
 * El nombre del **servicio** en el compose es `bot_hotel999`
 * El nombre del **contenedor** es `begasist-channelbot-hotel999`
@@ -71,11 +74,6 @@ docker compose -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.bots.yml up -d
 ```
 
-### Sólo Suite (frontend/backend + Redis)
-
-```sh
-docker compose -f docker-compose.dev.yml up -d
-```
 
 ### Sólo Bots (multi-hotel/multi-canal)
 

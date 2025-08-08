@@ -6,15 +6,16 @@ import path from "path";
 export function debugLog(...args: any[]) {
   if (process.env.DEBUG === "true") {
     console.log("🐞 DEBUG:", ...args);
+    logToFile("debug", ...args);
   }
 }
 
 
 // 📁 Ruta absoluta al archivo de log
-const logPath = path.join(process.cwd(), "log.txt");
+const logPath =  path.join(process.cwd(), "log.txt");
 
 // 📝 Función para escribir en log.txt con marca temporal
-function writeLog(type: "warn" | "error", ...args: any[]) {
+function writeLog(type: "warn" | "error" | "debug", ...args: any[]) {
   const time = new Date().toISOString();
   const msg = args.map((a) =>
     typeof a === "object" ? JSON.stringify(a, null, 2) : String(a)
@@ -37,7 +38,7 @@ console.error = (...args) => {
 };
 
 // ✅ También exportás la función si querés loguear manualmente
-export function logToFile(type: "warn" | "error", ...args: any[]) {
+export async function logToFile(type: "warn" | "error" | "debug", ...args: any[]) {
   writeLog(type, ...args);
 }
 

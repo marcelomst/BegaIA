@@ -182,5 +182,18 @@ export default {
     """
     {{text}}
     """`,
+   reservation: {
+      slotFillingPrompt: (missing: string[]) =>
+        `Obrigado pelo seu interesse! Para prosseguir com sua reserva, você poderia me informar ${missing.join(", ")}?`,
+      confirmation: (resId?: string) =>
+        resId
+          ? `Reserva confirmada! Seu número de reserva é ${resId}.`
+          : "Reserva confirmada!",
+      cancellation: (resId?: string) =>
+        resId
+          ? `Sua reserva ${resId} foi cancelada com sucesso.`
+          : "Sua reserva foi cancelada com sucesso.",
+      // ...outros textos
+    },
   // ...
 }

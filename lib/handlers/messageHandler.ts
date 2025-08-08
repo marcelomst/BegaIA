@@ -80,8 +80,10 @@ export async function handleIncomingMessage(
     const response = await agentGraph.invoke({
       hotelId: msg.hotelId,
       conversationId: msg.conversationId,
+      detectedLanguage: msg.detectedLanguage, // 👈🏼 AGREGADO
       messages: [new HumanMessage(msg.content)],
     });
+
     const content = response.messages.at(-1)?.content;
     if (typeof content === "string" && content.trim().length > 0) {
       const suggestion = content.trim();
