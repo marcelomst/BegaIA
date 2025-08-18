@@ -118,6 +118,7 @@ export async function extractAllTextFromParsed(parsed: any, raw?: Buffer | strin
     if (filtered.length > 0) candidates.push(filtered.join("\n"));
   }
 
+  
   // await logToFile("warn", `parseEmailToChannelMessage.textCandidates: ${JSON.stringify(candidates)}`);
   const best = candidates
     .map(t => t.replace(/\s+/g, " ").trim())

@@ -6,6 +6,9 @@ import { getConversationById } from "@/lib/db/conversations";
 import { parseChannel } from "@/lib/utils/parseChannel";
 
 export async function GET(req: NextRequest) {
+  const H = (k: string) => req.headers.get?.(k);
+  console.log(`[edge] ${req.method} ${new URL(req.url).pathname} host=${H("host")} ip=${H("cf-connecting-ip")||H("x-forwarded-for")} cf-ray=${H("cf-ray")} ua=${H("user-agent")}`);
+
   const url = new URL(req.url);
   const rawChannel = url.searchParams.get("channelId");
   const conversationId = url.searchParams.get("conversationId");

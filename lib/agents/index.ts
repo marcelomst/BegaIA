@@ -3,7 +3,6 @@
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
-import { pms } from "../pms";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { Annotation } from "@langchain/langgraph";
@@ -11,11 +10,9 @@ import { retrievalBased } from "./retrieval_based";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
 import { searchFromAstra } from "../retrieval";
-import { createReservation, ReservationInput } from "../channelManager";
-import { cancelReservation, CancelReservationInput } from "../channelManager";
 import { translateIfNeeded } from "@/lib/i18n/translateIfNeeded";
 import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
-import { handleReservation } from "./reservations";
+import { handleReservation } from "@/lib/agents/reservations";
 
 // ----------------------------
 // Estado del grafo: SOLO recibe, no calcula idioma ni sentimiento
@@ -60,16 +57,29 @@ export const GraphState = Annotation.Root({
     reducer: (x, y) => ({ ...x, ...y }),
     default: () => ({}),
   }),
-   reservationSlots: Annotation<{
+  reservationSlots: Annotation<{
     guestName?: string;
     roomType?: string;
     checkIn?: string;
     checkOut?: string;
     numGuests?: string;
-    // podés agregar otros slots si tu pipeline crece
   }>({
     reducer: (x, y) => ({ ...x, ...y }),
     default: () => ({}),
+  }),
+
+  // --- NUEVO: estado comercial para "vendedor experimentado"
+  salesStage: Annotation<"qualify" | "quote" | "close" | "followup">({
+    reducer: (_x, y) => y,
+    default: () => "qualify",
+  }),
+  lastOffer: Annotation<string | null>({
+    reducer: (_x, y) => y,
+    default: () => null,
+  }),
+  upsellCount: Annotation<number>({
+    reducer: (x, y) => (typeof y === "number" ? y : x ?? 0),
+    default: () => 0,
   }),
 });
 
@@ -114,13 +124,14 @@ export async function classifyNode(state: typeof GraphState.State) {
     ? lastUserMessage.content.trim()
     : "";
   debugLog("❓Pregunta:", question);
+
   // Traduce SOLO si el idioma detectado es distinto al nativo del hotel
   let normalizedQuestion = question;
   if (userLang !== hotelLang) {
     normalizedQuestion = await translateIfNeeded(question, userLang, hotelLang);
   }
   debugLog("❓Pregunta  normalizada:",  normalizedQuestion);
-  // Usá normalizedQuestion en el clasificador
+
   let classification;
   try {
     classification = await classifyQuery(normalizedQuestion, state.hotelId);
@@ -136,12 +147,17 @@ export async function classifyNode(state: typeof GraphState.State) {
 
   debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey });
 
+  // Heurística: si menciona fechas/habitación/precio => arrancar en "qualify|quote"
+  const salesStageHint = /(\d{4}-\d{2}-\d{2})|habitaci|precio|tarifa|suite|doble|matrimonial/i.test(normalizedQuestion)
+    ? ("quote" as const)
+    : ("qualify" as const);
+
   return {
     ...state,
     category,
     promptKey: finalPromptKey,
-    normalizedMessage: normalizedQuestion, // <-- NUEVO, siempre en idioma del hotel
-    // detectedLanguage queda igual
+    normalizedMessage: normalizedQuestion,
+    salesStage: salesStageHint,
     messages: [
       ...state.messages,
       new AIMessage(
@@ -152,7 +168,7 @@ export async function classifyNode(state: typeof GraphState.State) {
 }
 
 // ----------------------------
-// Nodos funcionales del grafo (ejemplo de uso de sentimiento)
+// Nodos funcionales (ejemplos)
 
 async function handleSupportNode(state: typeof GraphState.State) {
   const sent = state.sentiment ?? "neutral";
@@ -166,49 +182,21 @@ async function handleSupportNode(state: typeof GraphState.State) {
     reply = "¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.";
   }
 
-  // Traducción al idioma original del usuario
   const originalLang = state.detectedLanguage ?? "en";
   const hotelLang = await getHotelNativeLanguage(state.hotelId);
-
   const replyToUser = await translateIfNeeded(reply, hotelLang, originalLang);
-
   return { messages: [new AIMessage(replyToUser)] };
 }
 
 export async function handleReservationNode(state: typeof GraphState.State) {
+  // Delegamos en reservations.ts (ahí está la lógica comercial)
   return await handleReservation(state);
 }
 
-/**
- * Extrae el payload estructurado para cancelar una reserva.
- * TODO: Mejorar para extraer datos reales desde el mensaje (NLP/slot-filling).
- */
-function extractCancelReservationInput(state: typeof GraphState.State): CancelReservationInput {
-  // ⚠️ Hardcodeado, reemplazar luego con parsing real:
-  return {
-    hotelId: state.hotelId,
-    reservationId: "RES-123456",   // ← esto debería venir del mensaje del usuario
-    reason: "Cancelación por parte del huésped",
-    channel: state.meta?.channel,
-    language: state.detectedLanguage ?? "es",
-  };
-}
-
 async function handleCancelReservationNode(state: typeof GraphState.State) {
-  const cancelInput = extractCancelReservationInput(state);
-  const result = await cancelReservation(cancelInput);
-
-  // Traducción al idioma original del usuario
-  const originalLang = state.detectedLanguage ?? "en";
-  const hotelLang = (await getHotelNativeLanguage(state.hotelId)) ?? "en";
-
-  const messageToUser = await translateIfNeeded(result.message, hotelLang, originalLang);
-
-  return {
-    ...state,
-    messages: [new AIMessage(messageToUser)],
-    // Anexar info adicional al estado si lo necesitás
-  };
+  // Conservamos tu flujo actual en otro nodo específico si lo necesitás
+  // (Se sugiere mover aquí el parsing real de cancelación cuando lo implementes)
+  return { messages: [new AIMessage("Para ayudarte a cancelar, ¿me confirmás el código de reserva?")] };
 }
 
 async function handleAmenitiesionNode() {

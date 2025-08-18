@@ -1,6 +1,6 @@
 // scripts/show-system-iso3to1.ts
 import { getHotelConfig } from "../lib/config/hotelConfig.server";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config();
 
 async function run() {

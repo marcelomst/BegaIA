@@ -1,21 +1,34 @@
-# Path: /docker-compose.dev.yml
+# Path: /root/begasist/docker-compose.dev.yml
+# (suite) CREA la red 'begasist_net' y expone el contenedor Redis 'begasist-redis'
 
 services:
   suite:
     build:
       context: .
-      dockerfile: Dockerfile.dev  # 👈 usamos Dockerfile.dev para entorno de desarrollo
+      dockerfile: Dockerfile.dev
     image: begasist-suite:dev
     container_name: begasist-suite
-    command: pnpm dev
+    command: pnpm dev -p 3000 -H 0.0.0.0
     environment:
       - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=300
+      - TAILWIND_MODE=watch
+      # === MCP (dev) ===
+      - USE_MCP_RESERVATIONS=true
+      - MCP_API_KEY=dev_key
+      - MCP_ENDPOINT=http://suite:3000/api/mcp
+      # === Astra ===
+      - ASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN}
+      - ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE:-hotel_data}
+      - ASTRA_DB_URL=${ASTRA_DB_URL}
     ports:
       - "3000:3000"
     volumes:
-      - .:/app                         # 👈 montamos el código
-      - /app/node_modules             # 👈 esto evita que se monte tu node_modules local
-      - /app/.next                    # 👈 permite persistir el build para hot reload
+      - .:/app:cached
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - redis
     restart: unless-stopped
@@ -31,3 +44,8 @@ services:
 
 volumes:
   redis_data:
+
+# 🔗 Red compartida con nombre estable (usable por otros compose)
+networks:
+  default:
+    name: begasist_net

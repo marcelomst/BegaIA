@@ -1,11 +1,12 @@
 // Path: /root/begasist/lib/i18n/getDictionary.ts
+import { DICTS, normalizeLang, type SupportedLang } from "./index";
 
-import en from "./en";
-import es from "./es";
-import pt from "./pt";
-
-const DICTS = { en, es, pt };
-
-export async  function getDictionary(lang: string) {
-  return DICTS[lang as keyof typeof DICTS] || DICTS.en;
+export async function getDictionary(lang: string) {
+  const key = normalizeLang(lang);
+  switch (key) {
+    case "es": return (await import("./es")).default;
+    case "pt": return (await import("./pt")).default;
+    default:   return (await import("./en")).default;
+  }
 }
+

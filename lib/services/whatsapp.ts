@@ -2,150 +2,225 @@
 
 import { Message } from "whatsapp-web.js";
 import { whatsappClient as client } from "./whatsappClient";
-import { parseWhatsAppToChannelMessage } from "@/lib/parsers/whatsappParser";
-import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
-import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
-import { normalizePhone } from "@/lib/config/hotelPhoneMap";
-import { getOrCreateConversation } from "@/lib/db/conversations";
-import { getMessagesFromAstra, updateMessageInAstra } from "@/lib/db/messages";
 import qrcode from "qrcode-terminal";
+
+import { parseWhatsAppToChannelMessage } from "@/lib/parsers/whatsappParser";
+import { universalChannelEventHandler } from "@/lib/handlers/universalChannelEventHandler";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import { getMessagesFromAstra, updateMessageInAstra } from "@/lib/db/messages";
+
 import { setQR, clearQR, setWhatsAppState } from "@/lib/services/redis";
 import { startChannelHeartbeat } from "@/lib/services/heartbeat";
+import { normalizePhone } from "@/lib/config/hotelPhoneMap";
 
-export function startWhatsAppBot({ hotelId, hotelPhone }: { hotelId: string, hotelPhone?: string }) {
-  client.on("qr", async (qr) => {
-    console.log("⚡ [whatsapp] Escaneá este código QR para conectar:");
-    qrcode.generate(qr, { small: true });
-    startChannelHeartbeat("whatsapp", hotelId);
-    await setQR(hotelId, qr);
-    await setWhatsAppState(hotelId, "waiting_qr");
-  });
+/**
+ * Evita múltiples inicializaciones en dev/hot-reload.
+ */
+const INIT_KEY = "__WA_INIT__";
+const POLLER_KEY = "__WA_POLLERS__" as const;
 
-  client.on("ready", async () => {
-    console.log("✅ [whatsapp] Bot de WhatsApp listo para recibir mensajes.");
-    await clearQR(hotelId);
-    await setWhatsAppState(hotelId, "connected");
-  });
+type PollerMap = Record<string, NodeJS.Timeout>;
 
-  client.on("disconnected", async (reason) => {
-    console.warn(`❌ [whatsapp] Bot desconectado para hotelId=${hotelId}: ${reason}`);
-    await setWhatsAppState(hotelId, "disconnected");
-  });
+// @ts-ignore - attach to global for dev
+if (!(globalThis as any)[POLLER_KEY]) {
+  (globalThis as any)[POLLER_KEY] = {};
+}
 
-  client.on("message", async (message: Message) => {
-    try {
-      console.log(`📩 [whatsapp] Mensaje recibido de ${message.from}: ${message.body}`);
+function ensureSinglePoller(hotelId: string, create: () => NodeJS.Timeout) {
+  const map = (globalThis as any)[POLLER_KEY] as PollerMap;
+  if (map[hotelId]) return; // ya existe
+  map[hotelId] = create();
+}
 
-      if (!hotelId) {
-        console.warn(`⚠️ [whatsapp] Este proceso no tiene hotelId definido.`);
-        return;
-      }
-      if (!hotelPhone) {
-        console.warn(`⚠️ [whatsapp] Este proceso no tiene hotelPhone definido.`);
-        return;
-      }
+function clearPoller(hotelId: string) {
+  const map = (globalThis as any)[POLLER_KEY] as PollerMap;
+  if (map[hotelId]) {
+    clearInterval(map[hotelId]);
+    delete map[hotelId];
+  }
+}
 
-      const senderJid = normalizePhone(message.from);
-      const conversationId = `${hotelId}-whatsapp-${senderJid}`;
-      const timestamp = new Date().toISOString();
+/**
+ * Nota: el control de grupos ahora es por hotel desde hotel_config.channelConfigs.whatsapp.ignoreGroups
+ * (por defecto true si no está definido).
+ */
+export function startWhatsAppBot({ hotelId, hotelPhone }: { hotelId: string; hotelPhone?: string }) {
+  if (!hotelId) {
+    console.warn("⚠️ [whatsapp] startWhatsAppBot llamado sin hotelId. Abortando init.");
+    return;
+  }
 
-      // Guest CRUD
-      let guest = await getGuest(hotelId, senderJid);
-      if (!guest) {
-        guest = {
-          guestId: senderJid,
-          hotelId,
-          name: "",
-          mode: "automatic",
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        };
-        await createGuest(guest);
-        console.log(`👤 [whatsapp] Guest creado en Astra: ${senderJid}`);
-      } else {
-        await updateGuest(hotelId, senderJid, { updatedAt: timestamp });
-      }
+  // Idempotencia de init (en dev/hot reload)
+  // @ts-ignore
+  if ((globalThis as any)[INIT_KEY]?.[hotelId]) {
+    console.log(`↪️ [whatsapp] Ya inicializado para hotelId=${hotelId}, evitando doble init.`);
+  } else {
+    // @ts-ignore
+    (globalThis as any)[INIT_KEY] = (globalThis as any)[INIT_KEY] || {};
+    // @ts-ignore
+    (globalThis as any)[INIT_KEY][hotelId] = true;
 
-      // Conversation (opcional: puede ir dentro del handler si preferís)
-      await getOrCreateConversation({
-        conversationId,
-        hotelId,
-        channel: "whatsapp",
-        guestId: senderJid,
-        startedAt: timestamp,
-        lastUpdatedAt: timestamp,
-        lang: "es",
-        status: "active",
-        subject: "",
-      });
-
-      // --- 1. Parsear y manejar el mensaje centralmente ---
-      const channelMsg = await parseWhatsAppToChannelMessage({ message, hotelId, guestId: senderJid });
-      const hotelConfig = await getHotelConfig(hotelId);
-      const mode = hotelConfig?.channelConfigs?.whatsapp?.mode ?? "automatic";
-
-      await handleIncomingMessage(channelMsg, {
-        autoReply: mode === "automatic",
-        sendReply: async (reply: string) => {
-          if (mode === "automatic") {
-            await client.sendMessage(senderJid, reply);
-          } else {
-            await message.reply("🧍‍♂️ Un recepcionista está gestionando su consulta, en breve será respondida.");
-          }
-        },
-        mode,
-      });
-
-    } catch (error) {
-      console.error("⛔ [whatsapp] Error procesando mensaje:", error);
+    // Handlers de ciclo de vida
+    client.on("qr", async (qr) => {
       try {
-        await message.reply("⚠️ Hubo un error procesando tu solicitud.");
-      } catch {}
-    }
-  });
-
-  // Polling cada 5s para enviar mensajes aprobados por el admin
-  setInterval(async () => {
-    try {
-      const messages = await getMessagesFromAstra(hotelId, "whatsapp");
-      for (const msg of messages) {
-        if (
-          msg.status === "sent" &&
-          msg.approvedResponse &&
-          msg.sender === "assistant" &&
-          !msg.deliveredAt
-        ) {
-          const guestJid = msg.guestId;
-          if (!guestJid) {
-            console.warn("guestId no definido para el mensaje", msg.messageId);
-            continue;
-          }
-          console.log(`[whatsapp] Enviando respuesta aprobada a guest:`, guestJid, "msgId:", msg.messageId);
-
-          try {
-            await client.sendMessage(guestJid, msg.approvedResponse);
-            await updateMessageInAstra(hotelId, msg.messageId, {
-              deliveredAt: new Date().toISOString(),
-              deliveryError: undefined,
-              deliveryAttempts: (msg.deliveryAttempts || 0) + 1,
-            });
-            console.log(`[whatsapp] Mensaje ${msg.messageId} marcado como entregado (timestamp)`);
-          } catch (error) {
-            const attempts = (msg.deliveryAttempts || 0) + 1;
-            await updateMessageInAstra(hotelId, msg.messageId, {
-              deliveryError: String(error),
-              deliveryAttempts: attempts,
-              status: attempts >= 5 ? "rejected" : "sent",
-            });
-            console.error(`[whatsapp] ❌ Error enviando mensajeId ${msg.messageId} a ${guestJid} (intent ${attempts}):`, error);
-          }
-        }
+        console.log(`⚡ [whatsapp] QR generado para hotelId=${hotelId}. Escaneá para conectar:`);
+        qrcode.generate(qr, { small: true });
+        await setQR(hotelId, qr);
+        await setWhatsAppState(hotelId, "waiting_qr");
+        startChannelHeartbeat("whatsapp", hotelId);
+      } catch (err) {
+        console.error("⛔ [whatsapp] Error seteando QR/estado:", err);
       }
-    } catch (err) {
-      console.error("[whatsapp] Error en el poller de mensajes aprobados:", err);
-    }
-  }, 5000);
+    });
 
-  client.initialize();
+    client.on("ready", async () => {
+      console.log(`✅ [whatsapp] Bot listo para hotelId=${hotelId}`);
+      try {
+        await clearQR(hotelId);
+        await setWhatsAppState(hotelId, "connected");
+      } catch (err) {
+        console.error("⛔ [whatsapp] Error en ready (limpiar QR/estado):", err);
+      }
+      startChannelHeartbeat("whatsapp", hotelId);
+    });
+
+    client.on("auth_failure", async (msg) => {
+      console.error(`❌ [whatsapp] auth_failure para hotelId=${hotelId}:`, msg);
+      await setWhatsAppState(hotelId, "auth_failed");
+    });
+
+    client.on("disconnected", async (reason) => {
+      console.warn(`❌ [whatsapp] Bot desconectado hotelId=${hotelId}: ${reason}`);
+      await setWhatsAppState(hotelId, "disconnected");
+      // Limpiar poller en desconexión para no dejar intervalos colgando
+      clearPoller(hotelId);
+    });
+
+    /**
+     * Handler de mensaje entrante (listener local con wwebjs)
+     */
+    client.on("message", async (message: Message) => {
+      // Ignorar mensajes propios del bot
+      if (message.fromMe) return;
+
+      try {
+        // Cargar configuración por hotel (mode + ignoreGroups)
+        const hotelConfig = await getHotelConfig(hotelId);
+        const mode: "automatic" | "supervised" =
+          hotelConfig?.channelConfigs?.whatsapp?.mode ?? "automatic";
+        const ignoreGroups: boolean =
+          hotelConfig?.channelConfigs?.whatsapp?.ignoreGroups ?? true;
+
+        // Filtrar grupos si el hotel lo configuró así
+        if (ignoreGroups && message.from.endsWith("@g.us")) return;
+
+        console.log(
+          `📩 [whatsapp] hotel=${hotelId} de=${message.from} cuerpo="${(message.body || "").slice(0, 200)}"`
+        );
+
+        if (!hotelPhone) {
+          console.warn(`⚠️ [whatsapp] hotelPhone no definido para hotelId=${hotelId}. Evito respuesta.`);
+        }
+
+        // Normalizar JID manteniendo sufijo si corresponde
+        const senderJid = normalizePhone(message.from);
+
+        // Parseo específico del canal → estructura base uniforme
+        const parsed = await parseWhatsAppToChannelMessage({
+          message,
+          hotelId,
+          guestId: senderJid,
+        });
+
+        // Asegurar campos mínimos para el handler universal
+        const rawEvent = {
+          ...parsed,
+          channel: "whatsapp",
+          guestId: parsed.guestId || senderJid,
+          sender: parsed.sender || senderJid,
+          timestamp: parsed.timestamp || new Date().toISOString(),
+        };
+
+        // 🔄 Handler universal: detección idioma + sentimiento + handleIncomingMessage
+        await universalChannelEventHandler(rawEvent, hotelId, {
+          mode,
+          sendReply: async (reply: string) => {
+            try {
+              // Envío real por WhatsApp (client)
+              await client.sendMessage(senderJid, reply);
+            } catch (err) {
+              console.error("⛔ [whatsapp] Error enviando respuesta al usuario:", err);
+            }
+          },
+        });
+      } catch (error) {
+        console.error("⛔ [whatsapp] Error procesando mensaje:", error);
+        try {
+          await message.reply("⚠️ Hubo un error procesando tu solicitud.");
+        } catch {}
+      }
+    });
+
+    /**
+     * Poller: enviar mensajes aprobados (modo supervisado).
+     * Se asegura de crear un solo interval por hotel.
+     */
+    ensureSinglePoller(hotelId, () =>
+      setInterval(async () => {
+        try {
+          const messages = await getMessagesFromAstra(hotelId, "whatsapp");
+          for (const msg of messages) {
+            const shouldSend =
+              msg.status === "sent" &&
+              !!msg.approvedResponse &&
+              msg.sender === "assistant" &&
+              !msg.deliveredAt;
+
+            if (!shouldSend) continue;
+
+            const guestJid = msg.guestId;
+            if (!guestJid) {
+              console.warn("[whatsapp] guestId ausente para mensaje", msg.messageId);
+              continue;
+            }
+
+            console.log(
+              `[whatsapp] Enviando approvedResponse → guest=${guestJid} msgId=${msg.messageId}`
+            );
+
+            try {
+              await client.sendMessage(guestJid, msg.approvedResponse!);
+              await updateMessageInAstra(hotelId, msg.messageId, {
+                deliveredAt: new Date().toISOString(),
+                deliveryError: undefined,
+                deliveryAttempts: (msg.deliveryAttempts || 0) + 1,
+              });
+              console.log(`[whatsapp] OK entregado msgId=${msg.messageId}`);
+            } catch (error) {
+              const attempts = (msg.deliveryAttempts || 0) + 1;
+              const hardFail = attempts >= 5;
+              await updateMessageInAstra(hotelId, msg.messageId, {
+                deliveryError: String(error),
+                deliveryAttempts: attempts,
+                status: hardFail ? "rejected" : "sent",
+              });
+              console.error(
+                `[whatsapp] ❌ Error entregando msgId=${msg.messageId} guest=${guestJid} (intent ${attempts}):`,
+                error
+              );
+            }
+          }
+        } catch (err) {
+          console.error("[whatsapp] Error en poller de aprobados:", err);
+        }
+      }, 5000)
+    );
+
+    // Inicializar cliente (si el wrapper no lo hace por su cuenta)
+    try {
+      client.initialize?.();
+    } catch (err) {
+      console.error("⛔ [whatsapp] Error en initialize():", err);
+    }
+  }
 }

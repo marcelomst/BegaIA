@@ -1,57 +1,67 @@
 # Path: /root/begasist/docker-compose.bots.yml
-
-version: "3.9"
-
 services:
   bot_hotel999:
     build:
       context: .
       dockerfile: Dockerfile.channelbot
+      target: dev
     image: begasist-channelbot:dev
     container_name: begasist-channelbot-hotel999
-    command: pnpm run dev:channelbot
-    volumes:
-      - .:/app
+
+    tty: true
+    stdin_open: true
+    restart: "no"   # depurando: evitá loop
+
+    command: |
+      sh -lc '
+        set -ex;
+        echo "PWD=$(pwd)";
+        node -v;
+        pnpm -v || true;
+        which pnpm || true;
+        ls -la /app || true;
+        ls -la /app/lib/entrypoints || true;
+        jq -r ".scripts" package.json 2>/dev/null || cat package.json;
+
+        echo "AUTH=${AUTH:-unset}  WWEBJS_AUTH_PATH=${WWEBJS_AUTH_PATH:-unset}";
+        echo ">> Limpieza de locks Chromium (WWebJS)";
+        AUTH="${WWEBJS_AUTH_PATH:-/data/wwebjs_auth}";
+        rm -f "$AUTH/WWebJS/Singleton"* "$AUTH/WWebJS/LOCK" "$AUTH/WWebJS/DevToolsActivePort" 2>/dev/null || true;
+        rm -f "$AUTH/WWebJS/Default/LOCK" "$AUTH/WWebJS/Default/Singleton"* "$AUTH/WWebJS/Default/Preferences.lock" 2>/dev/null || true;
+        find "$AUTH/WWebJS" -maxdepth 3 -type s -name "SingletonSocket" -exec rm -f {} + 2>/dev/null || true;
+
+        echo ">> Ejecutando pnpm run dev:channelbot";
+        exec pnpm run dev:channelbot
+      '
+
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 20s
+
     env_file:
       - .env
     environment:
+      - AUTH=/data/wwebjs_auth                  # silencia warning
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=300
+      - NODE_OPTIONS=--trace-uncaught
       - HOTEL_ID=hotel999
-    depends_on:
-      - redis
-    restart: unless-stopped
+      - MCP_ENDPOINT=${MCP_ENDPOINT:-http://suite:3000/api/mcp}
+      - MCP_API_KEY=${MCP_API_KEY:-clave_de_pruebas}
+      - WWEBJS_AUTH_PATH=/data/wwebjs_auth
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      - REDIS_URL=redis://begasist-redis:6379
 
-  bot_hotelconrad:
-    image: begasist-channelbot:latest
-    container_name: begasist-channelbot-hotelconrad
-    command: pnpm start:channelbot
-    env_file:
-      - .env
-    environment:
-      - HOTEL_ID=hotelconrad
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-  bot_hotelplaza:
-    image: begasist-channelbot:latest
-    container_name: begasist-channelbot-hotelplaza
-    command: pnpm start:channelbot
-    env_file:
-      - .env
-    environment:
-      - HOTEL_ID=hotelplaza
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-  redis:
-    image: redis:7.2-alpine
-    container_name: begasist-redis
-    ports:
-      - "6379:6379"
     volumes:
-      - redis_data:/data
-    restart: unless-stopped
+      - .:/app:cached
+      # - /app/node_modules    # ❌ quitar para no pisar deps
+      - wwebjs_auth_hotel999:/data/wwebjs_auth
 
 volumes:
-  redis_data:
+  wwebjs_auth_hotel999:
+
+networks:
+  default:
+    name: begasist_net
+    external: true

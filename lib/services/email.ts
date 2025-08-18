@@ -1,3 +1,4 @@
+// /root/begasist/lib/services/email.ts
 import { simpleParser } from "mailparser";
 import imaps from "imap-simple";
 import nodemailer from "nodemailer";
@@ -100,10 +101,11 @@ export async function startEmailBot({
       if (!enabled) return;
 
       try {
-        const messages = await connection.search(["UNSEEN"], {
-          bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT", ""],
-          struct: true,
-        });
+        const messages = await connection.search(
+          ["UNSEEN", ["UNKEYWORD", "RAGBOT_PROCESSED"]],
+          { bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT", ""], struct: true }
+        );
+
 
         if (!messages.length) {
           console.log("📭 [email] No hay mensajes no leídos.");
@@ -248,7 +250,7 @@ export async function startEmailBot({
             );
 
             // Marcar como leído solo los válidos procesados
-            // await connection.addFlags(uid, '\\Seen');
+            await connection.addFlags(uid, '\\Seen');
             if (failedUids[uid]) delete failedUids[uid];
           } catch (err) {
             console.error(`[email] Error en UID ${uid}:`, err);

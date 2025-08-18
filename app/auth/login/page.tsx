@@ -20,6 +20,17 @@ export default function LoginPage() {
   // Guarda último hotelId para reenviar invitación (si lo tiene)
   const [pendingHotelId, setPendingHotelId] = useState<string | null>(null);
 
+  // Helper: intenta parsear JSON sin romper si el body está vacío o es inválido
+  async function safeJson(res: Response): Promise<any> {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+
   const handleSubmit = async () => {
     setStatus("loading");
     setMessage("");
@@ -27,47 +38,72 @@ export default function LoginPage() {
     setPendingHotelId(null);
     setActivationEmailSent(false);
 
-    const res = await fetch("/api/users/hotels-for-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/users/hotels-for-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await safeJson(res);
 
-    if (!res.ok) {
+      if (!res.ok) {
+        const msg = data.message || `Error ${res.status}`;
+        setStatus("error");
+        setMessage(msg);
+        toast.error(msg);
+        return;
+      }
+
+      // Si solo hay un hotel, loguea directo
+      if (data.autoLogin && data.hotels?.length === 1) {
+        await loginWithHotel(data.hotels[0].userId, data.hotels[0].hotelId);
+      } else if (Array.isArray(data.hotels) && data.hotels.length > 1) {
+        setHotelsData(data.hotels);
+        setStatus("idle");
+      } else {
+        setStatus("error");
+        const msg = "No se encontraron hoteles para este usuario.";
+        setMessage(msg);
+        toast.error(msg);
+      }
+    } catch (err: any) {
       setStatus("error");
-      setMessage(data.message || "Error desconocido");
-      toast.error(data.message || "Error al validar usuario");
-      return;
-    }
-
-    // Si solo hay un hotel, loguea directo
-    if (data.autoLogin && data.hotels.length === 1) {
-      await loginWithHotel(data.hotels[0].userId, data.hotels[0].hotelId);
-    } else if (data.hotels.length > 1) {
-      setHotelsData(data.hotels);
-      setStatus("idle");
+      const msg = err?.message || "Fallo de red o del servidor";
+      setMessage(msg);
+      toast.error(msg);
     }
   };
 
   const loginWithHotel = async (userId: string, hotelId: string) => {
     setPendingHotelId(hotelId); // Guardar último hotel probado para reenvío
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, hotelId }),
-    });
-    const data = await res.json();
+    setStatus("loading");
+    setMessage("");
 
-    if (res.ok) {
-      setStatus("success");
-      toast.success("Bienvenido 👋");
-      router.push("/admin");
-    } else {
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, hotelId }),
+      });
+
+      const data = await safeJson(res);
+
+      if (res.ok) {
+        setStatus("success");
+        toast.success("Bienvenido 👋");
+        router.push("/admin");
+      } else {
+        setStatus("error");
+        const msg = data.error || `Error ${res.status} al iniciar sesión`;
+        setMessage(msg);
+        toast.error(msg);
+      }
+    } catch (err: any) {
       setStatus("error");
-      setMessage(data.error || "Error al iniciar sesión");
-      toast.error(data.error || "Error al iniciar sesión");
+      const msg = err?.message || "Fallo de red o del servidor";
+      setMessage(msg);
+      toast.error(msg);
     }
   };
 
@@ -79,21 +115,26 @@ export default function LoginPage() {
       hotelId = hotelsData[0].hotelId;
     }
     if (!hotelId) {
-      hotelId = prompt("ID del hotel al que pertenecés:");
-      if (!hotelId) return toast.error("Debés ingresar un hotel válido.");
+      hotelId = prompt("ID del hotel al que pertenecés:") || "";
+      if (!hotelId.trim()) return toast.error("Debés ingresar un hotel válido.");
     }
     setActivationEmailSent(false);
-    const res = await fetch("/api/send-verification-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hotelId, email }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setActivationEmailSent(true);
-      toast.success("Email de activación reenviado, revisá tu correo.");
-    } else {
-      toast.error(data.error || "No se pudo reenviar el email de activación.");
+
+    try {
+      const res = await fetch("/api/send-verification-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotelId, email }),
+      });
+      const data = await safeJson(res);
+      if (res.ok) {
+        setActivationEmailSent(true);
+        toast.success("Email de activación reenviado, revisá tu correo.");
+      } else {
+        toast.error(data.error || `No se pudo reenviar el email (HTTP ${res.status}).`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Fallo de red o del servidor.");
     }
   };
 
@@ -103,12 +144,13 @@ export default function LoginPage() {
 
       {hotelsData.length > 0 ? (
         <>
-          <p className="mb-2">Selecciona tu hotel:</p>
+          <p className="mb-2">Seleccioná tu hotel:</p>
           {hotelsData.map((h) => (
             <button
               key={h.hotelId}
               className="w-full mb-2 p-2 border rounded hover:bg-gray-100 text-left"
               onClick={() => loginWithHotel(h.userId, h.hotelId)}
+              disabled={status === "loading"}
             >
               {h.name}
             </button>
@@ -123,6 +165,7 @@ export default function LoginPage() {
             className="w-full mb-3 p-2 border rounded"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={status === "loading"}
           />
           <input
             type="password"
@@ -130,6 +173,7 @@ export default function LoginPage() {
             className="w-full mb-3 p-2 border rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={status === "loading"}
           />
           <button
             onClick={handleSubmit}
@@ -145,19 +189,19 @@ export default function LoginPage() {
         <div className={`mt-4 text-sm ${status === "error" ? "text-red-600" : "text-green-600"}`}>
           {message}
           {/* Si el error es de activación, mostrar botón para reenviar */}
-          {status === "error" && message.toLowerCase().includes("no está activada") && !activationEmailSent && (
-            <button
-              className="block mt-2 text-blue-600 underline"
-              onClick={handleResendActivation}
-              type="button"
-            >
-              Reenviar email de activación
-            </button>
-          )}
+          {status === "error" &&
+            message.toLowerCase().includes("no está activada") &&
+            !activationEmailSent && (
+              <button
+                className="block mt-2 text-blue-600 underline"
+                onClick={handleResendActivation}
+                type="button"
+              >
+                Reenviar email de activación
+              </button>
+            )}
           {activationEmailSent && (
-            <span className="block mt-2 text-green-600">
-              📧 Email de activación reenviado, revisá tu correo.
-            </span>
+            <span className="block mt-2 text-green-600">📧 Email de activación reenviado, revisá tu correo.</span>
           )}
         </div>
       )}

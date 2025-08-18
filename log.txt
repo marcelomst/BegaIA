@@ -503,3 +503,2190 @@ personas.
 [2025-08-07T19:01:55.519Z] [DEBUG] ✅ Grafo compilado con éxito.
 [2025-08-07T19:24:00.877Z] [DEBUG] ✅ Grafo compilado con éxito.
 [2025-08-08T08:47:02.137Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T09:20:15.856Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T09:37:22.746Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T09:37:40.940Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T09:58:20.779Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T09:59:03.990Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T10:00:09.106Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T10:04:53.417Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T10:54:13.876Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T14:59:49.428Z] [ERROR] (node:82122) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-08-08T15:01:23.712Z] [ERROR] (node:82639) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-08-08T18:04:25.312Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T18:40:54.959Z] [ERROR] ❌ Error al enviar heartbeat para whatsapp hotel999: {}
+[2025-08-08T18:40:54.962Z] [ERROR] [CM Bot] ❌ Error procesando Redis queue (cm_events:hotel999): {}
+[2025-08-08T18:40:54.962Z] [ERROR] ❌ Error al enviar heartbeat para whatsapp hotel999: {}
+[2025-08-08T18:40:54.962Z] [ERROR] ❌ Error al enviar heartbeat para whatsapp hotel999: {}
+[2025-08-08T18:48:12.707Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T18:58:34.831Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T19:29:09.376Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T19:31:15.006Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T19:31:38.105Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T19:33:51.472Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T20:00:11.420Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-08T20:22:57.466Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T08:30:25.518Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T08:40:06.563Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T08:49:08.312Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:11:12.659Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:23:59.792Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:25:48.874Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:26:24.480Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:28:04.538Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:30:28.871Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:40:55.332Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T09:47:09.589Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:28:54.040Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:31:07.662Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:39:23.601Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:50:30.257Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:50:57.171Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T11:56:34.531Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-09T14:23:55.387Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T11:33:59.755Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T12:26:13.686Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T12:29:03.334Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:29:04.027Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:29:04.030Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:29:04.030Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:29:04.218Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:29:07.247Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:29:07.247Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:29:08.663Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:08.663Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:08.664Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:18.196Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:29:18.868Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:29:18.870Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:29:18.870Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:29:19.039Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:29:23.013Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:29:23.014Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:29:25.617Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:25.617Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:25.617Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:33.210Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:29:33.872Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:29:33.872Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:29:33.872Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:29:34.034Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:29:35.454Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:29:35.454Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:29:36.418Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:36.418Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:36.419Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:48.225Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:29:48.870Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:29:48.871Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:29:48.871Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:29:49.049Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:29:50.394Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:29:50.395Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:29:51.220Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:51.220Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:29:51.220Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:03.359Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:30:04.025Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:30:04.025Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:30:04.025Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:30:04.201Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:30:06.124Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:30:06.124Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:30:07.060Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:07.060Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:07.060Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:18.315Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:30:18.979Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:30:18.980Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:30:18.980Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:30:19.151Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:30:21.043Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:30:21.043Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:30:22.229Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:22.229Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:22.229Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:33.230Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:30:33.876Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:30:33.876Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:30:33.876Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:30:34.038Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:30:35.915Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:30:35.916Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:30:37.233Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:37.233Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:37.233Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:48.242Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 280 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:28:25.000Z",
+  "messageId": "<CANL8PYs1A1GwjCoQ-Fs60AdCqzxR_NNn42f4VycxgeYvfozRcg@mail.gmail.com>"
+}
+[2025-08-11T12:30:48.898Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:30:48.898Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:30:48.898Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:30:49.061Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:30:50.534Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:30:50.534Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:30:51.227Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:51.228Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:30:51.228Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:03.593Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:34:04.272Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:34:04.273Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:34:04.273Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:34:05.961Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:34:05.962Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:34:06.554Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:34:07.533Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:07.533Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:07.533Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:07.707Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:34:18.287Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:34:18.932Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:34:18.933Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:34:18.934Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:34:20.348Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:34:20.348Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:34:21.006Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:34:21.746Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:21.746Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:21.746Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:34:21.912Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:35:18.359Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:35:19.010Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:35:19.011Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:35:19.011Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:35:20.651Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:35:20.651Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:35:24.099Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:35:25.086Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:25.086Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:25.086Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:25.260Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:35:33.346Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:35:34.014Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:35:34.014Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:35:34.014Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:35:35.916Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:35:35.916Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:35:36.564Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:35:37.342Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:37.342Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:37.342Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:37.517Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:35:48.381Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:35:49.013Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:35:49.013Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:35:49.014Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:35:50.324Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:35:50.325Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:35:51.009Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:35:51.682Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:51.682Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:51.682Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:35:51.857Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:36:03.377Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:36:04.013Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:36:04.013Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:36:04.013Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:36:05.436Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:36:05.436Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:36:07.091Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:36:07.861Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:36:07.862Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:36:07.862Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:36:08.030Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:37:48.393Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 281 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero hacer una reserva\n",
+  "html": "<div dir=\"ltr\">quiero hacer una reserva</div>\n",
+  "date": "2025-08-11T12:33:30.000Z",
+  "messageId": "<CANL8PYuPDPO9ny5GiO2btvB0KHGfPXD=d7VvfL3jfoSGDYng-g@mail.gmail.com>"
+}
+[2025-08-11T12:37:49.041Z] [DEBUG] 🔍 Detectando idioma de: quiero hacer una reserva
+[2025-08-11T12:37:49.042Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): ita
+[2025-08-11T12:37:49.042Z] [DEBUG] Idioma detectado: it
+[2025-08-11T12:37:50.644Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-11T12:37:50.644Z] [DEBUG] 🔄 Traduciendo de en a es: quiero hacer una reserva
+[2025-08-11T12:37:51.295Z] [DEBUG] ❓Pregunta  normalizada: I want to make a reservation
+[2025-08-11T12:37:52.093Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:37:52.093Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:37:52.093Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:37:52.265Z] [DEBUG] 🔄 Traduciendo de es a en: Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+[2025-08-11T12:48:48.669Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 282 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:47:20.000Z",
+  "messageId": "<CANL8PYtTUN0OfVmiMax_CZReCQpLSwQ0uD2ejXNPj7OXrheXgQ@mail.gmail.com>"
+}
+[2025-08-11T12:48:49.342Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T12:48:49.343Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:48:49.343Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:48:49.522Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:48:52.851Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T12:48:52.852Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T12:48:53.648Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:48:53.648Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:48:53.648Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:53:48.719Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 284 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:53:13.000Z",
+  "messageId": "<CANL8PYteQbPMcZhjn1GTFNXURq0GwoMeAEAEOo9OGq7S-0vZow@mail.gmail.com>"
+}
+[2025-08-11T12:53:49.369Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T12:53:49.370Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:53:49.371Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:53:49.541Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:53:51.182Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T12:53:51.182Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T12:53:52.067Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:53:52.067Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:53:52.067Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:54:48.748Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 284 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:53:13.000Z",
+  "messageId": "<CANL8PYteQbPMcZhjn1GTFNXURq0GwoMeAEAEOo9OGq7S-0vZow@mail.gmail.com>"
+}
+[2025-08-11T12:54:49.422Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T12:54:49.423Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:54:49.423Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:54:49.584Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:54:51.082Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T12:54:51.082Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T12:54:51.849Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:54:51.849Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:54:51.849Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:33.819Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 284 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:53:13.000Z",
+  "messageId": "<CANL8PYteQbPMcZhjn1GTFNXURq0GwoMeAEAEOo9OGq7S-0vZow@mail.gmail.com>"
+}
+[2025-08-11T12:55:34.467Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T12:55:34.468Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:55:34.468Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:55:34.631Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:55:36.061Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T12:55:36.061Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T12:55:37.034Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:37.034Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:37.034Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:39.553Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 285 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 9:53, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T12:54:29.000Z",
+  "messageId": "<CANL8PYuVUYA0e+P1wMNDXbQ4Cv222eZqPdpd-Mgq93ES2viefw@mail.gmail.com>"
+}
+[2025-08-11T12:55:39.897Z] [DEBUG] 🔍 Detectando idioma de: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:39.898Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T12:55:39.898Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:55:43.984Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:43.985Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:44.733Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:44.734Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:44.734Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:48.493Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 284 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T12:53:13.000Z",
+  "messageId": "<CANL8PYteQbPMcZhjn1GTFNXURq0GwoMeAEAEOo9OGq7S-0vZow@mail.gmail.com>"
+}
+[2025-08-11T12:55:49.158Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T12:55:49.159Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T12:55:49.159Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T12:55:49.325Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:55:50.755Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T12:55:50.755Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T12:55:52.088Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:52.088Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:52.088Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:54.597Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 285 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 9:53, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T12:54:29.000Z",
+  "messageId": "<CANL8PYuVUYA0e+P1wMNDXbQ4Cv222eZqPdpd-Mgq93ES2viefw@mail.gmail.com>"
+}
+[2025-08-11T12:55:54.939Z] [DEBUG] 🔍 Detectando idioma de: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:54.941Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T12:55:54.941Z] [DEBUG] Idioma detectado: es
+[2025-08-11T12:55:56.301Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:56.301Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+El lun, 11 ago 2025 a las 9:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T12:55:57.100Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:57.100Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T12:55:57.100Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:16:19.447Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 286 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:15:42.000Z",
+  "messageId": "<CANL8PYucW=sSrb0tYuG=mC8BVuiAh7jTrpQhBAPYJ0v6dO8row@mail.gmail.com>"
+}
+[2025-08-11T13:16:20.117Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T13:16:20.118Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:16:20.118Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:16:20.287Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:16:22.575Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T13:16:22.575Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T13:16:23.810Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:16:23.810Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:16:23.810Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:17:49.346Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 286 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:15:42.000Z",
+  "messageId": "<CANL8PYucW=sSrb0tYuG=mC8BVuiAh7jTrpQhBAPYJ0v6dO8row@mail.gmail.com>"
+}
+[2025-08-11T13:17:50.018Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-11T13:17:50.018Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:17:50.018Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:17:50.187Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:17:52.320Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-11T13:17:52.321Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-11T13:18:03.331Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:18:03.331Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:18:03.331Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:22:04.471Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 288 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reservar",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:21:17.000Z",
+  "messageId": "<CANL8PYuvEXe9NmB5h1zjLtt9WmbhL=DiEugJ0GSDb3ZtzChdfA@mail.gmail.com>"
+}
+[2025-08-11T13:22:05.138Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:22:05.140Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:22:05.140Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:22:05.307Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:22:07.127Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:22:07.127Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:22:08.039Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:22:08.039Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:22:08.039Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:23:19.563Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 288 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reservar",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:21:17.000Z",
+  "messageId": "<CANL8PYuvEXe9NmB5h1zjLtt9WmbhL=DiEugJ0GSDb3ZtzChdfA@mail.gmail.com>"
+}
+[2025-08-11T13:23:20.219Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:23:20.219Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:23:20.220Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:23:20.387Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:23:21.873Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:23:21.873Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:23:22.808Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:23:22.808Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:23:22.808Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:26:04.611Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 290 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reservar",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:25:27.000Z",
+  "messageId": "<CANL8PYt9FLatAQ_M8j3QAkBSN+pKCLXCRmWscce=3dwmhuO5Vw@mail.gmail.com>"
+}
+[2025-08-11T13:26:05.266Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:26:05.267Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:26:05.267Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:26:05.437Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:26:07.163Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:26:07.163Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:26:08.033Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:26:08.033Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:26:08.033Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:27:34.645Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 290 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reservar",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:25:27.000Z",
+  "messageId": "<CANL8PYt9FLatAQ_M8j3QAkBSN+pKCLXCRmWscce=3dwmhuO5Vw@mail.gmail.com>"
+}
+[2025-08-11T13:27:35.287Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:27:35.288Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:27:35.288Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:27:35.450Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:27:37.034Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:27:37.034Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:27:38.037Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:27:38.037Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:27:38.038Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:29:53.804Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T13:31:45.093Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 292 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:31:07.000Z",
+  "messageId": "<CANL8PYvLFCEf7MVxNpjYWHJWpr=U7qa3UAmGu5X5Lx-8_3gKZA@mail.gmail.com>"
+}
+[2025-08-11T13:31:45.782Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:31:45.783Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:31:45.783Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:31:45.954Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:31:47.873Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:31:47.873Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:31:48.607Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:31:48.608Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:31:48.608Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:33:29.993Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 293 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "MI nombre es Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 10:31, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">MI nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 10:31, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T13:32:46.000Z",
+  "messageId": "<CANL8PYt--Vu-tkAAMJDHKai5AK0eqF=MQLGCaEXBC=a-2+KUBg@mail.gmail.com>"
+}
+[2025-08-11T13:33:30.672Z] [DEBUG] 🔍 Detectando idioma de: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:31, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:33:30.674Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T13:33:30.674Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:33:32.458Z] [DEBUG] ❓Pregunta: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:31, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:33:32.459Z] [DEBUG] ❓Pregunta  normalizada: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:31, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:33:33.476Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:33:33.476Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:33:33.476Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:46:30.499Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 294 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quuiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quuiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:45:04.000Z",
+  "messageId": "<CANL8PYu-WMFm4XXJ2hKnn0_zeNRWfSj_CQ3DX=UKKZ-_6TB2GA@mail.gmail.com>"
+}
+[2025-08-11T13:46:31.164Z] [DEBUG] 🔍 Detectando idioma de: quuiero reservar una habitacion
+[2025-08-11T13:46:31.164Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:46:31.164Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:46:31.334Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:46:33.298Z] [DEBUG] ❓Pregunta: quuiero reservar una habitacion
+[2025-08-11T13:46:33.298Z] [DEBUG] ❓Pregunta  normalizada: quuiero reservar una habitacion
+[2025-08-11T13:46:34.363Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:46:34.364Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:46:34.364Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:47:45.738Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 295 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "MI nombre es Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 10:46, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">MI nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 10:46, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T13:47:11.000Z",
+  "messageId": "<CANL8PYuaYz4dW9233pTFPqHy5Wet_DB=wtkOFr==-vVgNr0BDA@mail.gmail.com>"
+}
+[2025-08-11T13:47:46.418Z] [DEBUG] 🔍 Detectando idioma de: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:47:46.419Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T13:47:46.419Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:47:48.570Z] [DEBUG] ❓Pregunta: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:47:48.570Z] [DEBUG] ❓Pregunta  normalizada: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:47:49.413Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:47:49.413Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:47:49.413Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:51:00.850Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 296 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:49:59.000Z",
+  "messageId": "<CANL8PYtwRiwrRspZE3HcMDNynzB_5c-rsUHV7AsTuRELbtwQKg@mail.gmail.com>"
+}
+[2025-08-11T13:51:01.510Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:51:01.511Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:51:01.511Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:51:01.681Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:51:03.705Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:51:03.705Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:51:04.892Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:51:04.892Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:51:04.892Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:52:15.723Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 297 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Mi nombre es Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 10:51, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 10:51, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T13:51:50.000Z",
+  "messageId": "<CANL8PYuNvb8+mBmCc2o-BpJcF_bXERz1N1xs5et5TX-FvwZk-Q@mail.gmail.com>"
+}
+[2025-08-11T13:52:16.375Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:51, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:52:16.377Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T13:52:16.377Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:52:17.766Z] [DEBUG] ❓Pregunta: Mi nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:51, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:52:17.766Z] [DEBUG] ❓Pregunta  normalizada: Mi nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:51, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:52:18.488Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:52:18.488Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:52:18.489Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:53:05.783Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T13:55:40.312Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 298 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-11T13:54:57.000Z",
+  "messageId": "<CANL8PYsPJdwGEQXcJEGR9eWGnZQ-41sUGQ9nU2E4TVt7XCye-g@mail.gmail.com>"
+}
+[2025-08-11T13:55:41.016Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-11T13:55:41.018Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T13:55:41.018Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T13:55:41.184Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:55:43.134Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-11T13:55:43.134Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-11T13:55:44.047Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:55:44.047Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:55:44.048Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:56:55.492Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 299 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "MI nombre es Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 10:55, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">MI nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 10:55, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T13:56:15.000Z",
+  "messageId": "<CANL8PYvDDLZhTSeRmJ32RWkmuGvEiZ_6H0gnnPS1PexcO95MOQ@mail.gmail.com>"
+}
+[2025-08-11T13:56:56.163Z] [DEBUG] 🔍 Detectando idioma de: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:55, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:56:56.166Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T13:56:56.167Z] [DEBUG] Idioma detectado: es
+[2025-08-11T13:56:57.716Z] [DEBUG] ❓Pregunta: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:55, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:56:57.716Z] [DEBUG] ❓Pregunta  normalizada: MI nombre es Marcelo Martinez
+El lun, 11 ago 2025 a las 10:55, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T13:57:01.991Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:57:01.991Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T13:57:01.991Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:06:05.534Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-11T14:13:53.232Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 300 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiiero reservar unua habitacion\n",
+  "html": "<div dir=\"ltr\">Quiiero reservar unua habitacion</div>\n",
+  "date": "2025-08-11T14:13:06.000Z",
+  "messageId": "<CANL8PYtu5PEecwDbkfauZfMxwK_dftz6sBjWtqKW5RiJ8U=b4A@mail.gmail.com>"
+}
+[2025-08-11T14:13:53.887Z] [DEBUG] 🔍 Detectando idioma de: Quiiero reservar unua habitacion
+[2025-08-11T14:13:53.889Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-11T14:13:53.889Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-11T14:13:54.065Z] [DEBUG] Idioma detectado: es
+[2025-08-11T14:13:56.212Z] [DEBUG] ❓Pregunta: Quiiero reservar unua habitacion
+[2025-08-11T14:13:56.213Z] [DEBUG] ❓Pregunta  normalizada: Quiiero reservar unua habitacion
+[2025-08-11T14:13:57.430Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:13:57.430Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:13:57.431Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:15:08.379Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 301 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Mi nombre Marcelo Martinez\n\nEl lun, 11 ago 2025 a las 11:14, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El lun, 11 ago 2025 a las 11:14, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-11T14:14:45.000Z",
+  "messageId": "<CANL8PYuOS0FaL9epLorPjC8=SEYYpaRu21Kpu2AxBCy91pc4hw@mail.gmail.com>"
+}
+[2025-08-11T14:15:09.039Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre Marcelo Martinez
+El lun, 11 ago 2025 a las 11:14, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T14:15:09.041Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-11T14:15:09.041Z] [DEBUG] Idioma detectado: es
+[2025-08-11T14:15:10.738Z] [DEBUG] ❓Pregunta: Mi nombre Marcelo Martinez
+El lun, 11 ago 2025 a las 11:14, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T14:15:10.738Z] [DEBUG] ❓Pregunta  normalizada: Mi nombre Marcelo Martinez
+El lun, 11 ago 2025 a las 11:14, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-11T14:15:11.531Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:15:11.531Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-11T14:15:11.531Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:11:12.364Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T09:22:31.612Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T09:26:10.795Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 302 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T09:25:30.000Z",
+  "messageId": "<CANL8PYtRm8=qZ97C-Si1=z=r4LH8GY=G57j=po17bPj-F4VUkQ@mail.gmail.com>"
+}
+[2025-08-12T09:26:11.677Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T09:26:11.682Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T09:26:11.682Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T09:26:11.987Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:26:15.673Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T09:26:15.674Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T09:26:16.802Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:26:16.803Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:26:16.803Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:28:09.403Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 303 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Mi nombre es Marcelo Martinez\n\nEl mar, 12 ago 2025 a las 6:26, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 6:26, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T09:27:20.000Z",
+  "messageId": "<CANL8PYvq=oyC8SpH7-yGON=72+RXTRfZvfmkZKRFhpZJAxe3jg@mail.gmail.com>"
+}
+[2025-08-12T09:28:10.354Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:26, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:28:10.362Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T09:28:10.362Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:28:13.428Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T09:28:13.429Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T09:28:15.585Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:28:15.586Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:28:15.586Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:36:39.395Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T09:38:29.826Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 304 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T09:37:41.000Z",
+  "messageId": "<CANL8PYtnpTwzxD07uvzuWOtR+tsPnAMrvXCbRFu1CbZ-Q=mb5Q@mail.gmail.com>"
+}
+[2025-08-12T09:38:30.667Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T09:38:30.671Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T09:38:30.671Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T09:38:30.961Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:38:34.257Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T09:38:34.257Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T09:38:35.097Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:38:35.098Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:38:35.098Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:39:44.889Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 305 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "MI nombre es Marcelo Martinez\n\nEl mar, 12 ago 2025 a las 6:38, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">MI nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 6:38, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T09:39:23.000Z",
+  "messageId": "<CANL8PYuq+LCsNYoCPK_Z__cbP2VKxTG21eZ-nboX8K_W9QzFaQ@mail.gmail.com>"
+}
+[2025-08-12T09:39:45.743Z] [DEBUG] 🔍 Detectando idioma de: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:38, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:39:45.755Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T09:39:45.758Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:39:48.079Z] [DEBUG] ❓Pregunta: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:38, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:39:48.080Z] [DEBUG] ❓Pregunta  normalizada: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:38, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:39:49.037Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:39:49.039Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:39:49.040Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:44:37.704Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T09:46:28.309Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 306 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T09:45:47.000Z",
+  "messageId": "<CANL8PYuw02mVoMzKYAbWuSczz8hz3KAnsRDkVDFT3Er3bkb4ow@mail.gmail.com>"
+}
+[2025-08-12T09:46:29.417Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T09:46:29.421Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T09:46:29.421Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T09:46:29.654Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:46:31.868Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T09:46:31.869Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T09:46:33.076Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:46:33.076Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:46:33.077Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:48:28.512Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 307 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "MI nombre es Marcelo Martinez\n\nEl mar, 12 ago 2025 a las 6:46, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">MI nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 6:46, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T09:47:55.000Z",
+  "messageId": "<CANL8PYvaYmnx4a18bkL1-QWnqzkZfvaGAfQkODHNp1r+-PLDRA@mail.gmail.com>"
+}
+[2025-08-12T09:48:29.361Z] [DEBUG] 🔍 Detectando idioma de: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:48:29.368Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T09:48:29.368Z] [DEBUG] Idioma detectado: es
+[2025-08-12T09:48:31.730Z] [DEBUG] ❓Pregunta: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:48:31.731Z] [DEBUG] ❓Pregunta  normalizada: MI nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 6:46, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T09:48:32.631Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:48:32.631Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T09:48:32.631Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:51:23.777Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T10:52:58.689Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 308 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T10:52:17.000Z",
+  "messageId": "<CANL8PYtk0MXR62Ssnhu7LfGpG3JVM0bux2_+c+9qGiuN7ZkTnQ@mail.gmail.com>"
+}
+[2025-08-12T10:52:59.547Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T10:52:59.551Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T10:52:59.552Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T10:52:59.747Z] [DEBUG] Idioma detectado: es
+[2025-08-12T10:53:03.124Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T10:53:03.127Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T10:53:04.358Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:53:04.359Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:53:04.359Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:55:13.808Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 309 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Mi nombre es Marcelo Martinez\n\nEl mar, 12 ago 2025 a las 7:53, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 7:53, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T10:54:36.000Z",
+  "messageId": "<CANL8PYs9T6sxyU7f90zdh2wZvFV2XqUYVc=gKeBw_Be=DzpfBw@mail.gmail.com>"
+}
+[2025-08-12T10:55:14.922Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 7:53, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T10:55:14.931Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T10:55:14.933Z] [DEBUG] Idioma detectado: es
+[2025-08-12T10:55:17.488Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T10:55:17.489Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T10:55:19.124Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:55:19.124Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:55:19.125Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T10:58:09.429Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T11:00:15.280Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 310 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T10:59:39.000Z",
+  "messageId": "<CANL8PYuw4Lde8CYoVrGB2hakYNWepFMKP6wBQycTv7R3j53Fpg@mail.gmail.com>"
+}
+[2025-08-12T11:00:16.148Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T11:00:16.157Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T11:00:16.159Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T11:00:16.469Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:00:19.337Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T11:00:19.338Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T11:00:20.676Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:00:20.678Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:00:20.679Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:02:30.211Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 311 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Mi nombre es Marcelo Martrinez\n\nEl mar, 12 ago 2025 a las 8:00, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre es Marcelo Martrinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:00, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T11:01:48.000Z",
+  "messageId": "<CANL8PYvNbYRCpgNxsym9oF1LG+V3LRoX8x6Sa6KW98n+ysekfA@mail.gmail.com>"
+}
+[2025-08-12T11:02:31.025Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre es Marcelo Martrinez
+El mar, 12 ago 2025 a las 8:00, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T11:02:31.034Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T11:02:31.036Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:02:33.683Z] [DEBUG] ❓Pregunta: Mi nombre es Marcelo Martrinez
+El mar, 12 ago 2025 a las 8:00, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T11:02:33.684Z] [DEBUG] ❓Pregunta  normalizada: Mi nombre es Marcelo Martrinez
+El mar, 12 ago 2025 a las 8:00, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T11:02:34.516Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:02:34.516Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:02:34.516Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:11:43.492Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T11:14:03.920Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 312 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reservas",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T11:13:22.000Z",
+  "messageId": "<CANL8PYso7Qg7frxpN-ooorFG8N3_S8mDMS4QKxDFwp4qfyJfGg@mail.gmail.com>"
+}
+[2025-08-12T11:14:04.881Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T11:14:04.885Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T11:14:04.885Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T11:14:05.193Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:14:07.747Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T11:14:07.748Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T11:14:08.800Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:14:08.801Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:14:08.801Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:20:34.038Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 313 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reservas",
+  "text": "Mi nombre es Marcelo Martinez\n\nEl mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:\n\n> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>\n",
+  "html": "<div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:14, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T11:19:49.000Z",
+  "messageId": "<CANL8PYtt173A3L4maV_KGd840y=CTvB7f9NfQC1_2SjrPCVARQ@mail.gmail.com>"
+}
+[2025-08-12T11:20:34.889Z] [DEBUG] 🔍 Detectando idioma de: Mi nombre es Marcelo Martinez
+El mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:
+> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>
+[2025-08-12T11:20:34.897Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T11:20:34.897Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:20:37.383Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T11:20:37.384Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T11:20:38.202Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:20:38.214Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:20:38.214Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:22:49.706Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T11:24:09.933Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 314 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero hacer una reserva de habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero hacer una reserva de habitacion</div>\n",
+  "date": "2025-08-12T11:23:26.000Z",
+  "messageId": "<CANL8PYvAVdWCsG_7t6arOH=Y9om94HmLJagrM_60Om+oAHYWMQ@mail.gmail.com>"
+}
+[2025-08-12T11:24:10.797Z] [DEBUG] 🔍 Detectando idioma de: Quiero hacer una reserva de habitacion
+[2025-08-12T11:24:10.799Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T11:24:10.800Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T11:24:10.988Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:24:13.850Z] [DEBUG] ❓Pregunta: Quiero hacer una reserva de habitacion
+[2025-08-12T11:24:13.850Z] [DEBUG] ❓Pregunta  normalizada: Quiero hacer una reserva de habitacion
+[2025-08-12T11:24:14.734Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:24:14.734Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:24:14.734Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:47:07.061Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T11:51:26.886Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 315 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T11:50:44.000Z",
+  "messageId": "<CANL8PYspUuKWHnjNnhbqp4z1L5ZQpSZ+4jn2A3gD_85Da0Cgjw@mail.gmail.com>"
+}
+[2025-08-12T11:51:27.556Z] [DEBUG] 🔍 Detectando idioma de: quiero reservar una habitacion
+[2025-08-12T11:51:27.559Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T11:51:27.560Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T11:51:27.733Z] [DEBUG] Idioma detectado: es
+[2025-08-12T11:51:29.932Z] [DEBUG] ❓Pregunta: quiero reservar una habitacion
+[2025-08-12T11:51:29.932Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar una habitacion
+[2025-08-12T11:51:30.903Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:51:30.904Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T11:51:30.904Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T13:44:16.602Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T13:45:38.547Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 316 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T13:45:03.000Z",
+  "messageId": "<CANL8PYt5DOONkbgW3d9fSpwxZ7iT3q_q0pN95CZuA-Cs39=m0Q@mail.gmail.com>"
+}
+[2025-08-12T13:45:39.282Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T13:45:39.284Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T13:45:39.284Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T13:45:39.466Z] [DEBUG] Idioma detectado: es
+[2025-08-12T13:45:41.966Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T13:45:41.966Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T13:45:43.786Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T13:45:43.787Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T13:45:43.787Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:20:46.699Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T14:21:21.107Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 317 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T14:19:17.000Z",
+  "messageId": "<CANL8PYvVzHyat1yiFesBM6zFNo+EUQ=qzBRn=yL2gDB9coJmcw@mail.gmail.com>"
+}
+[2025-08-12T14:21:21.848Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T14:21:21.850Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T14:21:21.850Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T14:21:22.025Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:21:23.941Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:21:23.941Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:21:25.059Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:21:25.059Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:21:25.059Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:22:51.249Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 318 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reservas",
+  "text": "una habitacion doble\n\nEl mar, 12 ago 2025 a las 8:19, marcelomst1 (<marcelomst1@gmail.com>)\nescribió:\n\n> Mi nombre es Marcelo Martinez\n>\n> El mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:\n>\n>> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n>> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>>\n>\n",
+  "html": "<div dir=\"ltr\">una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:19, marcelomst1 (&lt;<a href=\"mailto:marcelomst1@gmail.com\">marcelomst1@gmail.com</a>&gt;) escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\"><div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:14, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\" target=\"_blank\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n</blockquote></div>\n",
+  "date": "2025-08-12T14:22:05.000Z",
+  "messageId": "<CANL8PYvvZiO+h6CPdoRngFE8uEj0+NCOmZzJUnaub755bXdtEA@mail.gmail.com>"
+}
+[2025-08-12T14:22:51.897Z] [DEBUG] 🔍 Detectando idioma de: una habitacion doble
+El mar, 12 ago 2025 a las 8:19, marcelomst1 (<marcelomst1@gmail.com>)
+escribió:
+> Mi nombre es Marcelo Martinez
+>
+> El mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:
+>
+>> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+>> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>>
+>
+[2025-08-12T14:22:51.900Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T14:22:51.900Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:22:53.833Z] [DEBUG] ❓Pregunta: una habitacion doble
+[2025-08-12T14:22:53.833Z] [DEBUG] ❓Pregunta  normalizada: una habitacion doble
+[2025-08-12T14:22:54.659Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:22:54.660Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:22:54.660Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:22:54.833Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-12T14:22:56.266Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-12T14:22:56.266Z] [DEBUG] 🔍 Filtro por promptKey: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:23:05.771Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 318 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reservas",
+  "text": "una habitacion doble\n\nEl mar, 12 ago 2025 a las 8:19, marcelomst1 (<marcelomst1@gmail.com>)\nescribió:\n\n> Mi nombre es Marcelo Martinez\n>\n> El mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:\n>\n>> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de\n>> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?\n>>\n>\n",
+  "html": "<div dir=\"ltr\">una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:19, marcelomst1 (&lt;<a href=\"mailto:marcelomst1@gmail.com\">marcelomst1@gmail.com</a>&gt;) escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\"><div dir=\"ltr\">Mi nombre es Marcelo Martinez</div><br><div class=\"gmail_quote\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 8:14, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\" target=\"_blank\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Para avanzar con tu reserva necesito: **nombre del huésped, tipo de habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?<br>\n</blockquote></div>\n</blockquote></div>\n",
+  "date": "2025-08-12T14:22:05.000Z",
+  "messageId": "<CANL8PYvvZiO+h6CPdoRngFE8uEj0+NCOmZzJUnaub755bXdtEA@mail.gmail.com>"
+}
+[2025-08-12T14:23:06.422Z] [DEBUG] 🔍 Detectando idioma de: una habitacion doble
+El mar, 12 ago 2025 a las 8:19, marcelomst1 (<marcelomst1@gmail.com>)
+escribió:
+> Mi nombre es Marcelo Martinez
+>
+> El mar, 12 ago 2025 a las 8:14, <begamshop.ventas@gmail.com> escribió:
+>
+>> Para avanzar con tu reserva necesito: **nombre del huésped, tipo de
+>> habitación, fecha de check-in, fecha de check-out**. ¿Me lo compartís?
+>>
+>
+[2025-08-12T14:23:06.424Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T14:23:06.424Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:23:07.932Z] [DEBUG] ❓Pregunta: una habitacion doble
+[2025-08-12T14:23:07.933Z] [DEBUG] ❓Pregunta  normalizada: una habitacion doble
+[2025-08-12T14:23:09.325Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:23:09.325Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:23:09.326Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:23:09.501Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-12T14:23:10.596Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-12T14:23:10.596Z] [DEBUG] 🔍 Filtro por promptKey: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "promptKey": "room_info"
+}
+[2025-08-12T14:30:51.763Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 319 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T14:30:02.000Z",
+  "messageId": "<CANL8PYtM0RGH3RpNwVSaA8ADNB97mZu-vEw-ozgqRUGnBXGTiw@mail.gmail.com>"
+}
+[2025-08-12T14:30:52.428Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T14:30:52.429Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T14:30:52.429Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T14:30:52.608Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:30:54.845Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:30:54.845Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:30:55.696Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:30:55.696Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:30:55.696Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:32:06.817Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 320 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "una habitacion doble\n\nEl mar, 12 ago 2025 a las 11:30, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y\n> fecha de check-in y fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 11:30, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T14:31:34.000Z",
+  "messageId": "<CANL8PYuJMEv4r2J3fK-=4+ADcLP0Hg0r0igA5cTTDBrKyswZCg@mail.gmail.com>"
+}
+[2025-08-12T14:32:07.470Z] [DEBUG] 🔍 Detectando idioma de: una habitacion doble
+El mar, 12 ago 2025 a las 11:30, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y
+> fecha de check-in y fecha de check-out.
+>
+[2025-08-12T14:32:07.471Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T14:32:07.471Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:32:09.016Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:32:09.017Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:32:09.925Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:32:09.926Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:32:09.926Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:41:21.814Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T14:42:56.762Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 321 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T14:42:15.000Z",
+  "messageId": "<CANL8PYtMbAOMy7Fejdb1+Zis503okoQu714vSmPnzeg5J=dB5Q@mail.gmail.com>"
+}
+[2025-08-12T14:42:57.463Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T14:42:57.465Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T14:42:57.465Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T14:42:57.641Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:43:00.876Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:43:00.876Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:43:01.922Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:43:01.922Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:43:01.922Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:44:41.836Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 322 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "una habitacion doble\n\nEl mar, 12 ago 2025 a las 11:43, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y\n> fecha de check-in y fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 11:43, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T14:43:59.000Z",
+  "messageId": "<CANL8PYvhyBkR1kRKMmoSygyzEqgvpHtWS3Nq1MQ7WhY6sx44Rg@mail.gmail.com>"
+}
+[2025-08-12T14:44:42.503Z] [DEBUG] 🔍 Detectando idioma de: una habitacion doble
+El mar, 12 ago 2025 a las 11:43, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación y
+> fecha de check-in y fecha de check-out.
+>
+[2025-08-12T14:44:42.505Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T14:44:42.506Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:44:44.452Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:44:44.452Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:44:45.603Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:44:45.603Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:44:45.603Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:46:57.014Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 323 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: Re: reserva",
+  "text": "Ingreso el 14/08 y me retiro el 17/08 a las 10 de la mañana\n\nEl mar, 12 ago 2025 a las 11:44, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y\n> fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">Ingreso el 14/08 y me retiro el 17/08 a las 10 de la mañana</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 11:44, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T14:46:26.000Z",
+  "messageId": "<CANL8PYujb2+LCaRpWq0A2wm89svSwEJH41V=BnA1WDTr=KqUhQ@mail.gmail.com>"
+}
+[2025-08-12T14:46:57.696Z] [DEBUG] 🔍 Detectando idioma de: Ingreso el 14/08 y me retiro el 17/08 a las 10 de la mañana
+El mar, 12 ago 2025 a las 11:44, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y
+> fecha de check-out.
+>
+[2025-08-12T14:46:57.699Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T14:46:57.699Z] [DEBUG] Idioma detectado: es
+[2025-08-12T14:46:59.408Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T14:46:59.408Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T14:47:00.254Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:47:00.254Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T14:47:00.254Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:12:08.469Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T15:13:43.199Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 324 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T15:13:06.000Z",
+  "messageId": "<CANL8PYvUj6Ejj+X42NiVi2r1w4SZBnFZLiZGaHOUjszTvJvJ4g@mail.gmail.com>"
+}
+[2025-08-12T15:13:43.910Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T15:13:43.911Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T15:13:43.912Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T15:13:44.081Z] [DEBUG] Idioma detectado: es
+[2025-08-12T15:13:46.351Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T15:13:46.352Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T15:13:47.137Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:13:47.138Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:13:47.138Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:15:13.302Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 325 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "quiero una habitacion doble\n\nEl mar, 12 ago 2025 a las 12:13, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,\n> fecha de check-in y fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">quiero una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 12:13, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación, fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T15:14:29.000Z",
+  "messageId": "<CANL8PYt4dBvU_0B3gD79F7f1PFdccjdOz7xreOcwoaUC+u2=-g@mail.gmail.com>"
+}
+[2025-08-12T15:15:13.973Z] [DEBUG] 🔍 Detectando idioma de: quiero una habitacion doble
+El mar, 12 ago 2025 a las 12:13, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,
+> fecha de check-in y fecha de check-out.
+>
+[2025-08-12T15:15:13.974Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T15:15:13.975Z] [DEBUG] Idioma detectado: es
+[2025-08-12T15:15:15.978Z] [DEBUG] ❓Pregunta: quiero una habitacion doble
+[2025-08-12T15:15:15.979Z] [DEBUG] ❓Pregunta  normalizada: quiero una habitacion doble
+[2025-08-12T15:15:16.957Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:15:16.957Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:15:16.957Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:29:47.645Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T15:31:37.259Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 326 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T15:30:55.000Z",
+  "messageId": "<CANL8PYvVgicgGfjGa4_EupW6m-b=ru+Sq-_WkOTn1Z4KpoN7+w@mail.gmail.com>"
+}
+[2025-08-12T15:31:37.957Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T15:31:37.958Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T15:31:37.958Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T15:31:38.128Z] [DEBUG] Idioma detectado: es
+[2025-08-12T15:31:41.456Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T15:31:41.456Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T15:31:44.337Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:31:44.337Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:31:44.337Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:33:07.181Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 327 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "quiero una habitacion doble\n\nEl mar, 12 ago 2025 a las 12:31, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,\n> fecha de check-in y fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">quiero una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 12:31, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación, fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T15:32:36.000Z",
+  "messageId": "<CANL8PYtnS_VqD0mWJt-ui7u_3PoJDxJwkk1q+gbzJf+H-EQ8hA@mail.gmail.com>"
+}
+[2025-08-12T15:33:07.835Z] [DEBUG] 🔍 Detectando idioma de: quiero una habitacion doble
+El mar, 12 ago 2025 a las 12:31, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,
+> fecha de check-in y fecha de check-out.
+>
+[2025-08-12T15:33:07.837Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T15:33:07.839Z] [DEBUG] Idioma detectado: es
+[2025-08-12T15:33:10.904Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T15:33:10.904Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T15:33:11.873Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:33:11.873Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:33:11.873Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T15:35:07.360Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 328 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: Re: reserva",
+  "text": "ingreso  el 14/8  y me retiro el 17/8\n\nEl mar, 12 ago 2025 a las 12:33, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y\n> fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">ingreso  el 14/8  y me retiro el 17/8</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 12:33, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T15:34:25.000Z",
+  "messageId": "<CANL8PYtRWuWO3maX-fDyTtpKB1QYP0tuJgwzTGe4zhVjG8pxEQ@mail.gmail.com>"
+}
+[2025-08-12T15:35:08.017Z] [DEBUG] 🔍 Detectando idioma de: ingreso  el 14/8  y me retiro el 17/8
+El mar, 12 ago 2025 a las 12:33, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y
+> fecha de check-out.
+>
+[2025-08-12T15:35:08.019Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): vec
+[2025-08-12T15:35:08.019Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: vec
+[2025-08-12T15:35:08.187Z] [DEBUG] Idioma detectado: es
+[2025-08-12T15:35:09.831Z] [DEBUG] ❓Pregunta: ingreso  el 14/8  y me retiro el 17/8
+[2025-08-12T15:35:09.831Z] [DEBUG] ❓Pregunta  normalizada: ingreso  el 14/8  y me retiro el 17/8
+[2025-08-12T15:35:10.775Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-12T15:35:10.775Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-12T15:35:10.775Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-12T15:35:10.946Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-12T15:35:12.872Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-12T15:35:12.873Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-12T15:35:13.208Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-12T15:35:13.208Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-12T15:35:13.208Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-12T16:00:44.502Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-12T16:02:18.833Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 329 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "reserva",
+  "text": "Quiero reservar una habitacion\n",
+  "html": "<div dir=\"ltr\">Quiero reservar una habitacion</div>\n",
+  "date": "2025-08-12T16:01:36.000Z",
+  "messageId": "<CANL8PYu66C+=EP6BbkVDjJ20bJo4_FNj1CCr-1mvADc5Gfg7Vg@mail.gmail.com>"
+}
+[2025-08-12T16:02:19.554Z] [DEBUG] 🔍 Detectando idioma de: Quiero reservar una habitacion
+[2025-08-12T16:02:19.555Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): cat
+[2025-08-12T16:02:19.556Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: cat
+[2025-08-12T16:02:19.731Z] [DEBUG] Idioma detectado: es
+[2025-08-12T16:02:21.927Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T16:02:21.927Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T16:02:22.734Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:02:22.735Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:02:22.735Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:07:34.572Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 330 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: reserva",
+  "text": "Quiero una habitacion doble\n\nEl mar, 12 ago 2025 a las 13:02, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,\n> fecha de check-in y fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">Quiero una habitacion doble</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 13:02, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación, fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T16:06:53.000Z",
+  "messageId": "<CANL8PYtJd+wKYyWc40fqyGq6XE2iTQiv90LV2Qqdpq-EokjhQw@mail.gmail.com>"
+}
+[2025-08-12T16:07:35.285Z] [DEBUG] 🔍 Detectando idioma de: Quiero una habitacion doble
+El mar, 12 ago 2025 a las 13:02, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito tipo de habitación,
+> fecha de check-in y fecha de check-out.
+>
+[2025-08-12T16:07:35.287Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T16:07:35.287Z] [DEBUG] Idioma detectado: es
+[2025-08-12T16:07:37.067Z] [DEBUG] ❓Pregunta: Quiero reservar una habitacion
+[2025-08-12T16:07:37.067Z] [DEBUG] ❓Pregunta  normalizada: Quiero reservar una habitacion
+[2025-08-12T16:07:37.862Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:07:37.862Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:07:37.863Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-12T16:10:49.822Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 331 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: Re: reserva",
+  "text": "Ingreso el 14/08 y me retiro el 17/8 a las 10 am\n\nEl mar, 12 ago 2025 a las 13:07, <begamshop.ventas@gmail.com> escribió:\n\n> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y\n> fecha de check-out.\n>\n",
+  "html": "<div dir=\"ltr\">Ingreso el 14/08 y me retiro el 17/8 a las 10 am</div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 13:07, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y fecha de check-out.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T16:10:11.000Z",
+  "messageId": "<CANL8PYsnpb1+Di-qJtJyxah5VJj1WFUjfDKFwLgBq893kdWWYA@mail.gmail.com>"
+}
+[2025-08-12T16:10:50.486Z] [DEBUG] 🔍 Detectando idioma de: Ingreso el 14/08 y me retiro el 17/8 a las 10 am
+El mar, 12 ago 2025 a las 13:07, <begamshop.ventas@gmail.com> escribió:
+> Marcelo Martinez, perfecto. Para continuar necesito fecha de check-in y
+> fecha de check-out.
+>
+[2025-08-12T16:10:50.488Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): vec
+[2025-08-12T16:10:50.489Z] [DEBUG] ❓ Idioma no soportado, usando fallback del hotel: vec
+[2025-08-12T16:10:50.671Z] [DEBUG] Idioma detectado: es
+[2025-08-12T16:13:04.923Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 332 {
+  "from": "\"marcelomst1\" <marcelomst1@gmail.com>",
+  "subject": "Re: Re: Re: reserva",
+  "text": "CONFIRMAR RES-C934624F\n\nEl mar, 12 ago 2025 a las 13:10, <begamshop.ventas@gmail.com> escribió:\n\n> 📝 Borrador de reserva #RES-C934624F\n> • Huésped: Marcelo Martinez\n> • Tipo: doble\n> • Check-in: 14/08\n> • Check-out: 17/8\n> ¿Confirmás la reserva? Respondé \"CONFIRMAR RES-C934624F\" o \"CORREGIR\n> RES-C934624F\" indicando los cambios.\n>\n",
+  "html": "<div dir=\"ltr\"><span style=\"color:rgb(17,24,39);font-size:medium;background-color:rgb(243,244,246)\">CONFIRMAR RES-C934624F</span></div><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">El mar, 12 ago 2025 a las 13:10, &lt;<a href=\"mailto:begamshop.ventas@gmail.com\">begamshop.ventas@gmail.com</a>&gt; escribió:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">📝 Borrador de reserva #RES-C934624F<br>\n• Huésped: Marcelo Martinez<br>\n• Tipo: doble<br>\n• Check-in: 14/08<br>\n• Check-out: 17/8<br>\n¿Confirmás la reserva? Respondé &quot;CONFIRMAR RES-C934624F&quot; o &quot;CORREGIR RES-C934624F&quot; indicando los cambios.<br>\n</blockquote></div>\n",
+  "date": "2025-08-12T16:12:24.000Z",
+  "messageId": "<CANL8PYthR4YDdKcde67r6RSBz8e8HyV0A9fhP9w+V_SXwi_zKw@mail.gmail.com>"
+}
+[2025-08-12T16:13:05.587Z] [DEBUG] 🔍 Detectando idioma de: CONFIRMAR RES-C934624F
+El mar, 12 ago 2025 a las 13:10, <begamshop.ventas@gmail.com> escribió:
+> 📝 Borrador de reserva #RES-C934624F
+> • Huésped: Marcelo Martinez
+> • Tipo: doble
+> • Check-in: 14/08
+> • Check-out: 17/8
+> ¿Confirmás la reserva? Respondé "CONFIRMAR RES-C934624F" o "CORREGIR
+> RES-C934624F" indicando los cambios.
+>
+[2025-08-12T16:13:05.591Z] [DEBUG] 🔍 Idioma detectado (ISO639-3): spa
+[2025-08-12T16:13:05.591Z] [DEBUG] Idioma detectado: es
+[2025-08-15T10:52:58.096Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-15T19:11:28.758Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-16T11:27:25.742Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-16T11:27:25.758Z] [DEBUG] 🔍 Consulta recibida: Ping de prueba por túnel
+[2025-08-16T11:27:27.723Z] [DEBUG] ❓Pregunta: Responde SIEMPRE en es. Ping de prueba por túnel
+[2025-08-16T11:27:27.724Z] [DEBUG] 🔄 Traduciendo de en a es: Responde SIEMPRE en es. Ping de prueba por túnel
+[2025-08-16T11:27:29.183Z] [DEBUG] ❓Pregunta  normalizada: Ping de prueba por túnel
+[2025-08-16T11:27:30.457Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:27:30.458Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:27:30.458Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:27:30.728Z] [DEBUG] 🔄 Traduciendo de es a en: ¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.
+[2025-08-16T11:27:32.090Z] [DEBUG] 📌 Respuesta enviada: How can I help you? Our team is available to assist you.
+[2025-08-16T11:35:29.575Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-16T11:35:30.396Z] [DEBUG] 🔍 Consulta recibida: Ping de prueba por túnel
+[2025-08-16T11:35:32.171Z] [DEBUG] ❓Pregunta: Responde SIEMPRE en es. Ping de prueba por túnel
+[2025-08-16T11:35:32.172Z] [DEBUG] 🔄 Traduciendo de en a es: Responde SIEMPRE en es. Ping de prueba por túnel
+[2025-08-16T11:35:32.887Z] [DEBUG] ❓Pregunta  normalizada: Ping de prueba por túnel
+[2025-08-16T11:35:33.950Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:35:33.950Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:35:33.950Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-16T11:35:34.124Z] [DEBUG] 🔄 Traduciendo de es a en: ¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.
+[2025-08-16T11:35:35.086Z] [DEBUG] 📌 Respuesta enviada: How can I help you? Our team is available to assist you.
+[2025-08-18T08:06:56.539Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T08:07:17.000Z] [DEBUG] 
+[DEBUG] EMAIL RECIBIDO UID 333 {
+  "from": "\"Google Business Profile\" <businessprofile-noreply@google.com>",
+  "subject": "Begam Shop, ¿abres en Día de la Independencia?",
+  "text": "ago\n\n25\n\nInforma a los clientes del horario de tu empresa en los festivos de agosto\n\nSi algunos días tu empresa tiene un horario irregular, como en los días festivos o durante eventos especiales, puedes especificar horarios especiales con antelación para informar a los clientes de cuándo abre tu empresa. Esto es lo que ven los clientes cuando consultan el perfil de tu empresa en Google.\n\nActualizar horario de festivos <http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&trk=https%3A%2F%2Fc.gle%2FANiao5ry_2sfjsWzNqwQ7XQsLZR2mVh4wCV_A_JHyTYKLJQGtpTDT21Rx_lVpHmHI612kQbz0QmV_w-bB21X5lW5nHMZxARP8ljiYgypsQwohHWOALzgqLVJmlT2hGwEOJcHFm6F8VAzskdWt31qRw>\n\nHorarios de los festivos de agosto:\n\nDía de la Independencia\n\nlunes 25/8\n\n9:00–18:00\n\n<http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&trk=https%3A%2F%2Fc.gle%2FANiao5rJ4qjqqmv_eLeyvR0HrqyCB-qKpE5TzNI_ExKZCyc1QguBmOBG7-Dg-SwuYNvO--D40BkOQAuv4VqHG4eAzSZ1gqXJ4m0xDxmao_whcaIBPvR5LG1ZPRPYNW-WWb9kFn_ayQ5yjis>\n\n\nActualizar horario de festivos <http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&trk=https%3A%2F%2Fc.gle%2FANiao5rtLrwe3sgyVrw-MKFx2HmNyD7ZXX1-rkqviKkwEHi4hAqCZcAnPUxvcoDKdIiDrQZXEdZAV9WyBYyhOaz1wUmQZFgAbtajM9xTvlLZ-i0BDv19ARQrL6mKIyLcP80HdiyUJFF4HdKRZ5JiCUPySw>\n\n\n\nSi aún no has actualizado tu horario, te recomendamos que lo hagas. Es posible que te llamemos para que nos confirmes si es correcto. Nunca te pediremos por teléfono que realices ningún pago.\n\nPara consultar más información, visita el Centro de Ayuda<https://c.gle/ANiao5pGn_Vm0KsCIZ5NpvfEhXrLb6katsagQqEOJCagnxxVuhbx3eq5CgabEq7R2y2yIk5HxcERw4IakIWwRLB8jV6zEgZ9xUA8BvpRlqoAhMG4aPiul5R_5mIEFSt85xveHFyNri-x-mw1z77CbyX7LPFNEIBasr6SlObXwuWPAxw>.\n\nTe hemos enviado este correo porque has indicado que quieres recibir alertas para mantener actualizada la información de tu Perfil de Empresa. Si quieres dejar de recibir este tipo de mensajes, puedes darte de baja <https://myaccount.google.com/communication-preferences/unsubscribe/gt/ANiao5q-67LgSJhFnMMy0m6thhEIe2OEd___qVHyRpLY4dIAU4sOWJrGBPo4Eqww6Ky5SNXtQo0InTDsqz_1fwEYArP_VuFeT3jFBH2g4FMSKJoC89H2wu7P4Ev-WHzMtmQZa7ppZg6ETMgtvy45I70-T-W1zdb5HsQqru-sPQUhwBLFUHyTGqwQcUYApMeo1MvRaYIF59qLJg-ARA3pCcNtrFzGidCNySJdgqCgQeFHZWxjHJe_W_7Vt5GVdwoE55gX4VaxwG3tfmLYpNciqOLj?utm_source=gm&utm_medium=email&auto=true>.\n\n(c) 2025 Google LLC 1600 Amphitheatre\nParkway, Mountain View, CA 94043\n",
+  "html": "<!-- Universal snippet start -->\n\n\n\n\n\n\n\n<!-- Universal snippet end -->\n\n \n<!-- GMB tracking snippet start --><!-- GMB tracking snippet end -->\n<!-- Content snippet start -->\n\n\n<!-- Content snippet end -->\n<!-- Structure snippet start --><!doctype html public \"- / / w3c / / dtd xhtml 1.0 transitional / / en\" \"https: / / www.w3.org / tr / xhtml1 / dtd / xhtml1-transitional.dtd\">\n<html xmlns=https://www.w3.org/1999/xhtml lang=es>\n<head>\n<title>Actualiza el horario de días festivos de tu empresa</title>\n<meta http-equiv=Content-Type content=\"text/html; charset=utf-8\">\n<!--[if !mso]><!-->\n<meta http-equiv=X-UA-Compatible content=IE=edge>\n<!--<![endif]-->\n<meta name=viewport content=\"width=device-width, initial-scale=1.0\">\n<meta name=robots content=\"no index\">\n<!--[if mso | ie]>\n<style>\n.cta_border{\npadding: 0px !important;\nborder-bottom: 8px solid #1A73E8 !important;\nborder-top: 7px solid #1A73E8 !important;\nborder-right: 23px solid #1A73E8 !important;\nborder-left: 24px solid #1A73E8 !important;\n}\n.sup {\nvertical-align: 1px !important;\nfont-size: 100% !important;\n}\n.pad_out_t_0{\npadding-top:0px !important\n}\n.pding{\npadding-bottom:0px !important;\n}\n.pad_out_t_5{\npadding-top:5px !important\n}\n.pad_out_b_28{\npadding-bottom:28px !important\n}\n.pad_out_b_7{\npadding-bottom:7px !important\n}\n.height15_outlook{\nheight:15px !important;\nline-height:15px !important;\n}\n.width105_out{\nwidth: 105px !important;\n}\n.width175_out{\nwidth: 175px !important;\n}\n</style>\n<![endif]-->\n<!--[if ie]>\n<style>\n.sup {\nvertical-align: 6px !important;\nfont-size: 80% !important;\n}\n</style>\n<![endif]-->\n<style>\nbody{\nfont-family:Google Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;\nfont-size:12px;\ncolor:#000000;\n-webkit-text-size-adjust: none !important;\n-webkit-font-smoothing: antialiased !important;\n-ms-text-size-adjust: none !important;\n}\ntable, tr, td {\nmso-table-lspace:0pt;\nmso-table-rspace:0pt;\n}\na:link, a:visited, a:hover, a:active {\ncolor: #4285f4;\ntext-decoration: none;\n}\n.appleLinks a {color:#000000 !important; text-decoration:none !important;}\nstrong {\nfont-weight: bold !important;\n}\nem {\nfont-style: italic !important;\n}\n.yshortcuts a span {\ncolor: inherit !important;\nborder-bottom: none !important;\n}\nhtml {\n-webkit-text-size-adjust: none;\n-ms-text-size-adjust: 100%;\n}\n.ReadMsgBody {\nwidth: 100%;\n}\n.ExternalClass {\nwidth: 100%;\n}\n.ExternalClass * {\nline-height: 100%\n}\ntd {\n-webkit-text-size-adjust: none;\n}\na[href^=tel] {\ncolor: inherit;\ntext-decoration: none;\n}\n.mob-hide {\ndisplay:none !important; }\ndiv, p, a, li, td { -webkit-text-size-adjust:none; }\ntd { text-decoration:none !important; }\na[x-apple-data-detectors] {\ncolor: inherit !important;\ntext-decoration: none !important;\nfont-size: inherit !important;\nfont-family: inherit !important;\nfont-weight: inherit !important;\nline-height: inherit !important;\n}\n@media all and (max-width: 850px) {\n.table-main-gmail { /* Forces Gmail to display Desktop view */\nwidth: 480px !important;\nmin-width:480px !important;\n}\n.pad_l_15{\npadding-left: 15px !important;\n}\n.pad_l_18{\npadding-left: 18px !important;\n}\n.pad_r_8{\npadding-right: 8px !important;\n}\n.pad_r_16{\npadding-right: 16px !important;\n}\n.pad_t_16{\npadding-top: 16px !important;\n}\n.bg_heading{\nfont-size: 72px !important;\nline-height: 85px !important;\npadding-bottom: 80px !important;\n}\n.pad_lr_5{\npadding-left: 5px !important;\npadding-right:5px !important;\n}\n.mobbreak{\nwidth:100% !important;\nfloat:left !important;\n}\n.center_align{\nmargin:0 auto !important;\ntext-align: center !important;\n}\n.block{\ndisplay: block !important;\n}\n.hide{\ndisplay: none !important;\n}\n.width220{\nwidth: 220px !important;\n}\n.wid-400{\nwidth: 400px !important;\n}\n.wid-364{\nwidth: 364px !important;\n}\n.width200{\nwidth: 200px !important;\n}\n.width155{\nwidth: 155px !important;\n}\n.width105{\nwidth: 105px !important;\n}\n.aligntop{\nvertical-align: top !important;\n}\n.height32{\nheight: 32px !important;\nline-height: 32px !important;\n}\n.font24{\nfont-size:26px !important;\nline-height:29px !important;\n}\n.font11{\nfont-size:11px !important;\nline-height:11px !important;\n}\n.pd_right15{\npadding-right: 15px !important;\n}\n.pd_top_47{\npadding-top: 47px !important;\n}\n.font16{\nfont-size: 16px !important;\ncolor: #606368 !important;\n}\n.text_color{color: #606368 !important;}\n.border_cta{\nborder-left: 10px solid #1A73E8 !important;\nborder-right: 10px solid #1A73E8 !important;\n}\n.padding_top_10{\npadding-top: 8px !important;\n}\n.height_10{\nheight: 10px !important;\nline-height: 10px !important;\n}\n.pdbt17{\npadding-bottom: 17px !important;\n}\n.padding_top_25{\npadding-top: 25px !important;\n}\n.padding_top_7px{\npadding-top: 9px !important;\n}\n.padding_right5px{\npadding-right: 9px !important;\n}\n.pad_l_40 {\npadding-left: 40px !important;\n}\n.alignleft{\ntext-align: left !important;\n}\n.pad_lr_20 {\npadding-left: 0px !important;\npadding-right: 20px !important;\n}\n.pad_lr_00{\npadding-left: 0px !important;\npadding-right:0px !important;\n}\n.pad_l_41{padding-left: 41px !important}\n.pd-r-47{padding-right: 42px !important}\n}\n</style>\n</head>\n<body style=\"margin: 0 auto; padding:0px;\" bgcolor=#ffffff>\n<div itemscope=\"\" itemtype=https://schema.org/EmailMessage>\n<div itemprop=action itemscope=\"\" itemtype=https://schema.org/ViewAction>\n<link itemprop=url href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5qDj5-yVwjHpSmzSek3bTdyxo1H-o4V-cihZncne03_j6Boepeh3244zXU4HWvnyd5IU10tXbMlucjxXnbGiVlfrVaOhYWfSSXJdnrFP64w4P2tRur_nkQ>\n<meta itemprop=name content=\"Actualizar horario de festivos\">\n</div>\n<meta itemprop=description content=\"Actualizar horario de festivos\">\n</div>\n<!--[if !mso]><!-->\n<p aria-hidden=true style=\"padding-top:0; font-size:0px; line-height:0px; color:#ffffff; background-color:#ffffff; margin:0px;\" align=center>Mantén tu ficha al día</p>\n<p aria-hidden=true style=\"padding-top:0; font-size:0px; line-height:0px; color:#ffffff; background-color:#ffffff; margin:0px;\" align=center>‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ </p>\n<!--<![endif]-->\n<!-- Roboto import style start -->\n<style>\n@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700');\n</style>\n<!-- Roboto import style End -->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=center>\n<tr>\n<td align=center valign=top bgcolor=#ffffff>\n<!--Main content start-->\n<!--[if !mso]><!-->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=800 align=center class=table-main-gmail style=\"max-width:800px; width:100%; min-width: 480px;\">\n<!--<![endif]-->\n<!--[if (gte mso 9)|(IE)]>\n<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"800\" align=\"center\">\n<![endif]-->\n<tr>\n<td align=center valign=top bgcolor=#ffffff>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=center>\n<tr>\n<td align=left valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=left>\n<!-- Header Starts -->\n<tr>\n<td align=center valign=top style=padding-top:22px;>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center width=90%>\n<tr>\n<td align=left valign=top>\n<table cellspacing=0 cellpadding=0 role=presentation>\n<tbody>\n<tr>\n<td align=left style=padding-left:17px; valign=top>\n<img aria-hidden=true src=https://services.google.com/fh/files/emails/gmb-es-new-transparent-w373px-h48px-2x.png height=19 class=logo-height alt=\"\" title=\"\" style=display:block;>\n</td>\n</tr>\n</tbody>\n</table>\n</td>\n<td align=right valign=top style=padding-right:13px;>\n<img aria-hidden=true src=https://www.gstatic.com/images/branding/googlelogo/2x/googlelogo_color_420x152dp.png width=74 alt=\"\" title=\"\" style=\"display:block; height:auto;\">\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<!-- Header Ends -->\n<tr>\n<td align=center valign=top style=\"padding:40px 0px 0px 0px;\" class=pd_top_47>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center width=353 height=205>\n<tr>\n<td class=\"safari10 pding\" background=https://services.google.com/fh/files/emails/gmb_bizinfo_monthly_special_hours.png style=\"background-image: url(https://services.google.com/fh/files/emails/gmb_bizinfo_monthly_special_hours.png); background-size: 100%; height:205px; width: 353px;\" width=353 height=205 valign=top align=center>\n<!--[if gte mso 9]>\n<v:rect xmlns:v=\"urn:schemas-microsoft-com:vml\" fill=\"true\" stroke=\"false\" style=\"height:205px; width: 353px;\">\n<v:fill type=\"tile\" src=\"https://services.google.com/fh/files/emails/gmb_bizinfo_monthly_special_hours_out.png\" color=\"#ffffff\" />\n<v:textbox inset=\"0,0,0,0\">\n<![endif]-->\n<table role=presentation border=0 cellspacing=0 cellpadding=0 align=center>\n<tbody>\n<tr>\n<td aria-hidden=true colspan=2 align=center valign=top height=26 style=\"mso-line-height-rule: exactly; line-height:26px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n<tr>\n<td align=center valign=top>\n<table role=presentation width=73 border=0 cellspacing=0 cellpadding=0 align=center>\n<tbody>\n<tr>\n<td align=center valign=top style=\"font-family:Google sans, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:21px; mso-line-height-rule: exactly;\">ago</td>\n</tr>\n<tr>\n<td align=center valign=top style=\"font-family:Google sans, Roboto, Helvetica, Arial, sans-serif; font-size: 30px; color:#606368; line-height:36px; mso-line-height-rule: exactly;\">25</td>\n</tr>\n</tbody>\n</table>\n</td>\n<td align=center valign=top>\n<table role=presentation width=10 border=0 cellspacing=0 cellpadding=0>\n<tr>\n<td aria-hidden=true align=center valign=top width=10 style=\"mso-line-height-rule: exactly; line-height:26px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n<!--[if gte mso 9]>\n</v:textbox>\n</v:rect>\n<![endif]-->\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<!--Hero Section end-->\n<!--Body content 1 start-->\n<tr>\n<td align=center valign=top>\n<!--[if !mso]><!-->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 class=wid-400 width=600 align=center style=\"max-width:600px; width:100%;\">\n<!--<![endif]-->\n<!--[if (gte mso 9)|(IE)]>\n<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" align=\"center\">\n<![endif]-->\n<tr>\n<td align=center valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=center>\n<tr>\n<td align=center valign=top style=\"font-family:Google sans, Roboto, Helvetica, Arial, sans-serif; font-size: 36px; color:#606368; line-height:44px; mso-line-height-rule: exactly; padding-top:13px 65px 0px 65px;\" class=\"pad_lr_00 alignleft padding_top_25\">\nInforma a los clientes del horario de tu empresa en los festivos de agosto\n</td>\n</tr>\n<tr>\n<td align=left valign=top style=\"font-family: &#39;Roboto&#39;, Helvetica, Arial, sans-serif; font-size: 16px; color:#606368; line-height:26px; mso-line-height-rule: exactly; padding:20px 20px 24px 0px;\" class=\"pad_lr_00 padding_top_25\">\nSi algunos días tu empresa tiene un horario irregular, como en los días festivos o durante eventos especiales, puedes especificar horarios especiales con antelación para informar a los clientes de cuándo abre tu empresa. Esto es lo que ven los clientes cuando consultan el perfil de tu empresa en Google.\n</td>\n</tr>\n<tr>\n<td align=center valign=top class=pad_lr_00>\n<table role=presentation border=0 cellspacing=0 cellpadding=0>\n<tbody>\n<tr>\n<td align=center valign=top>\n<table role=presentation cellspacing=0 cellpadding=0 class=\"\">\n<tr>\n<td aria-hidden=true height=6 align=center valign=top style=\"line-height: 6px; mso-line-height-rule:exactly;\"><a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5oWTA2tY1WStAubdkeKVw8MCtwVbdvf1GSgq9vbu3fez2TrEBGYp-DWGE4OGyOaEVzzR1rXY9NtF0KTy209h7cK3Ex6f_wN4zjg2kMp_3UR8VdhgfOb1K63Sc4cTpAzrO3j3tI94u7DRMSvVMg4 target=_blank style=\"text-decoration:none; padding-top: 6px; display: block;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif height=1 width=1 border=0 style=\"display: block;\"></a></td>\n</tr>\n<tr>\n<td align=center bgcolor=#1A73E8 valign=top style=\"font-family: Google Sans, Google Sans Text, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;color: #ffffff; font-weight: 500; border-radius: 2px; \">\n<a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5oWTA2tY1WStAubdkeKVw8MCtwVbdvf1GSgq9vbu3fez2TrEBGYp-DWGE4OGyOaEVzzR1rXY9NtF0KTy209h7cK3Ex6f_wN4zjg2kMp_3UR8VdhgfOb1K63Sc4cTpAzrO3j3tI94u7DRMSvVMg4 target=_blank style=\"text-decoration: none; background-color: #1A73E8; color: #FFFFFF; padding: 7px 23px 8px 23px; border-radius: 2px; display: block; letter-spacing:0.5px;\" class=cta_border><!--[if mso]>&nbsp;&nbsp;&nbsp;<![endif]-->Actualizar horario de festivos<!--[if mso]>&nbsp;&nbsp;&nbsp;<![endif]--></a>\n</td>\n</tr>\n<tr>\n<td aria-hidden=true height=6 align=center valign=top style=\"line-height: 6px; mso-line-height-rule:exactly;\"><a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5oWTA2tY1WStAubdkeKVw8MCtwVbdvf1GSgq9vbu3fez2TrEBGYp-DWGE4OGyOaEVzzR1rXY9NtF0KTy209h7cK3Ex6f_wN4zjg2kMp_3UR8VdhgfOb1K63Sc4cTpAzrO3j3tI94u7DRMSvVMg4 target=_blank style=\"text-decoration:none; padding-top: 6px; display: block;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif height=1 width=1 border=0 style=\"display: block;\"></a></td>\n</tr>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n</td>\n</tr>\n<tr>\n<td aria-hidden=true align=center valign=top height=24 style=\"mso-line-height-rule: exactly; line-height:24px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<!--Body content 1 end-->\n<!--Body content 2 start-->\n<tr>\n<td align=center valign=top>\n<!--[if !mso]><!-->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 class=wid-400 width=600 align=center style=\"max-width:600px; width:100%;\">\n<!--<![endif]-->\n<!--[if (gte mso 9)|(IE)]>\n<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" align=\"center\">\n<![endif]-->\n<tr>\n<td align=center valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center>\n<tr>\n<td align=center valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center width=500 class=wid-400>\n<tr>\n<td align=left valign=top style=\"border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; border: 1px solid #80868B;\">\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center width=100%>\n<tr>\n<td align=center valign=middle style=\"padding:10px 0;\">\n<table role=presentation border=0 cellpadding=0 cellspacing=0>\n<tr>\n<td align=center valign=middle>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100%>\n<tr>\n<td align=center valign=middle>\n<table role=presentation border=0 cellpadding=0 cellspacing=0>\n<tr>\n<td aria-hidden=true align=center valign=middle style=\"padding-right: 10px;\">\n<img src=https://services.google.com/fh/files/emails/nmx_gmb_bizinfo_calender_final.png width=15 style=\"display:block; height:auto;\">\n</td>\n</tr>\n</table>\n</td>\n<td align=left valign=middle>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100%>\n<tr>\n<td align=left valign=middle style=\"font-family: &#39;Roboto&#39;, Helvetica-Medium, Arial-Medium, sans-serif; font-size: 14px; color:#606368; line-height:21px; mso-line-height-rule: exactly; font-weight:500; letter-spacing: 0.5px;\">\nHorarios de los festivos de agosto:\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<tr>\n<td align=center valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=center width=454 class=wid-364>\n<tr>\n<td aria-hidden=true align=center valign=top height=6 style=\"mso-line-height-rule: exactly; line-height:6px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n<tr>\n<td align=center valign=top>\n<table role=presentation width=100% border=0 cellspacing=0 cellpadding=0>\n<tbody>\n<tr>\n<td align=left valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=left>\n<tr>\n<td align=left valign=top width=168 style=\"padding-left: 10px;\">\n<table role=presentation width=168 border=0 cellspacing=0 cellpadding=0>\n<tbody>\n<tr>\n<td class=\" \" align=left valign=top style=\"font-family: &#39;Roboto&#39;, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:24px; mso-line-height-rule: exactly; font-weight:500; padding-right: 15px; letter-spacing: 0.5px;\">\nDía de la Independencia\n</td>\n</tr>\n<tr>\n<td class=\"\" align=left valign=top style=\"font-family: &#39;Roboto&#39;, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:24px; mso-line-height-rule: exactly; padding-top: 0px; padding-bottom: 4px; letter-spacing: 0.5px;\">lunes 25/8</td>\n</tr>\n</tbody>\n</table>\n</td>\n<td align=left valign=top width=155 style=\"vertical-align: top;\">\n<table role=presentation width=155 border=0 cellspacing=0 cellpadding=0 style=\"vertical-align: top;\">\n<tbody>\n<tr>\n<td align=left valign=top width=155 style=\"font-family: &#39;Roboto&#39;, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:24px; mso-line-height-rule: exactly; font-weight: 500; vertical-align: top; letter-spacing: 0.5px;\">\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=center>\n<tr>\n<td class=\" \" align=left valign=top width=160 style=\"font-family:Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:24px; mso-line-height-rule: exactly; font-weight: 500; letter-spacing: 0.5px;\">\n9:00–18:00\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n</td>\n</tr>\n</table>\n</td>\n<td align=left valign=top width=30>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 align=left width=30>\n<tr>\n<td align=right valign=middle>\n<a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5rLjILifP2Rm4p8LE71cprpQp_0--A3Hai1ZuFEb7QJK-97fh81G55rM1989tV5Sleedkr0zQdKTIDyAvu4qpmrG2MVbyw-Z0xGCx07ASPUGuSYiITyjrcMz_8-D2tNNQajkT-4bhrb2g target=_blank style=\"text-decoration:none; color:#1A73E8;\"><img src=https://services.google.com/fh/files/emails/nmx_gmb_bizinfo_edit_final.png width=27 title=Edit alt=Edit style=\"display:block; height:auto;\"></a>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n</td>\n</tr>\n<tr>\n<td aria-hidden=true align=center valign=top height=14 style=\"mso-line-height-rule: exactly; line-height:14px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<!--Body content 2 end-->\n<!--Body content 3 start-->\n<tr>\n<td align=center valign=top>\n<!--[if !mso]><!-->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 class=wid-400 width=600 align=center style=\"max-width:600px; width:100%;\">\n<!--<![endif]-->\n<!--[if (gte mso 9)|(IE)]>\n<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" align=\"center\">\n<![endif]-->\n<tr>\n<td align=center valign=top>\n<table role=presentation border=0 cellpadding=0 cellspacing=0 width=100% align=center>\n<tr>\n<td aria-hidden=true align=center valign=top height=24 style=\"mso-line-height-rule: exactly; line-height:24px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n<tr>\n<td align=center valign=top class=pad_lr_00>\n<table role=presentation border=0 cellspacing=0 cellpadding=0>\n<tbody>\n<tr>\n<td align=center>\n<table role=presentation cellspacing=0 cellpadding=0 class=\"\">\n<tr>\n<td aria-hidden=true height=6 align=center valign=top style=\"line-height: 6px; mso-line-height-rule:exactly;\"><a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5pWn6Y2c49GtBUGOvkLmjZZFWhE-U_ZTQ8ugKzjUnhClChjLd0D4RTFTTLRfCjpP1ssi4S4A4fIAxzQEWl-YtKzfOPqgeymQ-HxurXjvwXyYdgVBlxrdRT4P4KwoeAARikyBY5KPr20JOxxYpP7hSfq target=_blank style=\"text-decoration:none; padding-top: 6px; display: block;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif height=1 width=1 border=0 style=\"display: block;\"></a></td>\n</tr>\n<tr>\n<td align=center bgcolor=#1A73E8 valign=top style=\"font-family: Google Sans, Google Sans Text, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;color: #ffffff; font-weight: 500; border-radius: 2px; \">\n<a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5pWn6Y2c49GtBUGOvkLmjZZFWhE-U_ZTQ8ugKzjUnhClChjLd0D4RTFTTLRfCjpP1ssi4S4A4fIAxzQEWl-YtKzfOPqgeymQ-HxurXjvwXyYdgVBlxrdRT4P4KwoeAARikyBY5KPr20JOxxYpP7hSfq target=_blank style=\"text-decoration: none; background-color: #1A73E8; color: #FFFFFF; padding: 7px 23px 8px 23px; border-radius: 2px; display: block; letter-spacing:0.5px;\" class=cta_border><!--[if mso]>&nbsp;&nbsp;&nbsp;<![endif]-->Actualizar horario de festivos<!--[if mso]>&nbsp;&nbsp;&nbsp;<![endif]--> </a>\n</td>\n</tr>\n<tr>\n<td aria-hidden=true height=6 align=center valign=top style=\"line-height: 6px; mso-line-height-rule:exactly;\"><a href=http://business.google.com/n/11816413208276107050/profile/info/edit/specialhours?fid=5812067467166155950&amp;trk=https%3A%2F%2Fc.gle%2FANiao5pWn6Y2c49GtBUGOvkLmjZZFWhE-U_ZTQ8ugKzjUnhClChjLd0D4RTFTTLRfCjpP1ssi4S4A4fIAxzQEWl-YtKzfOPqgeymQ-HxurXjvwXyYdgVBlxrdRT4P4KwoeAARikyBY5KPr20JOxxYpP7hSfq target=_blank style=\"text-decoration:none; padding-top: 6px; display: block;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif height=1 width=1 border=0 style=\"display: block;\"></a></td>\n</tr>\n</table>\n</td>\n</tr>\n</tbody>\n</table>\n</td>\n</tr>\n<tr>\n<td aria-hidden=true align=center valign=top height=24 style=\"mso-line-height-rule: exactly; line-height:24px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n<tr>\n<td align=left valign=middle class=pad_lr_00 style=\"font-family: &#39;Roboto&#39;, Helvetica, Arial, sans-serif; font-size: 16px; color:#606368; line-height:26px; mso-line-height-rule: exactly; padding-bottom: 32px; font-weight: 400; padding-right: 50px;\">Si aún no has actualizado tu horario, te recomendamos que lo hagas. Es posible que te llamemos para que nos confirmes si es correcto. Nunca te pediremos por teléfono que realices ningún pago.</td>\n</tr>\n<!--help center starts here-->\n<tr>\n<td align=left valign=middle>\n<table role=presentation border=0 cellpadding=0 cellspacing=0>\n<tr>\n<td align=left valign=top width=39>\n<table role=presentation cellspacing=0 cellpadding=0>\n<!--[if mso | ie]>\n<tr>\n<td aria-hidden=\"true\" class=\"hide\" height=\"5\" style=\"line-height: 5px;\">\n<img src=\"https://www.gstatic.com/gumdrop/files/spacer-11.gif\" width=\"1\" height=\"1\" border=\"0\" style=\"display: block;\" />\n</td>\n</tr>\n<![endif]-->\n<tr>\n<td aria-hidden=true align=left valign=top style=padding-top:2px;>\n<img aria-hidden=true src=https://www.gstatic.com/gumdrop/files/hat-blue-w50-h42.png width=23 border=0 style=display:block;width:23px;>\n</td>\n</tr>\n</table>\n</td>\n<td align=left valign=middle style=\"font-family:Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color:#606368; line-height:24px; mso-line-height-rule: exactly;\" class=\" pad_lr_20\">Para consultar más información, visita el <a href=https://c.gle/ANiao5pYjmZo-8TRHmUrOTQ_Z9qCe-YWygOpXYIm5q22PCmzY3iWTuyqMWTm_9zKkALh0E47PaJyA3TOtyDQEf-__H5F4bSfN46mEto3yubGFMAmKLNks44XvxJmmGtIbgYKOzhPj9_2UIxywf-Bb_K05lcbfNKKKFvhjHg-GGT8GonN1g target=_blank style=\"color:#1A73E8; text-decoration:none;\">Centro de Ayuda</a>.</td>\n</tr>\n</table>\n</td>\n</tr>\n<!--help center ends here-->\n<tr>\n<td aria-hidden=true align=center valign=top height=48 style=\"mso-line-height-rule: exactly; line-height:48px;\"><img src=https://www.gstatic.com/gumdrop/files/spacer-11.gif width=1 height=1 border=0 style=\"display: block;\"></td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n<!--Body content 3 end-->\n<tr>\n<td align=center valign=top bgcolor=#DADCE0>\n<!--[if !mso]><!-->\n<table role=presentation border=0 cellpadding=0 cellspacing=0 class=wid-400 width=600 align=center>\n<!--<![endif]-->\n<!--[if (gte mso 9)|(IE)]>\n<table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" align=\"center\">\n<![endif]-->\n<tr>\n<td align=center valign=top class=pad_lr_5>\n<table role=presentation width=100% border=0 cellspacing=0 cellpadding=0 class=wid277>\n<tr>\n<td style=\"font-family:Roboto, Helvetica,Arial,sans-serif; font-size:10px; line-height: 14px; color:#515354; padding-top:40px;\" align=center valign=top>Te hemos enviado este correo porque has indicado que quieres recibir alertas para mantener actualizada la información de tu Perfil de Empresa. Si quieres dejar de recibir este tipo de mensajes, puedes <a href=https://myaccount.google.com/communication-preferences/unsubscribe/gt/ANiao5pENcFhsTgMLdInwPw_7qTz4NYidCmS2nhbEutGLNxrYu-Fx78VcBHhqYedLNTsfOw7V-xHmHBZXKy915oP9A1qy9Z_msYlHMtNDe9iidRer17mj6AChgOFEd08Xvqi4apGdhrW3eCOxrpHouORIlbEykJ971MBwhvVhUJfEFjjgwGEa7hk6WDsW87guFOePvGzg-_56ih6-DXHsJ2sesjQT9kF4cm19hrhTAGY09NdmkZwyzAuFK8W-BV1SPWkDDMauZ8sE-p52Tn1z57mWx0?utm_source=gm&amp;utm_medium=email&amp;auto=true style=\"color:#1967D2; display:inline-block; text-decoration:none\">darte de baja</a>.</td>\n</tr>\n<tr>\n<td aria-hidden=true style=\"padding-top: 20px; padding-bottom: 10px;\" align=center valign=top><img style=display:block; border=0 src=https://www.gstatic.com/gumdrop/files/googlelogo-tm-dark.png width=84></td>\n</tr>\n<tr>\n<td style=\"font-family:Roboto, Helvetica,Arial,sans-serif; font-size:10px; line-height: 15px; color:#515354; padding-bottom: 90px;\" align=center valign=top><a href=# style=\"color:#515354; text-decoration: none; pointer-events: none; cursor: default;\">© 2025 Google LLC 1600 Amphitheatre <br>Parkway, Mountain View, CA 94043</a>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n<!--Main content end-->\n</td>\n</tr>\n</table>\n</td>\n</tr>\n</table>\n<img alt=\"\" height=1 width=3 src=https://notifications.google.com/g/img/ANiao5qjNCsC54gnlFtv9J7fg6V2Iz5ZqkFy31pl8_3t1DLOLVftRkuvLP_pjhYR60F-2jPW5czey97hkNJx4kOKLydiO7InEcLOZAVm3NWGgvjcqhbugfa_13bJEqtkoH23CKLtWQ.gif></body>\n</html><!-- Structure snippet end -->",
+  "date": "2025-08-16T20:01:54.000Z",
+  "messageId": "<db23b5a58604ab5d59bc35544e65593180efb85b-10041445-110994218@google.com>"
+}

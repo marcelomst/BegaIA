@@ -6,6 +6,9 @@ import { ALL_CHANNELS, type Channel } from "@/types/channel";
 
 export async function GET(req: NextRequest) {
   try {
+    const H = (k: string) => req.headers.get?.(k);
+    console.log(`[edge] ${req.method} ${new URL(req.url).pathname} host=${H("host")} ip=${H("cf-connecting-ip")||H("x-forwarded-for")} cf-ray=${H("cf-ray")} ua=${H("user-agent")}`);
+
     const hotelId = req.nextUrl.searchParams.get("hotelId") || "hotel999";
     const userId = req.nextUrl.searchParams.get("userId") || undefined;
     const guestId = req.nextUrl.searchParams.get("guestId") || undefined;

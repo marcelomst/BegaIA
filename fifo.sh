@@ -1,36 +1,33 @@
-#!/bin/bash
-# find-folder-or-file.sh - Busca carpetas o archivos ignorando carpetas irrelevantes
+#!/usr/bin/env bash
+# fifo.sh - Buscar y abrir sin cambiar workspace
 
-IGNORED_DIRS="-path ./node_modules -prune -o -path ./.git -prune -o -path ./dist -prune -o -path ./out -prune -o -path ./.next -prune -o"
-
-function buscar_archivo() {
+buscar_archivo() {
   local pattern="$1"
-  echo "🔍 Buscando archivos que coincidan con: '$pattern'..."
-  eval find . $IGNORED_DIRS -type f -iname "\"*$pattern*\"" -print | grep -v 'node_modules\|.git/\|dist/\|out/\|.next/' || echo "No se encontraron archivos."
+  echo "🔍 Archivos que coinciden con: '$pattern'..."
+  find . -type f -iname "*$pattern*" -not -path "*/node_modules/*" | while read -r file; do
+    echo "$file"
+  done
 }
 
-function buscar_carpeta() {
+buscar_carpeta() {
   local pattern="$1"
-  echo "📁 Buscando carpetas que coincidan con: '$pattern'..."
-  eval find . $IGNORED_DIRS -type d -iname "\"*$pattern*\"" -print | grep -v 'node_modules\|.git/\|dist/\|out/\|.next/' || echo "No se encontraron carpetas."
+  echo "📁 Carpetas que coinciden con: '$pattern'..."
+  find . -type d -iname "*$pattern*" -not -path "*/node_modules/*" | while read -r dir; do
+    echo "$dir"
+  done
 }
 
-while true; do
-  read -p "🧭 Buscar [-f nombre_archivo] o nombre_carpeta (ENTER para salir): " flag input
-  if [ -z "$flag" ]; then
-    echo "Saliendo."
-    break
-  fi
+read -p "🧭 Buscar [-f archivo] o carpeta: " flag input
 
-  if [ "$flag" == "-f" ]; then
-    if [ -z "$input" ]; then
-      echo "⚠️  Debes proporcionar un nombre de archivo después de -f"
-    else
-      buscar_archivo "$input"
-    fi
-  else
-    buscar_carpeta "$flag"
-  fi
+if [ "$flag" == "-f" ]; then
+  buscar_archivo "$input"
+else
+  buscar_carpeta "$flag"
+fi
 
-  echo
-done
+read -p "Número de resultado a abrir (ENTER para salir): " idx
+
+if [ -n "$idx" ]; then
+  sel=$(find . -type f -iname "*$input*" -not -path "*/node_modules/*" | sed -n "$((idx+1))p")
+  code -r -g "$sel"
+fi

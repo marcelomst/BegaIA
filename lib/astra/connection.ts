@@ -5,21 +5,51 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 /**
- * Devuelve la instancia de db con el keyspace configurado.
+ * Lee una env obligatoria y tira un error descriptivo si falta.
+ */
+function requiredEnv(name: string): string {
+  const val = process.env[name];
+  if (!val || typeof val !== "string" || val.trim() === "") {
+    throw new Error(`[AstraDB] Falta variable de entorno requerida: ${name}`);
+  }
+  return val.trim();
+}
+
+/**
+ * Normaliza el URL de Astra:
+ * - Quita trailing slash.
+ * - Valida que comience con http(s).
+ */
+function normalizeAstraUrl(url: string): string {
+  let u = url.trim();
+  if (!/^https?:\/\//i.test(u)) {
+    throw new Error(
+      `[AstraDB] ASTRA_DB_URL debe incluir protocolo http/https. Valor recibido: "${url}"`
+    );
+  }
+  // quitar slashes finales
+  while (u.endsWith("/")) u = u.slice(0, -1);
+  return u;
+}
+
+/**
+ * Devuelve la instancia de db con el keyspace configurado (con checks).
  */
 export function getAstraDB() {
-  const ASTRA_DB_APPLICATION_TOKEN = process.env.ASTRA_DB_APPLICATION_TOKEN!;
-  const ASTRA_DB_KEYSPACE = process.env.ASTRA_DB_KEYSPACE!;
-  const ASTRA_DB_URL = process.env.ASTRA_DB_URL!;
-  const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-  return client.db(ASTRA_DB_URL, { keyspace: ASTRA_DB_KEYSPACE });
+  // Nota: en este proyecto se usa ASTRA_DB_URL (no ASTRA_DB_ENDPOINT)
+  const token = requiredEnv("ASTRA_DB_APPLICATION_TOKEN");
+  const keyspace = requiredEnv("ASTRA_DB_KEYSPACE");
+  const rawUrl = requiredEnv("ASTRA_DB_URL");
+  const url = normalizeAstraUrl(rawUrl);
+
+  const client = new DataAPIClient(token);
+  return client.db(url, { keyspace });
 }
 
 /**
  * Retorna una colección AstraDB para el hotel indicado.
  * @param hotelId - El ID lógico del hotel
  * @param suffix - (opcional) Sufijo para el nombre de la colección (por defecto: "_collection")
- * @returns La colección tipada (o any si no se provee tipo)
  */
 export function getHotelAstraCollection<T extends Record<string, any> = any>(
   hotelId: string,

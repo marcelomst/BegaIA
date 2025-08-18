@@ -1,0 +1,14 @@
+# Path: /root/begasist/.cloudflared/config.yml
+tunnel: mi-tunel-begasist
+credentials-file: /etc/cloudflared/8d3a6032-8734-446b-a5ec-7d8fa71e14aa.json
+
+ingress:
+  - hostname: app.begam.uy
+    service: http://begasist-suite:3000
+  - service: http_status:404
+
+# Opcional: timeouts/keepalive más amables con Next.js / edge
+originRequest:
+  connectTimeout: 10s
+  tcpKeepAlive: 30s
+  # httpHostHeader: app.begam.uy   # solo si tu app lo requiere

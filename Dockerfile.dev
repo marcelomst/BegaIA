@@ -1,28 +1,18 @@
-# Path: /Dockerfile.dev
-
-# Imagen base
+# Path: /root/begasist/Dockerfile.dev
 FROM node:20-alpine
 
-# 1. Crea el directorio de trabajo
 WORKDIR /app
 
-# 2. Copia solo los archivos clave para cachear mejor
+# Cache de dependencias
 COPY package.json pnpm-lock.yaml ./
-
-# 3. Prepara pnpm y habilita corepack
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
-
-# 4. Instala dependencias
 RUN pnpm install
 
-# 5. Copia el resto del código (opcional si se usa volume)
+# Código (se puede sobreescribir con volume en compose.dev)
 COPY . .
 
-# 6. Expone el puerto de desarrollo
 EXPOSE 3000
-
-# 7. Entorno de desarrollo
 ENV NODE_ENV=development
 
-# 8. Comando por defecto
-CMD ["pnpm", "dev"]
+# Servir en 0.0.0.0 para acceder desde host/otros contenedores
+CMD ["pnpm", "dev", "-p", "3000", "-H", "0.0.0.0"]

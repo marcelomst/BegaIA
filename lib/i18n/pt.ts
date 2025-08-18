@@ -182,18 +182,44 @@ export default {
     """
     {{text}}
     """`,
-   reservation: {
-      slotFillingPrompt: (missing: string[]) =>
-        `Obrigado pelo seu interesse! Para prosseguir com sua reserva, você poderia me informar ${missing.join(", ")}?`,
-      confirmation: (resId?: string) =>
-        resId
-          ? `Reserva confirmada! Seu número de reserva é ${resId}.`
-          : "Reserva confirmada!",
-      cancellation: (resId?: string) =>
-        resId
-          ? `Sua reserva ${resId} foi cancelada com sucesso.`
-          : "Sua reserva foi cancelada com sucesso.",
-      // ...outros textos
+  
+  reservation: {
+    slotFillingPrompt: (missing: string[]) =>
+      `Para seguir com a reserva preciso: **${missing.join(", ")}**. Pode me informar?`,
+    valueNudge: (s: any) => {
+      const parts: string[] = [];
+      if (s?.roomType) parts.push(`**${cap(s.roomType)}** com ótimo custo-benefício`);
+      if (s?.checkIn && s?.checkOut) parts.push(`datas **${s.checkIn} → ${s.checkOut}**`);
+      if (s?.numGuests) parts.push(`${s.numGuests} hóspede(s)`);
+      const core = parts.length
+        ? `Tenho disponibilidade para ${parts.join(", ")}.`
+        : `Posso oferecer ótima disponibilidade agora.`;
+      return `${core} Quer que eu **confirme agora** para garantir a tarifa?`;
     },
-  // ...
+    softClose: (s: any) => [
+      `Perfeito, farei a reserva em nome de **${s.guestName ?? "o hóspede"}**.`,
+      `Quarto: **${cap(s.roomType)}**.`,
+      `Datas: **${s.checkIn} → ${s.checkOut}**${s.numGuests ? ` · Hóspedes: **${s.numGuests}**` : ""}.`,
+      `Confirmo agora?`,
+    ].join("\n"),
+    noAvailability: (s: any) =>
+      `Não há disponibilidade em **${cap(s.roomType)}** para **${s.checkIn} → ${s.checkOut}**.`,
+    alternativesSameDates: (summary: string) =>
+      `Opções em outras categorias nessas datas:\n${summary}`,
+    alternativesMoveOneDay: (minusRange: string, minusSummary: string, plusRange: string, plusSummary: string) =>
+      `Também posso mover **um dia**:\n• **${minusRange}**:\n${minusSummary}\n• **${plusRange}**:\n${plusSummary}`,
+    askChooseAlternative: () =>
+      `Quer que eu reserve alguma dessas opções ou prefira que eu procure outra combinação?`,
+    confirmSuccess: (created: any, s: any) =>
+      `✅ Reserva confirmada! Código **${created?.reservationId ?? "pendente"}**.\n` +
+      `Quarto **${cap(s.roomType)}**, ` +
+      `Datas **${s.checkIn} → ${s.checkOut}**` +
+      (s.numGuests ? ` · **${s.numGuests}** hóspede(s)` : "") +
+      `. Obrigado, ${s.guestName}!`,
+  },
+};
+
+function cap(str?: string) {
+  if (!str) return str as any;
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

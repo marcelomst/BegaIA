@@ -1,17 +1,38 @@
 // Path: /root/begasist/lib/i18n/es.ts
 const es = {
-    reservation: {
-      slotFillingPrompt: (missing: string[]) =>
-        `¡Gracias por tu interés! Para avanzar con tu reserva, ¿podrías indicarme ${missing.join(", ")}?`,
-      confirmation: (resId?: string) =>
-        resId
-          ? `¡Reserva confirmada! Tu número de reserva es ${resId}.`
-          : "¡Reserva confirmada!",
-      cancellation: (resId?: string) =>
-        resId
-          ? `Tu reserva ${resId} ha sido cancelada exitosamente.`
-          : "Tu reserva ha sido cancelada exitosamente.",
-      // ...otros textos de reserva si necesitas
+  reservation: {
+    slotFillingPrompt: (missing: string[]) =>
+      `Para avanzar con tu reserva necesito: **${missing.join(", ")}**. ¿Me lo compartís?`,
+    valueNudge: (s: any) => {
+      const parts: string[] = [];
+      if (s?.roomType) parts.push(`**${capitalize(s.roomType)}** con excelente relación precio/calidad`);
+      if (s?.checkIn && s?.checkOut) parts.push(`fechas **${s.checkIn} → ${s.checkOut}**`);
+      if (s?.numGuests) parts.push(`${s.numGuests} huésped(es)`);
+      const core = parts.length
+        ? `Tengo disponibilidad para ${parts.join(", ")}.`
+        : `Puedo ofrecerte muy buena disponibilidad ahora.`;
+      return `${core} ¿Querés que la deje **confirmada ahora** y aseguramos la tarifa?`;
+    },
+    softClose: (s: any) => [
+      `Perfecto, haré la reserva a nombre de **${s.guestName ?? "el huésped"}**.`,
+      `Habitación: **${capitalize(s.roomType)}**.`,
+      `Fechas: **${s.checkIn} → ${s.checkOut}**${s.numGuests ? ` · Huéspedes: **${s.numGuests}**` : ""}.`,
+      `¿Te confirmo ahora mismo?`,
+    ].join("\n"),
+    noAvailability: (s: any) =>
+      `No tengo disponibilidad en **${capitalize(s.roomType)}** para **${s.checkIn} → ${s.checkOut}**.`,
+    alternativesSameDates: (summary: string) =>
+      `Opciones en otras categorías para esas fechas:\n${summary}`,
+    alternativesMoveOneDay: (minusRange: string, minusSummary: string, plusRange: string, plusSummary: string) =>
+      `También puedo mover **un día**:\n• **${minusRange}**:\n${minusSummary}\n• **${plusRange}**:\n${plusSummary}`,
+    askChooseAlternative: () =>
+      `¿Querés que reserve alguna de estas opciones o preferís que busque otra combinación?`,
+    confirmSuccess: (created: any, s: any) =>
+      `✅ ¡Reserva confirmada! Código **${created?.reservationId ?? "pendiente"}**.\n` +
+      `Habitación **${capitalize(s.roomType)}**, ` +
+      `Fechas **${s.checkIn} → ${s.checkOut}**` +
+      (s.numGuests ? ` · **${s.numGuests}** huésped(es)` : "") +
+      `. ¡Gracias, ${s.guestName}!`,
   },
   hotelEdit: {
     title: "Editar hotel",
@@ -223,6 +244,9 @@ const es = {
     """`,
       // ...
 };
-
+function capitalize(str?: string) {
+  if (!str) return str as any;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 export default es;
 

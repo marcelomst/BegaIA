@@ -14,6 +14,9 @@ import { getGuest } from "@/lib/db/guests"; // 👈 Import correcto para backend
 
 export async function POST(req: Request) {
   try {
+    const H = (k: string) => req.headers.get?.(k);
+    console.log(`[edge] ${req.method} ${new URL(req.url).pathname} host=${H("host")} ip=${H("cf-connecting-ip")||H("x-forwarded-for")} cf-ray=${H("cf-ray")} ua=${H("user-agent")}`);
+
     const {
       query,
       channel,

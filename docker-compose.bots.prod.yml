@@ -1,0 +1,37 @@
+# Path: /root/begasist/docker-compose.bots.prod.yml
+services:
+  bot_hotel999_prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.channelbot
+      target: runner             # usa la etapa "runner" (sin dev server)
+    image: begasist-channelbot:prod
+    container_name: begasist-channelbot-hotel999-prod
+
+    restart: unless-stopped
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
+
+    # 👇 NO montamos el código → sin hot reload
+    volumes:
+      - wwebjs_auth_hotel999:/data/wwebjs_auth
+
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - HOTEL_ID=hotel999
+      - REDIS_URL=redis://begasist-redis:6379
+      - WWEBJS_AUTH_PATH=/data/wwebjs_auth
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+    # usa el CMD del Dockerfile: ["pnpm","start:channelbot"]
+
+volumes:
+  wwebjs_auth_hotel999:
+
+networks:
+  default:
+    name: begasist_net
+    external: true

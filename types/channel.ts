@@ -49,6 +49,8 @@ export type BaseChannelConfig = {
 export type WhatsAppConfig = BaseChannelConfig & {
   celNumber: string;
   apiKey?: string;
+  /** Si true, no procesa mensajes de grupos (@g.us). Default: true */
+  ignoreGroups?: boolean;
 };
 
 export type EmailConfig = BaseChannelConfig & {
