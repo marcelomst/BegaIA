@@ -50,3 +50,4 @@ C:Users*/pnpm*store*/   # por si se colaron rutas de Windows
 *.deb
 *.AppImage
 *.iso
+.env
