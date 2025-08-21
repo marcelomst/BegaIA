@@ -34,6 +34,8 @@ const PUBLIC_PATHS = [
   // 🔓 Webhooks externos (no deben pasar por login)
   "/api/integrations/beds24/webhooks",
   "/api/health",
+  "/api/reservations/by-id",
+
 ];
 
 export async function middleware(req: NextRequest) {

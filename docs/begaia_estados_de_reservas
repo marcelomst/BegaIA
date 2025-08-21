@@ -1,0 +1,232 @@
+````md
+// Path: /root/begasist/docs/architecture/cm-mirror-and-conversational-flags.md
+# BegaIA — Estado de reservas: espejo del Channel Manager y “derivados conversacionales”
+
+> Objetivo: documentar por qué BegaIA debe **espejar** el estado del Channel Manager (CM) como *fuente de verdad* y, en paralelo, **calcular señales efímeras** (“derivados conversacionales”) para decidir *qué decir y cuándo* sin invadir el rol del PMS.
+
+---
+
+## 1) Decisión
+
+- **Fuente de verdad**: el **Channel Manager**.  
+  El snapshot en Astra **refleja 1:1** el estado del CM (p. ej., `confirmed`, `modified`, `cancelled`) y los datos clave (fechas, roomType, huésped, etc).
+- **Nada de “estado interno legal”**: BegaIA **no** redefine estados de reserva; solo conserva un **snapshot espejo**.
+- **Derivados conversacionales**: señales **efímeras** calculadas al vuelo (o caché con **TTL** corto) que ayudan a:
+  - enrutar (bot vs agente),
+  - elegir tono/mensaje (pre-llegada, en-casa, post-estancia),
+  - detectar oportunidades (upsell, recordatorios, cobro pendiente),
+  - sin modificar el estado oficial de la reserva.
+
+---
+
+## 2) Motivación
+
+1) **Menor complejidad y riesgo**: evitar **drift** (deriva) entre un “estado interno” y lo que afirma el CM/PMS.  
+2) **Enfoque en Inteligencia**: BegaIA se centra en **comunicación y decisión**, no en reglas operativas de back-office.  
+3) **Resiliencia conversacional**: si el CM tiene latencia/caídas, usamos **snapshot + derivados** para continuar (modo *best effort*) sin bloquear la experiencia.
+
+---
+
+## 3) Flujo de datos (resumen)
+
+1) **Webhook CM (Beds24 V2 actualmente)** → Handler  
+   - Deduplicación (**idempotencia** con `SET NX EX`, p. ej. `EX=900` s).
+   - Mapeo mínimo y persistencia:
+     - **`reservations`**: `_id = ${hotelId}:${reservationId}`, documento espejo del CM.
+     - **`cm_events`**: `_id = ${hotelId}:${eventId}` para auditoría.
+2) **Lectura**  
+   - Endpoints de lectura usan el snapshot en Astra (rápido).  
+   - Para auditoría, existe plan de `/api/reservations/sync/check` (ver §7).
+3) **Conversación**  
+   - Ante cada mensaje, calcular **derivados** efímeros en base al snapshot (y señales del PMS si hay) para decidir **qué** y **cuándo** decir.
+
+---
+
+## 4) Derivados conversacionales (qué son y cómo usarlos)
+
+**Definición**: *señales calculadas en tiempo real* (o en caché con TTL corto) a partir del snapshot CM (+ hints del PMS) para guiar la conversación.  
+**No** son estado legal; **no** reemplazan al CM/PMS.
+
+### Ejemplos útiles
+- `isPreArrival(D-2)`: faltan ≤ 2 días para check-in (y > 0).
+- `isInHouse`: ahora ∈ [check-in, check-out).
+- `postStayWindow`: ahora ≤ 3 días post check-out (momento para pedir reseña).
+- `needsCard`: PMS/CM indica que falta tarjeta o garantía.
+- `upsellWindow`: D-7..D-1 con estado `confirmed` y segmento apto para upsell.
+
+> **Origen**: además del snapshot CM, **instrucciones del PMS** (preferencias del pax, políticas, historial) pueden alimentar estos derivados; BegaIA solo **usa** esa señal, no la “oficializa”.
+
+### Implementación sugerida (conceptual)
+- **No persistir** por defecto.  
+- Si hay costo de cálculo alto, **caché** en Redis con **TTL corto** (p. ej., 10–60 min) y clave por `hotelId:reservationId`.
+
+---
+
+## 5) Idempotencia, TZ y observabilidad
+
+- **Idempotencia**: clave compuesta (p. ej., `beds24:${bookId}:${lastModified}`) y `SET NX EX 900`.  
+  Evita reprocesar el mismo evento si el CM reintenta.
+- **Zona horaria del hotel**: siempre calcular ventanas (pre-arrival, post-stay) en **TZ del hotel**, no del servidor.
+- **Logs**:
+  - `cm_events` con `status`, `processedAt`, `error` (si hubiera).
+  - Trazas de decisión de derivados (nivel debug) para reproducibilidad.
+
+---
+
+## 6) Diseño de datos en Astra (snapshot espejo)
+
+**reservations** (`_id = ${hotelId}:${reservationId}`)  
+Campos mínimos:
+- `reservationId`, `hotelId`, `guestId`, `channel` (`"channelManager"`),
+- `status` (igual al CM: `confirmed`, `modified`, `cancelled`…),
+- `checkInDate`, `checkOutDate`, `roomType` (si aplica),
+- `meta.ratePlan` (con fallback: `ratePlanName`/`rateDescription`),
+- `meta.rawPayload` (documento del CM tal cual),
+- `createdAt`, `updatedAt`.
+
+**cm_events** (`_id = ${hotelId}:${eventId}`)  
+Campos mínimos:
+- `eventId`, `hotelId`, `status` (`processed|error`),
+- `processedAt`, `error?`.
+
+> Nota: No incluir `"_id"` dentro de `$set` en updates. Usarlo **solo** en el filtro de `updateOne({ _id }, { $set: ... }, { upsert: true })`.
+
+---
+
+## 7) Endpoint de reconciliación (auditoría)
+/api/reservations/sync/check — **propuesta**
+
+**Query/body**  
+- `hotelId` (requerido)  
+- `since` (ISO) **o** `ids=[...]`  
+- `fields` opcional (lista de campos a comparar)
+
+**Proceso**  
+1) Leer candidatas en Astra.  
+2) Consultar CM por ID o `modified_since`.  
+3) Comparar y devolver mismatches.  
+4) (Opcional) `fix=true` para **re-espejar** la reserva en Astra.
+
+**Salida (ejemplo)**  
+```json
+{
+  "ok": true,
+  "checked": 10,
+  "mismatches": [
+    {
+      "reservationId": "74285301",
+      "local": { "status": "confirmed", "checkInDate": "2025-08-15" },
+      "cm":    { "status": "modified",  "checkInDate": "2025-08-16" },
+      "fieldsDiff": ["status", "checkInDate"],
+      "suggestedAction": "update_local_snapshot"
+    }
+  ]
+}
+````
+
+---
+
+## 8) Best effort
+
+Si el CM no responde o hay latencia:
+
+* Usar **último snapshot** + **derivados** para no cortar la conversación.
+* **No** exponer al huésped la condición; sí **registrarlo** en logs/metrics.
+* Hacer **sync** cuando el CM vuelva para alinear snapshot.
+
+---
+
+## 9) Integración con PMS para derivados conversacionales (nuevo)
+
+**Cuándo se usa el PMS:** en **tiempo de conversación**, no en el webhook.
+
+* El webhook solo **espeja** CM → Astra (rápido, robusto, idempotente).
+* Cuando llega un mensaje del huésped, el bot:
+
+  1. lee el **snapshot** de Astra (CM espejo),
+  2. consulta el **PMS** para *advisory* (políticas, preferencias, pagos, etc.),
+  3. **calcula derivados efímeros** con ambos inputs,
+  4. decide **qué decir** (IA) sin tocar el estado oficial.
+
+**Contrato recomendado (ejemplo):**
+
+*Request*:
+
+```json
+{
+  "hotelId": "hotel999",
+  "reservationId": "74285301",
+  "guestId": "marcelomst1@gmail.com",
+  "asOf": "2025-08-19T12:34:56Z"
+}
+```
+
+*Response*:
+
+```json
+{
+  "ok": true,
+  "advisory": {
+    "payment": { "required": true, "method": "card_on_file", "deadline": "2025-08-14T15:00:00Z" },
+    "preferences": { "language": "es", "quietRoom": true, "crib": true },
+    "eligibility": { "lateCheckoutOffer": true, "upgradeOffer": false },
+    "notes": "Cliente sensible al ruido; pidió cuna."
+  }
+}
+```
+
+**Cálculo on-the-fly (conceptual):**
+
+```ts
+function computeDerivedFlags(snapshot: {
+  checkInDate: string; checkOutDate: string; status: string;
+}, advisory: any, hotelTz: string) {
+  const now = new Date();
+  const toTz = (iso: string) => new Date(new Date(iso).toLocaleString("en-US", { timeZone: hotelTz }));
+  const start = toTz(snapshot.checkInDate + "T00:00:00");
+  const end   = toTz(snapshot.checkOutDate + "T00:00:00");
+  const d = (a: Date, b: Date) => Math.ceil((a.getTime() - b.getTime()) / 86400000);
+  const dIn = d(start, toTz(now.toISOString()));
+  const isInHouse = now >= start && now < end;
+
+  return {
+    isPreArrival: dIn > 0,
+    isInHouse,
+    isPostStay: now >= end && d(toTz(now.toISOString()), end) <= 3,
+    upsellWindow: dIn <= 3 && dIn >= 0 && snapshot.status === "confirmed",
+    needsCard: !!advisory?.payment?.required
+  };
+}
+```
+
+**Caché opcional con TTL:** si el PMS tiene latencia/límites, cachear `advisory` 10–60 min (Redis `EX`), clave `pmsAdv:${hotelId}:${reservationId}`.
+**Observabilidad:** métricas de éxito/timeout PMS, latencia, % “best effort”.
+
+---
+
+## 10) Checklist de implementación
+
+* [x] Webhook Beds24 V2 + idempotencia `SET NX EX 900`.
+* [x] `reservations` y `cm_events` con **\_id determinístico** en Astra.
+* [x] Lectura pública por túnel (`/api/reservations/by-id`).
+* [ ] **Hook PMS en conversación** (advisory) + **derivados** (no persistentes).
+* [ ] `/api/reservations/sync/check` para auditoría/reconciliación.
+* [ ] Métricas: % eventos deduplicados, latencia CM→Astra, errores por tipo, latencia/éxito PMS.
+
+---
+
+## 11) Glosario
+
+* **Drift (deriva)**: desalineación entre lo que BegaIA “cree” y la fuente de verdad (CM/PMS). Puede ser semántica (interpretación de estados), de datos (webhooks perdidos) o temporal (huso horario/fechas).
+* **Banderas derivadas efímeras**: señales calculadas en tiempo real (o con caché de TTL corto) para guiar la conversación (p. ej., `isPreArrival`, `needsCard`). No son estado legal; no se “oficializan”.
+* **Derivados conversacionales**: conjunto de banderas/atributos efímeros usados para ruteo, tono, oportunidades y recordatorios. Se obtienen del snapshot CM + hints del PMS.
+* **TTL (Time To Live)**: tiempo de vida de una clave de caché o marca de idempotencia (p. ej., 900 s). Al expirar, la clave se elimina automáticamente.
+* **Best effort**: servir con el mejor esfuerzo cuando el CM o PMS no están disponibles (usar snapshot + derivados), registrando la condición en observabilidad y reconciliando después.
+* **Snapshot espejo**: copia fiel del estado del CM en Astra (sin reinterpretar estados). Sirve para respuestas rápidas y resiliencia.
+* **Reconciliación (sync)**: proceso periódico o bajo demanda para comparar Astra vs CM y corregir divergencias (mismatches).
+* **Idempotencia**: técnica para procesar cada evento **una sola vez** aunque el proveedor lo reenvíe; típicamente con claves compuestas y `SET NX EX`.
+
+---
+
+```
+```

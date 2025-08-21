@@ -2690,3 +2690,1172 @@ Try to install it into the project directory by running npm install puppeteer-co
   "date": "2025-08-16T20:01:54.000Z",
   "messageId": "<db23b5a58604ab5d59bc35544e65593180efb85b-10041445-110994218@google.com>"
 }
+[2025-08-18T08:44:51.131Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T08:44:53.060Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506693057",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:45:08.200Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506708198",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:45:20.875Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506720873",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:45:36.193Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506736192",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:45:48.602Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506748600",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:46:03.824Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506763818",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:46:16.559Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506776558",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:46:31.843Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506791842",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:46:44.587Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506804586",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:46:59.649Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506819648",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:47:12.083Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506832082",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:47:27.496Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506847495",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:47:39.817Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506859816",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:47:55.254Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506875253",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:48:07.641Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506887640",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:48:22.780Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506902779",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:48:35.252Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506915250",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:48:50.632Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506930631",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:49:03.337Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506943336",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:49:18.662Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506958661",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:49:31.079Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506971077",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:49:46.490Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506986489",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:49:59.045Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755506999044",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:50:14.432Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755507014430",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:50:27.217Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755507027216",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:50:42.620Z] [ERROR] ⛔ [CM] Error inesperado en loop (hotel hotel999): {
+  "command": {
+    "name": "set",
+    "args": [
+      "bot:cm:hotel999:heartbeat",
+      "1755507042619",
+      "[object Object]"
+    ]
+  }
+}
+[2025-08-18T08:50:46.122Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T09:04:22.267Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T09:22:34.248Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T11:22:11.831Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:06:35.802Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:08:17.448Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:09:16.927Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:21:22.740Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:21:54.433Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:26:10.642Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:29:44.822Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:29:46.317Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:29:48.352Z] [ERROR] [CM Handler] Error procesando evento: reservation_modified {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:74285301"
+      },
+      "update": {
+        "$set": {
+          "reservationId": "74285301",
+          "hotelId": "hotel999",
+          "guestId": "marcelomst1@gmail.com",
+          "channel": "channelManager",
+          "status": "pending",
+          "checkInDate": "2025-08-15",
+          "checkOutDate": "2025-08-20",
+          "roomType": "604760",
+          "meta": {
+            "ratePlan": "",
+            "rawPayload": {
+              "id": 74285301,
+              "masterId": null,
+              "propertyId": 289326,
+              "roomId": 604760,
+              "unitId": 1,
+              "roomQty": 1,
+              "offerId": 1,
+              "status": "confirmed",
+              "subStatus": "none",
+              "arrival": "2025-08-15",
+              "departure": "2025-08-20",
+              "numAdult": 1,
+              "numChild": 0,
+              "title": "Ana",
+              "firstName": "Gomez",
+              "lastName": "",
+              "email": "marcelomst1@gmail.com",
+              "phone": "091359375",
+              "mobile": "",
+              "fax": "",
+              "company": "",
+              "address": "Yosemite y Portofino\r\ns/n",
+              "city": "Ocean Park - Maldonado",
+              "state": "",
+              "postcode": "20000",
+              "country": "",
+              "country2": "UY",
+              "arrivalTime": "",
+              "voucher": "",
+              "comments": "",
+              "notes": "Necesito una cuna para bebe",
+              "message": "",
+              "groupNote": "",
+              "custom1": "",
+              "custom2": "",
+              "custom3": "",
+              "custom4": "",
+              "custom5": "",
+              "custom6": "",
+              "custom7": "",
+              "custom8": "",
+              "custom9": "",
+              "custom10": "",
+              "flagColor": "",
+              "flagText": "",
+              "statusCode": 0,
+              "lang": "es",
+              "referer": "marcelomst",
+              "refererEditable": "marcelomst",
+              "reference": "",
+              "channel": "direct",
+              "apiSourceId": 0,
+              "apiSource": "Direct",
+              "apiReference": "",
+              "allowChannelUpdate": "all",
+              "allowAutoAction": "enable",
+              "allowReview": "default",
+              "allowCancellation": {
+                "type": "propertyDefault"
+              },
+              "invoiceeId": null,
+              "bookingTime": "2025-08-15T08:34:26Z",
+              "modifiedTime": "2025-08-18T10:35:21Z",
+              "cancelTime": null,
+              "price": 150,
+              "deposit": 0,
+              "tax": 0,
+              "commission": 0,
+              "rateDescription": "Offer 1, \r\n2025-08-15 30,",
+              "stripeToken": null,
+              "apiMessage": ""
+            }
+          },
+          "createdAt": "2025-08-18T13:29:47.346Z",
+          "_id": "hotel999:74285301",
+          "updatedAt": "2025-08-18T13:29:47.351Z"
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "The command used the update operator: $set.\n_id field cannot be updated using update operators.\n\nResend the command without trying to update _id field.",
+        "scope": "UPDATE",
+        "errorCode": "UNSUPPORTED_UPDATE_OPERATOR_FOR_DOC_ID",
+        "id": "d82d1d1a-3694-405d-bb95-59fad8cff59d",
+        "family": "REQUEST",
+        "title": "Update operators cannot be used on _id field"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-18T13:54:03.019Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:54:23.853Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:54:22.989Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:54:24.676Z] [ERROR] [CM Handler] Error procesando evento: reservation_modified {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:74285301"
+      },
+      "update": {
+        "$set": {
+          "reservationId": "74285301",
+          "hotelId": "hotel999",
+          "guestId": "marcelomst1@gmail.com",
+          "channel": "channelManager",
+          "status": "pending",
+          "checkInDate": "2025-08-15",
+          "checkOutDate": "2025-08-20",
+          "roomType": "604760",
+          "meta": {
+            "ratePlan": "",
+            "rawPayload": {
+              "id": 74285301,
+              "masterId": null,
+              "propertyId": 289326,
+              "roomId": 604760,
+              "unitId": 1,
+              "roomQty": 1,
+              "offerId": 1,
+              "status": "confirmed",
+              "subStatus": "none",
+              "arrival": "2025-08-15",
+              "departure": "2025-08-20",
+              "numAdult": 1,
+              "numChild": 0,
+              "title": "Ana",
+              "firstName": "Gomez",
+              "lastName": "",
+              "email": "marcelomst1@gmail.com",
+              "phone": "091359375",
+              "mobile": "",
+              "fax": "",
+              "company": "",
+              "address": "Yosemite y Portofino\r\ns/n",
+              "city": "Ocean Park - Maldonado",
+              "state": "",
+              "postcode": "20000",
+              "country": "",
+              "country2": "UY",
+              "arrivalTime": "",
+              "voucher": "",
+              "comments": "",
+              "notes": "Necesito una cuna para bebe",
+              "message": "",
+              "groupNote": "",
+              "custom1": "",
+              "custom2": "",
+              "custom3": "",
+              "custom4": "",
+              "custom5": "",
+              "custom6": "",
+              "custom7": "",
+              "custom8": "",
+              "custom9": "",
+              "custom10": "",
+              "flagColor": "",
+              "flagText": "",
+              "statusCode": 0,
+              "lang": "es",
+              "referer": "marcelomst",
+              "refererEditable": "marcelomst",
+              "reference": "",
+              "channel": "direct",
+              "apiSourceId": 0,
+              "apiSource": "Direct",
+              "apiReference": "",
+              "allowChannelUpdate": "all",
+              "allowAutoAction": "enable",
+              "allowReview": "default",
+              "allowCancellation": {
+                "type": "propertyDefault"
+              },
+              "invoiceeId": null,
+              "bookingTime": "2025-08-15T08:34:26Z",
+              "modifiedTime": "2025-08-18T10:35:21Z",
+              "cancelTime": null,
+              "price": 150,
+              "deposit": 0,
+              "tax": 0,
+              "commission": 0,
+              "rateDescription": "Offer 1, \r\n2025-08-15 30,",
+              "stripeToken": null,
+              "apiMessage": ""
+            }
+          },
+          "createdAt": "2025-08-18T13:54:23.975Z",
+          "_id": "hotel999:74285301",
+          "updatedAt": "2025-08-18T13:54:23.980Z"
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "The command used the update operator: $set.\n_id field cannot be updated using update operators.\n\nResend the command without trying to update _id field.",
+        "scope": "UPDATE",
+        "errorCode": "UNSUPPORTED_UPDATE_OPERATOR_FOR_DOC_ID",
+        "id": "d8f1bbe7-bba6-4c82-a81f-f034d7abbef6",
+        "family": "REQUEST",
+        "title": "Update operators cannot be used on _id field"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-18T13:59:22.135Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T13:59:46.225Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T13:59:48.410Z] [ERROR] [CM Handler] Error procesando evento: reservation_modified {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:74285301"
+      },
+      "update": {
+        "$set": {
+          "reservationId": "74285301",
+          "hotelId": "hotel999",
+          "guestId": "marcelomst1@gmail.com",
+          "channel": "channelManager",
+          "status": "pending",
+          "checkInDate": "2025-08-15",
+          "checkOutDate": "2025-08-20",
+          "roomType": "604760",
+          "meta": {
+            "ratePlan": "",
+            "rawPayload": {
+              "id": 74285301,
+              "masterId": null,
+              "propertyId": 289326,
+              "roomId": 604760,
+              "unitId": 1,
+              "roomQty": 1,
+              "offerId": 1,
+              "status": "confirmed",
+              "subStatus": "none",
+              "arrival": "2025-08-15",
+              "departure": "2025-08-20",
+              "numAdult": 1,
+              "numChild": 0,
+              "title": "Ana",
+              "firstName": "Gomez",
+              "lastName": "",
+              "email": "marcelomst1@gmail.com",
+              "phone": "091359375",
+              "mobile": "",
+              "fax": "",
+              "company": "",
+              "address": "Yosemite y Portofino\r\ns/n",
+              "city": "Ocean Park - Maldonado",
+              "state": "",
+              "postcode": "20000",
+              "country": "",
+              "country2": "UY",
+              "arrivalTime": "",
+              "voucher": "",
+              "comments": "",
+              "notes": "Necesito una cuna para bebe",
+              "message": "",
+              "groupNote": "",
+              "custom1": "",
+              "custom2": "",
+              "custom3": "",
+              "custom4": "",
+              "custom5": "",
+              "custom6": "",
+              "custom7": "",
+              "custom8": "",
+              "custom9": "",
+              "custom10": "",
+              "flagColor": "",
+              "flagText": "",
+              "statusCode": 0,
+              "lang": "es",
+              "referer": "marcelomst",
+              "refererEditable": "marcelomst",
+              "reference": "",
+              "channel": "direct",
+              "apiSourceId": 0,
+              "apiSource": "Direct",
+              "apiReference": "",
+              "allowChannelUpdate": "all",
+              "allowAutoAction": "enable",
+              "allowReview": "default",
+              "allowCancellation": {
+                "type": "propertyDefault"
+              },
+              "invoiceeId": null,
+              "bookingTime": "2025-08-15T08:34:26Z",
+              "modifiedTime": "2025-08-18T10:35:21Z",
+              "cancelTime": null,
+              "price": 150,
+              "deposit": 0,
+              "tax": 0,
+              "commission": 0,
+              "rateDescription": "Offer 1, \r\n2025-08-15 30,",
+              "stripeToken": null,
+              "apiMessage": ""
+            }
+          },
+          "createdAt": "2025-08-18T13:59:47.686Z",
+          "_id": "hotel999:74285301",
+          "updatedAt": "2025-08-18T13:59:47.687Z"
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "The command used the update operator: $set.\n_id field cannot be updated using update operators.\n\nResend the command without trying to update _id field.",
+        "scope": "UPDATE",
+        "errorCode": "UNSUPPORTED_UPDATE_OPERATOR_FOR_DOC_ID",
+        "id": "df2ca948-f0f0-403b-9079-2111a9484c4b",
+        "family": "REQUEST",
+        "title": "Update operators cannot be used on _id field"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-18T15:17:22.640Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T15:17:43.836Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T15:17:45.287Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T15:17:46.791Z] [ERROR] [CM Handler] Error procesando evento: reservation_modified {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:74285301"
+      },
+      "update": {
+        "$set": {
+          "reservationId": "74285301",
+          "hotelId": "hotel999",
+          "guestId": "marcelomst1@gmail.com",
+          "channel": "channelManager",
+          "status": "pending",
+          "checkInDate": "2025-08-15",
+          "checkOutDate": "2025-08-20",
+          "roomType": "604760",
+          "meta": {
+            "ratePlan": "",
+            "rawPayload": {
+              "id": 74285301,
+              "masterId": null,
+              "propertyId": 289326,
+              "roomId": 604760,
+              "unitId": 1,
+              "roomQty": 1,
+              "offerId": 1,
+              "status": "confirmed",
+              "subStatus": "none",
+              "arrival": "2025-08-15",
+              "departure": "2025-08-20",
+              "numAdult": 1,
+              "numChild": 0,
+              "title": "Ana",
+              "firstName": "Gomez",
+              "lastName": "",
+              "email": "marcelomst1@gmail.com",
+              "phone": "091359375",
+              "mobile": "",
+              "fax": "",
+              "company": "",
+              "address": "Yosemite y Portofino\r\ns/n",
+              "city": "Ocean Park - Maldonado",
+              "state": "",
+              "postcode": "20000",
+              "country": "",
+              "country2": "UY",
+              "arrivalTime": "",
+              "voucher": "",
+              "comments": "",
+              "notes": "Necesito una cuna para bebe",
+              "message": "",
+              "groupNote": "",
+              "custom1": "",
+              "custom2": "",
+              "custom3": "",
+              "custom4": "",
+              "custom5": "",
+              "custom6": "",
+              "custom7": "",
+              "custom8": "",
+              "custom9": "",
+              "custom10": "",
+              "flagColor": "",
+              "flagText": "",
+              "statusCode": 0,
+              "lang": "es",
+              "referer": "marcelomst",
+              "refererEditable": "marcelomst",
+              "reference": "",
+              "channel": "direct",
+              "apiSourceId": 0,
+              "apiSource": "Direct",
+              "apiReference": "",
+              "allowChannelUpdate": "all",
+              "allowAutoAction": "enable",
+              "allowReview": "default",
+              "allowCancellation": {
+                "type": "propertyDefault"
+              },
+              "invoiceeId": null,
+              "bookingTime": "2025-08-15T08:34:26Z",
+              "modifiedTime": "2025-08-18T10:35:21Z",
+              "cancelTime": null,
+              "price": 150,
+              "deposit": 0,
+              "tax": 0,
+              "commission": 0,
+              "rateDescription": "Offer 1, \r\n2025-08-15 30,",
+              "stripeToken": null,
+              "apiMessage": ""
+            }
+          },
+          "createdAt": "2025-08-18T15:17:46.203Z",
+          "_id": "hotel999:74285301",
+          "updatedAt": "2025-08-18T15:17:46.209Z"
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "The command used the update operator: $set.\n_id field cannot be updated using update operators.\n\nResend the command without trying to update _id field.",
+        "scope": "UPDATE",
+        "errorCode": "UNSUPPORTED_UPDATE_OPERATOR_FOR_DOC_ID",
+        "id": "eab1471b-453d-4e97-aef5-2f1685c72727",
+        "family": "REQUEST",
+        "title": "Update operators cannot be used on _id field"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-18T15:44:44.358Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T18:00:31.973Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T18:11:17.176Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T18:13:02.201Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T18:16:10.299Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T18:16:12.272Z] [ERROR] [CM Handler] ERROR eventId=beds24:74285301:1755540971413 hotel=hotel999: The command used the update operator: $set.
+_id field cannot be updated using update operators.
+
+Resend the command without trying to update _id field.
+[2025-08-18T18:16:12.272Z] [ERROR] [Beds24 webhook] error (V2): The command used the update operator: $set.
+_id field cannot be updated using update operators.
+
+Resend the command without trying to update _id field.
+[2025-08-18T19:06:01.622Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-18T19:06:03.032Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T19:06:04.783Z] [ERROR] [CM Handler] ERROR eventId=beds24:74285301:1755543964007 hotel=hotel999: The command used the update operator: $set.
+_id field cannot be updated using update operators.
+
+Resend the command without trying to update _id field.
+[2025-08-18T19:06:04.783Z] [ERROR] [Beds24 webhook] error (V2): The command used the update operator: $set.
+_id field cannot be updated using update operators.
+
+Resend the command without trying to update _id field.
+[2025-08-18T19:23:34.870Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-18T19:24:44.070Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T08:15:49.393Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T08:18:01.274Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-19T08:18:02.592Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T10:13:47.800Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T11:40:17.608Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T15:05:46.539Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T18:05:52.755Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-19T18:05:54.372Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-19T18:07:28.207Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-19T18:08:37.475Z] [WARN]  ⚠ ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package puppeteer-core can't be external
+The request puppeteer-core matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install puppeteer-core from the project directory.
+
+
+[2025-08-20T08:10:03.345Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T08:13:15.081Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T08:13:59.625Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T08:15:05.842Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T08:20:29.385Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T08:33:47.647Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T08:33:47.651Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T08:33:49.602Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:33:49.602Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:33:49.602Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:33:49.818Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T08:33:53.733Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T08:33:53.734Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T08:33:54.096Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T08:33:54.096Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T08:33:54.096Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T08:33:56.923Z] [DEBUG] 🔄 Traduciendo de es a en: El check-in en el Hotel Demó es hasta la 1 pm.
+[2025-08-20T08:42:29.705Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T08:42:29.708Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T08:42:31.376Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:42:31.377Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:42:31.377Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:42:31.584Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T08:42:33.646Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T08:42:33.647Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T08:42:33.985Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T08:42:33.986Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T08:42:33.986Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T08:42:35.262Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T08:45:01.680Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T08:45:01.680Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T08:45:03.204Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:45:03.204Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:45:03.204Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:45:03.400Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T08:45:05.968Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T08:45:05.969Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T08:45:06.301Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T08:45:06.301Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T08:45:06.302Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T08:45:07.650Z] [DEBUG] 🔄 Traduciendo de es a en: El check-in en el Hotel Demó es hasta la 1:00 pm.
+[2025-08-20T08:56:02.417Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T08:56:02.418Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T08:56:03.979Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:56:03.979Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:56:03.980Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T08:56:04.186Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T08:56:05.551Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T08:56:05.551Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T08:56:05.899Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T08:56:05.899Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T08:56:05.899Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T08:56:08.212Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T09:40:27.946Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T10:35:13.728Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T11:01:48.490Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T11:07:50.218Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T11:07:50.218Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-in? (desde container bot)
+[2025-08-20T11:07:51.514Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:07:51.514Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:07:51.515Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:07:51.700Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T11:07:53.167Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T11:07:53.167Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T11:07:53.509Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T11:07:53.509Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T11:07:53.510Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T11:07:54.683Z] [DEBUG] 🔄 Traduciendo de es a en: El check-in en el Hotel Demó es hasta la 01pm.
+[2025-08-20T11:10:07.201Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:10:07.202Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:10:10.095Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:10:10.095Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:10:10.095Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:10:10.274Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T11:10:12.602Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T11:10:12.602Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T11:10:12.934Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T11:10:12.934Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T11:10:12.934Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T11:10:14.097Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T11:42:59.495Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:42:59.499Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:43:00.459Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:43:00.459Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:43:00.460Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:43:00.650Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T11:43:02.278Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T11:43:02.278Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T11:43:02.624Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T11:43:02.624Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T11:43:02.625Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T11:43:03.741Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T11:54:09.434Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T11:55:52.130Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:55:52.134Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T11:55:53.210Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:55:53.210Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:55:53.210Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T11:55:53.393Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T11:55:55.147Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T11:55:55.148Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T11:55:55.494Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T11:55:55.494Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T11:55:55.494Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T11:55:57.646Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T19:17:13.734Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T19:23:21.911Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-20T19:25:12.679Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T19:25:12.684Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T19:25:15.227Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:25:15.228Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:25:15.228Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:25:15.419Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T19:25:16.911Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T19:25:16.912Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T19:25:17.237Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T19:25:17.237Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T19:25:17.237Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T19:25:19.059Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.
+[2025-08-20T19:41:09.505Z] [DEBUG] ❓Pregunta: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T19:41:09.510Z] [DEBUG] ❓Pregunta  normalizada: ¿A qué hora es el check-out? (desde container bot)
+[2025-08-20T19:41:12.009Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:41:12.009Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:41:12.010Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-20T19:41:12.175Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-20T19:41:13.679Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-20T19:41:13.679Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-20T19:41:14.019Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-20T19:41:14.019Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-20T19:41:14.019Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-20T19:41:16.835Z] [DEBUG] 🔄 Traduciendo de es a en: El check-out es antes de las 12pm.

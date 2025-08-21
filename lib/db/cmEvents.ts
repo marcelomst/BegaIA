@@ -1,30 +1,35 @@
 // Path: /root/begasist/lib/db/cmEvents.ts
-
 import type { CmEvent, CmEventStatus } from "@/types/cmEvent";
 import { getAstraDB } from "@/lib/astra/connection";
 
-// Nombre de la colección en Astra que almacena los eventos del Channel Manager.
 const COLLECTION_NAME = "cm_events";
+type CmEventDoc = CmEvent & { _id?: string };
 
 function getCmEventsCollection() {
-  return getAstraDB().collection<CmEvent>(COLLECTION_NAME);
+  return getAstraDB().collection<CmEventDoc>(COLLECTION_NAME);
 }
 
-/**
- * Registra un nuevo evento proveniente del Channel Manager.
- * Si ya existe un documento con el mismo `eventId` y `hotelId`, se sobrescribe.
- */
+// Acepta parciales y devuelve parciales sin undefined
+function pruneUndefined<T extends Record<string, any>>(obj: Partial<T>): Partial<T> {
+  const out: Record<string, any> = {};
+  for (const k in obj) {
+    if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+    const v = (obj as any)[k];
+    if (v !== undefined) out[k] = v;
+  }
+  return out as Partial<T>;
+}
+
+/** Log idempotente por _id = `${hotelId}:${eventId}` (sin _id en $set). */
 export async function logCmEvent(event: CmEvent): Promise<CmEvent> {
-  const collection = getCmEventsCollection();
-  await collection.insertOne({ ...event });
+  const col = getCmEventsCollection();
+  const _id = `${event.hotelId}:${event.eventId}`;
+  const toSet: Partial<CmEventDoc> = pruneUndefined<CmEventDoc>({ ...event });
+  await col.updateOne({ _id }, { $set: toSet } as any, { upsert: true });
   return event;
 }
 
-/**
- * Actualiza el estado de un evento ya almacenado en la colección `cm_events`.
- * También se puede actualizar la fecha de procesamiento o el error.
- * Se filtra por `hotelId` y `eventId` para evitar colisiones entre hoteles.
- */
+/** Update de estado con upsert (sin _id en $set). */
 export async function updateCmEventStatus(
   hotelId: string,
   eventId: string,
@@ -32,12 +37,14 @@ export async function updateCmEventStatus(
   processedAt?: string,
   error?: string
 ): Promise<void> {
-  const collection = getCmEventsCollection();
-  const updates: Partial<CmEvent> = { status };
-  if (processedAt) updates.processedAt = processedAt;
-  if (error) updates.error = error;
-  await collection.updateOne(
-    { hotelId, eventId },
-    { $set: updates }
-  );
+  const col = getCmEventsCollection();
+  const _id = `${hotelId}:${eventId}`;
+  const toSet: Partial<CmEventDoc> = pruneUndefined<CmEventDoc>({
+    status,
+    processedAt,
+    error,
+    hotelId,
+    eventId,
+  });
+  await col.updateOne({ _id }, { $set: toSet } as any, { upsert: true });
 }

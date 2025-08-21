@@ -1,5 +1,5 @@
 // Path: /root/begasist/scripts/clean_collections_reservations_and_cm_events.ts
-
+// pnpm exec tsx scripts/clean_collections_reservations_and_cm_events.ts
 import { getAstraDB } from "../lib/astra/connection";
 
 /**

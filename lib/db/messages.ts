@@ -5,6 +5,32 @@ import type { Channel } from "@/types/channel";
 import type { ChannelMessage, MessageStatus } from "@/types/channel";
 
 const MESSAGES_COLLECTION = "messages";
+const COLLECTION = "messages";
+function col() {
+  return getAstraDB().collection<ChannelMessage & { _id?: string }>(COLLECTION);
+}
+
+/**
+ * Guarda un mensaje de forma idempotente usando un _id canónico.
+ * Si ya existe, NO inserta otro.
+ */
+export async function saveMessageIdempotent(
+  msg: ChannelMessage,
+  opts?: { idempotencyKey?: string }
+): Promise<{ inserted: boolean; _id: string }> {
+  const c = col();
+  const _id =
+    opts?.idempotencyKey ||
+    // clave corta y estable: hotel + canal + id “externo” del mensaje
+    `${msg.hotelId}:${msg.channel}:${msg.messageId}`;
+
+  // Intentá insertOnly; si existe, no duplica
+  const exists = await c.findOne({ _id });
+  if (exists) return { inserted: false, _id };
+
+  await c.insertOne({ ...msg, _id });
+  return { inserted: true, _id };
+}
 
 export const getCollection = () => {
   return getAstraDB().collection<ChannelMessage>(MESSAGES_COLLECTION);

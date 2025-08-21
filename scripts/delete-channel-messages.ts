@@ -37,7 +37,7 @@ async function deleteFromCollection(db: any, collectionName: string, filter: any
 
 async function main() {
   const db = getAstraDB();
-  const channelId = "email"; // Reemplazar con el ID del canal específico si es necesario
+  const channelId = "channelManager"; // Reemplazar con el ID del canal específico si es necesario
   const baseFilter: any = { channel: channelId };
   if (HOTEL_ID) baseFilter.hotelId = HOTEL_ID;
 

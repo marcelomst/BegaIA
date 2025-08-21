@@ -32,13 +32,13 @@ export async function startHotelBot(hotelId: string) {
     // }
 
 //    --- Email
-    if (isChannelEnabled(config, "email") && config.channelConfigs.email?.dirEmail) {
-      startEmailBot({ hotelId, emailConf: config.channelConfigs.email });
-      console.log(`[hotelBot] ✅  Email bot iniciado para ${hotelId}`);
-    } else {
+    // if (isChannelEnabled(config, "email") && config.channelConfigs.email?.dirEmail) {
+    //   startEmailBot({ hotelId, emailConf: config.channelConfigs.email });
+    //   console.log(`[hotelBot] ✅  Email bot iniciado para ${hotelId}`);
+    // } else {
       
-      console.log(`[hotelBot] NO inicia Email bot para ${hotelId}`);
-    }
+    //   console.log(`[hotelBot] NO inicia Email bot para ${hotelId}`);
+    // }
 
     // --- Channel Manager
     if (isChannelEnabled(config, "channelManager")) {

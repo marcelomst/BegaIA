@@ -218,6 +218,20 @@ export interface Conversation {
 }
 
 // --- HUÉSPEDES (unificado) ---
+// (colocar cerca de la interfaz Guest, por ejemplo arriba del todo de Guest)
+type ExternalRefs = {
+  pmsId?: string;
+  cmId?: string;
+  ota?: Record<string, string>; // p.ej. { Booking: "BKG-123", Airbnb: "AB-456" }
+};
+
+export type Identifier = {
+  type: "email" | "phone" | "doc" | "wa" | "web_id";
+  value: string;         // normalizado (email lower, phone E.164 si aplica)
+  verified?: boolean;    // true si proviene del PMS o fue verificado
+  source?: "pms" | "cm" | "ota" | "ha";
+};
+
 export interface Guest {
   guestId: string;
   hotelId: string;
@@ -240,7 +254,24 @@ export interface Guest {
   birthdate?: string;
   loyaltyId?: string;
   vipLevel?: string;
+
+  // ⬇️ AÑADIR ESTO
+  /** IDs alternativos útiles para “deduplicar” (email, wa, phone, rawId, etc.) */
+  aliases?: string[];
+  /** Identificadores normalizados (modelo objeto, no array) */
+  identifiers?: {
+    email?: string;
+    phoneE164?: string;
+    whatsappId?: string; // mapea "wa"
+    doc?: string;
+    web_id?: string;
+    primary?: "email" | "phone" | "wa" | "doc" | "web_id";
+  };
+
+  // 🔹 Historial enriquecido (source/verified)
+  identifiersHistory?: Identifier[];
 }
+
 
 // --- BASE EVENT PAYLOAD ---
 export interface BaseEventPayload {
