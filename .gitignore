@@ -34,3 +34,19 @@ C:Users*/pnpm*store*/   # por si se coló desde Windows
 *.deb
 *.AppImage
 *.iso
+# caches / builds
+node_modules/
+dist/
+out/
+.next/
+coverage/
+*.log
+
+# pnpm caches
+.pnpm-store/
+C:Users*/pnpm*store*/   # por si se colaron rutas de Windows
+
+# binarios pesados
+*.deb
+*.AppImage
+*.iso
