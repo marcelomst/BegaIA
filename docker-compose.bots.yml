@@ -1,4 +1,7 @@
 # Path: /root/begasist/docker-compose.bots.yml
+# Para volver a whatsapp-web.js (Chromium), simplemente quita
+# WA_TRANSPORT=baileys o ponelo a otro valor.
+# El resto del compose puede quedar igual.
 services:
   bot_hotel999:
     build:
@@ -10,27 +13,48 @@ services:
 
     tty: true
     stdin_open: true
-    restart: "no"   # depurando: evitá loop
+    restart: "no"   # 👈 depuración; luego: unless-stopped
 
     command: |
       sh -lc '
-        set -ex;
-        echo "PWD=$(pwd)";
-        node -v;
-        pnpm -v || true;
-        which pnpm || true;
-        ls -la /app || true;
-        ls -la /app/lib/entrypoints || true;
-        jq -r ".scripts" package.json 2>/dev/null || cat package.json;
+        set -e
 
-        echo "AUTH=${AUTH:-unset}  WWEBJS_AUTH_PATH=${WWEBJS_AUTH_PATH:-unset}";
-        echo ">> Limpieza de locks Chromium (WWebJS)";
-        AUTH="${WWEBJS_AUTH_PATH:-/data/wwebjs_auth}";
-        rm -f "$AUTH/WWebJS/Singleton"* "$AUTH/WWebJS/LOCK" "$AUTH/WWebJS/DevToolsActivePort" 2>/dev/null || true;
-        rm -f "$AUTH/WWebJS/Default/LOCK" "$AUTH/WWebJS/Default/Singleton"* "$AUTH/WWebJS/Default/Preferences.lock" 2>/dev/null || true;
-        find "$AUTH/WWebJS" -maxdepth 3 -type s -name "SingletonSocket" -exec rm -f {} + 2>/dev/null || true;
+        # Si estamos en Baileys, NO limpiamos Chromium y ejecutamos one-shot (sin nodemon)
+        if [ "$WA_TRANSPORT" = "baileys" ]; then
+          echo ">> WA_TRANSPORT=baileys → sin cleanup de Chromium, ejecutando dev:channelbot:once"
+          exec pnpm run dev:channelbot:once
+        fi
 
-        echo ">> Ejecutando pnpm run dev:channelbot";
+        # ------- Modo wwebjs (Chromium) -------
+        set -x
+        echo ">> Limpieza de locks Chromium (perfil WWebJS)"
+        # Asegurar estructura del perfil (LocalAuth usa /data/wwebjs_auth/WWebJS)
+        mkdir -p /data/wwebjs_auth/WWebJS/Default
+
+        # Matar procesos chrome/chromium (sin pkill; sin variables que interpolen)
+        ps -ef | grep -E "chrom(e|ium)" | grep -v grep | awk '"'"'{print $$2}'"'"' | xargs -r kill -9 || true
+
+        # Borrar locks/cookies/sockets
+        rm -f \
+          /data/wwebjs_auth/WWebJS/SingletonLock \
+          /data/wwebjs_auth/WWebJS/SingletonCookie \
+          /data/wwebjs_auth/WWebJS/LOCK \
+          /data/wwebjs_auth/WWebJS/DevToolsActivePort \
+          /data/wwebjs_auth/WWebJS/Default/LOCK \
+          /data/wwebjs_auth/WWebJS/Default/SingletonLock \
+          /data/wwebjs_auth/WWebJS/Default/SingletonCookie \
+          /data/wwebjs_auth/WWebJS/Default/Preferences.lock \
+          2>/dev/null || true
+
+        find /data/wwebjs_auth/WWebJS -maxdepth 3 -type s -name "SingletonSocket" -exec rm -f {} + 2>/dev/null || true
+
+        # Limpiar perfiles temporales Puppeteer
+        rm -rf /tmp/puppeteer_dev_profile* /tmp/puppeteer_profile_* 2>/dev/null || true
+
+        # Diagnóstico silenciado (puede reactivarse si hace falta)
+        # ls -la /data/wwebjs_auth /data/wwebjs_auth/WWebJS /data/wwebjs_auth/WWebJS/Default || true
+
+        echo ">> Ejecutando pnpm run dev:channelbot"
         exec pnpm run dev:channelbot
       '
 
@@ -41,25 +65,33 @@ services:
     env_file:
       - .env
     environment:
-      - AUTH=/data/wwebjs_auth                  # silencia warning
+      - AUTH=/data/wwebjs_auth
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=300
-      - NODE_OPTIONS=--trace-uncaught
+      - NODE_OPTIONS=--dns-result-order=ipv4first --trace-uncaught
       - HOTEL_ID=hotel999
+      # === MCP ===  ✅ (se mantiene)
       - MCP_ENDPOINT=${MCP_ENDPOINT:-http://suite:3000/api/mcp}
       - MCP_API_KEY=${MCP_API_KEY:-clave_de_pruebas}
+      # === WhatsApp Web JS ===
       - WWEBJS_AUTH_PATH=/data/wwebjs_auth
+      - WWEBJS_PROFILE_DIR=/data/wwebjs_auth/WWebJS
+      # === Puppeteer / Chromium ===
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      # 👉 Redis en la red compartida
       - REDIS_URL=redis://begasist-redis:6379
+      # === Toggle transporte WA (DEV sin Chromium) ===
+      - WA_TRANSPORT=baileys        # 🆕 activa Baileys en dev
 
     volumes:
       - .:/app:cached
-      # - /app/node_modules    # ❌ quitar para no pisar deps
       - wwebjs_auth_hotel999:/data/wwebjs_auth
+      - wabaileys_auth_hotel999:/data/baileys_auth   # 🆕 auth Baileys
 
 volumes:
   wwebjs_auth_hotel999:
+  wabaileys_auth_hotel999:   # 🆕
 
 networks:
   default:

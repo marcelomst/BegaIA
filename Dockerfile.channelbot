@@ -1,34 +1,44 @@
-# Path: /root/begasist/Dockerfile.channelbot
+# Imagen multistage para el Channel Bot con Puppeteer/Chromium
+
 # --- Base común ---
 FROM node:20-alpine AS base
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
 
-# --- Dev: con dev-deps y Chromium ---
+# --- DEV (con Chromium y dev-deps) ---
 FROM base AS dev
-# Dependencias del SO para Chromium
+# Dependencias del SO necesarias para Chromium en Alpine
 RUN apk add --no-cache \
     chromium nss freetype harfbuzz ca-certificates ttf-freefont udev dbus
+
+# Puppeteer usará el Chromium del sistema
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-# Deps
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
-# Código (se sobreescribe con volume en compose)
-COPY . .
 ENV NODE_ENV=development
 
-# --- Build de prod ---
+# Instalar dependencias de la app
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# En DEV montamos el código con volumes desde compose; no copiamos fuente aquí para acelerar builds.
+# Si querés que funcione sin volumen, descomenta:
+# COPY . .
+
+# --- BUILD de producción ---
 FROM base AS builder
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
-# --- Runner de prod (con Chromium) ---
+# --- RUNNER de producción (con Chromium) ---
 FROM base AS runner
 RUN apk add --no-cache \
     chromium nss freetype harfbuzz ca-certificates ttf-freefont udev dbus
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-COPY --from=builder /app /app
 ENV NODE_ENV=production
+
+# Copiamos artefactos construidos
+COPY --from=builder /app /app
+
+# Arranque de prod del bot
 CMD ["pnpm", "start:channelbot"]

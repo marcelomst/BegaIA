@@ -1,0 +1,21 @@
+# Path: /root/begasist/Dockerfile.bots-node18
+
+FROM node:18-bullseye AS dev
+
+# Configuración de zona horaria
+ENV TZ=America/Montevideo
+RUN apt-get update && apt-get install -y tzdata && rm -rf /var/lib/apt/lists/*
+
+# Habilitar pnpm con Corepack (activar pnpm@9)
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+WORKDIR /app
+
+# Copiar manifests y preparar caché
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
+
+# Copiar el resto del código
+COPY . .
+
+CMD ["pnpm","run","dev"]

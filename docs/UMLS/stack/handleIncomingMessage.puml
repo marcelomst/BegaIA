@@ -1,0 +1,98 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+title Begasist – Vista de Componentes (alto nivel) centrada en handleIncomingMessage
+
+'==================== Interfaces (contratos) ====================
+interface "ChannelMessage (unificado)" as IMsg
+interface "SendReply (callback canal)" as ISend
+
+'==================== Canales (arriba del stack) ====================
+package "Channel Adapters (Inbound)" {
+  [WhatsApp (Baileys)] as WA
+  [Email (IMAP/SMTP)] as EMAIL
+  [ChannelManager Bridge] as CM
+  [Web / Widget / API] as WEB
+  [Futuro: Instagram] as IG
+  [Futuro: Facebook] as FB
+}
+
+component "Normalizer / Parser\n(unifica formato)" as NORMAL
+
+WA --> NORMAL
+EMAIL --> NORMAL
+CM --> NORMAL
+WEB --> NORMAL
+IG ..> NORMAL
+FB ..> NORMAL
+
+NORMAL --> IMsg
+
+'==================== Núcleo Orquestador ====================
+component "handleIncomingMessage(msg, options)" as H
+IMsg --> H
+H ..> ISend : usa si options.sendReply
+
+note right of H
+Entradas:
+ - ChannelMessage unificado
+ - options {autoReply, sendReply, mode, skipPersistIncoming}
+
+Salidas / Efectos:
+ - Persistencia (DBs)
+ - Memoria de canal
+ - (opcional) Reply por ISend
+ - Trazas/Logs
+end note
+
+'==================== Persistencia y memoria ====================
+package "Persistence & State" {
+  component "Guests Service\n(get/create/update)" as GUESTS
+  component "Conversations Service\n(getOrCreate)" as CONVS
+  component "Messages Store (Astra)" as ASTRA
+  component "ChannelMemory (in-memory)" as MEM
+}
+
+H --> GUESTS : gestionar guest
+H --> CONVS  : crear/actualizar conv
+H --> ASTRA  : save(user/ai message)
+H --> MEM    : addMessage(...)
+
+'==================== IA / Orquestación ====================
+package "AI Orchestration" {
+  component "agentGraph\n(LLM Orchestrator)" as AG
+  component "Policies/Heuristics\n(ej. detección de nombre)" as POL
+  component "Herramientas MCP\n(suite, RAG, etc.)" as MCP
+}
+
+H --> POL : heurística nombre
+H --> AG  : invocar IA (System+Human)
+AG --> MCP : tools (cuando aplica)
+
+'==================== Salida (Outbound) ====================
+package "Outbound Dispatch" {
+  component "Sender Router\n(elige transporte del canal)" as SENDER
+}
+
+ISend ..> SENDER
+SENDER --> WA : reply WA
+SENDER --> EMAIL : reply email
+SENDER --> CM : reply CM
+SENDER --> WEB : push/eventos web
+SENDER ..> IG
+SENDER ..> FB
+
+'==================== Infra / Soporte ====================
+package "Infra & Soporte (cross-cutting)" {
+  component "Redis / Queues (opcional)" as REDIS
+  component "Feature Flags / Gating" as FLAGS
+  component "Config & Secrets\n(.env / Docker Volumes)" as SECRETS
+  component "Observability\n(Logs/Tracing)" as OBS
+}
+
+H ..> FLAGS
+H ..> OBS
+WA ..> SECRETS : credenciales/volúmenes (p.ej. baileys_auth)
+H ..> REDIS : (si se usa para eventos/colas)
+
+@enduml

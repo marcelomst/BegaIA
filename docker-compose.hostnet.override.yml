@@ -1,0 +1,6 @@
+# Path: /root/begasist/docker-compose.hostnet.override.yml
+services:
+  bot_hotel999:
+    network_mode: host
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379

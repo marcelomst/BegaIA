@@ -1,0 +1,67 @@
+# Path: /root/begasist/docker-compose.bots.override.yml
+
+services:
+  bot_hotel999:
+    build:
+      context: .
+      dockerfile: Dockerfile.bots-node18
+    image: begasist-bot-node18:hotel999
+    volumes:
+      - .:/app
+      - wwebjs_auth_hotel999:/data/wwebjs_auth
+      - wabaileys_auth_hotel999:/data/baileys_auth
+    environment:
+      - NODE_OPTIONS=--experimental-global-webcrypto
+      - MCP_ENDPOINT=${MCP_ENDPOINT:-http://suite:3000/api/mcp}
+      - MCP_API_KEY=${MCP_API_KEY:-dev_key}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - WA_TRANSPORT=${WA_TRANSPORT:-baileys}
+      - WA_WS_URL=${WA_WS_URL:-}        # deja vacío para default
+      - WA_PAIRING_PHONE=${WA_PAIRING_PHONE:-}  # vacío = NO re-pairing
+    command: pnpm run dev:whatsapp
+
+  # Dejar estos si querés, pero no los levantamos ahora
+  bot_channelmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile.bots-node18
+    image: begasist-bot-node18:channelmanager
+    volumes:
+      - .:/app
+    environment:
+      - MCP_ENDPOINT=${MCP_ENDPOINT:-http://suite:3000/api/mcp}
+      - MCP_API_KEY=${MCP_API_KEY:-dev_key}
+      - NEXT_PUBLIC_MCP_ENDPOINT=${NEXT_PUBLIC_MCP_ENDPOINT:-http://suite:3000/api/mcp}
+      - NEXT_PUBLIC_MCP_API_KEY=${NEXT_PUBLIC_MCP_API_KEY:-dev_key}
+    ports:
+      - "3100:3000"
+    command: pnpm run dev:channelmanager
+
+  bot_email:
+    build:
+      context: .
+      dockerfile: Dockerfile.bots-node18
+    image: begasist-bot-node18:email
+    volumes:
+      - .:/app
+    environment:
+      - MCP_ENDPOINT=${MCP_ENDPOINT:-http://suite:3000/api/mcp}
+      - MCP_API_KEY=${MCP_API_KEY:-dev_key}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - EMAIL_IMAP_HOST=${EMAIL_IMAP_HOST:-}
+      - EMAIL_IMAP_PORT=${EMAIL_IMAP_PORT:-}
+      - EMAIL_IMAP_USER=${EMAIL_IMAP_USER:-}
+      - EMAIL_IMAP_PASS=${EMAIL_IMAP_PASS:-}
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-}
+      - EMAIL_SMTP_USER=${EMAIL_SMTP_USER:-}
+      - EMAIL_SMTP_PASS=${EMAIL_SMTP_PASS:-}
+    command: pnpm run dev:email
+
+volumes:
+  wwebjs_auth_hotel999:
+    external: true
+    name: wwebjs_auth_hotel999
+  wabaileys_auth_hotel999:
+    external: true
+    name: wabaileys_auth_hotel999

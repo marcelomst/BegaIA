@@ -1,6 +1,4 @@
 # Path: /root/begasist/docker-compose.dev.yml
-# (suite) CREA la red 'begasist_net' y expone el contenedor Redis 'begasist-redis'
-
 services:
   suite:
     build:
@@ -26,11 +24,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/app:cached
-      - /app/node_modules
-      - /app/.next
+      - .:/app:cached          # ✅ único volumen necesario en dev
     depends_on:
       - redis
+    init: true                 # (opcional, recomendado)
+    stop_signal: SIGINT        # (opcional)
+    stop_grace_period: 20s     # (opcional)
     restart: unless-stopped
 
   redis:

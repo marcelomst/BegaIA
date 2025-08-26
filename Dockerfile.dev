@@ -1,18 +1,21 @@
-# Path: /root/begasist/Dockerfile.dev
+# Imagen de desarrollo para la app web (Next/Vite/etc.) con hot reload.
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Cache de dependencias
-COPY package.json pnpm-lock.yaml ./
+# PNPM preparado vía Corepack
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+
+# Instalar deps con cache de capas
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 
-# Código (se puede sobreescribir con volume en compose.dev)
-COPY . .
+# En DEV montamos el código con volumes (compose), por eso NO copiamos el proyecto aquí.
+# Si preferís que también funcione sin volumen, descomenta:
+# COPY . .
 
 EXPOSE 3000
 ENV NODE_ENV=development
 
-# Servir en 0.0.0.0 para acceder desde host/otros contenedores
+# Correr el server de desarrollo escuchando en 0.0.0.0 (accesible desde host/otros contenedores)
 CMD ["pnpm", "dev", "-p", "3000", "-H", "0.0.0.0"]

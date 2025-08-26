@@ -18,7 +18,11 @@
     "test:classifier": "tsx scripts/testClassifier.ts",
     "init:config": "tsx scripts/init-config.ts",
     "start:channelbot": "pnpm exec tsx lib/entrypoints/channelBot.ts",
-    "dev:channelbot": "nodemon --watch lib --exec tsx lib/entrypoints/channelBot.ts"
+    "dev:channelbot": "nodemon --watch lib --ext ts,json --signal SIGTERM --exitcrash --exec \"tsx lib/entrypoints/channelBot.ts\"",
+    "dev:channelbot:once": "tsx lib/entrypoints/channelBot.ts",
+    "dev:whatsapp": "pnpm run dev:channelbot:once",
+    "dev:channelmanager": "next dev -p 3000 -H 0.0.0.0 --turbopack",
+    "dev:email": "nodemon --watch lib --ext ts,json --signal SIGTERM --exitcrash --exec \"tsx lib/entrypoints/email.ts\""
   },
   "dependencies": {
     "@datastax/astra-db-ts": "github:datastax/astra-db-ts",
@@ -30,6 +34,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@types/form-data": "^2.5.2",
+    "@whiskeysockets/baileys": "^6.7.18",
     "axios": "^1.8.3",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.0.0",

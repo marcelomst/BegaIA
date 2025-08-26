@@ -1,26 +1,50 @@
 // Path: /root/begasist/lib/services/whatsappClient.ts
+import WhatsAppWeb from "whatsapp-web.js"; // CJS → default import
+import fs from "node:fs";
+import path from "node:path";
 
-// Import CJS-friendly
-import wwebjs from "whatsapp-web.js";
-const { Client, LocalAuth } = wwebjs as typeof import("whatsapp-web.js");
+const { Client, LocalAuth } = WhatsAppWeb as any;
+
+const HOTEL_ID = process.env.HOTEL_ID || "default";
+const AUTH_PATH = process.env.WWEBJS_AUTH_PATH || "/data/wwebjs_auth";
+const WWEBJS_DIR = path.join(AUTH_PATH, "WWebJS");
+
+// Asegurar carpetas
+for (const p of [AUTH_PATH, WWEBJS_DIR, path.join(WWEBJS_DIR, "Default")]) {
+  try { fs.mkdirSync(p, { recursive: true }); } catch {}
+}
+
+// Limpieza defensiva por si hay restos previos (no reemplaza la del compose)
+try {
+  for (const f of [
+    "SingletonLock","SingletonCookie","LOCK","DevToolsActivePort",
+    "Default/LOCK","Default/SingletonLock","Default/SingletonCookie","Default/Preferences.lock"
+  ]) {
+    fs.rmSync(path.join(WWEBJS_DIR, f), { force: true });
+  }
+} catch {}
 
 export const whatsappClient = new Client({
   authStrategy: new LocalAuth({
-    // Persistencia controlada por wwebjs (aquí guardará sesión y su propio perfil Chromium)
-    dataPath: process.env.WWEBJS_AUTH_PATH || "/app/.wwebjs_auth",
-    // opcional: por si querés distinguir múltiples instancias
-    clientId: process.env.HOTEL_ID || "default",
+    clientId: HOTEL_ID,
+    dataPath: AUTH_PATH, // LocalAuth gestiona el perfil en AUTH_PATH/WWebJS
   }),
   puppeteer: {
-    // ⚠️ NO pasar userDataDir aquí (incompatible con LocalAuth)
-    headless: true, // en puppeteer-core v18: boolean | "chrome"
+    headless: true,
+    // ⚠️ NO userDataDir si usamos LocalAuth
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
-      "--single-process",
-      "--no-zygote",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-extensions",
+      "--disable-gpu",
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // /usr/bin/chromium-browser en Docker
   },
 });
+
+// Cierre limpio
+process.once("SIGINT", async () => { try { await (whatsappClient as any)?.destroy?.(); } catch {} process.exit(0); });
+process.once("SIGTERM", async () => { try { await (whatsappClient as any)?.destroy?.(); } catch {} process.exit(0); });
