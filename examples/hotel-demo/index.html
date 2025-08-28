@@ -1,0 +1,133 @@
+<!-- Path: /root/begasist/examples/hotel-demo/index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hotel Demo • Mini página para probar widget</title>
+  <meta name="description" content="Mini página estática de Hotel Demo para probar el widget de chat Begasist.">
+  <link rel="icon" href="data:,"><!-- evita 404 de favicon -->
+
+  <style>
+    :root {
+      --brand:#0ea5e9; --bg:#0b1220; --fg:#e5eef9; --muted:#9fb3c8; --card:#111a2e; --card-border:#263650; --focus:#93c5fd;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";background:radial-gradient(1200px 800px at 80% -20%,#0b6fb81a,transparent),var(--bg);color:var(--fg);line-height:1.6}
+    a{color:var(--brand);text-decoration:none}
+    a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+    .skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+    .skip-link:focus{left:1rem;top:1rem;width:auto;height:auto;padding:.5rem .75rem;background:#111827;color:#fff;border-radius:.5rem;z-index:1000}
+    header{border-bottom:1px solid var(--card-border);background:linear-gradient(180deg,#0c1428,transparent)}
+    .wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,2vw,24px)}
+    .brand{display:flex;align-items:center;gap:.75rem}
+    .brand-logo{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,var(--brand),#4fb9f0);color:#00243a;font-weight:800;box-shadow:0 10px 30px #0ea5e933}
+    .brand-title{font-size:1.25rem;font-weight:700;letter-spacing:.2px}
+    .hero{display:grid;gap:1rem;padding:clamp(24px,4vw,48px) 0}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2}
+    .hero p{margin:0;color:var(--muted);max-width:65ch}
+    .cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:1rem}
+    .card{background:linear-gradient(180deg,#0c1428,#0c1428) padding-box;border:1px solid var(--card-border);border-radius:16px;padding:16px;min-height:140px}
+    .card h3{margin:0 0 .25rem;font-size:1.05rem}
+    .card p{margin:0;color:var(--muted)}
+    .cta{margin-top:1rem;display:inline-flex;gap:.5rem;align-items:center;background:var(--brand);color:#03131d;font-weight:700;padding:.65rem 1rem;border-radius:12px;border:0;cursor:pointer}
+    .cta:hover{filter:brightness(1.05)}
+    .reset{margin-top:12px;background:#1f2a44;color:#e5eef9;border:1px solid var(--card-border);border-radius:10px;padding:.5rem .75rem;cursor:pointer}
+    .reset:hover{filter:brightness(1.05)}
+    footer{margin-top:40px;border-top:1px solid var(--card-border);color:var(--muted);font-size:.95rem}
+    .safe-bottom{padding-bottom:84px}
+    @media (max-width:380px){.brand-title{font-size:1.05rem}.brand-logo{width:36px;height:36px}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+  <header role="banner">
+    <div class="wrap" aria-label="Encabezado de la página">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">HD</div>
+        <div class="brand-title" aria-label="Nombre del hotel">Hotel Demo</div>
+      </div>
+    </div>
+  </header>
+
+  <main id="contenido" class="wrap safe-bottom" role="main">
+    <section class="hero" aria-labelledby="hero-titulo">
+      <h1 id="hero-titulo">Bienvenido a Hotel Demo</h1>
+      <p>Un espacio moderno y cómodo. Probá el <strong>widget de chat</strong> (burbuja abajo a la derecha) para hablar con nuestro asistente 24/7.</p>
+      <button class="cta" type="button" aria-label="Ver servicios destacados" onclick="document.getElementById('servicios').scrollIntoView({behavior:'smooth'})">
+        Ver servicios <span aria-hidden="true">↓</span>
+      </button>
+    </section>
+
+    <section id="servicios" aria-labelledby="servicios-titulo">
+      <h2 id="servicios-titulo" style="margin:0 0 .5rem;">Servicios</h2>
+      <div class="cards" role="list">
+        <article class="card" role="listitem" aria-label="Wi-Fi de alta velocidad">
+          <h3>Wi-Fi de alta velocidad</h3><p>Conexión estable en todo el hotel.</p>
+        </article>
+        <article class="card" role="listitem" aria-label="Desayuno buffet">
+          <h3>Desayuno buffet</h3><p>Opciones saludables y sin TACC. 7:00–10:30.</p>
+        </article>
+        <article class="card" role="listitem" aria-label="Piscina climatizada">
+          <h3>Piscina climatizada</h3><p>Abierta todo el año, toallas incluidas.</p>
+        </article>
+        <article class="card" role="listitem" aria-label="Recepción 24/7">
+          <h3>Recepción 24/7</h3><p>Siempre disponibles para ayudarte.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="contacto-titulo" style="margin-top:1.5rem;">
+      <h2 id="contacto-titulo" style="margin:0 0 .5rem;">Contacto</h2>
+      <div class="card" role="region" aria-label="Información de contacto">
+        <p><strong>Dirección:</strong> Av. Ejemplo 123, Ciudad</p>
+        <p><strong>Teléfono:</strong> +598 2 123 4567</p>
+        <p><strong>Email:</strong> contacto@hoteldemo.local</p>
+        <p style="margin-top:.75rem;">¿Preguntas rápidas? Usá el chat 👉</p>
+
+        <!-- Botón para reiniciar el chat (limpia conversationId y recarga la página) -->
+        <!-- Si cambiás de hotelId en la config, actualizá la clave de localStorage aquí abajo -->
+        <button
+          class="reset"
+          type="button"
+          aria-label="Reiniciar chat y comenzar una nueva conversación"
+          onclick="localStorage.removeItem('begasist:conversationId:hotel999'); location.reload();"
+        >
+          Reiniciar chat
+        </button>
+      </div>
+    </section>
+
+    <div role="status" aria-live="polite" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+      La página está lista. El bubble del chat debería verse en la esquina inferior derecha.
+    </div>
+  </main>
+
+  <footer class="wrap" role="contentinfo" aria-label="Pie de página">
+    <p>© <span id="anio">2025</span> Hotel Demo. Todos los derechos reservados.</p>
+  </footer>
+
+  <noscript><div class="wrap" style="color:#ffb4b4;font-weight:600;">Para usar el chat necesitás habilitar JavaScript.</div></noscript>
+  <script>document.getElementById('anio').textContent=new Date().getFullYear();</script>
+
+  <!-- 🧩 Widget Begasist Chat
+       - La config va ANTES del script del widget.
+       - Cambiar color: theme.primary
+       - Posición: "bottom-right" | "bottom-left"
+       - CORS: backend en http://localhost:3000 debe permitir origen http://localhost:8081
+       - No usa cookies; todo client-side
+  -->
+  <script>
+    window.BegasistChat = {
+      hotelId: "hotel999",
+      apiBase: "http://localhost:3000",
+      lang: "es",
+      position: "bottom-right",
+      theme: { primary: "#0ea5e9" },
+      requireName: false
+    };
+  </script>
+  <script async src="http://localhost:3000/widget/begasist-chat.js"></script>
+</body>
+</html>

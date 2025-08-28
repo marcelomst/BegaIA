@@ -7,9 +7,14 @@ import { startEmailBot } from "../services/email";
 import { startChannelManagerBot } from "../services/channelManager";
 import { getHotelConfig } from "../config/hotelConfig.server";
 import { isChannelEnabled } from "../config/isChannelEnabled";
+import { registerAdapter } from "@/lib/adapters/registry";
+import { webAdapter } from "@/lib/adapters/webAdapter";
+
 
 export async function startHotelBot(hotelId: string) {
   try {
+    // registrar adaptador web
+    registerAdapter(webAdapter);
     const config = await getHotelConfig(hotelId);
     if (!config) {
       console.error(`[hotelBot] ❌ No se encontró configuración para hotelId=${hotelId}`);
@@ -29,17 +34,26 @@ export async function startHotelBot(hotelId: string) {
       )}`
     );
 
+    // Lanzadores en paralelo (habilitá/deshabilitá comentando cada push)
+    const starters: Promise<unknown>[] = [];
+
+    // === WhatsApp ===
     if (transport === "baileys") {
       console.log(`[hotelBot] 🔧 Forzando WhatsApp (Baileys) en DEV, ignorando gating`);
-      // ⬇️ Baileys no recibe args (tu función no los define)
-      await startWhatsAppBotBaileys();
-      console.log(`[hotelBot] ✅ WhatsApp (DEV Baileys) iniciado para ${hotelId}`);
-      return; // 👈 “solo WA” para enfocarnos en WhatsApp
-    }
-
-    if (whatsappEnabled && whatsappCfg?.celNumber) {
-      startWhatsAppBot({ hotelId, hotelPhone: whatsappCfg.celNumber });
-      console.log(`[hotelBot] ✅ WhatsApp (wwebjs) iniciado para ${hotelId}`);
+      starters.push(
+        startWhatsAppBotBaileys({
+          hotelId,
+          hotelPhone: whatsappCfg?.celNumber, // opcional
+        }).then(() => {
+          console.log(`[hotelBot] ✅ WhatsApp (Baileys) iniciado para ${hotelId}`);
+        })
+      );
+    } else if (whatsappEnabled && whatsappCfg?.celNumber) {
+      starters.push(
+        startWhatsAppBot({ hotelId, hotelPhone: whatsappCfg.celNumber }).then(() => {
+          console.log(`[hotelBot] ✅ WhatsApp (wwebjs) iniciado para ${hotelId}`);
+        })
+      );
     } else {
       console.log(
         `[hotelBot] NO inicia WhatsApp bot (enabled=${whatsappEnabled}, celNumber=${String(
@@ -48,7 +62,30 @@ export async function startHotelBot(hotelId: string) {
       );
     }
 
-    // otros bots desactivados mientras enfocamos WA
+    // === Channel Manager ===
+    // Descomentar cuando quieras levantarlo junto a WA
+    // starters.push(
+    //   startChannelManagerBot(hotelId).then(() =>
+    //     console.log(`[hotelBot] ✅ ChannelManager iniciado para ${hotelId}`)
+    //   )
+    // );
+
+    // === Email ===
+    // Descomentar cuando quieras levantarlo junto a WA
+    // if (config.email) {
+    //   starters.push(
+    //     startEmailBot({ hotelId, emailConf: config.email }).then(() =>
+    //       console.log(`[hotelBot] ✅ Email iniciado para ${hotelId}`)
+    //     )
+    //   );
+    // }
+
+    const results = await Promise.allSettled(starters);
+    results.forEach((r, i) => {
+      if (r.status === "rejected") {
+        console.error(`[hotelBot] ⚠️ Starter #${i} falló:`, r.reason);
+      }
+    });
   } catch (err) {
     console.error("💥 Unhandled error at toplevel:", err);
   }
@@ -64,7 +101,7 @@ if (!hotelId) {
   await startHotelBot(hotelId);
   console.log(`[hotelBot] Bots lanzados para ${hotelId}`);
 
-  // Mantener vivo el proceso en Baileys (QR/updates)
+  // Mantener vivo el proceso cuando usamos Baileys (QR/updates)
   if ((process.env.WA_TRANSPORT || "wwebjs") === "baileys") {
     console.log("[hotelBot] ⏸️ Manteniendo proceso vivo para recibir QR/updates (Baileys) …");
     await new Promise<void>(() => {}); // bloquea indefinidamente

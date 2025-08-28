@@ -3,6 +3,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/auth/jwt";
 import { canAccessHotelsSection, canAccessAdminRoute } from "@/lib/auth/roles";
 
+// 🔐 Orígenes permitidos para el widget estático
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:8081",
+  "http://127.0.0.1:8081",
+]);
+
+// Encabezados CORS por respuesta
+function buildCorsHeaders(origin: string | null) {
+  const headers = new Headers();
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers.set("Access-Control-Allow-Origin", origin);
+    headers.set("Vary", "Origin");
+  }
+  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  headers.set("Access-Control-Max-Age", "86400");
+  return headers;
+}
+
+// Aplica CORS a una respuesta
+function withCORS(res: NextResponse, req: NextRequest) {
+  const origin = req.headers.get("origin");
+  const cors = buildCorsHeaders(origin);
+  cors.forEach((v, k) => res.headers.set(k, v));
+  return res;
+}
+
 const PUBLIC_PATHS = [
   // Auth públicas
   "/auth/login",
@@ -31,41 +58,51 @@ const PUBLIC_PATHS = [
   // Simuladores
   "/api/simulate",
 
-  // 🔓 Webhooks externos (no deben pasar por login)
+  // 🔓 Webhooks externos
   "/api/integrations/beds24/webhooks",
   "/api/health",
   "/api/reservations/by-id",
 
+  // 👇 SSE del widget (crítico)
+  "/api/web/events",
 ];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isApi = pathname.startsWith("/api/");
 
-  // 0) Preflights/health checks
-  if (req.method === "OPTIONS" || req.method === "HEAD") {
-    return NextResponse.next();
+  // 0) Preflight: devolver CORS inmediato
+  if (req.method === "OPTIONS" && isApi) {
+    return withCORS(new NextResponse(null, { status: 204 }), req);
   }
 
-  // 1) Bypass explícito para integraciones (evita 307 y evita auth)
+  // 1) Bypass explícito para integraciones
   if (pathname.startsWith("/api/integrations/")) {
-    return NextResponse.next();
+    return withCORS(NextResponse.next(), req);
   }
 
-  // 2) Bypass para rutas públicas
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
-    return NextResponse.next();
+  // 2) Bypass para rutas públicas (incluye /api/chat y /api/web/events)
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return withCORS(NextResponse.next(), req);
   }
 
   // 3) Auth por cookie JWT
   const token = req.cookies.get("token")?.value;
-  if (!token) return NextResponse.redirect(new URL("/auth/login", req.url));
+  if (!token) {
+    const res = NextResponse.redirect(new URL("/auth/login", req.url));
+    return isApi ? withCORS(res, req) : res;
+  }
 
   const payload = await verifyJWT(token);
-  if (!payload) return NextResponse.redirect(new URL("/auth/login", req.url));
+  if (!payload) {
+    const res = NextResponse.redirect(new URL("/auth/login", req.url));
+    return isApi ? withCORS(res, req) : res;
+  }
 
   // 4) Restricciones por rol en /admin/*
   if (pathname.startsWith("/admin") && !canAccessAdminRoute(payload.roleLevel, pathname)) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
+    const res = NextResponse.redirect(new URL("/auth/login", req.url));
+    return isApi ? withCORS(res, req) : res;
   }
 
   if (
@@ -75,13 +112,15 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith("/admin/logs")) &&
     !canAccessHotelsSection(payload.roleLevel)
   ) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
+    const res = NextResponse.redirect(new URL("/auth/login", req.url));
+    return isApi ? withCORS(res, req) : res;
   }
 
-  return NextResponse.next();
+  // 5) OK
+  return withCORS(NextResponse.next(), req);
 }
 
-// ✅ Matcher simple (sin lookaheads). El bypass de integraciones se hace arriba.
+// ✅ Middleware para /admin y /api
 export const config = {
   matcher: ["/admin/:path*", "/api/:path*"],
 };

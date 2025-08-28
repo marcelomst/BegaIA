@@ -8,9 +8,6 @@ import { getOrCreateConversation } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import crypto from "crypto";
 
-/**
- * Heurística simple para detectar si el texto parece un nombre propio "suelto".
- */
 function isLikelyName(text: string): boolean {
   const t = (text || "").trim();
   if (t.length < 2 || t.length > 60) return false;
@@ -19,7 +16,6 @@ function isLikelyName(text: string): boolean {
   const tokens = t.split(/\s+/);
   return tokens.length >= 1 && tokens.length <= 4;
 }
-
 function titleCaseName(text: string): string {
   return (text || "")
     .trim()
@@ -28,41 +24,32 @@ function titleCaseName(text: string): string {
     .replace(/\s+/g, " ");
 }
 
-/**
- * Procesa y guarda un mensaje unificado de canal.
- * Gestiona guest, conversación y guarda en Astra/memoria.
- * Si autoReply es true, invoca IA, guarda siempre la sugerencia
- * y en modo supervisado envía un aviso al huésped.
- */
 export async function handleIncomingMessage(
   msg: ChannelMessage,
   options?: {
     autoReply?: boolean;
-    sendReply?: (reply: string) => Promise<void>;
+    sendReply?: (reply: string) => Promise<void>; // ← el adapter canaliza
     mode?: "automatic" | "supervised";
-    /** Si true, NO persiste el mensaje entrante (útil cuando ya se guardó idempotente en CM). */
     skipPersistIncoming?: boolean;
   }
 ): Promise<void> {
-  // Validar contenido mínimo
+  // Defaults mínimos
+  msg.messageId = msg.messageId || crypto.randomUUID();
+  msg.role = msg.role || "user";
+  msg.timestamp = msg.timestamp || new Date().toISOString();
+
+  // Si no hay contenido/sender, ignorar pero persistir si aplica
   if (!msg.content || !msg.sender) {
     msg.status = "ignored";
-    msg.role = "user";
-    if (!options?.skipPersistIncoming) {
-      await saveMessageToAstra(msg);
-    }
+    if (!options?.skipPersistIncoming) await saveMessageToAstra(msg);
     channelMemory.addMessage(msg);
     return;
   }
 
-  // Asignar IDs y roles por defecto (respetar si ya vino definido)
-  msg.messageId = msg.messageId || crypto.randomUUID();
-  msg.role = msg.role || "user";
-
   const now = new Date().toISOString();
   const guestId = msg.guestId ?? msg.sender;
 
-  // --- CREAR O ACTUALIZAR GUEST ---
+  // Guest
   let guest = await getGuest(msg.hotelId, guestId);
   if (!guest) {
     guest = {
@@ -74,26 +61,21 @@ export async function handleIncomingMessage(
       updatedAt: now,
     };
     await createGuest(guest);
-    console.log(`👤 Guest creado: ${guestId}`);
   } else {
     await updateGuest(msg.hotelId, guestId, { updatedAt: now });
   }
 
-  // 🧠 Capturar nombre si el mensaje es "solo nombre"
+  // Si el texto parece un nombre, guardarlo
   if (!guest.name && isLikelyName(msg.content)) {
     const prettyName = titleCaseName(msg.content);
     try {
       await updateGuest(msg.hotelId, guestId, { name: prettyName, updatedAt: now });
       guest.name = prettyName;
-      console.log(`📝 Nombre detectado y guardado para guest ${guestId}: ${prettyName}`);
-    } catch (e) {
-      console.warn("⚠️ No se pudo actualizar el nombre del guest:", e);
-    }
+    } catch {}
   }
 
-  // --- CREAR O RECUPERAR CONVERSACIÓN ---
-  const conversationId =
-    msg.conversationId || `${msg.hotelId}-${msg.channel}-${guestId}`;
+  // Conversación
+  const conversationId = msg.conversationId || `${msg.hotelId}-${msg.channel}-${guestId}`;
   await getOrCreateConversation({
     conversationId,
     hotelId: msg.hotelId,
@@ -107,16 +89,16 @@ export async function handleIncomingMessage(
   msg.conversationId = conversationId;
   msg.guestId = guestId;
 
-  // --- GUARDAR MENSAJE DE USUARIO ---
-  if (!options?.skipPersistIncoming) {
-    await saveMessageToAstra(msg);
-  }
+  // Persistir mensaje del usuario
+  if (!options?.skipPersistIncoming) await saveMessageToAstra(msg);
   channelMemory.addMessage(msg);
 
-  // --- INVOCAR IA Y GUARDAR SUGERENCIA ---
+  // Auto-reply opcional
   if (options?.sendReply) {
     const lang = (msg.detectedLanguage || "en").toLowerCase();
     const knownName = guest?.name?.trim();
+    const effectiveMode: "automatic" | "supervised" =
+      options.mode ?? guest.mode ?? "automatic";
 
     const systemMsgText =
       `You are a hotel front-desk assistant. Reply in ${lang}. ` +
@@ -135,7 +117,6 @@ export async function handleIncomingMessage(
     const content = response.messages.at(-1)?.content;
     if (typeof content === "string" && content.trim().length > 0) {
       const suggestion = content.trim();
-
       const aiMsg: ChannelMessage = {
         ...msg,
         messageId: crypto.randomUUID(),
@@ -143,19 +124,20 @@ export async function handleIncomingMessage(
         content: suggestion,
         suggestion,
         role: "ai",
-        status: options.mode === "automatic" ? "sent" : "pending",
+        status: effectiveMode === "automatic" ? "sent" : "pending",
         timestamp: new Date().toISOString(),
       };
+
       await saveMessageToAstra(aiMsg);
       channelMemory.addMessage(aiMsg);
 
-      if (options.mode === "automatic") {
+      // Entrega por el canal a través del adapter
+      if (effectiveMode === "automatic") {
         await options.sendReply(suggestion);
       } else {
-        const notifying =
-          lang.startsWith("es")
-            ? "🕓 Tu consulta está siendo revisada por un recepcionista y pronto recibirás una respuesta."
-            : "🕓 Your request is being reviewed by a receptionist. You will receive a reply shortly.";
+        const notifying = lang.startsWith("es")
+          ? "🕓 Tu consulta está siendo revisada por un recepcionista y pronto recibirás una respuesta."
+          : "🕓 Your request is being reviewed by a receptionist. You will receive a reply shortly.";
         await options.sendReply(notifying);
       }
     }

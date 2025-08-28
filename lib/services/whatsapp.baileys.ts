@@ -4,20 +4,38 @@ import qrcode from "qrcode-terminal";
 import Redis from "ioredis";
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
-import type { BaileysEventMap } from '@whiskeysockets/baileys';
+import crypto from "crypto";
+import type { BaileysEventMap } from "@whiskeysockets/baileys";
+import type { ChannelMessage } from "@/types/channel";
+import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 
+// ⬇️ NEW: adapters
+import { registerAdapter } from "@/lib/adapters/registry";
+import { whatsappBaileysAdapter, bindBaileysSock } from "@/lib/adapters/whatsappBaileysAdapter";
 
-const TAG = "[wa-dev] (baileys-node18-dev)";
-const AUTH_DIR = "/data/baileys_auth/hotel999";
+// 1) Redis único (reutilizable)
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-async function setQR(qr: string) {
+// Helper para publicar QR por hotel
+async function setQR(hotelId: string, qr: string) {
   try {
-    await redis.set("wa:qr:hotel999", qr, "EX", 120);
+    await redis.set(`wa:qr:${hotelId}`, qr, "EX", 120);
   } catch {}
 }
 
-export async function startWhatsAppBot() {
+export async function startWhatsAppBot({
+  hotelId,
+  hotelPhone,
+}: {
+  hotelId: string;
+  hotelPhone?: string;
+}) {
+  // ──────────────────────────────────────────────────────────
+  // Config dependiente del hotel
+  // ──────────────────────────────────────────────────────────
+  const TAG = `[wa-dev] (baileys-node18-dev:${hotelId})`;
+  const AUTH_DIR = `/data/baileys_auth/${hotelId}`;
+
   // Polyfill WebCrypto para Node 18
   const { webcrypto } = await import("crypto");
   // @ts-ignore
@@ -32,7 +50,7 @@ export async function startWhatsAppBot() {
     Browsers,
   } = baileys as any;
 
-  // Rotación de endpoints WebSocket (algunas regiones son más estrictas)
+  // Rotación de endpoints WebSocket y UA
   const wsCandidates = [
     process.env.WA_WS_URL || "wss://web.whatsapp.com/ws/chat?__e2e=1",
     "wss://web.whatsapp.com/ws/chat",
@@ -40,11 +58,7 @@ export async function startWhatsAppBot() {
   ];
   let wsIdx = 0;
 
-  // Rotación de User-Agent emulado
-  const uaCandidates = [
-    () => Browsers.windows("Chrome"),
-    () => Browsers.macOS("Safari"),
-  ];
+  const uaCandidates = [() => Browsers.windows("Chrome"), () => Browsers.macOS("Safari")];
   let uaIdx = 0;
 
   const { version } = await fetchLatestBaileysVersion();
@@ -55,18 +69,16 @@ export async function startWhatsAppBot() {
   let preRegister401s = 0;
   let sock: any;
 
+  // ⬇️ NEW: registrar el adapter una sola vez (idempotente)
+  registerAdapter(whatsappBaileysAdapter);
+
   const logUpdate = (update: any, err?: any) => {
     const { connection, qr } = update;
     const hasQR = Boolean(qr);
-    const sc =
-      err?.output?.statusCode ??
-      err?.statusCode ??
-      update?.statusCode;
+    const sc = err?.output?.statusCode ?? err?.statusCode ?? update?.statusCode;
     const message = err?.message ?? update?.message;
     const location = err?.data?.location ?? update?.location;
-    console.log(`${TAG} 🔎 connection.update`, {
-      connection, hasQR, statusCode: sc, message, location,
-    });
+    console.log(`${TAG} 🔎 connection.update`, { connection, hasQR, statusCode: sc, message, location });
   };
 
   const startSock = () => {
@@ -86,6 +98,9 @@ export async function startWhatsAppBot() {
       markOnlineOnConnect: false,
     });
 
+    // ⬇️ NEW: exponer el socket al adapter para envío
+    bindBaileysSock(sock);
+
     sock.ev.on("creds.update", saveCreds);
 
     sock.ev.on("connection.update", async (update: any) => {
@@ -94,32 +109,26 @@ export async function startWhatsAppBot() {
       logUpdate(update, err);
 
       if (qr) {
-        preRegister401s = 0; // si ya tenemos QR, reseteamos contadores
+        preRegister401s = 0;
         console.log(`${TAG} ⚠️ QR recibido. Escanealo SOLO con el TELÉFONO (Dispositivos vinculados):`);
         qrcode.generate(qr, { small: true });
-        await setQR(qr);
+        await setQR(hotelId, qr);
       }
 
       if (connection === "open") {
-        console.log(`${TAG} ✅ Conectado a WhatsApp con éxito v1`);
+        console.log(`${TAG} ✅ Conectado a WhatsApp con éxito`);
         backoffMs = 1500;
         preRegister401s = 0;
       }
 
       if (connection === "close") {
-        const statusCode =
-          err?.output?.statusCode ??
-          err?.statusCode ??
-          update?.statusCode;
+        const statusCode = err?.output?.statusCode ?? err?.statusCode ?? update?.statusCode;
 
-        // 401 sin sesión (pre-registro): cambio ws/UA y hago backoff
+        // 401 sin sesión (pre-registro): cambio ws/UA y backoff
         if ((statusCode === 401 || statusCode === DisconnectReason.loggedOut) && !state.creds?.registered) {
           preRegister401s++;
-          // rotamos ws y UA para el próximo intento
           wsIdx++;
           if (preRegister401s % 3 === 0) uaIdx++;
-
-          // backoff exponencial hasta 60s
           backoffMs = Math.min(backoffMs * 2, 60_000);
 
           if (!reconnectTimer) {
@@ -134,7 +143,7 @@ export async function startWhatsAppBot() {
           return;
         }
 
-        // 401 con sesión: limpiamos y que Docker reinicie
+        // 401 con sesión: limpiar y salir (para que Docker reinicie)
         if (statusCode === 401 && state.creds?.registered) {
           console.log(`${TAG} ❌ 401 con sesión; limpio credenciales y reinicio…`);
           try {
@@ -144,7 +153,7 @@ export async function startWhatsAppBot() {
           return;
         }
 
-        // 515/otros: retry con backoff moderado pero sin rotación agresiva
+        // 515/otros
         const delay = Math.min(backoffMs + 500, 30_000);
         if (!reconnectTimer) {
           console.log(`${TAG} ❌ Cierre no-401 (status=${statusCode ?? "?"}). Reintentando en ${delay}ms…`);
@@ -158,50 +167,80 @@ export async function startWhatsAppBot() {
       }
     });
 
-    console.log('[wa-dev] registrando handler messages.upsert');
+    console.log(`${TAG} registrando handler messages.upsert`);
 
+    // 2) UP SERT ⇒ Canal WhatsApp → PIPE unificado
     sock.ev.on(
-      'messages.upsert',
-      async ({ type, messages }: BaileysEventMap['messages.upsert']) => {
+      "messages.upsert",
+      async ({ type, messages }: BaileysEventMap["messages.upsert"]) => {
         const m = messages?.[0];
         if (!m) return;
 
         const jid = m.key?.remoteJid;
         const fromMe = m.key?.fromMe;
 
+        // Texto “normal” o de extended/image caption
         const text =
           m.message?.conversation ??
           m.message?.extendedTextMessage?.text ??
           m.message?.imageMessage?.caption ??
-          '';
+          "";
 
-        console.log('[wa-dev] upsert:', {
-          type,
-          jid,
-          fromMe,
-          text: text?.slice(0, 200),
-        });
+        // Ignorá propios o vacíos
+        if (!jid || fromMe || !text) return;
 
-        // Respuesta simple: eco, solo si no es nuestro propio mensaje
-        if (!fromMe && jid && text) {
+        console.log(`${TAG} upsert:`, { type, jid, fromMe, text: text.slice(0, 200) });
+
+        try {
+          // Delivery hints (opcional)
+          await sock.readMessages([m.key as any]);
+          await sock.sendPresenceUpdate("composing", jid);
+
+          // Construir ChannelMessage y delegar al PIPE
+          const now = new Date();
+          const conversationId = `${hotelId}-whatsapp-${jid}`;
+
+          const msg: ChannelMessage = {
+            messageId: m.key.id || crypto.randomUUID(),
+            hotelId,
+            channel: "whatsapp" as any,
+            conversationId,
+            guestId: jid,
+            sender: jid,
+            content: text,
+            role: "user",
+            detectedLanguage: "es", // opcional: plug de detección real
+            timestamp: now.toISOString(),
+            time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            suggestion: "",
+            status: "sent",
+          };
+
+          await handleIncomingMessage(msg, {
+            autoReply: true,
+            // ⬇️ Envío centralizado via adapter (sin lógica de canal en el core)
+            sendReply: async (reply: string) => {
+              await whatsappBaileysAdapter.sendReply(
+                { hotelId, conversationId, channel: "whatsapp", meta: { jid } },
+                reply
+              );
+              await sock.sendPresenceUpdate("available", jid);
+            },
+          });
+        } catch (err) {
+          console.error(`${TAG} error al procesar mensaje:`, err);
           try {
-            await sock.readMessages([m.key as any]);
-            await sock.sendPresenceUpdate('composing', jid);
-            await sock.sendMessage(jid, { text: `✅ Recibido: ${text}` });
-            await sock.sendPresenceUpdate('available', jid);
-          } catch (err) {
-            console.error('[wa-dev] error al responder:', err);
-          }
+            await sock.sendPresenceUpdate("available", jid);
+          } catch {}
         }
       }
     );
-
-
   };
 
   startSock();
 
+  // 3) Heartbeat por hotel
   setInterval(() => {
-    redis.set("wa:heartbeat:hotel999", Date.now().toString(), "EX", 60).catch(() => {});
+    redis.set(`wa:heartbeat:${hotelId}`, Date.now().toString(), "EX", 60).catch(() => {});
   }, 15_000);
 }

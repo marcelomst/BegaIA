@@ -1,175 +1,133 @@
 // Path: /root/begasist/app/api/chat/route.ts
-
 import { NextResponse } from "next/server";
-import { agentGraph } from "@/lib/agents";
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import { debugLog } from "@/lib/utils/debugLog";
-import { channelMemory } from "@/lib/services/channelMemory";
 import { v4 as uuidv4 } from "uuid";
-import type { Channel, ChannelMode, MessageStatus, ChannelMessage } from "@/types/channel";
+import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+import type { ChannelMessage, ChannelMode } from "@/types/channel";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import { saveMessageToAstra } from "@/lib/db/messages";
-import { createConversation, getConversationById, updateConversation } from "@/lib/db/conversations";
-import { getGuest } from "@/lib/db/guests"; // 👈 Import correcto para backend
+import { getAdapter } from "@/lib/adapters/registry";
 
+/**
+ * Endpoint público para mensajes del widget web.
+ * - Devuelve siempre `conversationId` para que el widget lo persista.
+ * - Si existe el adapter "web", streamea por SSE (sendReply) y NO devuelve `response` en JSON.
+ * - Si NO existe el adapter "web", devuelve la primera respuesta en `response` como fallback.
+ */
 export async function POST(req: Request) {
   try {
-    const H = (k: string) => req.headers.get?.(k);
-    console.log(`[edge] ${req.method} ${new URL(req.url).pathname} host=${H("host")} ip=${H("cf-connecting-ip")||H("x-forwarded-for")} cf-ray=${H("cf-ray")} ua=${H("user-agent")}`);
-
-    const {
-      query,
-      channel,
-      hotelId,
-      lang,
-      conversationId,
-      subject,
-      guestId,
-    }: {
+    const body = (await req.json()) as {
       query: string;
-      channel: Channel;
+      channel?: "web";
       hotelId?: string;
       lang?: string;
       conversationId?: string;
       subject?: string;
       guestId?: string;
-    } = await req.json();
+    };
 
-    debugLog("🔍 Consulta recibida:", query);
+    const {
+      query,
+      channel = "web",
+      hotelId,
+      lang,
+      conversationId,
+      subject,
+      guestId,
+    } = body || {};
 
-    const realHotelId = hotelId || "hotel999";
-    const config = await getHotelConfig(realHotelId);
-    const mode: ChannelMode = config?.channelConfigs[channel]?.mode || "automatic";
-    const idiomaFinal = lang || config?.defaultLanguage || "es";
-
-    // Asegurarse de siempre usar el conversationId recién creado para los mensajes
-    let currentConversationId = conversationId;
-    try {
-      if (!currentConversationId) {
-        const convo = await createConversation({
-          hotelId: realHotelId,
-          channel,
-          lang: idiomaFinal,
-          guestId,
-          subject: subject ?? "",
-        });
-        currentConversationId = convo.conversationId;
-      } else {
-        const existing = await getConversationById(currentConversationId);
-        if (!existing) {
-          const convo = await createConversation({
-            hotelId: realHotelId,
-            channel,
-            lang: idiomaFinal,
-            conversationId: currentConversationId,
-            guestId,
-            subject: subject ?? "",
-          });
-        } else {
-          await updateConversation(currentConversationId, {
-            lastUpdatedAt: new Date().toISOString(),
-            lang: idiomaFinal,
-            subject: typeof subject === "string" ? subject : undefined,
-          });
-        }
-      }
-    } catch (err) {
-      console.error("⛔ Error persistiendo conversación en AstraDB:", err);
+    if (channel !== "web") {
       return NextResponse.json(
-        { response: "Error creando/conectando conversación." },
-        { status: 500 }
+        { response: "Canal no soportado en este endpoint.", channel },
+        { status: 400 }
       );
     }
 
-    // ---- Guardar mensaje del usuario ----
-    const timestampUser = new Date().toISOString();
-    const userMessage: ChannelMessage = {
+    const text = String(query ?? "").trim();
+    if (!text) {
+      return NextResponse.json(
+        { response: "Falta el mensaje (query)." },
+        { status: 400 }
+      );
+    }
+
+    const realHotelId = hotelId || "hotel999";
+    const config = await getHotelConfig(realHotelId);
+    const channelMode: ChannelMode =
+      (config?.channelConfigs?.web?.mode as ChannelMode) || "automatic";
+    const idiomaFinal = lang || config?.defaultLanguage || "es";
+
+    // conversationId garantizado desde el backend (el widget lo guarda en localStorage)
+    const ensuredConversationId = conversationId || uuidv4();
+
+    const now = new Date();
+    const msg: ChannelMessage = {
       messageId: uuidv4(),
-      sender: guestId || "Usuario Web",
-      time: new Date(timestampUser).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      timestamp: timestampUser,
-      content: query,
       hotelId: realHotelId,
-      channel,
+      channel: "web",
+      conversationId: ensuredConversationId,
+      sender: guestId || "Usuario Web",
+      guestId: guestId || "web-guest",
+      content: text,
+      timestamp: now.toISOString(),
+      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       suggestion: "",
       status: "sent",
-      conversationId: currentConversationId, // <--- SIEMPRE este id, recién generado si aplica
-      guestId,
+      role: "user",
+      detectedLanguage: idiomaFinal,
+      subject,
     };
-    try {
-      await saveMessageToAstra(userMessage);
-      console.log("✅ Mensaje de usuario guardado en AstraDB:", userMessage.messageId);
-    } catch (err) {
-      console.error("⛔ Error guardando mensaje usuario en AstraDB:", err);
-      channelMemory.addMessage(userMessage);
-    }
 
-    // ---- Guardar mensaje de IA ----
-    const prompt = `Responde SIEMPRE en ${idiomaFinal}. ${query}`;
-    const response = await agentGraph.invoke({
-      messages: [new HumanMessage(prompt)],
-      hotelId: realHotelId,
-      conversationId: currentConversationId,
-      // preferredLanguage: idiomaFinal, // si tu agentGraph lo acepta
-    });
+    const web = getAdapter("web"); // puede ser undefined en dev
+    const sseEnabled = Boolean(web);
 
-    const aiMessage = response.messages.findLast(
-      (msg) => msg instanceof AIMessage
-    ) as AIMessage | undefined;
+    let lastReply: string | null = null;
 
-    const responseText = aiMessage?.content || "No se encontró una respuesta.";
-    const timestampAI = new Date().toISOString();
-
-    // 👇 **PRIORIDAD: guest.mode > channel.mode**
-    let effectiveMode: ChannelMode = mode;
-    if (guestId) {
-      try {
-        const guestProfile = await getGuest(realHotelId, guestId);
-        if (guestProfile && guestProfile.mode) {
-          effectiveMode = guestProfile.mode;
-        }
-      } catch (err) {
-        console.warn("No se pudo obtener el perfil del guest para modo personalizado:", err);
+    if (sseEnabled) {
+      // Flujo normal con SSE: enviar por adapter
+      await handleIncomingMessage(msg, {
+        autoReply: true,
+        mode: channelMode,
+        sendReply: async (reply: string) => {
+          await web!.sendReply(
+            {
+              hotelId: realHotelId,
+              conversationId: msg.conversationId!,
+              channel: "web",
+            },
+            reply
+          );
+          // NO seteamos lastReply para evitar duplicar con la respuesta JSON
+        },
+      });
+    } else {
+      // Fallback sin adapter: devolvemos la primera respuesta en JSON
+      const result: any = await handleIncomingMessage(msg, {
+        autoReply: true,
+        mode: channelMode,
+      });
+      if (typeof result === "string") {
+        lastReply = result;
+      } else if (result?.response) {
+        lastReply =
+          typeof result.response === "string"
+            ? result.response
+            : JSON.stringify(result.response);
+      } else {
+        lastReply = "🕓 Recibimos tu mensaje. Te respondemos por este chat en segundos.";
       }
     }
-    const status: MessageStatus = effectiveMode === "automatic" ? "sent" : "pending";
-
-    const assistantMessage: ChannelMessage = {
-      messageId: uuidv4(),
-      sender: "assistant",
-      time: new Date(timestampAI).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      timestamp: timestampAI,
-      content: "",
-      hotelId: realHotelId,
-      channel,
-      suggestion: String(responseText),
-      status,
-      approvedResponse: status === "sent" ? String(responseText) : undefined,
-      respondedBy: status === "sent" ? "assistant" : undefined,
-      conversationId: currentConversationId,
-      guestId,
-    };
-    try {
-      await saveMessageToAstra(assistantMessage);
-      console.log("✅ Mensaje IA guardado en AstraDB:", assistantMessage.messageId);
-    } catch (err) {
-      console.error("⛔ Error guardando mensaje IA en AstraDB:", err);
-      channelMemory.addMessage(assistantMessage);
-    }
-
-    debugLog("📌 Respuesta enviada:", responseText);
 
     return NextResponse.json({
-      response: responseText,
-      status,
-      messageId: assistantMessage.messageId,
-      conversationId: currentConversationId,
+      // si hay SSE, NO mandamos `response` para evitar duplicados en el widget
+      response: sseEnabled ? null : lastReply,
+      status: channelMode === "automatic" ? "sent" : "pending",
+      messageId: msg.messageId,
+      conversationId: msg.conversationId,
       lang: idiomaFinal,
       subject: typeof subject === "string" ? subject : undefined,
+      sse: sseEnabled,
     });
-
-  } catch (error) {
-    console.error("⛔ Error en la API /api/chat:", error);
+  } catch (err) {
+    console.error("⛔ Error en /api/chat:", err);
     return NextResponse.json(
       { response: "Ocurrió un error al procesar la solicitud." },
       { status: 500 }

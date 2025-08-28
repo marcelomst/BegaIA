@@ -1,4 +1,4 @@
-@startuml
+@startuml handleIncomingMessage
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 title Begasist – Vista de Componentes (alto nivel) centrada en handleIncomingMessage

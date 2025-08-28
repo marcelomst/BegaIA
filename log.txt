@@ -46856,3 +46856,257 @@ Try to install it into the project directory by running npm install puppeteer-co
 [2025-08-25T17:40:17.618Z] [DEBUG] ✅ Grafo compilado con éxito.
 [2025-08-25T17:41:40.691Z] [DEBUG] ✅ Grafo compilado con éxito.
 [2025-08-25T17:48:07.575Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-26T11:23:45.207Z] [ERROR] [ioredis] Unhandled error event: Error: connect ECONNREFUSED 172.19.0.2:6379
+    at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+    at __node_internal_exceptionWithHostPort (node:internal/errors:671:12)
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16)
+[2025-08-26T11:23:45.210Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 172.19.0.2:6379
+[2025-08-26T11:23:45.312Z] [ERROR] [ioredis] Unhandled error event: Error: connect ECONNREFUSED 172.19.0.2:6379
+    at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+    at __node_internal_exceptionWithHostPort (node:internal/errors:671:12)
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16)
+[2025-08-26T11:23:45.312Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 172.19.0.2:6379
+[2025-08-27T10:02:01.307Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T10:26:52.064Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T10:30:34.006Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T11:07:21.892Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T11:08:21.293Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T11:11:05.823Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-27T11:58:37.250Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T12:42:29.875Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T12:42:32.562Z] [DEBUG] ❓Pregunta: hola
+[2025-08-27T12:42:32.562Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-27T12:42:33.974Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:42:33.974Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:42:33.974Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:43:01.473Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-27T12:43:03.559Z] [DEBUG] ❓Pregunta: a que hora es el check in?
+[2025-08-27T12:43:03.560Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in?
+[2025-08-27T12:43:04.662Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:43:04.662Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:43:04.662Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:43:04.827Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-27T12:43:08.752Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-27T12:43:08.752Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-27T12:43:09.097Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-27T12:43:09.098Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-27T12:43:09.098Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-27T12:45:50.274Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-27T12:45:50.852Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T12:45:52.830Z] [DEBUG] ❓Pregunta: a que hora es el check in?
+[2025-08-27T12:45:52.830Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in?
+[2025-08-27T12:45:54.313Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:45:54.313Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:45:54.313Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:45:54.482Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-27T12:45:56.329Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-27T12:45:56.329Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-27T12:45:56.644Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-27T12:45:56.645Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-27T12:45:56.645Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-27T12:46:53.298Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-27T12:46:55.375Z] [DEBUG] ❓Pregunta: a que hora es el check in?
+[2025-08-27T12:46:55.375Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in?
+[2025-08-27T12:46:56.245Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:46:56.245Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:46:56.245Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:46:56.413Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-27T12:46:57.593Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-27T12:46:57.593Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-27T12:46:57.915Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-27T12:46:57.915Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-27T12:46:57.915Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-27T12:56:50.976Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-27T12:56:53.353Z] [DEBUG] ❓Pregunta: hola
+[2025-08-27T12:56:53.354Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-27T12:56:57.569Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:56:57.569Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:56:57.569Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-27T12:57:14.486Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-27T12:57:16.570Z] [DEBUG] ❓Pregunta: a que hora es el check in?
+[2025-08-27T12:57:16.570Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in?
+[2025-08-27T12:57:17.500Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:57:17.500Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:57:17.500Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-27T12:57:17.673Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-27T12:57:19.320Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-27T12:57:19.320Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-27T12:57:19.656Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-27T12:57:19.656Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-27T12:57:19.656Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-28T08:26:41.586Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T08:26:44.314Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T08:26:44.315Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T08:26:46.476Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T08:26:46.477Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T08:26:46.478Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T08:27:42.772Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-28T08:27:45.556Z] [DEBUG] ❓Pregunta: quiero hacer una reserva
+[2025-08-28T08:27:45.556Z] [DEBUG] ❓Pregunta  normalizada: quiero hacer una reserva
+[2025-08-28T08:27:47.039Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-28T08:27:47.039Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-28T08:27:47.040Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-28T11:28:20.380Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-28T08:28:21.690Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+[2025-08-28T08:28:21.690Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+[2025-08-28T08:28:23.539Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T08:28:23.539Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T08:28:23.539Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
