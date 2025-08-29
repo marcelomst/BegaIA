@@ -22,6 +22,7 @@ export interface HotelUser {
 
   // Tokens y timestamps
   createdAt?: string;
+  updatedAt?: string;
   verificationToken?: string;
   resetToken?: string;
   resetTokenExpires?: string;

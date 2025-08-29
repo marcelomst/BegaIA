@@ -1,14 +1,15 @@
 // Path: /root/begasist/lib/adapters/webAdapter.ts
-import type { ChannelAdapter, ChannelCtx } from "./types";
+import type { ChannelAdapter, ChannelAdapterContext } from "./types";
 import { emitToConversation } from "@/lib/web/eventBus";
 
 /**
  * Entrega en canal Web = emitir por SSE al widget.
- * No envía nada “externo”: el front escucha /api/web/events.
+ * El front escucha /api/web/events y recibe los eventos.
  */
 export const webAdapter: ChannelAdapter = {
-  id: "web",
-  async sendReply(ctx: ChannelCtx, text: string) {
+  channel: "web",
+  async sendReply(ctx: ChannelAdapterContext, text: string) {
+    if (!ctx?.conversationId) return;
     const ts = new Date().toISOString();
     emitToConversation(ctx.conversationId, {
       type: "message",

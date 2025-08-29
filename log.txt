@@ -47110,3 +47110,78 @@ Try to install it into the project directory by running [32mnpm install puppete
   "category": "support",
   "promptKey": null
 }
+[2025-08-28T12:13:30.848Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T12:13:33.181Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T12:13:33.181Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T12:13:34.468Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:13:34.468Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:13:34.468Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:15:41.749Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T12:15:43.691Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T12:15:43.691Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T12:15:44.926Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:15:44.926Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:15:44.926Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:21:23.431Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T12:21:25.533Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T12:21:25.533Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T12:21:27.324Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:21:27.324Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:21:27.324Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:26:19.300Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T12:26:21.431Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T12:26:21.431Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T12:26:22.934Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:26:22.934Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T12:26:22.934Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T13:28:21.052Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-28T13:28:23.644Z] [DEBUG] ❓Pregunta: hola
+[2025-08-28T13:28:23.645Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-28T13:28:24.817Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T13:28:24.817Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-28T13:28:24.817Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}

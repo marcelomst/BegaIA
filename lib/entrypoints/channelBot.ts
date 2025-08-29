@@ -10,11 +10,11 @@ import { isChannelEnabled } from "../config/isChannelEnabled";
 import { registerAdapter } from "@/lib/adapters/registry";
 import { webAdapter } from "@/lib/adapters/webAdapter";
 
-
 export async function startHotelBot(hotelId: string) {
   try {
     // registrar adaptador web
     registerAdapter(webAdapter);
+
     const config = await getHotelConfig(hotelId);
     if (!config) {
       console.error(`[hotelBot] ❌ No se encontró configuración para hotelId=${hotelId}`);
@@ -34,25 +34,31 @@ export async function startHotelBot(hotelId: string) {
       )}`
     );
 
-    // Lanzadores en paralelo (habilitá/deshabilitá comentando cada push)
-    const starters: Promise<unknown>[] = [];
+    // Lanzadores en paralelo (cada tarea es Promise<void>)
+    const starters: Promise<void>[] = [];
 
     // === WhatsApp ===
     if (transport === "baileys") {
       console.log(`[hotelBot] 🔧 Forzando WhatsApp (Baileys) en DEV, ignorando gating`);
       starters.push(
-        startWhatsAppBotBaileys({
-          hotelId,
-          hotelPhone: whatsappCfg?.celNumber, // opcional
-        }).then(() => {
+        (async () => {
+          await Promise.resolve(
+            startWhatsAppBotBaileys({
+              hotelId,
+              hotelPhone: whatsappCfg?.celNumber, // opcional
+            })
+          );
           console.log(`[hotelBot] ✅ WhatsApp (Baileys) iniciado para ${hotelId}`);
-        })
+        })()
       );
     } else if (whatsappEnabled && whatsappCfg?.celNumber) {
       starters.push(
-        startWhatsAppBot({ hotelId, hotelPhone: whatsappCfg.celNumber }).then(() => {
+        (async () => {
+          await Promise.resolve(
+            startWhatsAppBot({ hotelId, hotelPhone: whatsappCfg.celNumber })
+          );
           console.log(`[hotelBot] ✅ WhatsApp (wwebjs) iniciado para ${hotelId}`);
-        })
+        })()
       );
     } else {
       console.log(
@@ -63,20 +69,22 @@ export async function startHotelBot(hotelId: string) {
     }
 
     // === Channel Manager ===
-    // Descomentar cuando quieras levantarlo junto a WA
+    // Descomentar cuando quieras levantarlo junto a WA, usando el mismo patrón (sin .then)
     // starters.push(
-    //   startChannelManagerBot(hotelId).then(() =>
-    //     console.log(`[hotelBot] ✅ ChannelManager iniciado para ${hotelId}`)
-    //   )
+    //   (async () => {
+    //     await Promise.resolve(startChannelManagerBot(hotelId));
+    //     console.log(`[hotelBot] ✅ ChannelManager iniciado para ${hotelId}`);
+    //   })()
     // );
 
     // === Email ===
-    // Descomentar cuando quieras levantarlo junto a WA
+    // Descomentar cuando quieras levantarlo junto a WA, usando el mismo patrón (sin .then)
     // if (config.email) {
     //   starters.push(
-    //     startEmailBot({ hotelId, emailConf: config.email }).then(() =>
-    //       console.log(`[hotelBot] ✅ Email iniciado para ${hotelId}`)
-    //     )
+    //     (async () => {
+    //       await Promise.resolve(startEmailBot({ hotelId, emailConf: config.email }));
+    //       console.log(`[hotelBot] ✅ Email iniciado para ${hotelId}`);
+    //     })()
     //   );
     // }
 

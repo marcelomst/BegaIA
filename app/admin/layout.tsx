@@ -9,7 +9,16 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SidebarLink } from "@/components/ui/SidebarLink";
 import { SidebarGroup } from "@/components/ui/SidebarGroup";
 import {
-  Users, KeyRound, Hotel, Upload, Brain, BookOpen, Server, FileText, Settings,
+  Users,
+  KeyRound,
+  Hotel,
+  Upload,
+  Brain,
+  BookOpen,
+  Server,
+  FileText,
+  Settings,
+  MessageSquare,
 } from "lucide-react";
 import { UserProvider } from "@/lib/context/UserContext";
 import { Toaster } from "@/components/ui/toaster";
@@ -28,7 +37,7 @@ import {
   canAccessUsersSection,
   canAccessChangePasswordSection,
 } from "@/lib/auth/roles";
-import { getDictionary } from "@/lib/i18n/getDictionary"; // 👈🏼 Usá siempre tu helper central
+import { getDictionary } from "@/lib/i18n/getDictionary"; // 👈🏼 Helper central i18n
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{
@@ -61,7 +70,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         setHotel(hotelConf);
 
         setLoadingDict(true);
-        // 👇🏼 Usá el helper global async, siempre
         const dict = await getDictionary(hotelConf.defaultLanguage || "en");
         setT(dict);
       } catch {
@@ -100,18 +108,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {sidebarOpen && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold">
-                      {t.layout.panelTitle}
-                    </h1>
+                    <h1 className="text-2xl font-bold">{t.layout.panelTitle}</h1>
                     <ThemeToggle />
                   </div>
                   <div className="text-xs text-muted-foreground mb-2 leading-snug">
                     {user.email}
                     <br />
                     {user.hotelName}{" "}
-                    <span className="text-[10px] text-gray-400">
-                      (ID: {user.hotelId})
-                    </span>
+                    <span className="text-[10px] text-gray-400">(ID: {user.hotelId})</span>
                   </div>
                   <nav className="space-y-2">
                     <SidebarLink
@@ -139,6 +143,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         href="/admin/hotel/edit"
                         label={t.layout.myHotelEdit || "Editar mi hotel"}
                         icon={<Hotel className="w-5 h-5" />}
+                      />
+                    )}
+                    {/* Acceso rápido al generador de Snippet para el hotel del usuario */}
+                    {canAccessHotelSection(user.roleLevel) && (
+                      <SidebarLink
+                        href={`/admin/hotels/${user.hotelId}/widget`}
+                        label="Widget"
+                        icon={<MessageSquare className="w-5 h-5" />}
                       />
                     )}
                     {canAccessUploadSection(user.roleLevel) && (
@@ -219,11 +231,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               `}
               style={{ transition: "transform 0.2s" }}
               onClick={() => setSidebarOpen((o) => !o)}
-              title={
-                sidebarOpen
-                  ? t.layout.hideSidebar
-                  : t.layout.showSidebar
-              }
+              title={sidebarOpen ? t.layout.hideSidebar : t.layout.showSidebar}
             >
               {sidebarOpen ? "⟨" : "⟩"}
             </button>

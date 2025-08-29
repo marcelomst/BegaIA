@@ -1,50 +1,36 @@
-// /lib/auth/roles.ts
+// Path: /root/begasist/lib/auth/roles.ts
+import {
+  ROLE_TECHNICAL_SUPER,
+  ROLE_TECHNICAL,
+  ROLE_MANAGER,
+  ROLE_STANDARD,
+} from "@/types/roles";
 
-export enum RoleLevel {
-  SuperAdmin = 0,        // Acceso total solo para hotelId 'system'
-  SysAdmin = 0.1,        // Acceso admin a hoteles globales
-  SysSupport = 0.2,      // Soporte hoteles globales
-  HotelTechMin = 1,      // Técnicos hotel (sin acceso a hoteles globales)
-  HotelTechMax = 9.99,
-  HotelAdmin = 10,
-  Reception = 20,
-  Guest = 30,
-}
+/** Clasificación básica */
+export const isSuper = (r: number) => r === ROLE_TECHNICAL_SUPER; // 0
+export const isTechnical = (r: number) => ROLE_TECHNICAL.includes(r); // 1..9
+export const isManager = (r: number) => ROLE_MANAGER.includes(r);     // 10..19
+export const isStandard = (r: number) => ROLE_STANDARD.includes(r);   // 20..29
 
-/**
- * Solo hotelId === "system" puede tener usuarios con roleLevel 0.
- */
-export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number): boolean {
-  return !(roleLevel === 0 && hotelId !== "system");
-}
+/** Alias útiles */
+export const isReception = (r: number) => r === 20;
+export const isGuest = (r: number) => r >= 30;
 
-// Usuarios de sistema (0, 0.1, 0.2)
+/** Usuarios “de sistema” → únicamente rol 0 */
 export function isSystemUser(roleLevel: number): boolean {
-  return roleLevel >= RoleLevel.SuperAdmin && roleLevel < RoleLevel.HotelTechMin;
+  return isSuper(roleLevel);
 }
 
-// Técnicos de hotel (1 <= roleLevel < 10)
-export function isHotelTech(roleLevel: number): boolean {
-  return roleLevel >= RoleLevel.HotelTechMin && roleLevel < RoleLevel.HotelAdmin;
+/** Rol 0 solo válido si hotelId === "system" */
+export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number): boolean {
+  return !(roleLevel === ROLE_TECHNICAL_SUPER && hotelId !== "system");
 }
 
-// Admins y superiores (10 <= roleLevel < 20)
-export function isHotelAdmin(roleLevel: number): boolean {
-  return roleLevel >= RoleLevel.HotelAdmin && roleLevel < RoleLevel.Reception;
-}
+/* ---------------------- */
+/* Visibilidad DASHBOARD  */
+/* ---------------------- */
 
-// Recepcionistas (20)
-export function isReception(roleLevel: number): boolean {
-  return roleLevel === RoleLevel.Reception;
-}
-
-// Guest (30)
-export function isGuest(roleLevel: number): boolean {
-  return roleLevel === RoleLevel.Guest;
-}
-
-// --- CARD HELPERS ---
-// Helpers para mostrar/ocultar tarjetas del dashboard
+/** Dashboard /admin/hotels (listado global): solo “system” */
 export function canSeeHotelsDashboard(roleLevel: number) {
   return isSystemUser(roleLevel);
 }
@@ -61,8 +47,8 @@ export function canSeePromptsDashboard(roleLevel: number) {
   return isSystemUser(roleLevel);
 }
 
-export function canSeeChannelsDashboard(roleLevel: number) {
-  return true; // Todos los usuarios pueden ver canales
+export function canSeeChannelsDashboard(_roleLevel: number) {
+  return true; // todos
 }
 
 export function canSeeLogsDashboard(roleLevel: number) {
@@ -70,42 +56,84 @@ export function canSeeLogsDashboard(roleLevel: number) {
 }
 
 export function canSeeUsersDashboard(roleLevel: number) {
-  return !isReception(roleLevel) || isSystemUser(roleLevel);
+  return isSystemUser(roleLevel) || !isReception(roleLevel);
 }
 
-// --- RUTA HELPERS (SIDEBAR, ETC) ---
+/* ---------------------- */
+/* Visibilidad SIDEBAR    */
+/* ---------------------- */
+
+/** Sección global /admin/hotels (no confundir con /admin/hotel/*) */
 export function canAccessHotelsSection(roleLevel: number) {
   return isSystemUser(roleLevel);
 }
+
+/** Sección específica del hotel (ej. /admin/hotel/edit) */
 export function canAccessHotelSection(roleLevel: number) {
-  return isHotelAdmin(roleLevel)|| isHotelTech(roleLevel) ;
-} 
+  return isTechnical(roleLevel) || isManager(roleLevel);
+}
+
 export function canAccessUploadSection(roleLevel: number) {
   return !isReception(roleLevel) && !isGuest(roleLevel);
 }
+
 export function canAccessEmbeddingsSection(roleLevel: number) {
   return !isReception(roleLevel) && !isGuest(roleLevel);
 }
+
 export function canAccessPromptsSection(roleLevel: number) {
   return isSystemUser(roleLevel);
 }
-export function canAccessChannelsSection(roleLevel: number) {
-  return true;
-}
-export function canAccessLogsSection(roleLevel: number) {
-  return isSystemUser(roleLevel);
-}
-export function canAccessUsersSection(roleLevel: number) {
-  return !isReception(roleLevel) || isSystemUser(roleLevel);
-}
-export function canAccessChangePasswordSection(roleLevel: number) {
+
+export function canAccessChannelsSection(_roleLevel: number) {
   return true;
 }
 
-// Solo usuarios de sistema (0), técnicos (<10), admins (10-19) pueden acceder a rutas admin generales
+export function canAccessLogsSection(roleLevel: number) {
+  return isSystemUser(roleLevel);
+}
+
+export function canAccessUsersSection(roleLevel: number) {
+  return isSystemUser(roleLevel) || !isReception(roleLevel);
+}
+
+export function canAccessChangePasswordSection(_roleLevel: number) {
+  return true;
+}
+
+/* ---------------------- */
+/* Gateo de rutas /admin  */
+/* ---------------------- */
 export function canAccessAdminRoute(roleLevel: number, pathname: string) {
-  if (roleLevel < RoleLevel.Reception) return true; // Admins, técnicos, gerentes pueden acceder a todo
-  // Solo canales y cambio de password para recepcionistas
+  // System ve todo
+  if (isSystemUser(roleLevel)) return true;
+
+  // Generador del snippet del widget → SOLO técnicos (1..9)
+  if (
+    (pathname.startsWith("/admin/hotels/") && pathname.endsWith("/widget")) ||
+    (pathname.startsWith("/admin/hotel/") && pathname.endsWith("/widget"))
+  ) {
+    return isTechnical(roleLevel);
+  }
+
+  // Listado global de hoteles → sólo system
+  if (pathname.startsWith("/admin/hotels")) {
+    return false;
+  }
+
+  // Secciones “técnicas”
+  if (
+    pathname.startsWith("/admin/prompts") ||
+    pathname.startsWith("/admin/embeddings") ||
+    pathname.startsWith("/admin/logs")
+  ) {
+    return isTechnical(roleLevel);
+  }
+
+  // General: técnicos y managers acceden; recepción limitada
+  if (isTechnical(roleLevel) || isManager(roleLevel)) return true;
+
+  // Recepción puede ver canales, cambiar password y home
   if (
     pathname.startsWith("/admin/channels") ||
     pathname.startsWith("/auth/change-password") ||
@@ -113,5 +141,10 @@ export function canAccessAdminRoute(roleLevel: number, pathname: string) {
   ) {
     return true;
   }
+
   return false;
 }
+
+// --- Back-compat / alias esperados por otros módulos ---
+export const isHotelTech = (r: number) => isTechnical(r); // 1..9
+export const isHotelAdmin = (r: number) => isManager(r);  // 10..19

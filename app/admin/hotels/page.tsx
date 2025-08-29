@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Hotel, Loader, PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { Hotel, Loader, PlusCircle, Pencil, Trash2, Code2 } from "lucide-react";
 import type { HotelConfig, Channel } from "@/types/channel";
 import { getChannelIcon } from "@/lib/utils/getChannelIcon";
 
@@ -83,9 +83,7 @@ export default function HotelsAdminPage() {
           </div>
         )}
 
-        {error && (
-          <div className="text-red-500 font-medium">{error}</div>
-        )}
+        {error && <div className="text-red-500 font-medium">{error}</div>}
 
         {!loading && !error && hotels.length === 0 && (
           <div className="text-muted-foreground">No hay hoteles registrados aún.</div>
@@ -114,7 +112,7 @@ export default function HotelsAdminPage() {
                     <td className="py-2 flex flex-wrap items-center gap-2">
                       {hotel.channelConfigs &&
                         Object.entries(hotel.channelConfigs)
-                          .filter(([_, cfg]) => cfg?.enabled)
+                          .filter(([_, cfg]) => (cfg as any)?.enabled)
                           .map(([channel]) => (
                             <span title={channel} key={channel}>
                               {getChannelIcon(channel as Channel, 18)}
@@ -140,6 +138,12 @@ export default function HotelsAdminPage() {
                         <Trash2 className="w-4 h-4 mr-1" />
                         {deletingId === hotel.hotelId ? "Borrando..." : "Borrar"}
                       </Button>
+                      <Link href={`/admin/hotels/${hotel.hotelId}/widget`}>
+                        <Button size="sm" variant="secondary" title="Generar snippet del widget">
+                          <Code2 className="w-4 h-4 mr-1" />
+                          Widget
+                        </Button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
