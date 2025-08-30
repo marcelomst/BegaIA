@@ -1,4 +1,4 @@
-<!-- Path: /root/begasist/examples/hotel-demo/index.html -->
+<!-- Path: /root/begAI/examples/hotel-demo/index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -92,7 +92,7 @@
           class="reset"
           type="button"
           aria-label="Reiniciar chat y comenzar una nueva conversación"
-          onclick="localStorage.removeItem('begasist:conversationId:hotel999'); location.reload();"
+          onclick="localStorage.removeItem('begAI:conversationId:hotel999'); location.reload();"
         >
           Reiniciar chat
         </button>
@@ -116,18 +116,18 @@
        - Cambiar color: theme.primary
        - Posición: "bottom-right" | "bottom-left"
        - CORS: backend en http://localhost:3000 debe permitir origen http://localhost:8081
-       - No usa cookies; todo client-side
-  -->
-  <script>
-    window.BegasistChat = {
-      hotelId: "hotel999",
-      apiBase: "http://localhost:3000",
-      lang: "es",
-      position: "bottom-right",
-      theme: { primary: "#0ea5e9" },
-      requireName: false
-    };
-  </script>
-  <script async src="http://localhost:3000/widget/begasist-chat.js"></script>
+       - No usa cookies; todo client-side-->>
+<!-- BegAI Web Widget -->
+<script>
+  window.BegAIChat = {
+    hotelId: "hotel999",
+    apiBase: "http://localhost:3000",
+    lang: "es",
+    position: "bottom-right",
+    theme: { primary: "#0ea5e9" },
+    languages: ["es","en","pt"]
+  };
+</script>
+<script defer src="http://localhost:3000/widget/begai-chat.js"></script>
 </body>
 </html>

@@ -1,12 +1,12 @@
-// /components/ui/BegasistTable.tsx
+// /components/ui/BegAITable.tsx
 import { ReactNode } from "react";
 
-interface BegasistTableProps {
+interface BegAITableProps {
   headers: string[];
   children: ReactNode;
 }
 
-export function BegasistTable({ headers, children }: BegasistTableProps) {
+export function BegAITable({ headers, children }: BegAITableProps) {
   return (
     <table className="w-full table-auto border-collapse border rounded shadow-sm">
       <thead className="bg-zinc-100 dark:bg-zinc-800">

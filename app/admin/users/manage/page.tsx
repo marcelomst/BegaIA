@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BegasistTable } from "@/components/ui/BegasistTable";
+import { BegAITable } from "@/components/ui/BegAITable";
 import { MailCheck, Pencil, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { useCurrentUser } from "@/lib/context/UserContext";
 import { useRouter } from "next/navigation";
@@ -102,7 +102,7 @@ export default function ManageUsersPage() {
               ➕ Nuevo usuario
             </Button>
           </div>
-          <BegasistTable headers={["Email", "Nombre", "Cargo", "Rol", "Estado", "Creado", "Acciones"]}>
+          <BegAITable headers={["Email", "Nombre", "Cargo", "Rol", "Estado", "Creado", "Acciones"]}>
             {users.map((u) => (
               <tr key={u.userId} className="border-b hover:bg-zinc-50 dark:hover:bg-zinc-800">
                 <td className="p-3">{u.email}</td>
@@ -160,7 +160,7 @@ export default function ManageUsersPage() {
                 </td>
               </tr>
             ))}
-          </BegasistTable>
+          </BegAITable>
         </>
       )}
     </div>

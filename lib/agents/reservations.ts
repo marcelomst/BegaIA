@@ -1,3 +1,4 @@
+// Path: /root/begasist/lib/agents/reservations.ts
 import { AIMessage } from "@langchain/core/messages";
 import { createReservation, ReservationInput } from "../channelManager";
 import { translateIfNeeded } from "@/lib/i18n/translateIfNeeded";
@@ -48,7 +49,7 @@ function normalizeRoomType(raw?: string) {
 
 /** ====== MCP util ====== */
 async function mcpCall<T>(name: string, params: Record<string, any>): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json", "Accept": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json" };
   if (MCP_API_KEY) headers["x-mcp-key"] = MCP_API_KEY;
 
   const ac = new AbortController();
@@ -76,21 +77,43 @@ const DATE_ISO = /(\d{4}-\d{2}-\d{2})/g;
 const ROOM_RE = /suite|matrimonial|doble|triple|individual|single|double|twin|queen|king|deluxe|standard/i;
 const GUESTS_RE = /(\d+)\s*(personas|hu[eé]spedes|adultos|guests?)/i;
 const NAME_RE = /a nombre de ([\w\sáéíóúüñÁÉÍÓÚÜÑ'.-]+)|under the name of ([\w\s'.-]+)/i;
-const CONFIRM_RE = /\b(confirmo|confirmar|sí|si|dale|ok|perfecto|reserva ya|avanzar|quiero reservar|book|reserve|confirm)\b/i;
+// NUEVO: nombre “suelto” (solo texto con pinta de nombre)
+const NAME_ALONE = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]{2,60}$/u;
+
+function titleCaseName(text: string): string {
+  return (text || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\b([a-záéíóúñü])/g, (m) => m.toUpperCase())
+    .replace(/\s+/g, " ");
+}
+
+const CONFIRM_RE =
+  /\b(confirmo|confirmar|sí|si|dale|ok|perfecto|reserva ya|avanzar|quiero reservar|book|reserve|confirm)\b/i;
 
 function fillReservationSlots(message: string, prevSlots: Record<string, any> = {}) {
   const slots = { ...prevSlots };
-  const dates = message.match(DATE_ISO);
+  const msg = (message || "").trim();
+
+  const dates = msg.match(DATE_ISO);
   if (dates && dates.length >= 2) {
     slots.checkIn = dates[0];
     slots.checkOut = dates[1];
   }
-  const roomMatch = message.match(ROOM_RE);
+  const roomMatch = msg.match(ROOM_RE);
   if (roomMatch) slots.roomType = normalizeRoomType(roomMatch[0]);
-  const guestsMatch = message.match(GUESTS_RE);
+  const guestsMatch = msg.match(GUESTS_RE);
   if (guestsMatch) slots.numGuests = guestsMatch[1];
-  const nameMatch = message.match(NAME_RE);
+
+  // Nombre por frase “a nombre de …”
+  const nameMatch = msg.match(NAME_RE);
   if (nameMatch) slots.guestName = (nameMatch[1] || nameMatch[2])?.trim();
+
+  // NUEVO: si el mensaje es SOLO un nombre, aceptarlo como guestName
+  if (!slots.guestName && NAME_ALONE.test(msg)) {
+    slots.guestName = titleCaseName(msg);
+  }
+
   return slots;
 }
 const wantsToConfirm = (msg: string) => CONFIRM_RE.test(msg);
@@ -117,7 +140,7 @@ function summarizeOptions(list: MCPList, limit = 3): string {
     .join("\n");
 }
 function capitalize(s?: string) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s as any;
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : (s as any);
 }
 
 /** ====== Nodo principal ====== */
@@ -126,10 +149,16 @@ export async function handleReservation(state: typeof import("./index").GraphSta
   const prevSlots = state.reservationSlots ?? {};
   const slots = fillReservationSlots(userMsg, prevSlots);
 
+  // 👇 NUEVO: si no vino en el mensaje y lo conozco por meta (ej: ficha guest), úsalo
+  const metaName = typeof state.meta?.guestName === "string" ? state.meta.guestName.trim() : "";
+  if (!slots.guestName && metaName) {
+    slots.guestName = metaName;
+  }
+  
   // Idiomas
   const userLang = state.detectedLanguage ?? "en";
   const hotelLang = (await getHotelNativeLanguage(state.hotelId)) ?? "es";
-  const dict = await getDictionary(hotelLang); // 👈 generamos SIEMPRE en idioma del hotel
+  const dict = await getDictionary(hotelLang); // respuestas SIEMPRE en idioma del hotel
 
   // Slots faltantes
   const missing: string[] = [];
@@ -225,7 +254,7 @@ export async function handleReservation(state: typeof import("./index").GraphSta
     return { ...state, reservationSlots: slots, messages: [...state.messages, new AIMessage(toUser)] };
   }
 
-  // Confirmado → crear reserva (MCP si hay)
+  // Confirmado → crear reserva
   const reservationInput: ReservationInput = {
     hotelId: state.hotelId,
     guestName: slots.guestName,
@@ -250,7 +279,7 @@ export async function handleReservation(state: typeof import("./index").GraphSta
       msgHotelLang = dict.reservation.confirmSuccess(created, slots);
     } catch {
       const result = await createReservation(reservationInput);
-      msgHotelLang = result.message; // si tu message viene en hotelLang, perfecto; si no, translateIfNeeded lo corrige
+      msgHotelLang = result.message;
     }
   } else {
     const result = await createReservation(reservationInput);

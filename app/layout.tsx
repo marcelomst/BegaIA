@@ -7,7 +7,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip"; // 👈 IMPORTANTE
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Begasist",
+  title: "BegAI",
   description: "Asistente conversacional hotelero",
 };
 

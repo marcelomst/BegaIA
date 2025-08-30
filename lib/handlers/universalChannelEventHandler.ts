@@ -1,12 +1,10 @@
 // Path: /root/begasist/lib/handlers/universalChannelEventHandler.ts
-
 import { handleIncomingMessage } from "./messageHandler";
 import { analyzeSentiment } from "@/lib/utils/analyzeSentiment";
 import { detectLanguage } from "@/lib/utils/language";
 import crypto from "crypto";
 import type { ChannelMessage } from "@/types/channel";
 import { debugLog } from "@/lib/utils/debugLog";
-
 
 /**
  * Handler universal: procesa un evento crudo de cualquier canal y lo transforma a ChannelMessage,
@@ -22,17 +20,15 @@ export async function universalChannelEventHandler(
     forceGuestId?: string; // Si querés sobreescribir el guestId detectado
   }
 ) {
-  // 1. Detectar idioma del mensaje (usando tu helper)
+  // 1) Detectar idioma
   const lang = await detectLanguage(rawEvent.content, hotelId);
-  if (!lang) {
-    debugLog("No se pudo detectar el idioma del mensaje, usando 'en' por defecto");
-  }
+  if (!lang) debugLog("No se pudo detectar el idioma del mensaje, usando 'en' por defecto");
   debugLog("Idioma detectado:", lang);
 
-  // 2. Analizar sentimiento del mensaje
+  // 2) Analizar sentimiento
   const sentiment = await analyzeSentiment(rawEvent.content, lang);
 
-  // 3. Armar ChannelMessage universal
+  // 3) Armar ChannelMessage
   const channelMsg: ChannelMessage = {
     messageId: rawEvent.messageId || rawEvent.id || crypto.randomUUID(),
     conversationId: rawEvent.conversationId || "",
@@ -46,15 +42,16 @@ export async function universalChannelEventHandler(
     suggestion: rawEvent.suggestionByHA ?? "",
     status: rawEvent.status || "pending",
     sentiment,
-    detectedLanguage: lang,
-    // Agregá otros campos que use tu ChannelMessage
+    detectedLanguage: lang || "en",
   };
 
-  // 4. Procesar el mensaje conversacional unificado
+  // 4) Procesar con el handler
+  //    - En "automatic": pasamos sendReply para que responda ya.
+  //    - En "supervised": NO pasamos sendReply; se persiste y queda para revisión manual.
+  const mode = opts?.mode || "automatic";
   await handleIncomingMessage(channelMsg, {
-    autoReply: opts?.mode === "automatic",
-    sendReply: opts?.sendReply,
-    mode: opts?.mode || "automatic",
+    mode,
+    sendReply: mode === "automatic" ? opts?.sendReply : undefined,
   });
 
   return { ok: true };

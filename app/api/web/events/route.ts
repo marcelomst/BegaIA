@@ -1,43 +1,65 @@
 // Path: /root/begasist/app/api/web/events/route.ts
+import type { NextRequest } from "next/server";
 import { onConversation } from "@/lib/web/eventBus";
 
-export async function GET(req: Request) {
+export const runtime = "nodejs"; // asegura ReadableStream en dev
+
+// 🔓 Si servís el widget desde otro origen (p.ej. 8081), habilitalo acá:
+const ALLOWED_ORIGINS = new Set<string>([
+  "http://localhost:8081",
+  "http://127.0.0.1:8081",
+  // agregá más si hace falta
+]);
+
+function buildCorsHeaders(req: NextRequest | Request) {
+  const origin = (req.headers as any).get?.("origin") || null;
+  const headers: Record<string, string> = {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers["Vary"] = "Origin";
+  }
+  return headers;
+}
+
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const conversationId = searchParams.get("conversationId") || "";
   if (!conversationId) {
-    return new Response("conversationId required", { status: 400 });
+    return new Response("conversationId required", { status: 400, headers: buildCorsHeaders(req) });
   }
 
-  const stream = new ReadableStream({
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      const enc = (ev: any) => {
-        controller.enqueue(`data: ${JSON.stringify(ev)}\n\n`);
+      const send = (obj: any) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
       };
-      const off = onConversation(conversationId, enc as any);
 
-      // enviar un “ping”/handshake
-      enc({ type: "status", value: "open", timestamp: new Date().toISOString() });
+      // Suscripción a eventos de la conversación
+      const off = onConversation(conversationId, (ev) => send(ev));
 
-      // limpiar al cerrar
-      const cancel = () => {
+      // Handshake + keepalive
+      send({ type: "status", value: "open", timestamp: new Date().toISOString() });
+      const keepAlive = setInterval(() => {
+        controller.enqueue(encoder.encode(`: ping\n\n`));
+      }, 15000);
+
+      const cleanup = () => {
+        clearInterval(keepAlive);
         off();
         try { controller.close(); } catch {}
       };
 
       // cierre por desconexión del cliente
-      // @ts-ignore
-      req.signal?.addEventListener?.("abort", cancel);
+      (req as any).signal?.addEventListener?.("abort", cleanup);
     },
   });
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      // CORS si embebés desde otro origen:
-      // "Access-Control-Allow-Origin": "http://localhost:8081",
-      // "Access-Control-Allow-Credentials": "true",
-    },
-  });
+  return new Response(stream, { headers: buildCorsHeaders(req) });
 }

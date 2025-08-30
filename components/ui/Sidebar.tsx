@@ -34,7 +34,7 @@ export default function Sidebar() {
       </button>
       <div>
         <div className="flex items-center justify-between mb-4">
-          {sidebarOpen && <h1 className="text-2xl font-bold">Begasist Admin</h1>}
+          {sidebarOpen && <h1 className="text-2xl font-bold">BegAI Admin</h1>}
           <ThemeToggle />
         </div>
         {sidebarOpen && (

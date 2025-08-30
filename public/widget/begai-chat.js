@@ -1,6 +1,10 @@
-// Path: /root/begasist/public/widget/begasist-chat.js
+// /public/widget/begai-chat.js
 (() => {
-  const cfg = (window.BegasistChat ||= {});
+  // ---- Config global (nuevo nombre) + fallback por compatibilidad ----
+  const cfg = (window.BegAIChat ||= (window.BegasistChat || {}));
+  const brand = "BegAI";
+
+  // ---- UI config ----
   const primary = (cfg.theme && cfg.theme.primary) || "#0ea5e9";
   const pos = (cfg.position || "bottom-right").toLowerCase();
   const side = pos.includes("left") ? "left" : "right";
@@ -13,35 +17,47 @@
     ? cfg.languages.map(normLang).filter((l) => SUPPORTED.includes(l))
     : SUPPORTED.slice();
 
-  // i18n por defecto del widget (claves mínimas que usamos en la UI)
+  // i18n mínimo
   const I18N = {
     es: { assistant: "Asistente", placeholder: "Escribí tu mensaje...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Cerrar", statusOpen: "abierto" },
     en: { assistant: "Assistant", placeholder: "Type your message...", send: "Send", ariaOpen: "Open chat", ariaClose: "Close", statusOpen: "open" },
     pt: { assistant: "Assistente", placeholder: "Escreva sua mensagem...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Fechar", statusOpen: "aberto" },
   };
 
-  // Diccionarios/Traductor externos opcionales provistos por tu app
-  // - dict: { es: {assistant:"..."}, en:{...}, pt:{...} }
-  // - t: (key, lang) => string
-  const externalDicts = (cfg.dict && typeof cfg.dict === "object") ? cfg.dict : (cfg.i18n && typeof cfg.i18n === "object" ? cfg.i18n : null);
+  // Diccionarios/Traductor externos opcionales
+  const externalDicts = (cfg.dict && typeof cfg.dict === "object")
+    ? cfg.dict
+    : (cfg.i18n && typeof cfg.i18n === "object" ? cfg.i18n : null);
   const externalT = typeof cfg.t === "function" ? cfg.t : null;
 
-  function normLang(l) {
-    return String(l || "").toLowerCase().replace("_", "-").slice(0, 2);
+  function normLang(l) { return String(l || "").toLowerCase().replace("_", "-").slice(0, 2); }
+
+  // ---- Migración de localStorage (begasist:* → begai:*) ----
+  const OLD_PREFIX = "begasist";
+  const NEW_PREFIX = "begai";
+  function migrateKey(suffix) {
+    const oldKey = `${OLD_PREFIX}:${suffix}`;
+    const newKey = `${NEW_PREFIX}:${suffix}`;
+    const oldVal = localStorage.getItem(oldKey);
+    const newVal = localStorage.getItem(newKey);
+    if (oldVal && !newVal) localStorage.setItem(newKey, oldVal);
   }
+  migrateKey(`lang:${hotelId}`);
+  migrateKey(`conversationId:${hotelId}`);
 
   // Idioma inicial: localStorage > config.lang > navegador > "es"
-  const langKey = `begasist:lang:${hotelId}`;
-  const storedLang = normLang(localStorage.getItem(langKey));
+  const langKeyNew = `${NEW_PREFIX}:lang:${hotelId}`;
+  const langKeyOld = `${OLD_PREFIX}:lang:${hotelId}`;
+  const storedLang = normLang(localStorage.getItem(langKeyNew) || localStorage.getItem(langKeyOld));
   const cfgLang = normLang(cfg.lang || "");
   const navLang = normLang(typeof navigator !== "undefined" ? navigator.language : "es");
   let currentLang =
     (storedLang && SUPPORTED.includes(storedLang) && storedLang) ||
     (cfgLang && SUPPORTED.includes(cfgLang) && cfgLang) ||
     (SUPPORTED.includes(navLang) ? navLang : "es");
-  localStorage.setItem(langKey, currentLang);
+  localStorage.setItem(langKeyNew, currentLang);
 
-  // Traductor de la UI
+  // Traductor
   const t = (key) => {
     try {
       if (externalT) {
@@ -54,12 +70,13 @@
     return (I18N[currentLang] || I18N.es)[key] || key;
   };
 
-  // 🔐 conversación persistente
-  const lsConvKey = `begasist:conversationId:${hotelId}`;
-  const getConv = () => localStorage.getItem(lsConvKey);
-  const setConv = (id) => localStorage.setItem(lsConvKey, id);
+  // 🔐 conversación persistente (con migración)
+  const convKeyNew = `${NEW_PREFIX}:conversationId:${hotelId}`;
+  const convKeyOld = `${OLD_PREFIX}:conversationId:${hotelId}`;
+  const getConv = () => localStorage.getItem(convKeyNew) || localStorage.getItem(convKeyOld);
+  const setConv = (id) => localStorage.setItem(convKeyNew, id);
 
-  if (!api) console.warn("[BegasistChat] Falta apiBase en window.BegasistChat");
+  if (!api) console.warn("[BegAIChat] Falta apiBase en window.BegAIChat");
 
   // --- estilos
   const style = document.createElement("style");
@@ -153,7 +170,7 @@
     const newLang = normLang(langSelect.value);
     if (!SUPPORTED.includes(newLang)) return;
     currentLang = newLang;
-    localStorage.setItem(langKey, currentLang);
+    localStorage.setItem(langKeyNew, currentLang);
     applyLangToUI();
     appendMsg("ai", `${t("assistant")} (${t("statusOpen")})`);
   });
@@ -177,8 +194,8 @@
       esConvId = conversationId;
       const url = `${api}/api/web/events?conversationId=${encodeURIComponent(conversationId)}`;
       es = new EventSource(url, { withCredentials: false });
-      es.onopen = () => console.log("[BegasistChat] SSE abierto:", url);
-      es.onerror = (e) => console.warn("[BegasistChat] SSE error:", e);
+      es.onopen = () => console.log("[BegAIChat] SSE abierto:", url);
+      es.onerror = (e) => console.warn("[BegAIChat] SSE error:", e);
       es.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data);
@@ -187,7 +204,7 @@
         } catch { if (ev.data) appendMsg("ai", ev.data); }
       };
     } catch (e) {
-      console.warn("[BegasistChat] SSE no disponible:", e);
+      console.warn("[BegAIChat] SSE no disponible:", e);
     }
   };
 
@@ -231,7 +248,7 @@
       channel: "web",
       hotelId,
       conversationId: conv,
-      lang: currentLang,        // ← idioma preferido del usuario
+      lang: currentLang,        // idioma preferido del usuario
     };
 
     try {
@@ -258,7 +275,7 @@
       }
     } catch (err) {
       appendMsg("ai", "⚠️ No se pudo conectar con el servidor.");
-      console.warn("[BegasistChat] error:", err);
+      console.warn("[BegAIChat] error:", err);
     } finally {
       btn.disabled = false;
       ta.focus();
@@ -278,5 +295,5 @@
     if (e.key === "Escape" && panel.style.display === "flex") toggle();
   });
 
-  console.log("[BegasistChat] listo •", { hotelId, apiBase: api, lang: currentLang, position: pos });
+  console.log("[BegAIChat] listo •", { hotelId, apiBase: api, lang: currentLang, position: pos });
 })();

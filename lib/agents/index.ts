@@ -1,7 +1,6 @@
 // Path: /root/begasist/lib/agents/index.ts
 
 import { StateGraph } from "@langchain/langgraph";
-import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 import { createRetrieverTool } from "langchain/tools/retriever";
@@ -13,6 +12,7 @@ import { searchFromAstra } from "../retrieval";
 import { translateIfNeeded } from "@/lib/i18n/translateIfNeeded";
 import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
 import { handleReservation } from "@/lib/agents/reservations";
+import { handleClassify } from "./classify";
 
 // ----------------------------
 // Estado del grafo: SOLO recibe, no calcula idioma ni sentimiento
@@ -116,55 +116,7 @@ export async function initializeVectorStore() {
 // ----------------------------
 // Nodo de clasificación
 export async function classifyNode(state: typeof GraphState.State) {
-  const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
-  const userLang = state.detectedLanguage ?? "es";
-  const hotelLang = await getHotelNativeLanguage(state.hotelId);
-
-  let question = typeof lastUserMessage?.content === "string"
-    ? lastUserMessage.content.trim()
-    : "";
-  debugLog("❓Pregunta:", question);
-
-  // Traduce SOLO si el idioma detectado es distinto al nativo del hotel
-  let normalizedQuestion = question;
-  if (userLang !== hotelLang) {
-    normalizedQuestion = await translateIfNeeded(question, userLang, hotelLang);
-  }
-  debugLog("❓Pregunta  normalizada:",  normalizedQuestion);
-
-  let classification;
-  try {
-    classification = await classifyQuery(normalizedQuestion, state.hotelId);
-    debugLog("🔀 Clasificación detectada:", classification);
-  } catch (e) {
-    console.error("❌ Error clasificando la consulta:", e);
-    classification = { category: "retrieval_based", promptKey: null };
-  }
-
-  const { category, promptKey } = classification;
-  const validPromptKeys = promptMetadata[category] || [];
-  const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
-
-  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey });
-
-  // Heurística: si menciona fechas/habitación/precio => arrancar en "qualify|quote"
-  const salesStageHint = /(\d{4}-\d{2}-\d{2})|habitaci|precio|tarifa|suite|doble|matrimonial/i.test(normalizedQuestion)
-    ? ("quote" as const)
-    : ("qualify" as const);
-
-  return {
-    ...state,
-    category,
-    promptKey: finalPromptKey,
-    normalizedMessage: normalizedQuestion,
-    salesStage: salesStageHint,
-    messages: [
-      ...state.messages,
-      new AIMessage(
-        `Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""}`
-      ),
-    ],
-  };
+  return await handleClassify(state);
 }
 
 // ----------------------------

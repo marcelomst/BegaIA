@@ -1,4 +1,4 @@
-// Path: /root/begasist/app/widget/embed/route.ts
+// Path: /root/begAI/app/widget/embed/route.ts
 import { NextResponse } from "next/server";
 
 /**
@@ -13,8 +13,8 @@ import { NextResponse } from "next/server";
  *     &langs=es,en,pt"></script>
  *
  * Este endpoint genera JS que:
- *   1) configura window.BegasistChat
- *   2) inyecta /widget/begasist-chat.js
+ *   1) configura window.BegAIChat
+ *   2) inyecta /widget/begAI-chat.js
  */
 
 type Position = "bottom-right" | "bottom-left";
@@ -74,7 +74,7 @@ export async function GET(req: Request) {
   const js =
     `(()=>{` +
     `var w=window,d=document;` +
-    `w.BegasistChat=Object.assign({},w.BegasistChat,{` +
+    `w.BegAIChat=Object.assign({},w.BegAIChat,{` +
     `hotelId:${JSON.stringify(hotel)},` +
     `apiBase:${JSON.stringify(apiBase)},` +
     `lang:${JSON.stringify(lang)},` +
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
     `});` +
     `var s=d.createElement("script");` +
     `s.async=true;` +
-    `s.src:${JSON.stringify(apiBase + "/widget/begasist-chat.js")};` +
+    `s.src:${JSON.stringify(apiBase + "/widget/begai-chat.js")};` +
     `d.head.appendChild(s);` +
     `})();`;
 

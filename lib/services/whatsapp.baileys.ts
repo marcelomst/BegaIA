@@ -13,6 +13,16 @@ import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { registerAdapter } from "@/lib/adapters/registry";
 import { whatsappBaileysAdapter, bindBaileysSock } from "@/lib/adapters/whatsappBaileysAdapter";
 
+function getTextFromBaileys(m: any): string {
+  return (
+    m?.message?.conversation ||
+    m?.message?.extendedTextMessage?.text ||
+    m?.message?.imageMessage?.caption ||
+    m?.message?.videoMessage?.caption ||
+    ""
+  );
+}
+
 // 1) Redis único (reutilizable)
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
@@ -200,33 +210,40 @@ export async function startWhatsAppBot({
           const now = new Date();
           const conversationId = `${hotelId}-whatsapp-${jid}`;
 
-          const msg: ChannelMessage = {
+          const remoteJid = m.key.remoteJid as string;
+          const text = getTextFromBaileys(m);
+          if (!text) return;
+
+          const tsMs =
+            (Number(m.messageTimestamp) ? Number(m.messageTimestamp) * 1000 : Date.now());
+
+          const channelMsg: ChannelMessage = {
             messageId: m.key.id || crypto.randomUUID(),
             hotelId,
-            channel: "whatsapp" as any,
-            conversationId,
-            guestId: jid,
-            sender: jid,
+            channel: "whatsapp",
+            conversationId: `${hotelId}-whatsapp-${remoteJid}`,
+            sender: m.pushName || remoteJid,
+            guestId: remoteJid,
             content: text,
-            role: "user",
-            detectedLanguage: "es", // opcional: plug de detección real
-            timestamp: now.toISOString(),
-            time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            suggestion: "",
-            status: "sent",
+            timestamp: new Date(tsMs).toISOString(),
+            time: new Date(tsMs).toLocaleTimeString(),
+            suggestion: "",           // 👈 obligatorio en tu tipo
+            status: "sent",           // o "pending" si preferís
+            detectedLanguage: undefined, // opcional, tu pipeline puede inferirlo luego
           };
 
-          await handleIncomingMessage(msg, {
-            autoReply: true,
-            // ⬇️ Envío centralizado via adapter (sin lógica de canal en el core)
-            sendReply: async (reply: string) => {
-              await whatsappBaileysAdapter.sendReply(
-                { hotelId, conversationId, channel: "whatsapp", meta: { jid } },
-                reply
-              );
-              await sock.sendPresenceUpdate("available", jid);
-            },
+          const mode: "automatic" | "supervised" = "automatic";
+
+          await handleIncomingMessage(channelMsg, {
+            mode,
+            sendReply:
+              mode === "automatic"
+                ? async (reply: string) => {
+                    await sock.sendMessage(remoteJid, { text: reply });
+                  }
+                : undefined,
           });
+
         } catch (err) {
           console.error(`${TAG} error al procesar mensaje:`, err);
           try {

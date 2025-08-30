@@ -12,8 +12,7 @@ import { webAdapter } from "@/lib/adapters/webAdapter";
 
 export async function startHotelBot(hotelId: string) {
   try {
-    // registrar adaptador web
-    registerAdapter(webAdapter);
+
 
     const config = await getHotelConfig(hotelId);
     if (!config) {

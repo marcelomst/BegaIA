@@ -1,136 +1,78 @@
 // Path: /root/begasist/app/api/chat/route.ts
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
-import type { ChannelMessage, ChannelMode } from "@/types/channel";
-import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { getAdapter } from "@/lib/adapters/registry";
+import { emitToConversation } from "@/lib/web/eventBus";         // 👈 nuevo
+import type { Channel, ChannelMessage } from "@/types/channel";
+import crypto from "crypto";
 
-/**
- * Endpoint público para mensajes del widget web.
- * - Devuelve siempre `conversationId` para que el widget lo persista.
- * - Si existe el adapter "web", streamea por SSE (sendReply) y NO devuelve `response` en JSON.
- * - Si NO existe el adapter "web", devuelve la primera respuesta en `response` como fallback.
- */
 export async function POST(req: Request) {
+  // leemos body afuera del try para reusar datos en el catch
+  const body = await req.json().catch(() => ({}));
+  const hotelId = String((body as any).hotelId || "");
+  const channel = String((body as any).channel || "web") as Channel;
+  const conversationId = String((body as any).conversationId || crypto.randomUUID());
+  const guestId = String((body as any).guestId || "web-guest");
+  const sender = String((body as any).sender || "Usuario Web");
+  const detectedLanguage = String((body as any).lang || (body as any).detectedLanguage || "es");
+  const content = String((body as any).query || (body as any).text || "").trim();
+
   try {
-    const body = (await req.json()) as {
-      query: string;
-      channel?: "web";
-      hotelId?: string;
-      lang?: string;
-      conversationId?: string;
-      subject?: string;
-      guestId?: string;
-    };
+    if (!hotelId || !content) {
+      return NextResponse.json({ ok: false, error: "hotelId y query son obligatorios" }, { status: 200 });
+    }
 
-    const {
-      query,
-      channel = "web",
+    const time = new Date().toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit" });
+
+    const incoming: ChannelMessage = {
+      messageId: crypto.randomUUID(),
       hotelId,
-      lang,
+      channel,
       conversationId,
-      subject,
+      sender,
       guestId,
-    } = body || {};
-
-    if (channel !== "web") {
-      return NextResponse.json(
-        { response: "Canal no soportado en este endpoint.", channel },
-        { status: 400 }
-      );
-    }
-
-    const text = String(query ?? "").trim();
-    if (!text) {
-      return NextResponse.json(
-        { response: "Falta el mensaje (query)." },
-        { status: 400 }
-      );
-    }
-
-    const realHotelId = hotelId || "hotel999";
-    const config = await getHotelConfig(realHotelId);
-    const channelMode: ChannelMode =
-      (config?.channelConfigs?.web?.mode as ChannelMode) || "automatic";
-    const idiomaFinal = lang || config?.defaultLanguage || "es";
-
-    // conversationId garantizado desde el backend (el widget lo guarda en localStorage)
-    const ensuredConversationId = conversationId || uuidv4();
-
-    const now = new Date();
-    const msg: ChannelMessage = {
-      messageId: uuidv4(),
-      hotelId: realHotelId,
-      channel: "web",
-      conversationId: ensuredConversationId,
-      sender: guestId || "Usuario Web",
-      guestId: guestId || "web-guest",
-      content: text,
-      timestamp: now.toISOString(),
-      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      suggestion: "",
-      status: "sent",
       role: "user",
-      detectedLanguage: idiomaFinal,
-      subject,
+      content,
+      suggestion: "",
+      timestamp: new Date().toISOString(),
+      time,
+      status: "sent",
+      detectedLanguage,
     };
 
-    const web = getAdapter("web"); // puede ser undefined en dev
-    const sseEnabled = Boolean(web);
-
-    let lastReply: string | null = null;
-
-    if (sseEnabled) {
-      // Flujo normal con SSE: enviar por adapter
-      await handleIncomingMessage(msg, {
-        autoReply: true,
-        mode: channelMode,
-        sendReply: async (reply: string) => {
-          await web!.sendReply(
-            {
-              hotelId: realHotelId,
-              conversationId: msg.conversationId!,
-              channel: "web",
-            },
-            reply
-          );
-          // NO seteamos lastReply para evitar duplicar con la respuesta JSON
-        },
-      });
-    } else {
-      // Fallback sin adapter: devolvemos la primera respuesta en JSON
-      const result: any = await handleIncomingMessage(msg, {
-        autoReply: true,
-        mode: channelMode,
-      });
-      if (typeof result === "string") {
-        lastReply = result;
-      } else if (result?.response) {
-        lastReply =
-          typeof result.response === "string"
-            ? result.response
-            : JSON.stringify(result.response);
-      } else {
-        lastReply = "🕓 Recibimos tu mensaje. Te respondemos por este chat en segundos.";
-      }
+    const adapter = getAdapter(channel);
+    
+    const opts: Parameters<typeof handleIncomingMessage>[1] = { mode: "automatic" };
+    if (adapter) {
+      console.log("[/api/chat] adapter for", channel, "=>", adapter ? "OK" : "NONE");
+      opts.sendReply = (reply: string) =>
+        adapter.sendReply({ hotelId, conversationId, channel }, reply);
     }
 
-    return NextResponse.json({
-      // si hay SSE, NO mandamos `response` para evitar duplicados en el widget
-      response: sseEnabled ? null : lastReply,
-      status: channelMode === "automatic" ? "sent" : "pending",
-      messageId: msg.messageId,
-      conversationId: msg.conversationId,
-      lang: idiomaFinal,
-      subject: typeof subject === "string" ? subject : undefined,
-      sse: sseEnabled,
-    });
-  } catch (err) {
-    console.error("⛔ Error en /api/chat:", err);
-    return NextResponse.json(
-      { response: "Ocurrió un error al procesar la solicitud." },
-      { status: 500 }
-    );
+    await handleIncomingMessage(incoming, opts);
+
+    // ✅ siempre 200: el widget no mostrará el cartel de error
+    return NextResponse.json({ ok: true, conversationId }, { status: 200 });
+  } catch (err: any) {
+    console.error("[/api/chat] error:", err?.stack || err);
+
+    // 👇 Enviamos fallback por SSE para que el usuario vea algo en el chat
+    const fallback =
+      detectedLanguage.toLowerCase().startsWith("es")
+        ? "Perdón, tuve un problema procesando tu consulta. ¿Podés intentar de nuevo?"
+        : detectedLanguage.toLowerCase().startsWith("pt")
+        ? "Desculpe, tive um problema ao processar sua solicitação. Pode tentar novamente?"
+        : "Sorry, I had an issue processing your request. Could you try again?";
+    try {
+      emitToConversation(conversationId, {
+        type: "message",
+        sender: "assistant",
+        text: fallback,
+        timestamp: new Date().toISOString(),
+      });
+    } catch {}
+
+    // ✅ respondemos 200 para no romper el widget
+    return NextResponse.json({ ok: false, conversationId, error: String(err?.message || err) }, { status: 200 });
   }
 }

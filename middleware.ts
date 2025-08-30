@@ -1,25 +1,26 @@
-// Path: /root/begasist/middleware.ts
+// /root/begasist/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/auth/jwt";
-import { canAccessHotelsSection, canAccessAdminRoute } from "@/lib/auth/roles";
+import { canAccessAdminRoute } from "@/lib/auth/roles";
 
-// Orígenes permitidos para el widget
+// 🔐 Orígenes permitidos para el widget estático
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:8081",
   "http://127.0.0.1:8081",
 ]);
 
 function buildCorsHeaders(origin: string | null) {
-  const h = new Headers();
+  const headers = new Headers();
   if (origin && ALLOWED_ORIGINS.has(origin)) {
-    h.set("Access-Control-Allow-Origin", origin);
-    h.set("Vary", "Origin");
+    headers.set("Access-Control-Allow-Origin", origin);
+    headers.set("Vary", "Origin");
   }
-  h.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  h.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  h.set("Access-Control-Max-Age", "86400");
-  return h;
+  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  headers.set("Access-Control-Max-Age", "86400");
+  return headers;
 }
+
 function withCORS(res: NextResponse, req: NextRequest) {
   const origin = req.headers.get("origin");
   const cors = buildCorsHeaders(origin);
@@ -28,11 +29,13 @@ function withCORS(res: NextResponse, req: NextRequest) {
 }
 
 const PUBLIC_PATHS = [
+  // Auth públicas
   "/auth/login",
   "/auth/forgot-password",
   "/auth/reset-password",
   "/auth/verify-account",
 
+  // Rutas públicas de API
   "/api/login",
   "/api/users/hotels-for-user",
   "/api/users/send-recovery-email",
@@ -50,13 +53,15 @@ const PUBLIC_PATHS = [
   "/api/channel-status",
   "/api/email/polling",
 
+  // Simuladores
   "/api/simulate",
 
+  // 🔓 Webhooks externos
   "/api/integrations/beds24/webhooks",
   "/api/health",
   "/api/reservations/by-id",
 
-  // SSE del widget
+  // 👇 SSE del widget (crítico)
   "/api/web/events",
 ];
 
@@ -64,55 +69,48 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isApi = pathname.startsWith("/api/");
 
-  // Preflight CORS
+  // 0) Preflight CORS
   if (req.method === "OPTIONS" && isApi) {
     return withCORS(new NextResponse(null, { status: 204 }), req);
   }
 
-  // Integraciones → bypass
+  // 1) Integraciones: bypass (pero con CORS)
   if (pathname.startsWith("/api/integrations/")) {
     return withCORS(NextResponse.next(), req);
   }
 
-  // Rutas públicas (incluye /api/chat y /api/web/events)
+  // 2) Públicos (incluye /api/chat y /api/web/events)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return withCORS(NextResponse.next(), req);
   }
 
-  // Auth (JWT en cookie)
+  // 3) Auth por cookie JWT
   const token = req.cookies.get("token")?.value;
   if (!token) {
     const res = NextResponse.redirect(new URL("/auth/login", req.url));
     return isApi ? withCORS(res, req) : res;
   }
+
   const payload = await verifyJWT(token);
   if (!payload) {
     const res = NextResponse.redirect(new URL("/auth/login", req.url));
     return isApi ? withCORS(res, req) : res;
   }
 
-  // ✅ Cualquier ruta bajo /admin/hotels/** (incluye /widget) se valida SOLO con canAccessHotelsSection
-  if (pathname.startsWith("/admin/hotels/")) {
-    if (!canAccessHotelsSection(payload.roleLevel)) {
-      const res = NextResponse.redirect(new URL("/auth/login", req.url));
-      return isApi ? withCORS(res, req) : res;
-    }
-    return withCORS(NextResponse.next(), req); // ← EARLY RETURN, no cae al check genérico
-  }
-
-  // Resto de /admin/** con regla general
+  // 4) Gateo /admin ÚNICAMENTE con canAccessAdminRoute
   if (pathname.startsWith("/admin")) {
-    if (!canAccessAdminRoute(payload.roleLevel, pathname)) {
+    const ok = canAccessAdminRoute(payload.roleLevel, pathname);
+    if (!ok) {
       const res = NextResponse.redirect(new URL("/auth/login", req.url));
       return isApi ? withCORS(res, req) : res;
     }
   }
 
-  // OK
+  // 5) OK
   return withCORS(NextResponse.next(), req);
 }
 
-// Aplica en /admin y /api
+// ✅ Middleware para /admin y /api
 export const config = {
   matcher: ["/admin/:path*", "/api/:path*"],
 };

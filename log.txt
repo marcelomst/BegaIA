@@ -47185,3 +47185,1524 @@ Try to install it into the project directory by running [32mnpm install puppete
   "category": "support",
   "promptKey": null
 }
+[2025-08-29T09:28:12.124Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T09:28:14.961Z] [DEBUG] ❓Pregunta: hola
+[2025-08-29T09:28:14.961Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-29T09:28:16.798Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:28:16.798Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:28:16.798Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:40:27.937Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T09:40:30.630Z] [DEBUG] ❓Pregunta: hola
+[2025-08-29T09:40:30.630Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-29T09:40:32.300Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:40:32.300Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:40:32.300Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:43:23.590Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T09:43:26.150Z] [DEBUG] ❓Pregunta: quiero reservar
+[2025-08-29T09:43:26.150Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar
+[2025-08-29T09:43:27.106Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T09:43:27.107Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T09:43:27.107Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T09:43:44.133Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T09:43:46.370Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+[2025-08-29T09:43:46.370Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+[2025-08-29T09:43:47.143Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:43:47.143Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T09:43:47.143Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:34:11.582Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T10:34:13.494Z] [DEBUG] ❓Pregunta: hola
+[2025-08-29T10:34:13.494Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-29T10:34:14.769Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:34:14.770Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:34:14.770Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:34:37.466Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T10:34:39.365Z] [DEBUG] ❓Pregunta: a que hora es el check in
+[2025-08-29T10:34:39.365Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in
+[2025-08-29T10:34:41.577Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T10:34:41.577Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T10:34:41.578Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T10:34:41.753Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-29T10:34:46.316Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-29T10:34:46.317Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-29T10:34:46.668Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-29T10:34:46.668Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-29T10:34:46.668Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-29T10:48:16.524Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T10:48:18.916Z] [DEBUG] ❓Pregunta: quiero reservar
+[2025-08-29T10:48:18.916Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar
+[2025-08-29T10:48:20.108Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T10:48:20.108Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T10:48:20.108Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "reservation",
+  "promptKey": null
+}
+[2025-08-29T10:48:51.152Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T10:48:53.117Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+[2025-08-29T10:48:53.117Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+[2025-08-29T10:48:54.510Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:48:54.510Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T10:48:54.511Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T13:47:16.197Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T13:47:17.791Z] [ERROR] [/api/chat] error: Collection does not exist, collection name: conv_state
+[2025-08-29T13:47:19.085Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:47:29.444Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:47:39.847Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:47:50.308Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T13:48:00.819Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:48:11.375Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:48:21.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:48:32.630Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:48:43.341Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:48:54.096Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:49:04.901Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:49:15.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:49:26.677Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T13:49:37.633Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:49:48.641Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:49:48.643Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:49:48.643Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:49:48.643Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:49:48.644Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:49:59.697Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:50:10.803Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:50:21.956Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:50:33.160Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:50:44.421Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:50:55.729Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:51:07.081Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:51:18.493Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:51:29.954Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T13:51:41.463Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:51:53.018Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:52:04.625Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:52:16.283Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T13:52:27.993Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:52:39.748Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:52:51.552Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:03.406Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:15.319Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:27.279Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:39.287Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:51.290Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:53:51.291Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:53:51.291Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:53:51.291Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:53:51.291Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:54:03.294Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:54:15.301Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:54:27.311Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:54:39.320Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:54:51.324Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:55:03.329Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:55:15.338Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:55:27.350Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:55:39.364Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:55:51.367Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:56:03.372Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:56:15.385Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:56:27.398Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:56:39.408Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:56:51.413Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:57:03.416Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:57:15.428Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T13:57:27.438Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:57:39.448Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:57:51.453Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:58:03.459Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:58:03.459Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:58:03.460Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:58:03.460Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:58:03.460Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T13:58:15.466Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:58:27.475Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:58:39.482Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:58:51.485Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:59:03.490Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:59:15.498Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:59:27.507Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:59:39.514Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T13:59:51.517Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:00:03.522Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:00:15.533Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:00:27.544Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:00:39.550Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:00:51.554Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:01:03.560Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:01:15.571Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:01:27.579Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:01:39.587Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:01:51.593Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:02:03.596Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:02:15.606Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:02:27.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:02:39.619Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:02:51.623Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:03:03.628Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:03:15.641Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:03:27.651Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:03:39.656Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:03:51.660Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:04:03.665Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:04:15.678Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:04:27.683Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:04:39.689Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:04:51.694Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:05:03.701Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:05:15.713Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:05:27.722Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:05:39.725Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:05:51.727Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:06:03.733Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:06:15.744Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:06:27.754Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:06:39.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:06:51.765Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:07:03.770Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:07:15.781Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:07:27.792Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:07:39.798Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:07:51.800Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:08:03.805Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:08:15.817Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:08:27.829Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:08:39.836Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:08:51.839Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:09:03.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:09:15.854Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:09:27.858Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:09:39.866Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:09:51.868Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:10:03.872Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:10:15.886Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:10:27.895Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:10:39.901Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:10:51.905Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:11:03.909Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:11:15.923Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:11:27.932Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:11:39.940Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:11:51.944Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:12:03.948Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:12:15.961Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:12:27.970Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:12:39.977Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:12:51.982Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:13:03.986Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:13:15.989Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:13:27.999Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:13:40.006Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:13:52.010Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:14:04.014Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:14:16.026Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:14:28.036Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:14:40.041Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:14:52.045Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:15:04.049Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:15:16.060Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:15:28.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:15:40.076Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:15:52.080Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:16:04.084Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:16:16.093Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:16:28.106Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:16:40.108Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:16:52.114Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:17:04.132Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:17:16.144Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:17:28.148Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:17:40.157Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:19:20.302Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T14:19:21.924Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__09e89730._.js:3564:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__09e89730._.js:3677:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__09e89730._.js:3917:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-29T14:19:28.194Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:19:38.498Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:19:48.859Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:19:59.263Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:20:09.725Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:20:20.237Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:20:30.793Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:20:41.396Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:20:52.058Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:02.763Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:13.520Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:24.332Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:35.191Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:46.100Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:21:57.055Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:22:08.066Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:22:08.067Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:22:08.068Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:22:08.068Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:22:08.068Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:22:19.123Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:22:30.228Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:22:41.380Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:22:52.588Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:23:03.846Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:23:15.154Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:23:26.505Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:23:37.917Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:23:49.378Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:24:00.887Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:24:12.441Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:24:24.051Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:24:35.710Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:24:47.420Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:24:59.173Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:25:10.977Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:25:22.841Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:25:34.750Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:25:46.711Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:25:58.718Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:26:10.722Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:26:10.722Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:26:10.723Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:26:10.723Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:26:10.723Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:26:22.731Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:26:34.737Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:26:46.751Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:26:58.758Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:27:10.764Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:27:22.777Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:27:34.788Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:27:46.794Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:27:58.799Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:28:10.803Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:28:22.813Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:28:34.824Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:28:46.837Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:28:58.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:29:10.849Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:29:22.859Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:29:34.869Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:29:46.878Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:29:58.880Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:30:10.890Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:34:13.663Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:34:13.663Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:34:13.663Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:34:13.663Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:34:13.664Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-08-29T14:34:25.672Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:34:37.678Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:34:49.686Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:35:01.696Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:35:13.706Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:35:25.717Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:35:37.721Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:35:49.726Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:36:01.736Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:36:13.744Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:36:25.755Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:36:37.759Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:36:49.764Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:37:01.778Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:37:13.790Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:37:25.804Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:37:37.813Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:37:49.817Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:38:01.828Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:38:13.839Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:38:25.848Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:38:37.855Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:38:49.860Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:39:01.874Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:39:13.887Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:39:25.893Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:39:37.896Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:39:49.899Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:40:01.912Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:40:13.924Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:40:25.933Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:40:37.940Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:40:49.945Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:41:01.955Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:41:13.963Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:41:25.972Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:41:37.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:41:49.983Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:42:01.993Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:42:14.003Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:42:26.010Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:42:38.017Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:42:50.020Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:43:02.037Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:43:14.052Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:43:26.062Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:43:38.069Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:43:50.071Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:44:02.083Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:44:14.095Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:44:26.097Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:44:38.105Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:44:50.109Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:45:02.118Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:45:14.130Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:45:26.139Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:45:38.146Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:45:50.150Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:46:02.163Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:46:14.176Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:46:26.187Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:46:38.193Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:46:50.195Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:47:02.209Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:47:14.221Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:47:26.223Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:47:38.229Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:47:50.233Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:48:02.248Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:48:14.260Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:48:26.270Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:48:38.278Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:48:50.282Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:49:02.291Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:49:14.303Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:49:26.311Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:49:38.321Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:49:50.324Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:50:02.338Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:50:14.351Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:50:26.359Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:50:38.365Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:50:50.367Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:51:02.379Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:51:14.388Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:51:26.396Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:51:38.421Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:51:50.425Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:52:02.435Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:52:14.437Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:52:37.644Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:52:49.647Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:53:01.660Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:53:13.685Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:53:25.689Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:53:37.721Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:53:49.732Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:54:01.736Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:54:13.746Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:54:25.752Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:54:37.760Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:54:49.790Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:55:01.797Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:55:13.803Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:55:25.809Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:55:37.820Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:55:49.832Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:56:01.840Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:56:13.846Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:56:25.850Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:56:37.860Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:56:49.871Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:57:01.879Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:57:13.887Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:57:25.891Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:57:37.902Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:57:49.911Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:58:01.916Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:58:13.922Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:58:25.927Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:58:37.940Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:58:49.944Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T14:59:01.949Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:59:13.968Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:59:25.973Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:59:37.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T14:59:49.979Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:00:01.985Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:00:13.991Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:00:25.994Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:00:38.002Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:00:50.011Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:01:02.020Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:01:14.026Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:01:26.029Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:01:38.043Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:01:50.055Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:02:02.061Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:02:14.068Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:02:26.072Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:02:38.085Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:02:50.096Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:03:02.102Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:03:14.110Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:03:26.114Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:03:38.125Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:03:50.137Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:04:02.143Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:04:14.154Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:04:26.158Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:04:38.171Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:04:50.182Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:05:02.186Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:05:14.192Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:05:26.196Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:05:38.204Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:05:50.216Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:06:02.221Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:06:14.229Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:06:26.233Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:06:38.242Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:06:50.253Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:07:02.260Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:07:14.266Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:07:26.272Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:07:38.282Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:07:50.292Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:08:02.301Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:08:14.307Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:08:26.312Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:08:38.324Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:08:50.334Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:09:02.343Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:09:14.350Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:09:26.360Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:09:38.375Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:09:50.384Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:10:02.393Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:10:14.400Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:10:26.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:10:38.416Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:10:50.426Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:11:02.437Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:11:14.444Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:11:26.446Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:11:38.452Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:11:50.463Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:12:02.468Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:12:14.476Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:12:26.479Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:12:38.490Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:12:50.502Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:13:02.507Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:13:14.513Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:13:26.517Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:13:38.532Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:13:50.543Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:14:02.549Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:14:14.556Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:14:26.562Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:14:38.574Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:14:50.586Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:15:02.590Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:15:14.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:15:26.601Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:15:38.613Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:15:50.624Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:16:02.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:16:14.639Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:16:26.644Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:16:38.657Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:16:50.661Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:17:02.666Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:17:14.674Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:17:26.677Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:17:38.691Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:17:50.699Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:18:02.706Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:18:14.714Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:18:26.720Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:18:38.732Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:18:50.733Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:19:02.740Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:19:14.746Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:19:26.751Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:19:38.761Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:19:50.773Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:20:02.778Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:20:14.789Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:20:26.792Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:20:38.800Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:20:50.814Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:21:02.820Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:21:14.823Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:25:35.085Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:25:47.095Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:25:59.106Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:26:11.117Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:26:23.122Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:26:35.135Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:26:47.142Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:26:59.151Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:27:11.157Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:27:23.159Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:27:35.170Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:27:47.183Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:27:59.190Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:28:11.192Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:28:23.195Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:28:35.200Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:28:47.210Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:28:59.219Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:29:11.226Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:29:23.230Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:29:35.243Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:29:47.253Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:29:59.263Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:30:11.269Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:30:23.275Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:30:35.285Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:30:47.292Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:30:59.304Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:31:11.309Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:31:23.315Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:31:35.329Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:31:47.332Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:31:59.342Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:32:11.349Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:32:23.353Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:32:35.360Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:32:47.371Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:32:59.383Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:33:11.389Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:33:23.392Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:33:35.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:33:47.413Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:33:59.422Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:34:11.429Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:34:23.436Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:34:35.448Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:34:47.458Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-08-29T15:34:59.467Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:35:11.474Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:35:23.482Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:35:35.495Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:35:47.506Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:35:59.515Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:36:11.524Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:36:23.529Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-08-29T15:37:43.669Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T15:37:45.587Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3564:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3677:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3923:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-29T18:32:37.009Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T18:32:39.005Z] [ERROR] [/api/chat] error: Collection does not exist, collection name: conv_state
+[2025-08-29T18:47:01.826Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T18:47:03.561Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3564:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3691:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3939:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-29T18:57:42.096Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T18:57:44.130Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "5159e5ea-911d-4160-bace-12dfb1f82943",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:57:45.067Z] [DEBUG] ❓Pregunta: hola
+[2025-08-29T18:57:45.067Z] [DEBUG] ❓Pregunta  normalizada: hola
+[2025-08-29T18:57:46.414Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:57:46.414Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:57:46.414Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:57:46.987Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T18:57:46.800Z",
+          "lastCategory": "support",
+          "reservationSlots": {}
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "60e24e2a-d974-48a3-bdcf-a26c4896a4cd",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:05.783Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T18:58:07.737Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "53036e91-bd83-4516-9e8b-40aeda153cb9",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:08.447Z] [DEBUG] ❓Pregunta: a que hora es el check in
+[2025-08-29T18:58:08.447Z] [DEBUG] ❓Pregunta  normalizada: a que hora es el check in
+[2025-08-29T18:58:10.918Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T18:58:10.919Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T18:58:10.919Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "retrieval_based",
+  "promptKey": null
+}
+[2025-08-29T18:58:11.100Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-08-29T18:58:12.931Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-08-29T18:58:12.932Z] [DEBUG] 🔁 Fallback por category: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "category": "retrieval_based"
+}
+[2025-08-29T18:58:13.296Z] [DEBUG] 🔁 FallbackResults por category: []
+[2025-08-29T18:58:13.296Z] [WARN] ⚠️ Ningún resultado con buena similitud. Reintentando sin filtros...
+[2025-08-29T18:58:13.296Z] [DEBUG] 🔍 Búsqueda sin filtro adicional (hotelId + version): {
+  "hotelId": "hotel999",
+  "version": "v3"
+}
+[2025-08-29T18:58:15.660Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T18:58:15.446Z",
+          "lastCategory": "retrieval_based",
+          "reservationSlots": {}
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "777abe6d-a919-4716-90f3-eff788c8692a",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:25.391Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T18:58:27.310Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "700f67cb-f9c7-4fb3-bebd-cda0e8c9b1a9",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:28.013Z] [DEBUG] ❓Pregunta: quiero reservar
+[2025-08-29T18:58:28.013Z] [DEBUG] ❓Pregunta  normalizada: quiero reservar
+[2025-08-29T18:58:28.538Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T18:58:28.355Z",
+          "lastCategory": "reservation",
+          "reservationSlots": {}
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "4407b3e4-ac44-49df-8d9f-748e69cb56c5",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:44.058Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T18:58:45.895Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "7bdaaeab-9c4d-4892-853b-92ee394cd835",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T18:58:46.641Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+[2025-08-29T18:58:46.641Z] [DEBUG] ❓Pregunta  normalizada: Marcelo Martinez
+[2025-08-29T18:58:47.853Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:58:47.853Z] [DEBUG] 🔀 Clasificación detectada: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:58:47.853Z] [DEBUG] 🧠 Clasificación final: {
+  "category": "support",
+  "promptKey": null
+}
+[2025-08-29T18:58:48.373Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T18:58:48.190Z",
+          "lastCategory": "support",
+          "reservationSlots": {}
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "b79419b6-a06a-4786-aae1-7bdce87b24df",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:17:35.362Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T19:17:37.397Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "fc5f7696-d0bf-4173-b998-24b232981ec5",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:17:38.331Z] [DEBUG] ❓Pregunta: quiero reservar
+[2025-08-29T19:17:38.331Z] [DEBUG] ❓Pregunta normalizada: quiero reservar
+[2025-08-29T19:17:38.332Z] [DEBUG] 🧲 Sticky → forzando categoría 'reservation' (faltan slots).
+[2025-08-29T19:17:38.931Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T19:17:38.729Z",
+          "lastCategory": "reservation",
+          "reservationSlots": {
+            "guestName": "Quiero Reservar"
+          }
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "8ccadcc4-4b41-4ffb-9968-36259e2c000f",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:00.613Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T19:18:02.491Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "b1676325-564c-4847-8d98-c78e26d7b435",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:03.212Z] [DEBUG] ❓Pregunta: Marcelo Martinez
+[2025-08-29T19:18:03.212Z] [DEBUG] ❓Pregunta normalizada: Marcelo Martinez
+[2025-08-29T19:18:03.212Z] [DEBUG] 🧲 Sticky → forzando categoría 'reservation' (faltan slots).
+[2025-08-29T19:18:03.749Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T19:18:03.556Z",
+          "lastCategory": "reservation",
+          "reservationSlots": {
+            "guestName": "Marcelo Martinez"
+          }
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "29f98ce0-517b-4b52-b267-a9bb619e0cb7",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:18.089Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T19:18:19.977Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "a734b225-abca-41b0-937f-e76721c89c2e",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:20.775Z] [DEBUG] ❓Pregunta: doble
+[2025-08-29T19:18:20.775Z] [DEBUG] ❓Pregunta normalizada: doble
+[2025-08-29T19:18:20.775Z] [DEBUG] 🧲 Sticky → forzando categoría 'reservation' (faltan slots).
+[2025-08-29T19:18:21.297Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T19:18:21.113Z",
+          "lastCategory": "reservation",
+          "reservationSlots": {
+            "guestName": "Doble",
+            "roomType": "doble"
+          }
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "8f7f3b7d-a5fa-4482-8b1f-5e27c5fc8c99",
+        "title": "Collection does not exist, collection name",
+        "family": "REQUEST",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:43.751Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-29T19:18:45.564Z] [WARN] [handleIncomingMessage] load conv state warn: {
+  "command": {
+    "findOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "options": {}
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "d7465c28-8051-4698-bd87-e010e9b9add5",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:18:46.462Z] [DEBUG] ❓Pregunta: 2025-09-12 a 2025-09-15
+[2025-08-29T19:18:46.463Z] [DEBUG] ❓Pregunta normalizada: 2025-09-12 a 2025-09-15
+[2025-08-29T19:18:46.463Z] [DEBUG] 🧲 Sticky → forzando categoría 'reservation' (faltan slots).
+[2025-08-29T19:18:46.997Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "command": {
+    "updateOne": {
+      "filter": {
+        "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3"
+      },
+      "update": {
+        "$set": {
+          "_id": "hotel999:09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "hotelId": "hotel999",
+          "conversationId": "09ea8a53-48a4-4a26-b8fb-d51630c735c3",
+          "updatedAt": "2025-08-29T19:18:46.816Z",
+          "lastCategory": "reservation",
+          "reservationSlots": {
+            "checkIn": "2025-09-12",
+            "checkOut": "2025-09-15"
+          }
+        }
+      },
+      "options": {
+        "upsert": true
+      }
+    }
+  },
+  "rawResponse": {
+    "errors": [
+      {
+        "message": "Collection does not exist, collection name: conv_state",
+        "errorCode": "COLLECTION_NOT_EXIST",
+        "id": "37fce32c-7774-4da8-a372-1d465358e98c",
+        "family": "REQUEST",
+        "title": "Collection does not exist, collection name",
+        "scope": "EMPTY"
+      }
+    ]
+  },
+  "name": "DataAPIResponseError"
+}
+[2025-08-29T19:33:49.249Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-29T19:33:51.136Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3713:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3971:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-30T08:14:30.573Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-30T08:14:32.720Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3713:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3971:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-30T08:14:57.445Z] [WARN]  [33m[1m⚠[22m[39m ./node_modules/.pnpm/puppeteer-extra@3.3.6_puppeteer-core@24.11.0_puppeteer@24.11.0_typescript@5.8.3_/node_modules/puppeteer-extra/dist
+Package [32mpuppeteer-core[39m can't be external
+The request [32mpuppeteer-core[39m matches [32mserverExternalPackages[39m (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running [32mnpm install puppeteer-core[39m from the project directory.
+
+
+[2025-08-30T08:14:59.414Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3713:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3971:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-30T08:31:16.077Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-30T08:31:17.862Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3713:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3985:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-30T09:03:00.121Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-30T09:03:01.875Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3714:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:4001:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-08-30T09:13:50.233Z] [DEBUG] ✅ Grafo compilado con éxito.
+[2025-08-30T09:13:52.476Z] [ERROR] [/api/chat] error: DataAPIResponseError: Collection does not exist, collection name: conv_state
+    at DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8037:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CommandImpls.findOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3817:22)
+    at async getConvState (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3601:17)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:3714:16)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__669f1c7e._.js:4001:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
