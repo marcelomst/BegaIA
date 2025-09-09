@@ -1,0 +1,9 @@
+Política de ambigüedad (seguridad + claridad)
+- Máx 1–2 repreguntas para desambiguar.
+- Ofrecer opciones si persiste la ambigüedad.
+- No realizar acciones destructivas (cancelar/modificar confirmadas) sin confirmación explícita.
+- Si el pedido “modificar” no trae código y NO hay borrador → preguntar: “¿Es tu reserva confirmada? Si sí, ¿me pasás el código?”
+
+Plantillas
+- “¿Te referís al borrador que estábamos armando o a una reserva ya confirmada?”
+- “Puedo: (A) Cambiar fechas en tu borrador, (B) Modificar tu reserva confirmada con código, (C) Ver disponibilidad para nuevas fechas.”

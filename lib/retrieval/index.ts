@@ -1,24 +1,20 @@
-// /root/begasist/lib/retrieval/index.ts
-
-import puppeteer from "puppeteer-extra";
+// Path: /root/begasist/lib/retrieval/index.ts
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { OpenAIEmbeddings, ChatOpenAI } from "@langchain/openai";
 import { translationModel } from "../../app/lib/translation";
 import { debugLog } from "../utils/debugLog";
-import { ChatOpenAI } from "@langchain/openai";
 import { validateClassification } from "./validateClassification";
 import fs from "fs";
 import { cosineSimilarity } from "../utils/similarity";
-import type { ChunkResult, InsertableChunk, SearchFilters } from "../../types/chunk";
+import type { InsertableChunk, SearchFilters } from "../../types/chunk";
 import pdfParse from "pdf-parse";
 import { getHotelAstraCollection } from "../astra/connection";
 import { getHotelConfig } from "../config/hotelConfig.server";
 import { franc } from "franc";
 import { iso3To1 } from "@/lib/utils/lang";
 import { saveOriginalTextChunksToAstra } from "../astra/hotelTextCollection";
-
-
+import { getNextVersionForSystemPlaybook, upsertSystemPlaybookDoc } from "@/lib/astra/systemPlaybook";
 
 const urls = ["https://www.hoteldemo.com/en/index.php"];
 export function getCollectionName(hotelId: string) {
@@ -87,7 +83,10 @@ async function getNextVersionForCollection(collection: any, hotelId: string) {
 }
 
 /**
- * 🛠️ FIX: Clasifica cada chunk antes de guardar y guarda el texto original dividido en chunks en hotel_text_collection.
+ * Carga de documentos desde admin.
+ * - Hotel normal: ingesta con chunks + embeddings (como tenías).
+ * - Modo system (hotelId === "system"): un único doc plano en `system_playbook` (sin embeddings),
+ *   usando category/promptKey del form.
  */
 export async function loadDocumentFileForHotel({
   hotelId,
@@ -116,7 +115,7 @@ export async function loadDocumentFileForHotel({
     throw new Error("Formato no soportado. Solo PDF/TXT por ahora.");
   }
 
-  // 2. Detección y normalización de idioma (usa franc → iso3 → iso1)
+  // 2. Detección de idioma y target
   let translatedText = text;
   let detectedLang3 = "und";
   let detectedIso1 = "und";
@@ -126,17 +125,43 @@ export async function loadDocumentFileForHotel({
     targetLang = config?.defaultLanguage || "es";
     detectedLang3 = franc(text); // ej: "spa"
     detectedIso1 = await iso3To1(detectedLang3); // ej: "es"
-
-    debugLog(`[Vectorización] Idioma detectado (franc/iso3): ${detectedLang3}, iso1: ${detectedIso1}, destino: ${targetLang}`);
-    // Si el idioma detectado es distinto al objetivo, traducir
     if (targetLang && detectedIso1 !== "und" && detectedIso1 !== targetLang) {
-      debugLog("[Vectorización] Traduciendo texto al idioma destino…");
       translatedText = await translateTextToLang(text, targetLang);
-    } else {
-      debugLog("[Vectorización] No es necesario traducir.");
     }
   } catch (err) {
     debugLog("⚠️ No se pudo obtener idioma destino desde config o traducir:", err);
+  }
+
+  // 🔀 MODO SYSTEM: insertar directo en `system_playbook` sin embeddings
+  if (hotelId === "system") {
+    const promptKey = metadata.promptKey;
+    const category = metadata.category;
+    if (!promptKey || typeof promptKey !== "string") {
+      throw new Error("En modo system, el formulario debe incluir 'promptKey'.");
+    }
+    if (!category || typeof category !== "string") {
+      throw new Error("En modo system, el formulario debe incluir 'category'.");
+    }
+    const now = new Date().toISOString();
+    const langIso1 = targetLang || "es";
+    const version = await getNextVersionForSystemPlaybook(promptKey, langIso1);
+    const _id = `spb-${promptKey}-${version}-${langIso1}`;
+
+    await upsertSystemPlaybookDoc({
+      _id,
+      text: translatedText || text,
+      category,
+      promptKey,
+      language: "spa",
+      langIso1,
+      version,
+      uploader,
+      author: metadata.author ?? null,
+      uploadedAt: now,
+      notes: metadata.notes ?? undefined,
+    });
+
+    return { ok: true, mode: "system", _id, version };
   }
 
   // 3. Guardar texto original en hotel_text_collection (en chunks de 8000 caracteres)
@@ -157,12 +182,11 @@ export async function loadDocumentFileForHotel({
   const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1500, chunkOverlap: 200 });
   const chunks = await splitter.createDocuments([translatedText]);
 
-  // 5. 🧠 Clasificación de chunks antes de guardar (el FIX aquí)
+  // 5. Clasificación de chunks
   const enrichedChunks = await classifyFragmentsWithCurationAssistant(chunks);
 
   // 6. Vectorización y guardado
   const embedder = new OpenAIEmbeddings();
-
   for (const [i, doc] of enrichedChunks.entries()) {
     const embedding = await embedder.embedQuery(doc.pageContent);
     const record = {
@@ -197,8 +221,7 @@ export async function loadDocumentFileForHotel({
   return { ok: true, count: enrichedChunks.length, version: versionTag };
 }
 
-// --- El resto de helpers y retrieval (sin cambios importantes) ---
-
+// --- helpers de clasificación (sin cambios) ---
 async function classifyFragmentsWithCurationAssistant(documents: Document[]): Promise<Document[]> {
   const inputChunks = documents.map((doc) => doc.pageContent);
   const promptText = classificationPrompt.replace(
@@ -239,7 +262,9 @@ async function classifyFragmentsWithCurationAssistant(documents: Document[]): Pr
   });
 }
 
+/** ========= 🔽 Helpers que faltaban (usados en loadDocuments) 🔽 ========= */
 async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
+  const puppeteer = (await import("puppeteer-extra")).default;
   debugLog("🌐 Cargando página con Puppeteer:", url);
   const browser = await puppeteer.launch({
     headless: true,
@@ -260,8 +285,7 @@ async function fetchPageWithPuppeteer(url: string): Promise<string | null> {
 
 export async function translateText(text: string) {
   try {
-    const lang = process.env.SYSTEM_NATIVE_LANGUAGE;
-    if (!lang) throw new Error("SYSTEM_NATIVE_LANGUAGE is not defined in .env");
+    const lang = process.env.SYSTEM_NATIVE_LANGUAGE || "es";
     const translated = await translationModel(text, lang);
     return typeof translated.content === "string"
       ? translated.content
@@ -272,6 +296,7 @@ export async function translateText(text: string) {
   }
 }
 
+/** ========= 🔽 loadDocuments + searchFromAstra (sin cambios funcionales) 🔽 ========= */
 export async function loadDocuments(
   hotelId: string,
   opts: { version?: string } = {}
@@ -323,7 +348,7 @@ export async function loadDocuments(
 
 async function getLatestVersionForHotel(collection: any, hotelId: string) {
   const docs = await collection.find({ hotelId }).toArray();
-  const byVersion = new Map<string, { version: string, uploadedAt: string }>();
+  const byVersion = new Map<string, { version: string; uploadedAt: string }>();
   for (const doc of docs) {
     if (
       !byVersion.has(doc.version) ||
@@ -349,7 +374,7 @@ export async function searchFromAstra(
   const embedder = new OpenAIEmbeddings();
   const queryVector = await embedder.embedQuery(query);
 
-  const collection = getHotelAstraCollection<ChunkResult>(hotelId);
+  const collection = getHotelAstraCollection<any>(hotelId);
 
   // 👉 Nueva lógica de versión
   let version = filters.version;
@@ -393,16 +418,9 @@ export async function searchFromAstra(
       includeSimilarity: true,
     });
 
-    type WithSim<T> = {
-      document: T;
-      similarity: number;
-    };
-
-    type FoundDoc<T> = {
-      document: T;
-    };
-
-    type ChunkResult = {
+    type WithSim<T> = { document: T; similarity: number };
+    type FoundDoc<T> = { document: T };
+    type LocalChunkResult = {
       _id: string;
       text: string;
       $vector: number[];
@@ -410,11 +428,13 @@ export async function searchFromAstra(
       [key: string]: any;
     };
 
-    const rawFallbackResults = await fallbackCursor.toArray() as unknown as WithSim<FoundDoc<ChunkResult>>[];
+    const rawFallbackResults = (await fallbackCursor.toArray()) as unknown as WithSim<
+      FoundDoc<LocalChunkResult>
+    >[];
 
-    const fallbackResults: ChunkResult[] = rawFallbackResults
-      .filter(r => r?.document?.document)
-      .map(r => ({
+    const fallbackResults: LocalChunkResult[] = rawFallbackResults
+      .filter((r) => r?.document?.document)
+      .map((r) => ({
         ...r.document.document,
         $similarity: r.similarity,
       }));
@@ -448,14 +468,11 @@ export async function searchFromAstra(
 
   // 🔚 Sin promptKey ni category → buscar solo por hotelId y version
   debugLog("🔍 Búsqueda sin filtro adicional (hotelId + version):", baseFilter);
-  const fallbackCursor = await collection.find(
-    baseFilter,
-    {
-      sort: { $vector: queryVector },
-      limit: 5,
-      includeSimilarity: true,
-    }
-  );
+  const fallbackCursor = await collection.find(baseFilter, {
+    sort: { $vector: queryVector },
+    limit: 5,
+    includeSimilarity: true,
+  });
   const fallbackResults = await fallbackCursor.toArray();
 
   return fallbackResults.map((r: any) => r.text);

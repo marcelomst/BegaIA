@@ -2,7 +2,7 @@
 
 import { ChatOpenAI } from "@langchain/openai";
 import { GraphState } from "./index";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { defaultPrompt, curatedPrompts } from "../prompts";
 import { debugLog } from "../utils/debugLog";
 import { searchFromAstra } from "../retrieval";
@@ -10,7 +10,24 @@ import { getHotelNativeLanguage } from "../config/hotelLanguage";
 import { translateIfNeeded } from "../i18n/translateIfNeeded";
 
 let localModel: ChatOpenAI | null = null;
-
+function getLastHumanText(msgs: BaseMessage[]): string {
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const m = msgs[i];
+    if (m instanceof HumanMessage) {
+      const c = (m as HumanMessage).content;
+      if (typeof c === "string") return c.trim();
+      // Si usás mensajes “multimodal”, convertí a texto de forma segura:
+      if (Array.isArray(c)) {
+        return c
+          .map((p: any) => (p?.type === "text" ? p.text : ""))
+          .join(" ")
+          .trim();
+      }
+      return String(c ?? "").trim();
+    }
+  }
+  return "";
+}
 export function setRetrievalModel(model: ChatOpenAI) {
   localModel = model;
 }
@@ -26,9 +43,9 @@ export async function retrievalBased(state: typeof GraphState.State) {
   const hotelLang = await getHotelNativeLanguage(state.hotelId);
 
   // 2. Usar siempre el mensaje ya traducido a idioma nativo (del nodo de clasificación)
-  const userQuery = (state as any).normalizedMessage
-    ?? (state.messages.findLast((m) => m instanceof HumanMessage)?.content as string ?? "").trim();
-
+  const userQuery =
+    (state as any).normalizedMessage ??
+    getLastHumanText(state.messages as BaseMessage[]);
   const promptKey = state.promptKey;
   const hotelId = state.hotelId ?? "defaultHotelId";
 

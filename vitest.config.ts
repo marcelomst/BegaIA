@@ -1,20 +1,24 @@
-// /root/begasist/vitest.config.ts
+// Path: /root/begasist/vitest.config.ts
 import { defineConfig } from "vitest/config";
-import path from "path";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname), // 👈 ahora apunta a /root/begasist
+  test: {
+    environment: "node",
+    globals: true,
+    setupFiles: ["./test/setup.ts"],
+    include: ["test/**/*.{test,spec}.{ts,tsx}"],
+    watch: false,
+    pool: "threads",
+    coverage: {
+      reporter: ["text", "html"],
+      reportsDirectory: "./test/coverage",
+      include: ["**/*.{ts,tsx}"],
+      exclude: ["test/**", "**/*.d.ts"],
     },
   },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: "./vitest.setup.ts",
-    testTimeout: 15000,
-  },
-  esbuild: {
-    jsx: "automatic", // esto equivale a jsx: "react-jsx"
+  resolve: {
+    alias: {
+      "@/": "/root/begasist/",
+    },
   },
 });

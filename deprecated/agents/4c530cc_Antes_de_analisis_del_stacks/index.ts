@@ -1,4 +1,5 @@
 // Path: /root/begasist/lib/agents/index.ts
+
 import { StateGraph } from "@langchain/langgraph";
 import { classifyQuery } from "../classifier";
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
@@ -10,18 +11,9 @@ import { retrievalBased } from "./retrieval_based";
 import { promptMetadata } from "../prompts/promptMetadata";
 import { debugLog } from "../utils/debugLog";
 import { searchFromAstra } from "../retrieval";
-import { detectLanguage } from "../utils/language";
-import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-// import { RunnableRetriever } from "langchain/retrievers/runnable";
-import { RunnableRetriever } from "langchain/retrievers";
-
-
-
-process.env.OPENAI_LOG = "off";
-debugLog("🔧 Compilando grafo conversacional...");
 
 // ----------------------------
-// Estado del grafo
+// Estado del grafo: SOLO recibe, no calcula idioma ni sentimiento
 export const GraphState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: (x, y) => x.concat(y),
@@ -33,11 +25,15 @@ export const GraphState = Annotation.Root({
   }),
   detectedLanguage: Annotation<string>({
     reducer: (x, y) => y,
-    default: () => "spa", // español por defecto
+    default: () => "en", // Por defecto
+  }),
+  sentiment: Annotation<"positive" | "neutral" | "negative">({
+    reducer: (x, y) => y,
+    default: () => "neutral",
   }),
   preferredLanguage: Annotation<string>({
     reducer: (x, y) => y,
-    default: () => "spa",
+    default: () => "en",
   }),
   promptKey: Annotation<string | null>({
     reducer: (x, y) => y,
@@ -45,7 +41,7 @@ export const GraphState = Annotation.Root({
   }),
   hotelId: Annotation<string>({
     reducer: (x, y) => y,
-    default: () => "hotel123",
+    default: () => "hotel999",
   }),
   conversationId: Annotation<string | null>({
     reducer: (x, y) => y,
@@ -54,37 +50,33 @@ export const GraphState = Annotation.Root({
 });
 
 // ----------------------------
-// Retriever y modelo (uno por hotel)
-let retrieverToolsByHotel: Record<string, any> = {};
-let model: any;
+// Vector store y modelo (usado por retrievalBased)
+export let vectorStore: any;
+let retriever: any;
+export let model: any;
 
-export async function initializeVectorStore(hotelId: string) {
-  if (!retrieverToolsByHotel[hotelId]) {
-    const retriever = createRetrieverTool(
-      new RunnableRetriever({
+export async function initializeVectorStore() {
+  if (!vectorStore) {
+    vectorStore = {
+      asRetriever: () => ({
         getRelevantDocuments: async (query: string) => {
-          const results = await searchFromAstra(query, hotelId);
+          const results = await searchFromAstra(query, "hotel999");
           return results.map((text) => ({
             pageContent: text,
             metadata: {},
           }));
-        }
+        },
       }),
-      {
-        name: "retrieve_hotel_info",
-        description: "Search hotel FAQs and policies.",
-      }
-    );
-    retrieverToolsByHotel[hotelId] = retriever;
-    debugLog(`✅ Vector store inicializado desde AstraDB para hotelId=${hotelId}`);
-  }
+    };
 
-  if (!model) {
-    model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
-      Object.values(retrieverToolsByHotel)
-    );
+    retriever = createRetrieverTool(vectorStore.asRetriever(), {
+      name: "retrieve_hotel_info",
+      description: "Search hotel FAQs and policies.",
+    });
+
+    model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([retriever]);
+    debugLog("✅ Vector store inicializado desde AstraDB (sin Puppeteer)");
   }
-  return retrieverToolsByHotel[hotelId];
 }
 
 // ----------------------------
@@ -93,30 +85,24 @@ export async function classifyNode(state: typeof GraphState.State) {
   const lastUserMessage = state.messages.findLast((m) => m instanceof HumanMessage);
   const question = typeof lastUserMessage?.content === "string" ? lastUserMessage.content.trim() : "";
 
-  // Leer idioma por defecto del hotel (seguridad/fallback)
-  let hotelConfig: any = undefined;
-  let defaultLang = "spa";
-  if (state.hotelId) {
-    try {
-      hotelConfig = await getHotelConfig(state.hotelId);
-      defaultLang = hotelConfig?.languageDefault || "spa";
-    } catch (e) {
-      debugLog("⚠️ No se pudo obtener hotelConfig:", e);
-    }
+  if (!question) {
+    return {
+      ...state,
+      category: "retrieval_based",
+      promptKey: null,
+      messages: [
+        ...state.messages,
+        new AIMessage("Consulta vacía o no válida. Intenta reformular tu pregunta."),
+      ],
+    };
   }
 
-  let detectedLang = defaultLang;
-  if (question) {
-    try {
-      detectedLang = await detectLanguage(question, state.hotelId);
-    } catch (e) {
-      detectedLang = defaultLang;
-    }
-  }
+  // Ya NO detecta lenguaje ni sentimiento: ¡DEBEN venir del handler universal!
+  // Usa el que ya está en state.detectedLanguage
 
   let classification;
   try {
-    classification = await classifyQuery(question);
+    classification = await classifyQuery(question, state.hotelId);
     debugLog("🔀 Clasificación detectada:", classification);
   } catch (e) {
     console.error("❌ Error clasificando la consulta:", e);
@@ -127,25 +113,35 @@ export async function classifyNode(state: typeof GraphState.State) {
   const validPromptKeys = promptMetadata[category] || [];
   const finalPromptKey = validPromptKeys.includes(promptKey || "") ? promptKey : null;
 
-  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey, detectedLang });
+  debugLog("🧠 Clasificación final:", { category, promptKey: finalPromptKey });
 
   return {
     ...state,
     category,
     promptKey: finalPromptKey,
-    detectedLanguage: detectedLang,
-    preferredLanguage: defaultLang,
+    // detectedLanguage, // NO lo recalcula
     messages: [
       ...state.messages,
-      new AIMessage(
-        `Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""} (🌐 lang: ${detectedLang})`
-      ),
+      new AIMessage(`Consulta clasificada como: ${category}${finalPromptKey ? ` (🧠 promptKey: ${finalPromptKey})` : ""}`),
     ],
   };
 }
 
 // ----------------------------
-// Nodos funcionales del grafo
+// Nodos funcionales del grafo (ejemplo de uso de sentimiento)
+async function handleSupportNode(state: typeof GraphState.State) {
+  const sent = state.sentiment ?? "neutral";
+  let reply = "";
+  if (sent === "negative") {
+    reply = "Lamento que estés teniendo una mala experiencia. ¿En qué puedo ayudarte para mejorar tu estancia?";
+  } else if (sent === "positive") {
+    reply = "¡Qué alegría saber que todo va bien! ¿Hay algo más en lo que te pueda ayudar?";
+  } else {
+    reply = "¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.";
+  }
+  return { messages: [new AIMessage(reply)] };
+}
+
 async function handleReservationNode() {
   const response = pms.createReservation("John Doe", "Deluxe", "2024-06-01", "2024-06-05");
   return { messages: [new AIMessage(`Reserva confirmada: ${response.id}`)] };
@@ -156,14 +152,7 @@ async function handleAmenitiesionNode() {
 async function handleBillingNode() {
   return { messages: [new AIMessage("Aquí están los detalles de facturación.")] };
 }
-async function handleSupportNode() {
-  return { messages: [new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte.")] };
-}
 async function retrievalBasedNode(state: typeof GraphState.State) {
-  // Usar el retriever específico del hotel actual
-  const hotelId = state.hotelId || "hotel123";
-  await initializeVectorStore(hotelId);
-  // SOLO PASÁ STATE, los demás datos están dentro del state
   return await retrievalBased(state);
 }
 

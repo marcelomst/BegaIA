@@ -175,11 +175,11 @@ export interface ChannelMessage {
   sender: string;
   content: string;
   timestamp: string;
-  time: string;
-  suggestion: string;
+  time?: string;
+  suggestion?: string;
   approvedResponse?: string;
   respondedBy?: string;
-  status: MessageStatus;
+  status?: MessageStatus;
   guestId?: string;
   deliveredAt?: string;
   deliveryAttempts?: number;
@@ -199,6 +199,9 @@ export interface ChannelMessage {
   /** Análisis de sentimiento del contenido (opcional) */
   sentiment?: "positive" | "neutral" | "negative";
   detectedLanguage?: string;
+    // 🆕 idempotencia / normalización cross-canal
+  sourceMsgId?: string;
+  direction?: "in" | "out"; // si falta, se deriva de sender/role
 }
 
 export interface Conversation {

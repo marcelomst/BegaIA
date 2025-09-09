@@ -11,7 +11,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest",
     "test:watch": "vitest --watch",
     "ts-check": "tsc --noEmit",
     "ts-strict": "tsc --noEmit --strict",
@@ -22,7 +21,10 @@
     "dev:channelbot:once": "tsx lib/entrypoints/channelBot.ts",
     "dev:whatsapp": "pnpm run dev:channelbot:once",
     "dev:channelmanager": "next dev -p 3000 -H 0.0.0.0 --turbopack",
-    "dev:email": "nodemon --watch lib --ext ts,json --signal SIGTERM --exitcrash --exec \"tsx lib/entrypoints/email.ts\""
+    "dev:email": "nodemon --watch lib --ext ts,json --signal SIGTERM --exitcrash --exec \"tsx lib/entrypoints/email.ts\"",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:run:nodpr": "NODE_OPTIONS=--no-deprecation vitest run"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "github:datastax/astra-db-ts",
@@ -37,6 +39,7 @@
     "@whiskeysockets/baileys": "^6.7.18",
     "axios": "^1.8.3",
     "bcryptjs": "^3.0.2",
+    "cassandra-driver": "^4.8.0",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -63,6 +66,7 @@
     "pdf-parse": "^1.1.1",
     "pdfkit": "^0.16.0",
     "puppeteer": "^24.11.0",
+    "puppeteer-core": "^24.17.1",
     "puppeteer-extra": "^3.3.6",
     "qrcode-terminal": "^0.12.0",
     "qrcode.react": "^4.2.0",
@@ -82,7 +86,8 @@
     "undici": "^7.4.0",
     "uuid": "^11.1.0",
     "whatsapp-web.js": "^1.30.0",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",

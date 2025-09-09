@@ -5,7 +5,7 @@ import type { ChannelMessage } from "@/types/channel";
 
 describe("channelMemory (web)", () => {
   const baseMessage: Omit<ChannelMessage, "messageId"> = {
-    hotelId: "hotel123",
+    hotelId: "hotel999",
     channel: "web",
     sender: "Test",
     content: "Mensaje de prueba",

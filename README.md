@@ -686,5 +686,55 @@ Leyenda:
 * Si implementás features avanzados (multi-hotel admin, merge de guests cross-channel, etc), extendé el organigrama.
 
 ---
+# Hotel Assistant – Project context
 
-¿Lo querés con ejemplo de documento de cada colección/tipo, o agrego un resumen visual más detallado?
+## Objetivo
+Breve: Asistente conversacional hotelero basado en LangGraph + LangChain.  
+Automatización omnicanal (web, email, WhatsApp, PMS).
+
+## Estructura clave
+- `/lib/agents/` → lógica de IA conversacional (graph + MCP)
+- `/lib/classifier/` → clasificador de intenciones
+- `/lib/prompts/` → prompts curados por dominio
+- `/app/api/` → endpoints para canales web, email, whatsapp
+- `/lib/handlers/` → messageHandler + universalChannelEventHandler (núcleo MCP real)
+- `/lib/services/` → integración por canal (web, email, whatsapp, channelManager)
+- `/lib/db/` → acceso a AstraDB (colecciones: `messages`, `conversations`, `hotel_config`)
+- `/test/` → tests automatizados
+
+## Laboratorio MCP (Multi-Channel Pipeline)
+Implementamos un laboratorio con MCP real para manejar todo el ciclo de vida de un mensaje:
+
+1. **Entrada unificada (`universalChannelEventHandler`)**
+   - Normaliza mensajes de todos los canales en un `ChannelMessage`.
+   - Hace NLU mínima (idioma, intención).
+   - Invoca el `messageHandler` → graph LangGraph/LangChain.
+
+2. **Persistencia estable (`messages.ts`)**
+   - `saveMessageToAstra` / `updateMessageInAstra`.
+   - `saveMessageIdempotent` con `originalMessageId` para idempotencia.
+   - Campos extendidos: `guestId`, `conversationId`, `deliveredAt`, `deliveryAttempts`, `deliveryError`.
+
+3. **Estados de conversación (`convState`)**
+   - Slots de reserva (`guestName`, `roomType`, etc).
+   - `lastCategory` y `promptKey`.
+
+4. **Canales**
+   - **Web**: frontend `/app/page.tsx` conectado a `/api/chat`, `/api/messages/by-conversation`, `/api/conversations/list`.
+   - **Email**: IMAP/SMTP polling con filtros anti-spam, idempotencia por `messageId`, handler universal.
+   - **WhatsApp**: basado en `whatsapp-web.js`, heartbeat, idempotencia doble (Redis + DB), poller para respuestas supervisadas.
+
+5. **MCP defensivo**
+   - `withTimeout` al invocar grafo.
+   - `ruleBasedFallback` cuando el grafo falla o no responde.
+   - Persistencia de estado antes/después de cada paso.
+
+## Instrucciones para IA y desarrolladores
+1. Para agregar nuevas intenciones, editar `/lib/agents/index.ts` y `/lib/prompts/`.
+2. Para integrar un canal nuevo, extender `/lib/services/` y conectar a `universalChannelEventHandler`.
+3. Para agregar tests, usar `/test/`.
+4. Para dudas/propuestas, usar este README o `documentacion/`.
+
+## 📝 Convención para manejo de archivos en ChatGPT Projects
+*(se mantiene igual)*
+

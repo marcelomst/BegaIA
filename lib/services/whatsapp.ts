@@ -7,9 +7,9 @@ import { parseWhatsAppToChannelMessage } from "@/lib/parsers/whatsappParser";
 import { universalChannelEventHandler } from "@/lib/handlers/universalChannelEventHandler";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import {
-  getMessagesFromAstra,
-  updateMessageInAstra,
-  saveMessageIdempotent,
+  getMessages,                 // para leer mensajes (con límite opcional)
+  updateMessageInAstra,        // ya lo usás para updates
+  saveMessageIdempotent,       // helper idempotente nuevo (db/messages.ts)
 } from "@/lib/db/messages";
 
 import { setQR, clearQR, setWhatsAppState } from "@/lib/services/redis";
@@ -163,14 +163,15 @@ export function startWhatsAppBot({
         messageId: parsed.messageId || srcMsgId,
         content: parsed.content ?? body,
         timestamp:
-        parsed.timestamp ||
-        ((message as any).timestamp
-          ? new Date((message as any).timestamp * 1000).toISOString()
-          : new Date().toISOString()),
+          parsed.timestamp ||
+          ((message as any).timestamp
+            ? new Date((message as any).timestamp * 1000).toISOString()
+            : new Date().toISOString()),
         conversationId:
           parsed.conversationId || `${hotelId}-whatsapp-${parsed.guestId || senderJid}`,
-        status: parsed.status || "received",
+        // 👈 sin status en inbound
       };
+
 
       // Idempotencia 2/2: DB (persistencia estable)
       const idempotencyKey = `${hotelId}:whatsapp:${srcMsgId}`;
@@ -182,20 +183,30 @@ export function startWhatsAppBot({
       }
 
       // Handler universal (IA + supervisado)
-      await universalChannelEventHandler(rawEvent, hotelId, {
-        mode,
-        sendReply: async (reply: string) => {
-          try {
-            if (!reply) return;
-            const sent = await client.sendMessage(senderJid, reply);
-            console.log(
-              `[whatsapp] 📤 reply hotel=${hotelId} → ${senderJid} (msgId=${(sent as any).id._serialized}, size=${reply.length})`
-            );
-          } catch (err) {
-            console.error("⛔ [whatsapp] Error enviando respuesta al usuario:", err);
-          }
-        },
-      });
+// arma el UniversalEvent desde rawEvent/source
+    const evt = {
+      hotelId,
+      conversationId: rawEvent.conversationId!,
+      channel: "whatsapp" as const,
+      from: "guest" as const,
+      content: rawEvent.content || body,
+      sourceMsgId: srcMsgId, // id del proveedor → dedupe
+      timestamp: (message as any).timestamp
+        ? (message as any).timestamp * 1000
+        : Date.now(),
+    };
+
+    await universalChannelEventHandler(evt, {
+      mode,
+      sendReply: async (reply: string) => {
+        if (!reply) return;
+        const sent = await client.sendMessage(senderJid, reply);
+        console.log(
+          `[whatsapp] 📤 reply hotel=${hotelId} → ${senderJid} (msgId=${(sent as any).id._serialized}, size=${reply.length})`
+        );
+      },
+    });
+
     } catch (error) {
       console.error("⛔ [whatsapp] Error procesando mensaje:", error);
       try {
@@ -208,7 +219,7 @@ export function startWhatsAppBot({
   ensureSinglePoller(hotelId, () =>
     setInterval(async () => {
       try {
-        const messages = await getMessagesFromAstra(hotelId, "whatsapp");
+        const messages = await getMessages(hotelId, "whatsapp", 50);
         for (const msg of messages) {
           const shouldSend =
             msg.status === "sent" &&

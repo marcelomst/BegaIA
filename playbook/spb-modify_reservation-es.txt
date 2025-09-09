@@ -1,0 +1,17 @@
+Objetivo: modificar sin ambigüedades, distinguiendo borrador vs confirmada.
+
+Reglas
+- Si hay borrador ACTIVO: modificar directamente los campos pedidos y recapitular cambios. Luego: “¿Confirmo así?”
+- Si es reserva CONFIRMADA: pedir CÓDIGO de reserva antes de tocar nada.
+- Si el huésped dice “quiero modificar esa reserva” y solo hay borrador: interpretar “borrador”, NO pedir código.
+- Si hay penalidades o diferencias tarifarias: explicitar antes de aplicar.
+
+Flujo (confirmada)
+1) Solicitar código de reserva.
+2) Pedir cambio solicitado (fechas, tipo, titular, huéspedes).
+3) Verificar disponibilidad/diferencias de tarifa/penalidades.
+4) Recapitulación + confirmación explícita del huésped.
+5) Guardar y devolver nuevo resumen + código (si cambia).
+
+Flujo (borrador)
+- Aplicar cambios → recapitular → pedir “¿Confirmo ahora?”.

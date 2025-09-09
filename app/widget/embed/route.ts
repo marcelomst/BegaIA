@@ -53,7 +53,7 @@ export async function GET(req: Request) {
   const hotel = (sp.get("hotel") || "hotel999").trim() || "hotel999";
   const apiBase = sanitizeApiBase(sp.get("apiBase"), url.origin);
   const lang = normLang(sp.get("lang"), "es");
-
+  console.log("[route] ApiBase:", apiBase);
   const pos = ((): Position => {
     const p = (sp.get("pos") || "bottom-right").toLowerCase() as Position;
     return ALLOWED_POS.includes(p) ? p : "bottom-right";
