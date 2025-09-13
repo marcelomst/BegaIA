@@ -1,19 +1,45 @@
 // Path: /root/begasist/lib/classifier/index.ts
-
 import { ChatOpenAI } from "@langchain/openai";
-import { promptMetadata } from "../prompts/promptMetadata";
 import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { normalizeCategory } from "./categoryAliases";
-import { debugLog } from "../utils/debugLog";
+import { promptMetadata } from "../prompts/promptMetadata";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+export type IntentCategory =
+  | "reservation"
+  | "cancel_reservation"
+  | "amenities"
+  | "billing"
+  | "support"
+  | "retrieval_based";
 
-export type Classification = {
-  category: string;
-  promptKey?: string | null;
-};
+export type Classification = { category: IntentCategory; promptKey: string | null };
 
-export async function classifyQuery(question: string, hotelId: string): Promise<Classification> {
-  const lang = await getHotelNativeLanguage(hotelId);
+function looksRoomInfo(s: string) {
+  return /\b(check[- ]?in|check[- ]?out|ingreso|salida|horario|hora(s)?)\b/i.test(s);
+}
+
+function normalizeCategory(c: string): IntentCategory {
+  const m = (c || "").trim().toLowerCase();
+  const known: IntentCategory[] = [
+    "reservation",
+    "cancel_reservation",
+    "amenities",
+    "billing",
+    "support",
+    "retrieval_based",
+  ];
+  return (known as string[]).includes(m) ? (m as IntentCategory) : "retrieval_based";
+}
+
+export async function classifyQuery(
+  question: string,
+  hotelId: string
+): Promise<Classification> {
+  // ⚙️ Aseguramos idioma siempre definido (evita TS2345: string | undefined)
+  const nativeLang = await getHotelNativeLanguage(hotelId);
+  const lang: string = (typeof nativeLang === "string" && nativeLang) ? nativeLang : "es";
+
+  // ⚙️ getDictionary exige string (no undefined)
   const dict = await getDictionary(lang);
 
   const allowedCategories = Object.keys(promptMetadata).join(", ");
@@ -21,30 +47,57 @@ export async function classifyQuery(question: string, hotelId: string): Promise<
     .flatMap(([_, keys]) => keys)
     .filter(Boolean);
 
-  // Usá el prompt del diccionario y hacé los replaces dinámicos:
-  let prompt = dict.classifierPrompt
+  let prompt = String(dict.classifierPrompt || "")
     .replace("{{allowedCategories}}", allowedCategories)
     .replace("{{allPromptKeys}}", allPromptKeys.join(", "))
     .replace("{{question}}", question);
 
-  const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo", temperature: 0 });
-  const res = await model.invoke([{ role: "user", content: prompt }]);
-
+ const model = new ChatOpenAI({
+   modelName: process.env.LLM_CLASSIFIER_MODEL || "gpt-4o-mini",
+   temperature: 0,
+ });
+  const res = await model.invoke([
+    new SystemMessage("Eres un router de intents. Responde SOLO JSON válido."),
+    new HumanMessage(prompt),
+  ]);
   try {
-    const parsed = JSON.parse(res.content as string);
-    let { category, promptKey } = parsed;
-    category = normalizeCategory(category);
-    if (!promptMetadata[category]) {
-      throw new Error(`❌ Categoría inválida detectada: ${category}`);
+    const content = typeof res.content === "string" ? res.content : JSON.stringify(res.content);
+    const parsed = JSON.parse(content) as { category?: string; promptKey?: string | null };
+
+    // 🧼 Tipado fuerte: cat final es IntentCategory (evita TS2322)
+    const rawCategory = typeof parsed.category === "string" ? parsed.category : "";
+    const cat: IntentCategory = normalizeCategory(rawCategory);
+
+    // Validación de categoría
+    if (!promptMetadata[cat]) {
+      throw new Error(`❌ Categoría inválida detectada: ${rawCategory}`);
     }
-    const isValidPrompt = promptKey === null || promptMetadata[category].includes(promptKey);
-    if (!isValidPrompt) {
-      throw new Error(`❌ Prompt key inválido: ${promptKey} para categoría: ${category}`);
+
+    // Validación de promptKey
+    let promptKey: string | null =
+      typeof parsed.promptKey === "string" ? parsed.promptKey : null;
+
+    const validPK = promptKey === null || promptMetadata[cat].includes(promptKey);
+    if (!validPK) {
+      // Si el PK no cuadra con la categoría, lo descartamos
+      promptKey = null;
     }
-    debugLog("🧠 Clasificación final:", { category, promptKey });
-    return { category, promptKey };
+
+    // 🔎 Regla de negocio: si es pregunta de horarios/políticas → forzar room_info
+    if (cat === "retrieval_based" && (!promptKey /*|| promptKey === "ambiguity_policy"*/)) {
+      if (looksRoomInfo(question)) promptKey = "room_info";
+    }
+
+    // Log útil
+    // console.log("🧠 Clasificación (LLM):", { category: cat, promptKey });
+
+    return { category: cat, promptKey };
   } catch (e) {
-    console.error("❌ Error al parsear o validar respuesta del clasificador:", res.content);
-    return { category: "retrieval_based", promptKey: null };
+    console.error("❌ Error al parsear/validar clasificador:", res.content);
+    // Fallback robusto: retrieval room_info si corresponde
+    return {
+      category: "retrieval_based",
+      promptKey: looksRoomInfo(question) ? "room_info" : null,
+    };
   }
 }

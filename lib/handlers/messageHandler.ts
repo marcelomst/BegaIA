@@ -351,7 +351,9 @@ if (IS_TEST) {
   });
 
   try {
+    console.log("[BP-CHAT1]",conversationId, msg.hotelId, String(msg.content || ""));
     const graphResult = await withTimeout(
+      
       agentGraph.invoke({
         hotelId: msg.hotelId,
         conversationId,
@@ -361,13 +363,13 @@ if (IS_TEST) {
         reservationSlots: prevSlotsStrict,
         meta: { channel: msg.channel, prevCategory },
       }),
-      12000,
+      300000,
       "agentGraph.invoke"
     );
 
     const last = (graphResult as any)?.messages?.at?.(-1);
     console.log(
-      "🧪 [graph] last message type/content =",
+      "[BP-CHAT2]",
       last && typeof last?.content,
       last && (typeof last?.content === "string"
         ? last?.content.slice(0, 200)

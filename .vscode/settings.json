@@ -10,6 +10,7 @@
     "git.ignoreLimitWarning": true,
      // Oculta en Explorador y Quick Open (Ctrl+P)
   "files.exclude": {
+    "**/.vscode": false,
     "**/.git": true,
     "**/node_modules": true,
     "**/.next": true,

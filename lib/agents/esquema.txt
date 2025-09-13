@@ -1,0 +1,11 @@
+ .addNode("classify", classifyNode)
+
+ async function classifyNode(state: typeof GraphState.State)
+ return {
+    category: h.category,
+    desiredAction: h.desiredAction,
+    intentConfidence: h.intentConfidence,
+    intentSource: h.intentSource,
+    promptKey: pickPromptKey(h.category, h.desiredAction),
+    messages: [],
+  };

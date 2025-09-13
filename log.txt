@@ -57471,3 +57471,2244 @@ https://nextjs.org/docs/messages/module-not-found
 [2025-09-09T13:58:15.695Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
 [2025-09-09T13:58:25.274Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
 [2025-09-09T13:58:37.384Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T13:58:49.520Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T13:58:59.186Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T13:59:11.374Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T13:59:20.890Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T13:59:32.932Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T13:59:44.963Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T13:59:54.511Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:00:06.545Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:00:18.562Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:00:28.209Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:00:40.341Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:00:49.891Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:01:02.066Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:01:14.128Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:01:23.728Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:01:35.834Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:01:47.872Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:01:57.499Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:02:09.547Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:02:21.682Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:02:31.415Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:02:43.580Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:02:53.163Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:03:05.228Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:03:17.350Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:03:26.949Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:03:38.959Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:03:50.996Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:00.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:12.594Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:22.047Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:34.059Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:46.083Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:04:55.685Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:05:07.790Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:05:19.840Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:05:29.519Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:05:41.600Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:05:51.209Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:06:03.384Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:06:15.496Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:06:25.146Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:06:37.194Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:06:49.655Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:06:59.296Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:07:11.376Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:07:20.961Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:07:33.085Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:07:45.130Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:07:54.689Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:08:06.908Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:08:19.103Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:08:28.786Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:08:40.891Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:08:50.620Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:09:02.641Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:09:14.662Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:09:24.282Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:09:36.345Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:09:48.527Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:09:57.802Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:10:09.890Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:10:21.942Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:10:31.484Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:10:43.635Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:10:55.719Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:11:05.197Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:11:17.248Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:11:26.696Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:11:38.779Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:11:50.855Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:12:00.260Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:12:12.269Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:12:24.360Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:12:33.918Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:12:45.989Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:12:58.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:13:07.461Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:13:19.491Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:13:31.519Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:13:40.927Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:13:53.031Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:14:05.097Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:14:14.567Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:14:26.771Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:14:36.325Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:14:48.547Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:15:00.635Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:15:10.152Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:15:22.197Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:15:34.386Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:15:43.900Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:15:55.927Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:16:07.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:16:17.437Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:16:29.471Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:16:41.493Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:16:50.990Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:03.159Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:12.702Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:24.891Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:36.950Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:46.662Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:17:58.817Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:18:10.952Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:18:20.416Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:18:32.537Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:18:42.172Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:18:54.324Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:19:06.506Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:19:16.110Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:19:28.182Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:19:40.394Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:19:50.164Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:20:02.280Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:20:14.375Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:20:24.066Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:20:36.277Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:20:45.964Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:20:58.158Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:21:10.364Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:21:20.033Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:21:32.210Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:21:41.896Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:21:53.992Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:22:06.237Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:22:15.905Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:22:28.082Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:22:40.177Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:22:49.785Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:23:01.992Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:23:11.594Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:23:23.621Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:23:35.731Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:23:45.421Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:23:57.666Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:24:09.871Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:24:19.576Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:24:31.758Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:24:41.495Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:24:53.675Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:25:05.693Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:25:15.236Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:25:27.443Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:25:39.465Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:25:49.066Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:01.263Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:13.341Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:22.814Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:34.999Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:44.445Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:26:56.816Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:27:08.995Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:27:18.407Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:27:30.588Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:27:42.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:27:52.278Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:28:04.312Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:28:16.332Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:28:25.900Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:28:38.077Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:28:47.788Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:28:59.908Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:29:12.096Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:29:21.768Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:29:33.913Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:29:46.169Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:29:55.918Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:30:08.030Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:30:17.619Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:30:29.803Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:30:41.892Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:30:51.454Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:31:03.634Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:31:15.696Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:31:25.382Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:31:37.441Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:31:47.043Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:31:59.225Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:32:11.469Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:32:21.126Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:32:33.278Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:32:45.478Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:32:55.059Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:33:07.079Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:33:16.675Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:33:28.726Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:33:40.899Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:33:50.523Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:34:02.702Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:34:14.869Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:34:24.529Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T14:34:36.635Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:34:46.147Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:34:58.347Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T14:36:15.538Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-09-09T14:36:15.218Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-09-09T14:36:15.219Z] [DEBUG] 🔍 Filtro por promptKey: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "promptKey": "room_info"
+}
+[2025-09-09T14:36:47.394Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-09-09T14:36:51.994Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-09-09T14:36:51.995Z] [DEBUG] 🔍 Filtro por promptKey: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "promptKey": "room_info"
+}
+[2025-09-09T18:47:43.654Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:47:53.867Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:48:04.157Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:48:14.492Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:48:22.364Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:48:32.778Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:48:43.301Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:48:51.391Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:49:02.013Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:49:12.666Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:49:20.842Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:49:31.552Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:49:42.330Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:49:50.699Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:50:01.605Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:50:12.640Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:50:21.196Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:50:32.268Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.270Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.271Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.271Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.271Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.272Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:32.272Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:50:43.338Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:50:52.045Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:51:03.208Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:51:11.951Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:51:23.217Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:51:34.656Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:51:43.649Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:51:55.131Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:52:06.664Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:52:15.826Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:52:27.436Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:52:39.099Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:52:48.281Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:00.135Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:11.970Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:21.485Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:33.383Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:42.871Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:53:54.874Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:54:06.900Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:54:16.461Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.462Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:16.463Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:54:28.543Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:54:40.560Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:54:50.250Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:55:02.302Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:55:11.983Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:55:24.130Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:55:36.328Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:55:45.896Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:55:57.986Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:56:10.154Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:56:19.840Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:56:32.027Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:56:41.687Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:56:53.794Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:57:05.827Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:57:15.348Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:57:27.532Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:57:39.729Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:57:49.319Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:58:01.375Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:58:10.961Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.962Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.963Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.963Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.963Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.963Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:10.963Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T18:58:22.970Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:58:34.983Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:58:44.540Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:58:56.591Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:59:08.609Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:59:18.164Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:59:30.198Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T18:59:39.756Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T18:59:51.779Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:00:03.843Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:00:13.405Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:00:25.455Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:00:37.487Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:00:47.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:00:59.129Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:01:08.740Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:01:20.948Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:01:32.995Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:01:42.587Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:01:54.646Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:02:06.685Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.686Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.687Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.687Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.687Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.687Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:06.687Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:02:16.222Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:02:28.257Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:02:37.791Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:06:32.618Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:06:44.621Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:06:56.623Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:07:08.630Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:07:20.634Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:07:32.647Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:07:44.661Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:07:56.680Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:08:06.587Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:08:18.651Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:08:30.750Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:08:40.653Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:08:52.776Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:09:04.786Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:09:14.562Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:09:26.637Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:09:36.452Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:09:48.495Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.496Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:09:48.497Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:10:00.538Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:10:10.440Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:10:22.467Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:10:34.478Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:10:44.376Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:10:56.401Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:11:06.349Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:11:18.374Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:11:30.393Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:11:40.224Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:11:52.230Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:12:04.237Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:12:14.050Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:12:26.080Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:12:38.100Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:12:47.774Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:12:59.828Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:13:09.671Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:13:21.701Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:13:33.707Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:13:43.562Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:43.563Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:13:55.606Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:14:07.657Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:14:17.371Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:14:29.426Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:14:39.233Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:14:51.253Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:15:03.278Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:15:13.113Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:15:25.140Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:15:37.257Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:15:46.984Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:15:59.033Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:16:08.728Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:16:20.819Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:16:32.851Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:16:42.612Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:16:54.646Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:17:06.759Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:17:16.476Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:17:28.490Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:17:38.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.072Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.073Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.073Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.073Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:38.073Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:17:50.138Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:18:02.383Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:18:12.013Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:18:24.035Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:18:36.099Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:18:45.788Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:18:57.921Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:19:07.771Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:19:19.842Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:19:31.908Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:19:41.737Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:19:53.811Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:20:05.908Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:20:15.422Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:20:27.514Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:20:37.087Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:20:49.157Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:21:01.227Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:21:10.951Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:21:22.970Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:21:35.043Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.044Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.045Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:35.045Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:21:44.699Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:21:56.732Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:22:06.341Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:22:18.376Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:22:30.437Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:22:40.078Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:22:52.096Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:23:04.118Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:23:13.735Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:23:25.764Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:23:35.345Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:23:47.380Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:23:59.432Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:24:09.058Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:24:21.075Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:24:33.101Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:24:42.690Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:24:54.711Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:25:04.306Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:25:16.346Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:25:28.362Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:25:28.363Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.363Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.363Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.363Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.364Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.365Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:28.365Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:25:37.963Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:25:50.044Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:26:02.086Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:26:11.666Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:26:23.704Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:26:33.292Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:26:45.303Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:26:57.306Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:27:06.857Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:27:18.881Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:27:30.909Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:27:40.424Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:27:52.443Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:28:04.478Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:28:14.018Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:28:26.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:28:35.626Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:28:47.660Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:28:59.717Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:29:09.365Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:29:21.386Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:29:21.386Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.387Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.388Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:21.388Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:29:33.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:29:42.973Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:29:54.986Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:30:04.535Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:30:16.708Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:30:28.718Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:30:38.297Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:30:50.302Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:02.324Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:11.870Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:23.904Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:33.440Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:45.540Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:31:57.620Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:32:07.168Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:32:19.240Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:32:31.291Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:32:40.784Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:32:52.982Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:33:02.622Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:33:14.699Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.699Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.700Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.700Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.700Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.700Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:14.700Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:33:26.792Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:33:36.457Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:33:48.556Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:34:00.596Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:34:10.120Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:34:22.131Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:34:31.737Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:34:43.746Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:34:55.772Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:35:05.342Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:35:17.366Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:35:29.462Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:35:39.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:35:51.074Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:36:00.644Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:36:12.653Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:36:24.685Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:36:34.291Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:36:46.329Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:36:58.402Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:37:07.964Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.965Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.966Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:07.966Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:37:19.977Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:37:29.543Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:37:41.573Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:37:53.584Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:03.134Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:15.152Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:27.159Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:36.667Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:48.680Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:38:58.198Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:39:10.224Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:39:22.243Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:39:31.721Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:39:43.743Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:39:55.798Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:40:05.328Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:40:17.357Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:40:27.019Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:40:39.196Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:40:51.401Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:41:00.958Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:00.959Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:41:13.011Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:41:25.053Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:41:34.545Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:41:46.555Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:41:56.064Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:42:08.080Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:42:20.192Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:43:37.635Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:43:47.943Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:43:55.772Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:06.197Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:16.691Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:27.231Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:35.239Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:45.860Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:44:56.562Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:04.844Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:15.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:26.429Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:34.749Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:45.664Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:45:54.368Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:46:05.390Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:46:05.391Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:46:05.391Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-09T19:46:16.528Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:46:25.117Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:46:36.306Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:46:47.595Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:46:56.317Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:47:07.644Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:47:19.019Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:47:27.942Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:47:39.430Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:47:51.017Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:00.085Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:11.693Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:23.368Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:32.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:44.337Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:48:53.579Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:49:05.467Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:49:17.382Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:49:26.810Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:49:38.839Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:49:50.854Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:00.352Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:12.381Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:21.881Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:33.889Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:45.949Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:50:55.443Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:51:07.476Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:51:19.523Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:51:29.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:51:41.113Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:51:53.138Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:52:02.573Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:52:14.607Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:52:24.145Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:52:36.196Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:52:48.252Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:52:57.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:53:09.800Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:53:21.815Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:53:31.331Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:53:43.373Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:53:52.855Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:54:04.939Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-09T19:54:16.965Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-09T19:54:26.476Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:44:46.290Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:44:56.497Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:06.749Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:17.050Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:27.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:37.812Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:48.267Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:45:58.778Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:46:09.339Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:46:19.942Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:46:30.593Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:46:41.296Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:46:52.048Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:47:02.850Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:47:13.703Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:47:24.606Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:47:35.561Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:47:46.570Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T09:47:46.572Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:47:46.572Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:47:46.572Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:47:46.572Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:47:57.627Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:48:08.731Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:48:19.885Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:48:31.086Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:48:42.345Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T09:48:53.653Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:49:05.007Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:49:16.419Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:49:27.881Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:49:39.391Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:49:50.946Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:50:02.550Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:50:14.213Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:50:25.924Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:50:37.682Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:50:49.485Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:51:01.339Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:51:13.253Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T09:51:25.213Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:51:37.219Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:51:49.222Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:51:49.223Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:51:49.223Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:51:49.223Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:51:49.223Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T09:52:01.225Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:52:13.231Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T09:57:19.560Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4468:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 12009
+}
+[2025-09-10T10:32:13.815Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:32:24.071Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:32:34.378Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:32:44.741Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:32:55.147Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:33:05.600Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:33:16.108Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T10:33:26.659Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:33:37.261Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:33:47.914Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:33:58.624Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:34:09.381Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:34:20.183Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:34:31.036Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:34:41.944Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:34:52.899Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:03.904Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.906Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.907Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.907Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.907Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.908Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:03.908Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:35:14.960Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:26.064Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:37.217Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:48.430Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:35:59.687Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:36:10.995Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:36:22.350Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:36:33.756Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:36:45.212Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T10:36:56.721Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:37:08.274Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:37:19.879Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:37:31.533Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:37:43.244Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:37:55.001Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:38:06.806Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:38:18.659Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:38:30.563Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:38:42.522Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T10:38:54.530Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:39:06.534Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:39:06.535Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.536Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.537Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.537Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.537Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:06.537Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:39:18.543Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:39:30.556Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:39:42.566Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:39:54.573Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:40:06.578Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:40:18.587Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T10:40:30.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:40:42.607Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T10:40:54.614Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:41:06.618Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:41:18.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:41:30.642Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:41:42.652Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:41:54.659Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:42:06.665Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:42:18.675Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:42:30.678Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:42:42.689Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:42:54.697Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:43:06.702Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:43:18.715Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.716Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.717Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.717Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.717Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:18.717Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T10:43:30.716Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:43:42.727Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:43:54.735Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:44:06.740Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:44:18.752Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:44:30.754Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:44:42.764Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:44:54.770Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:45:06.774Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:45:18.788Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T10:45:30.789Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:09:02.525Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:09:14.528Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:09:26.532Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:09:38.543Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:09:50.547Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:10:02.556Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:10:14.563Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:10:26.567Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:10:38.581Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:10:50.583Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.584Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.585Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:10:50.586Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:11:02.593Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:11:14.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:11:26.601Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:11:38.615Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:11:50.619Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:12:02.629Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:12:14.636Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:12:26.640Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:12:38.653Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:12:50.657Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:13:02.666Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:13:14.672Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:13:26.675Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:13:38.688Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:13:50.691Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:14:02.701Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:14:14.707Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:14:26.711Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:14:38.725Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:14:50.728Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:25:09.215Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.216Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:09.217Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:25:21.219Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:25:33.228Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:25:45.240Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:25:57.243Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:26:09.249Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:26:21.262Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:26:33.271Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:26:45.285Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:26:57.291Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:27:09.295Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:27:21.304Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:27:33.310Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:27:45.320Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:27:57.324Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:28:09.332Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:28:21.345Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:28:33.354Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:28:45.366Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:28:57.370Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:29:09.375Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:29:21.387Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:29:21.388Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.389Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.389Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.389Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.389Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.389Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.390Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.390Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.390Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.390Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.390Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:21.391Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:29:33.396Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:29:45.407Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:29:57.410Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:30:09.414Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:30:21.427Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:30:33.436Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:30:45.448Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:30:57.453Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:31:09.458Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:31:21.472Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:31:33.480Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:31:45.492Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:31:57.496Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:32:09.502Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:32:21.514Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:32:33.524Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:32:45.538Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:32:57.542Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:33:09.547Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:33:21.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:33:33.568Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.569Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.570Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.570Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.570Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:33.570Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:33:45.577Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:33:57.581Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:34:09.587Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:34:21.596Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:34:33.605Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:34:45.610Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:34:57.613Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:35:09.619Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:35:21.633Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:35:33.642Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:35:45.653Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:35:57.657Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:36:09.663Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:36:21.671Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:36:33.680Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:36:45.693Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:36:57.696Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:37:09.702Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:37:21.714Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:37:33.724Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:37:45.730Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.730Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.731Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.731Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.731Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.731Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.731Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:45.732Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:37:57.731Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:38:09.737Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:38:21.750Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:38:33.758Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:38:45.770Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:38:57.774Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:39:09.780Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:39:21.790Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:39:33.798Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:39:45.810Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:39:57.814Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:40:09.820Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:40:21.833Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:40:33.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:40:45.855Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:40:57.860Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:09.865Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:21.878Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:33.888Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:45.899Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:57.903Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:41:57.903Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.903Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.903Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.903Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.903Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:41:57.904Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:42:09.907Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:42:21.918Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:42:33.928Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:42:45.944Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:42:57.948Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:43:09.954Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:43:21.966Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:43:33.976Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:43:45.989Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:43:57.993Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:44:10.000Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:44:22.013Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:44:34.022Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:44:46.034Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:44:58.038Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:45:10.043Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:45:22.056Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:45:34.066Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:45:46.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:45:58.074Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:46:10.080Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.081Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.082Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.082Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.083Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.083Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.083Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:10.083Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T11:46:22.087Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:46:34.097Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:46:46.110Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:46:58.115Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:47:10.121Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T11:47:22.130Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:21:38.156Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:21:50.158Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:22:02.160Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:22:14.171Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:22:26.179Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:22:38.185Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:22:50.189Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T12:35:17.506Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:35:27.713Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:35:37.966Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:35:48.271Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:35:58.624Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:36:09.026Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:36:19.478Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:36:29.981Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T12:36:40.534Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:36:51.145Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T12:37:01.800Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:37:12.502Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:37:23.254Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:37:34.061Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:37:44.919Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:37:55.823Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:38:06.785Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:38:17.797Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:38:17.799Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T12:38:17.799Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-10T12:38:28.850Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:38:39.954Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:38:51.116Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:02.323Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:13.581Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:24.885Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:36.246Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:47.658Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:39:59.112Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:40:10.617Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:40:22.179Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:40:33.786Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:40:45.446Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:40:57.153Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:41:08.905Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:41:20.718Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:41:32.575Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:41:44.483Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:41:56.439Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:42:08.441Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:42:20.454Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:42:32.461Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:42:44.471Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:42:56.478Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:43:08.480Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:43:20.494Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:43:32.501Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:43:44.509Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:43:56.514Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:44:08.515Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:44:20.527Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:44:32.535Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:44:44.545Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:44:56.550Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:45:08.552Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:45:20.558Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:45:32.566Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:45:44.576Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:45:56.583Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:46:08.585Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:46:20.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:46:32.605Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:46:44.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:46:56.622Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:47:08.624Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:47:20.637Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:47:32.645Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:47:44.655Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:47:56.661Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:48:08.663Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:48:20.676Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:48:32.685Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:48:44.695Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:48:56.701Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:49:08.703Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:49:20.716Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:49:32.724Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:49:44.733Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:49:56.739Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:50:08.741Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:50:20.754Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:50:32.761Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:50:44.770Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:50:56.777Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:51:08.779Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:51:20.792Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:51:32.800Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:51:44.810Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:51:56.816Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:52:08.818Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:52:20.830Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:52:32.837Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:52:44.845Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-10T12:52:56.851Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:53:08.853Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:53:20.867Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:53:32.875Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:53:44.883Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:53:56.889Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:54:08.891Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:54:20.904Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:54:32.912Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:54:44.922Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:54:56.928Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:55:08.930Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:55:20.942Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:55:32.950Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:55:44.959Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:55:56.965Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:56:08.967Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:56:20.981Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:56:32.989Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:56:44.999Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:56:57.004Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:57:09.006Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:57:21.019Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:57:33.027Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:57:45.037Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:57:57.044Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:58:09.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:58:21.058Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:58:33.066Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:58:45.075Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T12:58:57.082Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T18:33:39.175Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T18:33:51.188Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T15:34:03.025Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T15:34:14.839Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T15:34:26.461Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T18:34:38.647Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T15:34:50.479Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-10T15:35:02.487Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:23:12.649Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:23:23.121Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:23:33.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:23:42.579Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:23:53.231Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:03.888Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:12.973Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:23.736Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:34.628Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:43.858Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:24:54.793Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:25:05.747Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:25:15.105Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:25:15.107Z] [ERROR] 🛑 Error en /api/email/polling [GET]: {}
+[2025-09-11T09:25:15.109Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.109Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.109Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.110Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.110Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.110Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.111Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.111Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.111Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:15.111Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:25:26.163Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:25:37.291Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:25:46.830Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:25:58.066Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:26:07.712Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:26:19.035Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:26:30.571Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:26:34.312Z] [WARN] ⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+[2025-09-11T09:26:36.133Z] [DEBUG] 🔄 Usando versión más reciente: v3
+[2025-09-11T09:26:36.133Z] [DEBUG] 🔍 Filtro por promptKey: {
+  "hotelId": "hotel999",
+  "version": "v3",
+  "promptKey": "room_info"
+}
+[2025-09-11T09:26:40.345Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:26:51.809Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:03.337Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:13.255Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:24.871Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:36.533Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:46.583Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:27:58.347Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:28:10.191Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:28:20.428Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:28:32.352Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:28:42.619Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:28:54.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:29:06.646Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:29:06.647Z] [ERROR] 🛑 Error en /api/email/polling [GET]: {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.651Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.652Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.652Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.653Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:06.654Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:29:16.991Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:29:29.049Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:29:41.074Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:29:51.463Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:30:03.497Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:30:13.838Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:30:25.868Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:30:37.878Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:30:48.188Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:00.209Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:12.229Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:22.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:34.620Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:44.965Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:31:56.984Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:32:09.015Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:32:19.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:32:31.417Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:32:43.445Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:32:53.786Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:33:05.797Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:33:05.799Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.800Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.800Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.800Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.800Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.800Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.801Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.801Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.801Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:05.802Z] [ERROR]  [31m[1m⨯[22m[39m {}
+[2025-09-11T09:33:16.204Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:33:28.219Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:33:40.270Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:33:50.544Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:34:02.653Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:34:14.740Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:34:25.059Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:34:37.074Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:34:47.447Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:34:59.474Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:35:11.484Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:35:21.861Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:35:33.877Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:35:45.893Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:35:56.222Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:36:08.233Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:36:20.247Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:36:30.611Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:36:42.630Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:36:52.989Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:37:05.023Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:37:17.065Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:37:27.417Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:37:39.440Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:37:51.485Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:38:01.826Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:38:13.868Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:46:10.643Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:46:22.652Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:46:34.672Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:46:45.206Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:46:57.245Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:47:09.271Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:47:19.632Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:47:31.655Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:47:41.957Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:47:53.970Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:48:06.004Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:48:16.230Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:48:28.265Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:48:40.284Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:48:50.571Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:49:02.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:49:12.847Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:49:24.869Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:49:36.878Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:49:47.049Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:49:59.058Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:50:11.081Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:50:21.299Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:50:33.307Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:50:43.510Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:50:55.544Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:51:07.561Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:51:17.693Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:51:29.722Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:51:41.775Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:51:52.028Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:52:04.047Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:52:16.084Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:52:26.317Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:52:38.380Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:52:48.492Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:53:00.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:53:12.596Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:53:22.817Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:53:34.862Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:53:46.895Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:53:57.087Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:54:09.095Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:54:19.231Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:54:31.249Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:54:43.260Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:54:53.413Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:55:05.435Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:55:17.476Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:55:27.714Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:55:39.732Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:55:50.009Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:56:02.049Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:56:14.106Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:56:24.206Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:56:36.220Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:56:48.241Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:56:58.543Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:57:10.590Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:57:20.929Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:57:32.983Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:57:45.011Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:57:55.248Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:58:07.267Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:58:19.293Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:58:29.523Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:58:41.548Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:58:51.767Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:59:03.826Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:59:15.886Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T09:59:26.093Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:59:38.145Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T09:59:50.190Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:00:00.396Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:00:12.403Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:00:22.665Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:00:34.702Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:00:46.755Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:00:57.114Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:01:09.162Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:01:21.250Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:01:31.465Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:01:43.492Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:01:55.535Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:02:05.800Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:02:17.830Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:02:28.075Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:02:40.096Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:02:52.116Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:03:02.359Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:03:14.377Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:03:26.396Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:03:36.656Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:03:48.689Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:04:00.732Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:04:12.754Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:04:22.176Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:04:34.199Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:04:44.568Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:04:56.600Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:05:08.611Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:05:18.546Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:05:30.577Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:05:42.594Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:05:52.917Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:06:04.928Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:06:15.091Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:06:27.102Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:06:39.117Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:06:49.325Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:01.338Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:13.341Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:23.577Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:35.594Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:45.757Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:07:57.766Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:08:09.770Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:08:20.010Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:08:32.036Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:08:44.053Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:08:54.235Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:09:06.267Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:09:16.399Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:09:28.420Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:09:40.438Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:09:50.659Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:02.673Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:14.708Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:24.924Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:36.936Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:48.958Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:10:59.164Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:11:11.197Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:11:21.382Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:11:33.393Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:11:45.411Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:11:55.587Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:12:07.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:12:19.634Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:12:29.786Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:12:41.803Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:12:52.026Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:13:04.056Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:13:16.079Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:13:26.326Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:13:38.353Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:13:50.397Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:14:00.620Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:14:12.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:14:22.804Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:14:34.825Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:14:46.838Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:14:57.064Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:15:09.087Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:15:21.111Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:15:31.380Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:15:43.397Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:15:53.588Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:16:05.600Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:16:17.619Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:16:27.821Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:16:39.841Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:16:51.874Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:02.073Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:14.104Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:26.122Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:36.392Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:48.428Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:17:58.634Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:18:10.650Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:18:22.671Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:18:32.859Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:18:44.889Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:18:56.897Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:19:07.162Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:19:19.181Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:19:29.402Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:19:41.419Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:19:53.429Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:20:03.648Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:20:15.699Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:20:27.715Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:20:37.928Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:20:49.948Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:00.296Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:12.367Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:24.373Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:34.593Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:46.616Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:21:58.634Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:22:08.858Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:22:20.864Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:22:32.882Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:22:43.115Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:22:55.140Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:23:05.407Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:23:17.452Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:23:29.477Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:23:39.650Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:23:51.660Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:24:03.669Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:24:13.964Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:24:25.989Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:24:36.264Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:24:48.307Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:25:00.328Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:25:10.560Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:25:22.598Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:25:34.625Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:25:44.838Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:25:56.872Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:26:07.150Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:26:19.167Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:26:31.181Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:26:41.470Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:26:53.476Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:27:05.489Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:27:15.740Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:27:27.764Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:27:38.034Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:27:50.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:02.062Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:12.334Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:24.339Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:36.370Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:46.571Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:28:58.579Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:29:08.844Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:29:20.860Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:29:32.878Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:29:43.068Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:29:55.079Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:30:07.094Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:30:17.351Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:30:29.358Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:30:41.364Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:30:51.574Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:31:03.594Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:31:13.875Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:31:25.908Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:31:37.929Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:31:48.173Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:32:00.194Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:32:12.207Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:32:22.438Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:32:34.535Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:32:44.784Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:32:56.819Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:33:08.850Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:33:19.120Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:33:31.131Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:33:43.161Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:33:53.415Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:34:05.425Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:34:15.647Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:34:27.658Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:34:39.665Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:34:49.964Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:35:01.982Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:35:13.994Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:35:24.200Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:35:36.226Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:35:46.495Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:35:58.527Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:36:10.551Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:36:20.827Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:36:32.848Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:36:44.869Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:36:55.153Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:37:07.214Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:37:19.220Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:37:29.480Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:37:41.496Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:37:51.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:38:03.782Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:38:15.792Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:38:26.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:38:38.064Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:38:50.072Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:00.335Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:12.353Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:22.641Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:34.674Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:46.697Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:39:56.953Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:40:08.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:40:20.994Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:40:31.254Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:40:43.277Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:40:53.538Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:41:05.550Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:41:17.557Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:41:27.832Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:41:39.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:41:51.867Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:42:02.132Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:42:14.141Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:42:24.405Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:42:36.417Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:42:48.428Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:42:58.669Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:43:10.676Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:43:22.686Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:43:32.957Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:43:45.003Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:43:55.269Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:44:07.279Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:44:19.312Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:44:29.593Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:44:41.601Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:44:53.615Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:45:03.865Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:45:15.888Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:45:26.172Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:45:38.203Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:45:50.217Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:02.227Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:11.716Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:23.739Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:35.755Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:46.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:46:58.098Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:47:10.108Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:47:20.397Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:47:32.413Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:47:42.691Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:47:54.715Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:48:06.722Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:48:17.008Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:48:29.017Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:48:41.026Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:48:51.261Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:03.264Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:15.265Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:25.505Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:37.530Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:47.816Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:49:59.830Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:50:11.851Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:50:22.135Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:50:34.156Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:50:46.186Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:50:56.441Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:51:08.463Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:51:18.726Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:51:30.755Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:51:42.804Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:51:53.093Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:52:05.132Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:52:17.150Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:52:27.407Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:52:39.452Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:52:49.708Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:01.722Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:13.739Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:23.986Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:35.998Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:48.005Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:53:58.242Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:54:10.269Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:54:20.522Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:54:32.542Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:54:44.546Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:54:54.792Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:55:06.808Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:55:18.827Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:55:29.106Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:55:41.116Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:55:51.365Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:03.401Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:15.412Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:25.668Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:37.679Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:49.704Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:56:59.956Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:57:11.971Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:57:22.228Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:57:34.246Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:57:46.259Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:57:56.510Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:58:08.517Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:58:20.543Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:58:30.811Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:58:42.833Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:58:54.880Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:59:05.168Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:59:17.202Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T10:59:27.455Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:59:39.492Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T10:59:51.519Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:00:01.765Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:00:13.777Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:00:25.788Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:00:36.102Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:00:48.239Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:00:58.577Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:01:10.617Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:01:22.628Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:01:32.912Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:01:44.931Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:01:56.950Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:02:07.208Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:02:19.237Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:02:29.536Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:02:41.576Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:02:53.595Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:03:03.874Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:03:15.899Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:03:27.942Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:03:38.196Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:03:50.228Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:04:00.513Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:04:12.519Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:04:24.552Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:04:34.820Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:04:46.841Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:04:58.877Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:05:09.141Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:05:21.174Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:05:31.417Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:05:43.427Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:05:55.451Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:06:05.720Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:06:17.735Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:06:29.749Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:06:40.047Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:06:52.063Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:07:02.378Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:07:14.413Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:07:26.438Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:07:36.733Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:07:48.756Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:08:00.780Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:08:11.054Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:08:23.078Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:08:33.381Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:08:45.414Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:08:57.518Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:09:07.772Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:09:19.812Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:09:31.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:09:42.138Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:09:54.145Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:10:04.415Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:10:16.450Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:10:28.474Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:10:38.733Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:10:50.745Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:02.772Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:13.057Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:25.067Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:37.077Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:47.349Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:11:59.370Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:12:09.642Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:12:21.678Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:12:33.692Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:12:43.949Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:12:55.971Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:13:07.983Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:13:18.264Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:13:30.309Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:13:40.587Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:13:52.616Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:14:04.625Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:14:14.873Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:14:26.883Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:14:38.912Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:14:49.232Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:15:01.260Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:15:11.540Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:15:23.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:15:35.574Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:15:45.857Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:15:57.868Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:16:09.893Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:16:20.151Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:16:32.161Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:16:42.435Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:16:54.456Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:17:06.471Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:17:16.734Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:17:28.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:17:40.784Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:17:51.053Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:18:03.104Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:18:13.405Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:18:25.422Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:18:37.454Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:18:47.739Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:18:59.761Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:19:11.777Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:19:22.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:19:34.063Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:19:44.352Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:19:56.368Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:20:08.390Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:20:18.675Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:20:30.719Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:20:42.750Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:20:53.025Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:21:05.046Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:21:15.299Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:21:27.317Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:21:39.378Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:21:49.630Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:22:01.650Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:22:13.685Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:22:23.958Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:22:35.978Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:22:47.995Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:22:58.291Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:23:10.300Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:23:20.576Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:23:32.604Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:23:44.640Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:23:54.915Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:24:06.935Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:24:18.953Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:24:29.252Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:24:41.285Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:24:51.584Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:25:03.612Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:25:15.640Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:25:25.925Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:25:37.941Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:25:49.955Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:00.241Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:12.282Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:22.565Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:34.586Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:46.599Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:26:56.871Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:27:08.890Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:27:20.926Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:27:31.211Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:27:43.239Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:27:53.510Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:28:05.541Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:28:17.565Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:28:27.858Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:28:39.892Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:28:51.908Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:02.199Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:14.237Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:24.496Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:36.518Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:48.532Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:29:58.789Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:30:10.808Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:30:22.833Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:30:33.114Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:30:45.135Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:30:55.388Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:31:07.404Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:31:19.438Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:31:29.730Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:31:41.767Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:31:53.789Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:32:04.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:32:16.104Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:32:28.126Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:32:38.402Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:32:50.414Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:33:01.701Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:33:13.718Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:33:25.736Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:33:36.017Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:33:48.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:34:00.066Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:34:10.338Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:34:22.355Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:34:32.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:44:40.050Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:44:52.087Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:45:04.114Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:45:15.161Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:45:27.181Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:45:38.102Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:45:50.139Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:46:02.170Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:46:12.934Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:46:24.975Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:46:37.030Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:46:47.907Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:46:59.915Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:47:11.930Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:47:22.834Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:47:34.843Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:47:45.706Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:47:57.714Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:48:09.720Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:48:20.488Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:48:32.502Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:48:44.518Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:48:55.357Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:49:07.364Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:49:18.154Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:49:30.167Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:49:42.178Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:49:52.984Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:50:04.994Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:50:16.997Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:50:27.860Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:50:39.885Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:50:50.708Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:51:02.717Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:51:14.720Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:51:25.587Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:51:37.597Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:51:49.617Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:52:00.473Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:52:12.477Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:52:23.354Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:52:35.364Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:52:47.379Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:52:58.215Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:53:10.221Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:53:22.259Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:53:33.053Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:53:45.071Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:53:55.874Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:54:07.886Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:54:19.907Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:54:30.774Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:54:42.801Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:54:54.804Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:55:05.675Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:55:17.689Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:55:28.549Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:55:40.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:55:52.563Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:56:03.355Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:56:15.369Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:56:27.380Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:56:38.241Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:56:50.246Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:57:02.258Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:57:13.108Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:57:25.121Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T11:57:35.970Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T11:57:47.974Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:03:45.381Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:03:57.388Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:04:09.393Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:04:21.403Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:04:33.414Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:04:45.419Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:04:57.445Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:05:09.450Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:05:20.534Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:05:32.556Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:05:44.559Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:05:55.445Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:06:07.460Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:06:18.258Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:06:30.281Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:06:42.292Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:06:53.109Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:07:05.138Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:07:17.187Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:07:27.991Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:07:40.036Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:07:50.913Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:08:02.926Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:08:14.986Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:08:25.845Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:08:37.863Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:08:49.908Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:09:00.841Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:09:12.869Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:09:23.750Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:09:35.762Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:09:47.763Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:09:58.573Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:10:10.591Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:10:22.596Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:10:33.428Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:10:45.437Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:10:56.278Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:11:08.288Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:11:20.303Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:11:31.145Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:11:43.150Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:11:55.155Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:12:05.993Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:12:18.009Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:12:28.816Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:12:40.825Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:12:52.834Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:13:03.661Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:13:15.676Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:13:27.681Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:13:38.504Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:13:50.513Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:14:01.337Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:14:13.366Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:14:25.370Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:14:36.218Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:14:48.224Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:00.240Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:11.041Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:23.046Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:35.051Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:45.902Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:15:57.908Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:16:08.741Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:16:20.746Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:16:32.804Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:16:43.612Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:16:55.633Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:17:07.675Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:17:18.292Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:17:30.317Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:17:41.080Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:17:53.090Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:18:05.112Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:18:15.882Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:18:27.912Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:18:39.937Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:18:50.727Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:19:02.738Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:19:13.348Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:19:25.350Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:19:37.371Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:19:47.992Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:20:00.026Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:20:12.041Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:20:22.818Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:20:34.825Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:20:45.521Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:20:57.545Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:21:09.566Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:21:20.033Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:21:32.042Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:21:44.056Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:21:54.631Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:22:06.638Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:22:17.331Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:22:29.349Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:22:41.354Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:22:51.986Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:23:04.010Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:23:16.044Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:23:26.632Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:23:38.670Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:23:49.160Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:01.167Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:13.170Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:23.868Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:35.882Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:47.896Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:24:58.503Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:25:10.511Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:25:22.520Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:25:33.072Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:25:45.114Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:25:55.696Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:26:07.718Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:26:19.798Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:26:30.397Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:26:42.426Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T12:26:54.436Z] [WARN] [Redis] Connection error: getaddrinfo EAI_AGAIN redis
+[2025-09-11T12:27:05.070Z] [WARN] [Redis] Connection error: connect ETIMEDOUT
+[2025-09-11T18:40:10.405Z] [ERROR] (node:75955) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-09-11T18:42:31.228Z] [ERROR] (node:75955) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[2025-09-11T18:47:04.280Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4562:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 211797
+}
+[2025-09-11T18:50:10.451Z] [ERROR] [/api/chat] error: DataAPITimeoutError: Command timed out after 15000ms (requestTimeoutMs timed out)
+    at Timeouts.mk [as _mkTimeoutError] (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:1425:16)
+    at advanced.<computed> [as mkTimeoutError] (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:1272:40)
+    at FetchNative.fetch (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:106:28)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7)
+    at async DataAPIHttpClient._request (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:7817:16)
+    at async DataAPIHttpClient.executeCommand (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:8021:26)
+    at async CommandImpls.updateOne (/root/begasist/.next/server/chunks/bc5a8_@datastax_astra-db-ts_dist_esm_f8019240._.js:3707:22)
+    at async saveMessageToAstra (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:242:5)
+    at async handleIncomingMessage (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4778:5)
+    at async POST (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4995:9)
+    at async AppRouteRouteModule.do (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/base-server.js:895:17)
+    at async /root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:242:21)
+    at async handleRequest (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:433:24)
+    at async requestHandlerImpl (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/router-server.js:457:13)
+    at async Server.requestListener (/root/begasist/node_modules/.pnpm/next@15.2.2_@babel+core@7.27.7_@playwright+test@1.53.1_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/server/lib/start-server.js:158:13)
+[2025-09-11T18:57:10.787Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4562:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 18964
+}
+[2025-09-11T18:57:47.071Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "timeout": {
+    "requestTimeoutMs": 15000,
+    "generalMethodTimeoutMs": 30000
+  },
+  "timedOutCategories": [
+    "requestTimeoutMs"
+  ],
+  "name": "DataAPITimeoutError"
+}
+[2025-09-11T19:02:34.332Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4562:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 117876
+}
+[2025-09-11T19:02:34.345Z] [ERROR] [/api/chat] error: SocketError: other side closed
+    at TLSSocket.<anonymous> (node:internal/deps/undici/undici:6294:28)
+    at TLSSocket.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+[2025-09-11T19:05:54.265Z] [ERROR] (node:84396) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-09-11T19:06:15.449Z] [ERROR] (node:84396) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[2025-09-11T19:08:10.250Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4562:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 49333
+}
+[2025-09-11T19:09:45.396Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "timeout": {
+    "requestTimeoutMs": 15000,
+    "generalMethodTimeoutMs": 30000
+  },
+  "timedOutCategories": [
+    "requestTimeoutMs"
+  ],
+  "name": "DataAPITimeoutError"
+}
+[2025-09-11T19:12:12.788Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "[agentGraph.invoke] timeout 12000ms",
+  "stack": "Error: [agentGraph.invoke] timeout 12000ms\n    at Timeout.<anonymous> (/root/begasist/.next/server/chunks/[root of the server]__852861eb._.js:4562:32)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)",
+  "elapsedMs": 40759
+}
+[2025-09-11T19:12:42.950Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "timeout": {
+    "requestTimeoutMs": 15000,
+    "generalMethodTimeoutMs": 30000
+  },
+  "timedOutCategories": [
+    "requestTimeoutMs"
+  ],
+  "name": "DataAPITimeoutError"
+}
+[2025-09-11T19:27:25.082Z] [ERROR] (node:90067) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-09-11T19:27:30.335Z] [ERROR] (node:90067) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[2025-09-11T19:32:10.681Z] [ERROR] (node:92161) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-09-11T19:32:15.924Z] [ERROR] (node:92161) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[2025-09-11T19:40:44.450Z] [WARN] ⚠️ [messageHandler] upsertConvState warn: {
+  "errno": -110,
+  "code": "ETIMEDOUT",
+  "syscall": "write"
+}

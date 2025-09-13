@@ -1,5 +1,7 @@
 // Path: /root/begasist/lib/db/convState.ts
 import { getAstraDB } from "@/lib/astra/connection";
+import { log } from "node:console";
+import { lookup } from "node:dns";
 
 export const CONVSTATE_VERSION = "convstate-2025-09-04-02";
 console.log("[convState] loaded", CONVSTATE_VERSION, "at", __filename);
@@ -108,6 +110,7 @@ export async function getConvState(
   conversationId: string
 ): Promise<ConversationFlowState | null> {
   const _id = key(hotelId, conversationId);
+  console.log("[BP-CS1]",hotelId, conversationId, _id);
   const doc = await col().findOne({ _id });
   return doc ?? null;
 }
@@ -127,6 +130,7 @@ export async function getConvState(
  *  - lastProposal (objeto entero: si viene null => unset completo; si viene objeto => set completo)
  *  - lastReservation (objeto entero: si viene null => unset completo; si viene objeto => set completo)
  */
+// BP-R8: dentro del await upsertConvState(...) de este branch (verás BP-CS2/3).
 export async function upsertConvState(
   hotelId: string,
   conversationId: string,
@@ -189,20 +193,14 @@ export async function upsertConvState(
       $set["lastReservation"] = patch.lastReservation;
     }
   }
-
+  
   const update: any = Object.keys($unset).length ? { $set, $unset } : { $set };
 
-  console.log("[convState] upsert:about-to-write", { _id, update });
+  console.log("[BP-CS2]",hotelId, conversationId, JSON.stringify(patch))
 
   const res = await col().updateOne({ _id }, update, { upsert: true });
 
-  console.log("[convState] upsert:result", {
-    _id,
-    matchedCount: (res as any)?.matchedCount,
-    modifiedCount: (res as any)?.modifiedCount,
-    upsertedId:   (res as any)?.upsertedId,
-    acknowledged: (res as any)?.acknowledged,
-  });
+  console.log("BP-CS3",res)
 }
 
 /* =========================
