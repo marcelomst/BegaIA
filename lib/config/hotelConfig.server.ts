@@ -3,9 +3,12 @@
 import type { ChannelMode, HotelConfig } from "@/types/channel";
 import { getAstraDB } from "@/lib/astra/connection";
 
-// ✅ Ahora es un helper local, NO global.
+// Tipado laxo del documento crudo en Astra (puede traer _id, metadata, etc.)
+type HotelConfigDoc = Record<string, any>;
+
+// ✅ Colección tipada a documento laxo
 export function getHotelConfigCollection() {
-  return getAstraDB().collection("hotel_config");
+  return getAstraDB().collection<HotelConfigDoc>("hotel_config");
 }
 
 export type HotelChannelConfig = {
@@ -14,71 +17,108 @@ export type HotelChannelConfig = {
   [key: string]: any;
 };
 
-// Obtiene la configuración de un hotel por su ID.
-export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
-  const collection = getHotelConfigCollection();
-  const result = await collection.findOne({ hotelId });
-  // ⚠️ fallback para iso3to1 si es system
-  if (result && hotelId === "system" && !result.iso3to1) {
-    result.iso3to1 = {
-      spa: "es", eng: "en", fra: "fr", por: "pt", ita: "it",
-      deu: "de", rus: "ru", nld: "nl",
-      // Agregá los que uses
-    };
-  }
-  // Asegura que channelConfigs existe (aunque vacío)
-  if (result && !result.channelConfigs) result.channelConfigs = {};
-  return result as HotelConfig | null;
+// --- utils: merge profundo y sanitización ---
+function isPlainObject(v: any): v is Record<string, any> {
+  return v && typeof v === "object" && !Array.isArray(v);
 }
 
-// Lista completa de hoteles (garantiza channelConfigs existe)
+function deepMerge<T extends Record<string, any>>(base: T, updates: Partial<T>): T {
+  const out: any = Array.isArray(base) ? [...base] : { ...base };
+  for (const key of Object.keys(updates || {})) {
+    const uVal: any = (updates as any)[key];
+    const bVal: any = (base as any)[key];
+
+    if (Array.isArray(uVal)) {
+      out[key] = [...uVal];
+    } else if (isPlainObject(uVal) && isPlainObject(bVal)) {
+      out[key] = deepMerge(bVal, uVal);
+    } else {
+      out[key] = uVal;
+    }
+  }
+  return out;
+}
+
+/**
+ * Normaliza un documento crudo de Astra a un HotelConfig estricto.
+ * Evita casts peligrosos (WithSim<FoundDoc<...>> → HotelConfig).
+ */
+function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
+  const cfg: HotelConfig = {
+    hotelId: String(doc.hotelId),
+    hotelName: doc.hotelName ?? "Unnamed Hotel",
+    defaultLanguage: doc.defaultLanguage ?? "es",
+    timezone: doc.timezone ?? "UTC",
+    channelConfigs: doc.channelConfigs ?? {},
+    users: doc.users ?? [],
+    lastUpdated: doc.lastUpdated ?? new Date().toISOString(),
+    iso3to1: doc.iso3to1 ?? undefined,
+    verification: doc.verification ?? undefined,
+    retrievalSettings: doc.retrievalSettings ?? undefined,
+    country: doc.country,
+    city: doc.city,
+    address: doc.address,
+    postalCode: doc.postalCode,
+    phone: doc.phone,
+    // soporte global de reservas (puede no existir)
+    reservations: doc.reservations ?? {},
+  };
+  return cfg;
+}
+
+// Obtiene la configuración de un hotel por su ID (sanitizada).
+export async function getHotelConfig(hotelId: string): Promise<HotelConfig | null> {
+  const collection = getHotelConfigCollection();
+  const raw = await collection.findOne({ hotelId }); // <- tipo laxo
+
+  if (!raw) return null;
+
+  // Fallback iso3to1 si es system
+  if (hotelId === "system" && !raw.iso3to1) {
+    raw.iso3to1 = {
+      spa: "es", eng: "en", fra: "fr", por: "pt", ita: "it",
+      deu: "de", rus: "ru", nld: "nl",
+    };
+  }
+  if (!raw.channelConfigs) raw.channelConfigs = {};
+  if (!("reservations" in raw)) raw.reservations = {};
+
+  return sanitizeHotelConfig(raw);
+}
+
+// Lista completa de hoteles (sanitizada).
 export async function getAllHotelConfigs(): Promise<HotelConfig[]> {
   const collection = getHotelConfigCollection();
-  const result = await collection.find({}).toArray();
+  const result = await collection.find({}).toArray(); // HotelConfigDoc[]
 
   return result
     .filter(doc => doc.hotelId)
-    .map(doc => ({
-      hotelId: doc.hotelId,
-      hotelName: doc.hotelName || "Unnamed Hotel",
-      defaultLanguage: doc.defaultLanguage || "es",
-      timezone: doc.timezone || "UTC",
-      channelConfigs: doc.channelConfigs || {},
-      users: doc.users || [],
-      lastUpdated: doc.lastUpdated || new Date().toISOString(),
-      iso3to1: doc.iso3to1 || undefined,
-      verification: doc.verification || undefined,
-      retrievalSettings: doc.retrievalSettings || undefined,
-      country: doc.country,
-      city: doc.city,
-      address: doc.address,
-      postalCode: doc.postalCode,
-      phone: doc.phone,
-    }));
+    .map((doc) => sanitizeHotelConfig(doc));
 }
 
-// Actualiza la configuración de un hotel por su ID.
+// Actualiza la configuración de un hotel por su ID (merge profundo).
 export async function updateHotelConfig(hotelId: string, updates: Partial<HotelConfig>) {
   const collection = getHotelConfigCollection();
-  const current = await collection.findOne({ hotelId });
+  const current = await collection.findOne({ hotelId }); // HotelConfigDoc | null
 
-  // Merge profundo solo en channelConfigs
-  const merged = {
-    ...current,
-    ...updates,
-    channelConfigs: {
-      ...current?.channelConfigs,
-      ...updates.channelConfigs,
-    },
-    lastUpdated: new Date().toISOString(),
+  // Base actual normalizada (asegurando estructuras)
+  const base: HotelConfigDoc = {
+    ...(current || {}),
+    channelConfigs: current?.channelConfigs || {},
+    reservations: current?.reservations || {},
   };
 
-  // ❌ remover _id antes de hacer $set para evitar conflictos en AstraDB/Mongo
-  delete (merged as any)._id;
+  // Merge profundo (incluye reservations y channelConfigs.*.reservations)
+  const mergedDeep = deepMerge(base, updates as Record<string, any>);
+  mergedDeep.lastUpdated = new Date().toISOString();
 
-  await collection.updateOne({ hotelId }, { $set: merged }, { upsert: true });
+  // ❌ remover _id antes de hacer $set para evitar conflictos
+  if (mergedDeep._id) delete mergedDeep._id;
 
-  return merged;
+  await collection.updateOne({ hotelId }, { $set: mergedDeep }, { upsert: true });
+
+  // Devolvemos tipado estricto
+  return sanitizeHotelConfig(mergedDeep);
 }
 
 export async function deleteHotelConfig(hotelId: string) {
@@ -88,8 +128,16 @@ export async function deleteHotelConfig(hotelId: string) {
 
 export async function createHotelConfig(hotelConfig: HotelConfig) {
   const collection = getHotelConfigCollection();
-  // ❌ remover _id antes de insertar
-  delete (hotelConfig as any)._id;
-  await collection.insertOne(hotelConfig);
-  return hotelConfig;
-} 
+
+  const doc: HotelConfigDoc = {
+    ...hotelConfig,
+    channelConfigs: hotelConfig.channelConfigs || {},
+    reservations: (hotelConfig as any).reservations || {},
+    lastUpdated: hotelConfig.lastUpdated || new Date().toISOString(),
+  };
+
+  if (doc._id) delete doc._id;
+
+  await collection.insertOne(doc);
+  return sanitizeHotelConfig(doc);
+}

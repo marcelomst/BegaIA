@@ -5,7 +5,7 @@ import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
 import { debugLog } from "../utils/debugLog";
 import { translateIfNeeded } from "@/lib/i18n/translateIfNeeded";
 import { classifyQuery } from "../classifier";
-import { promptMetadata } from "../prompts/promptMetadata";
+import { promptMetadata } from "@/lib/prompts";
 
 /* -------- Heurísticas útiles -------- */
 function reservationSlotsIncomplete(s?: typeof GraphState.State["reservationSlots"]) {

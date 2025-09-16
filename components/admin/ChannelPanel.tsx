@@ -22,19 +22,29 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
   const [reloadFlag, setReloadFlag] = useState(0);
   const [t, setT] = useState<any>(null);
 
+  // 🆕 flag por canal
+  const [forceCanonical, setForceCanonical] = useState<boolean>(false);
+
   const channelConfig: ChannelConfig | undefined = CHANNELS.find((ch) => ch.id === channel);
+
+  async function refreshFromServer(hotelId: string) {
+    const cfg = await fetchHotelConfig(hotelId);
+    if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
+      const chCfg: any = (cfg.channelConfigs as any)[channel];
+      setMode(chCfg?.mode ?? "automatic");
+      setForceCanonical(Boolean(chCfg?.reservations?.forceCanonicalQuestion));
+      if (channel === "email") {
+        setCurationModel(chCfg?.preferredCurationModel ?? "gpt-3.5-turbo");
+      }
+    } else {
+      setMode("automatic");
+      setForceCanonical(false);
+    }
+  }
 
   useEffect(() => {
     if (user?.hotelId && channel) {
-      fetchHotelConfig(user.hotelId).then((cfg) => {
-        if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
-          const ch = (cfg.channelConfigs as any)[channel];
-          setMode(ch?.mode ?? "automatic");
-          if (channel === "email") {
-            setCurationModel(ch?.preferredCurationModel ?? "gpt-3.5-turbo");
-          }
-        }
-      });
+      refreshFromServer(user.hotelId);
     }
   }, [channel, user?.hotelId]);
 
@@ -52,13 +62,32 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
       await fetch(`/api/config/mode?channel=${channel}&hotelId=${user.hotelId}&mode=${newMode}`, {
         method: "POST",
       });
-      fetchHotelConfig(user.hotelId).then((cfg) => {
-        if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
-          setMode((cfg.channelConfigs as any)[channel]?.mode ?? "automatic");
-        } else {
-          setMode("automatic");
-        }
+      await refreshFromServer(user.hotelId);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 🆕 Guardar flag por canal preservando el resto del objeto del canal
+  async function handleToggleCanonical(newVal: boolean) {
+    if (!user?.hotelId) return;
+    setLoading(true);
+    try {
+      const full = await fetchHotelConfig(user.hotelId);
+      const prevCh: any = full?.channelConfigs?.[channel] ?? {};
+      const nextCh = {
+        ...prevCh,
+        reservations: { ...(prevCh.reservations ?? {}), forceCanonicalQuestion: newVal },
+      };
+      await fetch("/api/hotels/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hotelId: user.hotelId,
+          updates: { channelConfigs: { [channel]: nextCh } },
+        }),
       });
+      setForceCanonical(newVal);
     } finally {
       setLoading(false);
     }
@@ -96,6 +125,7 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
           {t.sidebar[channelConfig?.id ?? channel] || channelConfig?.label || channel}
         </h2>
 
+        {/* Modo supervised/automatic */}
         <div className="flex items-center gap-2 ml-4">
           <Switch
             checked={mode === "supervised"}
@@ -121,6 +151,26 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
                 {t.channelPanel?.automatic || "Automático"}
               </>
             )}
+          </span>
+        </div>
+
+        {/* 🆕 Flag por canal: Forzar pregunta canónica */}
+        <div className="flex items-center gap-2 ml-4">
+          <Switch
+            checked={forceCanonical}
+            onCheckedChange={(checked) => handleToggleCanonical(checked)}
+            disabled={loading}
+          />
+          <span
+            className={
+              "flex items-center gap-1 px-2 py-0.5 rounded text-xs " +
+              (forceCanonical
+                ? "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200"
+                : "bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-200")
+            }
+            title="Si está activo, se prioriza la pregunta canónica en reservas."
+          >
+            ❓ {t.channelPanel?.forceCanonicalQuestion || "Pregunta canónica"}
           </span>
         </div>
 

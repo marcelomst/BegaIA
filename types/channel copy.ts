@@ -40,9 +40,9 @@ export type {
   CmEventStatus,
 };
 
-// ⚙️ Extensión mínima para banderas de reservas
-export type ReservationsFlags = {
-  /** Si true, el flujo de reservas insertará SIEMPRE la “pregunta canónica” al completar slots */
+// ====== NUEVO: Settings de reservas (hotel + canal) ======
+export type ReservationsSettings = {
+  /** Si true, fuerza a usar la pregunta canónica para confirmar intención. */
   forceCanonicalQuestion?: boolean;
 };
 
@@ -50,8 +50,8 @@ export type ReservationsFlags = {
 export type BaseChannelConfig = {
   enabled: boolean;
   mode: ChannelMode;
-  /** Banderas específicas del flujo de reservas para este canal */
-  reservations?: ReservationsFlags;
+  /** Ajustes de reservas específicos por canal (opcional). */
+  reservations?: ReservationsSettings;
 };
 
 export type WhatsAppConfig = BaseChannelConfig & {
@@ -133,12 +133,20 @@ export type HotelConfig = {
   defaultLanguage: string;
   timezone: string;
   iso3to1?: Record<string, string>;
+
+  /**
+   * Ajustes globales de reservas del hotel.
+   * Precedencia en runtime (ya implementada por vos):
+   * 1) channelConfigs[channel].reservations.forceCanonicalQuestion
+   * 2) reservations.forceCanonicalQuestion
+   * 3) false
+   */
+  reservations?: ReservationsSettings;
+
   channelConfigs: Partial<ChannelConfigMap>;
   users?: HotelUser[];
   verification?: { baseUrl?: string };
   retrievalSettings?: { useAstra: boolean; fallbackUrl?: string };
-  /** Banderas globales del flujo de reservas del hotel */
-  reservations?: ReservationsFlags;
   lastUpdated?: string;
 };
 
@@ -234,13 +242,13 @@ export interface Conversation {
 type ExternalRefs = {
   pmsId?: string;
   cmId?: string;
-  ota?: Record<string, string>;
+  ota?: Record<string, string>; // p.ej. { Booking: "BKG-123", Airbnb: "AB-456" }
 };
 
 export type Identifier = {
   type: "email" | "phone" | "doc" | "wa" | "web_id";
-  value: string;
-  verified?: boolean;
+  value: string;         // normalizado (email lower, phone E.164 si aplica)
+  verified?: boolean;    // true si proviene del PMS o fue verificado
   source?: "pms" | "cm" | "ota" | "ha";
 };
 
@@ -267,6 +275,7 @@ export interface Guest {
   loyaltyId?: string;
   vipLevel?: string;
 
+  // ⬇️ AÑADIR ESTO
   /** IDs alternativos útiles para “deduplicar” (email, wa, phone, rawId, etc.) */
   aliases?: string[];
   /** Identificadores normalizados (modelo objeto, no array) */

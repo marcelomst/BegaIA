@@ -2,6 +2,7 @@
 import { getAstraDB } from "@/lib/astra/connection";
 import { log } from "node:console";
 import { lookup } from "node:dns";
+import type { SupervisionRecord } from "@/types/audit";
 
 export const CONVSTATE_VERSION = "convstate-2025-09-04-02";
 console.log("[convState] loaded", CONVSTATE_VERSION, "at", __filename);
@@ -82,9 +83,14 @@ export type ConversationFlowState = {
   // Compat vieja
   lastCategory?: string | null;
 
+  // ⬇️ NUEVO
+  supervised?: boolean;                  // flag de pendiente/revisión
+  lastSupervision?: SupervisionRecord | null; // último registro de auditoría
+
+
   // Auditoría
   updatedAt: string;
-  updatedBy?: "ai" | "agent" | "system";
+  updatedBy?: "ai" | "agent" | "system"| "audit" | string;
 };
 
 /* =========================
@@ -131,6 +137,7 @@ export async function getConvState(
  *  - lastReservation (objeto entero: si viene null => unset completo; si viene objeto => set completo)
  */
 // BP-R8: dentro del await upsertConvState(...) de este branch (verás BP-CS2/3).
+
 export async function upsertConvState(
   hotelId: string,
   conversationId: string,
@@ -154,6 +161,24 @@ export async function upsertConvState(
 
   const $unset: Record<string, any> = {};
 
+    // ✅ NUEVO: flags de auditoría/supervisión
+  if ("supervised" in patch) {
+    const v = (patch as any).supervised;
+    if (v === undefined || v === null) {
+      $unset["supervised"] = true;
+    } else {
+      $set["supervised"] = !!v;
+    }
+  }
+
+  if ("lastSupervision" in patch) {
+    const v = (patch as any).lastSupervision;
+    if (v == null) {
+      $unset["lastSupervision"] = true;
+    } else {
+      $set["lastSupervision"] = v;
+    }
+  }
   // reservationSlots: set/unset por campo (merge superficial por clave)
   if ("reservationSlots" in patch) {
     const slots = patch.reservationSlots ?? {};

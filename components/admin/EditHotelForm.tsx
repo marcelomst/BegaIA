@@ -31,28 +31,41 @@ function ChannelConfigCard({
   onChange: (cfg: ChannelConfigMap[Channel]) => void;
   t: any;
 }) {
-  const enabled = config?.enabled ?? false;
-  const mode = config?.mode ?? "automatic";
+  const enabled = (config as any)?.enabled ?? false;
+  const mode = (config as any)?.mode ?? "automatic";
+  const forceCanonical = Boolean((config as any)?.reservations?.forceCanonicalQuestion);
+
+  // helper seguro que preserva el resto del objeto
+  const patch = (delta: Record<string, any>) =>
+    onChange({ ...(config as any), ...delta } as any);
+
+  const patchReservations = (delta: Record<string, any>) => {
+    const prevRes = ((config as any)?.reservations ?? {});
+    onChange({ ...(config as any), reservations: { ...prevRes, ...delta } } as any);
+  };
 
   return (
     <div className="flex flex-col gap-2 border rounded p-3 bg-white dark:bg-zinc-900">
       <label className="font-medium">{t.hotelEdit.channelLabels?.[channel] ?? channel}:</label>
+
       <label className="flex items-center gap-2">
         <input
           type="checkbox"
           checked={enabled}
-          onChange={e => onChange({ ...config, enabled: e.target.checked, mode } as any)}
+          onChange={e => patch({ enabled: e.target.checked, mode })}
         />
         {t.hotelEdit.enabled}
       </label>
+
       <select
         className="border p-2 rounded"
         value={mode}
-        onChange={e => onChange({ ...config, enabled, mode: e.target.value as "automatic" | "supervised" } as any)}
+        onChange={e => patch({ mode: e.target.value as "automatic" | "supervised" })}
       >
         <option value="automatic">{t.hotelEdit.automatic}</option>
         <option value="supervised">{t.hotelEdit.supervised}</option>
       </select>
+
       {/* Campos específicos por canal */}
       {channel === "whatsapp" && (
         <input
@@ -60,7 +73,7 @@ function ChannelConfigCard({
           type="text"
           placeholder={t.hotelEdit.celNumber}
           value={(config as WhatsAppConfig)?.celNumber || ""}
-          onChange={e => onChange({ ...config, enabled, mode, celNumber: e.target.value } as any)}
+          onChange={e => patch({ celNumber: e.target.value })}
         />
       )}
       {channel === "email" && (
@@ -69,7 +82,7 @@ function ChannelConfigCard({
           type="email"
           placeholder={t.hotelEdit.dirEmail}
           value={(config as any)?.dirEmail || ""}
-          onChange={e => onChange({ ...config, enabled, mode, dirEmail: e.target.value } as any)}
+          onChange={e => patch({ dirEmail: e.target.value })}
         />
       )}
       {channel === "channelManager" && (
@@ -79,24 +92,44 @@ function ChannelConfigCard({
             type="text"
             placeholder="WSDL Endpoint URL"
             value={(config as any)?.endpointUrl || ""}
-            onChange={e => onChange({ ...config, enabled, mode, endpointUrl: e.target.value } as any)}
+            onChange={e => patch({ endpointUrl: e.target.value })}
           />
           <input
             className="border p-2 rounded"
             type="text"
             placeholder="Username"
             value={(config as any)?.username || ""}
-            onChange={e => onChange({ ...config, enabled, mode, username: e.target.value } as any)}
+            onChange={e => patch({ username: e.target.value })}
           />
           <input
             className="border p-2 rounded"
             type="password"
             placeholder="Password"
             value={(config as any)?.password || ""}
-            onChange={e => onChange({ ...config, enabled, mode, password: e.target.value } as any)}
+            onChange={e => patch({ password: e.target.value })}
           />
         </>
       )}
+
+      {/* 🆕 Bandera por canal: Forzar pregunta canónica (reservas) */}
+      <div className="mt-2 pt-2 border-t border-border/50">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={forceCanonical}
+            onChange={(e) =>
+              patchReservations({ forceCanonicalQuestion: e.target.checked })
+            }
+          />
+          <span className="text-sm">
+            {t.hotelEdit.forceCanonicalQuestion ?? "Forzar pregunta canónica (reservas)"}
+          </span>
+        </label>
+        <p className="text-xs text-muted-foreground">
+          {t.hotelEdit.forceCanonicalHelp ??
+            "Si está activo, el primer pedido de dato faltante será la pregunta canónica (no la inventada por el modelo)."}
+        </p>
+      </div>
     </div>
   );
 }
@@ -126,7 +159,8 @@ export default function EditHotelForm({
       try {
         const cfg = await fetchHotelConfig(hotelId);
         const dict = await getDictionary(cfg.defaultLanguage || "en");
-        setHotel(cfg);
+        // asegurar estructuras opcionales
+        setHotel({ ...cfg, reservations: cfg.reservations ?? {}, channelConfigs: cfg.channelConfigs ?? {} });
         setT(dict);
       } catch {
         setError("Error cargando datos del hotel");
@@ -159,6 +193,7 @@ export default function EditHotelForm({
     return <div className="mt-10 text-center">Cargando...</div>;
 
   const channelConfigs = hotel.channelConfigs || EMPTY_CHANNEL_CONFIGS;
+  const globalForceCanonical = Boolean(hotel.reservations?.forceCanonicalQuestion);
 
   return (
     <div className="max-w-lg mx-auto mt-10 bg-muted p-6 rounded shadow">
@@ -200,7 +235,7 @@ export default function EditHotelForm({
             ))}
           </select>
         </label>
-        {/* Nombre, Dirección, Código Postal, Teléfono, Zona horaria, Idioma, WhatsApp... */}
+        {/* Nombre, Dirección, Código Postal, Teléfono, Zona horaria, Idioma */}
         <input
           className="border p-2 rounded"
           type="text"
@@ -260,6 +295,29 @@ export default function EditHotelForm({
             ))}
           </select>
         </label>
+
+        {/* 🆕 Sección global: Reservas */}
+        <div className="mt-3 p-3 border rounded bg-white/50 dark:bg-zinc-900/50">
+          <h3 className="font-semibold mb-2">{t.hotelEdit.reservations || "Reservas"}</h3>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={globalForceCanonical}
+              onChange={(e) =>
+                setHotel(h => h ? {
+                  ...h,
+                  reservations: { ...(h.reservations ?? {}), forceCanonicalQuestion: e.target.checked }
+                } : h)
+              }
+            />
+            <span>{t.hotelEdit.forceCanonicalQuestionGlobal ?? "Forzar pregunta canónica (global)"}</span>
+          </label>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t.hotelEdit.forceCanonicalHint ??
+              "Si está activo, el flujo de reservas preferirá la pregunta canónica al pedir el próximo dato faltante. Los canales pueden sobrescribir este valor."}
+          </p>
+        </div>
+
         <h2 className="font-semibold mt-4">{t.hotelEdit.channels}</h2>
         <div className="grid grid-cols-1 gap-4">
           {ALL_CHANNELS.map(ch => (

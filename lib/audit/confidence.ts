@@ -1,5 +1,5 @@
 // /lib/audit/confidence.ts
-import type { Interpretation, RequiredSlot, SlotMap } from "@/lib/types/audit";
+import type { Interpretation, RequiredSlot, SlotMap } from "@/types/audit";
 
 export function intentConfidenceByRules(text: string, cat: Interpretation["category"]): number {
   const t = (text||"").toLowerCase();

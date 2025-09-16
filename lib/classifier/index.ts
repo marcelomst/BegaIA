@@ -2,21 +2,18 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { promptMetadata } from "../prompts/promptMetadata";
+import { promptMetadata } from "@/lib/prompts";              // ⬅️ unificado
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-export type IntentCategory =
-  | "reservation"
-  | "cancel_reservation"
-  | "amenities"
-  | "billing"
-  | "support"
-  | "retrieval_based";
+import type { IntentCategory, DesiredAction } from "@/types/audit"; // ⬅️ tipos centrales
+import { looksRoomInfo } from "@/lib/agents/helpers";
 
-export type Classification = { category: IntentCategory; promptKey: string | null };
+export type Classification = {
+  category: IntentCategory;
+  promptKey: string | null;
+  desiredAction?: DesiredAction; // ⬅️ ahora opcional y tipado
+};
 
-function looksRoomInfo(s: string) {
-  return /\b(check[- ]?in|check[- ]?out|ingreso|salida|horario|hora(s)?)\b/i.test(s);
-}
+// …resto del archivo igual…
 
 function normalizeCategory(c: string): IntentCategory {
   const m = (c || "").trim().toLowerCase();

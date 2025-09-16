@@ -1,5 +1,5 @@
 // /lib/audit/router.ts
-import type { SlotMap, SupervisionRecord } from "@/lib/types/audit";
+import type { SlotMap, SupervisionRecord } from "@/types/audit";
 import { preLLMInterpret } from "./preLLM";
 import { llmInterpret } from "./llmAdvisor";
 import { verdict as compare } from "./compare";

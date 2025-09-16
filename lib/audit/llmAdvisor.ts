@@ -1,14 +1,21 @@
-// /lib/audit/llmAdvisor.ts
-import type { Interpretation, SlotMap } from "@/lib/types/audit";
+// Path: /root/begasist/lib/audit/llmAdvisor.ts
+import type { Interpretation, SlotMap } from "@/types/audit";
 import { classifyQuery } from "@/lib/classifier";
 import { fillSlotsWithLLM } from "@/lib/agents/reservations";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "./confidence";
 
-export async function llmInterpret(text: string, hotelId: string, locale: "es"|"en"|"pt", mergedSlots: SlotMap, hotelTz?: string): Promise<Interpretation> {
-  // 1) intención
-  const cls = await classifyQuery(text, hotelId);
-  // 2) slots
-  const augmented = text + (Object.keys(mergedSlots).length ? `\n\nDatos previos conocidos: ${JSON.stringify(mergedSlots)}` : "");
+export async function llmInterpret(
+  text: string,
+  hotelId: string,
+  locale: "es" | "en" | "pt",
+  mergedSlots: SlotMap,
+  hotelTz?: string
+): Promise<Interpretation> {
+  const cls = await classifyQuery(text, hotelId); // ⬅️ ya tiene desiredAction?
+  const desiredAction = cls.desiredAction;        // ⬅️ sin cast
+
+  const augmented =
+    text + (Object.keys(mergedSlots).length ? `\n\nDatos previos conocidos: ${JSON.stringify(mergedSlots)}` : "");
   const filled = await fillSlotsWithLLM(augmented, locale, { hotelTz });
 
   const slots: SlotMap = {};
@@ -27,13 +34,13 @@ export async function llmInterpret(text: string, hotelId: string, locale: "es"|"
   }
 
   const category = (cls.category as Interpretation["category"]) ?? "retrieval_based";
-  const intentConf = intentConfidenceByRules(text, category); // tu propia escala estable
+  const intentConf = intentConfidenceByRules(text, category);
   const slotConfs = slotsConfidenceByRules(slots);
 
   return {
     source: "llm",
     category,
-    desiredAction: cls.desiredAction as any,  // si tu classifyQuery lo devuelve o lo infieres
+    desiredAction,
     slots,
     confidence: { intent: intentConf, slots: slotConfs },
     notes: ["llm via classifyQuery + fillSlotsWithLLM"],

@@ -1,7 +1,6 @@
 // /lib/audit/preLLM.ts
-import type { Interpretation, SlotMap } from "@/lib/types/audit";
-import { heuristicClassify } from "@/lib/agents/graph_helpers"; // o muévelo a helpers
-import { normalizeNameCase } from "@/lib/agents/graph";
+import type { Interpretation, SlotMap } from "@/types/audit";
+import { normalizeNameCase, heuristicClassify } from "@/lib/agents/helpers";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "./confidence";
 
 export function preLLMInterpret(text: string, persistedSlots: SlotMap): Interpretation {

@@ -25,9 +25,17 @@ import {
   choosePlaybookKey,
   type ConversationState,
 } from "@/lib/agents/systemInstructions";
-import { normalizeNameCase } from "@/lib/agents/graph.ts";
+import { normalizeNameCase } from "@/lib/agents/helpers";
+
+// 🧪 Auditoría (preLLM / postLLM)
+import { preLLMInterpret } from "@/lib/audit/preLLM";
+import { verdict as auditVerdict } from "@/lib/audit/compare";
+import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
+// Tipos de auditoría (si no están en tu repo, podés reemplazar por `any`)
+import type { Interpretation, SlotMap } from "@/types/audit";
+
 // ⬇️ cerca del top del archivo
-const IS_TEST = !!process.env.VITEST || process.env.NODE_ENV === "test";
+const IS_TEST = false;
 
 /** Versión para trazar qué archivo está cargando realmente */
 export const MH_VERSION = "mh-2025-09-01-09";
@@ -63,7 +71,7 @@ function toStrictSlots(slots?: DbReservationSlots | null): ReservationSlotsStric
     roomType: slots?.roomType,
     checkIn: slots?.checkIn,
     checkOut: slots?.checkOut,
-    numGuests: slots?.numGuests != null ? String(slots.numGuests) : undefined,
+    numGuests: slots?.numGuests != null ? String(slots?.numGuests) : undefined,
   };
 }
 
@@ -204,15 +212,36 @@ function detectIntent(
   }
   return "ambiguous";
 }
+// *************************************************
+// Cola por conversación para evitar condiciones de carrera
+// (importante si usás serverless con concurrencia)
+const convQueues = new Map<string, Promise<any>>();
 
+function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
+  const prev = convQueues.get(convId) || Promise.resolve();
+  const next = prev.then(fn, fn);
+  convQueues.set(
+    convId,
+    next.finally(() => {
+      if (convQueues.get(convId) === next) convQueues.delete(convId);
+    })
+  );
+  // @ts-ignore
+  return next;
+}
+
+// *************************************************
 export async function handleIncomingMessage(
-  msg: ChannelMessage,
-  options?: {
+  msg: ChannelMessage, 
+  options?: { 
     sendReply?: (reply: string) => Promise<void>;
     mode?: "automatic" | "supervised";
     skipPersistIncoming?: boolean;
-  }
-): Promise<void> {
+  }): Promise<void> {
+  // tomá un convId provisional para la llave del lock
+  const lockId = msg.conversationId || `${msg.hotelId}-${msg.channel}-${(msg.sender || msg.guestId || "guest")}`;
+
+  return runQueued(lockId, async () => {
   const now = new Date().toISOString();
   msg.messageId ||= crypto.randomUUID();
   msg.role ||= "user";
@@ -263,7 +292,6 @@ export async function handleIncomingMessage(
       return;
     }
   }
-
 
   // Persist incoming
   if (!options?.skipPersistIncoming) await saveChannelMessageToAstra(msg);
@@ -325,100 +353,183 @@ export async function handleIncomingMessage(
     new HumanMessage(String(msg.content || "")),
   ];
 
-  // === Ejecutar grafo con defensas
-// === Ejecutar grafo con defensas
-let finalText = "";
-let nextCategory: string | null = prevCategory;
-let nextSlots: ReservationSlotsStrict = prevSlotsStrict;
+  // === Ejecutar grafo con defensas + AUDITORÍA ===
+  let finalText = "";
+  let nextCategory: string | null = prevCategory;
+  let nextSlots: ReservationSlotsStrict = prevSlotsStrict;
 
-if (IS_TEST) {
-  // ✅ Fast-path de test: sin red, sin latencia, determinista
-  finalText = "Estoy para ayudarte. ¿Podés contarme brevemente el problema?";
-  nextCategory = "support";
-  nextSlots = prevSlotsStrict;
-  console.log("🧪 [graph] TEST fast-path activo");
-} else {
-  const started = Date.now();
-  console.log("🧪 [graph] invoking…", {
-    hotelId: msg.hotelId,
-    conversationId,
+  // ---- PRELLM (heurística) ----
+  // BP-A1: preLLM start
+  console.log("[BP-A1] preLLM:start", {
+    conv: conversationId,
     lang,
     prevCategory,
-    prevSlots: prevSlotsStrict,
-    lcHistoryLen: lcHistory.length,
-    promptKey,
-    intent,
   });
 
+  // Audit SlotMap espera strings; mapeamos desde prevSlotsStrict
+  const persistedSlotsForAudit: SlotMap = {
+    guestName: prevSlotsStrict.guestName,
+    roomType: prevSlotsStrict.roomType,
+    checkIn: prevSlotsStrict.checkIn,
+    checkOut: prevSlotsStrict.checkOut,
+    numGuests: prevSlotsStrict.numGuests,
+  };
+
+  let preInterp: Interpretation | null = null;
   try {
-    console.log("[BP-CHAT1]",conversationId, msg.hotelId, String(msg.content || ""));
-    const graphResult = await withTimeout(
-      
-      agentGraph.invoke({
-        hotelId: msg.hotelId,
-        conversationId,
-        detectedLanguage: msg.detectedLanguage,
-        normalizedMessage: String(msg.content || ""),
-        messages: lcMessages,
-        reservationSlots: prevSlotsStrict,
-        meta: { channel: msg.channel, prevCategory },
-      }),
-      300000,
-      "agentGraph.invoke"
-    );
-
-    const last = (graphResult as any)?.messages?.at?.(-1);
-    console.log(
-      "[BP-CHAT2]",
-      last && typeof last?.content,
-      last && (typeof last?.content === "string"
-        ? last?.content.slice(0, 200)
-        : last?.content)
-    );
-
-    finalText =
-      typeof last?.content === "string" ? String(last.content).trim() : "";
-
-    nextCategory = (graphResult as any).category ?? prevCategory ?? null;
-
-    const merged: ReservationSlotsStrict = {
-      ...(prevSlotsStrict || {}),
-      ...((graphResult as any).reservationSlots || {}),
-    };
-    if (
-      typeof merged.numGuests !== "undefined" &&
-      typeof merged.numGuests !== "string"
-    ) {
-      merged.numGuests = String(merged.numGuests as any);
-    }
-    nextSlots = merged;
-
-    console.log("✅ [graph] ok in", Date.now() - started, "ms", {
-      nextCategory,
-      nextSlots,
-    });
-  } catch (err: any) {
-    console.error("❌ [messageHandler] agentGraph error:", {
-      errMsg: err?.message || String(err),
-      stack: err?.stack,
-      cause: err?.cause,
-      elapsedMs: Date.now() - started,
-    });
-
-    // Fallback amable
-    finalText = lang.startsWith("es")
-      ? "Perdón, tuve un problema procesando tu consulta. ¿Podés repetir o reformular?"
-      : lang.startsWith("pt")
-      ? "Desculpe, tive um problema ao processar sua solicitação. Pode repetir?"
-      : "Sorry, I had an issue processing your request. Could you try again?";
+    preInterp = preLLMInterpret(String(msg.content || ""), persistedSlotsForAudit);
+  } catch (e) {
+    console.warn("[BP-A1W] preLLM:error", (e as any)?.message || e);
   }
-}
+  // BP-A2: preLLM result
+  if (preInterp) {
+    console.log("[BP-A2] preLLM:result", {
+      category: preInterp.category,
+      desiredAction: preInterp.desiredAction,
+      confidence: preInterp.confidence?.intent,
+      slots: preInterp.slots,
+    });
+  }
 
-if (!finalText) {
-  finalText = ruleBasedFallback(lang, String(msg.content || ""));
-  console.warn("⚠️ [graph] finalText vacío → fallback determinista");
-}
+  if (IS_TEST) {
+    // ✅ Fast-path de test: sin red, sin latencia, determinista
+    finalText = "Estoy para ayudarte. ¿Podés contarme brevemente el problema?";
+    nextCategory = "support";
+    nextSlots = prevSlotsStrict;
+    console.log("🧪 [graph] TEST fast-path activo");
 
+    // En tests, no forzamos supervisado: retornamos simple
+  } else {
+    const started = Date.now();
+    console.log("🧪 [graph] invoking…", {
+      hotelId: msg.hotelId,
+      conversationId,
+      lang,
+      prevCategory,
+      prevSlots: prevSlotsStrict,
+      lcHistoryLen: lcHistory.length,
+      promptKey,
+      intent,
+    });
+
+    try {
+      console.log("[BP-CHAT1]", conversationId, msg.hotelId, String(msg.content || ""));
+      const graphResult = await withTimeout(
+        agentGraph.invoke({
+          hotelId: msg.hotelId,
+          conversationId,
+          detectedLanguage: msg.detectedLanguage,
+          normalizedMessage: String(msg.content || ""),
+          messages: lcMessages,
+          reservationSlots: prevSlotsStrict,
+          meta: { channel: msg.channel, prevCategory },
+        }),
+        300000,
+        "agentGraph.invoke"
+      );
+
+      const last = (graphResult as any)?.messages?.at?.(-1);
+      console.log(
+        "[BP-CHAT2]",
+        last && typeof last?.content,
+        last && (typeof last?.content === "string"
+          ? last?.content.slice(0, 200)
+          : last?.content)
+      );
+
+      finalText =
+        typeof last?.content === "string" ? String(last.content).trim() : "";
+
+      nextCategory = (graphResult as any).category ?? prevCategory ?? null;
+
+      const merged: ReservationSlotsStrict = {
+        ...(prevSlotsStrict || {}),
+        ...((graphResult as any).reservationSlots || {}),
+      };
+      if (
+        typeof merged.numGuests !== "undefined" &&
+        typeof merged.numGuests !== "string"
+      ) {
+        merged.numGuests = String(merged.numGuests as any);
+      }
+      nextSlots = merged;
+
+      console.log("✅ [graph] ok in", Date.now() - started, "ms", {
+        nextCategory,
+        nextSlots,
+      });
+    } catch (err: any) {
+      console.error("❌ [messageHandler] agentGraph error:", {
+        errMsg: err?.message || String(err),
+        stack: err?.stack,
+        cause: err?.cause,
+        elapsedMs: Date.now() - started,
+      });
+
+      // Fallback amable
+      finalText = lang.startsWith("es")
+        ? "Perdón, tuve un problema procesando tu consulta. ¿Podés repetir o reformular?"
+        : lang.startsWith("pt")
+        ? "Desculpe, tive um problema ao processar sua solicitação. Pode repetir?"
+        : "Sorry, I had an issue processing your request. Could you try again?";
+    }
+  }
+
+  if (!finalText) {
+    finalText = ruleBasedFallback(lang, String(msg.content || ""));
+    console.warn("⚠️ [graph] finalText vacío → fallback determinista");
+  }
+
+  // ---- POSTLLM (comparación pre vs “LLM from graph”) ----
+  // Construimos la interpretación “LLM” a partir de lo devuelto por el grafo
+  // Nota: no re-llamamos al LLM: usamos nextCategory + nextSlots y calculamos confidencias con tus reglas.
+  const llmSlotsForAudit: SlotMap = {
+    guestName: nextSlots.guestName,
+    roomType: nextSlots.roomType,
+    checkIn: nextSlots.checkIn,
+    checkOut: nextSlots.checkOut,
+    numGuests: nextSlots.numGuests,
+  };
+
+  const llmIntentConf = intentConfidenceByRules(String(msg.content || ""), (nextCategory as any) || "retrieval_based");
+  const llmSlotConfs = slotsConfidenceByRules(llmSlotsForAudit);
+
+  const llmInterp: Interpretation = {
+    source: "llm",
+    category: ((nextCategory as any) ?? "retrieval_based"),
+    desiredAction: undefined, // si querés, se puede inferir en el grafo y setear aquí
+    slots: llmSlotsForAudit,
+    confidence: { intent: llmIntentConf, slots: llmSlotConfs },
+    notes: ["llm via agentGraph result"],
+  };
+
+  // BP-A3: llmInterpret (from graph)
+  console.log("[BP-A3] llm:fromGraph", {
+    category: llmInterp.category,
+    confidence: llmInterp.confidence?.intent,
+    slots: llmInterp.slots,
+  });
+
+  // BP-A4: verdict
+  let needsSupervision = false;
+  let verdictInfo: any = null;
+  try {
+    if (preInterp) {
+      const v = auditVerdict(preInterp, llmInterp);
+      verdictInfo = v;
+      console.log("[BP-A4] verdict", v);
+      const riskyCategory =
+        (llmInterp.category as any) === "cancel_reservation";
+      // Si querés, también podés considerar acciones explícitas:
+      // const riskyAction = (llmInterp as any).desiredAction === "cancel";
+      needsSupervision = riskyCategory && verdictInfo?.status === "disagree";
+
+    } else {
+      console.log("[BP-A4] verdict:skipped (no preInterp)");
+    }
+  } catch (e) {
+    console.warn("[BP-A4W] verdict:error", (e as any)?.message || e);
+  }
 
   // === Persistir y emitir respuesta
   const suggestion = finalText;
@@ -427,11 +538,28 @@ if (!finalText) {
     messageId: crypto.randomUUID(),
     sender: "assistant",
     role: "ai",
-    content: suggestion,
+    content: suggestion,      // (tu UI usa suggestion si pending, content si sent)
     suggestion,
-    status: (guest.mode ?? "automatic") === "automatic" ? "sent" : "pending",
+    // Regla de negocio:
+    // - Si auditoría discrepa, forzamos supervisado (pending) aunque el modo sea automatic.
+    // - Si no hay discrepancia, respetamos el modo del huésped.
+    status: needsSupervision
+      ? "pending"
+      : (guest.mode ?? "automatic") === "automatic"
+        ? "sent"
+        : "pending",
     timestamp: new Date().toISOString(),
+    respondedBy: needsSupervision ? "assistant" : undefined,
   };
+
+  // Adjuntamos rastro de auditoría (tu colección de mensajes suele tolerar campos extras)
+  (aiMsg as any).audit = preInterp
+    ? {
+        pre: preInterp,
+        llm: llmInterp,
+        verdict: verdictInfo,
+      }
+    : undefined;
 
   await saveChannelMessageToAstra(aiMsg);
   channelMemory.addMessage(aiMsg);
@@ -443,11 +571,16 @@ if (!finalText) {
       });
       await emitReply(conversationId, suggestion, options?.sendReply);
     } else {
-      const pending = lang.startsWith("es")
-        ? "🕓 Tu consulta está siendo revisada por un recepcionista."
-        : lang.startsWith("pt")
-        ? "🕓 Sua solicitação está sendo revisada por um recepcionista."
-        : "🕓 Your request is being reviewed by a receptionist.";
+      // BP-A5: supervised path
+      console.log("[BP-A5] supervised:pending", {
+        reason: verdictInfo?.reason || "policy/safety",
+      });
+      const pending =
+        lang.startsWith("es")
+          ? "🕓 Tu consulta está siendo revisada por un recepcionista."
+          : lang.startsWith("pt")
+          ? "🕓 Sua solicitação está sendo revisada por um recepcionista."
+          : "🕓 Your request is being reviewed by a receptionist.";
       await emitReply(conversationId, pending, options?.sendReply);
     }
   } catch (err) {
@@ -489,4 +622,5 @@ if (!finalText) {
   } catch (err) {
     console.warn("⚠️ [messageHandler] upsertConvState warn:", err);
   }
+});
 }

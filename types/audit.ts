@@ -1,4 +1,4 @@
-// /lib/types/audit.ts
+// /types/audit.ts
 export type IntentCategory =
   | "reservation"
   | "cancel_reservation"
@@ -38,3 +38,12 @@ export type SupervisionRecord = {
   hotelId: string;
   conversationId: string;
 };
+
+export type IntentResult = {
+  category: IntentCategory;
+  desiredAction: DesiredAction;
+  intentConfidence: number;
+  intentSource: IntentSource;
+};
+
+type IntentSource = "heuristic" | "llm" | "embedding";

@@ -14,29 +14,16 @@ import {
 } from "@/lib/agents/reservations";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { auditedInterpret } from "@/lib/audit/router";
-
+import type { IntentCategory, DesiredAction, RequiredSlot, SlotMap, IntentResult  } from "@/types/audit"; // ⬅️ nuevos imports
+import { looksLikeName } from "./helpers"; // ⬅️ import función looksLikeName  
+import { normalizeNameCase, heuristicClassify } from "./helpers"; // ⬅️ import función normalizeNameCase
+ 
 /* =========================
  *        TYPES
  * ========================= */
 
-type IntentSource = "heuristic" | "llm" | "embedding";
-type DesiredAction = "create" | "modify" | "cancel" | undefined;
-type IntentCategory =
-  | "reservation"
-  | "cancel_reservation"
-  | "amenities"
-  | "billing"
-  | "support"
-  | "retrieval_based";
 
-type IntentResult = {
-  category: IntentCategory;
-  desiredAction: DesiredAction;
-  intentConfidence: number;
-  intentSource: IntentSource;
-};
 
-type RequiredSlot = "guestName" | "roomType" | "checkIn" | "checkOut" | "numGuests";
 const REQUIRED_SLOTS: RequiredSlot[] = ["guestName", "roomType", "checkIn", "checkOut", "numGuests"];
 const FORCE_CANONICAL_QUESTION =
   (process.env.FORCE_CANONICAL_QUESTION || "0") === "1";
@@ -64,6 +51,16 @@ const LABELS = {
     numGuests: "número de hóspedes",
   },
 } as const;
+
+// máximo 4 huéspedes (para evitar locuras)
+const WORD2NUM: Record<string, number> = { uno:1, una:1, dos:2, tres:3, cuatro:4 };
+function extractGuests(msg: string): number | undefined {
+  const mNum = msg.match(/\b(\d{1,2})\b/);
+  if (mNum) return parseInt(mNum[1], 10);
+  const mWord = msg.toLowerCase().match(/\b(uno|una|dos|tres|cuatro)\b/);
+  return mWord ? WORD2NUM[mWord[1]] : undefined;
+}
+
 
 function isConfirmIntentLight(s: string) {
   const t = (s || "").toLowerCase().trim();
@@ -111,29 +108,8 @@ function articleFor(slot: RequiredSlot, lang2: "es" | "en" | "pt") {
   }
 }
 
-function looksLikeName(s: string) {
-  const t = (s || "").trim();
-  if (t.length < 2 || t.length > 60) return false;
-  if (/[0-9?!,:;@]/.test(t)) return false;
-  const tokens = t.split(/\s/);
-  if (tokens.length === 0 || tokens.length > 3) return false;
-  const STOP = new Set([
-    "hola","buenas","hello","hi","hey","olá","ola","oi",
-    "que","qué","cuando","cuándo","donde","dónde","como","cómo",
-    "hora","precio","policy","política","check","in","out",
-    "reserva","reservo","quiero","quero","tiene","hay"
-  ]);
-  if (tokens.some(w => STOP.has(w.toLowerCase()))) return false;
-  if (!tokens.every(w => /^[\p{L}.'-]+$/u.test(w))) return false;
-  return true;
-}
-export function normalizeNameCase(s: string) {
-  return s
-  .trim()
- .split(/\s+/)
- .map(w => w.slice(0,1).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
-}
+
+
 function isStatusQuery(text: string) {
   const t = (text || "").toLowerCase();
   if (/(verific|cheque|revis|qué\sreserva|que\sreserva|qué\shice|que\shice|qué\squedó|que\squed[oó])/.test(t)) return true;
@@ -237,10 +213,11 @@ export const GraphState = Annotation.Root({
     reducer: (_x, y) => y,
     default: () => null,
   }),
-  upsellCount: Annotation<number>({
-    reducer: (x, y) => (typeof y === "number" ? y : x ?? 0),
-    default: () => 0,
-  }),
+upsellCount: Annotation<number>({
+  reducer: (x, y) => (typeof y === "number" ? y : x ?? 0),
+  default: () => 0,
+}),
+
 });
 
 /* =========================
@@ -248,40 +225,7 @@ export const GraphState = Annotation.Root({
  * ========================= */
 const llmMini = new ChatOpenAI({ modelName: "gpt-4o-mini", temperature: 0 });
 
-function heuristicClassify(text: string): IntentResult {
-  const t = (text || "").toLowerCase();
 
-  const isCancel = /\b(cancel(ar|la|ación)|anular|delete|remove|void|cancel)\b/.test(t);
-  if (isCancel) {
-    return { category: "cancel_reservation", desiredAction: "cancel", intentConfidence: 0.9, intentSource: "heuristic" };
-  }
-
-  const isModify = /\b(modific(ar|arla|ación)|change|cambiar|editar|move|mover)\b/.test(t);
-  const isReserve = /\b(reserv(ar|a)|book|booking|quiero reservar|quero reservar)\b/.test(t);
-  if (isModify) {
-    return { category: "reservation", desiredAction: "modify", intentConfidence: 0.8, intentSource: "heuristic" };
-  }
-  if (isReserve) {
-    return { category: "reservation", desiredAction: "create", intentConfidence: 0.75, intentSource: "heuristic" };
-  }
-
-  const isAmenities = /\b(piscina|pool|spa|gym|gimnasio|estacionamiento|parking|amenities|desayuno|breakfast)\b/.test(t);
-  if (isAmenities) {
-    return { category: "amenities", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
-  }
-
-  const isBilling = /\b(factura|invoice|cobro|charge|billing|recibo)\b/.test(t);
-  if (isBilling) {
-    return { category: "billing", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
-  }
-
-  const isSupport = /\b(ayuda|help|soporte|support|problema|issue)\b/.test(t);
-  if (isSupport) {
-    return { category: "support", desiredAction: undefined, intentConfidence: 0.65, intentSource: "heuristic" };
-  }
-
-  return { category: "retrieval_based", desiredAction: undefined, intentConfidence: 0.5, intentSource: "heuristic" };
-}
 
 async function loadPlaybookBundle(langIso1: string | undefined) {
   const keys = ["reservation_flow", "modify_reservation", "ambiguity_policy"];
@@ -296,7 +240,7 @@ async function loadPlaybookBundle(langIso1: string | undefined) {
 /* =========================
  *   Helpers slots / idioma
  * ========================= */
-type SlotMap = Partial<Record<RequiredSlot, string>>;
+
 function normalizeSlotsToStrings(src: any): SlotMap {
   const out: SlotMap = {};
   if (src?.guestName != null) out.guestName = String(src.guestName);
@@ -402,6 +346,28 @@ async function classifyNode(state: typeof GraphState.State) {
       messages: [],
     };
   }
+    const hasAnySlot = (["guestName","roomType","checkIn","checkOut","numGuests"] as const)
+    .some(k => !!(reservationSlots as any)?.[k]);
+   // 🔒 Si ya estamos en reserva o hay slots, nos quedamos en reserva
+  if (prev === "reservation" || hasAnySlot) {
+    // salvo que detectemos explícitamente cancel/amenities/billing/support
+    const t = (normalizedMessage || "").toLowerCase();
+    const isHardSwitch =
+      /\b(cancel|cancelar|anular)\b/.test(t) ||
+      /\b(piscina|desayuno|parking|estacionamiento|spa|gym|gimnasio)\b/.test(t) ||
+      /\b(factura|invoice|cobro|billing)\b/.test(t) ||
+      /\b(soporte|ayuda|problema|support)\b/.test(t);
+    if (!isHardSwitch) {
+      return {
+        category: "reservation",
+        desiredAction: "modify",
+        intentConfidence: 0.95,
+        intentSource: "heuristic",
+        promptKey: "reservation_flow",
+        messages: [],
+      };
+    }
+  }
   let h = heuristicClassify(normalizedMessage);
   console.log("🧠 Heuristic classification:", h);
   if (h.intentConfidence < 0.75) {
@@ -428,28 +394,7 @@ async function classifyNode(state: typeof GraphState.State) {
       console.warn("[classifyNode] classifyQuery fallback error:", err);
     }
   }
-  const hasAnySlot = (["guestName","roomType","checkIn","checkOut","numGuests"] as const)
-    .some(k => !!(reservationSlots as any)?.[k]);
-   // 🔒 Si ya estamos en reserva o hay slots, nos quedamos en reserva
-  if (prev === "reservation" || hasAnySlot) {
-    // salvo que detectemos explícitamente cancel/amenities/billing/support
-    const t = (normalizedMessage || "").toLowerCase();
-    const isHardSwitch =
-      /\b(cancel|cancelar|anular)\b/.test(t) ||
-      /\b(piscina|desayuno|parking|estacionamiento|spa|gym|gimnasio)\b/.test(t) ||
-      /\b(factura|invoice|cobro|billing)\b/.test(t) ||
-      /\b(soporte|ayuda|problema|support)\b/.test(t);
-    if (!isHardSwitch) {
-      return {
-        category: "reservation",
-        desiredAction: "modify",
-        intentConfidence: 0.95,
-        intentSource: "heuristic",
-        promptKey: "reservation_flow",
-        messages: [],
-      };
-    }
-  }
+
   if (
     (prev === "cancel_reservation" ) &&
     looksLikeName(normalizedMessage)
@@ -607,6 +552,14 @@ async function handleReservationNode(state: typeof GraphState.State) {
       category: "reservation",
       salesStage: res.ok ? "close" : "followup",
     };
+  }
+
+  // Si no tenemos guests,
+  // pero el usuario escribió un número, lo usamos
+  // (si ya teníamos guests, no lo pisamos)
+  const guessed = extractGuests(normalizedMessage);
+  if (guessed && !mergedSlots.numGuests) {
+    mergedSlots.numGuests = String(clampGuests(guessed, mergedSlots.roomType));
   }
 
   // 👉 Structured Output MCP: completar slots con LLM
