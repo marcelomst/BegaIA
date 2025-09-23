@@ -1,62 +1,8 @@
 {
-    "plantuml.render": "PlantUMLServer",
-    "plantuml.exportFormat": "html",
-    "plantuml.server": "https://www.plantuml.com/plantuml ",
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-    "typescript.tsserver.useSeparateSyntaxServer": false,
-    "typescript.tsserver.log": "verbose",
-    "typescript.preferences.importModuleSpecifier": "relative",
-    "git.ignoreLimitWarning": true,
-     // Oculta en Explorador y Quick Open (Ctrl+P)
   "files.exclude": {
-    "**/.vscode": false,
-    "**/.git": true,
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/out": true,
-    "**/build": true,
-    "**/.pnpm": true,
-    "**/.turbo": true,
-    "**/.cache": true,
-    "**/.vercel": true,
-    "**/coverage": true
+    "**/.vscode": false
   },
-
-  // Excluye de la búsqueda global (Ctrl+Shift+F) y del índice
-  "search.exclude": {
-    "**/.git": true,
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/out": true,
-    "**/build": true,
-    "**/.pnpm": true,
-    "**/.turbo": true,
-    "**/.cache": true,
-    "**/.vercel": true,
-    "**/coverage": true
-  },
-
-  // Evita que el watcher pierda tiempo en esas carpetas
-  "files.watcherExclude": {
-    "**/.git/**": true,
-    "**/node_modules/**": true,
-    "**/.next/**": true,
-    "**/dist/**": true,
-    "**/out/**": true,
-    "**/build/**": true,
-    "**/.pnpm/**": true,
-    "**/.turbo/**": true,
-    "**/.cache/**": true,
-    "**/.vercel/**": true,
-    "**/coverage/**": true
-  },
-
-  // Respeta el .gitignore en búsquedas y (si querés) en el explorador
-  "search.useIgnoreFiles": true,
-  "explorer.excludeGitIgnore": true,
-   "explorer.autoReveal": true,
-  "workbench.editor.revealIfOpen": true
-  }
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "explorer.excludeGitIgnore": false
+}

@@ -1,5 +1,5 @@
 // Path: /root/begasist/lib/agents/classify.ts
-import { GraphState } from "/root/begasist/lib/agents/index.ts";
+import { GraphState } from "@/lib/agents/index.ts";;
 import { AIMessage, HumanMessage, BaseMessage } from "@langchain/core/messages";
 import { getHotelNativeLanguage } from "@/lib/config/hotelLanguage";
 import { debugLog } from "../utils/debugLog";

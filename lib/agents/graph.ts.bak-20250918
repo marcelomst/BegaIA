@@ -1,0 +1,586 @@
+// Path: /root/begasist/lib/agents/graph.ts
+import { Annotation, StateGraph } from "@langchain/langgraph";
+import { BaseMessage, AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { ChatOpenAI } from "@langchain/openai";
+import { getSystemPlaybooks } from "@/lib/astra/systemPlaybook";
+import { getConvState, upsertConvState } from "@/lib/db/convState";
+import { retrievalBased } from "@/lib/agents/retrieval_based";
+import { classifyQuery } from "@/lib/classifier";
+import {
+  fillSlotsWithLLM,
+  askAvailability,
+  confirmAndCreate,
+  // type FillSlotsResult, // opcional si tipás la respuesta
+} from "@/lib/agents/reservations";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import type { IntentCategory, DesiredAction, RequiredSlot, SlotMap } from "@/types/audit";
+import { looksLikeName, normalizeNameCase, heuristicClassify } from "./helpers";
+
+/* =========================
+ *        CONST / LABELS
+ * ========================= */
+const REQUIRED_SLOTS: RequiredSlot[] = ["guestName", "roomType", "checkIn", "checkOut", "numGuests"];
+const FORCE_CANONICAL_QUESTION = (process.env.FORCE_CANONICAL_QUESTION || "0") === "1";
+
+const LABELS = {
+  es: { guestName: "nombre completo", roomType: "tipo de habitación", checkIn: "fecha de check-in", checkOut: "fecha de check-out", numGuests: "número de huéspedes" },
+  en: { guestName: "guest name", roomType: "room type", checkIn: "check-in date", checkOut: "check-out date", numGuests: "number of guests" },
+  pt: { guestName: "nome do hóspede", roomType: "tipo de quarto", checkIn: "data de check-in", checkOut: "data de check-out", numGuests: "número de hóspedes" },
+} as const;
+
+/* =========================
+ *        HELPERS
+ * ========================= */
+import { ddmmyyyyToISO } from "./helpers";
+
+import { extractDateRangeFromText } from "./helpers";
+
+import { extractGuests } from "./helpers";
+
+function isConfirmIntentLight(s: string) {
+  const t = (s || "").toLowerCase().trim();
+  return /\b(confirmar|confirmo|confirm|sí|si|ok|dale|de acuerdo|yes|okay|okey)\b/.test(t);
+}
+function looksRoomInfo(s: string) {
+  return /\b(check[- ]?in|check[- ]?out|ingreso|salida|horario|hora(s)?)\b/i.test(s);
+}
+function isGreeting(s: string) {
+  const t = (s || "").trim().toLowerCase();
+  return /^(hola|hello|hi|hey|buenas|buenos dias|buenos días|buenas tardes|buenas noches|olá|ola|oi)$/.test(t);
+}
+function labelSlot(slot: RequiredSlot, lang2: "es" | "en" | "pt") {
+  return (LABELS[lang2] as any)[slot] ?? slot;
+}
+function summarizeDraft(lang2: "es" | "en" | "pt", s: Partial<Record<RequiredSlot, string>>) {
+  const L = (k: RequiredSlot) => labelSlot(k, lang2);
+  const line = (k: RequiredSlot) => `- ${L(k)}: ${s[k]?.toString().trim() || "—"}`;
+  const pre = lang2 === "es" ? "Esto es lo que llevo de tu reserva:" : lang2 === "pt" ? "Aqui está o que tenho da sua reserva:" : "Here is what I have for your booking:";
+  return [pre, line("guestName"), line("roomType"), line("checkIn"), line("checkOut"), line("numGuests")].join("\n");
+}
+function buildAggregatedQuestion(missing: RequiredSlot[], lang2: "es" | "en" | "pt") {
+  const L = (k: RequiredSlot) => labelSlot(k, lang2);
+  const parts = missing.map(k => (k === "checkIn" || k === "checkOut")
+    ? L(k) + (lang2 === "en" ? " (dd/mm/yyyy)" : " (dd/mm/aaaa)")
+    : L(k));
+  return lang2 === "es"
+    ? `Para avanzar, ¿me pasás ${parts.join(", ")}?`
+    : lang2 === "pt"
+      ? `Para avançar, pode me enviar ${parts.join(", ")}?`
+      : `To proceed, could you share ${parts.join(", ")}?`;
+}
+function mentionsLocale(q: string) {
+  return /locale|c[oó]digo\s+de\s+idioma|language\s*code|ISO\s*639-1/i.test(q || "");
+}
+function stripLocaleRequests(q: string) {
+  let out = (q || "");
+  const patterns = [/c[oó]digo\s+de\s+idioma/gi, /idioma\s+preferido?/gi, /language\s*code/gi, /locale/gi, /ISO\s*639-1/gi];
+  for (const rx of patterns) out = out.replace(rx, "");
+  return out.replace(/\s{2,}/g, " ").replace(/\s+([?.!,;:])/g, "$1").trim();
+}
+function normalizeSlotsToStrings(src: any): SlotMap {
+  const out: SlotMap = {};
+  if (src?.guestName != null) out.guestName = String(src.guestName);
+  if (src?.roomType != null) out.roomType = String(src.roomType);
+  if (src?.checkIn != null) out.checkIn = String(src.checkIn);
+  if (src?.checkOut != null) out.checkOut = String(src.checkOut);
+  if (src?.numGuests != null) out.numGuests = String(src.numGuests);
+  return out;
+}
+function isConfirmIntent(s: string) {
+  const t = (s || "").toLowerCase();
+  return /\b(confirmar|confirmo|sí|si|ok|dale|de acuerdo|confirm|yes|okey|okay)\b/.test(t);
+}
+function looksLikeDateOnly(msg: string) {
+  const t = (msg || "").trim();
+  return /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})(\s*(a|al|hasta|-|—|–)\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2}))?$/.test(t);
+}
+function looksLikeCorrection(msg: string) {
+  const t = (msg || "").toLowerCase();
+  return /\b(no,?|perd[oó]n|me equivoqu[eé]|corrig|mejor|cambio|cambiar)\b/.test(t);
+}
+function maxGuestsFor(roomType?: string): number {
+  const rt = (roomType || "").toLowerCase();
+  if (/single|individual|simple/.test(rt)) return 1;
+  if (/double|doble|matrimonial|twin|queen|king/.test(rt)) return 2;
+  if (/triple/.test(rt)) return 3;
+  if (/suite|familiar/.test(rt)) return 4;
+  return 4;
+}
+function clampGuests(n: number, roomType?: string) {
+  const min = 1, max = maxGuestsFor(roomType);
+  if (!Number.isFinite(n)) return undefined;
+  if (n < min) return min;
+  if (n > max) return max;
+  return n;
+}
+function sanitizePartial(
+  partial: Partial<{ guestName: string; roomType: string; guests: number; checkIn: string; checkOut: string; locale: string }>,
+  merged: SlotMap,
+  userMsg: string
+) {
+  const out = { ...partial };
+  if (looksLikeDateOnly(userMsg)) delete (out as any).guests;
+  const correcting = looksLikeCorrection(userMsg);
+  if (merged.guestName && out.guestName && !correcting) delete (out as any).guestName;
+  if (merged.roomType && out.roomType && !correcting) delete (out as any).roomType;
+  if (merged.checkIn && out.checkIn && !correcting) delete (out as any).checkIn;
+  if (merged.checkOut && out.checkOut && !correcting) delete (out as any).checkOut;
+  const rt = out.roomType || merged.roomType;
+  if (typeof out.guests === "number") {
+    const clamped = clampGuests(out.guests, rt);
+    if (typeof clamped === "number") (out as any).guests = clamped;
+    else delete (out as any).guests;
+  }
+  return out;
+}
+
+/* =========================
+ *        STATE
+ * ========================= */
+export const GraphState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({ reducer: (x, y) => x.concat(y), default: () => [] }),
+  normalizedMessage: Annotation<string>({ reducer: (_x, y) => y, default: () => "" }),
+  category: Annotation<string>({ reducer: (_x, y) => y, default: () => "other" }),
+  detectedLanguage: Annotation<string>({ reducer: (_x, y) => y, default: () => "es" }),
+  sentiment: Annotation<"positive" | "neutral" | "negative">({ reducer: (_x, y) => y, default: () => "neutral" }),
+  preferredLanguage: Annotation<string>({ reducer: (_x, y) => y, default: () => "es" }),
+  promptKey: Annotation<string | null>({ reducer: (_x, y) => y, default: () => null }),
+  hotelId: Annotation<string>({ reducer: (_x, y) => y, default: () => "hotel999" }),
+  conversationId: Annotation<string | null>({ reducer: (_x, y) => y, default: () => null }),
+  meta: Annotation<Record<string, any>>({ reducer: (x, y) => ({ ...x, ...y }), default: () => ({}) }),
+  reservationSlots: Annotation<{ guestName?: string; roomType?: string; checkIn?: string; checkOut?: string; numGuests?: string; }>({
+    reducer: (x, y) => ({ ...x, ...y }),
+    default: () => ({}),
+  }),
+  intentConfidence: Annotation<number>({ reducer: (_x, y) => y, default: () => 0.0 }),
+  intentSource: Annotation<"heuristic" | "llm" | "embedding">({ reducer: (_x, y) => y, default: () => "heuristic" }),
+  desiredAction: Annotation<"create" | "modify" | "cancel" | undefined>({ reducer: (_x, y) => y, default: () => undefined }),
+  salesStage: Annotation<"qualify" | "quote" | "close" | "followup">({ reducer: (_x, y) => y, default: () => "qualify" }),
+  lastOffer: Annotation<string | null>({ reducer: (_x, y) => y, default: () => null }),
+  upsellCount: Annotation<number>({ reducer: (x, y) => (typeof y === "number" ? y : x ?? 0), default: () => 0 }),
+});
+
+/* =========================
+ *         NODES
+ * ========================= */
+
+async function classifyNode(state: typeof GraphState.State) {
+  const { normalizedMessage, reservationSlots, meta } = state;
+  if (isConfirmIntentLight(normalizedMessage)) {
+    return { category: "reservation", desiredAction: "create", intentConfidence: 0.99, intentSource: "heuristic", promptKey: "reservation_flow", messages: [] };
+  }
+  const prev = (meta as any)?.prevCategory || state.category;
+  if (isGreeting(normalizedMessage)) {
+    return { category: "retrieval_based", desiredAction: undefined, intentConfidence: 0.95, intentSource: "heuristic", promptKey: looksRoomInfo(normalizedMessage) ? "room_info" : "ambiguity_policy", messages: [] };
+  }
+  const hasAnySlot = (["guestName", "roomType", "checkIn", "checkOut", "numGuests"] as const).some(k => !!(reservationSlots as any)?.[k]);
+  if (prev === "reservation" || hasAnySlot) {
+    const t = (normalizedMessage || "").toLowerCase();
+    const isHardSwitch =
+      /\b(cancel|cancelar|anular)\b/.test(t) ||
+      /\b(piscina|desayuno|parking|estacionamiento|spa|gym|gimnasio)\b/.test(t) ||
+      /\b(factura|invoice|cobro|billing)\b/.test(t) ||
+      /\b(soporte|ayuda|problema|support)\b/.test(t);
+    if (!isHardSwitch) {
+      return { category: "reservation", desiredAction: "modify", intentConfidence: 0.95, intentSource: "heuristic", promptKey: "reservation_flow", messages: [] };
+    }
+  }
+  let h = heuristicClassify(normalizedMessage);
+  if (h.intentConfidence < 0.75) {
+    try {
+      const llmC = await classifyQuery(normalizedMessage, state.hotelId);
+      h = { category: llmC.category as IntentCategory, desiredAction: h.desiredAction, intentConfidence: Math.max(h.intentConfidence, 0.9), intentSource: "llm" };
+      const forcedPK = llmC.promptKey ?? (looksRoomInfo(normalizedMessage) ? "room_info" : undefined);
+      if (forcedPK) return { category: "retrieval_based", desiredAction: h.desiredAction, intentConfidence: h.intentConfidence, intentSource: "llm", promptKey: forcedPK, messages: [] };
+    } catch { }
+  }
+  const pickPK = (cat: IntentCategory, desired: DesiredAction) =>
+    cat === "reservation" ? (desired === "modify" ? "modify_reservation" : "reservation_flow")
+      : cat === "cancel_reservation" ? "modify_reservation"
+        : looksRoomInfo(normalizedMessage) ? "room_info" : "ambiguity_policy";
+  const promptKey = pickPK(h.category, h.desiredAction);
+  return { category: h.category, desiredAction: h.desiredAction, intentConfidence: h.intentConfidence, intentSource: h.intentSource, promptKey, messages: [] };
+}
+
+async function handleReservationNode(state: typeof GraphState.State) {
+  const { detectedLanguage, reservationSlots, normalizedMessage, hotelId, conversationId } = state;
+  const channel = (state.meta as any)?.channel || "web";
+  const cfg = await getHotelConfig(hotelId).catch(() => null);
+  const hotelTz =
+    cfg?.timezone ||
+    (await getHotelConfig(hotelId).catch(() => null))?.timezone ||
+    "UTC";
+  const forceCanonicalQuestion: boolean =
+    (cfg as any)?.channelConfigs?.[channel]?.reservations?.forceCanonicalQuestion ??
+    (cfg as any)?.reservations?.forceCanonicalQuestion ?? false;
+
+  const lang2 = (detectedLanguage || "es").slice(0, 2) as "es" | "en" | "pt";
+  const locale = lang2;
+
+  // Snapshot persistido + turn
+  const st = await getConvState(hotelId, conversationId || "");
+  const persistedStr = normalizeSlotsToStrings(st?.reservationSlots || {});
+  const turnStr = normalizeSlotsToStrings(reservationSlots || {});
+  const merged: SlotMap = { ...persistedStr, ...turnStr };
+
+  // Normalizaciones locales (antes de MCP)
+  if (looksLikeName(normalizedMessage) && !merged.guestName) {
+    merged.guestName = normalizeNameCase(normalizedMessage);
+  }
+  const guessed = extractGuests(normalizedMessage);
+  if (guessed && !merged.numGuests) merged.numGuests = String(clampGuests(guessed, merged.roomType));
+  const dr = extractDateRangeFromText(normalizedMessage);
+  if (!merged.checkIn && dr.checkIn) merged.checkIn = dr.checkIn;
+  if (!merged.checkOut && dr.checkOut) merged.checkOut = dr.checkOut;
+
+  // “¿Qué quedó?”
+  const isStatus = (() => {
+    const t = (normalizedMessage || "").toLowerCase();
+    return /(verific|cheque|revis|qué\sreserva|que\sreserva|qué\shice|que\shice|qué\squedó|que\squed[oó])/.test(t)
+      || /(what.*(reservation|booking).*(did|have)|show.*(reservation|booking)|status|review|check.*(reservation|booking))/.test(t);
+  })();
+  if (isStatus) {
+    const missing = REQUIRED_SLOTS.filter((k) => !merged[k]);
+    const summary = summarizeDraft(lang2, merged);
+    const tail = missing.length === 0
+      ? (lang2 === "es" ? "\n\nTengo todos los datos. ¿Confirmo la solicitud?" : lang2 === "pt" ? "\n\nTenho todos os dados. Posso confirmar a solicitação?" : "\n\nI have all details. Shall I confirm the request?")
+      : (lang2 === "es" ? `\n\nPara avanzar me falta: ${missing.map((k) => labelSlot(k, lang2)).join(", ")}.` : lang2 === "pt" ? `\n\nPara avançar, falta: ${missing.map((k) => labelSlot(k, lang2)).join(", ")}.` : `\n\nTo proceed, I still need: ${missing.map((k) => labelSlot(k, lang2)).join(", ")}.`);
+    return { messages: [new AIMessage(summary + tail)], reservationSlots: merged, category: "reservation" };
+  }
+
+  // Si ya está todo, saltamos disponibilidad
+  const haveAllNow = REQUIRED_SLOTS.every(k => !!merged[k]);
+  if (haveAllNow) {
+    const ci = new Date(merged.checkIn!);
+    const co = new Date(merged.checkOut!);
+    if (!(ci instanceof Date && !isNaN(ci.valueOf())) || !(co instanceof Date && !isNaN(co.valueOf())) || ci >= co) {
+      const text = lang2 === "es"
+        ? "Las fechas parecen inválidas. ¿Podés confirmar check-in (dd/mm/aaaa) y check-out (dd/mm/aaaa)?"
+        : lang2 === "pt"
+          ? "As datas parecem inválidas. Pode confirmar check-in (dd/mm/aaaa) e check-out (dd/mm/aaaa)?"
+          : "Dates look invalid. Could you confirm check-in (dd/mm/yyyy) and check-out (dd/mm/yyyy)?";
+      return { messages: [new AIMessage(text)], reservationSlots: { ...merged }, category: "reservation", salesStage: "qualify" };
+    }
+
+    const completeSnapshot = { ...merged, locale };
+    await upsertConvState(hotelId, conversationId || "", { reservationSlots: completeSnapshot, updatedBy: "ai" });
+
+    const availability = await askAvailability(hotelId, {
+      guestName: completeSnapshot.guestName!,
+      roomType: completeSnapshot.roomType!,
+      guests: parseInt(completeSnapshot.numGuests!, 10) || 1,
+      checkIn: completeSnapshot.checkIn!,
+      checkOut: completeSnapshot.checkOut!,
+      locale,
+    });
+
+    await upsertConvState(hotelId, conversationId || "", {
+      lastProposal: {
+        text: availability.proposal || (availability.available ? "Hay disponibilidad." : "Sin disponibilidad."),
+        available: !!availability.available,
+        options: availability.options,
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId,
+            roomType: completeSnapshot.roomType,
+            guests: parseInt(completeSnapshot.numGuests!, 10) || 1,
+            checkIn: completeSnapshot.checkIn,
+            checkOut: completeSnapshot.checkOut,
+          },
+          outputSummary: availability.available ? "available:true" : "available:false",
+          at: new Date().toISOString(),
+        },
+      },
+      salesStage: availability.available ? "quote" : "followup",
+      updatedBy: "ai",
+    });
+
+    if (!availability.ok) {
+      return { messages: [new AIMessage(availability.message)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "followup" };
+    }
+    if (!availability.available) {
+      const noAvailText = availability.proposal || (lang2 === "es" ? `No tengo disponibilidad para ${completeSnapshot.roomType} en esas fechas.` : lang2 === "pt" ? `Não tenho disponibilidade para ${completeSnapshot.roomType} nessas datas.` : `No availability for ${completeSnapshot.roomType} on those dates.`);
+      return { messages: [new AIMessage(noAvailText)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+    }
+
+    const confirmLine = lang2 === "es" ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”." : lang2 === "pt" ? "\n\nConfirma a reserva respondendo “CONFIRMAR”." : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+    return { messages: [new AIMessage((availability.proposal || "Tengo disponibilidad.") + confirmLine)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+  }
+
+  // ===== MCP fill-slots =====
+  const augmentedUserText =
+    normalizedMessage +
+    (Object.keys(merged).length ? `\n\nDatos previos conocidos: ${JSON.stringify(merged)}` : "") +
+    `\n\nNota: Locale conocido: ${locale}. No lo pidas; usá este valor si fuera necesario.`;
+
+  let filled: any;
+  try {
+    filled = await fillSlotsWithLLM(augmentedUserText, locale, { hotelTz });
+  } catch {
+    const missing = REQUIRED_SLOTS.filter(k => !merged[k]);
+    const q = buildAggregatedQuestion(missing, lang2);
+    await upsertConvState(hotelId, conversationId || "", { reservationSlots: merged, salesStage: "qualify", updatedBy: "ai" });
+    return { messages: [new AIMessage(q)], reservationSlots: merged, category: "reservation", salesStage: "qualify" };
+  }
+
+  // ✅ NUEVO: manejar errores del MCP sin mostrar el error técnico
+  if (filled?.need === "error") {
+    const msg: string = String(filled?.message || "");
+    const missingGuests =
+      /"path"\s*:\s*\[\s*"guests"\s*\]/i.test(msg) ||
+      (/guests/i.test(msg) && /expected/i.test(msg) && /number/i.test(msg));
+
+    if (missingGuests) {
+      // Intentar completar desde lo que ya tenemos o lo que dice el usuario
+      const inferred = (merged.numGuests ? parseInt(String(merged.numGuests), 10) : undefined) ?? extractGuests(normalizedMessage);
+      if (inferred) {
+        merged.numGuests = String(clampGuests(inferred, merged.roomType));
+        // con esto, re-evaluamos si ya tenemos todo
+        const haveAll = REQUIRED_SLOTS.every(k => !!merged[k]);
+        if (haveAll) {
+          // Igual que el fast-path de disponibilidad
+          const ci = new Date(merged.checkIn!);
+          const co = new Date(merged.checkOut!);
+          if (!(ci instanceof Date && !isNaN(ci.valueOf())) || !(co instanceof Date && !isNaN(co.valueOf())) || ci >= co) {
+            const txt = lang2 === "es"
+              ? "Las fechas parecen inválidas. ¿Podés confirmar check-in (dd/mm/aaaa) y check-out (dd/mm/aaaa)?"
+              : lang2 === "pt"
+                ? "As datas parecem inválidas. Pode confirmar check-in (dd/mm/aaaa) e check-out (dd/mm/aaaa)?"
+                : "Dates look invalid. Could you confirm check-in (dd/mm/yyyy) and check-out (dd/mm/yyyy)?";
+            return { messages: [new AIMessage(txt)], reservationSlots: { ...merged }, category: "reservation", salesStage: "qualify" };
+          }
+
+          const completeSnapshot = { ...merged, locale };
+          await upsertConvState(hotelId, conversationId || "", { reservationSlots: completeSnapshot, updatedBy: "ai" });
+
+          const availability = await askAvailability(hotelId, {
+            guestName: completeSnapshot.guestName!,
+            roomType: completeSnapshot.roomType!,
+            guests: parseInt(completeSnapshot.numGuests!, 10) || 1,
+            checkIn: completeSnapshot.checkIn!,
+            checkOut: completeSnapshot.checkOut!,
+            locale,
+          });
+
+          await upsertConvState(hotelId, conversationId || "", {
+            lastProposal: {
+              text: availability.proposal || (availability.available ? "Hay disponibilidad." : "Sin disponibilidad."),
+              available: !!availability.available,
+              options: availability.options,
+              toolCall: {
+                name: "checkAvailability",
+                input: {
+                  hotelId,
+                  roomType: completeSnapshot.roomType,
+                  guests: parseInt(completeSnapshot.numGuests!, 10) || 1,
+                  checkIn: completeSnapshot.checkIn,
+                  checkOut: completeSnapshot.checkOut,
+                },
+                outputSummary: availability.available ? "available:true" : "available:false",
+                at: new Date().toISOString(),
+              },
+            },
+            salesStage: availability.available ? "quote" : "followup",
+            updatedBy: "ai",
+          });
+
+          if (!availability.ok) {
+            return { messages: [new AIMessage(availability.message)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "followup" };
+          }
+          if (!availability.available) {
+            const noAvailText = availability.proposal || (lang2 === "es" ? `No tengo disponibilidad para ${completeSnapshot.roomType} en esas fechas.` : lang2 === "pt" ? `Não tenho disponibilidade para ${completeSnapshot.roomType} nessas datas.` : `No availability for ${completeSnapshot.roomType} on those dates.`);
+            return { messages: [new AIMessage(noAvailText)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+          }
+
+          const confirmLine = lang2 === "es" ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”." : lang2 === "pt" ? "\n\nConfirma a reserva respondendo “CONFIRMAR”." : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+          return { messages: [new AIMessage((availability.proposal || "Tengo disponibilidad.") + confirmLine)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+        }
+      }
+
+      // No se pudo inferir → pedirlo amable
+      const ask =
+        lang2 === "es" ? "¿Cuántos huéspedes se alojarán?"
+          : lang2 === "pt" ? "Quantos hóspedes irão se hospedar?"
+            : "How many guests will stay?";
+      await upsertConvState(hotelId, conversationId || "", { reservationSlots: merged, salesStage: "qualify", updatedBy: "ai" });
+      return { messages: [new AIMessage(ask)], reservationSlots: merged, category: "reservation", salesStage: "qualify" };
+    }
+
+    // Error genérico → preguntar faltantes sin Zod
+    const missing = REQUIRED_SLOTS.filter(k => !merged[k]);
+    const q = buildAggregatedQuestion(missing, lang2);
+    await upsertConvState(hotelId, conversationId || "", { reservationSlots: merged, salesStage: "qualify", updatedBy: "ai" });
+    return { messages: [new AIMessage(q)], reservationSlots: merged, category: "reservation", salesStage: "qualify" };
+  }
+
+  if (filled.need === "question") {
+    const partialRaw = filled.partial ?? {};
+    const partial = sanitizePartial(partialRaw, merged, normalizedMessage);
+    const nextSnapshot: Record<string, string> = {
+      ...merged,
+      ...(partial.guestName ? { guestName: partial.guestName } : {}),
+      ...(partial.roomType ? { roomType: partial.roomType } : {}),
+      ...(typeof partial.guests === "number" ? { numGuests: String(partial.guests) } : {}),
+      ...(partial.checkIn ? { checkIn: partial.checkIn } : {}),
+      ...(partial.checkOut ? { checkOut: partial.checkOut } : {}),
+      locale,
+    };
+
+    const missingOrder: RequiredSlot[] = ["guestName", "roomType", "checkIn", "checkOut", "numGuests"];
+    const missing = missingOrder.filter(k => !nextSnapshot[k]);
+
+    const rawQ = (filled.question || "").trim();
+    let questionText = stripLocaleRequests(rawQ);
+    if (mentionsLocale(rawQ) || questionText.length < 8) questionText = "";
+
+    if (missing.length === 0) {
+      const canonicalDone = lang2 === "es" ? "Tengo todos los datos. ¿Confirmo la solicitud?" : lang2 === "pt" ? "Tenho todos os dados. Posso confirmar a solicitação?" : "I have all details. Shall I confirm the request?";
+      questionText = canonicalDone;
+    } else if (missing.length === 1) {
+      const k = missing[0];
+      const L = labelSlot(k, lang2);
+      const art = (lang2 === "en") ? "the" : lang2 === "pt" ? (k === "numGuests" ? "o" : "a") : (k === "numGuests" ? "el" : "la");
+      const single = lang2 === "en" ? `What is the ${L}?` : `¿Cuál es ${art} ${L}?`;
+      if (FORCE_CANONICAL_QUESTION || !questionText) questionText = single;
+    } else {
+      questionText = buildAggregatedQuestion(missing, lang2);
+    }
+
+    await upsertConvState(hotelId, conversationId || "", {
+      reservationSlots: nextSnapshot,
+      salesStage: missing.length ? "qualify" : "quote",
+      updatedBy: "ai",
+    });
+
+    return {
+      messages: [new AIMessage(questionText)],
+      reservationSlots: nextSnapshot,
+      category: "reservation",
+      salesStage: missing.length ? "qualify" : "quote",
+    };
+  }
+
+  // LLM devolvió slots completos
+  const completed = filled.slots;
+  const ci = new Date(completed.checkIn);
+  const co = new Date(completed.checkOut);
+  if (!(ci instanceof Date && !isNaN(ci.valueOf())) || !(co instanceof Date && !isNaN(co.valueOf())) || ci >= co) {
+    const text = lang2 === "es" ? "Las fechas parecen inválidas. ¿Podés confirmar check-in (dd/mm/aaaa) y check-out (dd/mm/aaaa)?"
+      : lang2 === "pt" ? "As datas parecem inválidas. Pode confirmar check-in (dd/mm/aaaa) e check-out (dd/mm/aaaa)?"
+        : "Dates look invalid. Could you confirm check-in (dd/mm/yyyy) and check-out (dd/mm/yyyy)?";
+    return { messages: [new AIMessage(text)], reservationSlots: { ...merged }, category: "reservation", salesStage: "qualify" };
+  }
+
+  const completeSnapshot: Record<string, string> = {
+    ...merged,
+    guestName: completed.guestName,
+    roomType: completed.roomType,
+    checkIn: completed.checkIn,
+    checkOut: completed.checkOut,
+    numGuests: String(completed.guests),
+    locale: completed.locale || locale,
+  };
+
+  await upsertConvState(hotelId, conversationId || "", { reservationSlots: completeSnapshot, updatedBy: "ai" });
+
+  const availability = await askAvailability(hotelId, {
+    guestName: completeSnapshot.guestName!,
+    roomType: completeSnapshot.roomType!,
+    guests: parseInt(completeSnapshot.numGuests!, 10) || 1,
+    checkIn: completeSnapshot.checkIn!,
+    checkOut: completeSnapshot.checkOut!,
+    locale,
+  });
+
+  await upsertConvState(hotelId, conversationId || "", {
+    lastProposal: {
+      text: availability.proposal || (availability.available ? "Hay disponibilidad." : "Sin disponibilidad."),
+      available: !!availability.available,
+      options: availability.options,
+      toolCall: {
+        name: "checkAvailability",
+        input: { hotelId, roomType: completeSnapshot.roomType, guests: parseInt(completeSnapshot.numGuests!, 10) || 1, checkIn: completeSnapshot.checkIn, checkOut: completeSnapshot.checkOut },
+        outputSummary: availability.available ? "available:true" : "available:false",
+        at: new Date().toISOString(),
+      },
+    },
+    salesStage: availability.available ? "quote" : "followup",
+    updatedBy: "ai",
+  });
+
+  if (!availability.ok) {
+    return { messages: [new AIMessage(availability.message)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "followup" };
+  }
+  if (!availability.available) {
+    const noAvailText = availability.proposal || (lang2 === "es" ? `No tengo disponibilidad para ${completeSnapshot.roomType} en esas fechas.` : lang2 === "pt" ? `Não tenho disponibilidade para ${completeSnapshot.roomType} nessas datas.` : `No availability for ${completeSnapshot.roomType} on those dates.`);
+    return { messages: [new AIMessage(noAvailText)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+  }
+
+  const confirmLine = lang2 === "es" ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”." : lang2 === "pt" ? "\n\nConfirma a reserva respondendo “CONFIRMAR”." : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+  return { messages: [new AIMessage((availability.proposal || "Tengo disponibilidad.") + confirmLine)], reservationSlots: completeSnapshot, category: "reservation", salesStage: "quote" };
+}
+
+/* ===== Otros handlers ===== */
+async function handleCancelReservationNode(state: typeof GraphState.State) {
+  const { normalizedMessage, detectedLanguage } = state;
+  const lang = (detectedLanguage || "es").slice(0, 2);
+  const map = await getSystemPlaybooks(["modify_reservation", "ambiguity_policy"], lang);
+  const sys = [
+    "Eres un recepcionista de hotel. Política: nunca cancela sin confirmación explícita del huésped.",
+    map["ambiguity_policy"]?.text ? `\n[ambiguity_policy]\n${map["ambiguity_policy"].text}\n` : "",
+    map["modify_reservation"]?.text ? `\n[modify_reservation]\n${map["modify_reservation"].text}\n` : "",
+    `Responde en ${lang}, breve y amable.`
+  ].join("\n");
+  const out = await new ChatOpenAI({ modelName: "gpt-4o-mini", temperature: 0 }).invoke([new SystemMessage(sys), new HumanMessage(`Usuario: """${normalizedMessage}"""`)]);
+  const text = typeof out.content === "string" ? out.content.trim() : String(out.content);
+  return { messages: [new AIMessage(text)] };
+}
+async function handleAmenitiesNode(state: typeof GraphState.State) {
+  const lang = (state.detectedLanguage || "es").slice(0, 2);
+  const text = lang === "es" ? "¡Claro! Contame qué servicio querés consultar (piscina, desayuno, cocheras, etc.) y te paso la info." : "Sure! Tell me which amenity you need (pool, breakfast, parking, etc.) and I’ll share the details.";
+  return { messages: [new AIMessage(text)] };
+}
+async function handleBillingNode(state: typeof GraphState.State) {
+  const lang = (state.detectedLanguage || "es").slice(0, 2);
+  const text = lang === "es" ? "Con gusto. ¿Tu consulta de facturación es por una reserva existente o por una futura?" : "Happy to help. Is your billing question about an existing booking or a future one?";
+  return { messages: [new AIMessage(text)] };
+}
+async function handleSupportNode(state: typeof GraphState.State) {
+  const lang = (state.detectedLanguage || "es").slice(0, 2);
+  const text = lang === "es" ? "Estoy para ayudarte. ¿Podés contarme brevemente el problema?" : "I’m here to help. Could you briefly describe the issue?";
+  return { messages: [new AIMessage(text)] };
+}
+async function retrievalBasedNode(state: typeof GraphState.State) {
+  return await retrievalBased(state);
+}
+
+/* =========================
+ *         GRAPH
+ * ========================= */
+const g = new StateGraph(GraphState)
+  .addNode("classify", classifyNode)
+  .addNode("handle_reservation", handleReservationNode)
+  .addNode("handle_cancel_reservation", handleCancelReservationNode)
+  .addNode("handle_amenities", handleAmenitiesNode)
+  .addNode("handle_billing", handleBillingNode)
+  .addNode("handle_support", handleSupportNode)
+  .addNode("handle_retrieval_based", retrievalBasedNode)
+  .addEdge("__start__", "classify")
+  .addConditionalEdges("classify", (state) => state.category, {
+    reservation: "handle_reservation",
+    cancel_reservation: "handle_cancel_reservation",
+    amenities: "handle_amenities",
+    billing: "handle_billing",
+    support: "handle_support",
+    retrieval_based: "handle_retrieval_based",
+    other: "handle_retrieval_based",
+  })
+  .addEdge("handle_reservation", "__end__")
+  .addEdge("handle_cancel_reservation", "__end__")
+  .addEdge("handle_amenities", "__end__")
+  .addEdge("handle_billing", "__end__")
+  .addEdge("handle_support", "__end__")
+  .addEdge("handle_retrieval_based", "__end__");
+
+export const agentGraph = g.compile();

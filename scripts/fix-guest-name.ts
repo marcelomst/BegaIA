@@ -51,7 +51,7 @@ async function main() {
   }
 
   const db = getAstraDB(); // tu helper
-  const guests = db.collection("guests");
+  const numGuests = db.collection("guests");
 
   // Armar filtro: por _id si viene, sino por (hotelId, guestId)
   let filter: Record<string, any> | null = null;

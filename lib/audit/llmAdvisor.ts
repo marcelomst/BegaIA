@@ -21,16 +21,16 @@ export async function llmInterpret(
   const slots: SlotMap = {};
   if (filled.need === "none") {
     slots.guestName = filled.slots.guestName;
-    slots.roomType  = filled.slots.roomType;
-    slots.checkIn   = filled.slots.checkIn;
-    slots.checkOut  = filled.slots.checkOut;
-    slots.numGuests = String(filled.slots.guests);
+    slots.roomType = filled.slots.roomType;
+    slots.checkIn = filled.slots.checkIn;
+    slots.checkOut = filled.slots.checkOut;
+    slots.numGuests = String(filled.slots.numGuests);
   } else if (filled.partial) {
     if (filled.partial.guestName) slots.guestName = filled.partial.guestName;
-    if (filled.partial.roomType)  slots.roomType  = filled.partial.roomType;
-    if (filled.partial.checkIn)   slots.checkIn   = filled.partial.checkIn;
-    if (filled.partial.checkOut)  slots.checkOut  = filled.partial.checkOut;
-    if (typeof filled.partial.guests === "number") slots.numGuests = String(filled.partial.guests);
+    if (filled.partial.roomType) slots.roomType = filled.partial.roomType;
+    if (filled.partial.checkIn) slots.checkIn = filled.partial.checkIn;
+    if (filled.partial.checkOut) slots.checkOut = filled.partial.checkOut;
+    if (typeof filled.partial.numGuests === "number") slots.numGuests = String(filled.partial.numGuests);
   }
 
   const category = (cls.category as Interpretation["category"]) ?? "retrieval_based";

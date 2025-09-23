@@ -9,6 +9,7 @@ import { z } from "zod";
 
 const ENDPOINT = process.env.MCP_ENDPOINT || "";
 const API_KEY = process.env.MCP_API_KEY || "";
+const MOCK_PORT = process.env.MCP_MOCK_PORT || "3000";
 
 // ===== Schemas de I/O =====
 export const CheckAvailabilityInput = z.object({
@@ -55,20 +56,58 @@ export type CreateReservationOutput = z.infer<typeof CreateReservationOutput>;
 
 // ===== Helpers HTTP =====
 async function postJSON<TOut>(path: string, body: unknown): Promise<TOut> {
-  if (!ENDPOINT) throw new Error("MCP_ENDPOINT no configurado");
-  const res = await fetch(`${ENDPOINT}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(API_KEY ? { "x-api-key": API_KEY } : {}),
-    },
-    body: JSON.stringify(body),
+  // Si ENDPOINT no está configurado, usa el mock local de Next.js (válido para Node y frontend)
+  let url = ENDPOINT ? ENDPOINT + path : `http://localhost:${MOCK_PORT}/api/mcp${path}`;
+  // Log de depuración para ver a dónde va el fetch y con qué entorno
+  console.log('[MCP] POST', url, JSON.stringify(body));
+  console.log('[MCP] ENV', {
+    MCP_ENDPOINT: process.env.MCP_ENDPOINT,
+    MCP_MOCK_PORT: process.env.MCP_MOCK_PORT,
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
   });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`MCP ${path} ${res.status}: ${txt || "error HTTP"}`);
+  let lastError;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`MCP ${path} ${res.status}: ${txt || "error HTTP"}`);
+    }
+    return (await res.json()) as TOut;
+  } catch (err) {
+    lastError = err;
+    // Si es localhost, intenta con 127.0.0.1
+    if (!ENDPOINT && url.includes("localhost")) {
+      const altUrl = url.replace("localhost", "127.0.0.1");
+      try {
+        const res = await fetch(altUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          throw new Error(`MCP ${path} ${res.status}: ${txt || "error HTTP"}`);
+        }
+        return (await res.json()) as TOut;
+      } catch (err2) {
+        console.error("[MCP] fetch failed for both localhost and 127.0.0.1", err, err2);
+        throw err2;
+      }
+    }
+    console.error("[MCP] fetch failed", err);
+    throw lastError;
   }
-  return (await res.json()) as TOut;
 }
 
 // ===== Tools =====

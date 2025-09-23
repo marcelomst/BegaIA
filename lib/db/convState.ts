@@ -1,11 +1,12 @@
 // Path: /root/begasist/lib/db/convState.ts
 import { getAstraDB } from "@/lib/astra/connection";
+import { normalizeSlots } from "@/lib/agents/helpers";
 import { log } from "node:console";
 import { lookup } from "node:dns";
 import type { SupervisionRecord } from "@/types/audit";
 
 export const CONVSTATE_VERSION = "convstate-2025-09-04-02";
-console.log("[convState] loaded", CONVSTATE_VERSION, "at", __filename);
+console.log("[convState] loaded", CONVSTATE_VERSION);
 
 /* =========================
  *        Tipos
@@ -37,7 +38,7 @@ export type LastProposal = {
     input: {
       hotelId: string;
       roomType?: string;
-      guests?: number;
+      numGuests?: number;
       checkIn?: string;
       checkOut?: string;
     };
@@ -48,17 +49,17 @@ export type LastProposal = {
 
 export type LastReservation =
   | {
-      reservationId: string;
-      status: "created";
-      createdAt: string; // ISO
-      channel: "web" | "email" | "whatsapp" | "channelManager";
-    }
+    reservationId: string;
+    status: "created";
+    createdAt: string; // ISO
+    channel: "web" | "email" | "whatsapp" | "channelManager";
+  }
   | {
-      reservationId: string; // puede quedar vacío si hubo error
-      status: "error";
-      createdAt: string; // ISO
-      channel: "web" | "email" | "whatsapp" | "channelManager";
-    };
+    reservationId: string; // puede quedar vacío si hubo error
+    status: "error";
+    createdAt: string; // ISO
+    channel: "web" | "email" | "whatsapp" | "channelManager";
+  };
 
 export type ConversationFlowState = {
   _id: string;              // hotelId:conversationId
@@ -79,6 +80,7 @@ export type ConversationFlowState = {
 
   // Meta/negocio
   salesStage?: "qualify" | "quote" | "close" | "followup";
+  desiredAction?: "create" | "modify" | "cancel" | undefined;
 
   // Compat vieja
   lastCategory?: string | null;
@@ -90,7 +92,7 @@ export type ConversationFlowState = {
 
   // Auditoría
   updatedAt: string;
-  updatedBy?: "ai" | "agent" | "system"| "audit" | string;
+  updatedBy?: "ai" | "agent" | "system" | "audit" | string;
 };
 
 /* =========================
@@ -116,7 +118,7 @@ export async function getConvState(
   conversationId: string
 ): Promise<ConversationFlowState | null> {
   const _id = key(hotelId, conversationId);
-  console.log("[BP-CS1]",hotelId, conversationId, _id);
+  console.log("[BP-CS1]", hotelId, conversationId, _id);
   const doc = await col().findOne({ _id });
   return doc ?? null;
 }
@@ -156,12 +158,12 @@ export async function upsertConvState(
 
   // Campos de nivel superior (compat + nuevos)
   if ("lastCategory" in patch) $set.lastCategory = patch.lastCategory ?? null;
-  if ("activeFlow"   in patch) $set.activeFlow   = patch.activeFlow ?? null;
-  if ("salesStage"   in patch) $set.salesStage   = patch.salesStage ?? null;
+  if ("activeFlow" in patch) $set.activeFlow = patch.activeFlow ?? null;
+  if ("salesStage" in patch) $set.salesStage = patch.salesStage ?? null;
 
   const $unset: Record<string, any> = {};
 
-    // ✅ NUEVO: flags de auditoría/supervisión
+  // ✅ NUEVO: flags de auditoría/supervisión
   if ("supervised" in patch) {
     const v = (patch as any).supervised;
     if (v === undefined || v === null) {
@@ -181,7 +183,8 @@ export async function upsertConvState(
   }
   // reservationSlots: set/unset por campo (merge superficial por clave)
   if ("reservationSlots" in patch) {
-    const slots = patch.reservationSlots ?? {};
+    // Normalización defensiva: guests -> numGuests
+    const slots = normalizeSlots(patch.reservationSlots ?? {});
     const keys: (keyof ReservationSlots)[] = [
       "guestName",
       "roomType",
@@ -218,14 +221,14 @@ export async function upsertConvState(
       $set["lastReservation"] = patch.lastReservation;
     }
   }
-  
+
   const update: any = Object.keys($unset).length ? { $set, $unset } : { $set };
 
-  console.log("[BP-CS2]",hotelId, conversationId, JSON.stringify(patch))
+  console.log("[BP-CS2]", hotelId, conversationId, JSON.stringify(patch))
 
   const res = await col().updateOne({ _id }, update, { upsert: true });
 
-  console.log("BP-CS3",res)
+  console.log("BP-CS3", res)
 }
 
 /* =========================
@@ -252,5 +255,6 @@ export async function patchSlots(
   conversationId: string,
   patchSlots: ReservationSlots
 ) {
-  return upsertConvState(hotelId, conversationId, { reservationSlots: patchSlots });
+  // Normalización defensiva: guests -> numGuests
+  return upsertConvState(hotelId, conversationId, { reservationSlots: normalizeSlots(patchSlots) });
 }

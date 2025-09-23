@@ -11,7 +11,7 @@ import { z } from "zod";
 export const reservationSlotsSchema = z.object({
   guestName: z.string().min(2, "Nombre muy corto"),
   roomType: z.string().min(3, "Tipo de habitación requerido"),
-  guests: z.number().int().positive("Cantidad de huéspedes inválida"),
+  numGuests: z.number().int().positive("Cantidad de huéspedes inválida").optional(),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "checkIn debe ser YYYY-MM-DD"),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "checkOut debe ser YYYY-MM-DD"),
   locale: z.string().length(2, "Usar código ISO 639-1"),
@@ -53,17 +53,17 @@ function startOfTodayMs() {
   return d.getTime();
 }
 
- // Normaliza una fecha (Date o ISO) a "YYYY-MM-DD" en una TZ dada.
- function ymdInTz(d: Date | string, tz: string): string {
-   const dt = typeof d === "string" ? new Date(d) : d;
-   const parts = new Intl.DateTimeFormat("en-CA", {
-     timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
-   }).formatToParts(dt);
-   const y = parts.find(p => p.type === "year")?.value ?? "0000";
-   const m = parts.find(p => p.type === "month")?.value ?? "01";
-   const day = parts.find(p => p.type === "day")?.value ?? "01";
-   return `${y}-${m}-${day}`;
- }
+// Normaliza una fecha (Date o ISO) a "YYYY-MM-DD" en una TZ dada.
+function ymdInTz(d: Date | string, tz: string): string {
+  const dt = typeof d === "string" ? new Date(d) : d;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(dt);
+  const y = parts.find(p => p.type === "year")?.value ?? "0000";
+  const m = parts.find(p => p.type === "month")?.value ?? "01";
+  const day = parts.find(p => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${day}`;
+}
 
 export function validateBusinessRules(
   slots: ReservationSlots,
@@ -88,8 +88,8 @@ export function validateBusinessRules(
       localeIso6391 === "es"
         ? "La fecha de check-in no puede ser anterior a hoy."
         : localeIso6391 === "pt"
-        ? "A data de check-in não pode ser anterior a hoje."
-        : "Check-in date cannot be in the past."
+          ? "A data de check-in não pode ser anterior a hoje."
+          : "Check-in date cannot be in the past."
     );
   }
 }

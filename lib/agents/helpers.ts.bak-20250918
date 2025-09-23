@@ -1,0 +1,128 @@
+// Path: /home/marcelo/begasist/lib/agents/helpers.ts
+
+// Detectar “2” a secas como huéspedes (sin confundir con fechas)
+export function extractGuests(msg: string): number | undefined {
+  const t = (msg || "").toLowerCase();
+  const withoutDates = t
+    .replace(/\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g, " ")
+    .replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ")
+    .trim();
+
+  // 1) Solo un número en el mensaje → tomarlo como huéspedes
+  const onlyNum = withoutDates.match(/^\s*(\d{1,2})\s*$/);
+  if (onlyNum) {
+    const n = parseInt(onlyNum[1], 10);
+    if (Number.isFinite(n)) return n;
+  }
+
+  // 2) Formas contextuales
+  const contextual = withoutDates.match(/\b(?:somos|para)?\s*(\d{1,2})\s*(?:p[eé]r+r?sonas|personas|hu[eé]spedes|pessoas)\b/);
+  if (contextual?.[1]) return parseInt(contextual[1], 10);
+
+  // 3) Palabras → número
+  const WORD2NUM: Record<string, number> = { uno: 1, una: 1, dos: 2, tres: 3, quatro: 4, cuatro: 4 };
+  const mWord = withoutDates.match(/\b(uno|una|dos|tres|quatro|cuatro)\b/);
+  if (mWord) return WORD2NUM[mWord[1]];
+  return undefined;
+}
+// Extrae checkIn/checkOut desde texto libre
+export function extractDateRangeFromText(text: string): { checkIn?: string; checkOut?: string } {
+  const t = (text || "").trim();
+  const ddmm = Array.from(t.matchAll(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\b/g)).map(m => m[1]);
+  const iso = Array.from(t.matchAll(/\b(\d{4}-\d{2}-\d{2})\b/g)).map(m => m[1]);
+  const all = [...ddmm, ...iso];
+  if (all.length === 0) return {};
+  const toISO = (s: string) => (s.includes("-") && s.length === 10 ? s : ddmmyyyyToISO(s) || undefined);
+  if (all.length === 1) return { checkIn: toISO(all[0]) };
+  const a = toISO(all[0]); const b = toISO(all[1]);
+  if (a && b && new Date(a) > new Date(b)) return { checkIn: b, checkOut: a };
+  return { checkIn: a, checkOut: b };
+}
+// dd/mm/aaaa -> YYYY-MM-DD
+export function ddmmyyyyToISO(s: string): string | undefined {
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (!m) return undefined;
+  let [_, dd, mm, yy] = m;
+  const day = parseInt(dd, 10), mon = parseInt(mm, 10);
+  let year = parseInt(yy, 10);
+  if (yy.length === 2) year += 2000;
+  if (year < 1900 || year > 2100 || mon < 1 || mon > 12 || day < 1 || day > 31) return undefined;
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  return `${year}-${pad(mon)}-${pad(day)}`;
+}
+import type { IntentResult } from "@/types/audit";
+
+const LOOKS_ROOM_INFO_RE = /\b(check[- ]?in|check[- ]?out|ingreso|salida|horario|hora(s)?)\b/i;
+export function looksRoomInfo(s: string): boolean {
+  return LOOKS_ROOM_INFO_RE.test(s || "");
+}
+
+
+
+export function looksLikeName(s: string) {
+  const t = (s || "").trim();
+  if (t.length < 2 || t.length > 60) return false;
+  if (/[0-9?!,:;@]/.test(t)) return false;
+  const tokens = t.split(/\s+/);
+  if (tokens.length === 0 || tokens.length > 3) return false;
+  const STOP = new Set([
+    "hola", "buenas", "hello", "hi", "hey", "olá", "ola", "oi",
+    "que", "qué", "cuando", "cuándo", "donde", "dónde", "como", "cómo",
+    "hora", "precio", "policy", "política", "check", "in", "out",
+    "reserva", "reservo", "quiero", "quero", "tiene", "hay"
+  ]);
+  if (tokens.some(w => STOP.has(w.toLowerCase()))) return false;
+  if (!tokens.every(w => /^[\p{L}.'-]+$/u.test(w))) return false;
+  return true;
+}
+
+export function normalizeNameCase(s: string) {
+  return s
+    .trim()
+    .split(/\s+/)
+    .map(w => w.slice(0, 1).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+export function heuristicClassify(text: string): IntentResult {
+  const t = (text || "").toLowerCase();
+
+  const isCancel = /\b(cancel(ar|la|ación)|anular|delete|remove|void|cancel)\b/.test(t);
+  if (isCancel) {
+    return { category: "cancel_reservation", desiredAction: "cancel", intentConfidence: 0.9, intentSource: "heuristic" };
+  }
+
+  const isModify = /\b(modific(ar|arla|ación)|change|cambiar|editar|move|mover)\b/.test(t);
+  if (isModify) {
+    return { category: "reservation", desiredAction: "modify", intentConfidence: 0.8, intentSource: "heuristic" };
+  }
+
+  const isReserve = /\b(reserv(ar|a)|book|booking|quiero reservar|quero reservar)\b/.test(t);
+  if (isReserve) {
+    return { category: "reservation", desiredAction: "create", intentConfidence: 0.75, intentSource: "heuristic" };
+  }
+
+  const isAmenities = /\b(piscina|pool|spa|gym|gimnasio|estacionamiento|parking|amenities|desayuno|breakfast)\b/.test(t);
+  if (isAmenities) {
+    return { category: "amenities", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
+  }
+
+  const isBilling = /\b(factura|invoice|cobro|charge|billing|recibo)\b/.test(t);
+  if (isBilling) {
+    return { category: "billing", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
+  }
+
+  const isSupport = /\b(ayuda|help|soporte|support|problema|issue)\b/.test(t);
+  if (isSupport) {
+    return { category: "support", desiredAction: undefined, intentConfidence: 0.65, intentSource: "heuristic" };
+  }
+
+  const mentionsRoomWord =
+    /\b(single|individual|simple|double|doble|matrimonial|twin|queen|king|triple|suite|familiar)\b/i.test(t);
+  if (mentionsRoomWord) {
+    return { category: "reservation", desiredAction: "create", intentConfidence: 0.76, intentSource: "heuristic" };
+  }
+
+
+  return { category: "retrieval_based", desiredAction: undefined, intentConfidence: 0.5, intentSource: "heuristic" };
+}

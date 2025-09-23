@@ -1,3 +1,15 @@
+/**
+ * Utilidad: Obtiene el texto del playbook más reciente para un promptKey e idioma dados.
+ * Devuelve null si no existe.
+ */
+export async function getPlaybookText(promptKey: string, langIso1: string): Promise<string | null> {
+  const doc = await getSystemPlaybookByPromptKey(promptKey, langIso1);
+  return doc?.text ?? null;
+}
+
+// Ejemplo de uso:
+// const texto = await getPlaybookText("modify_reservation", "es");
+// if (texto) { ...usar el texto para el flujo conversacional... }
 // Path: /root/begasist/lib/astra/systemPlaybook.ts
 import { getAstraDB } from "@/lib/astra/connection";
 

@@ -39,6 +39,7 @@ process.env.OPENAI_LOG = "off";
 
 export async function retrievalBased(state: typeof GraphState.State) {
   // 1. Idioma original y nativo
+  debugLog(`[retrievalBased] hotelId recibido:`, state.hotelId);
   const originalLang = state.detectedLanguage ?? "en";
   const hotelLang = await getHotelNativeLanguage(state.hotelId);
 
@@ -47,7 +48,7 @@ export async function retrievalBased(state: typeof GraphState.State) {
     (state as any).normalizedMessage ??
     getLastHumanText(state.messages as BaseMessage[]);
   const promptKey = state.promptKey;
-  const hotelId = state.hotelId ?? "defaultHotelId";
+  const hotelId = state.hotelId ?? "hotel999";
 
   if (!userQuery) {
     return { messages: [new AIMessage("Consulta vacía o inválida.")] };

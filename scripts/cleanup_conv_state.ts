@@ -1,5 +1,5 @@
 // scripts/cleanup_conv_state.ts
-// pnpm tsx scripts/cleanup_con
+// pnpm tsx scripts/cleanup_conv_state.ts
 
 import "dotenv/config";
 import { DataAPIClient } from "@datastax/astra-db-ts";
