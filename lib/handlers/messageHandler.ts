@@ -14,6 +14,14 @@ import { getConvState, upsertConvState, CONVSTATE_VERSION } from "@/lib/db/convS
 import type { ReservationSlots as DbReservationSlots } from "@/lib/db/convState";
 import crypto from "crypto";
 
+// === NEW: Structured Prompt (enriquecedor + fallback) ===
+import { ChatOpenAI } from "@langchain/openai";
+import {
+  hotelAssistantStructuredPrompt,
+  hotelAssistantSchema,
+} from "@/lib/prompts/hotelAssistantStructuredPrompt";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+
 // Playbooks de sistema
 import {
   buildSystemInstruction,
@@ -26,8 +34,9 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { normalizeNameCase, toISODateDDMMYYYY, extractSlotsFromText, isSafeGuestName } from "@/lib/agents/helpers";
+import { normalizeNameCase, extractSlotsFromText, isSafeGuestName } from "@/lib/agents/helpers";
 type ReservationSlotsStrict = SlotMap;
+
 // ----------------------
 const CONFIG = {
   GRAPH_TIMEOUT_MS: 400000,
@@ -39,15 +48,16 @@ const CONFIG = {
     "payment_required",
     "collect_sensitive_data",
   ]),
+  // NEW: modelo liviano para structured fallback
+  STRUCTURED_MODEL: process.env.STRUCTURED_MODEL || "gpt-4o-mini",
+  STRUCTURED_ENABLED: process.env.STRUCTURED_ENABLED !== "false",
 };
 // ----------------------
 
 const IS_TEST = false;
-export const MH_VERSION = "mh-2025-09-16-02";
+export const MH_VERSION = "mh-2025-09-23-structured-01";
 console.log("[messageHandler] loaded:", MH_VERSION);
 console.log("[messageHandler] using convState:", CONVSTATE_VERSION);
-
-
 
 // ---------- helpers locales ----------
 function safeNowISO() { return new Date().toISOString(); }
@@ -63,8 +73,6 @@ function extractTextFromLCContent(content: any): string {
   if (typeof content?.text === "string") return content.text.trim();
   return "";
 }
-
-// función extractSlotsFromText extraída a helpers.ts
 
 async function getRecentHistorySafe(
   hotelId: string,
@@ -182,6 +190,83 @@ function detectIntent(
   return "ambiguous";
 }
 
+// === NEW: mapping structured intent → category (coherencia interna)
+function mapStructuredIntentToCategory(
+  intent:
+    | "general_question"
+    | "reservation_inquiry"
+    | "checkin_info"
+    | "checkout_info"
+    | "amenities_info"
+    | "pricing_request"
+    | "cancellation_policy"
+    | "location_directions"
+    | "out_of_scope"
+): string {
+  switch (intent) {
+    case "reservation_inquiry": return "reservation";
+    case "cancellation_policy": return "cancel_reservation";
+    case "pricing_request": return "pricing_info";
+    case "checkin_info": return "checkin_info";
+    case "checkout_info": return "checkout_info";
+    case "amenities_info": return "amenities_info";
+    case "location_directions": return "directions_info";
+    case "general_question": return "retrieval_based";
+    case "out_of_scope": return "out_of_scope";
+    default: return "retrieval_based";
+  }
+}
+
+// === NEW: intentar structured prompt (enriquecedor/fallback)
+async function tryStructuredAnalyze(params: {
+  hotelId: string;
+  lang: "es" | "en" | "pt";
+  channel: string;
+  userQuery: string;
+}): Promise<null | {
+  answer: string;
+  intent:
+  | "general_question"
+  | "reservation_inquiry"
+  | "checkin_info"
+  | "checkout_info"
+  | "amenities_info"
+  | "pricing_request"
+  | "cancellation_policy"
+  | "location_directions"
+  | "out_of_scope";
+  entities?: { checkin_date?: string; checkout_date?: string; guests?: number; room_type?: string; channel?: string; };
+  actions?: { type: string; detail: string }[];
+  handoff?: boolean;
+  missing_fields?: Array<"checkin_date" | "checkout_date" | "guests" | "room_type" | "contact">;
+  language?: "es" | "en" | "pt";
+}> {
+  try {
+    const hotel = await getHotelConfig(params.hotelId).catch(() => null);
+    const model = new ChatOpenAI({
+      model: CONFIG.STRUCTURED_MODEL,
+      temperature: 0.2,
+    });
+
+    const servicesText =
+      (hotel?.reservations?.forceCanonicalQuestion ? "- Pregunta canónica activa\n" : "") +
+      (hotel?.hotelName ? `- Nombre: ${hotel.hotelName}\n` : "") +
+      (hotel?.country ? `- País: ${hotel.country}\n` : "");
+
+    // Construyo prompt como string plano (puedes ajustar si quieres usar ChatPromptTemplate)
+    const formatInstructions = `Responde solo en JSON válido con la siguiente estructura: { answer: string, intent: string, entities: object, actions: array, handoff: boolean, missing_fields: array, language: string }`;
+    const prompt = `Eres un asistente virtual de un hotel.\nDebes responder SIEMPRE en el idioma: ${params.lang}.\nSé cordial, breve y profesional. No inventes datos.\n\nContexto del hotel:\n- Nombre: ${hotel?.hotelName || "Hotel"}\n- Dirección: ${hotel?.address || hotel?.city || ""}\n- Servicios: ${servicesText || "- "}\n\nReglas del dominio:\n- Si el usuario consulta por reservas, solicita (si faltan): fechas (check-in y check-out), cantidad de huéspedes y tipo de habitación.\n- En check-in/check-out, informa horarios y requisitos conocidos.\n- En amenities/servicios, responde con lo disponible en el contexto.\n- Si no hay información suficiente o es un caso operacional (precio final, políticas personalizadas, gestión compleja), marca \"handoff\": true y sugiere \"notify_reception\".\n- Si la consulta está fuera del dominio hotelero, clasifica \"intent\": \"out_of_scope\", responde con cortesía y no inventes.\n\nFormato de salida: ${formatInstructions}\n\nCanal: ${params.channel}\nUsuario: ${params.userQuery}`;
+
+    // Usa .withStructuredOutput() para obtener la respuesta validada por Zod
+    const structuredLlm = model.withStructuredOutput(require("@/lib/prompts/hotelAssistantStructuredPrompt").hotelAssistantSchema);
+    const result = await structuredLlm.invoke(prompt);
+    return result as any;
+  } catch (e) {
+    console.warn("[structured] fallback/analysis error:", (e as any)?.message || e);
+    return null;
+  }
+}
+
 // *************************************************
 const convQueues = new Map<string, Promise<any>>();
 function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
@@ -191,8 +276,8 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
   // @ts-ignore
   return next;
 }
-// función isSafeGuestName extraída a helpers.ts
 // *************************************************
+
 export async function handleIncomingMessage(
   msg: ChannelMessage,
   options?: {
@@ -201,12 +286,12 @@ export async function handleIncomingMessage(
 ): Promise<void> {
   const lockId = msg.conversationId || `${msg.hotelId}-${msg.channel}-${(msg.sender || msg.guestId || "guest")}`;
   // Aseguramos orden serial por conversación
-  //
   return runQueued(lockId, async () => {
     const now = safeNowISO();
     msg.messageId ||= crypto.randomUUID();
     msg.role ||= "user";
     msg.timestamp ||= now;
+    msg.direction ||= "in";
 
     // --- Guest
     const guestId = msg.guestId ?? msg.sender ?? "guest";
@@ -242,7 +327,8 @@ export async function handleIncomingMessage(
     console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
 
     // === Contexto para el LLM (historial reciente)
-    const lang = (msg.detectedLanguage || "es").toLowerCase();
+    const rawLang = (msg.detectedLanguage || "es").toLowerCase();
+    const lang = (["es", "en", "pt"].includes(rawLang) ? rawLang : "es") as "es" | "en" | "pt";
     const recent = await getRecentHistorySafe(msg.hotelId, msg.channel, conversationId, CONFIG.HISTORY_LIMIT);
     const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
 
@@ -291,6 +377,7 @@ export async function handleIncomingMessage(
     let finalText = "";
     let nextCategory: string | null = prevCategory;
     let nextSlots: ReservationSlotsStrict = currSlots;
+    let needsSupervision = false;  // ← se puede forzar por structured.handoff
 
     // ---- PRELLM (heurística) ----
     console.log("[BP-A1] preLLM:start", { conv: conversationId, lang, prevCategory });
@@ -332,10 +419,10 @@ export async function handleIncomingMessage(
             detectedLanguage: msg.detectedLanguage,
             normalizedMessage: String(msg.content || ""),
             messages: lcMessages,
-            reservationSlots: currSlots,        // 👈 ahora viajan los slots del turno
+            reservationSlots: currSlots,        // 👈 slots del turno
             meta: { channel: msg.channel, prevCategory },
-            salesStage: st?.salesStage ?? undefined, // <-- pasa salesStage persistido si existe
-            desiredAction: st?.desiredAction ?? undefined, // <-- pasa desiredAction persistido si existe
+            salesStage: st?.salesStage ?? undefined,
+            desiredAction: st?.desiredAction ?? undefined,
           }),
           CONFIG.GRAPH_TIMEOUT_MS,
           "agentGraph.invoke"
@@ -354,25 +441,59 @@ export async function handleIncomingMessage(
         }
         nextSlots = merged;
 
-        // LOG: después de merge de slots del grafo
-        console.log('[DEBUG-numGuests] merged nextSlots:', JSON.stringify(merged));
+        // === NEW: enriquecer con structured si aporta algo útil (no bloqueante)
+        try {
+          if (CONFIG.STRUCTURED_ENABLED) {
+            const structured = await tryStructuredAnalyze({
+              hotelId: msg.hotelId,
+              lang,
+              channel: msg.channel,
+              userQuery: String(msg.content || ""),
+            });
+            if (structured) {
+              // mergear slots si faltan
+              const s = structured.entities || {};
+              const merged2: ReservationSlotsStrict = {
+                ...nextSlots,
+                checkIn: nextSlots.checkIn || s.checkin_date || undefined,
+                checkOut: nextSlots.checkOut || s.checkout_date || undefined,
+                roomType: nextSlots.roomType || s.room_type || undefined,
+                numGuests: nextSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
+              };
+              nextSlots = merged2;
+
+              // supervisión si LLM sugiere handoff
+              if (structured.handoff === true) {
+                needsSupervision = true;
+              }
+
+              // si grafo devolvió vacío pero structured trae respuesta
+              if (!finalText && structured.answer) {
+                finalText = structured.answer;
+              }
+
+              // category mapeada por intent (si no la teníamos)
+              if (!nextCategory && structured.intent) {
+                nextCategory = mapStructuredIntentToCategory(structured.intent);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[structured] enrich warn:", (e as any)?.message || e);
+        }
 
         console.log("✅ [graph] ok in", Date.now() - started, "ms", { nextCategory, nextSlots });
 
-        // === Guardar estado conversacional (dentro del scope de graphResult)
+        // === Guardar estado conversacional
         try {
           if (nextSlots.guestName) {
             const nm = normalizeNameCase(String(nextSlots.guestName));
             if (!isSafeGuestName(nm)) { delete (nextSlots as any).guestName; }
           }
 
-          console.log("💾 [conv-state] saving:", { conv: conversationId, nextCategory, nextSlots });
-
           const cleanedSlots = Object.fromEntries(Object.entries(nextSlots).filter(([_, v]) => typeof v !== "undefined")) as DbReservationSlots;
-          // LOG: antes de guardar cleanedSlots en conv-state
-          console.log('[DEBUG-numGuests] cleanedSlots a guardar:', JSON.stringify(cleanedSlots));
+          console.log("💾 [conv-state] saving:", { conv: conversationId, nextCategory, cleanedSlots });
 
-          // Guardar también desiredAction si el grafo lo retorna
           const persist: any = { lastCategory: nextCategory, reservationSlots: cleanedSlots };
           if ((graphResult as any)?.desiredAction !== undefined) {
             persist.desiredAction = (graphResult as any).desiredAction;
@@ -384,18 +505,42 @@ export async function handleIncomingMessage(
           console.warn("⚠️ [messageHandler] upsertConvState warn:", err);
         }
       } catch (err: any) {
-        console.error("❌ [messageHandler] agentGraph error:", { errMsg: err?.message || String(err), elapsedMs: Date.now() - started });
-        finalText = lang.startsWith("es")
-          ? "Perdón, tuve un problema procesando tu consulta. ¿Podés repetir o reformular?"
-          : lang.startsWith("pt")
-            ? "Desculpe, tive um problema ao processar sua solicitação. Pode repetir?"
-            : "Sorry, I had an issue processing your request. Could you try again?";
-      }
-    }
+        console.error("❌ [messageHandler] agentGraph error:", { errMsg: err?.message || String(err) });
 
-    if (!finalText) {
-      finalText = ruleBasedFallback(lang, String(msg.content || ""));
-      console.warn("⚠️ [graph] finalText vacío → fallback determinista");
+        // === NEW: structured fallback si el grafo falla
+        try {
+          if (CONFIG.STRUCTURED_ENABLED) {
+            const structured = await tryStructuredAnalyze({
+              hotelId: msg.hotelId,
+              lang,
+              channel: msg.channel,
+              userQuery: String(msg.content || ""),
+            });
+
+            if (structured?.answer) {
+              finalText = structured.answer;
+              nextCategory = mapStructuredIntentToCategory(structured.intent || "general_question");
+              const s = structured.entities || {};
+              nextSlots = {
+                ...currSlots,
+                checkIn: currSlots.checkIn || s.checkin_date || undefined,
+                checkOut: currSlots.checkOut || s.checkout_date || undefined,
+                roomType: currSlots.roomType || s.room_type || undefined,
+                numGuests: currSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
+              };
+              if (structured.handoff === true) needsSupervision = true;
+            }
+          }
+        } catch (e) {
+          console.warn("[structured] fallback error:", (e as any)?.message || e);
+        }
+
+        // si aun así quedó vacío, uso el rule-based
+        if (!finalText) {
+          finalText = ruleBasedFallback(lang, String(msg.content || ""));
+          console.warn("⚠️ [graph] finalText vacío → fallback determinista");
+        }
+      }
     }
 
     // ---- POSTLLM (comparación pre vs LLM) ----
@@ -411,12 +556,11 @@ export async function handleIncomingMessage(
       desiredAction: undefined,
       slots: llmSlotsForAudit,
       confidence: { intent: llmIntentConf, slots: llmSlotConfs },
-      notes: ["llm via agentGraph result"],
+      notes: ["llm via agentGraph/structured result"],
     };
 
-    console.log("[BP-A3] llm:fromGraph", { category: llmInterp.category, confidence: llmInterp.confidence?.intent, slots: llmInterp.slots });
+    console.log("[BP-A3] llm:fromGraph/structured", { category: llmInterp.category, confidence: llmInterp.confidence?.intent, slots: llmInterp.slots });
 
-    let needsSupervision = false;
     let verdictInfo: any = null;
     try {
       if (preInterp) {
@@ -426,7 +570,7 @@ export async function handleIncomingMessage(
 
         const riskyCategory = CONFIG.SENSITIVE_CATEGORIES.has(String(llmInterp.category || ""));
         const lowIntentConf = typeof llmInterp.confidence?.intent === "number" && llmInterp.confidence.intent < CONFIG.SUPERVISE_LOW_CONF_INTENT;
-        needsSupervision = (riskyCategory && verdictInfo?.status === "disagree") || lowIntentConf;
+        needsSupervision = needsSupervision || (riskyCategory && verdictInfo?.status === "disagree") || lowIntentConf;
       } else {
         console.log("[BP-A4] verdict:skipped (no preInterp)");
       }
@@ -458,7 +602,7 @@ export async function handleIncomingMessage(
         console.log("📤 [reply] via adapter?", !!options?.sendReply, { len: suggestion.length });
         await emitReply(conversationId, suggestion, options?.sendReply);
       } else {
-        console.log("[BP-A5] supervised:pending", { reason: verdictInfo?.reason || "policy/safety/low-confidence" });
+        console.log("[BP-A5] supervised:pending", { reason: verdictInfo?.reason || "policy/safety/low-confidence/structured-handoff" });
         const pending = lang.startsWith("es")
           ? "🕓 Tu consulta está siendo revisada por un recepcionista."
           : lang.startsWith("pt")
@@ -469,6 +613,5 @@ export async function handleIncomingMessage(
     } catch (err) {
       console.error("❌ [messageHandler] sendReply error:", err);
     }
-
   });
 }

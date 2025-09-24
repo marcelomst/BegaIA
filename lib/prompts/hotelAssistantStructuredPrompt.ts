@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 /**
  * Esquema de salida estructurada para respuestas del asistente hotelero.
@@ -64,9 +63,7 @@ export const hotelAssistantSchema = z.object({
   language: z.enum(["es", "en", "pt"]).describe("Idioma usado en la respuesta.")
 });
 
-export const hotelAssistantParser = new JsonOutputParser({
-  schema: hotelAssistantSchema,
-});
+// Ya no se necesita hotelAssistantParser, se usará .withStructuredOutput()
 
 /**
  * Prompt base con instrucciones + formatInstructions del parser.
@@ -113,7 +110,7 @@ export function buildHotelAssistantStructuredPrompt(vars: {
   channel: string;
   userQuery: string;
 }) {
-  const formatInstructions = hotelAssistantParser.getFormatInstructions();
+  const formatInstructions = `Responde solo en JSON válido con la siguiente estructura: { answer: string, intent: string, entities: object, actions: array, handoff: boolean, missing_fields: array, language: string }`;
   return hotelAssistantStructuredPrompt.format({
     ...vars,
     format_instructions: formatInstructions,

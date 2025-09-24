@@ -209,9 +209,17 @@ export interface ChannelMessage {
   /** Análisis de sentimiento del contenido (opcional) */
   sentiment?: "positive" | "neutral" | "negative";
   detectedLanguage?: string;
+
   // 🆕 idempotencia / normalización cross-canal
   sourceMsgId?: string;
-  direction?: "in" | "out"; // si falta, se deriva de sender/role
+  direction?: "in" | "out";    // si falta, se deriva de sender/role
+  sourceProvider?: string;     // p.ej. "web" | "whatsapp.baileys" | "email"
+  audit?: {
+    pre?: any;
+    llm?: any;
+    verdict?: any;
+  };
+
 }
 
 export interface Conversation {

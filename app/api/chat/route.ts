@@ -5,7 +5,7 @@ import { handleIncomingMessage, MH_VERSION } from "@/lib/handlers/messageHandler
 import { getAdapter } from "@/lib/adapters/registry";
 import { emitToConversation } from "@/lib/web/eventBus";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import type { Channel, ChannelMessage } from "@/types/channel";
+import type { Channel, ChannelMessage, ChannelMode } from "@/types/channel";
 
 export async function POST(req: Request) {
   console.log("[/api/chat] using messageHandler:", MH_VERSION);
@@ -20,22 +20,22 @@ export async function POST(req: Request) {
   const sender = String((body as any).sender || "guest");
   const detectedLanguage = String((body as any).lang || (body as any).detectedLanguage || "es");
   const content = String((body as any).query || (body as any).text || (body as any).content || "").trim();
-  const clientMsgId = (body as any).messageId as string | undefined;
-  const modeIn = (body as any).mode as "automatic" | "supervised" | undefined;
+  const clientMsgId = (body as any).messageId as string | undefined; // ← idempotencia en Web
+  const modeIn = (body as any).mode as ChannelMode | undefined;
 
   try {
     if (!hotelId || !content) {
-      // mantenemos 200 para no romper el widget, como hacías
+      // mantenemos 200 para no romper el widget
       return NextResponse.json({ ok: false, error: "hotelId y query son obligatorios" }, { status: 200 });
     }
 
-    // modo: body.mode > config del hotel > automatic
+    // ⚠️ modo por canal (no fijar .web)
     const hotelConf = await getHotelConfig(hotelId).catch(() => null);
-    const cfgMode: "automatic" | "supervised" =
-      modeIn ?? hotelConf?.channelConfigs?.web?.mode ?? "automatic";
+    const cfgMode: ChannelMode =
+      modeIn ?? (hotelConf?.channelConfigs?.[channel]?.mode as ChannelMode) ?? "automatic";
 
-    // messageId: respetamos el del cliente si viene (test de idempotencia)
-    const messageId = clientMsgId || `${channel}:${conversationId}`;
+    // messageId: respetar el del cliente si viene
+    const messageId = clientMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
 
     const time = new Date().toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit" });
 
@@ -53,9 +53,14 @@ export async function POST(req: Request) {
       time,
       status: cfgMode === "supervised" ? "pending" : "sent",
       detectedLanguage,
+
+      // 🔒 Idempotencia y trazabilidad (alineado a WA/Email)
+      direction: "in",
+      sourceProvider: channel,     // "web"
+      sourceMsgId: clientMsgId,    // si UI lo envía, se deduplica adentro
     };
 
-    // tu adapter (SSE) se mantiene
+    // adapter del canal (para respuestas “push” si aplica)
     const adapter = getAdapter(channel);
     const opts: Parameters<typeof handleIncomingMessage>[1] = { mode: cfgMode };
     if (adapter) {
@@ -66,7 +71,7 @@ export async function POST(req: Request) {
 
     await handleIncomingMessage(incoming, opts);
 
-    // 👉 ACK JSON siempre (independiente del SSE) — lo que piden los tests
+    // ACK homogéneo para el widget
     return NextResponse.json(
       {
         conversationId,
@@ -77,9 +82,9 @@ export async function POST(req: Request) {
           channel,
           messageId,
           status: cfgMode === "supervised" ? "pending" : "sent",
-          // el test de "pending" sólo requiere que sea truthy
           suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
         },
+        lang: detectedLanguage,
       },
       { status: 200 }
     );
@@ -91,8 +96,8 @@ export async function POST(req: Request) {
       detectedLanguage.toLowerCase().startsWith("es")
         ? "Perdón, tuve un problema procesando tu consulta. ¿Podés intentar de nuevo?"
         : detectedLanguage.toLowerCase().startsWith("pt")
-        ? "Desculpe, tive um problema ao processar sua solicitação. Pode tentar novamente?"
-        : "Sorry, I had an issue processing your request. Could you try again?";
+          ? "Desculpe, tive um problema ao processar sua solicitação. Pode tentar novamente?"
+          : "Sorry, I had an issue processing your request. Could you try again?";
     try {
       emitToConversation(conversationId, {
         type: "message",
@@ -100,7 +105,7 @@ export async function POST(req: Request) {
         text: fallback,
         timestamp: new Date().toISOString(),
       });
-    } catch {}
+    } catch { }
 
     // mantenemos 200 para no romper el widget
     return NextResponse.json(
