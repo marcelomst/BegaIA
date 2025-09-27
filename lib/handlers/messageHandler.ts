@@ -814,6 +814,14 @@ export async function handleIncomingMessage(
     }
     const suggestion = body.finalText;
     debugLog("[handleIncomingMessage] suggestion", suggestion);
+    // Decidir si este turno debe salir como "sent" (sin supervisión) aunque el modo sea supervisado
+    // Regla: si el grafo devolvió un snapshot de reserva (o reserva en stage close) enviamos directo
+    const isSnapshotReply = !!(body?.graphResult && (
+      (body.graphResult.category === "reservation_snapshot") ||
+      (body.graphResult.category === "reservation" && body.graphResult.salesStage === "close")
+    ));
+    const autoSend = isSnapshotReply || (!needsSupervision && (pre.guest.mode ?? "automatic") === "automatic");
+
     const aiMsg: ChannelMessage = {
       ...pre.msg,
       messageId: crypto.randomUUID(),
@@ -821,7 +829,7 @@ export async function handleIncomingMessage(
       role: "ai",
       content: suggestion,
       suggestion,
-      status: needsSupervision ? "pending" : (pre.guest.mode ?? "automatic") === "automatic" ? "sent" : "pending",
+      status: autoSend ? "sent" : "pending",
       timestamp: safeNowISO(),
       respondedBy: needsSupervision ? "assistant" : undefined,
     };
