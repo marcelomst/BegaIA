@@ -300,8 +300,19 @@ export const GraphState = Annotation.Root({
 // Nodo para mostrar snapshot de reserva confirmada
 async function handleReservationSnapshotNode(state: typeof GraphState.State) {
   const lang = (state.detectedLanguage || "es").slice(0, 2);
-  const slots = state.reservationSlots || {};
-  const code = (state as any)?.lastReservation?.reservationId || "-";
+  // Leer del estado persistido para evitar depender solo del turn state
+  let persistedSlots = state.reservationSlots || {};
+  let code = (state as any)?.lastReservation?.reservationId || "-";
+  try {
+    const st = await getConvState(state.hotelId, state.conversationId || "");
+    if (st?.reservationSlots) persistedSlots = st.reservationSlots as any;
+    if ((st as any)?.lastReservation?.reservationId) {
+      code = (st as any).lastReservation.reservationId;
+    }
+  } catch {
+    // si falla, seguimos con lo que haya en memoria
+  }
+  const slots = persistedSlots || {};
   let msg = "";
   if (lang === "es") {
     msg = `Tienes una reserva confirmada:\n\n- Nombre: ${slots.guestName || "-"}\n- Habitación: ${slots.roomType || "-"}\n- Fechas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Huéspedes: ${slots.numGuests || "-"}\n- Código: ${code}`;
@@ -343,7 +354,7 @@ async function classifyNode(state: typeof GraphState.State) {
     }
     // Si el usuario pide ver/consultar/confirmar su reserva (es, pt, en)
     if (
-      /(ver|mostrar|consultar|verificar|tengo|confirmar|confirmada|detalhes|detalhes|detalles|see|show|check|confirm|details|reservation|reserva|booking)/i.test(t) &&
+      /(ver|mostrar|consultar|verificar|corroborar|comprobar|tengo|confirmar|confirmada|detalhes|detalhes|detalles|see|show|check|confirm|details|reservation|reserva|booking)/i.test(t) &&
       /(reserva|booking|reservation)/i.test(t)
     ) {
       // category especial para snapshot
@@ -365,6 +376,27 @@ async function classifyNode(state: typeof GraphState.State) {
       promptKey: undefined,
       messages: [],
     };
+  }
+  // Si no está cerrada, pero pide ver/corroborar una reserva y existe una confirmada persistida, ir a snapshot
+  try {
+    const t = (state.normalizedMessage || "").toLowerCase();
+    const asksSnapshot = /(ver|mostrar|consultar|verificar|corroborar|comprobar|confirmada|check|confirm|details)/i.test(t) && /(reserva|booking|reservation)/i.test(t);
+    if (asksSnapshot) {
+      const st = await getConvState(state.hotelId, state.conversationId || "");
+      const hasConfirmed = !!(st as any)?.lastReservation?.reservationId;
+      if (hasConfirmed) {
+        return {
+          category: "reservation_snapshot",
+          desiredAction: undefined,
+          intentConfidence: 0.99,
+          intentSource: "heuristic",
+          promptKey: "reservation_snapshot",
+          messages: [],
+        };
+      }
+    }
+  } catch {
+    // ignorar errores de lectura
   }
   // Nodo para mostrar snapshot de reserva confirmada
   async function handleReservationSnapshotNode(state: typeof GraphState.State) {
