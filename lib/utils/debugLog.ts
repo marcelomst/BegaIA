@@ -3,10 +3,15 @@
 import fs from "fs";
 import path from "path";
 
+const ALLOWED_TAGS = ["[Graph]", "[preLLM]", "[bodyLLM]", "[posLLM]", "[handleIncomingMessage]"];
+// const ALLOWED_TAGS = ["[Graph]"];
 export function debugLog(...args: any[]) {
   if (process.env.DEBUG === "true") {
-    console.log("🐞 DEBUG:", ...args);
-    logToFile("debug", ...args);
+    const msg = args.map(String).join(" ");
+    if (ALLOWED_TAGS.some(tag => msg.includes(tag))) {
+      console.log("🐞 DEBUG:", ...args);
+      logToFile("debug", ...args);
+    }
   }
 }
 

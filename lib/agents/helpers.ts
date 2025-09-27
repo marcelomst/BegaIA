@@ -236,6 +236,83 @@ export function ddmmyyyyToISO(s: string): string | undefined {
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
   return `${year}-${pad(mon)}-${pad(day)}`;
 }
+// Util: Date -> YYYY-MM-DD en TZ local
+export function dateToISO(d: Date): string {
+  const year = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  return `${year}-${pad(m)}-${pad(day)}`;
+}
+// UTC-stable ISO (YYYY-MM-DD) for deterministic outputs in tests/integration
+function toISO(d: Date): string {
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  return `${y}-${pad(m)}-${pad(day)}`;
+}
+// Capa 1 avanzada: usar Chrono para fechas relativas, detrás de bandera
+async function loadChrono(): Promise<any> {
+  const anyGlobal = globalThis as any;
+  if (typeof anyGlobal.__chronoImport === 'function') {
+    try { return await anyGlobal.__chronoImport(); } catch { /* ignore */ }
+  }
+  return await import('chrono-node');
+}
+
+export async function chronoExtractDateRange(
+  text: string,
+  lang2: "es" | "en" | "pt",
+  _hotelTz?: string
+): Promise<{ checkIn?: string; checkOut?: string }> {
+  if ((process.env.USE_CHRONO_LAYER || "0") !== "1") return {};
+  try {
+    // Allow tests to inject a loader
+    // @ts-ignore
+    const injected = (globalThis as any).__chronoImport;
+    const chrono: any = injected ? await injected() : await loadChrono();
+    const ref = new Date();
+    // Seleccionar parser por idioma si existe
+    const parser = (lang2 === "es" && chrono.es)
+      || (lang2 === "pt" && chrono.pt)
+      || chrono.en
+      || chrono;
+    const results: any[] = (parser.parse ? parser.parse(text, ref, { forwardDate: true }) : chrono.parse(text, ref, { forwardDate: true })) || [];
+    if (!results.length) return {};
+    // Tomar hasta dos fechas (inicio/fin) si se detectan ranges
+    // Chrono marca .start (y .end en ranges)
+    const first = results[0];
+    const start1: Date | undefined = first?.start?.date?.() || (first?.date ? first.date() : undefined);
+    const end1: Date | undefined = first?.end?.date?.();
+    if (start1 && end1) {
+      return { checkIn: toISO(start1), checkOut: toISO(end1) };
+    }
+    if (results.length > 1) {
+      const second = results[1];
+      const start2: Date | undefined = second?.start?.date?.() || (second?.date ? second.date() : undefined);
+      if (start1 && start2) {
+        const a = start1 <= start2 ? start1 : start2;
+        const b = start1 <= start2 ? start2 : start1;
+        return { checkIn: toISO(a), checkOut: toISO(b) };
+      }
+    }
+    if (start1) {
+      const ci = toISO(start1);
+      // Heurística: si menciona "una noche" / "1 noche" / "one night" y no hay end, asumimos 1 noche
+      const tt = (text || "").toLowerCase();
+      if (/(\buna\s+noche\b|\b1\s+noche\b|\bone\s+night\b|uma\s+noite)/.test(tt)) {
+        const next = new Date(start1.getTime());
+        next.setUTCDate(next.getUTCDate() + 1);
+        return { checkIn: ci, checkOut: toISO(next) };
+      }
+      return { checkIn: ci };
+    }
+  } catch (_err) {
+    // Silencioso: si chrono no está instalado o falla, no rompemos
+  }
+  return {};
+}
 import type { IntentResult } from "@/types/audit";
 
 const LOOKS_ROOM_INFO_RE = /\b(check[- ]?in|check[- ]?out|ingreso|salida|horario|hora(s)?)\b/i;
@@ -322,4 +399,23 @@ export function toISODateDDMMYYYY(s: string): string | null {
   const d = Number(dd), mth = Number(mm);
   if (mth < 1 || mth > 12 || d < 1 || d > 31) return null;
   return `${yyyy.padStart(4, "0")}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+// Localiza el tipo de habitación para mostrar al usuario (manteniendo canónico interno)
+export function localizeRoomType(rt: string | undefined, lang2: "es" | "en" | "pt"): string {
+  const key = (rt || "").toLowerCase();
+  const map: Record<string, { es: string; en: string; pt: string }> = {
+    single: { es: "simple", en: "single", pt: "individual" },
+    double: { es: "doble", en: "double", pt: "duplo" },
+    triple: { es: "triple", en: "triple", pt: "triplo" },
+    suite: { es: "suite", en: "suite", pt: "suite" },
+    queen: { es: "queen", en: "queen", pt: "queen" },
+    king: { es: "king", en: "king", pt: "king" },
+    twin: { es: "twin", en: "twin", pt: "twin" },
+    deluxe: { es: "deluxe", en: "deluxe", pt: "deluxe" },
+    standard: { es: "standard", en: "standard", pt: "standard" },
+  };
+  const rec = map[key];
+  if (!rec) return rt || "";
+  return rec[lang2] || rt || "";
 }

@@ -53,6 +53,9 @@ importers:
       cheerio:
         specifier: ^1.0.0
         version: 1.1.0
+      chrono-node:
+        specifier: ^2.9.0
+        version: 2.9.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -194,6 +197,9 @@ importers:
       zod:
         specifier: ^4.1.5
         version: 4.1.5
+      zod-to-json-schema:
+        specifier: ^3.24.6
+        version: 3.24.6(zod@4.1.5)
     devDependencies:
       '@babel/core':
         specifier: ^7.26.10
@@ -2918,8 +2924,8 @@ packages:
       eslint: ^9.31.0
       typescript: '>=4'
 
-  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae':
-    resolution: {tarball: https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae}
+  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/e81ecfc32eb74951d789ab37f7e341ab66d5fff1':
+    resolution: {tarball: https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/e81ecfc32eb74951d789ab37f7e341ab66d5fff1}
     version: 2.0.1
 
   '@xmldom/is-dom-node@1.0.1':
@@ -3368,6 +3374,10 @@ packages:
     resolution: {integrity: sha512-d1VmE0FD7lxZQHzcDUCKZSNRtRwISXDsdg4HjdTR5+Ll5nQ/vzU12JeNmupD6VWffrPSlrnGhEWlLESKH3VO+g==}
     peerDependencies:
       devtools-protocol: '*'
+
+  chrono-node@2.9.0:
+    resolution: {integrity: sha512-glI4YY2Jy6JII5l3d5FN6rcrIbKSQqKPhWsIRYPK2IK8Mm4Q1ZZFdYIaDqglUNf7gNwG+kWIzTn0omzzE0VkvQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   class-variance-authority@0.7.1:
     resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
@@ -9287,7 +9297,7 @@ snapshots:
       '@whiskeysockets/eslint-config': https://codeload.github.com/whiskeysockets/eslint-config/tar.gz/299e8389baf62f9aa3034de18ff0d62cc0a5e838(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3)
       async-mutex: 0.5.0
       axios: 1.11.0(debug@4.4.1)
-      libsignal: '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae'
+      libsignal: '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/e81ecfc32eb74951d789ab37f7e341ab66d5fff1'
       lodash: 4.17.21
       music-metadata: 7.14.0
       pino: 9.9.0
@@ -9311,7 +9321,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae':
+  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/e81ecfc32eb74951d789ab37f7e341ab66d5fff1':
     dependencies:
       curve25519-js: 0.0.4
       protobufjs: 6.8.8
@@ -9843,6 +9853,8 @@ snapshots:
       devtools-protocol: 0.0.1475386
       mitt: 3.0.1
       zod: 3.25.67
+
+  chrono-node@2.9.0: {}
 
   class-variance-authority@0.7.1:
     dependencies:

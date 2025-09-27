@@ -175,9 +175,9 @@ export async function buildSystemInstruction(opts: {
         en: `- If a draft exists, continue completing it; confirm only with complete data.`,
       }),
       byLang(lang, {
-        es: `- Para modificaciones de reservas confirmadas, solicita el código.`,
-        pt: `- Para alterações de reservas confirmadas, solicite o código.`,
-        en: `- For modifications of confirmed bookings, request the code.`,
+        es: `- Para modificaciones de reservas confirmadas, solicita el código y NO derives al hotel: sigue el flujo de modificación tú mismo.`,
+        pt: `- Para alterações de reservas confirmadas, solicite o código e NÃO encaminhe ao hotel: siga o fluxo de alteração você mesmo.`,
+        en: `- For modifications of confirmed bookings, request the code and DO NOT refer to the hotel: follow the modification flow yourself.`,
       }),
       byLang(lang, {
         es: `- Si hay ambigüedad:  repreguntas y luego opciones claras.`,
@@ -221,6 +221,7 @@ export async function buildSystemInstruction(opts: {
     ``,
     `[[REGLAS]]`,
     `- Nunca confirmes/canceles/modifiques sin la confirmación que el playbook exige.`,
+    `- Si el usuario solicita modificar una reserva, NO derives al hotel: sigue el flujo de modificación tú mismo según el playbook (pide código si es confirmada, modifica directo si es borrador).`,
     `- Si hay ambigüedad y no alcanza con 1–2 repreguntas, ofrece opciones claras.`,
     ``,
     `[[REGLAS_DINAMICAS]]`,

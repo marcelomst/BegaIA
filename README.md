@@ -1,5 +1,7 @@
 # 🏨 Hotel Assistant - Conversational Flow with LangGraph + LangChain
 
+[![ci-core](https://github.com/marcelomst/BegaIA/actions/workflows/ci-core.yml/badge.svg?branch=main)](https://github.com/marcelomst/BegaIA/actions/workflows/ci-core.yml)
+
 Este proyecto implementa un **asistente conversacional para hotelería** utilizando **LangGraph** y **LangChain**, modelando la lógica de decisión mediante un grafo de estados. Cada nodo representa una intención o acción específica del usuario durante una conversación.
 
 ---
@@ -16,7 +18,7 @@ Este proyecto implementa un **asistente conversacional para hotelería** utiliza
 
 ## 🔁 Flujo Conversacional
 
-```ts
+````ts
 const graph = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
@@ -42,7 +44,7 @@ const graph = new StateGraph(GraphState)
   .addEdge("handle_support", "__end__")
   .addEdge("handle_retrieval_based", "__end__");
 ## 📚 Descripción de nodos
-- classifyNode: Usa LangChain para identificar la categoría del mensaje del usuario 
+- classifyNode: Usa LangChain para identificar la categoría del mensaje del usuario
     (por   ejemplo, reserva, habitación, etc.).
 
 - handle_reservation: Gestiona solicitudes de reserva.
@@ -82,7 +84,7 @@ Integrarse con otros sistemas mediante LangChain para escalabilidad y personaliz
 │   │   ├── chat
 │   │   │   ├── route.ts
 │   │   │   └── route.ts:Zone.Identifier
-│   │   ├── email 
+│   │   ├── email
 │   │   └── whatsapp
 │   │       └── route.ts
 │   ├── favicon.ico
@@ -627,9 +629,10 @@ Hemos definido un flujo seguro y escalable para manejar interacciones entre hué
 export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number) {
   return !(roleLevel === 0 && hotelId !== "system");
 }
-```
+````
 
-###  📝 Nota para futuros desarrolladores
+### 📝 Nota para futuros desarrolladores
+
 No modifiques esta lógica sin analizar implicancias de seguridad a nivel plataforma SaaS multihotel.
 Los SuperAdmin (roleLevel: 0) solo existen en el hotel “system” para fines de administración técnica global.
 ¡Perfecto! Te armo un **ERD sencillo en ASCII** (para README) y te lo dejo listo para copiar/pegar/documentar la arquitectura de tu sistema Hotel Assistant multicanal. También incluyo breve explicación y recomendaciones para mantenerlo actualizado.
@@ -657,42 +660,46 @@ Leyenda:
 - Guest y User referencian hotelId
 - Conversation une a Guest + canal + asunto
 - ChannelMessage pertenece a una Conversation
+```
 ````
 
 ---
 
 ### 📚 Descripción de entidades
 
-* **Hotel**: Entidad principal, agrupa toda la información de cada hotel.
-* **HotelConfig**: Configuración y modos de canal para cada hotel.
-* **Guest**: Cliente/visitante. Puede tener varios canales (web, whatsapp, email, etc), y un modo de supervisión personalizado.
-* **User**: Personal autenticado del hotel, con roles y permisos.
-* **Conversation**: Hilo de conversación entre un guest y el hotel por un canal/tema.
-* **ChannelMessage**: Mensajes enviados/recibidos en cada conversación (IA, recepcionista o guest).
+- **Hotel**: Entidad principal, agrupa toda la información de cada hotel.
+- **HotelConfig**: Configuración y modos de canal para cada hotel.
+- **Guest**: Cliente/visitante. Puede tener varios canales (web, whatsapp, email, etc), y un modo de supervisión personalizado.
+- **User**: Personal autenticado del hotel, con roles y permisos.
+- **Conversation**: Hilo de conversación entre un guest y el hotel por un canal/tema.
+- **ChannelMessage**: Mensajes enviados/recibidos en cada conversación (IA, recepcionista o guest).
 
 ### 📝 Notas de diseño
 
-* El **modo de supervisión** del guest (`mode`) prevalece sobre el modo del canal.
-* El guest puede tener un **nombre personalizado** para seguimiento, editable por el staff.
-* El mismo guest puede comunicarse por varios canales bajo el mismo hotel.
-* Los mensajes tienen `status`, `respondedBy`, y permiten tracking granular (quién, cuándo y cómo respondió).
+- El **modo de supervisión** del guest (`mode`) prevalece sobre el modo del canal.
+- El guest puede tener un **nombre personalizado** para seguimiento, editable por el staff.
+- El mismo guest puede comunicarse por varios canales bajo el mismo hotel.
+- Los mensajes tienen `status`, `respondedBy`, y permiten tracking granular (quién, cuándo y cómo respondió).
 
 ---
 
 ### 🚩 Recomendaciones para mantener el ERD
 
-* Actualizá este diagrama y la descripción si se agregan nuevas entidades o relaciones.
-* Usá los nombres de campo en minúscula/camelCase como referencia a los modelos reales en `/types`.
-* Si implementás features avanzados (multi-hotel admin, merge de guests cross-channel, etc), extendé el organigrama.
+- Actualizá este diagrama y la descripción si se agregan nuevas entidades o relaciones.
+- Usá los nombres de campo en minúscula/camelCase como referencia a los modelos reales en `/types`.
+- Si implementás features avanzados (multi-hotel admin, merge de guests cross-channel, etc), extendé el organigrama.
 
 ---
+
 # Hotel Assistant – Project context
 
 ## Objetivo
+
 Breve: Asistente conversacional hotelero basado en LangGraph + LangChain.  
 Automatización omnicanal (web, email, WhatsApp, PMS).
 
 ## Estructura clave
+
 - `/lib/agents/` → lógica de IA conversacional (graph + MCP)
 - `/lib/classifier/` → clasificador de intenciones
 - `/lib/prompts/` → prompts curados por dominio
@@ -703,23 +710,28 @@ Automatización omnicanal (web, email, WhatsApp, PMS).
 - `/test/` → tests automatizados
 
 ## Laboratorio MCP (Multi-Channel Pipeline)
+
 Implementamos un laboratorio con MCP real para manejar todo el ciclo de vida de un mensaje:
 
 1. **Entrada unificada (`universalChannelEventHandler`)**
+
    - Normaliza mensajes de todos los canales en un `ChannelMessage`.
    - Hace NLU mínima (idioma, intención).
    - Invoca el `messageHandler` → graph LangGraph/LangChain.
 
 2. **Persistencia estable (`messages.ts`)**
+
    - `saveMessageToAstra` / `updateMessageInAstra`.
    - `saveMessageIdempotent` con `originalMessageId` para idempotencia.
    - Campos extendidos: `guestId`, `conversationId`, `deliveredAt`, `deliveryAttempts`, `deliveryError`.
 
 3. **Estados de conversación (`convState`)**
+
    - Slots de reserva (`guestName`, `roomType`, etc).
    - `lastCategory` y `promptKey`.
 
 4. **Canales**
+
    - **Web**: frontend `/app/page.tsx` conectado a `/api/chat`, `/api/messages/by-conversation`, `/api/conversations/list`.
    - **Email**: IMAP/SMTP polling con filtros anti-spam, idempotencia por `messageId`, handler universal.
    - **WhatsApp**: basado en `whatsapp-web.js`, heartbeat, idempotencia doble (Redis + DB), poller para respuestas supervisadas.
@@ -730,11 +742,12 @@ Implementamos un laboratorio con MCP real para manejar todo el ciclo de vida de 
    - Persistencia de estado antes/después de cada paso.
 
 ## Instrucciones para IA y desarrolladores
+
 1. Para agregar nuevas intenciones, editar `/lib/agents/index.ts` y `/lib/prompts/`.
 2. Para integrar un canal nuevo, extender `/lib/services/` y conectar a `universalChannelEventHandler`.
 3. Para agregar tests, usar `/test/`.
 4. Para dudas/propuestas, usar este README o `documentacion/`.
 
 ## 📝 Convención para manejo de archivos en ChatGPT Projects
-*(se mantiene igual)*
 
+_(se mantiene igual)_

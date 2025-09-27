@@ -14,6 +14,7 @@
     "test:watch": "vitest --watch",
     "ts-check": "tsc --noEmit",
     "ts-strict": "tsc --noEmit --strict",
+    "test:core": "vitest run test/chrono.layer.spec.ts test/graph.signals.chrono.spec.ts test/graph.reservation.persist.spec.ts test/e2e.reservation.flow.spec.ts",
     "test:classifier": "tsx scripts/testClassifier.ts",
     "init:config": "tsx scripts/init-config.ts",
     "start:channelbot": "pnpm exec tsx lib/entrypoints/channelBot.ts",
@@ -41,6 +42,7 @@
     "bcryptjs": "^3.0.2",
     "cassandra-driver": "^4.8.0",
     "cheerio": "^1.0.0",
+    "chrono-node": "^2.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "country-state-city": "^3.2.1",
@@ -87,7 +89,8 @@
     "uuid": "^11.1.0",
     "whatsapp-web.js": "^1.30.0",
     "ws": "^8.18.1",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
@@ -139,7 +142,14 @@
       "@datastax/astra-db-ts": "2.0.1"
     },
     "onlyBuiltDependencies": [
-      "puppeteer"
+      "@tailwindcss/oxide",
+      "@whiskeysockets/baileys",
+      "core-js",
+      "esbuild",
+      "protobufjs",
+      "puppeteer",
+      "sharp",
+      "unrs-resolver"
     ]
   },
   "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417"

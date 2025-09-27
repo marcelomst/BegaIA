@@ -51,7 +51,8 @@ describe("reservation handler - persistencia en conv_state", () => {
       reservationSlots: {}, // sin datos
     });
 
-    expect(res.messages?.[0]?.content).toContain("check-in");
+    // El grafo aplica ONE_QUESTION_PER_TURN y prioriza el primer slot faltante (guestName)
+    expect(String(res.messages?.[0]?.content)).toMatch(/nombre completo|check-in/);
     expect(upsertConvState).toHaveBeenCalledTimes(1);
     expect(upsertConvState).toHaveBeenCalledWith(
       hotelId,
@@ -59,7 +60,7 @@ describe("reservation handler - persistencia en conv_state", () => {
       expect.objectContaining({
         reservationSlots: expect.objectContaining({
           // no sabemos cuáles vienen aún; pero debe guardar el locale
-          locale: "spa",
+          locale: "es",
         }),
         salesStage: "qualify",
         updatedBy: "ai",
@@ -76,7 +77,7 @@ describe("reservation handler - persistencia en conv_state", () => {
         guests: 2,
         checkIn: "2025-09-10",
         checkOut: "2025-09-12",
-        locale: "spa",
+        locale: "es",
       },
     });
 
@@ -109,7 +110,7 @@ describe("reservation handler - persistencia en conv_state", () => {
           checkIn: "2025-09-10",
           checkOut: "2025-09-12",
           numGuests: "2",
-          locale: "spa",
+          locale: "es",
         },
       })
     );
@@ -128,7 +129,7 @@ describe("reservation handler - persistencia en conv_state", () => {
             input: expect.objectContaining({
               hotelId,
               roomType: "double",
-              guests: 2,
+              numGuests: 2,
               checkIn: "2025-09-10",
               checkOut: "2025-09-12",
             }),
@@ -153,7 +154,7 @@ describe("reservation handler - persistencia en conv_state", () => {
         checkIn: "2025-09-20",
         checkOut: "2025-09-22",
         numGuests: "2",
-        locale: "spa",
+        locale: "es",
       },
       updatedAt: new Date().toISOString(),
     });
@@ -172,7 +173,8 @@ describe("reservation handler - persistencia en conv_state", () => {
       reservationSlots: {}, // no aporta nada nuevo, se usa snapshot
     });
 
-    expect(String(res.messages?.[0]?.content)).toContain("Reserva creada");
+    // El grafo devuelve mensaje de confirmación estandarizado
+    expect(String(res.messages?.[0]?.content)).toContain("Reserva confirmada");
     expect(upsertConvState).toHaveBeenCalledWith(
       hotelId,
       conversationId,

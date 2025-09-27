@@ -73,10 +73,30 @@ export type ListReservationsResult = {
   total: number;
 };
 
+// NUEVO: Update Reservation
+export type UpdateReservationInput = {
+  hotelId: string;
+  reservationId: string;
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  roomType?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  notes?: string;
+};
+
+export type UpdateReservationOutput = {
+  ok: boolean;
+  reservation?: Reservation;
+  error?: string;
+};
+
 export interface ChannelManagerAdapter {
   searchAvailability(q: AvailabilityQuery): Promise<AvailabilityItem[]>;
   createReservation(input: CreateReservationInput): Promise<Reservation>;
   cancelReservation(input: CancelReservationInput): Promise<Reservation>;
   getReservation(hotelId: string, reservationId: string): Promise<Reservation | null>;
   listReservations(q: ListReservationsQuery): Promise<ListReservationsResult>;
+  updateReservation(input: UpdateReservationInput): Promise<Reservation>;
 }

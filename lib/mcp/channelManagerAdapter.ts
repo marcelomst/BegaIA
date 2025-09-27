@@ -1,3 +1,4 @@
+import { UpdateReservationInput } from "./types";
 // Path: /root/begasist/lib/mcp/channelManagerAdapter.ts
 import {
   ChannelManagerAdapter,
@@ -79,7 +80,24 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     const start = (page - 1) * pageSize;
     const items = filtered.slice(start, start + pageSize);
     return { items, page, pageSize, total: filtered.length };
-    }
+  }
+
+  async updateReservation(input: UpdateReservationInput): Promise<Reservation> {
+    const r = this.reservations.get(input.reservationId);
+    if (!r || r.hotelId !== input.hotelId) throw new Error("Reservation not found");
+    const updated: Reservation = {
+      ...r,
+      guestName: input.guestName ?? r.guestName,
+      guestEmail: input.guestEmail ?? r.guestEmail,
+      guestPhone: input.guestPhone ?? r.guestPhone,
+      roomType: input.roomType ?? r.roomType,
+      checkInDate: input.checkInDate ?? r.checkInDate,
+      checkOutDate: input.checkOutDate ?? r.checkOutDate,
+      updatedAt: new Date().toISOString(),
+    };
+    this.reservations.set(input.reservationId, updated);
+    return updated;
+  }
 }
 
 // Factory para permitir cambiar a SiteMinder u otro CM por env

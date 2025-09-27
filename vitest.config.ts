@@ -1,5 +1,6 @@
 // Path: /root/begasist/vitest.config.ts
 import { defineConfig } from "vitest/config";
+const ROOT = process.cwd();
 
 export default defineConfig({
   test: {
@@ -10,6 +11,7 @@ export default defineConfig({
     watch: false,
     pool: "threads",
     coverage: {
+      provider: "v8",
       reporter: ["text", "html"],
       reportsDirectory: "./test/coverage",
       include: ["**/*.{ts,tsx}"],
@@ -17,8 +19,9 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@/": "/root/begasist/",
-    },
+    alias: [
+      { find: "@", replacement: ROOT },
+      { find: "@/", replacement: ROOT + "/" },
+    ],
   },
 });
