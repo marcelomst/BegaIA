@@ -1,24 +1,9 @@
-# Node / build
-node_modules/
-dist/
-out/
-.next/
-coverage/
-*.log
-
-# pnpm cache local
-.pnpm-store/
-
-# SO / IDE
+### OS / IDE
 .DS_Store
 .vscode/
 *.swp
 
-# Paquetes grandes descargados
-*.deb
-*.AppImage
-*.iso
-# caches / builds
+### Node / build outputs
 node_modules/
 dist/
 out/
@@ -26,28 +11,27 @@ out/
 coverage/
 *.log
 
-# pnpm caches
+### pnpm caches
 .pnpm-store/
-C:Users*/pnpm*store*/   # por si se coló desde Windows
+C:Users*/pnpm*store*/
 
-# binarios pesados
-*.deb
-*.AppImage
-*.iso
-# caches / builds
-node_modules/
-dist/
-out/
-.next/
-coverage/
-*.log
-
-# pnpm caches
-.pnpm-store/
-C:Users*/pnpm*store*/   # por si se colaron rutas de Windows
-
-# binarios pesados
-*.deb
-*.AppImage
-*.iso
+### Environment files
 .env
+!.env.example
+
+### Large/binary artifacts (prevent accidental commits)
+*.deb
+*.AppImage
+*.iso
+*.zip
+*.tgz
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.exe
+
+# Specific local archives/dumps
+begasist_backup_*.tgz
+respaldo rag bot funcionando.zip
+lib/agents/dump.txt
