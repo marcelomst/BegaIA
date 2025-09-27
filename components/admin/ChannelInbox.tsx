@@ -39,6 +39,8 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
     checkOut?: string;
     numGuests?: string | number;
     code?: string;
+    channel?: string;
+    createdAt?: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({});
@@ -105,6 +107,8 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
         const data = await res.json();
         const slots = data?.reservationSlots || {};
         const code = data?.lastReservation?.reservationId;
+        const channel = data?.lastReservation?.channel;
+        const createdAt = data?.lastReservation?.createdAt;
         const hasConfirmed = Boolean(code);
         if (hasConfirmed) {
           setSnapshot({
@@ -114,6 +118,8 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
             checkOut: slots.checkOut,
             numGuests: slots.numGuests,
             code,
+            channel,
+            createdAt,
           });
         } else {
           setSnapshot(null);
@@ -253,7 +259,18 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
             {snapshot && (
               <div className="border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 text-blue-900 dark:text-blue-100 rounded p-3 text-sm">
-                <div className="font-semibold mb-1">Reserva confirmada</div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-semibold">Reserva confirmada</div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs"
+                      title="Copiar código"
+                      onClick={() => snapshot.code && navigator.clipboard.writeText(snapshot.code)}
+                    >
+                      Copiar código
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
                   <div><span className="text-muted-foreground">Nombre:</span> {snapshot.guestName || "-"}</div>
                   <div><span className="text-muted-foreground">Habitación:</span> {snapshot.roomType || "-"}</div>
@@ -261,6 +278,8 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
                   <div><span className="text-muted-foreground">Check-in:</span> {snapshot.checkIn || "-"}</div>
                   <div><span className="text-muted-foreground">Check-out:</span> {snapshot.checkOut || "-"}</div>
                   <div><span className="text-muted-foreground">Huéspedes:</span> {snapshot.numGuests || "-"}</div>
+                  <div><span className="text-muted-foreground">Canal:</span> {snapshot.channel || "-"}</div>
+                  <div><span className="text-muted-foreground">Creada:</span> {snapshot.createdAt ? new Date(snapshot.createdAt).toLocaleString() : "-"}</div>
                 </div>
               </div>
             )}
