@@ -32,6 +32,14 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   const [selectedConv, setSelectedConv] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
   const [messages, setMessages] = useState<ChatTurnWithMeta[]>([]);
+  const [snapshot, setSnapshot] = useState<{
+    guestName?: string;
+    roomType?: string;
+    checkIn?: string;
+    checkOut?: string;
+    numGuests?: string | number;
+    code?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({});
   const [modalMsg, setModalMsg] = useState<{ original?: string; visible: boolean }>({ visible: false });
@@ -83,6 +91,38 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
       })
       .finally(() => setLoading(false));
   }, [selectedConv, hotelId, channel, reloadFlag]);
+
+  // Cargar snapshot de reserva (si existe) para mostrar encabezado
+  useEffect(() => {
+    if (!selectedConv) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/conversations/state?hotelId=${encodeURIComponent(hotelId)}&conversationId=${encodeURIComponent(selectedConv)}`);
+        if (!res.ok) {
+          setSnapshot(null);
+          return;
+        }
+        const data = await res.json();
+        const slots = data?.reservationSlots || {};
+        const code = data?.lastReservation?.reservationId;
+        const hasConfirmed = Boolean(code);
+        if (hasConfirmed) {
+          setSnapshot({
+            guestName: slots.guestName,
+            roomType: slots.roomType,
+            checkIn: slots.checkIn,
+            checkOut: slots.checkOut,
+            numGuests: slots.numGuests,
+            code,
+          });
+        } else {
+          setSnapshot(null);
+        }
+      } catch {
+        setSnapshot(null);
+      }
+    })();
+  }, [selectedConv, hotelId, reloadFlag]);
 
   useEffect(() => {
     conversations.forEach((conv) => {
@@ -211,6 +251,19 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
             </span>
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+            {snapshot && (
+              <div className="border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 text-blue-900 dark:text-blue-100 rounded p-3 text-sm">
+                <div className="font-semibold mb-1">Reserva confirmada</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
+                  <div><span className="text-muted-foreground">Nombre:</span> {snapshot.guestName || "-"}</div>
+                  <div><span className="text-muted-foreground">Habitación:</span> {snapshot.roomType || "-"}</div>
+                  <div><span className="text-muted-foreground">Código:</span> {snapshot.code || "-"}</div>
+                  <div><span className="text-muted-foreground">Check-in:</span> {snapshot.checkIn || "-"}</div>
+                  <div><span className="text-muted-foreground">Check-out:</span> {snapshot.checkOut || "-"}</div>
+                  <div><span className="text-muted-foreground">Huéspedes:</span> {snapshot.numGuests || "-"}</div>
+                </div>
+              </div>
+            )}
             {loading && (
               <div className="flex items-center justify-center h-32 text-muted-foreground">
                 Cargando...
