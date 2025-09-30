@@ -1,0 +1,13 @@
+# Ignore deprecated and non-core noisy folders for lint locally
+deprecated/**
+C:UsersmarceAppDataLocalpnpmstorev3/**
+vector_cache/**
+public/**
+
+# Build artifacts
+.next/**
+dist/**
+
+# Misc
+*.d.ts
+**/*.zone.identifier

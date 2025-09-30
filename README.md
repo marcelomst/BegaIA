@@ -6,7 +6,153 @@ Este proyecto implementa un **asistente conversacional para hotelería** utiliza
 
 ---
 
+## 🔎 Para desarrolladores
+
+- Documentación técnica extendida y criterios de test: ver `README.dev.md`.
+- Este README resume la arquitectura de alto nivel y añade secciones prácticas para correr y testear el core.
+
+## ⚡ Quickstart
+
+Ejecutar el frontend/API en modo desarrollo:
+
+```bash
+pnpm dev
+```
+
+Ejecutar el core de tests (rápidos y deterministas):
+
+```bash
+pnpm test:core
+```
+
+CI ejecuta este set en `ci-core.yml`.
+
+## 🧪 Core Test Suite (resumen)
+
+Incluye pruebas de alto valor y bajo costo de ejecución:
+
+- Reservas: `graph.reservation.persist.spec.ts`, `graph.reservation.verify_and_snapshot.spec.ts`, `e2e.reservation.flow.spec.ts`, `agents.reservations.unit.spec.ts`.
+- Señales/fechas: `graph.signals.chrono.spec.ts`, `chrono.layer.spec.ts`.
+- Autosend seguro: `unit/messageHandler.autosend.snapshot_verify.test.ts` (snapshot, verify, close).
+- Infra canal/idempotencia: `unit/universalChannelEventHandler.test.ts`, `unit/universalChannelEventHandler.idempotency.test.ts`, `unit/messageGuards.lwt.test.ts`.
+- Integración liviana API: `integration/api_messages_by-conversation.test.ts`, `integration/api_chat.test.ts`.
+
+Lo que queda fuera: pruebas lentas o con dependencias externas (van a `deprecated/` o jobs opt‑in).
+
+## 📸 Snapshot/Verify de reservas (UX segura)
+
+- El grafo reconoce pedidos de “corroborar/comprobar/averiguar” y responde con un snapshot de la reserva:
+  - Si hay confirmada (`salesStage=close`): muestra “confirmada” y el código.
+  - Si hay borrador/en curso: muestra estado “en curso (no confirmada)”.
+- Estas respuestas se envían en “auto‑send” (no quedan en “pendiente/supervisión”).
+- Cubierto por `messageHandler.autosend.snapshot_verify.test.ts`.
+
+## 🔁 Idempotencia de `/api/chat`
+
+El cliente puede enviar `messageId` propio. El servidor:
+
+- Reutiliza ese `messageId` en el ACK inicial (`message.messageId`).
+- En reintentos con el mismo `messageId`, no duplica el mensaje entrante y responde `200` con `deduped: true` y el mismo `messageId`.
+
+Implementación y notas:
+
+- La API mapea `messageId` → `sourceMsgId` del mensaje entrante, habilitando el dedupe por conversación.
+- En replay, se detecta la condición idempotente y se retorna un ACK estable (sin disparar SSE adicional).
+- Validado por `test/integration/api_chat.test.ts` (chequea `deduped: true` y reuse del `messageId`).
+
+Ejemplo de ACK en replay idempotente:
+
+```json
+{
+  "conversationId": "conv-123",
+  "status": "sent",
+  "message": {
+    "hotelId": "hotel999",
+    "conversationId": "conv-123",
+    "channel": "web",
+    "messageId": "msg-fixed-1",
+    "status": "sent"
+  },
+  "lang": "es",
+  "deduped": true
+}
+```
+
 ## 🧠 Tecnologías utilizadas
+
+## 🧩 Endpoints principales (resumen)
+
+- Documentación interactiva: `/api/docs` (Swagger UI) cargando `public/openapi.yaml`.
+
+  - Incluye ejemplos de request/response por endpoint.
+
+- POST `/api/chat`
+
+  - Entrada: `{ hotelId?, channel?, conversationId?, guestId?, messageId?, content|text|query, mode? }`
+  - Salida: `{ conversationId, status: "sent"|"pending", message: { messageId, status, suggestion? }, lang, deduped? }`
+  - Notas: idempotente por `messageId` (ver sección anterior).
+  - Ejemplo (request): `{ "channel": "web", "content": "Hola", "messageId": "msg-1" }`
+  - Ejemplo (response): `{ "conversationId": "conv-1", "status": "sent", "message": {"messageId": "msg-1", "status": "sent"}, "lang": "es" }`
+
+- GET `/api/messages/by-conversation?hotelId=&channelId=&conversationId=&guestId?`
+
+  - Salida: `{ messages: ChannelMessage[] }` ordenados por `timestamp` ascendente.
+  - Seguridad: si se pasa `guestId`, valida que la conversación pertenezca al huésped/hotel.
+  - Ejemplo: `/api/messages/by-conversation?hotelId=hotel999&channelId=web&conversationId=conv-1`
+
+- GET `/api/messages?channelId=`
+
+  - Requiere usuario autenticado.
+  - Salida: `{ messages: ChannelMessage[] }` del canal.
+  - POST `/api/messages` permite actualizar `approvedResponse`, `status`, `respondedBy` de un mensaje.
+  - Ejemplo (GET): `/api/messages?channelId=web`
+  - Ejemplo (POST body): `{ "messageId": "m-1", "channel": "web", "status": "approved" }`
+
+- GET `/api/health`
+
+  - Healthcheck básico del servicio.
+  - Ejemplo: `{ ok: true, ts: "2025-09-29T12:34:56.000Z", version: "0.1.0", commit: "abcdef1" }`
+
+- GET `/api/meta`
+
+  - Metadatos públicos no sensibles del servicio (útil para diagnósticos y despliegue).
+  - Devuelve versión, commit (si está disponible), entorno, proveedores disponibles y flags de features.
+  - Ejemplo:
+    ```json
+    {
+      "ok": true,
+      "version": "0.1.0",
+      "commit": "abcdef1",
+      "env": "development",
+      "providers": { "openai": false, "groq": false },
+      "features": {
+        "autosendSafeIntents": true,
+        "idempotentChatAck": true,
+        "swaggerUi": true
+      },
+      "now": "2025-09-29T12:35:56.000Z"
+    }
+    ```
+
+- GET `/api/conversations/list`
+
+  - Lista conversaciones por hotel/usuario (detalle en código fuente).
+  - Ejemplo: `/api/conversations/list?hotelId=hotel999&channel=web`
+
+- GET `/api/conversations/state?hotelId=&conversationId=`
+
+  - Entrada: `hotelId` opcional (por defecto `hotel999` o del usuario) y `conversationId` obligatorio.
+  - Salida: `{ reservationSlots, lastReservation, lastProposal, salesStage, updatedAt }` del estado de la conversación.
+  - Notas: valida que la conversación pertenezca al `hotelId` indicado.
+  - Ejemplo: `/api/conversations/state?hotelId=hotel999&conversationId=conv-1`
+
+- POST `/api/conversations/create`
+
+  - Entrada: `{ hotelId, channel, guestId }` (campos requeridos).
+  - Salida: `201` con el objeto `Conversation` creado.
+  - Notas: requiere usuario autenticado.
+  - Ejemplo (request): `{ "hotelId": "hotel999", "channel": "web", "guestId": "guest-1" }`
+  - Ejemplo (response 201): `{ "conversationId": "conv-1", "hotelId": "hotel999", "guestId": "guest-1", "channel": "web", "lang": "es" }`
 
 - **LangGraph**: Para modelar flujos de conversación como grafos de estados.
 - **LangChain**: Para construir, ejecutar y mantener agentes, cadenas, prompts e integraciones con modelos de lenguaje.
@@ -15,6 +161,10 @@ Este proyecto implementa un **asistente conversacional para hotelería** utiliza
 - **Vitest**: Para plan de tests.
 
 ---
+
+## 🗃️ Documentación histórica (DEPRECADA)
+
+ATENCIÓN: Desde aquí y hasta el final, la documentación corresponde a un prototipo anterior y se mantiene solo como referencia histórica. No refleja la arquitectura y contratos actuales validados por la suite core ni el comportamiento documentado arriba (autosend, idempotencia, endpoints). Preferir las secciones superiores de este README y `README.dev.md`.
 
 ## 🔁 Flujo Conversacional
 

@@ -76,6 +76,9 @@ describe("/api/chat (integration)", () => {
     expect(m1.messageId).toBeDefined();
     expect(m2.messageId).toBeDefined();
     expect(m1.messageId).toBe(m2.messageId);
+    // deduped flag present en replays y reuso del id del cliente
+    expect(j2.deduped ?? pick<boolean>(j2, "data.deduped", "result.deduped")).toBe(true);
+    expect(m2.messageId).toBe(messageId);
   });
 
   it("flujo supervisado: retorna pending", async () => {

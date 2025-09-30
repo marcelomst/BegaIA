@@ -24,3 +24,9 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.resetModules();
 });
+
+// Silenciar/aislar capas externas durante tests
+if (typeof process !== "undefined") {
+  // Evita llamadas a modelos estructurados (OpenAI) en pruebas
+  process.env.STRUCTURED_ENABLED = "false";
+}

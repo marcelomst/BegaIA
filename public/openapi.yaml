@@ -1,0 +1,432 @@
+openapi: 3.1.0
+info:
+  title: BegaIA API
+  version: 0.1.0
+  description: |
+    API pública mínima para el asistente hotelero. Este documento resume los endpoints validados por la suite core.
+servers:
+  - url: /
+paths:
+  /api/chat:
+    post:
+      summary: Enviar mensaje al chat
+      description: Devuelve un ACK estable; reintentos con el mismo messageId responden con deduped=true.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hotelId:
+                  type: string
+                  example: hotel999
+                channel:
+                  type: string
+                  example: web
+                conversationId:
+                  type: string
+                guestId:
+                  type: string
+                messageId:
+                  type: string
+                  description: Idempotencia por este ID provisto por el cliente
+                  example: msg-123
+                content:
+                  type: string
+                  example: "Hola, ¿pueden corroborar mi reserva?"
+                mode:
+                  type: string
+                  example: default
+              required: [content]
+            examples:
+              basico:
+                summary: Envío básico web
+                value:
+                  channel: web
+                  conversationId: conv-1
+                  content: "Hola"
+                  messageId: msg-1
+              idempotente:
+                summary: Reintento con el mismo messageId
+                value:
+                  channel: web
+                  conversationId: conv-1
+                  content: "Hola"
+                  messageId: msg-1
+      responses:
+        "200":
+          description: ACK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatAck"
+              examples:
+                ok:
+                  summary: Respuesta con ACK inicial
+                  value:
+                    conversationId: conv-1
+                    status: sent
+                    message:
+                      hotelId: hotel999
+                      conversationId: conv-1
+                      channel: web
+                      messageId: msg-1
+                      status: sent
+                    lang: es
+                dedupe:
+                  summary: ACK en replay idempotente
+                  value:
+                    conversationId: conv-1
+                    status: sent
+                    message:
+                      hotelId: hotel999
+                      conversationId: conv-1
+                      channel: web
+                      messageId: msg-1
+                      status: sent
+                    lang: es
+                    deduped: true
+  /api/messages/by-conversation:
+    get:
+      summary: Listar mensajes de una conversación
+      parameters:
+        - in: query
+          name: hotelId
+          schema: { type: string }
+        - in: query
+          name: channelId
+          schema: { type: string }
+        - in: query
+          name: conversationId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: guestId
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lista de mensajes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChannelMessage"
+              examples:
+                ejemplo:
+                  value:
+                    messages:
+                      - messageId: m-1
+                        conversationId: conv-1
+                        hotelId: hotel999
+                        channel: web
+                        sender: guest
+                        text: "Hola"
+                        timestamp: "2025-09-29T12:34:56.000Z"
+                        status: received
+                      - messageId: m-2
+                        conversationId: conv-1
+                        hotelId: hotel999
+                        channel: web
+                        sender: ai
+                        text: "¡Hola! ¿En qué puedo ayudarte?"
+                        timestamp: "2025-09-29T12:34:57.000Z"
+                        status: sent
+        "400": { description: Parámetros inválidos }
+        "403": { description: No autorizado }
+  /api/messages:
+    get:
+      summary: Listar mensajes por canal (requiere auth)
+      parameters:
+        - in: query
+          name: channelId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Mensajes del canal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChannelMessage"
+              examples:
+                ejemplo:
+                  value:
+                    messages: []
+        "401": { description: No autorizado }
+    post:
+      summary: Actualizar un mensaje (requiere auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messageId: { type: string }
+                approvedResponse: { type: string }
+                status: { type: string }
+                respondedBy: { type: string }
+                channel: { type: string }
+              required: [messageId, channel]
+      responses:
+        "200": { description: Ok }
+        "400": { description: Datos inválidos }
+        "401": { description: No autorizado }
+        "404": { description: No encontrado }
+  /api/health:
+    get:
+      summary: Healthcheck
+      responses:
+        "200":
+          description: Estado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  ts: { type: string, format: date-time }
+                  version: { type: string, nullable: true }
+                  commit: { type: string, nullable: true }
+              examples:
+                ok:
+                  value:
+                    ok: true
+                    ts: "2025-09-29T12:34:56.000Z"
+                    version: "0.1.0"
+                    commit: "abcdef1"
+  /api/meta:
+    get:
+      summary: Metadatos públicos del servicio (no sensibles)
+      responses:
+        "200":
+          description: Información básica de build/entorno y features habilitados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  version: { type: string, nullable: true }
+                  commit: { type: string, nullable: true }
+                  env: { type: string }
+                  providers:
+                    type: object
+                    properties:
+                      openai: { type: boolean }
+                      groq: { type: boolean }
+                  features:
+                    type: object
+                    properties:
+                      autosendSafeIntents: { type: boolean }
+                      idempotentChatAck: { type: boolean }
+                      swaggerUi: { type: boolean }
+                  now: { type: string, format: date-time }
+              examples:
+                ejemplo:
+                  value:
+                    ok: true
+                    version: "0.1.0"
+                    commit: "abcdef1"
+                    env: "development"
+                    providers: { openai: false, groq: false }
+                    features:
+                      {
+                        autosendSafeIntents: true,
+                        idempotentChatAck: true,
+                        swaggerUi: true,
+                      }
+                    now: "2025-09-29T12:35:56.000Z"
+  /api/conversations/list:
+    get:
+      summary: Listar conversaciones
+      parameters:
+        - in: query
+          name: hotelId
+          schema: { type: string, example: hotel999 }
+        - in: query
+          name: userId
+          schema: { type: string }
+        - in: query
+          name: guestId
+          schema: { type: string }
+        - in: query
+          name: channel
+          schema: { type: string, example: web }
+      responses:
+        "200":
+          description: Conversaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConversationListItem"
+              examples:
+                ejemplo:
+                  value:
+                    conversations:
+                      - conversationId: conv-1
+                        startedAt: "2025-09-29T12:34:56.000Z"
+                        lastUpdatedAt: "2025-09-29T12:36:00.000Z"
+                        lang: es
+                        status: open
+                        subject: "Consulta"
+                        guestId: guest-1
+                        userId: null
+                        channel: web
+        "500": { description: Error }
+  /api/conversations/state:
+    get:
+      summary: Estado de una conversación
+      parameters:
+        - in: query
+          name: hotelId
+          schema: { type: string, example: hotel999 }
+        - in: query
+          name: conversationId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Estado de slots y ventas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationState"
+              examples:
+                ejemplo:
+                  value:
+                    reservationSlots:
+                      guestName: "Ana"
+                      roomType: "double"
+                      checkIn: "2025-10-01"
+                      checkOut: "2025-10-03"
+                    lastReservation: null
+                    lastProposal: null
+                    salesStage: qualify
+                    updatedAt: "2025-09-29T12:40:00.000Z"
+        "400": { description: Falta conversationId }
+        "403": { description: No autorizado }
+        "500": { description: Error }
+  /api/conversations/create:
+    post:
+      summary: Crear conversación (requiere auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hotelId: { type: string }
+                channel: { type: string }
+                guestId: { type: string }
+              required: [hotelId, channel, guestId]
+      responses:
+        "201":
+          description: Creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+              examples:
+                ejemplo:
+                  value:
+                    conversationId: conv-1
+                    hotelId: hotel999
+                    guestId: guest-1
+                    channel: web
+                    lang: es
+                    startedAt: "2025-09-29T12:34:56.000Z"
+                    lastUpdatedAt: "2025-09-29T12:34:56.000Z"
+        "400": { description: Faltan campos }
+        "401": { description: No autorizado }
+        "500": { description: Error }
+components:
+  schemas:
+    ChatAck:
+      type: object
+      properties:
+        conversationId: { type: string }
+        status: { type: string, enum: [sent, pending] }
+        message:
+          type: object
+          properties:
+            hotelId: { type: string }
+            conversationId: { type: string }
+            channel: { type: string }
+            messageId: { type: string }
+            status: { type: string }
+            suggestion:
+              type: object
+              nullable: true
+              additionalProperties: true
+        lang: { type: string }
+        deduped: { type: boolean }
+    ChannelMessage:
+      type: object
+      properties:
+        messageId: { type: string }
+        conversationId: { type: string }
+        hotelId: { type: string }
+        channel: { type: string }
+        sender: { type: string }
+        text: { type: string }
+        timestamp: { type: string, format: date-time }
+        status: { type: string }
+        respondedBy: { type: string, nullable: true }
+    ConversationListItem:
+      type: object
+      properties:
+        conversationId: { type: string }
+        startedAt: { type: string, format: date-time }
+        lastUpdatedAt: { type: string, format: date-time }
+        lang: { type: string }
+        status: { type: string }
+        subject: { type: string }
+        guestId: { type: string }
+        userId: { type: string }
+        channel: { type: string }
+    Conversation:
+      type: object
+      properties:
+        conversationId: { type: string }
+        hotelId: { type: string }
+        guestId: { type: string }
+        channel: { type: string }
+        lang: { type: string }
+        startedAt: { type: string, format: date-time }
+        lastUpdatedAt: { type: string, format: date-time }
+    ConversationState:
+      type: object
+      properties:
+        reservationSlots:
+          type: object
+          nullable: true
+          additionalProperties: true
+        lastReservation:
+          type: object
+          nullable: true
+          additionalProperties: true
+        lastProposal:
+          type: object
+          nullable: true
+          additionalProperties: true
+        salesStage:
+          type: string
+          nullable: true
+        updatedAt: { type: string, format: date-time, nullable: true }

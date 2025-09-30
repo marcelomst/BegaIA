@@ -31,5 +31,13 @@ jobs:
       - name: Type check
         run: pnpm ts-check
 
+      - name: Lint
+        run: pnpm lint || true
+
+      - name: Lint (blocking, scoped)
+        run: |
+          # Lint solo las carpetas estables; falla si hay errores
+          npx next lint --dir app/api --dir lib/handlers --dir lib/agents --dir test
+
       - name: Run core tests
         run: pnpm test:core

@@ -50,6 +50,16 @@ const CONFIG = {
     "payment_required",
     "collect_sensitive_data",
   ]),
+  // Categorías consideradas "seguras" para no forzar supervisión por handoff estructurado
+  SAFE_AUTOSEND_CATEGORIES: new Set([
+    "reservation_snapshot",
+    "reservation_verify",
+    "retrieval_based",
+    "checkin_info",
+    "checkout_info",
+    "amenities_info",
+    "directions_info",
+  ]),
   // NEW: modelo liviano para structured fallback
   STRUCTURED_MODEL: process.env.STRUCTURED_MODEL || "gpt-4o-mini",
   STRUCTURED_ENABLED: process.env.STRUCTURED_ENABLED !== "false",
@@ -61,6 +71,16 @@ const IS_TEST = false;
 export const MH_VERSION = "mh-2025-09-23-structured-01";
 console.log("[messageHandler] loaded:", MH_VERSION);
 console.log("[messageHandler] using convState:", CONVSTATE_VERSION);
+// Combina modos de canal y guest: si alguno es supervised → supervised
+function combineModes(a?: ChannelMode, b?: ChannelMode): ChannelMode {
+  return (a === "supervised" || b === "supervised") ? "supervised" : "automatic";
+}
+
+function isSafeAutosendCategory(cat?: string | null): boolean {
+  if (!cat) return false;
+  return CONFIG.SAFE_AUTOSEND_CATEGORIES.has(cat as any);
+}
+
 
 // ---------- helpers locales ----------
 
@@ -407,7 +427,24 @@ const convQueues = new Map<string, Promise<any>>();
 function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
   const prev = convQueues.get(convId) || Promise.resolve();
   const next = prev.then(fn, fn);
-  convQueues.set(convId, next.finally(() => { if (convQueues.get(convId) === next) convQueues.delete(convId); }));
+  // Store a handled promise to avoid unhandled rejection warnings while preserving propagation to the caller
+  const handled = next.then(
+    (val) => {
+      if (convQueues.get(convId) === handled || convQueues.get(convId) === next) {
+        convQueues.delete(convId);
+      }
+      return val;
+    },
+    (err) => {
+      if (convQueues.get(convId) === handled || convQueues.get(convId) === next) {
+        convQueues.delete(convId);
+      }
+      // Swallow rejection for the stored promise to prevent global unhandled rejection,
+      // but let the original `next` (returned) carry the rejection to the caller.
+      return undefined as any;
+    }
+  );
+  convQueues.set(convId, handled);
   // @ts-ignore
   return next;
 }
@@ -662,7 +699,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               numGuests: nextSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
             };
             nextSlots = merged2;
-            if (structured.handoff === true) {
+            // No marcar supervisión si la intención es "segura"
+            const structuredCat = structured.intent ? mapStructuredIntentToCategory(structured.intent) : undefined;
+            const candidateCat = graphResult?.category || structuredCat;
+            const safeCat = isSafeAutosendCategory(candidateCat);
+            if (structured.handoff === true && !safeCat) {
               needsSupervision = true;
             }
             if (!finalText && structured.answer) {
@@ -814,13 +855,18 @@ export async function handleIncomingMessage(
     }
     const suggestion = body.finalText;
     debugLog("[handleIncomingMessage] suggestion", suggestion);
-    // Decidir si este turno debe salir como "sent" (sin supervisión) aunque el modo sea supervisado
-    // Regla: si el grafo devolvió un snapshot de reserva (o reserva en stage close) enviamos directo
+    // Decidir si este turno debe salir como "sent" (sin supervisión)
+    // Reglas:
+    // 1) Si el grafo devolvió snapshot/verify o reservation(close) → directo
+    // 2) Si la categoría es "segura" y no hay needsSupervision → respeta modo combinado canal+guest
     const isSnapshotReply = !!(body?.graphResult && (
       (body.graphResult.category === "reservation_snapshot") ||
+      (body.graphResult.category === "reservation_verify") ||
       (body.graphResult.category === "reservation" && body.graphResult.salesStage === "close")
     ));
-    const autoSend = isSnapshotReply || (!needsSupervision && (pre.guest.mode ?? "automatic") === "automatic");
+    // Modo combinado: preferimos supervised si alguno lo es
+    const combinedMode: ChannelMode = combineModes(pre.options?.mode, pre.guest.mode ?? "automatic");
+    const autoSend = isSnapshotReply || (!needsSupervision && combinedMode === "automatic");
 
     const aiMsg: ChannelMessage = {
       ...pre.msg,

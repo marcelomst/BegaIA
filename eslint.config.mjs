@@ -4,7 +4,6 @@ import { FlatCompat } from "@eslint/eslintrc";
 import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tseslintParser from "@typescript-eslint/parser";
-import nextEslint from "next";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,8 +17,7 @@ const eslintConfig = [
   // Configuraciones base de Next.js y TypeScript
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   
-  // Reglas recomendadas generales y Next.js
-  nextEslint,
+  // Reglas recomendadas generales
   eslint.configs.recommended,
 
   // Configuración específica para TypeScript
@@ -30,9 +28,6 @@ const eslintConfig = [
       parserOptions: {
         project: "./tsconfig.json",
       },
-    },
-    plugins: {
-      "@typescript-eslint": tseslint,
     },
     rules: {
       // Desactivar regla genérica y activar la específica de TypeScript

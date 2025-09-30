@@ -302,24 +302,37 @@ async function handleReservationSnapshotNode(state: typeof GraphState.State) {
   const lang = (state.detectedLanguage || "es").slice(0, 2);
   // Leer del estado persistido para evitar depender solo del turn state
   let persistedSlots = state.reservationSlots || {};
-  let code = (state as any)?.lastReservation?.reservationId || "-";
+  let code = (state as any)?.lastReservation?.reservationId || "";
+  let persistedStage: any = state.salesStage;
   try {
     const st = await getConvState(state.hotelId, state.conversationId || "");
     if (st?.reservationSlots) persistedSlots = st.reservationSlots as any;
-    if ((st as any)?.lastReservation?.reservationId) {
-      code = (st as any).lastReservation.reservationId;
-    }
+    if ((st as any)?.lastReservation?.reservationId) code = (st as any).lastReservation.reservationId;
+    if ((st as any)?.salesStage) persistedStage = (st as any).salesStage;
   } catch {
     // si falla, seguimos con lo que haya en memoria
   }
   const slots = persistedSlots || {};
+  const hasCore = !!(slots.checkIn && slots.checkOut && slots.roomType);
+  const confirmed = !!code;
   let msg = "";
-  if (lang === "es") {
-    msg = `Tienes una reserva confirmada:\n\n- Nombre: ${slots.guestName || "-"}\n- Habitación: ${slots.roomType || "-"}\n- Fechas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Huéspedes: ${slots.numGuests || "-"}\n- Código: ${code}`;
-  } else if (lang === "pt") {
-    msg = `Você tem uma reserva confirmada:\n\n- Nome: ${slots.guestName || "-"}\n- Quarto: ${slots.roomType || "-"}\n- Datas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Hóspedes: ${slots.numGuests || "-"}\n- Código: ${code}`;
+  if (confirmed) {
+    if (lang === "es") {
+      msg = `Tienes una reserva confirmada:\n\n- Nombre: ${slots.guestName || "-"}\n- Habitación: ${slots.roomType || "-"}\n- Fechas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Huéspedes: ${slots.numGuests || "-"}\n- Código: ${code}`;
+    } else if (lang === "pt") {
+      msg = `Você tem uma reserva confirmada:\n\n- Nome: ${slots.guestName || "-"}\n- Quarto: ${slots.roomType || "-"}\n- Datas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Hóspedes: ${slots.numGuests || "-"}\n- Código: ${code}`;
+    } else {
+      msg = `You have a confirmed booking:\n\n- Name: ${slots.guestName || "-"}\n- Room: ${slots.roomType || "-"}\n- Dates: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Guests: ${slots.numGuests || "-"}\n- Code: ${code}`;
+    }
   } else {
-    msg = `You have a confirmed booking:\n\n- Name: ${slots.guestName || "-"}\n- Room: ${slots.roomType || "-"}\n- Dates: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Guests: ${slots.numGuests || "-"}\n- Code: ${code}`;
+    // Snapshot de solicitud en curso (no confirmada)
+    if (lang === "es") {
+      msg = `Tu solicitud de reserva está en curso (aún no confirmada).\n\n- Nombre: ${slots.guestName || "-"}\n- Habitación: ${slots.roomType || "-"}\n- Fechas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Huéspedes: ${slots.numGuests || "-"}` + (hasCore ? "\n\nPara confirmar, respondé “CONFIRMAR”." : "");
+    } else if (lang === "pt") {
+      msg = `Sua solicitação de reserva está em andamento (ainda não confirmada).\n\n- Nome: ${slots.guestName || "-"}\n- Quarto: ${slots.roomType || "-"}\n- Datas: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Hóspedes: ${slots.numGuests || "-"}` + (hasCore ? "\n\nPara confirmar, responda “CONFIRMAR”." : "");
+    } else {
+      msg = `Your booking request is in progress (not confirmed yet).\n\n- Name: ${slots.guestName || "-"}\n- Room: ${slots.roomType || "-"}\n- Dates: ${slots.checkIn || "-"} → ${slots.checkOut || "-"}\n- Guests: ${slots.numGuests || "-"}` + (hasCore ? "\n\nTo confirm, reply “CONFIRMAR”." : "");
+    }
   }
   // Si el mensaje original era de modificación, dejar desiredAction: 'modify' para que el siguiente turno avance
   const t = (state.normalizedMessage || "").toLowerCase();
@@ -327,9 +340,26 @@ async function handleReservationSnapshotNode(state: typeof GraphState.State) {
   return {
     messages: [new AIMessage(msg)],
     reservationSlots: slots,
-    category: "reservation",
-    salesStage: "close",
+    category: "reservation_snapshot",
+    salesStage: persistedStage || state.salesStage,
     desiredAction: isModify ? "modify" : undefined,
+  };
+}
+// Nodo para pedir datos para verificar una reserva existente (cuando no hay lastReservation persistida)
+async function handleReservationVerifyNode(state: typeof GraphState.State) {
+  const lang = (state.detectedLanguage || "es").slice(0, 2);
+  let msg = "";
+  if (lang === "es") {
+    msg = "Puedo corroborar tu reserva. ¿Me compartís el CÓDIGO de reserva? Si no lo tenés a mano, decime nombre completo y fechas aproximadas (check-in/check-out) para buscarla.";
+  } else if (lang === "pt") {
+    msg = "Posso verificar sua reserva. Você pode me informar o CÓDIGO da reserva? Se não tiver, diga o nome completo e as datas aproximadas (check-in/check-out) para eu localizar.";
+  } else {
+    msg = "I can check your booking. Please share the booking CODE. If you don't have it, tell me the full name and approximate dates (check-in/check-out) to look it up.";
+  }
+  return {
+    messages: [new AIMessage(msg)],
+    category: "reservation_verify",
+    desiredAction: undefined,
   };
 }
 async function classifyNode(state: typeof GraphState.State) {
@@ -380,7 +410,7 @@ async function classifyNode(state: typeof GraphState.State) {
   // Si no está cerrada, pero pide ver/corroborar una reserva y existe una confirmada persistida, ir a snapshot
   try {
     const t = (state.normalizedMessage || "").toLowerCase();
-    const asksSnapshot = /(ver|mostrar|consultar|verificar|corroborar|comprobar|confirmada|check|confirm|details)/i.test(t) && /(reserva|booking|reservation)/i.test(t);
+    const asksSnapshot = /(ver|mostrar|consultar|verificar|corroborar|comprobar|averiguar|confirmada|check|confirm|details)/i.test(t) && /(reserva|booking|reservation)/i.test(t);
     if (asksSnapshot) {
       const st = await getConvState(state.hotelId, state.conversationId || "");
       const hasConfirmed = !!(st as any)?.lastReservation?.reservationId;
@@ -391,6 +421,28 @@ async function classifyNode(state: typeof GraphState.State) {
           intentConfidence: 0.99,
           intentSource: "heuristic",
           promptKey: "reservation_snapshot",
+          messages: [],
+        };
+      } else {
+        // Si hay datos de reserva en progreso, mostrar snapshot de borrador; si no, pedir datos para verificar
+        const slots = (st as any)?.reservationSlots || {};
+        const hasProgress = !!(slots?.guestName || slots?.checkIn || slots?.checkOut || slots?.roomType || slots?.numGuests);
+        if (hasProgress) {
+          return {
+            category: "reservation_snapshot",
+            desiredAction: undefined,
+            intentConfidence: 0.98,
+            intentSource: "heuristic",
+            promptKey: "reservation_snapshot",
+            messages: [],
+          };
+        }
+        return {
+          category: "reservation_verify",
+          desiredAction: undefined,
+          intentConfidence: 0.95,
+          intentSource: "heuristic",
+          promptKey: "reservation_verify",
           messages: [],
         };
       }
@@ -1288,6 +1340,7 @@ const g = new StateGraph(GraphState)
   .addNode("classify", classifyNode)
   .addNode("handle_reservation", handleReservationNode)
   .addNode("handle_reservation_snapshot", handleReservationSnapshotNode)
+  .addNode("handle_reservation_verify", handleReservationVerifyNode)
   .addNode("handle_cancel_reservation", handleCancelReservationNode)
   .addNode("handle_amenities", handleAmenitiesNode)
   .addNode("handle_billing", handleBillingNode)
@@ -1301,6 +1354,7 @@ const g = new StateGraph(GraphState)
   .addConditionalEdges("classify", (state) => state.category, {
     reservation: "handle_reservation",
     reservation_snapshot: "handle_reservation_snapshot",
+    reservation_verify: "handle_reservation_verify",
     cancel_reservation: "handle_cancel_reservation",
     amenities: "handle_amenities",
     billing: "handle_billing",
@@ -1331,6 +1385,7 @@ const g = new StateGraph(GraphState)
     handle_reservation_snapshot: "handle_reservation_snapshot",
   })
   .addEdge("handle_reservation", "__end__")
+  .addEdge("handle_reservation_verify", "__end__")
   .addEdge("handle_cancel_reservation", "__end__")
   .addEdge("handle_amenities", "__end__")
   .addEdge("handle_billing", "__end__")

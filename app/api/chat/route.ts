@@ -22,6 +22,8 @@ export async function POST(req: Request) {
   const content = String((body as any).query || (body as any).text || (body as any).content || "").trim();
   const clientMsgId = (body as any).messageId as string | undefined; // ← idempotencia en Web
   const modeIn = (body as any).mode as ChannelMode | undefined;
+  // Precalcular messageId para reutilizar en catch (idempotencia)
+  const preMessageId = clientMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
 
   try {
     if (!hotelId || !content) {
@@ -34,8 +36,8 @@ export async function POST(req: Request) {
     const cfgMode: ChannelMode =
       modeIn ?? (hotelConf?.channelConfigs?.[channel]?.mode as ChannelMode) ?? "automatic";
 
-    // messageId: respetar el del cliente si viene
-    const messageId = clientMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
+    // messageId: respetar el del cliente si viene (ya precalculado)
+    const messageId = preMessageId;
 
     const time = new Date().toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit" });
 
@@ -90,6 +92,27 @@ export async function POST(req: Request) {
     );
   } catch (err: any) {
     console.error("[/api/chat] error:", err?.stack || err);
+
+    // Caso especial: idempotente → devolvemos ACK homogéneo con el mismo messageId
+    const isIdempotent = String(err?.message || err).toLowerCase().includes("idempotent");
+    if (isIdempotent) {
+      return NextResponse.json(
+        {
+          conversationId,
+          status: "sent", // estado neutro para el widget; no reenvía nada nuevo
+          message: {
+            hotelId,
+            conversationId,
+            channel,
+            messageId: preMessageId,
+            status: "sent",
+          },
+          lang: detectedLanguage,
+          deduped: true,
+        },
+        { status: 200 }
+      );
+    }
 
     // fallback SSE para UI (tu comportamiento original)
     const fallback =
