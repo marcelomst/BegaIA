@@ -77,6 +77,77 @@ Contexto del sistema:
 
 const JSON_BLOCK = /{[\s\S]*}/m;
 
+// ——— Helpers de normalización locales (no exportar) ———
+function toIsoDateTime(input: string | Date): string {
+  if (input instanceof Date) {
+    if (isNaN(input.getTime())) throw new Error("Invalid datetime");
+    return input.toISOString();
+  }
+  const s = String(input || "").trim();
+  if (!s) throw new Error("Invalid datetime");
+  // YYYY-MM-DD → forzar 00:00:00Z
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = new Date(s + "T00:00:00Z");
+    if (isNaN(d.getTime())) throw new Error("Invalid datetime");
+    return d.toISOString();
+  }
+  // Si ya parece ISO con tiempo, confiar en Date y normalizar a Z
+  const d = new Date(s);
+  if (isNaN(d.getTime())) throw new Error("Invalid datetime");
+  return d.toISOString();
+}
+
+function coerceGuests(value: unknown): number {
+  const n = typeof value === "number" ? value : parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) throw new Error("Invalid guests");
+  return Math.floor(n);
+}
+
+type InputSlots = Partial<{
+  guestName: string;
+  roomType: string;
+  checkIn: string | Date;
+  checkOut: string | Date;
+  numGuests: number | string;
+  guests: number | string;
+  locale: string;
+}>;
+type NormalizedSlots = {
+  guestName?: string;
+  roomType?: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests?: number;
+  numGuests?: number | string;
+  locale?: string;
+};
+function normalizeBookingSlots(slots: InputSlots): NormalizedSlots {
+  const out: Record<string, unknown> = { ...(slots || {}) };
+  if (out.checkIn) out.checkIn = toIsoDateTime(out.checkIn as string | Date);
+  if (out.checkOut) out.checkOut = toIsoDateTime(out.checkOut as string | Date);
+  // Aceptar guests o numGuests; normalizar en 'guests' manteniendo el resto intacto
+  const gSrc = typeof out.guests !== "undefined" ? out.guests : out.numGuests;
+  if (typeof gSrc !== "undefined") out.guests = coerceGuests(gSrc as number | string);
+  // Canonicalizar roomType aquí mismo de forma local
+  if (typeof out.roomType === "string") {
+    const rt = String(out.roomType).toLowerCase();
+    const canonical =
+      /^(doble|double|matrimonial)$/.test(rt) || /(doble\s+matrimonial|matrimonial\s+doble)/.test(rt)
+        ? "double"
+        : /^(twin|dos\s*camas|dos\s*individuales)$/.test(rt)
+          ? "twin"
+          : /^(single|simple|individual)$/.test(rt)
+            ? "single"
+            : /^(triple)$/.test(rt)
+              ? "triple"
+              : /^(suite)$/.test(rt)
+                ? "suite"
+                : rt;
+    out.roomType = canonical;
+  }
+  return out as NormalizedSlots;
+}
+
 export async function fillSlotsWithLLM(
   userText: string,
   localeIso6391: "es" | "en" | "pt",
@@ -135,9 +206,11 @@ export async function fillSlotsWithLLM(
       // Capa 1 avanzada con Chrono (si está activada) como fallback
       try {
         const chrono = await chronoExtractDateRange(userText, localeIso6391, opts?.hotelTz);
-        if (chrono.checkIn && !partial.checkIn) partial.checkIn = chrono.checkIn as any;
-        if (chrono.checkOut && !partial.checkOut) partial.checkOut = chrono.checkOut as any;
-      } catch { }
+        if (chrono.checkIn && !partial.checkIn) partial.checkIn = chrono.checkIn;
+        if (chrono.checkOut && !partial.checkOut) partial.checkOut = chrono.checkOut;
+      } catch {
+        // ignore chrono extraction failure
+      }
     }
 
     // Extraer huéspedes (número seguido de "huésped", "personas", etc.)
@@ -189,24 +262,26 @@ export async function fillSlotsWithLLM(
   }
 
   // Intentamos parsear crudo para rescatar campos parciales si Zod falla
-  let raw: any = {};
+  let raw: Record<string, unknown> = {};
   try {
     raw = JSON.parse(jsonMatch![0]);
     // BP-S4 (cuando hay JSONMatch, antes de Zod):
     console.debug("[BP-SLOTS4] JSON match found", jsonMatch[0]);
     console.debug("[BP-SLOTS5] Raw JSON parsed", raw);
 
-  } catch { }
+  } catch {
+    // ignore invalid JSON from model
+  }
   const full = {
-    guestName: typeof raw?.guestName === "string" ? raw.guestName : undefined,
-    roomType: typeof raw?.roomType === "string" ? raw.roomType : undefined,
-    numGuests: typeof raw?.numGuests === "number" ? raw.numGuests
-      : typeof raw?.guests === "number" ? raw.guests
+    guestName: typeof (raw as { guestName?: unknown }).guestName === "string" ? (raw as { guestName?: string }).guestName : undefined,
+    roomType: typeof (raw as { roomType?: unknown }).roomType === "string" ? (raw as { roomType?: string }).roomType : undefined,
+    numGuests: typeof (raw as { numGuests?: unknown }).numGuests === "number" ? (raw as { numGuests?: number }).numGuests
+      : typeof (raw as { guests?: unknown }).guests === "number" ? (raw as { guests?: number }).guests
         : undefined,
-    checkIn: typeof raw?.checkIn === "string" ? raw.checkIn : undefined,
-    checkOut: typeof raw?.checkOut === "string" ? raw.checkOut : undefined,
+    checkIn: typeof (raw as { checkIn?: unknown }).checkIn === "string" ? (raw as { checkIn?: string }).checkIn : undefined,
+    checkOut: typeof (raw as { checkOut?: unknown }).checkOut === "string" ? (raw as { checkOut?: string }).checkOut : undefined,
     // 👇 mantenemos ISO 639-1
-    locale: typeof raw?.locale === "string" ? raw.locale : localeIso6391,
+    locale: typeof (raw as { locale?: unknown }).locale === "string" ? (raw as { locale?: string }).locale : localeIso6391,
   };
 
   // Si falta guestName en el JSON y el mensaje del usuario parece ser un nombre, aplicar fallback opcional
@@ -235,10 +310,11 @@ export async function fillSlotsWithLLM(
     // BP-S5 (slots parseados OK por Zod):
     console.debug("[BP-SLOTS6] Zod validation OK", parsed);
     return { need: "none" as const, slots: parsed as ReservationSlots };
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Construimos un parcial seguro a partir de 'full'
     // BP-S6 (Zod ERROR):
-    console.warn("[BP-SLOTS7] Zod validation ERROR", err?.message, { full });
+    const zodErrorMessage = typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : String(err);
+    console.warn("[BP-SLOTS7] Zod validation ERROR", zodErrorMessage, { full });
 
 
     const partialFromFull: Partial<ReservationSlots> = {};
@@ -254,26 +330,29 @@ export async function fillSlotsWithLLM(
     try {
       const maybe = JSON.parse(jsonMatch![0]); // ya garantizado por el return previo
       const p: Partial<ReservationSlots> = {};
-      if (typeof maybe.guestName === "string") p.guestName = maybe.guestName;
-      if (typeof maybe.roomType === "string") p.roomType = maybe.roomType;
-      if (typeof maybe.checkIn === "string") p.checkIn = maybe.checkIn;
-      if (typeof maybe.checkOut === "string") p.checkOut = maybe.checkOut;
-      if (Number.isFinite(maybe.numGuests)) p.numGuests = Number(maybe.numGuests);
-      else if (Number.isFinite(maybe.guests)) p.numGuests = Number(maybe.guests);
-      if (typeof maybe.locale === "string") p.locale = maybe.locale;
+      const mrec = maybe as Record<string, unknown>;
+      if (typeof mrec.guestName === "string") p.guestName = mrec.guestName;
+      if (typeof mrec.roomType === "string") p.roomType = mrec.roomType;
+      if (typeof mrec.checkIn === "string") p.checkIn = mrec.checkIn;
+      if (typeof mrec.checkOut === "string") p.checkOut = mrec.checkOut;
+      if (typeof mrec.numGuests === "number") p.numGuests = mrec.numGuests;
+      else if (typeof mrec.guests === "number") p.numGuests = mrec.guests;
+      if (typeof mrec.locale === "string") p.locale = mrec.locale as ReservationSlots["locale"];
       partialFromModel = Object.keys(p ?? {}).length ? p : undefined;
-    } catch { }
+    } catch {
+      // ignore parse error of partialFromModel
+    }
 
     const msgFromModel = questionAfterJson || "";
-    const msg = msgFromModel || (typeof err?.message === "string"
-      ? `Me falta un dato o hay un formato inválido: ${err.message}. ¿Podés confirmarlo?`
+    const questionMsg = msgFromModel || (zodErrorMessage
+      ? `Me falta un dato o hay un formato inválido: ${zodErrorMessage}. ¿Podés confirmarlo?`
       : "Necesito validar datos: ¿podés confirmar nombre, tipo de habitación, huéspedes y fechas (YYYY-MM-DD)?");
 
     // Preferimos el parcial más completo
     const mergedPartial = { ...(partialFromModel ?? {}), ...partialFromFull };
     return {
       need: "question" as const,
-      question: msg,
+      question: questionMsg,
       partial: Object.keys(mergedPartial).length ? mergedPartial : undefined,
     };
   }
@@ -301,25 +380,30 @@ function extractNameIfLooksLikeOnlyName(text: string): string | undefined {
 }
 
 export async function askAvailability(hotelId: string, slots: ReservationSlots) {
-  const { roomType, numGuests } = slots;
-  // Normalizar fechas a ISO datetime si vienen como YYYY-MM-DD
-  function toIsoDatetime(dateStr?: string) {
-    if (!dateStr) return undefined;
-    // Si ya tiene T, asumimos que es datetime
-    if (dateStr.includes('T')) return dateStr;
-    // Si es YYYY-MM-DD, lo pasamos a YYYY-MM-DDT00:00:00Z
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr + 'T00:00:00Z';
-    return dateStr;
+  let norm: NormalizedSlots;
+  try {
+    const guestsInput = (slots as unknown as { guests?: number }).guests ?? slots.numGuests;
+    norm = normalizeBookingSlots({ ...slots, guests: guestsInput });
+  } catch (err) {
+    console.error('[askAvailability] normalization error:', (err as Error)?.message);
+    return {
+      ok: false as const,
+      message: (err && typeof (err as { message?: unknown }).message === 'string')
+        ? `Error técnico al consultar disponibilidad: ${(err as { message: string }).message}`
+        : 'Error técnico al consultar disponibilidad.',
+    };
   }
-  const checkIn = toIsoDatetime(slots.checkIn);
-  const checkOut = toIsoDatetime(slots.checkOut);
-  console.debug('[askAvailability] called with:', { hotelId, roomType, numGuests, checkIn, checkOut });
+  const roomType = norm.roomType ?? slots.roomType;
+  const checkIn = norm.checkIn;
+  const checkOut = norm.checkOut;
+  const guestsNumber = norm.guests as number | undefined;
+  console.debug('[askAvailability] called with:', { hotelId, roomType, numGuests: guestsNumber, checkIn, checkOut });
   let res;
   try {
     res = await checkAvailabilityTool({
       hotelId,
       roomType,
-      guests: numGuests,
+      guests: guestsNumber,
       checkIn,
       checkOut,
     });
@@ -354,15 +438,28 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
 
   if (res.available) {
     const option: AvailabilityOption | undefined = res.options?.[0];
-    const lang2 = (slots.locale as any) === 'pt' ? 'pt' : (slots.locale as any) === 'en' ? 'en' : 'es';
-    const showRt = localizeRoomType(option?.roomType || roomType, lang2 as any);
+    const loc = slots.locale ?? 'es';
+    const lang2: 'es' | 'en' | 'pt' = loc === 'pt' ? 'pt' : loc === 'en' ? 'en' : 'es';
+    const showRt = localizeRoomType(option?.roomType || roomType, lang2);
+    // Calcular total estimado si tenemos pricePerNight y ambas fechas
+    let enrichedText: string | undefined;
+    if (option?.pricePerNight != null && checkIn && checkOut) {
+      const nights = Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (24 * 60 * 60 * 1000)));
+      const total = option.pricePerNight * nights;
+      const curr = String(option.currency || '').toUpperCase();
+      enrichedText =
+        lang2 === 'es'
+          ? `Tengo ${showRt} disponible. Tarifa por noche: ${option.pricePerNight} ${curr}. Total ${nights} noches: ${total} ${curr}.`
+          : lang2 === 'pt'
+            ? `Tenho ${showRt} disponível. Tarifa por noite: ${option.pricePerNight} ${curr}. Total ${nights} noites: ${total} ${curr}.`
+            : `I have a ${showRt} available. Rate per night: ${option.pricePerNight} ${curr}. Total ${nights} nights: ${total} ${curr}.`;
+    }
     return {
       ok: true as const,
       available: true as const,
-      proposal:
-        option
-          ? `Tengo ${showRt} disponible. Tarifa por noche: ${option.pricePerNight ?? '—'} ${option.currency ?? ''}.`
-          : `Hay disponibilidad para ${showRt}.`,
+      proposal: enrichedText || (option
+        ? `Tengo ${showRt} disponible. Tarifa por noche: ${option.pricePerNight ?? '—'} ${option.currency ?? ''}.`
+        : `Hay disponibilidad para ${showRt}.`),
       options: (res.options ?? []) as AvailabilityOption[],
     };
   }
@@ -377,21 +474,22 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
     available: false as const,
     proposal:
       res.options && res.options.length > 0
-        ? `No tengo ${localizeRoomType(roomType, (slots.locale as any) === 'pt' ? 'pt' : (slots.locale as any) === 'en' ? 'en' : 'es')} en esas fechas, pero puedo ofrecer: ${topAlternatives}.`
-        : `No tengo disponibilidad para ${localizeRoomType(roomType, (slots.locale as any) === 'pt' ? 'pt' : (slots.locale as any) === 'en' ? 'en' : 'es')} en esas fechas.`,
+        ? `No tengo ${localizeRoomType(roomType, (slots.locale ?? 'es') === 'pt' ? 'pt' : (slots.locale ?? 'es') === 'en' ? 'en' : 'es')} en esas fechas, pero puedo ofrecer: ${topAlternatives}.`
+        : `No tengo disponibilidad para ${localizeRoomType(roomType, (slots.locale ?? 'es') === 'pt' ? 'pt' : (slots.locale ?? 'es') === 'en' ? 'en' : 'es')} en esas fechas.`,
     options: (res.options ?? []) as AvailabilityOption[],
   };
 }
 
 export async function confirmAndCreate(hotelId: string, slots: ReservationSlots, channel: string = "web") {
-  // Mapeo para tool legacy: guests
+  const guestsInput = (slots as unknown as { guests?: number }).guests ?? slots.numGuests;
+  const norm = normalizeBookingSlots({ ...slots, guests: guestsInput });
   const res = await createReservationTool({
     hotelId,
     guestName: slots.guestName!,
-    roomType: slots.roomType!,
-    guests: slots.numGuests!,
-    checkIn: slots.checkIn!,
-    checkOut: slots.checkOut!,
+    roomType: (norm.roomType ?? slots.roomType)!,
+    guests: norm.guests as number,
+    checkIn: norm.checkIn!,
+    checkOut: norm.checkOut!,
     channel,
   });
 
@@ -407,4 +505,45 @@ export async function confirmAndCreate(hotelId: string, slots: ReservationSlots,
     reservationId: res.reservationId,
     message: `✅ Reserva creada. ID: ${res.reservationId}`,
   };
+}
+
+// === Sprint 3: modificar / cancelar ===
+import { updateReservationTool, cancelReservationTool } from "@/lib/tools/mcp";
+
+type _NormSlotsForModify = ReturnType<typeof normalizeBookingSlots>;
+
+export async function modifyReservation(
+  hotelId: string,
+  reservationId: string,
+  slots: ReservationSlots,
+  channel: string = "web"
+) {
+  let norm: _NormSlotsForModify;
+  try {
+    const guestsInput = (slots as any).guests ?? slots.numGuests;
+    norm = normalizeBookingSlots({ ...slots, guests: guestsInput });
+  } catch (err) {
+    return { ok: false as const, message: "Formato inválido en los datos de la modificación." };
+  }
+  const res = await updateReservationTool({
+    hotelId,
+    reservationId,
+    roomType: (norm as any).roomType ?? slots.roomType,
+    guests: (norm as any).guests as number | undefined,
+    checkIn: (norm as any).checkIn,
+    checkOut: (norm as any).checkOut,
+    channel,
+  });
+  if (!res?.ok || res.status !== "updated") {
+    return { ok: false as const, message: res?.error ?? "No pude modificar la reserva. Un recepcionista te ayudará." };
+  }
+  return { ok: true as const, message: "✅ Reserva actualizada correctamente." };
+}
+
+export async function cancelReservation(hotelId: string, reservationId: string) {
+  const res = await cancelReservationTool({ hotelId, reservationId });
+  if (!res?.ok || res.status !== "cancelled") {
+    return { ok: false as const, message: res?.error ?? "No pude cancelar la reserva. Un recepcionista te ayudará." };
+  }
+  return { ok: true as const, message: "✅ Reserva cancelada." };
 }

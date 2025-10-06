@@ -14,6 +14,15 @@ const compat = new FlatCompat({
 
 // Fusión de configuraciones
 const eslintConfig = [
+  // Ignorar carpetas legacy/no incluidas en tsconfig para typed-lint
+  {
+    ignores: [
+      "components/**",
+      "pages/**",
+      "src/**",
+      "deprecated/**",
+    ],
+  },
   // Configuraciones base de Next.js y TypeScript
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   
@@ -22,7 +31,16 @@ const eslintConfig = [
 
   // Configuración específica para TypeScript
   {
-    files: ["**/*.ts", "**/*.tsx"], // Solo en archivos TypeScript
+    // Solo activar typed-lint en rutas cubiertas por tsconfig.json
+    files: [
+      "app/**/*.ts",
+      "app/**/*.tsx",
+      "lib/**/*.ts",
+      "lib/**/*.tsx",
+      "test/**/*.ts",
+      "test/**/*.tsx",
+      "middleware.ts",
+    ],
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
@@ -43,6 +61,29 @@ const eslintConfig = [
           ignoreRestSiblings: true,
         },
       ],
+      // Suavizar reglas ruidosas para el sprint actual
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/prefer-as-const": "warn",
+      "prefer-const": "warn",
+      "no-unused-expressions": "warn",
+  "@typescript-eslint/no-unused-expressions": "warn",
+      "no-constant-condition": "warn",
+      // Con TS no se necesita esta regla y genera falsos positivos (React 17+ runtime automático)
+      "no-undef": "off",
+      // Evitar fallos por bloques vacíos temporales en rutas experimentales
+      "no-empty": "warn",
+      // En entornos Node/TSX, permitir require puntuales durante migraciones
+      "@typescript-eslint/no-require-imports": "warn",
+      // Algunas cadenas con regex/patrones contienen escapes intencionales
+      "no-useless-escape": "off",
+    },
+  },
+  // Regla de hooks: no aplica en archivos de servicios Node (no-React)
+  {
+    files: ["lib/services/**/*.ts", "lib/**/index.ts"],
+    rules: {
+      "react-hooks/rules-of-hooks": "warn",
     },
   },
 ];

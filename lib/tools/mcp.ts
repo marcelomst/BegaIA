@@ -54,6 +54,38 @@ export const CreateReservationOutput = z.object({
 });
 export type CreateReservationOutput = z.infer<typeof CreateReservationOutput>;
 
+// === Sprint 3: modificar / cancelar ===
+export const UpdateReservationInput = z.object({
+  hotelId: z.string(),
+  reservationId: z.string(),
+  roomType: z.string().optional(),
+  guests: z.number().int().positive().optional(),
+  checkIn: z.string().datetime().optional(),
+  checkOut: z.string().datetime().optional(),
+  channel: z.string().default("web").optional(),
+});
+export type UpdateReservationInput = z.infer<typeof UpdateReservationInput>;
+
+export const UpdateReservationOutput = z.object({
+  ok: z.boolean(),
+  status: z.enum(["updated"]).optional(),
+  error: z.string().optional(),
+});
+export type UpdateReservationOutput = z.infer<typeof UpdateReservationOutput>;
+
+export const CancelReservationInput = z.object({
+  hotelId: z.string(),
+  reservationId: z.string(),
+});
+export type CancelReservationInput = z.infer<typeof CancelReservationInput>;
+
+export const CancelReservationOutput = z.object({
+  ok: z.boolean(),
+  status: z.enum(["cancelled"]).optional(),
+  error: z.string().optional(),
+});
+export type CancelReservationOutput = z.infer<typeof CancelReservationOutput>;
+
 // ===== Helpers HTTP =====
 async function postJSON<TOut>(path: string, body: unknown): Promise<TOut> {
   // Si ENDPOINT no está configurado, usa el mock local de Next.js (válido para Node y frontend)
@@ -121,4 +153,16 @@ export async function createReservationTool(input: CreateReservationInput) {
   const parsed = CreateReservationInput.parse(input);
   const out = await postJSON<unknown>("/reservations/create", parsed);
   return CreateReservationOutput.parse(out);
+}
+
+export async function updateReservationTool(input: UpdateReservationInput) {
+  const parsed = UpdateReservationInput.parse(input);
+  const out = await postJSON<unknown>("/reservations/update", parsed);
+  return UpdateReservationOutput.parse(out);
+}
+
+export async function cancelReservationTool(input: CancelReservationInput) {
+  const parsed = CancelReservationInput.parse(input);
+  const out = await postJSON<unknown>("/reservations/cancel", parsed);
+  return CancelReservationOutput.parse(out);
 }

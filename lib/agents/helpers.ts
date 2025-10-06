@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Normaliza slots legacy: guests -> numGuests (string)
 export function normalizeSlots(slots: any): any {
   if (slots && typeof slots === "object") {
-    if (slots.numGuests != null && slots.numGuests == null) {
-      slots.numGuests = String(slots.numGuests);
-    }
-    if ("guests" in slots) {
-      delete slots.numGuests;
+    // Si viene "guests", moverlo a numGuests y normalizar como string
+    if ("guests" in (slots as any) && (slots as any).guests != null) {
+      slots.numGuests = String((slots as any).guests);
+      delete (slots as any).guests;
     }
     if (slots.numGuests != null) {
       slots.numGuests = String(slots.numGuests);
@@ -17,20 +17,20 @@ export function normalizeSlots(slots: any): any {
 
 // --- Extrae slots básicos del texto del turno (pre-LLM) ---
 import type { SlotMap } from "@/types/audit";
-export function extractSlotsFromText(text: string, lang: string): Partial<SlotMap> {
+export function extractSlotsFromText(text: string, _lang: string): Partial<SlotMap> {
   const out: Partial<SlotMap> = {};
   const t = (text || "").toLowerCase();
   // Fechas: "19/09/2025 al 22/09/2025", "19-09-2025 hasta 22-09-2025"
   const dateRange =
-    t.match(/(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/);
+    t.match(/(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
   if (dateRange) {
     const ci = toISODateDDMMYYYY(dateRange[1]);
     const co = toISODateDDMMYYYY(dateRange[2]);
     if (ci && co) { out.checkIn = ci; out.checkOut = co; }
   } else {
     // sueltos: "check in 19/09/2025" "check-out 22/09/2025"
-    const ci = t.match(/check\s*in[:\s-]*?(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/);
-    const co = t.match(/check\s*out[:\s-]*?(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/);
+    const ci = t.match(/check\s*in[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
+    const co = t.match(/check\s*out[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
     if (ci?.[1]) out.checkIn = toISODateDDMMYYYY(ci[1]) || out.checkIn;
     if (co?.[1]) out.checkOut = toISODateDDMMYYYY(co[1]) || out.checkOut;
   }
@@ -135,7 +135,7 @@ export function isConfirmIntent(s: string) {
 // looksLikeDateOnly: Detecta si el mensaje parece solo una fecha
 export function looksLikeDateOnly(msg: string) {
   const t = (msg || "").trim();
-  return /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})(\s*(a|al|hasta|-|—|–)\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2}))?$/.test(t);
+  return /^(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})(\s*(a|al|hasta|-|—|–)\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2}))?$/.test(t);
 }
 
 // looksLikeCorrection: Detecta si el mensaje parece una corrección
@@ -190,9 +190,10 @@ export function sanitizePartial(
 export function extractGuests(msg: string): string | undefined {
   const t = (msg || "").toLowerCase();
   const withoutDates = t
-    .replace(/\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g, " ")
+    .replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g, " ")
     .replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ")
     .trim();
+  const _ddmm = Array.from(t.matchAll(/\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b/g)).map(m => m[1]);
 
   // 1) Solo un número en el mensaje → tomarlo como huéspedes
   const onlyNum = withoutDates.match(/^\s*(\d{1,2})\s*$/);
@@ -214,9 +215,9 @@ export function extractGuests(msg: string): string | undefined {
 // Extrae checkIn/checkOut desde texto libre
 export function extractDateRangeFromText(text: string): { checkIn?: string; checkOut?: string } {
   const t = (text || "").trim();
-  const ddmm = Array.from(t.matchAll(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\b/g)).map(m => m[1]);
+  const _ddmm = Array.from(t.matchAll(/\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b/g)).map(m => m[1]);
   const iso = Array.from(t.matchAll(/\b(\d{4}-\d{2}-\d{2})\b/g)).map(m => m[1]);
-  const all = [...ddmm, ...iso];
+  const all = [..._ddmm, ...iso];
   if (all.length === 0) return {};
   const toISO = (s: string) => (s.includes("-") && s.length === 10 ? s : ddmmyyyyToISO(s) || undefined);
   if (all.length === 1) return { checkIn: toISO(all[0]) };
@@ -226,12 +227,12 @@ export function extractDateRangeFromText(text: string): { checkIn?: string; chec
 }
 // dd/mm/aaaa -> YYYY-MM-DD
 export function ddmmyyyyToISO(s: string): string | undefined {
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
   if (!m) return undefined;
-  let [_, dd, mm, yy] = m;
+  const [, dd, mm, yyRaw] = m;
   const day = parseInt(dd, 10), mon = parseInt(mm, 10);
-  let year = parseInt(yy, 10);
-  if (yy.length === 2) year += 2000;
+  let year = parseInt(yyRaw, 10);
+  if (yyRaw.length === 2) year += 2000;
   if (year < 1900 || year > 2100 || mon < 1 || mon > 12 || day < 1 || day > 31) return undefined;
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
   return `${year}-${pad(mon)}-${pad(day)}`;
@@ -268,8 +269,7 @@ export async function chronoExtractDateRange(
 ): Promise<{ checkIn?: string; checkOut?: string }> {
   if ((process.env.USE_CHRONO_LAYER || "0") !== "1") return {};
   try {
-    // Allow tests to inject a loader
-    // @ts-ignore
+    // Allow tests to inject a loader via globalThis.__chronoImport
     const injected = (globalThis as any).__chronoImport;
     const chrono: any = injected ? await injected() : await loadChrono();
     const ref = new Date();
@@ -340,11 +340,65 @@ export function looksLikeName(s: string) {
 }
 
 export function normalizeNameCase(s: string) {
+  const cap = (str: string) =>
+    str ? str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase() : str;
+  const capCompound = (word: string) => {
+    // Preservar separadores '-' y apóstrofes en el resultado
+    return word
+      .split(/([-'’])/)
+      .map(seg => (seg === '-' || seg === "'" || seg === '’' ? seg : cap(seg)))
+      .join('');
+  };
   return s
     .trim()
     .split(/\s+/)
-    .map(w => w.slice(0, 1).toUpperCase() + w.slice(1).toLowerCase())
+    .map(w => capCompound(w))
     .join(" ");
+}
+
+// Extrae el nombre de pila para un trato más cercano en mensajes al usuario
+// - Mantiene almacenamiento/validación con nombre completo por separado
+// - Remueve honoríficos comunes (ES/PT/EN) al inicio
+// - Devuelve el primer token capitalizado
+export function firstNameOf(fullName?: string): string {
+  if (!fullName) return "";
+  let s = String(fullName || "").trim();
+  if (!s) return "";
+  // Normalizar espacios y comas sueltas
+  s = s.replace(/\s*,\s*/g, " ").replace(/\s{2,}/g, " ").trim();
+  // Remover honoríficos al inicio
+  s = s.replace(/^(Sr\.?|Sra\.?|Señor(?:a)?|Mr\.?|Mrs\.?|Ms\.?|Dr\.?|Dra\.?|Prof\.?|Ing\.?|Lic\.?|Don|Doña|Dona)\s+/i, "");
+  // Normalizar mayúsculas/minúsculas luego de limpiar prefijos
+  s = normalizeNameCase(s);
+  const parts = s.split(/\s+/);
+  if (parts.length === 0) return "";
+  // Si el primer token es compuesto con guión, usarlo tal cual
+  if (parts[0].includes("-")) return parts[0];
+  // Heurística: nombres compuestos frecuentes (ES/PT)
+  const P1 = new Set([
+    "María", "Maria", "Ana", "Juan", "José", "Jose", "Luis", "Miguel", "João", "Joao", "Jośe", "Jorge", "Juan", "Pedro"
+  ]);
+  const P2 = new Set([
+    "José", "Jose", "María", "Maria", "Pablo", "Carlos", "Manuel", "Luis", "Miguel", "Ángel", "Angel", "Paulo", "Clara", "Eduarda", "Luiza", "Sofía", "Sofia", "Paula", "Alice", "Antonio"
+  ]);
+  // Casos especiales tipo "María del Carmen"
+  const CONNECTORS = new Set(["Del"]);
+  // Intentar combinaciones
+  if (parts.length >= 2) {
+    const p0 = parts[0];
+    const p1 = parts[1];
+    if (P1.has(p0) && P2.has(p1)) {
+      const out = `${p0} ${p1}`;
+      return out;
+    }
+    // María del Carmen → tres tokens
+    if ((p0 === "María" || p0 === "Maria") && CONNECTORS.has(p1) && parts[2]) {
+      const out = `${p0} ${p1.toLowerCase()} ${parts[2]}`;
+      return out;
+    }
+  }
+  // Por defecto, primer token
+  return parts[0];
 }
 
 export function heuristicClassify(text: string): IntentResult {
@@ -392,10 +446,10 @@ export function heuristicClassify(text: string): IntentResult {
 
 // Normaliza dd/mm/yyyy → yyyy-mm-dd (asumimos convención ES/PT, no US)
 export function toISODateDDMMYYYY(s: string): string | null {
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
   if (!m) return null;
-  let [_, dd, mm, yyyy] = m;
-  if (yyyy.length === 2) yyyy = (Number(yyyy) >= 70 ? "19" : "20") + yyyy;
+  const [, dd, mm, yyyyRaw] = m;
+  const yyyy = yyyyRaw.length === 2 ? (Number(yyyyRaw) >= 70 ? "19" : "20") + yyyyRaw : yyyyRaw;
   const d = Number(dd), mth = Number(mm);
   if (mth < 1 || mth > 12 || d < 1 || d > 31) return null;
   return `${yyyy.padStart(4, "0")}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;

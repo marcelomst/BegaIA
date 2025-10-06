@@ -1,32 +1,32 @@
 // Path: /lib/i18n/pt.ts
 export default {
-    hotelEdit: {
-      title: "Editar hotel",
-      country: "País",
-      city: "Cidade",
-      name: "Nome",
-      address: "Endereço",
-      postalCode: "Código postal",
-      phone: "Telefone",
-      timezone: "Fuso horário",
-      defaultLanguage: "Idioma",
-      channels: "Canais",
-      whatsapp: "WhatsApp",
-      webChannel: "Web",
-      email: "Email",
-      celNumber: "Número de celular",
-      dirEmail: "Endereço de email",
-      enabled: "Habilitado",
-      automatic: "Automático",
-      supervised: "Supervisionado",
-      saving: "Salvando...",
-      save: "Salvar alterações",
-      cancel: "Cancelar",
-      errors: {
-        saveHotel: "Erro ao salvar hotel",
-        unknown: "Erro desconhecido",
-      },
+  hotelEdit: {
+    title: "Editar hotel",
+    country: "País",
+    city: "Cidade",
+    name: "Nome",
+    address: "Endereço",
+    postalCode: "Código postal",
+    phone: "Telefone",
+    timezone: "Fuso horário",
+    defaultLanguage: "Idioma",
+    channels: "Canais",
+    whatsapp: "WhatsApp",
+    webChannel: "Web",
+    email: "Email",
+    celNumber: "Número de celular",
+    dirEmail: "Endereço de email",
+    enabled: "Habilitado",
+    automatic: "Automático",
+    supervised: "Supervisionado",
+    saving: "Salvando...",
+    save: "Salvar alterações",
+    cancel: "Cancelar",
+    errors: {
+      saveHotel: "Erro ao salvar hotel",
+      unknown: "Erro desconhecido",
     },
+  },
   layout: {
     checkingSession: "Verificando sessão...",
     panelTitle: "Painel de Controle",
@@ -182,7 +182,7 @@ export default {
     """
     {{text}}
     """`,
-  
+
   reservation: {
     slotFillingPrompt: (missing: string[]) =>
       `Para seguir com a reserva preciso: **${missing.join(", ")}**. Pode me informar?`,
@@ -215,7 +215,7 @@ export default {
       `Quarto **${cap(s.roomType)}**, ` +
       `Datas **${s.checkIn} → ${s.checkOut}**` +
       (s.numGuests ? ` · **${s.numGuests}** hóspede(s)` : "") +
-      `. Obrigado, ${s.guestName}!`,
+      `. Obrigado, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
 };
 

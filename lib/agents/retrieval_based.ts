@@ -18,8 +18,15 @@ function getLastHumanText(msgs: BaseMessage[]): string {
       if (typeof c === "string") return c.trim();
       // Si usás mensajes “multimodal”, convertí a texto de forma segura:
       if (Array.isArray(c)) {
-        return c
-          .map((p: any) => (p?.type === "text" ? p.text : ""))
+        type TextSegment = { type?: string; text?: string } | string | null | undefined;
+        return (c as TextSegment[])
+          .map((p) => {
+            if (typeof p === "string") return p;
+            if (p && typeof p === "object" && (p as { type?: string }).type === "text") {
+              return (p as { text?: string }).text ?? "";
+            }
+            return "";
+          })
           .join(" ")
           .trim();
       }
@@ -45,7 +52,7 @@ export async function retrievalBased(state: typeof GraphState.State) {
 
   // 2. Usar siempre el mensaje ya traducido a idioma nativo (del nodo de clasificación)
   const userQuery =
-    (state as any).normalizedMessage ??
+    (state as unknown as { normalizedMessage?: string })?.normalizedMessage ??
     getLastHumanText(state.messages as BaseMessage[]);
   const promptKey = state.promptKey;
   const hotelId = state.hotelId ?? "hotel999";

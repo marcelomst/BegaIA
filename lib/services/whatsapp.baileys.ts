@@ -3,7 +3,8 @@
 import qrcode from "qrcode-terminal";
 import Redis from "ioredis";
 import { existsSync } from "fs";
-import { rm } from "fs/promises";
+import { rm, mkdir } from "fs/promises";
+import path from "path";
 import crypto from "crypto";
 import type { BaileysEventMap } from "@whiskeysockets/baileys";
 import type { ChannelMessage } from "@/types/channel";
@@ -30,7 +31,7 @@ const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 async function setQR(hotelId: string, qr: string) {
   try {
     await redis.set(`wa:qr:${hotelId}`, qr, "EX", 120);
-  } catch {}
+  } catch { }
 }
 
 export async function startWhatsAppBot({
@@ -44,7 +45,13 @@ export async function startWhatsAppBot({
   // Config dependiente del hotel
   // ──────────────────────────────────────────────────────────
   const TAG = `[wa-dev] (baileys-node18-dev:${hotelId})`;
-  const AUTH_DIR = `/data/baileys_auth/${hotelId}`;
+  // Auth path configurable: WA_AUTH_DIR o WABAILEYS_AUTH_DIR. Fallback seguro local
+  const AUTH_BASE = process.env.WA_AUTH_DIR || process.env.WABAILEYS_AUTH_DIR
+    || (process.platform === "linux"
+      ? path.resolve(process.cwd(), ".wa_baileys_auth")
+      : path.resolve(process.cwd(), ".wa_baileys_auth"));
+  const AUTH_DIR = path.resolve(AUTH_BASE, hotelId);
+  try { await mkdir(AUTH_DIR, { recursive: true }); } catch { }
 
   // Polyfill WebCrypto para Node 18
   const { webcrypto } = await import("crypto");
@@ -158,7 +165,7 @@ export async function startWhatsAppBot({
           console.log(`${TAG} ❌ 401 con sesión; limpio credenciales y reinicio…`);
           try {
             if (existsSync(AUTH_DIR)) await rm(AUTH_DIR, { recursive: true, force: true });
-          } catch {}
+          } catch { }
           process.exit(1);
           return;
         }
@@ -239,8 +246,8 @@ export async function startWhatsAppBot({
             sendReply:
               mode === "automatic"
                 ? async (reply: string) => {
-                    await sock.sendMessage(remoteJid, { text: reply });
-                  }
+                  await sock.sendMessage(remoteJid, { text: reply });
+                }
                 : undefined,
           });
 
@@ -248,7 +255,7 @@ export async function startWhatsAppBot({
           console.error(`${TAG} error al procesar mensaje:`, err);
           try {
             await sock.sendPresenceUpdate("available", jid);
-          } catch {}
+          } catch { }
         }
       }
     );
@@ -258,6 +265,6 @@ export async function startWhatsAppBot({
 
   // 3) Heartbeat por hotel
   setInterval(() => {
-    redis.set(`wa:heartbeat:${hotelId}`, Date.now().toString(), "EX", 60).catch(() => {});
+    redis.set(`wa:heartbeat:${hotelId}`, Date.now().toString(), "EX", 60).catch(() => { });
   }, 15_000);
 }

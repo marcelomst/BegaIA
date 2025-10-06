@@ -13,7 +13,8 @@ export async function sendEmail(
   smtp: SMTPConfig,
   to: string,
   subject: string,
-  html: string
+  html: string,
+  attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>
 ) {
   const transporter = nodemailer.createTransport({
     host: smtp.host,
@@ -30,5 +31,6 @@ export async function sendEmail(
     to,
     subject,
     html,
+    attachments,
   });
 }

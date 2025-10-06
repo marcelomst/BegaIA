@@ -32,7 +32,7 @@ const es = {
       `Habitación **${capitalize(s.roomType)}**, ` +
       `Fechas **${s.checkIn} → ${s.checkOut}**` +
       (s.numGuests ? ` · **${s.numGuests}** huésped(es)` : "") +
-      `. ¡Gracias, ${s.guestName}!`,
+      `. ¡Gracias, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
   hotelEdit: {
     title: "Editar hotel",
@@ -242,7 +242,7 @@ const es = {
     """
     {{text}}
     """`,
-      // ...
+  // ...
 };
 function capitalize(str?: string) {
   if (!str) return str as any;

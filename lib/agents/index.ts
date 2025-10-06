@@ -2,10 +2,10 @@
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 
 type AgentGraph = {
-  invoke(input: Record<string, any>): Promise<{
+  invoke(input: Record<string, unknown>): Promise<{
     messages: BaseMessage[];
     category?: string;
-    reservationSlots?: Record<string, any>;
+    reservationSlots?: Record<string, unknown>;
   }>;
 };
 
@@ -29,13 +29,26 @@ async function loadGraph(): Promise<AgentGraph> {
   const candidates = ["./graph", "./stateGraph", "./agentGraph", "./builder"] as const;
   for (const p of candidates) {
     try {
-      const m: any = await import(p as any);
-      const candidate: AgentGraph | undefined =
-        m?.agentGraph ?? m?.default ??
-        (typeof m?.createAgentGraph === "function" ? m.createAgentGraph() : undefined);
+      const mod = await import(p);
+      const candidate = (() => {
+        const m = mod as unknown as Record<string, unknown>;
+        const ag = m["agentGraph"];
+        if (isAgentGraph(ag)) return ag;
+        const def = m["default"];
+        if (isAgentGraph(def)) return def;
+        const cg = m["createAgentGraph"];
+        if (typeof cg === "function") {
+          const built = (cg as () => unknown)();
+          if (isAgentGraph(built)) return built;
+        }
+        return undefined;
+      })();
       if (candidate) {
         _graph = candidate;
-        _version = m?.GRAPH_VERSION || `ag-runtime:${p.replace("./", "")}`;
+        const mrec = mod as unknown as Record<string, unknown>;
+        _version = (typeof (mrec as Record<string, unknown>).GRAPH_VERSION === "string"
+          ? (mrec as Record<string, string>).GRAPH_VERSION
+          : undefined) || `ag-runtime:${p.replace("./", "")}`;
         console.log("[agentGraph] loaded:", _version);
         logProviderOnce();
         return candidate; // <- devolvemos el candidato (no _graph)
@@ -48,11 +61,18 @@ async function loadGraph(): Promise<AgentGraph> {
   // 2) compiledGraph (opcional). Import no-literal para evitar warnings de Turbopack.
   try {
     const pathComp = "./" + "compiledGraph";
-    const mod: any = await import(pathComp as any);
-    const candidate: AgentGraph | undefined = mod?.agentGraph;
+    const mod = await import(pathComp);
+    const candidate = (() => {
+      const m = mod as unknown as Record<string, unknown>;
+      const ag = m["agentGraph"];
+      return isAgentGraph(ag) ? (ag as AgentGraph) : undefined;
+    })();
     if (candidate) {
       _graph = candidate;
-      _version = mod?.GRAPH_VERSION || "ag-compiled";
+      const mrec = mod as unknown as Record<string, unknown>;
+      _version = (typeof (mrec as Record<string, unknown>).GRAPH_VERSION === "string"
+        ? (mrec as Record<string, string>).GRAPH_VERSION
+        : undefined) || "ag-compiled";
       console.log("[agentGraph] loaded:", _version);
       logProviderOnce();
       return candidate; // <- devolvemos el candidato
@@ -64,15 +84,22 @@ async function loadGraph(): Promise<AgentGraph> {
   // 3) Fallback mínimo para no romper en dev
   console.warn("[agentGraph] ⚠️ No graph module found. Using minimal fallback.");
   const fallback: AgentGraph = {
-    async invoke(input) {
-      const messages = Array.isArray(input?.messages) ? input.messages : [];
+    async invoke(input: Record<string, unknown>) {
+      const rec = input as Record<string, unknown>;
+      const prior = Array.isArray(rec.messages) ? (rec.messages as BaseMessage[]) : [];
+      const category = typeof rec.category === "string" ? (rec.category as string) : "other";
+      const reservationSlots =
+        typeof rec.reservationSlots === "object" && rec.reservationSlots !== null
+          ? (rec.reservationSlots as Record<string, unknown>)
+          : undefined;
+
       return {
-        ...input,
         messages: [
-          ...messages,
+          ...prior,
           new AIMessage("¿En qué puedo ayudarte? Nuestro equipo está disponible para asistirte."),
         ],
-        category: input?.category ?? "other",
+        category,
+        ...(reservationSlots ? { reservationSlots } : {}),
       };
     },
   };
@@ -94,7 +121,15 @@ export const agentGraph: AgentGraph = {
 export const GRAPH_VERSION = () => _version;
 
 // Placeholder para compat de tipos (si otros módulos importan GraphState desde aquí)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const GraphState = { State: {} as any };
 
 // reexport útil
 export { AIMessage };
+
+// type guard
+function isAgentGraph(x: unknown): x is AgentGraph {
+  if (typeof x !== "object" || x === null) return false;
+  const rec = x as Record<string, unknown>;
+  return typeof rec.invoke === "function";
+}

@@ -8,7 +8,8 @@ import { getAstraDB } from "../lib/astra/connection";
 type Args = {
   force: boolean;
   hotel?: string;
-  only?: "messages" | "conversations";
+  conversation?: string;
+  only?: "messages" | "conversations" | "conv_state";
 };
 
 function parseArgs(argv: string[]): Args {
@@ -16,11 +17,15 @@ function parseArgs(argv: string[]): Args {
   for (const a of argv.slice(2)) {
     if (a === "--force") out.force = true;
     else if (a.startsWith("--hotel=")) out.hotel = a.split("=", 2)[1];
+    else if (a.startsWith("--conversation=") || a.startsWith("--conv=")) {
+      const v = a.includes("--conv=") ? a.split("=", 2)[1] : a.split("=", 2)[1];
+      out.conversation = v;
+    }
     else if (a.startsWith("--only=")) {
       const v = a.split("=", 2)[1];
-      if (v === "messages" || v === "conversations") out.only = v;
+      if (v === "messages" || v === "conversations" || v === "conv_state") out.only = v as any;
       else {
-        console.error(`❌ Valor inválido para --only: ${v}. Usa "messages" o "conversations".`);
+        console.error(`❌ Valor inválido para --only: ${v}. Usa "messages", "conversations" o "conv_state".`);
         process.exit(2);
       }
     }
@@ -34,10 +39,13 @@ async function main() {
   const db = getAstraDB();
   const messagesCol = db.collection("messages");
   const conversationsCol = db.collection("conversations");
+  const convStateCol = db.collection("conv_state");
 
-  const filter = args.hotel ? { hotelId: args.hotel } : {};
+  const filter: Record<string, any> = {};
+  if (args.hotel) filter.hotelId = args.hotel;
+  if (args.conversation) filter.conversationId = args.conversation;
 
-  const targetCols: Array<{ name: "messages" | "conversations"; run: () => Promise<void> }> = [];
+  const targetCols: Array<{ name: "messages" | "conversations" | "conv_state"; run: () => Promise<void> }> = [];
 
   if (!args.only || args.only === "messages") {
     targetCols.push({
@@ -67,12 +75,30 @@ async function main() {
     });
   }
 
+  if (!args.only || args.only === "conv_state") {
+    targetCols.push({
+      name: "conv_state",
+      run: async () => {
+        if (!args.force) {
+          console.log("🧪 [dry-run] Eliminaría documentos de 'conv_state' con filtro:", filter);
+          return;
+        }
+        const res = await convStateCol.deleteMany(filter);
+        console.log(`🗑️ conv_state.deleteMany → deletedCount=${res?.deletedCount ?? "?"}`);
+      },
+    });
+  }
+
   console.log("⚠️ AVISO: Esto borra documentos en Astra Data API (JSON Collections).");
   console.log("   Keyspace y URL se toman de tu .env (ASTRA_DB_URL / ASTRA_DB_KEYSPACE).");
-  console.log("   Colecciones: 'messages' y 'conversations'.");
+  console.log("   Colecciones: 'messages', 'conversations' y 'conv_state'.");
   console.log("");
   console.log("➡️ Filtro aplicado:", filter);
   console.log(args.force ? "🚨 MODO: BORRADO REAL (--force)" : "🧪 MODO: DRY-RUN (sin borrar)");
+
+  if (!args.force) {
+    console.log("\nℹ️ Tip: ejecutá con --force para borrar de verdad. Opcionales: --hotel=hotel999, --conversation=conv-123, --only=messages|conversations|conv_state");
+  }
 
   for (const t of targetCols) {
     try {

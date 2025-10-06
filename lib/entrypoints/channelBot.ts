@@ -9,6 +9,7 @@ import { getHotelConfig } from "../config/hotelConfig.server";
 import { isChannelEnabled } from "../config/isChannelEnabled";
 import { registerAdapter } from "@/lib/adapters/registry";
 import { webAdapter } from "@/lib/adapters/webAdapter";
+import { subscribeSendReservationCopy } from "@/lib/whatsapp/dispatch";
 
 export async function startHotelBot(hotelId: string) {
   try {
@@ -108,10 +109,25 @@ if (!hotelId) {
   await startHotelBot(hotelId);
   console.log(`[hotelBot] Bots lanzados para ${hotelId}`);
 
+  // Suscribir a dispatch remoto de copias WA (pub/sub)
+  if (process.env.WA_REMOTE_DISPATCH !== '0' && process.env.WA_REMOTE_DISPATCH !== 'false') {
+    const attemptSub = async (retry = 0) => {
+      try {
+        await subscribeSendReservationCopy();
+        console.log('[hotelBot] ✅ Suscripción wa:send-copy activa');
+      } catch (err) {
+        const delay = Math.min(5000 * (retry + 1), 30000);
+        console.warn(`[hotelBot] ❌ Falló suscripción wa:send-copy (retry=${retry}) -> ${(err as any)?.message || err}. Reintentando en ${delay}ms`);
+        setTimeout(() => attemptSub(retry + 1), delay).unref?.();
+      }
+    };
+    attemptSub();
+  }
+
   // Mantener vivo el proceso cuando usamos Baileys (QR/updates)
   if ((process.env.WA_TRANSPORT || "wwebjs") === "baileys") {
     console.log("[hotelBot] ⏸️ Manteniendo proceso vivo para recibir QR/updates (Baileys) …");
-    await new Promise<void>(() => {}); // bloquea indefinidamente
+    await new Promise<void>(() => { }); // bloquea indefinidamente
   }
 })().catch((err) => {
   console.error("[hotelBot] Error al iniciar bots:", err);

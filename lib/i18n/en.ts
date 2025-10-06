@@ -66,7 +66,7 @@ export default {
     errorPosition: "Position is required.",
     errorRole: "You must select a role for the user.",
   },
-   sidebar: {
+  sidebar: {
     channelsPanel: "Channels",
     hideChannels: "Hide channels",
     showChannels: "Show channels",
@@ -177,7 +177,7 @@ export default {
     Query:
     "{{question}}"
     `.trim(),
-    sentimentPrompt: `Analyze the sentiment of the following hotel guest message. Reply with ONLY ONE WORD: "positive", "neutral" or "negative".
+  sentimentPrompt: `Analyze the sentiment of the following hotel guest message. Reply with ONLY ONE WORD: "positive", "neutral" or "negative".
     Message:
     """
     {{text}}
@@ -214,7 +214,7 @@ export default {
       `Room **${cap(s.roomType)}**, ` +
       `Dates **${s.checkIn} → ${s.checkOut}**` +
       (s.numGuests ? ` · **${s.numGuests}** guest(s)` : "") +
-      `. Thank you, ${s.guestName}!`,
+      `. Thank you, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
 };
 function cap(str?: string) {
@@ -222,4 +222,3 @@ function cap(str?: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-  
