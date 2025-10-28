@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
         promptKey: doc.promptKey ?? null,
         text: doc.text ?? "",
         uploadedAt: doc.uploadedAt ?? null,
+        detectedLang: doc.detectedLang ?? doc.langIso1 ?? doc.language ?? null,
+        targetLang: doc.targetLang ?? doc.langIso1 ?? doc.language ?? null,
+        detectedLangScore: doc.detectedLangScore ?? null,
       };
       return NextResponse.json({ chunks: [chunk] }, { status: 200 });
     }
@@ -66,6 +69,9 @@ export async function GET(req: NextRequest) {
       text: r.text ?? "",
       uploadedAt: r.uploadedAt ?? null,
       similarity: r.$similarity ?? undefined,
+      detectedLang: r.detectedLang ?? null,
+      targetLang: r.targetLang ?? null,
+      detectedLangScore: r.detectedLangScore ?? null,
     }));
 
     return NextResponse.json({ chunks: mapped }, { status: 200 });

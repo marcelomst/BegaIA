@@ -1,11 +1,27 @@
 {
-    "terminal": {
-        "defaultShell": "wsl",
-        "shellOptions": {
-            "wsl": {
-                "shell": "/bin/bash",
-                "args": ["-l"]
-            }
-        }
+  "terminal": {
+    "defaultShell": "wsl",
+    "shellOptions": {
+      "wsl": {
+        "shell": "/bin/bash",
+        "args": ["-l"]
+      }
     }
-} 
+  },
+
+  // Navegación con Alt+Click sin que se convierta en multicursor
+  "editor.multiCursorModifier": "alt",
+  "editor.definitionLinkOpensInPeek": false,
+  "editor.gotoLocation.multipleDefinitions": "goto",
+
+  // Usa la versión de TypeScript del proyecto (mejora el indexado)
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Evita que el panel de Copilot Chat robe foco/atajos del mouse
+  "github.copilot.chat.focusOnInlineChat": false
+
+  // Si el chat te sigue molestando:
+  // "github.copilot.chat.enable": false,   // desactiva SOLO el Chat
+  // "github.copilot.enable": true          // mantiene autocompletado inline
+}

@@ -77,6 +77,9 @@ export const promptMetadata: Record<string, string[]> = {
   // Cancelación explícita (si existe el nodo; si no, que derive a reservation/cancellation flow)
   cancel_reservation: [],
 
+  // Nueva categoría RAG para políticas y procesos de cancelación
+  cancellation: [],
+
   // Servicios/amenities (si después tenés prompts propios, los agregás)
   amenities: [],
 

@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Hotel, Loader, PlusCircle, Pencil, Trash2, Code2 } from "lucide-react";
+import { Hotel, Loader, PlusCircle, Pencil, Trash2, Code2, Download } from "lucide-react";
 import type { HotelConfig, Channel } from "@/types/channel";
 import { getChannelIcon } from "@/lib/utils/getChannelIcon";
 
@@ -72,6 +72,12 @@ export default function HotelsAdminPage() {
             <Button className="flex items-center gap-2">
               <PlusCircle className="w-4 h-4" />
               Agregar hotel
+            </Button>
+          </Link>
+          <Link href="/templates/hotel-knowledge-template.textonly.es.txt" target="_blank">
+            <Button variant="outline" className="flex items-center gap-2" title="Descargar plantilla text-only (ES)">
+              <Download className="w-4 h-4" />
+              Plantilla ES (text-only)
             </Button>
           </Link>
         </div>

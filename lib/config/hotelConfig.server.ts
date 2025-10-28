@@ -60,8 +60,16 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
     address: doc.address,
     postalCode: doc.postalCode,
     phone: doc.phone,
-    // soporte global de reservas (puede no existir)
     reservations: doc.reservations ?? {},
+    // Campos extendidos
+    amenities: doc.amenities ?? undefined,
+    billing: doc.billing ?? undefined,
+    contacts: doc.contacts ?? undefined,
+    payments: doc.payments ?? undefined,
+    policies: doc.policies ?? undefined,
+    rooms: doc.rooms ?? undefined,
+    schedules: doc.schedules ?? undefined,
+    // Puedes agregar aquí otros campos que quieras exponer
   };
   return cfg;
 }

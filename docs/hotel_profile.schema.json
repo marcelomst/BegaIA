@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HotelProfile",
+  "type": "object",
+  "required": ["hotelId", "hotelName", "location", "contacts"],
+  "properties": {
+    "hotelId": {
+      "type": "string",
+      "description": "Unique hotel identifier (e.g., hotel999)"
+    },
+    "rooms": {
+      "type": "array",
+      "description": "Listado de tipos de habitación del hotel",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre/tipo: Standard, Suite, etc."
+          },
+          "sizeM2": { "type": "number" },
+          "capacity": { "type": "number", "description": "Ocupación máxima" },
+          "beds": { "type": "string", "description": "Ej: 1 King, 2 Twin" },
+          "description": { "type": "string" },
+          "highlights": { "type": "array", "items": { "type": "string" } },
+          "images": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "icon": { "type": "string", "description": "Emoji/icono opcional" },
+          "accessible": { "type": "boolean" }
+        }
+      }
+    },
+    "hotelName": { "type": "string" },
+    "defaultLanguage": {
+      "type": "string",
+      "enum": ["spa", "eng", "por"],
+      "default": "spa"
+    },
+    "timezone": { "type": "string", "default": "America/Montevideo" },
+    "location": {
+      "type": "object",
+      "required": ["address", "city", "country"],
+      "properties": {
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "country": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        }
+      }
+    },
+    "contacts": {
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "website": { "type": "string" }
+      }
+    },
+    "schedules": {
+      "type": "object",
+      "properties": {
+        "checkIn": { "type": "string", "description": "e.g., 15:00" },
+        "checkOut": { "type": "string", "description": "e.g., 11:00" },
+        "breakfast": { "type": "string", "description": "e.g., 07:30–10:30" },
+        "quietHours": { "type": "string" }
+      }
+    },
+    "amenities": {
+      "type": "object",
+      "properties": {
+        "hasParking": { "type": "boolean" },
+        "parkingNotes": { "type": "string" },
+        "hasPool": { "type": "boolean" },
+        "poolSchedule": { "type": "string" },
+        "hasGym": { "type": "boolean" },
+        "gymSchedule": { "type": "string" },
+        "hasSpa": { "type": "boolean" },
+        "spaSchedule": { "type": "string" },
+        "other": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "payments": {
+      "type": "object",
+      "properties": {
+        "methods": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" },
+        "requiresCardForBooking": { "type": "boolean" }
+      }
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "issuesInvoices": { "type": "boolean" },
+        "invoiceNotes": { "type": "string" }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "properties": {
+        "pets": { "type": "string" },
+        "smoking": { "type": "string" },
+        "cancellation": { "type": "string" }
+      }
+    },
+    "airports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "name"],
+        "properties": {
+          "code": { "type": "string" },
+          "name": { "type": "string" },
+          "distanceKm": { "type": "number" },
+          "driveTime": { "type": "string" }
+        }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "properties": {
+        "hasPrivateTransfer": { "type": "boolean" },
+        "transferNotes": { "type": "string" },
+        "taxiNotes": { "type": "string" },
+        "busNotes": { "type": "string" }
+      }
+    },
+    "attractions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "distanceKm": { "type": "number" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

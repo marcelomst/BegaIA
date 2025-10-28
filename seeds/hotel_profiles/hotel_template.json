@@ -1,0 +1,107 @@
+{
+  "hotelId": "hotelNEW",
+  "hotelName": "Hotel Nuevo",
+  "defaultLanguage": "spa",
+  "timezone": "America/Montevideo",
+  "location": {
+    "address": "Calle 123",
+    "city": "Ciudad",
+    "state": "Departamento/Provincia",
+    "postalCode": "00000",
+    "country": "Uruguay",
+    "coordinates": { "lat": -34.9, "lng": -56.2 }
+  },
+  "contacts": {
+    "email": "reservas@hotelnuevo.com",
+    "phone": "+598 0000 0000",
+    "whatsapp": "+598 99 000 000",
+    "website": "https://www.hotelnuevo.com"
+  },
+  "schedules": {
+    "checkIn": "15:00",
+    "checkOut": "11:00",
+    "breakfast": "07:30–10:30"
+  },
+  "amenities": {
+    "hasParking": true,
+    "parkingNotes": "Cocheras sujetas a disponibilidad.",
+    "hasPool": true,
+    "poolSchedule": "09:00–21:00",
+    "hasGym": true,
+    "gymSchedule": "07:00–22:00",
+    "hasSpa": false,
+    "other": ["Wi-Fi gratuito", "Recepción 24/7"]
+  },
+  "payments": {
+    "methods": [
+      "Efectivo",
+      "Tarjeta de crédito",
+      "Tarjeta de débito",
+      "Transferencia"
+    ],
+    "notes": "Se solicita una tarjeta como garantía al momento del check-in.",
+    "requiresCardForBooking": false
+  },
+  "billing": {
+    "issuesInvoices": true,
+    "invoiceNotes": "Emitimos factura fiscal a solicitud del huésped."
+  },
+  "policies": {
+    "pets": "No se permiten mascotas salvo perros de asistencia.",
+    "smoking": "Prohibido fumar en habitaciones; áreas designadas al aire libre.",
+    "cancellation": "Políticas variables según tarifa; consulte su confirmación."
+  },
+  "airports": [
+    {
+      "code": "PDP",
+      "name": "Punta del Este (Laguna del Sauce)",
+      "distanceKm": 30,
+      "driveTime": "30–40 min"
+    },
+    {
+      "code": "MVD",
+      "name": "Montevideo (Carrasco)",
+      "distanceKm": 130,
+      "driveTime": "1 h 45–2 h 15"
+    }
+  ],
+  "transport": {
+    "hasPrivateTransfer": true,
+    "transferNotes": "Coordinamos traslado privado desde PDP o MVD; consultar tarifas por WhatsApp.",
+    "taxiNotes": "Taxis y remis disponibles en aeropuertos y terminales.",
+    "busNotes": "Buses regulares desde Tres Cruces a Punta del Este; luego taxi al hotel."
+  },
+  "attractions": [
+    {
+      "name": "Playa Mansa",
+      "distanceKm": 0.5,
+      "notes": "Ideal para familias."
+    },
+    { "name": "Casapueblo", "distanceKm": 13, "notes": "Atardeceres icónicos." }
+  ],
+  "rooms": [
+    {
+      "name": "Standard",
+      "sizeM2": 22,
+      "capacity": 2,
+      "beds": "1 King o 2 Twin",
+      "description": "Habitación cómoda; algunas con balcón.",
+      "highlights": ["Wi‑Fi", "TV 4K", "AC", "Frigobar"],
+      "images": ["https://example.com/img/standard-1.jpg"],
+      "icon": "🛏️"
+    },
+    {
+      "name": "Suite Superior",
+      "sizeM2": 32,
+      "capacity": 3,
+      "beds": "1 King (+cama extra opcional)",
+      "description": "Vista al jardín; algunas con balcón.",
+      "highlights": ["Wi‑Fi", "TV 4K", "AC", "Bañera hidromasaje"],
+      "images": [
+        "https://example.com/img/suite-1.jpg",
+        "https://example.com/img/suite-2.jpg"
+      ],
+      "icon": "🌿"
+    }
+  ]
+}

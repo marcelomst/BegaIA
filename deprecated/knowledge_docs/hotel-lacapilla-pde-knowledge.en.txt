@@ -1,0 +1,78 @@
+Hotel: La Capilla (Punta del Este, Uruguay)
+Date: 2025-10-13
+Sources:
+- https://demo.com.uy/pde/en/la-capilla-en/
+- https://demo.com.uy/pde/en/our-hotel/
+- https://demo.com.uy/pde/en/servicios-2/
+- https://demo.com.uy/pde/en/accommodation/standard-room-en/
+- https://demo.com.uy/pde/en/accommodation/suite-superior-en/
+- https://demo.com.uy/pde/en/accommodation/junior-suite-en/
+- https://demo.com.uy/pde/en/accommodation/master-suites-en/
+
+SUMMARY (EN)
+Contemporary hotel with ~55 rooms/suites focused on comfort and design. Features indoor/outdoor heated pool, dry and wet saunas, Scottish showers, hydromassage, gym, and a garden-view bar serving breakfast. Spacious rooms; some with balcony, garden views, or sea views.
+
+QUICK FACTS (EN)
+- Categories: Standard (~22 m²), Superior (~26–40 m²), Junior Suite (~38 m², two spaces), Master Suites (~39–45 m²)
+- Tech: High‑speed Wi‑Fi; 4K TVs (approx. 58–65” depending on category)
+- Bathroom: Scottish shower; whirlpool bathtub in Master Suites
+- Climate/amenities: AC, minibar, room service, non‑smoking
+- Wellness/leisure: heated indoor/outdoor pool, saunas, Scottish showers, hydromassage, massages (by appointment), gym
+- Accessibility: website mentions 100% accessible rooms
+- Booking: https://demo.book-onlinenow.net/
+
+ROOMS (EN)
+- Standard (~22 m²)
+  - Bedding: 2 twins or 1 King; connecting rooms option for families; some with balcony
+  - Amenities: Wi‑Fi, 4K TV, workspace, AC, minibar, Scottish shower, room service, non‑smoking
+- Superior (~26–40 m²)
+  - King bed; garden views. Some with balcony. ~40 m² units may allow extra bed (triple occupancy)
+  - Amenities: Wi‑Fi, 4K TV, AC, minibar, Scottish shower, room service, non‑smoking
+- Junior Suite (~38 m²)
+  - Two distinct spaces: bedroom with King + lounge with a two‑seater sofa bed, independent
+  - Amenities: Wi‑Fi, 4K TV, AC, minibar, Scottish shower, room service, non‑smoking
+- Master Suites (~39–45 m²)
+  - Sector A; sea views, large balcony; whirlpool bathtub. In some cases two King beds (2x2 m) and larger TV
+  - Amenities: Wi‑Fi, AC, minibar, Scottish shower, room service, non‑smoking
+
+HOTEL SERVICES (EN)
+- Heated indoor and outdoor pool
+- Dry and wet saunas
+- Scottish showers; indoor/outdoor hydromassage
+- Massages by appointment
+- Equipped gym
+- Garden‑view bar (breakfast)
+
+LOCATION & CONTACT (EN)
+- City: Punta del Este, Uruguay
+- Contact: official form
+  - Spanish: https://demo.com.uy/pde/contact-us/
+  - English: https://demo.com.uy/pde/en/contact-us-2/
+- Address/phone: not visible as plain text on the pages reviewed; confirm via form or booking engine
+
+BOOKINGS & RATES (EN)
+- Engine: https://demo.book-onlinenow.net/
+- Rates: vary by date and availability
+
+POLICIES (EN)
+- Check‑in/Check‑out: not published on reviewed pages
+- Smoking: non‑smoking rooms
+- Pets/parking: not specified; check with hotel
+- Health: site mentions signage and measures; confirm current status
+
+CATEGORY SUMMARIES (EN)
+- Standard: Functional and convenient; twin/king setup and connecting option for families. Corporate‑friendly.
+- Superior: Balanced comfort, several with balcony and garden views. Some allow extra bed for 3 pax.
+- Junior Suite: Two independent spaces; ideal for families or longer stays.
+- Master Suite: Sea views, balcony, and whirlpool; the most exclusive option.
+
+ENTITY MAP (EN)
+- amenities: [wifi, tv_4k, scottish_shower, ac, minibar, room_service, non_smoking, heated_pool, wet_sauna, dry_sauna, hydromassage, massages, gym, bar_breakfast]
+- room_types:
+  - { name: standard, size_sqm: 22, beds: [twin, king], features: [connecting, balcony_optional], views: [garden_optional], occupancy: "2" }
+  - { name: superior, size_sqm: "26-40", beds: [king, extra_bed_optional], features: [balcony_optional], views: [garden], occupancy: "2-3" }
+  - { name: junior_suite, size_sqm: 38, beds: [king, sofa_bed], features: [two_spaces], views: [garden_optional], occupancy: "2-3" }
+  - { name: master_suite, size_sqm: "39-45", beds: [king, two_king_optional], features: [balcony, whirlpool], views: [sea], occupancy: "2-4" }
+- booking: { engine: book_onlinenow, url: "https://demo.book-onlinenow.net/" }
+ - accessibility: { rooms_accessible: "yes" }
+- notes: ["mark question marks if not confirmed on website"]

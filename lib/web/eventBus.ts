@@ -1,8 +1,8 @@
 // Path: /root/begasist/lib/web/eventBus.ts
 type EventPayload =
-  | { type: "message"; sender: "user" | "assistant"; text: string; timestamp: string }
+  | { type: "message"; sender: "user" | "assistant"; text: string; timestamp: string; rich?: { type: string; data?: any } }
   | { type: "status"; value: "open" | "pending" | "closed"; timestamp: string }
-  | { type: string; [k: string]: any };
+  | { type: string;[k: string]: any };
 
 const listeners = new Map<string, Set<(ev: EventPayload) => void>>();
 
@@ -27,6 +27,6 @@ export function emitToConversation(conversationId: string, ev: EventPayload) {
   for (const fn of set) {
     try {
       fn(ev);
-    } catch {}
+    } catch { }
   }
 }

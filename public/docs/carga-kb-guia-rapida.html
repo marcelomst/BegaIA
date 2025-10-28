@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guía rápida: carga de KB</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;line-height:1.5;margin:2rem;color:#111}
+    h1{font-size:1.5rem;margin-bottom:.5rem}
+    h2{font-size:1.1rem;margin-top:1.25rem}
+    code{background:#f6f8fa;padding:.1rem .25rem;border-radius:.25rem}
+    .card{border:1px solid #e5e7eb;border-radius:.5rem;padding:1rem;margin:.75rem 0;background:#fff}
+    ul{margin:.25rem 0 .75rem 1.25rem}
+    a{color:#2563eb;text-decoration:underline}
+  </style>
+</head>
+<body>
+  <h1>Guía rápida para operadores – Carga de documentos de conocimiento</h1>
+  <p>Pasos sugeridos para cargar documentos en el panel admin, alineados a categorías (nodos del grafo):</p>
+
+  <div class="card">
+    <h2>1) Elegir categoría</h2>
+    <p>En “Crear documento simple”, seleccioná la <strong>categoría</strong> (por ejemplo: <em>reservation</em>, <em>amenities</em>, etc.). Esto ayuda al enrutamiento y a la clasificación.</p>
+  </div>
+
+  <div class="card">
+    <h2>2) Usar atajos de plantilla</h2>
+    <p>Con la categoría elegida, elegí un <strong>atajo</strong> para prellenar el título y el cuerpo. Ajustá el contenido con los datos reales del hotel.</p>
+    <p>También podés descargar la plantilla base: <a href="/templates/hotel-knowledge-template.textonly.es.txt" target="_blank" rel="noopener">Plantilla ES (text-only)</a>.</p>
+  </div>
+
+  <div class="card">
+    <h2>3) Escribir claro y estructurado</h2>
+    <ul>
+      <li>Usá listas y encabezados cortos.</li>
+      <li>Evitá dejar signos “?”: si algo es opcional, indicá “opcional” o “no aplica”.</li>
+      <li>Incluí horarios, teléfonos y enlaces cuando apliquen.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>4) Validar</h2>
+    <p>Si sos técnico, validá el repositorio con el validador:</p>
+    <pre><code>pnpm validate:knowledge</code></pre>
+    <p>Esto detecta placeholders sin completar y otros detalles.</p>
+  </div>
+
+  <div class="card">
+    <h2>5) Subir el documento</h2>
+    <p>Adjuntá el archivo o usá “Crear documento simple”. Revisá el <em>preview</em> y confirmá.</p>
+  </div>
+
+  <p>Tip: mantené separados los documentos por temática (reservas, amenities, facturación, soporte) para mejorar la precisión del bot.</p>
+</body>
+</html>

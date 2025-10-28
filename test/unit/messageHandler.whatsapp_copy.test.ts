@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 process.env.STRUCTURED_ENABLED = "false";
+// Desactivar dispatch remoto por defecto para evitar dependencia de Redis en este test
+process.env.WA_REMOTE_DISPATCH = '0';
+// Forzar socket listo para simplificar branch (evita intento de publish + fallback)
+vi.mock('@/lib/adapters/whatsappBaileysAdapter', () => ({
+    isWhatsAppReady: () => true,
+}));
 
 vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
 vi.mock("@/lib/redis", async () => await import("../mocks/redis"));

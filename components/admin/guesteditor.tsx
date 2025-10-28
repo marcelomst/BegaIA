@@ -1,4 +1,8 @@
-import { Switch } from "@/components/ui/switch"; // Cambia el import según tu design system
+import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from "react";
+import type { Guest, GuestMode } from "@/types/guest";
+import { LoaderCircle, Edit2 } from "lucide-react";
+import { fetchGuest, saveGuest } from "@/lib/api/guests";
 
 // --- Edición de perfil guest ---
 function GuestEditor({
@@ -10,7 +14,7 @@ function GuestEditor({
   guestId: string;
   onSaved?: () => void;
 }) {
-  const [profile, setProfile] = useState<Guest | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [editName, setEditName] = useState("");
   const [editing, setEditing] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -24,7 +28,7 @@ function GuestEditor({
   }
 
   useEffect(() => {
-    fetchGuest(hotelId, guestId).then((g) => {
+  fetchGuest(hotelId, guestId).then((g: any) => {
       if (!g) {
         setProfile(null);
         setNotFound(true);

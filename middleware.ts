@@ -35,8 +35,12 @@ const PUBLIC_PATHS = [
   "/api/users/validate-reset-token",
   "/api/test",
   "/api/chat",
+  // 🔎 Endpoint de debug de fast-path
+  "/api/debug/fastpath",
   "/api/upload-hotel-document",
   "/api/hotel-documents",
+  "/api/hotel-document-details",
+  "/api/hotel-document-original",
   "/api/conversations/list",
   "/api/messages/by-conversation",
   "/api/whatsapp/qr",
@@ -44,6 +48,9 @@ const PUBLIC_PATHS = [
   "/api/users/reset-password",
   "/api/channel-status",
   "/api/email/polling",
+
+  // Permitir acceso público a la configuración del hotel desde el panel
+  "/api/config",
 
   // Simuladores
   "/api/simulate",

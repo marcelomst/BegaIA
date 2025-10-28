@@ -1,34 +1,6 @@
 [
   {
-    "category": "reservation",
-    "promptKey": null
-  },
-  {
-    "category": "amenities",
-    "promptKey": "room_info"
-  },
-  {
-    "category": "amenities",
-    "promptKey": "room_info"
-  },
-  {
-    "category": "reservation",
-    "promptKey": "room_info"
-  },
-  {
-    "category": "amenities",
-    "promptKey": "parking_info"
-  },
-  {
     "category": "retrieval_based",
-    "promptKey": null
-  },
-  {
-    "category": "support",
-    "promptKey": "contact_info"
-  },
-  {
-    "category": "support",
-    "promptKey": "privacy_policy"
+    "promptKey": "room_info_img"
   }
 ]

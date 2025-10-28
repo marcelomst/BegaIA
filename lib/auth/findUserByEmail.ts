@@ -1,7 +1,7 @@
 // /lib/auth/findUserByEmail.ts
 
 import { getHotelConfigCollection } from "@/lib/config/hotelConfig.server";
-import { HotelUser } from "@/types/user";
+import type { HotelUser } from "@/types/user";
 
 /**
  * Busca TODOS los usuarios activos con login local por email,

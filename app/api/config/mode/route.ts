@@ -1,7 +1,7 @@
 // /app/api/config/mode/route.ts
 import { NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
-import { ChannelMode } from "@/types/channel";
+import type { ChannelMode } from "@/types/channel";
 import { parseChannel } from "@/lib/utils/parseChannel";
 
 export async function POST(req: Request) {

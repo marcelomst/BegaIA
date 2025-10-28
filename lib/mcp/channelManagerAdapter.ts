@@ -1,6 +1,6 @@
-import { UpdateReservationInput } from "./types";
+import type { UpdateReservationInput } from "./types";
 // Path: /root/begasist/lib/mcp/channelManagerAdapter.ts
-import {
+import type {
   ChannelManagerAdapter,
   AvailabilityQuery,
   AvailabilityItem,

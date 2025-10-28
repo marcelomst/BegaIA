@@ -1,0 +1,13 @@
+# Desayuno y bar
+
+Categoria: amenities
+PromptKey: breakfast_bar
+
+Resumen: Información sobre desayuno y bar del hotel.
+
+Cuerpo:
+- Desayuno: servido en el bar con vista al jardín; variedad de opciones; horario 07:30–10:30.
+- Bar: coctelería clásica y bebidas sin alcohol; abierto 17:00–23:30.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

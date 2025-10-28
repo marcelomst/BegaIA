@@ -11,7 +11,8 @@ import { DarkCard } from "@/components/ui/DarkCard";
 import Link from "next/link";
 import ChannelMessages from "@/components/admin/ChannelMessages";
 import { getCurrentUserEmail } from "@/lib/auth/getCurrentUserEmail";
-import { Channel, ALL_CHANNELS, ChannelMode } from "@/types/channel";
+import { ALL_CHANNELS } from "@/types/channel";
+import type { Channel, ChannelMode } from "@/types/channel";
 import { useState } from "react";
 import WhatsAppConfigForm from "@/components/admin/WhatsAppConfigForm";
 

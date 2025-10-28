@@ -1,6 +1,6 @@
 // components/ui/card.tsx
 import { cn } from "@/lib/utils";
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
 export function Card({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (

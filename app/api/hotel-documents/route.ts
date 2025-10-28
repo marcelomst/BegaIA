@@ -15,8 +15,8 @@ type UIRow = {
   originalName?: string | null;
   promptKey?: string | null;
   category?: string | null;
-  language?: string | null;
-  textPreview?: string | null;
+  language?: string | null;       // preferimos targetLang si existe
+  textPreview?: string | null;    // snippet del primer chunk
 };
 
 export async function GET(req: NextRequest) {
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
           originalName: promptKey, // el UI usa originalName en la query de detalles
           promptKey,
           category: d.category ?? null,
-          language: d.langIso1 ?? d.language ?? null,
+          language: d.targetLang ?? d.langIso1 ?? d.language ?? null,
           textPreview: typeof d.text === "string" ? d.text.slice(0, 160) : null,
         };
       });
@@ -76,6 +76,8 @@ export async function GET(req: NextRequest) {
           uploader: doc.uploader ?? null,
           uploadedAt: doc.uploadedAt ?? null,
           originalName,
+          language: doc.targetLang ?? doc.detectedLang ?? null,
+          textPreview: null,
         };
         byKey.set(key, row);
       }
@@ -86,6 +88,9 @@ export async function GET(req: NextRequest) {
       row.chunks += 1;
       if (doc.uploadedAt && (!row.uploadedAt || new Date(doc.uploadedAt) > new Date(row.uploadedAt))) {
         row.uploadedAt = doc.uploadedAt;
+      }
+      if (!row.textPreview && typeof doc.text === 'string' && doc.text.length > 0) {
+        row.textPreview = doc.text.slice(0, 160);
       }
     }
 

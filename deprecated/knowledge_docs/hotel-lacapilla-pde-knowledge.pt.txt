@@ -1,0 +1,78 @@
+Hotel: La Capilla (Punta del Este, Uruguai)
+Data: 2025-10-13
+Fontes:
+- https://demo.com.uy/pde/
+- https://demo.com.uy/pde/our-hotel/ (EN)
+- https://demo.com.uy/pde/servicios/ (ES)
+- https://demo.com.uy/pde/accommodation/standard-room/
+- https://demo.com.uy/pde/accommodation/luxury-suite-room-2/
+- https://demo.com.uy/pde/accommodation/junior-suite/
+- https://demo.com.uy/pde/accommodation/suite-y-master-suites/
+
+RESUMO (PT)
+Hotel contemporâneo com ~55 quartos/suítes, focado em conforto e design. Dispõe de piscina aquecida interna/externa, saunas (seca e úmida), duchas escocesas, hidromassagem, academia e bar com vista para o jardim (café da manhã). Quartos amplos; alguns com varanda, vista para o jardim ou vista para o mar.
+
+INFO RÁPIDA (PT)
+- Categorias: Standard (~22 m²), Superior (~26–40 m²), Junior Suite (~38 m², dois ambientes), Master Suites (~39–45 m²)
+- Tecnologia: Wi‑Fi de alta velocidade; TVs 4K (aprox. 58–65” conforme categoria)
+- Banho: ducha escocesa; banheira com hidromassagem nas Master Suites
+- Climatização/amenities: ar-condicionado, frigobar, serviço de quarto, não fumante
+- Bem‑estar/lazer: piscina aquecida interna/externa, saunas, duchas escocesas, hidromassagem, massagens (com agendamento), academia
+- Acessibilidade: o site menciona quartos 100% acessíveis
+- Reservas: https://demo.book-onlinenow.net/
+
+QUARTOS (PT)
+- Standard (~22 m²)
+  - Camas: 2 twin ou 1 King; opção de quartos conjugados para famílias; alguns com varanda
+  - Itens: Wi‑Fi, TV 4K, área de trabalho, ar-condicionado, frigobar, ducha escocesa, serviço de quarto, não fumante
+- Suite Superior (~26–40 m²)
+  - Cama King; vista para o jardim. Algumas com varanda. Unidades de ~40 m² podem aceitar cama extra (ocupação tripla)
+  - Itens: Wi‑Fi, TV 4K, ar-condicionado, frigobar, ducha escocesa, serviço de quarto, não fumante
+- Junior Suite (~38 m²)
+  - Dois ambientes: dormitório com cama King + estar com sofá‑cama de 2 lugares, independentes
+  - Itens: Wi‑Fi, TV 4K, ar-condicionado, frigobar, ducha escocesa, serviço de quarto, não fumante
+- Master Suites (~39–45 m²)
+  - Setor A; vista para o mar, varanda ampla; banheira com hidromassagem. Em alguns casos, 2 camas King (2x2 m) e TV maior
+  - Itens: Wi‑Fi, ar-condicionado, frigobar, ducha escocesa, serviço de quarto, não fumante
+
+SERVIÇOS DO HOTEL (PT)
+- Piscina aquecida interna e externa
+- Saunas seca e úmida
+- Duchas escocesas; hidromassagem interna e externa
+- Massagens com agendamento
+- Academia equipada
+- Bar com vista para o jardim (café da manhã)
+
+LOCALIZAÇÃO E CONTATO (PT)
+- Cidade: Punta del Este, Uruguai
+- Contato: formulário oficial
+  - Espanhol: https://demo.com.uy/pde/contact-us/
+  - Inglês: https://demo.com.uy/pde/en/contact-us-2/
+- Endereço/telefone: não visíveis como texto nas páginas revisadas; confirmar via formulário ou motor de reservas
+
+RESERVAS E TARIFAS (PT)
+- Motor: https://demo.book-onlinenow.net/
+- Tarifas: variam por data e disponibilidade
+
+POLÍTICAS (PT)
+- Check‑in/Check‑out: não publicados nas páginas revisadas
+- Fumantes: quartos não fumantes
+- Pets/estacionamento: não especificado; consultar
+- Saúde: o site menciona sinalização e medidas; confirmar vigência
+
+RESUMOS POR CATEGORIA (PT)
+- Standard: Funcional e conveniente; configuração twin/king e opção de conjugados para famílias. Bom para corporativo.
+- Superior: Conforto equilibrado, várias com varanda e vista para o jardim. Algumas aceitam cama extra (3 pax).
+- Junior Suite: Dois ambientes independentes; ideal para famílias ou estadias longas.
+- Master Suite: Vista para o mar, varanda e hidromassagem; a opção mais exclusiva.
+
+MAPA DE ENTIDADES (PT)
+- comodidades: [wifi, tv_4k, ducha_escocesa, ar_condicionado, frigobar, servico_de_quarto, nao_fumante, piscina_aquecida, sauna_umida, sauna_seca, hidromassagem, massagens, academia, bar_cafe_da_manha]
+- tipos_de_quarto:
+  - { nome: standard, tamanho_m2: 22, camas: [twin, king], caracteristicas: [conjugados, varanda_opcional], visao: [jardim_opcional], ocupacao: "2" }
+  - { nome: superior, tamanho_m2: "26-40", camas: [king, cama_extra_opcional], caracteristicas: [varanda_opcional], visao: [jardim], ocupacao: "2-3" }
+  - { nome: junior_suite, tamanho_m2: 38, camas: [king, sofa_cama], caracteristicas: [dois_ambientes], visao: [jardim_opcional], ocupacao: "2-3" }
+  - { nome: master_suite, tamanho_m2: "39-45", camas: [king, duas_king_opcional], caracteristicas: [varanda, hidromassagem], visao: [mar], ocupacao: "2-4" }
+- reservas: { motor: book_onlinenow, url: "https://demo.book-onlinenow.net/" }
+ - acessibilidade: { quartos_acessiveis: "sim" }
+- notas: ["marcar ? se não confirmado no site"]

@@ -1,3 +1,22 @@
+import { Client } from "cassandra-driver";
+/**
+ * Devuelve una instancia de Cassandra Client para CQL, usando las mismas envs y validaciones.
+ */
+export function getCassandraClient() {
+  const host = requiredEnv("ASTRA_DB_HOST");
+  const datacenter = requiredEnv("ASTRA_DB_DATACENTER");
+  const keyspace = requiredEnv("ASTRA_DB_KEYSPACE");
+  const username = requiredEnv("ASTRA_DB_CLIENT_ID");
+  const password = requiredEnv("ASTRA_DB_CLIENT_SECRET");
+
+  return new Client({
+    contactPoints: [host],
+    localDataCenter: datacenter,
+    keyspace,
+    credentials: { username, password },
+    sslOptions: { rejectUnauthorized: false },
+  });
+}
 // Path: /root/begasist/lib/astra/connection.ts
 
 import { DataAPIClient } from "@datastax/astra-db-ts";

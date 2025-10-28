@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import { randomUUID } from "crypto";
 import { sendEmail } from "@/lib/email/sendEmail";
+import { resolveEmailCredentials, EMAIL_SENDING_ENABLED } from "@/lib/email/resolveEmailCredentials";
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
 import type { EmailConfig } from "@/types/channel";
 
@@ -21,14 +22,17 @@ export async function POST(req: NextRequest) {
 
   // Nuevo: tomamos el emailConfig desde channelConfigs
   const emailConfig = config.channelConfigs?.email as EmailConfig | undefined;
-  if (
-    !emailConfig ||
-    !emailConfig.smtpHost ||
-    !emailConfig.smtpPort ||
-    !emailConfig.dirEmail ||
-    !emailConfig.password
-  ) {
+  if (!emailConfig || !emailConfig.smtpHost || !emailConfig.smtpPort || !emailConfig.dirEmail) {
     return NextResponse.json({ error: "Configuración SMTP de canal email incompleta" }, { status: 500 });
+  }
+
+  const creds = resolveEmailCredentials(emailConfig);
+  if (!creds || creds.source === "none" || !creds.pass) {
+    return NextResponse.json({ error: "Credenciales SMTP no disponibles (secretRef/password)" }, { status: 500 });
+  }
+
+  if (!EMAIL_SENDING_ENABLED) {
+    return NextResponse.json({ error: "Envío de emails deshabilitado temporalmente" }, { status: 503 });
   }
 
   const user = config.users.find((u) => u.email === email);
@@ -46,11 +50,11 @@ export async function POST(req: NextRequest) {
 
   await sendEmail(
     {
-      host: emailConfig.smtpHost,
-      port: emailConfig.smtpPort,
-      user: emailConfig.dirEmail,      // ahora "dirEmail" es el correo usado para enviar
-      pass: emailConfig.password,
-      secure: emailConfig.secure ?? false,
+      host: creds.host,
+      port: creds.port,
+      user: creds.user,
+      pass: creds.pass,
+      secure: creds.secure ?? false,
     },
     email,
     "Verificación de cuenta",

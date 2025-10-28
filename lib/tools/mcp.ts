@@ -32,6 +32,7 @@ export const CheckAvailabilityOutput = z.object({
     availability: z.number().int().nonnegative().optional(),
   })).optional(),
   error: z.string().optional(),
+  toolCall: z.any().optional(), // Permite persistir el toolCall si está presente
 });
 export type CheckAvailabilityOutput = z.infer<typeof CheckAvailabilityOutput>;
 

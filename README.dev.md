@@ -4,6 +4,15 @@ Voy a hacer un **análisis crítico enfocado en el aspecto RAG (Retrieval-Augmen
 
 ---
 
+## Nota rápida: flag FORCE_GENERATION
+
+Para validar la UI end-to-end con generación del asistente (evitando el fast-path de ACKs), podés usar la variable de entorno `FORCE_GENERATION`.
+
+- `FORCE_GENERATION=1` desactiva el fast-path incluso en entornos de test o cuando el proceso no detecta `OPENAI_API_KEY` en algunos caminos del handler. Úsalo solo en desarrollo.
+- Agregamos logs de arranque en `app/api/chat/route.ts` y en `lib/handlers/messageHandler.ts` que indican si el fast-path está activo y por qué (sin exponer secretos).
+
+En `.env.example` quedó un placeholder `FORCE_GENERATION=0` con comentario.
+
 ## ✔️ **Lo que ya tenés implementado (respecto a RAG/Bot):**
 
 ### 1. **Arquitectura y Grafo Conversacional**
@@ -170,3 +179,141 @@ Ejemplo de ACK en replay idempotente:
   "deduped": true
 }
 ```
+
+## 🗓️ Matriz de decisión: Prompts vs Confirmaciones de Fechas
+
+Esta tabla resume la lógica (centralizada en `consolidateDates` + heurísticas del `messageHandler`) para decidir si el bot:
+
+1. Pide una fecha faltante.
+2. Pide ambas fechas.
+3. Confirma un rango nuevo.
+4. Mantiene un prompt previo (evitando sobre‑escrituras prematuras).
+
+| Condición del turno actual                        | Historial relevante               | ¿Usuario dio token de fecha en este turno? | Resultado                       | Motivo clave                         |
+| ------------------------------------------------- | --------------------------------- | ------------------------------------------ | ------------------------------- | ------------------------------------ |
+| “change dates” / “fechas” (sin fechas)            | —                                 | No                                         | Prompt pedir ambas              | Intención general sin datos          |
+| “modificar el check in” (sin fecha)               | —                                 | No                                         | Prompt pedir check-in           | Lado único sin dato nuevo            |
+| “modificar el check out” (sin fecha)              | —                                 | No                                         | Prompt pedir check-out          | Ídem lado opuesto                    |
+| Una sola fecha con lado implícito                 | Último AI pidió lado opuesto      | Sí (1)                                     | Prompt pedir faltante           | Completa formulario incremental      |
+| Dos fechas completas en un mensaje                | —                                 | Sí (≥2)                                    | Confirmación rango              | Usuario definió rango                |
+| Dos fechas desordenadas                           | —                                 | Sí (≥2)                                    | Confirmación rango ordenado     | Normalización cronológica            |
+| Nueva fecha aislada cambiando solo un lado        | Rango previo completo             | Sí (1)                                     | Prompt pedir lado faltante      | Evita rango híbrido ambiguo          |
+| Mensaje sin fechas tras prompt “¿fecha check-in?” | Prompt activo preservado          | No                                         | Mantener prompt                 | Protección contra override prematuro |
+| dd/mm corto tras “nuevo check in DD/MM/YYYY”      | Mensaje previo con nuevo check-in | Sí (short)                                 | Confirmación rango (hereda año) | Heurística short-date follow-up      |
+| Afirmación (“sí”, “ok”) tras oferta de verificar  | AI ofreció verificar              | No                                         | ACK “verifico disponibilidad …” | Acción confirmada requiere ACK       |
+
+Notas:
+
+- “Token de fecha” incluye dd/mm y dd/mm/yyyy; dd/mm hereda año del contexto.
+- Preservación de prompt: flag `preserveAskCheckInPrompt` evita que una confirmación sobreescriba el pedido de check-in.
+- Confirmación estándar multi‑idioma: “Anoté nuevas fechas: dd/mm/aaaa → dd/mm/aaaa…”.
+
+### Flujo simplificado
+
+1. Handler genera prompt inicial si faltan fechas.
+2. Llama a `consolidateDates` con `prevSlots`, `nextSlots` y flag de preservación.
+3. Se aplican detecciones (multi-fecha, short-date, follow-up, guardas).
+4. Se devuelve texto final + slots mutados.
+5. Handler restaura prompt preservado si corresponde.
+
+### Extensiones futuras
+
+| Mejora                  | Descripción                          | Beneficio      |
+| ----------------------- | ------------------------------------ | -------------- |
+| Validar noches mínimas  | Rechazar check-out <= check-in       | UX consistente |
+| Formato regional        | Detectar mm/dd vs dd/mm              | Menos errores  |
+| Lenguaje natural fechas | Integrar `chrono-node` (ya presente) | Flexibilidad   |
+| Telemetría decisiones   | Contar prompts vs confirmaciones     | Ajuste fino    |
+
+---
+
+## 🔐 Gestión de credenciales SMTP con secretRef (Arquitectura nueva)
+
+### Objetivo
+
+Eliminar el password SMTP de la colección `hotel_config` y resolverlo dinámicamente vía variables de entorno (o secret manager) usando un identificador lógico `secretRef`.
+
+### Tipo `EmailConfig` relevante
+
+```
+email: {
+  dirEmail: string;
+  smtpHost: string; smtpPort: number;
+  secretRef?: string;          // recomendado
+  password?: string;           // legacy (en proceso de eliminación)
+  credentialsStrategy?: 'ref' | 'inline';
+  secure?: boolean;
+}
+```
+
+### Convención de variables de entorno
+
+`EMAIL_PASS__<SECRET_REF_NORMALIZADO>`
+
+- Normalización: sustituir caracteres no alfanuméricos por `_`, uppercase.
+- Ejemplos:
+  - `hotel999-main` → `EMAIL_PASS__HOTEL999_MAIN`
+  - `h1` → `EMAIL_PASS__H1`
+
+### Resolución en runtime
+
+`resolveEmailCredentials(emailCfg)` devuelve `{ pass, source: env|inline|none, reason? }` con prioridad:
+
+1. secretRef → `process.env`
+2. password inline (fallback migración)
+3. none (error)
+
+Flag global: `EMAIL_SENDING_ENABLED=true|false` (atajo para cortar envíos ante incidentes).
+
+### Flujo de envío unificado
+
+1. Cargar hotelConfig.
+2. Resolver credenciales.
+3. Verificar flag global.
+4. Enviar vía `sendEmail`.
+5. Registrar mensaje audit (AstraDB).
+
+### Migración (scripts incluidos)
+
+1. `pnpm run email:migrate:secretref` → asigna `<hotelId>-main` si falta.
+2. Exportar variables de entorno por hotel.
+3. `pnpm run email:check:secrets` → valida estados (`env-ok`, `fallback-inline`, `unresolved`).
+4. Pruebas controladas (verificación / copia de reserva).
+5. `pnpm run email:cleanup:inline` → elimina password si secretRef+env ok.
+6. (Hard-fail) Update bloquea `strategy=ref` sin env var (error `email_secret_ref_env_missing`).
+
+### Endpoint de auditoría
+
+`GET /api/admin/email/audit` → lista hoteles y `source` (env/inline/none) + flags `fallbackInline` / `unresolved`.
+
+### Warnings posibles al actualizar hotel
+
+- `password_inline_removed` (se forzó eliminación porque strategy=ref)
+- `secretRef_removed_fallback_to_inline`
+- `email_credentials_unresolved`
+
+### Buenas prácticas
+
+- Siempre definir primero `secretRef`, luego la variable de entorno, recién entonces activar `credentialsStrategy='ref'`.
+- Evitar múltiples secretRefs por hotel salvo rotaciones planificadas (usar uno principal y cambiar la variable).
+- No loggear `pass`; loggear sólo `source` y `hotelId`.
+
+### Roadmap futuro
+
+| Fase | Acción                                | Estado       |
+| ---- | ------------------------------------- | ------------ |
+| 1    | Resolver + scripts migración          | Hecho        |
+| 2    | Hard-fail strategy ref sin env        | Hecho        |
+| 3    | Remover passwords residuales          | Script listo |
+| 4    | Telemetría de source                  | Pendiente    |
+| 5    | Eliminación definitiva campo password | Pendiente    |
+| 6    | Integración Secret Manager (K8s)      | Futuro       |
+
+### Rotación rápida (playbook)
+
+1. Crear nueva variable `EMAIL_PASS__HOTEL999_MAIN=NEWPASS`.
+2. Reiniciar contenedor / despliegue.
+3. Probar envío (endpoint health futuro).
+4. Invalidar credencial anterior en proveedor SMTP.
+
+---

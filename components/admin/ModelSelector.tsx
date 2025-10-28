@@ -3,7 +3,7 @@
 
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { CurationModel } from "@/types/channel";
+import type { CurationModel } from "@/types/channel";
 
 export interface ModelSelectorProps {
   hotelId: string;

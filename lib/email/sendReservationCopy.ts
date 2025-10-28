@@ -1,5 +1,6 @@
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { sendEmail } from "@/lib/email/sendEmail";
+import { resolveEmailCredentials, EMAIL_SENDING_ENABLED } from "@/lib/email/resolveEmailCredentials";
 import PDFDocument from "pdfkit"; // Usado primariamente; fallback a pdf-lib si falla métricas AFM
 import { saveMessageToAstra } from "@/lib/db/messages";
 import type { Channel } from "@/types/channel";
@@ -28,9 +29,32 @@ export async function sendReservationCopy(opts: SendReservationCopyOptions): Pro
     const { hotelId, to, summary, attachPdf = true, conversationId, channel } = opts;
     const config = await getHotelConfig(hotelId);
     const emailCfg: any = config?.channelConfigs?.email;
-    if (!emailCfg?.smtpHost || !emailCfg?.smtpPort || !emailCfg?.dirEmail || !emailCfg?.password) {
+    if (!emailCfg?.smtpHost || !emailCfg?.smtpPort || !emailCfg?.dirEmail) {
         throw new Error("Email channel not configured for this hotel");
     }
+    if (!EMAIL_SENDING_ENABLED) {
+        throw new Error("EMAIL_SENDING_DISABLED");
+    }
+    const creds = resolveEmailCredentials(emailCfg);
+    if (!creds || creds.source === 'none' || !creds.pass) {
+        console.error('[email-copy] Credenciales faltantes', {
+            hotelId,
+            hasConfig: !!emailCfg,
+            source: creds?.source,
+            reason: creds?.reason,
+            secretRef: emailCfg?.secretRef || null,
+        });
+        throw new Error("Email credentials not available (secretRef/password missing)");
+    }
+    console.log('[email-copy] Usando credenciales', {
+        hotelId,
+        user: creds.user,
+        host: creds.host,
+        port: creds.port,
+        secure: creds.secure ?? false,
+        source: creds.source,
+        secretRef: emailCfg.secretRef || null,
+    });
 
     const subject = `Copia de tu reserva - ${config?.hotelName || "Hotel"}`;
     const lines: string[] = [];
@@ -52,15 +76,28 @@ export async function sendReservationCopy(opts: SendReservationCopyOptions): Pro
         // Sanitizador simple para caracteres fuera de WinAnsi (ej: flecha →) cuando usamos fuentes estándar embebidas
         const sanitizeForPdf = (txt: string) => {
             if (!txt) return txt;
-            return txt
+            // Reemplazos simples primero
+            let out = txt
                 .replace(/\u2192/g, '->') // flecha larga
                 .replace(/→/g, '->')
                 // Reemplazos comunes de caracteres tipográficos que a veces fallan en WinAnsi
                 .replace(/[“”«»]/g, '"')
                 .replace(/[‘’]/g, "'")
-                .replace(/–|—/g, '-')
-                // Evitar caracteres de control extraños
-                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+                .replace(/–|—/g, '-');
+
+            // Evitar caracteres de control no imprimibles sin usar regex con rangos de control
+            // Equivalente a eliminar \x00-\x08, \x0B, \x0C, \x0E-\x1F (permitiendo tab 0x09, LF 0x0A, CR 0x0D)
+            const filtered = Array.from(out)
+                .filter((ch) => {
+                    const code = ch.charCodeAt(0);
+                    if (code <= 0x1F) {
+                        // permitir tab, newline y carriage return
+                        return code === 0x09 || code === 0x0A || code === 0x0D;
+                    }
+                    return true;
+                })
+                .join('');
+            return filtered;
         };
         try {
             const doc = new PDFDocument({ margin: 50 });
@@ -129,23 +166,42 @@ export async function sendReservationCopy(opts: SendReservationCopyOptions): Pro
         console.log('[email-copy.pdf] omitido por EMAIL_ATTACH_PDF flag (adjuntos deshabilitados)');
     }
 
+    let sendErr: any;
     try {
-        await sendEmail(
-            {
-                host: emailCfg.smtpHost,
-                port: emailCfg.smtpPort,
-                user: emailCfg.dirEmail,
-                pass: emailCfg.password,
-                secure: emailCfg.secure ?? false,
-            },
-            to,
-            subject,
-            lines.join("\n"),
-            attachments
-        );
+        await sendEmail({
+            host: creds.host,
+            port: creds.port,
+            user: creds.user,
+            pass: creds.pass,
+            secure: creds.secure ?? false,
+        }, to, subject, lines.join("\n"), attachments);
     } catch (err) {
-        console.warn('[email-copy] fallo en sendEmail:', (err as any)?.message || err, 'attachments?', !!attachments);
-        throw err;
+        sendErr = err;
+        const rawMsg = (err as any)?.message || String(err);
+        const invalidLogin = /invalid login|username and password not accepted|535-5\.7\.8/i.test(rawMsg);
+        console.warn('[email-copy] fallo en sendEmail primer intento:', rawMsg, 'attachments?', !!attachments);
+        // Fallback: si cred.source es inline y existe EMAIL_PASS distinto → reintentar
+        if (invalidLogin && creds.source === 'inline') {
+            const alt = process.env.EMAIL_PASS;
+            if (alt && alt !== creds.pass) {
+                console.log('[email-copy] Reintentando con EMAIL_PASS (fallback)');
+                try {
+                    await sendEmail({
+                        host: creds.host,
+                        port: creds.port,
+                        user: creds.user,
+                        pass: alt,
+                        secure: creds.secure ?? false,
+                    }, to, subject, lines.join("\n"), attachments);
+                    console.log('[email-copy] Envío exitoso tras fallback EMAIL_PASS');
+                    sendErr = null;
+                } catch (err2) {
+                    console.warn('[email-copy] Fallback EMAIL_PASS también falló:', (err2 as any)?.message || err2);
+                    sendErr = err2;
+                }
+            }
+        }
+        if (sendErr) throw sendErr;
     }
 
     // Persist an audit message for traceability

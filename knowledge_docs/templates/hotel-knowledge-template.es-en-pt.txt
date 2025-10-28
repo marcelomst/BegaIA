@@ -1,0 +1,64 @@
+Plantilla de Base de Conocimiento de Hotel (ES/EN/PT)
+
+INSTRUCCIONES PARA EL OPERADOR
+- Fuentes: usar solo información pública (web oficial, OTA del hotel). Reescribir, no copiar literalmente.
+- Campos dinámicos (tarifas, horarios, políticas) marcar como “a confirmar / a confirmar / a confirmar” (ES/EN/PT) si no hay fuente clara.
+- Mantener trazabilidad: lista de URLs consultadas y fecha.
+- Entregar archivos por idioma (ES, EN, PT) y, si aplica, un documento combinado para QA.
+
+METADATA
+- Hotel: <Nombre comercial>
+- Ubicación: <Ciudad, País>
+- Fecha: <YYYY-MM-DD>
+- Idiomas: es, en, pt
+- Fuentes (URLs):
+  - <URL 1>
+  - <URL 2>
+
+SECCIÓN 1 — RESUMEN (ES)
+SECTION 1 — SUMMARY (EN)
+SEÇÃO 1 — RESUMO (PT)
+
+SECCIÓN 2 — INFO RÁPIDA (ES)
+SECTION 2 — QUICK FACTS (EN)
+SEÇÃO 2 — INFO RÁPIDA (PT)
+
+SECCIÓN 3 — HABITACIONES (ES)
+SECTION 3 — ROOMS (EN)
+SEÇÃO 3 — QUARTOS (PT)
+
+SECCIÓN 4 — SERVICIOS DEL HOTEL (ES)
+SECTION 4 — HOTEL SERVICES (EN)
+SEÇÃO 4 — SERVIÇOS DO HOTEL (PT)
+
+SECCIÓN 5 — UBICACIÓN Y CONTACTO (ES)
+SECTION 5 — LOCATION & CONTACT (EN)
+SEÇÃO 5 — LOCALIZAÇÃO E CONTATO (PT)
+
+SECCIÓN 6 — RESERVAS Y TARIFAS (ES)
+SECTION 6 — BOOKINGS & RATES (EN)
+SEÇÃO 6 — RESERVAS E TARIFAS (PT)
+
+SECCIÓN 7 — POLÍTICAS (ES)
+SECTION 7 — POLICIES (EN)
+SEÇÃO 7 — POLÍTICAS (PT)
+
+SECCIÓN 8 — RESÚMENES POR CATEGORÍA (ES)
+SECTION 8 — CATEGORY SUMMARIES (EN)
+SEÇÃO 8 — RESUMOS POR CATEGORIA (PT)
+
+SECCIÓN 9 — ENTITY MAP (ES)
+SECTION 9 — ENTITY MAP (EN)
+SEÇÃO 9 — MAPA DE ENTIDADES (PT)
+
+SUGERENCIAS DE CAMPOS PARA ENTITY MAP (ES/EN/PT)
+- amenities / amenities / comodidades
+  [wifi, tv_4k, ducha_escocesa/scottish_shower/ducha_escocesa, ac, frigobar/minibar/frigobar, room_service/room_service/serviço_de_quarto, no_fumadores/non_smoking/não_fumante, piscina_climatizada/heated_pool/piscina_aquecida, sauna_húmeda/wet_sauna/sauna_úmida, sauna_seca/dry_sauna/sauna_seca, hidromasaje/hydromassage/hidromassagem, masajes/massages/massagens, gimnasio/gym/academia, bar_desayuno/bar_breakfast/bar_café_da_manhã]
+- room_types / room_types / tipos_de_quarto
+  - { name/nome: standard, size_sqm/tamanho_m2: ~22, beds/camas: [twin, king], features/características: [conectables/connecting/conjugados?, balcon/balcony/varanda?], views/vistas/visão: [jardín/garden/jardim?], occupancy/ocupación/ocupação: "2-3?" }
+  - { name/nome: superior, size_sqm/tamanho_m2: ~26-40, beds/camas: [king, extra?], features/características: [balcon/balcony/varanda?], views/vistas/visão: [jardín/garden/jardim], occupancy/ocupación/ocupação: "2-3" }
+  - { name/nome: junior_suite, size_sqm/tamanho_m2: ~38, beds/camas: [king, sofa_cama/sofa_bed/sofá_cama], features/características: [dos_ambientes/two_spaces/dois_ambientes], views/vistas/visão: [jardín/garden/jardim?], occupancy/ocupación/ocupação: "2-3" }
+  - { name/nome: master_suite, size_sqm/tamanho_m2: ~39-45, beds/camas: [king, 2x_king?/two_king?/duas_king?], features/características: [balcon/balcony/varanda, hidromasaje/whirlpool/hidromassagem], views/vistas/visão: [mar/sea/mar], occupancy/ocupación/ocupação: "2-4?" }
+- booking / booking / reservas: { engine: book_onlinenow, url: "<url>" }
+- accessibility / accessibility / acessibilidade: { rooms_accessible/quartos_acessíveis: "sí?/yes?/sim?" }
+- notes / notes / notas: ["marcar ? si no está confirmado / mark ? if unconfirmed / marcar ? se não confirmado"]

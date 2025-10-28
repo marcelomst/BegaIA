@@ -1,7 +1,8 @@
 // Path: /root/begasist/components/ui/SidebarGroup.tsx
 "use client";
 
-import { ReactNode, useState } from "react";
+import type { ReactNode } from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 

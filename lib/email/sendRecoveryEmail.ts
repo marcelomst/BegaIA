@@ -3,6 +3,7 @@
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { sendEmail } from "@/lib/email/sendEmail";
+import { resolveEmailCredentials, EMAIL_SENDING_ENABLED } from "@/lib/email/resolveEmailCredentials";
 
 /**
  * Envía email de recuperación de contraseña.
@@ -31,16 +32,18 @@ export async function sendRecoveryEmail(options: { email: string; token: string;
     <p>— El equipo de soporte</p>
   `;
 
-  await sendEmail(
-    {
-      host: emailConfig.smtpHost,
-      port: emailConfig.smtpPort,
-      user: emailConfig.dirEmail,
-      pass: emailConfig.password,
-      secure: emailConfig.secure ?? false,
-    },
-    email,
-    subject,
-    html
-  );
+  const creds = resolveEmailCredentials(emailConfig as any);
+  if (!creds || creds.source === "none" || !creds.pass) {
+    throw new Error(`Credenciales SMTP no disponibles para hotel ${hotelId}`);
+  }
+  if (!EMAIL_SENDING_ENABLED) {
+    throw new Error("EMAIL_SENDING_DISABLED");
+  }
+  await sendEmail({
+    host: creds.host,
+    port: creds.port,
+    user: creds.user,
+    pass: creds.pass,
+    secure: creds.secure ?? false,
+  }, email, subject, html);
 }

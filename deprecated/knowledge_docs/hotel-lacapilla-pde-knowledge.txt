@@ -1,0 +1,90 @@
+Extracted from:
+URLs: 
+- https://demo.com.uy/pde/
+- https://demo.com.uy/pde/en/la-capilla-en/
+- https://demo.com.uy/pde/en/our-hotel/
+- https://demo.com.uy/pde/en/servicios-2/
+- https://demo.com.uy/pde/accommodation/standard-room/
+- https://demo.com.uy/pde/accommodation/luxury-suite-room-2/
+- https://demo.com.uy/pde/accommodation/junior-suite/
+- https://demo.com.uy/pde/accommodation/suite-y-master-suites/
+Hotel: Hotel La Capilla (Punta del Este)
+Date: 2025-10-13
+Language: es
+
+RESUMEN
+Hotel de estilo contemporáneo en Punta del Este con aproximadamente 55 suites y habitaciones. Enfocado en confort y diseño, ofrece áreas de bienestar (piscina climatizada interior/exterior, saunas, duchas escocesas, hidromasaje), gimnasio y bar con desayuno, además de opciones de habitaciones amplias, algunas con balcón, vista al jardín o vista al mar (según categoría).
+
+INFORMACIÓN RÁPIDA
+- Habitaciones y suites: Standard (~22 m²), Superior (~26–40 m²), Junior Suite (~38 m², 2 ambientes), Master Suites (~39–45 m², con vista al mar)
+- Camas: King Size o 2 camas twin (según categoría); algunas unidades permiten cama extra o sofá cama
+- Tecnología: Wi‑Fi de alta velocidad; TV satelital 4K de gran formato (aprox. 58–65”, según categoría)
+- Baño: ducha tipo “escocesa”; algunas categorías con bañera de hidromasaje (Master Suites)
+- Climatización y amenities: aire acondicionado, frigobar, libre de humo, room service
+- Bienestar/ocio: piscina climatizada in/out, saunas seca y húmeda, duchas escocesas, hidromasaje interior/exterior, masajes con reserva, gimnasio
+- Accesibilidad: se mencionan habitaciones 100% accesibles
+- Reservas: motor de reservas externo (Book Online Now)
+- Idiomas del sitio: español e inglés
+- Políticas y horarios: no especificados públicamente en el sitio (verificar directamente con el hotel)
+
+HABITACIONES
+1) Standard Room (aprox. 22 m²)
+   - Configuración: 2 camas twin o 1 King (según disponibilidad)
+   - Ideal para: corporativo y familias; opción de habitaciones comunicadas; algunas con balcón
+   - Equipamiento: Wi‑Fi alta velocidad, TV 4K, área de trabajo, aire acondicionado, frigobar, ducha escocesa, room service, libre de humo
+
+2) Suite Superior (aprox. 26–40 m²)
+   - Configuración: cama King Size; vista destacada al jardín principal
+   - Variantes: algunas unidades con balcón; en las de 40 m² suele admitirse cama extra para ocupación triple
+   - Equipamiento: Wi‑Fi alta velocidad, TV 4K, aire acondicionado, frigobar, ducha escocesa, room service, libre de humo
+
+3) Junior Suite (aprox. 38 m²)
+   - Configuración: 2 ambientes diferenciados; dormitorio con cama King + estar con sofá cama de 2 plazas
+   - Privacidad: ambos ambientes con independencia
+   - Equipamiento: Wi‑Fi alta velocidad, TV 4K, aire acondicionado, frigobar, ducha escocesa, room service, libre de humo
+
+4) Master Suites (aprox. 39–45 m²)
+   - Ubicación/vistas: sector A del edificio, con vista al mar y balcón amplio
+   - Camas: en algunos casos 2 camas King (2 m x 2 m c/u); TVs de mayor tamaño
+   - Baño: bañera con hidromasaje
+   - Equipamiento: Wi‑Fi, aire acondicionado, frigobar, ducha escocesa, room service, libre de humo
+
+SERVICIOS DEL HOTEL
+- Piscina climatizada interior y exterior
+- Saunas: seca y húmeda
+- Duchas escocesas
+- Hidromasaje interior y exterior
+- Masajes con agenda previa
+- Gimnasio equipado
+- Bar con vista al jardín donde se sirve el desayuno (indicaron cumplimiento de distancias/protocolos)
+
+UBICACIÓN Y CONTACTO
+- Ciudad: Punta del Este, Uruguay
+- Página de contacto: https://demo.com.uy/pde/en/contact-us-2/ (hay versión en español: https://demo.com.uy/pde/contact-us/)
+- Dirección y teléfono: no visibles como texto en las páginas consultadas; el contacto se realiza vía formulario y motor de reservas. Recomendación: confirmar por el formulario oficial o durante el proceso en https://demo.book-onlinenow.net/
+
+RESERVAS Y TARIFAS
+- Motor de reservas: https://demo.book-onlinenow.net/
+- Orientativo en sitio: se muestran "FROM USD .../night" por categoría (ej. Standard, Superior, Junior, Master). Las tarifas varían por fecha y disponibilidad.
+
+POLÍTICAS (A CONFIRMAR)
+- Check‑in / Check‑out: no especificado públicamente en las páginas consultadas
+- Fumadores: las habitaciones se indican como “libre de humo”
+- Mascotas: no especificado
+- Estacionamiento: no especificado en páginas consultadas
+- COVID/Salud: el sitio menciona señalética y medidas; pueden haber cambiado. Verificar vigencia.
+
+PREGUNTAS FRECUENTES (SUGERIDAS)
+- ¿Hay habitaciones con vista al mar? Sí, las Master Suites.
+- ¿Existe opción de 2 ambientes? Sí, en Junior Suite (dormitorio + estar con sofá cama).
+- ¿Se puede ocupación triple? En algunas Suite Superior de ~40 m² (cama extra) y Junior Suite (sofá cama). Confirmar en reserva.
+- ¿Hay habitaciones comunicadas para familias? Sí, en categoría Standard (según disponibilidad).
+- ¿El hotel tiene piscina climatizada? Sí, interior y exterior.
+- ¿Cuenta con saunas e hidromasaje? Sí; además duchas escocesas y servicios de masajes con reserva.
+- ¿Hay gimnasio? Sí.
+- ¿Hay habitaciones accesibles? El sitio indica disponibilidad de habitaciones 100% accesibles.
+- ¿Se puede reservar online? Sí, a través del motor de reservas enlazado en el sitio.
+
+NOTAS
+- Este documento resume información pública y la reescribe en forma original para uso como base de conocimiento. Verifique detalles dinámicos (tarifas, políticas, horarios) directamente con el hotel.
+- Última revisión: 2025‑10‑13

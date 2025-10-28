@@ -258,7 +258,16 @@ export async function fillSlotsWithLLM(
     // Merge con previos para no perder slots ya capturados
     const merged = { ...prev, ...partial };
     console.debug("[BP-SLOTS3] No JSON, returning question", { question, partial, merged });
-    return { need: "question", question: question || "Necesito un dato más…", partial: merged };
+    // SAFEGUARD: nunca devolver 'undefined' como pregunta
+    let safeQuestion = question;
+    if (!safeQuestion || typeof safeQuestion !== 'string' || safeQuestion.trim() === '' || safeQuestion === 'undefined' || safeQuestion === null || (typeof safeQuestion === 'string' && safeQuestion.trim().toLowerCase() === 'undefined')) {
+      safeQuestion = localeIso6391 === 'es'
+        ? "¿Cuál es el tipo de habitación que preferís?"
+        : localeIso6391 === 'pt'
+          ? "Qual o tipo de quarto que você prefere?"
+          : "What room type do you prefer?";
+    }
+    return { need: "question", question: safeQuestion, partial: merged };
   }
 
   // Intentamos parsear crudo para rescatar campos parciales si Zod falla
@@ -352,7 +361,14 @@ export async function fillSlotsWithLLM(
     const mergedPartial = { ...(partialFromModel ?? {}), ...partialFromFull };
     return {
       need: "question" as const,
-      question: questionMsg,
+      // SAFEGUARD: nunca devolver 'undefined' como pregunta
+      question: (!questionMsg || typeof questionMsg !== 'string' || questionMsg.trim() === '' || questionMsg === 'undefined' || questionMsg === null || (typeof questionMsg === 'string' && questionMsg.trim().toLowerCase() === 'undefined'))
+        ? (localeIso6391 === 'es'
+          ? "¿Cuál es el tipo de habitación que preferís?"
+          : localeIso6391 === 'pt'
+            ? "Qual o tipo de quarto que você prefere?"
+            : "What room type do you prefer?")
+        : questionMsg,
       partial: Object.keys(mergedPartial).length ? mergedPartial : undefined,
     };
   }
@@ -454,7 +470,7 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
             ? `Tenho ${showRt} disponível. Tarifa por noite: ${option.pricePerNight} ${curr}. Total ${nights} noites: ${total} ${curr}.`
             : `I have a ${showRt} available. Rate per night: ${option.pricePerNight} ${curr}. Total ${nights} nights: ${total} ${curr}.`;
     }
-    return {
+    const result: any = {
       ok: true as const,
       available: true as const,
       proposal: enrichedText || (option
@@ -462,6 +478,10 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
         : `Hay disponibilidad para ${showRt}.`),
       options: (res.options ?? []) as AvailabilityOption[],
     };
+    if (res.toolCall) {
+      result.toolCall = res.toolCall;
+    }
+    return result;
   }
 
   const topAlternatives = (res.options ?? [])
@@ -469,7 +489,7 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
     .slice(0, 3)
     .join(', ');
 
-  return {
+  const result: any = {
     ok: true as const,
     available: false as const,
     proposal:
@@ -478,6 +498,10 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
         : `No tengo disponibilidad para ${localizeRoomType(roomType, (slots.locale ?? 'es') === 'pt' ? 'pt' : (slots.locale ?? 'es') === 'en' ? 'en' : 'es')} en esas fechas.`,
     options: (res.options ?? []) as AvailabilityOption[],
   };
+  if (res.toolCall) {
+    result.toolCall = res.toolCall;
+  }
+  return result;
 }
 
 export async function confirmAndCreate(hotelId: string, slots: ReservationSlots, channel: string = "web") {

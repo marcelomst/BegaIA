@@ -1,6 +1,6 @@
 // /lib/services/channelMemory.ts
 
-import { Channel, ChannelMessage } from "@/types/channel";
+import type { Channel, ChannelMessage } from "@/types/channel";
 
 type InMemoryChannelStore = {
   [channel in Channel]?: ChannelMessage[];

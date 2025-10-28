@@ -1,0 +1,47 @@
+# Información general del hotel (KB general)
+
+Titulo: Información general del hotel
+Categoria: retrieval_based
+Resumen: Hotel contemporáneo con 55 habitaciones/suites. Se enfoca en confort y diseño: piscina climatizada interior/exterior, saunas (seca y húmeda), duchas escocesas, hidromasaje, gimnasio y bar para desayuno. Habitaciones amplias; algunas con balcón, vista al jardín o vista al mar.
+
+Cuerpo:
+- Estilo y ambiente:
+El Hotel Demo refleja el espíritu sofisticado y relajado de Punta del Este. Su estilo combina una arquitectura moderna con materiales nobles como madera clara, piedra y tejidos naturales, evocando la frescura del mar y la calidez del verano uruguayo.
+Los ambientes son luminosos y amplios, con grandes ventanales que integran el paisaje costero y dejan entrar la brisa del Atlántico. El diseño interior equilibra elegancia y confort: tonos neutros, detalles náuticos sutiles y un ambiente que invita tanto al descanso como al encuentro.
+De día, la energía es vibrante y serena; de noche, la iluminación suave y la música ambiental crean una atmósfera ideal para disfrutar del estilo de vida esteño.
+- Habitaciones (tipos, capacidad, medidas, equipamiento):
+Tipo:Standard (~22 m²)
+   Camas: 2 twin o 1 King; opción de habitaciones comunicadas para familias; algunas con balcón
+   Equipamiento: Wi‑Fi, TV 4K, área de trabajo, AC, frigobar, ducha escocesa, room service, libre de humo
+ Tipo:Suite Superior (~26–40 m²)
+   Cama King; vista al jardín. Algunas con balcón. Unidades de ~40 m² admiten cama extra (ocupación triple)
+   Equipamiento: Wi‑Fi, TV 4K, AC, frigobar, ducha escocesa, room service, libre de humo
+ Tipo:Junior Suite (~38 m²)
+   2 ambientes: dormitorio con King + estar con sofá cama de 2 plazas, independientes
+   Equipamiento: Wi‑Fi, TV 4K, AC, frigobar, ducha escocesa, room service, libre de humo
+ Tipo:Master Suites (~39–45 m²)
+   Sector A; vista al mar, balcón amplio; bañera con hidromasaje. En algunos casos 2 camas King (2x2 m) y TV más grande
+   Equipamiento: Wi‑Fi, AC, frigobar, ducha escocesa, room service, libre de humo
+- Servicios principales (desayuno, wifi, piscina, etc.):
+ Piscina climatizada interior y exterior
+ Saunas seca y húmeda
+ Duchas escocesas; hidromasaje interior y exterior
+ Masajes con agenda previa
+ Gimnasio equipado
+ Bar con vista al jardín (desayuno)
+
+- Ubicación y puntos de interés cercanos:
+Situado en el corazón de Punta del Este, el Hotel Demo ofrece una ubicación privilegiada que permite disfrutar lo mejor del balneario más exclusivo del Uruguay. A solo minutos de la Playa Brava y su icónica escultura La Mano, el hotel se encuentra rodeado de boutiques, galerías de arte y una vibrante oferta gastronómica.
+
+A poca distancia, los huéspedes pueden recorrer el Puerto de Punta del Este, ideal para paseos al atardecer, o visitar la Playa Mansa, perfecta para disfrutar del sol y las aguas tranquilas.
+Los amantes del arte y la arquitectura pueden acercarse a Casapueblo, la emblemática creación de Carlos Páez Vilaró en Punta Ballena, mientras que los más activos encontrarán opciones para practicar surf, ciclismo costero y deportes náuticos.
+
+Con fácil acceso al Centro de Convenciones de Punta del Este y a las principales rutas hacia Maldonado y José Ignacio, el hotel combina comodidad, conectividad y el encanto inigualable de la península.
+- Políticas generales (horarios, mascotas, fumadores):
+ Check‑in/Check‑out: 14 hs/ 9 a 12 hs
+ Fumadores: habitaciones libres de humo
+ Mascotas: se aceptan mascotas
+ Estacionamiento: Cuenta con Garaje
+ Salud: Área protegida por Emergencia Móvil
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

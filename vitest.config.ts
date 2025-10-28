@@ -6,8 +6,11 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    setupFiles: ["./test/setup.ts"],
-    include: ["test/**/*.{test,spec}.{ts,tsx}"],
+    setupFiles: ["./test/setup.ts", "./test/frontend/setup.dom.ts"],
+    include: [
+      "test/**/*.{test,spec}.{ts,tsx}",
+      "!test/freezer/e2e.reservation.flow.spec.ts"
+    ],
     watch: false,
     pool: "threads",
     coverage: {

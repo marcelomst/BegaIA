@@ -41,13 +41,13 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
         .filter((msg: ChannelMessage): boolean => {
           const keep = msg.status !== "expired";
           if (!keep) {
-        console.log("🧹 Mensaje filtrado por 'expired':", msg);
+            console.log("🧹 Mensaje filtrado por 'expired':", msg);
           }
           return keep;
         })
         .map((msg: ChannelMessage): ProcessedMessage => ({
           ...msg,
-          response: msg.approvedResponse ?? msg.suggestion,
+          response: msg.approvedResponse ?? msg.suggestion ?? "",
           edited: Boolean(msg.approvedResponse && msg.approvedResponse !== msg.suggestion),
         }))
         .sort((a: ProcessedMessage, b: ProcessedMessage): number => 
@@ -73,7 +73,7 @@ const ChannelMessages: React.FC<Props> = ({ channelId, userEmail, mode }) => {
 
   const handleStartEditing = (msg: ChannelMessage) => {
     setEditingMessageId(msg.messageId);
-    setEditingText(msg.approvedResponse ?? msg.suggestion);
+    setEditingText(msg.approvedResponse ?? msg.suggestion ?? "");
   };
 
   const handleCancelEditing = () => {

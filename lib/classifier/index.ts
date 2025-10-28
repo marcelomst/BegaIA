@@ -19,6 +19,8 @@ function normalizeCategory(c: string): IntentCategory {
   const m = (c || "").trim().toLowerCase();
   const known: IntentCategory[] = [
     "reservation",
+    // Nueva categoría RAG (no intent explícito del grafo, pero válida para RAG)
+    "cancellation" as any,
     "cancel_reservation",
     "amenities",
     "billing",
@@ -49,10 +51,10 @@ export async function classifyQuery(
     .replace("{{allPromptKeys}}", allPromptKeys.join(", "))
     .replace("{{question}}", question);
 
- const model = new ChatOpenAI({
-   modelName: process.env.LLM_CLASSIFIER_MODEL || "gpt-4o-mini",
-   temperature: 0,
- });
+  const model = new ChatOpenAI({
+    modelName: process.env.LLM_CLASSIFIER_MODEL || "gpt-4o-mini",
+    temperature: 0,
+  });
   const res = await model.invoke([
     new SystemMessage("Eres un router de intents. Responde SOLO JSON válido."),
     new HumanMessage(prompt),

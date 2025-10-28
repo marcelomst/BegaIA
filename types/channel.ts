@@ -3,15 +3,14 @@
 import type { HotelUser } from "./user";
 
 // 🧩 Core types (modularizados para claridad)
-import {
+import type {
   ChannelMode,
   MessageStatus,
   ChannelId,
   Channel,
-  ALL_CHANNELS,
   ChannelStatusKey,
-  LANGUAGE_OPTIONS,
 } from "./channel.core";
+import { ALL_CHANNELS, LANGUAGE_OPTIONS } from "./channel.core";
 
 // Re-export de los tipos base para mantener compatibilidad con imports existentes
 export type {
@@ -62,8 +61,17 @@ export type WhatsAppConfig = BaseChannelConfig & {
 };
 
 export type EmailConfig = BaseChannelConfig & {
+  /** Dirección de correo usada para autenticar y enviar */
   dirEmail: string;
-  password: string;
+  /**
+   * Password SMTP inline (LEGACY). Evitar persistir en DB; será eliminado a futuro.
+   * Preferir secretRef para resolver desde un almacén seguro / env.
+   */
+  password?: string;
+  /** Identificador lógico para buscar credenciales externas (e.g. "hotel123-main"). */
+  secretRef?: string;
+  /** Estrategia explícita (opcional) para debug/migración */
+  credentialsStrategy?: "inline" | "ref";
   imapHost: string;
   imapPort: number;
   smtpHost: string;
@@ -140,6 +148,32 @@ export type HotelConfig = {
   /** Banderas globales del flujo de reservas del hotel */
   reservations?: ReservationsFlags;
   lastUpdated?: string;
+  // 🆕 Canon (1–6) + rooms
+  contacts?: { email?: string; whatsapp?: string; phone?: string; website?: string };
+  schedules?: { checkIn?: string; checkOut?: string; breakfast?: string; quietHours?: string };
+  amenities?: {
+    hasParking?: boolean; parkingNotes?: string;
+    hasPool?: boolean; poolSchedule?: string;
+    hasGym?: boolean; gymSchedule?: string;
+    hasSpa?: boolean; spaSchedule?: string;
+    other?: string[];
+  };
+  payments?: { methods?: string[]; notes?: string; requiresCardForBooking?: boolean };
+  billing?: { issuesInvoices?: boolean; invoiceNotes?: string };
+  policies?: { pets?: string; smoking?: string; cancellation?: string };
+  rooms?: Array<{
+    name: string;
+    sizeM2?: number; capacity?: number; beds?: string;
+    description?: string; highlights?: string[]; images?: string[]; icon?: string; accessible?: boolean;
+  }>;
+  // 🆕 Campos opcionales para KB enriquecida
+  airports?: Array<{ code?: string; name?: string; distanceKm?: number; driveTime?: string }>;
+  transport?: { hasPrivateTransfer?: boolean; transferNotes?: string; taxiNotes?: string; busNotes?: string };
+  attractions?: Array<{ name?: string; distanceKm?: number; notes?: string }>;
+  /** Información propia del hotel para llegada, transporte y atracciones */
+  arrivalInfo?: string;
+  transportInfo?: string;
+  attractionsInfo?: string;
 };
 
 // --- CONVERSACIONES Y MENSAJES ---
@@ -218,6 +252,19 @@ export interface ChannelMessage {
     pre?: any;
     llm?: any;
     verdict?: any;
+  };
+
+  // 🆕 payload enriquecido opcional para UI (renderers locales)
+  rich?: {
+    type:
+    | "quick-actions"
+    | "dates"
+    | "guests"
+    | "room-cards"
+    | "upsell"
+    | "handoff"
+    | "room-info-img";
+    data?: any;
   };
 
 }

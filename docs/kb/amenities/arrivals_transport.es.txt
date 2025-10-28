@@ -1,0 +1,24 @@
+# Cómo llegar y transportes
+
+Categoria: amenities
+PromptKey: arrivals_transport
+
+Resumen: Aeropuertos cercanos, traslados, taxis y opciones de transporte para llegar al hotel.
+
+Cuerpo:
+- Aeropuertos cercanos:
+  - Aeropuerto Internacional de Punta del Este (PDP – Laguna del Sauce): ~25–30 km del hotel (aprox. 30–40 min según tráfico).
+  - Aeropuerto Internacional de Carrasco (MVD – Montevideo): ~130 km del hotel (aprox. 1 h 45 min – 2 h 15 min según tráfico).
+- Traslados / Transfer privado:
+  - Podemos coordinar un traslado privado desde/hacia PDP o MVD. Consultá tarifas y disponibilidad por WhatsApp.
+- Taxi / Remis:
+  - Disponible en ambos aeropuertos y en terminales de bus; el tiempo y costo varían según horario y demanda.
+- Bus / Ómnibus:
+  - Conexiones regulares desde Montevideo (Terminal Tres Cruces) a Punta del Este (Terminal de Ómnibus). Desde la terminal local, taxi al hotel.
+- Estacionamiento en el hotel:
+  - Contamos con cocheras/garaje. Ver detalles en la sección de "Estacionamiento".
+- Contacto del hotel para coordinar llegada:
+  - WhatsApp: +598 99 000 000 (mensajería; no urgente). También podés escribirnos al email de contacto.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

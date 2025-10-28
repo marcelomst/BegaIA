@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef, useCallback, useId } from "react";
+import React, { useEffect, useState, useRef, useCallback, useId } from "react";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams } from "next/navigation";
 import {
@@ -30,7 +30,14 @@ type APIMessagesResponse = {
     approvedResponse?: string;
     // opcional futuro: rich desde backend
     rich?: {
-      type: "quick-actions" | "dates" | "guests" | "room-cards" | "upsell" | "handoff";
+      type:
+        | "quick-actions"
+        | "dates"
+        | "guests"
+        | "room-cards"
+        | "upsell"
+        | "handoff"
+        | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
       data?: any;
     };
   }>;
@@ -44,7 +51,14 @@ type APIChatResponse = {
   lang?: string;
   // opcional futuro: payload enriquecido
   rich?: {
-    type: "quick-actions" | "dates" | "guests" | "room-cards" | "upsell" | "handoff";
+    type:
+      | "quick-actions"
+      | "dates"
+      | "guests"
+      | "room-cards"
+      | "upsell"
+      | "handoff"
+      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
     data?: any;
   };
 };
@@ -63,7 +77,14 @@ type ChatTurn = {
   timestamp: string;
   // UI enriquecida local o devuelta por backend
   rich?: {
-    type: "quick-actions" | "dates" | "guests" | "room-cards" | "upsell" | "handoff";
+    type:
+      | "quick-actions"
+      | "dates"
+      | "guests"
+      | "room-cards"
+      | "upsell"
+      | "handoff"
+      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
     data?: any;
   };
 };
@@ -679,6 +700,10 @@ export default function ChatPage() {
 
               {msg.rich?.type === "handoff" && <HandoffBar />}
 
+              {msg.rich?.type === "room-info-img" && (
+                <RoomInfoGallery items={Array.isArray(msg.rich.data) ? msg.rich.data : []} />
+              )}
+
               <time className="block mt-1 text-[10px] opacity-60" dateTime={new Date(msg.timestamp).toISOString()}>
                 {new Date(msg.timestamp).toLocaleString()}
               </time>
@@ -950,6 +975,66 @@ function HandoffBar() {
       <a className="underline" href="tel:+59800000000">
         Llamar
       </a>
+    </div>
+  );
+}
+
+// Galería para promptKey "room_info_img": icono/emoji, highlights y carrusel de imágenes
+function RoomInfoGallery({
+  items,
+}: {
+  items: Array<{
+    type?: string; // nombre del tipo de habitación
+    icon?: string; // emoji o pequeño texto
+    highlights?: string[]; // bullets
+    images?: string[]; // urls
+  }>;
+}) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mt-2 space-y-3">
+      {items.map((it, idx) => (
+        <div key={idx} className="border rounded-lg bg-white shadow-sm overflow-hidden">
+          {/* Header con icono y nombre */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b">
+            {it.icon ? (
+              <span className="text-xl" aria-hidden="true">{it.icon}</span>
+            ) : null}
+            <div className="font-medium">
+              {it.type || "Habitación"}
+            </div>
+          </div>
+
+          {/* Carrusel simple con scroll-snap, sin dependencias */}
+          {Array.isArray(it.images) && it.images.length > 0 ? (
+            <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-2 px-2 scroll-smooth snap-x snap-mandatory">
+                {it.images.map((src, i) => (
+                  <div key={i} className="min-w-[240px] max-w-[320px] snap-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={(it.type || "Habitación") + ` ${i + 1}`}
+                      className="w-full h-40 object-cover rounded-md border"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Highlights */}
+          {Array.isArray(it.highlights) && it.highlights.length > 0 ? (
+            <ul className="px-4 py-3 list-disc list-inside text-sm text-gray-700">
+              {it.highlights.map((h, j) => (
+                <li key={j}>{h}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ))}
     </div>
   );
 }

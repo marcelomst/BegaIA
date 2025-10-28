@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import { sendEmail } from "@/lib/email/sendEmail";
+import { resolveEmailCredentials, EMAIL_SENDING_ENABLED } from "@/lib/email/resolveEmailCredentials";
 import { buildVerificationUrl } from "@/lib/utils/buildVerificationUrl";
 
 const DEFAULT_TIMEZONE = "America/Argentina/Buenos_Aires";
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     } = await req.json();
 
     // Validaciones mínimas
-    if (!hotelName || !adminEmail || !whatsappNumber || !emailChannelConfig?.dirEmail || !emailChannelConfig?.password) {
+    if (!hotelName || !adminEmail || !whatsappNumber || !emailChannelConfig?.dirEmail) {
       return NextResponse.json({ error: "Faltan datos obligatorios" }, { status: 400 });
     }
 
@@ -85,24 +86,22 @@ export async function POST(req: NextRequest) {
     const emailConfig = channelConfigs.email;
     const verifyUrl = await buildVerificationUrl("verify-account", verificationToken, generatedHotelId);
 
-    await sendEmail(
-      {
-        host: emailConfig.smtpHost,
-        port: emailConfig.smtpPort,
-        user: emailConfig.dirEmail,
-        pass: emailConfig.password,
-        secure: emailConfig.secure ?? false,
-      },
-      adminEmail,
-      "Verificación de cuenta de administrador",
-      `
+    const creds = resolveEmailCredentials(emailConfig);
+    if (EMAIL_SENDING_ENABLED && creds && creds.pass && creds.source !== "none") {
+      await sendEmail({
+        host: creds.host,
+        port: creds.port,
+        user: creds.user,
+        pass: creds.pass,
+        secure: creds.secure ?? false,
+      }, adminEmail, "Verificación de cuenta de administrador", `
         <p>Hola,</p>
         <p>Te asignaron como administrador del hotel <b>${hotelName}</b>.</p>
         <p>Para activar tu cuenta y elegir una contraseña, hacé clic en el siguiente enlace:</p>
         <p><a href="${verifyUrl}">${verifyUrl}</a></p>
         <p>Si no solicitaste esto, ignorá este mensaje.</p>
-      `
-    );
+      `);
+    }
 
     return NextResponse.json({ ok: true, hotelId: generatedHotelId });
   } catch (error: any) {

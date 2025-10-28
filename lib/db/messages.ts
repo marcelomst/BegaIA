@@ -33,6 +33,11 @@ export type MessageDoc = {
   originalMessageId?: string;
   subject?: string;
   meta?: Record<string, any>;
+  // UI enriquecida (opcional)
+  rich?: {
+    type: string;
+    data?: any;
+  };
   createdAt?: string;
   updatedAt?: string;
   // Tracking de entrega
@@ -93,6 +98,7 @@ export function toDoc(msg: ChannelMessage): MessageDoc {
     originalMessageId: (msg as any).originalMessageId,
     subject: (msg as any).subject,
     meta: (msg as any).meta,
+    rich: (msg as any).rich,
 
     // Tracking de entrega
     deliveredAt: (msg as any).deliveredAt,

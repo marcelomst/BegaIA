@@ -3,13 +3,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
-import {
-  ALL_CHANNELS,
-  ChannelId,
-  ChannelStatusKey,
-  HotelConfig,
-  ChannelConfigMap,
-} from "@/types/channel";
+import { ALL_CHANNELS } from "@/types/channel";
+import type { ChannelId, ChannelStatusKey, HotelConfig, ChannelConfigMap } from "@/types/channel";
 
 // Helper general para traer estado real de canal
 async function fetchChannelStatus(hotelId: string, channel: ChannelId) {

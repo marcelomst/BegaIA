@@ -38,7 +38,14 @@ describe("graph confirmation uses first name in thank-you", () => {
                 locale: "es",
             },
         });
-        (confirmAndCreate as any).mockResolvedValue({ ok: true, reservationId: "R-XYZ" });
+        (confirmAndCreate as any).mockResolvedValue({
+            ok: true,
+            reservationId: "R-XYZ",
+            status: "created",
+            createdAt: new Date().toISOString(),
+            channel: "web",
+            message: "Reserva creada. ID: R-XYZ"
+        });
 
         const res = await agentGraph.invoke({
             normalizedMessage: "Confirmar",

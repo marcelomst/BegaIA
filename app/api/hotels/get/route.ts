@@ -14,6 +14,30 @@ export async function GET(req: NextRequest) {
   if (!config) {
     return NextResponse.json({ error: "Hotel no encontrado" }, { status: 404 });
   }
-
-  return NextResponse.json({ hotel: config });
+  // Sanitización: asegurar estructura canónica
+  const canonical = {
+    hotelId: config.hotelId ?? hotelId,
+    hotelName: config.hotelName ?? '',
+    address: config.address ?? '',
+    city: config.city ?? '',
+    country: config.country ?? '',
+    postalCode: config.postalCode ?? '',
+    phone: config.phone ?? '',
+    timezone: config.timezone ?? '',
+    defaultLanguage: config.defaultLanguage ?? 'es',
+    contacts: config.contacts ?? {},
+    schedules: config.schedules ?? {},
+    amenities: config.amenities ?? {},
+    payments: config.payments ?? {},
+    billing: config.billing ?? {},
+    policies: config.policies ?? {},
+    rooms: config.rooms ?? [],
+    reservations: config.reservations ?? {},
+    channelConfigs: config.channelConfigs ?? {},
+    airports: config.airports ?? [],
+    transport: config.transport ?? {},
+    attractions: config.attractions ?? [],
+    // ...otros campos opcionales
+  };
+  return NextResponse.json({ hotel: canonical });
 }

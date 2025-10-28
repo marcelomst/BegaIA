@@ -109,7 +109,7 @@ describe("reservation handler - persistencia en conv_state", () => {
           roomType: "double",
           checkIn: "2025-09-10",
           checkOut: "2025-09-12",
-          numGuests: "2",
+          numGuests: 2,
           locale: "es",
         },
       })
@@ -153,7 +153,7 @@ describe("reservation handler - persistencia en conv_state", () => {
         roomType: "suite",
         checkIn: "2025-09-20",
         checkOut: "2025-09-22",
-        numGuests: "2",
+        numGuests: 2,
         locale: "es",
       },
       updatedAt: new Date().toISOString(),
@@ -162,7 +162,10 @@ describe("reservation handler - persistencia en conv_state", () => {
     (confirmAndCreate as any).mockResolvedValue({
       ok: true,
       reservationId: "R-ABC123",
-      message: "✅ Reserva creada. ID: R-ABC123",
+      status: "created",
+      createdAt: new Date().toISOString(),
+      channel: "web",
+      message: "Reserva creada. ID: R-ABC123"
     });
 
     const res = await agentGraph.invoke({

@@ -3,7 +3,8 @@
 "use client";
 
 import { SidebarLogout } from "@/components/ui/SidebarLogout";
-import { ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/client/fetchWithAuth";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SidebarLink } from "@/components/ui/SidebarLink";
@@ -158,6 +159,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         href="/admin/upload"
                         label={sidebarOpen ? t.layout.upload : ""}
                         icon={<Upload className="w-5 h-5" />}
+                      />
+                    )}
+                    {canAccessUploadSection(user.roleLevel) && (
+                      <SidebarLink
+                        href="/admin/kb/upload"
+                        label={sidebarOpen ? (t.layout?.kbUpload || "Cargar KB") : ""}
+                        icon={<BookOpen className="w-5 h-5" />}
                       />
                     )}
                     {canAccessChannelsSection(user.roleLevel) && (

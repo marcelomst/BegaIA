@@ -1,5 +1,5 @@
 // Path: /root/begasist/lib/mcp/reservationsService.ts
-import {
+import type {
   MCPFunctionSpec,
   AvailabilityQuery,
   CreateReservationInput,

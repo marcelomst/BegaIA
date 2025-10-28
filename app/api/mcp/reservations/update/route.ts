@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCMAdapter } from "@/lib/mcp/channelManagerAdapter";
-import { UpdateReservationInput, UpdateReservationOutput } from "@/lib/mcp/types";
+import type { UpdateReservationInput, UpdateReservationOutput } from "@/lib/mcp/types";
 
 // POST /api/mcp/reservations/update
 export async function POST(req: NextRequest) {

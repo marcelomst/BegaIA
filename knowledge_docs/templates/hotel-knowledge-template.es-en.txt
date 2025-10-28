@@ -1,0 +1,132 @@
+Plantilla de Base de Conocimiento de Hotel (ES/EN)
+
+INSTRUCCIONES PARA EL OPERADOR
+- Fuentes: usar solo información pública (web oficial, OTA del hotel). Reescribir, no copiar literalmente.
+- Campos dinámicos (tarifas, horarios, políticas) deben marcarse como “a confirmar” si no hay fuente clara.
+- Mantener trazabilidad: lista de URLs consultadas y fecha.
+- Versión ES y EN en un mismo documento para facilitar QA; también generar archivos separados si se requiere.
+
+METADATA
+- Hotel: <Nombre comercial>
+- Ubicación: <Ciudad, País>
+- Fecha de preparación: <YYYY-MM-DD>
+- Idiomas: es, en
+- Fuentes (URLs):
+  - <URL 1>
+  - <URL 2>
+
+SECCIÓN 1 — RESUMEN (ES)
+Breve descripción del hotel (estilo, orientación, cantidad aproximada de habitaciones/suites si corresponde, propuesta de valor).
+
+SECTION 1 — SUMMARY (EN)
+Short hotel description (style, positioning, approx. number of rooms/suites if applicable, value proposition).
+
+SECCIÓN 2 — INFO RÁPIDA (ES)
+- Categorías de habitación: <lista>
+- Tecnologías: Wi‑Fi, TV (tamaño/aprox), etc.
+- Baño: ducha/bañera/otros
+- Climatización y amenities: AC, frigobar, room service, libre de humo
+- Bienestar/ocio: piscina/sauna/gym/etc.
+- Accesibilidad: <si/no/describir>
+- Reservas: <motor/URL>
+- Políticas clave: <check-in/out si hay, fumar, mascotas, etc.>
+
+SECTION 2 — QUICK FACTS (EN)
+- Room categories: <list>
+- Tech: Wi‑Fi, TV (size/approx), etc.
+- Bathroom: shower/bathtub/other
+- Climate & amenities: AC, minibar, room service, non‑smoking
+- Wellness/leisure: pool/sauna/gym/etc.
+- Accessibility: <yes/no/describe>
+- Booking: <engine/URL>
+- Key policies: <check-in/out if any, smoking, pets, etc.>
+
+SECCIÓN 3 — HABITACIONES (ES)
+Para cada categoría:
+- Nombre: <Standard / Superior / Junior Suite / Master Suite>
+- Tamaño aprox: <m²>
+- Configuración de camas: <King / Twin / Sofa cama>
+- Vistas/balcón: <sí/no>
+- Detalles: <rasgos destacados>
+- Equipamiento: <lista resumida>
+
+SECTION 3 — ROOMS (EN)
+For each category:
+- Name: <Standard / Superior / Junior Suite / Master Suite>
+- Approx size: <sqm>
+- Bedding: <King / Twin / Sofa bed>
+- Views/balcony: <yes/no>
+- Highlights: <key traits>
+- Amenities: <short list>
+
+SECCIÓN 4 — SERVICIOS DEL HOTEL (ES)
+- <piscina, saunas, masajes, gym, bar/desayuno, etc.>
+
+SECTION 4 — HOTEL SERVICES (EN)
+- <pool, saunas, massages, gym, bar/breakfast, etc.>
+
+SECCIÓN 5 — UBICACIÓN Y CONTACTO (ES)
+- Ciudad/País: <>
+- Dirección: <si pública>
+- Teléfono: <si público>
+- Email/Contacto: <URL formulario o email>
+
+SECTION 5 — LOCATION & CONTACT (EN)
+- City/Country: <>
+- Address: <if public>
+- Phone: <if public>
+- Email/Contact: <form URL or email>
+
+SECCIÓN 6 — RESERVAS Y TARIFAS (ES)
+- Motor de reservas: <URL>
+- Tarifas: no fijar valores; indicar “varían por fecha y disponibilidad”
+
+SECTION 6 — BOOKINGS & RATES (EN)
+- Booking engine: <URL>
+- Rates: do not fix values; say “vary by date and availability”
+
+SECCIÓN 7 — POLÍTICAS (ES)
+- Check‑in/Check‑out: <si disponible / a confirmar>
+- Fumadores: <>
+- Mascotas: <>
+- Estacionamiento: <>
+
+SECTION 7 — POLICIES (EN)
+- Check‑in/Check‑out: <if available / to confirm>
+- Smoking: <>
+- Pets: <>
+- Parking: <>
+
+SECCIÓN 8 — RESÚMENES POR CATEGORÍA (ES)
+- Standard: <1–2 líneas orientadas a ventas>
+- Superior: <1–2 líneas>
+- Junior Suite: <1–2 líneas>
+- Master Suite: <1–2 líneas>
+
+SECTION 8 — CATEGORY SUMMARIES (EN)
+- Standard: <1–2 sales‑oriented lines>
+- Superior: <1–2 lines>
+- Junior Suite: <1–2 lines>
+- Master Suite: <1–2 lines>
+
+SECCIÓN 9 — ENTITY MAP (ES)
+- amenities: ["wifi", "tv_4k", "ducha_escocesa", "ac", "frigobar", "room_service", "no_fumadores", "piscina_climatizada", "sauna_humeda", "sauna_seca", "hidromasaje", "masajes", "gimnasio", "bar_desayuno"]
+- room_types:
+  - { name: "standard", size_sqm: ~22, beds: ["twin","king"], features: ["conectables","balcon?"], views: ["jardin?"], occupancy: "2-3?" }
+  - { name: "superior", size_sqm: ~26-40, beds: ["king","extra?"], features: ["balcon?"], views: ["jardin"], occupancy: "2-3" }
+  - { name: "junior_suite", size_sqm: ~38, beds: ["king","sofa_cama"], features: ["2_ambientes"], views: ["jardin?"], occupancy: "2-3" }
+  - { name: "master_suite", size_sqm: ~39-45, beds: ["2x_king?","king"], features: ["balcon","hidromasaje"], views: ["mar"], occupancy: "2-4?" }
+- booking: { engine: "book-onlinenow", url: "<url>" }
+- accessibility: { rooms_accessible: "si?" }
+- notes: ["marcar interrogantes si no está confirmado en la web"]
+
+SECTION 9 — ENTITY MAP (EN)
+- amenities: ["wifi", "tv_4k", "scottish_shower", "ac", "minibar", "room_service", "non_smoking", "heated_pool", "wet_sauna", "dry_sauna", "hydromassage", "massages", "gym", "bar_breakfast"]
+- room_types:
+  - { name: "standard", size_sqm: ~22, beds: ["twin","king"], features: ["connecting?","balcony?"], views: ["garden?"], occupancy: "2-3?" }
+  - { name: "superior", size_sqm: ~26-40, beds: ["king","extra_bed?"], features: ["balcony?"], views: ["garden"], occupancy: "2-3" }
+  - { name: "junior_suite", size_sqm: ~38, beds: ["king","sofa_bed"], features: ["two_spaces"], views: ["garden?"], occupancy: "2-3" }
+  - { name: "master_suite", size_sqm: ~39-45, beds: ["two_king?","king"], features: ["balcony","whirlpool"], views: ["sea"], occupancy: "2-4?" }
+- booking: { engine: "book-onlinenow", url: "<url>" }
+- accessibility: { rooms_accessible: "yes?" }
+- notes: ["mark question marks if not confirmed on website"]

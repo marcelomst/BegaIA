@@ -7,6 +7,7 @@ import { parseEmailToChannelMessage } from "@/lib/parsers/emailParser";
 import { universalChannelEventHandler } from "@/lib/handlers/universalChannelEventHandler";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import type { EmailConfig } from "@/types/channel";
+import { resolveEmailCredentials, EMAIL_SENDING_ENABLED, emailSecretEnvVarName } from "@/lib/email/resolveEmailCredentials";
 import { standardCleanup } from "@/lib/utils/emailCleanup";
 import { disableEmailPolling } from "@/lib/services/emailPollControl";
 import { getEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
@@ -27,13 +28,13 @@ function isIrrelevantEmail({
   html = "",
 }: { subject?: string; from?: string; text?: string; html?: string }) {
   const spamWords = [
-    "oferta","promo","promoción","newsletter","marketing","advertising",
-    "publicidad","descuento","haz clic","ver todo","desuscríbete","unsubscribe",
-    "gestiona tu suscripción","suscribete","mailup","mailchimp","ganaste",
-    "prueba gratis","free trial","auto-reply","mailer-daemon","este mensaje es automático"
+    "oferta", "promo", "promoción", "newsletter", "marketing", "advertising",
+    "publicidad", "descuento", "haz clic", "ver todo", "desuscríbete", "unsubscribe",
+    "gestiona tu suscripción", "suscribete", "mailup", "mailchimp", "ganaste",
+    "prueba gratis", "free trial", "auto-reply", "mailer-daemon", "este mensaje es automático"
   ];
   const spamFrom = [
-    "@news.","@promo.","@marketing.","no-reply","noreply","mailer-daemon","mailup","mailchimp","newsletter"
+    "@news.", "@promo.", "@marketing.", "no-reply", "noreply", "mailer-daemon", "mailup", "mailchimp", "newsletter"
   ];
   const allFields = [subject, from, text, html].map(f => (f || "").toLowerCase());
   return (
@@ -54,17 +55,51 @@ export async function startEmailBot({
   try {
     const {
       dirEmail: EMAIL_USER,
-      password: EMAIL_PASS,
       imapHost: IMAP_HOST,
       imapPort: IMAP_PORT,
       smtpHost: SMTP_HOST,
       smtpPort: SMTP_PORT,
       secure: EMAIL_SECURE = false,
-    } = emailConf;
+      secretRef,
+      password: inlinePassword,
+    } = emailConf as any;
 
-    if (!EMAIL_USER || !EMAIL_PASS || !IMAP_HOST || !SMTP_HOST) {
-      throw new Error("❌ Faltan datos críticos de email en la config del hotel");
+    if (!EMAIL_USER || !IMAP_HOST || !SMTP_HOST) {
+      throw new Error("❌ Faltan datos críticos de email (usuario/hosts) en la config del hotel");
     }
+
+    // Resolver credenciales (SMTP) usando la misma abstracción
+    const creds = resolveEmailCredentials(emailConf);
+    if (!creds || creds.source === 'none' || !creds.pass) {
+      const expectedVar = secretRef ? emailSecretEnvVarName(secretRef) : 'N/A';
+      console.error('[email] Resolución de credenciales fallida', {
+        hotelId,
+        secretRef,
+        expectedVar,
+        source: creds?.source,
+        reason: creds?.reason,
+        inlinePresent: !!inlinePassword,
+      });
+      throw new Error(`❌ Credenciales SMTP/IMAP no disponibles (secretRef=${secretRef || 'none'} expectedVar=${expectedVar})`);
+    }
+    console.log('[email] Credenciales resueltas', {
+      hotelId,
+      user: emailConf.dirEmail,
+      secretRef: secretRef || null,
+      source: creds.source,
+      secure: emailConf.secure,
+      smtpHost: emailConf.smtpHost,
+      imapHost: emailConf.imapHost,
+      smtpPort: emailConf.smtpPort,
+      imapPort: emailConf.imapPort,
+      sendingEnabled: EMAIL_SENDING_ENABLED,
+    });
+    if (!EMAIL_SENDING_ENABLED) {
+      console.warn('[email] EMAIL_SENDING_ENABLED=false: se inicia polling IMAP pero no se enviarán respuestas automáticas.');
+    }
+
+    // Para IMAP usamos (por ahora) la misma password; si difiere en el futuro se puede extender EmailConfig
+    const EMAIL_PASS = creds.pass || inlinePassword;
 
     const imapConfig = {
       imap: {
@@ -82,13 +117,42 @@ export async function startEmailBot({
       host: SMTP_HOST,
       port: Number(SMTP_PORT) || 587,
       secure: EMAIL_SECURE,
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
+      auth: EMAIL_SENDING_ENABLED ? { user: EMAIL_USER, pass: EMAIL_PASS } : undefined,
     });
 
-    const connection = await imaps.connect(imapConfig);
+    let connection;
+    try {
+      connection = await imaps.connect(imapConfig);
+    } catch (imapErr: any) {
+      const authFailed = /auth/i.test(imapErr?.message || '') || imapErr?.textCode === 'AUTHENTICATIONFAILED';
+      console.error('💣 [email] Error conectando IMAP (primer intento)', {
+        code: imapErr?.code,
+        message: imapErr?.message,
+        textCode: imapErr?.textCode,
+        source: creds.source,
+        authFailed,
+        hint: 'Verifica: 1) App Password correcto 2) IMAP habilitado en Gmail 3) Variable de entorno 4) host/port/tls: imap.gmail.com:993 TLS true'
+      });
+      // 🔁 Fallback: si origen fue inline y existe EMAIL_PASS distinto, reintentar una única vez
+      if (authFailed && creds.source === 'inline') {
+        const alt = process.env.EMAIL_PASS;
+        if (alt && alt !== creds.pass) {
+          console.warn('[email] Intentando fallback con EMAIL_PASS del entorno (difiere del inline).');
+          try {
+            const altImapConfig = { imap: { ...imapConfig.imap, password: alt } } as any;
+            connection = await imaps.connect(altImapConfig);
+            console.log('[email] ✅ Fallback IMAP exitoso con EMAIL_PASS. Recomiendo migrar a secretRef y remover password inline.');
+          } catch (secondErr: any) {
+            console.error('[email] ❌ Fallback IMAP también falló', { message: secondErr?.message, textCode: secondErr?.textCode });
+            throw imapErr; // conservar error original
+          }
+        } else {
+          throw imapErr;
+        }
+      } else {
+        throw imapErr;
+      }
+    }
     await connection.openBox("INBOX");
     console.log("📨 Conectado a IMAP como:", EMAIL_USER);
 
@@ -150,7 +214,7 @@ export async function startEmailBot({
                 { uid, subject: parsed.subject, from: parsed.from?.text }
               );
               try {
-                try { await connection.addBox("RAGBOT Irrelevante"); } catch {}
+                try { await connection.addBox("RAGBOT Irrelevante"); } catch { }
                 await connection.moveMessage(uid, "RAGBOT Irrelevante");
                 console.log(`📂 [email] Email movido a carpeta 'RAGBOT Irrelevante'.`);
               } catch (err) {
@@ -211,35 +275,35 @@ export async function startEmailBot({
             console.log(`🧹 [email] Texto limpiado para UID ${uid}:`, cleaned);
 
             // ✅ Llamada correcta (3 parámetros): msg + hotelId + opts
-          await universalChannelEventHandler(
-            {
-              hotelId,
-              conversationId: channelMsg.conversationId!,         // viene del parser
-              channel: channelMsg.channel,                         // "email"
-              from: "guest",                                       // entrante
-              content: cleaned,
-              // para idempotencia en email conviene usar el Message-ID del RFC:
-              sourceMsgId: channelMsg.originalMessageId ?? channelMsg.messageId,
-              timestamp: parsed.date ? parsed.date.getTime() : Date.now(),
-              // (opcional) subject/meta si tu UniversalEvent los define:
-              // subject: channelMsg.subject,
-              // meta: channelMsg.meta,
-            },
-            {
-              mode,
-              sendReply: async (reply: string) => {
-                await transporter.sendMail({
-                  from: EMAIL_USER,
-                  to: channelMsg.sender || parsed.from?.text || EMAIL_USER,
-                  subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
-                  text: reply,
-                });
-                console.log(
-                  `📤 [email] Respuesta enviada a ${channelMsg.sender || parsed.from?.text}`
-                );
+            await universalChannelEventHandler(
+              {
+                hotelId,
+                conversationId: channelMsg.conversationId!,         // viene del parser
+                channel: channelMsg.channel,                         // "email"
+                from: "guest",                                       // entrante
+                content: cleaned,
+                // para idempotencia en email conviene usar el Message-ID del RFC:
+                sourceMsgId: channelMsg.originalMessageId ?? channelMsg.messageId,
+                timestamp: parsed.date ? parsed.date.getTime() : Date.now(),
+                // (opcional) subject/meta si tu UniversalEvent los define:
+                // subject: channelMsg.subject,
+                // meta: channelMsg.meta,
               },
-            }
-          );
+              {
+                mode,
+                sendReply: async (reply: string) => {
+                  await transporter.sendMail({
+                    from: EMAIL_USER,
+                    to: channelMsg.sender || parsed.from?.text || EMAIL_USER,
+                    subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
+                    text: reply,
+                  });
+                  console.log(
+                    `📤 [email] Respuesta enviada a ${channelMsg.sender || parsed.from?.text}`
+                  );
+                },
+              }
+            );
 
             // Marcar como leído solo los válidos procesados
             await connection.addFlags(uid, "\\Seen");

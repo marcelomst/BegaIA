@@ -1,0 +1,78 @@
+Hotel: La Capilla (Punta del Este, Uruguay)
+Fecha: 2025-10-13
+Fuentes:
+- https://demo.com.uy/pde/
+- https://demo.com.uy/pde/nuestro-hotel/
+- https://demo.com.uy/pde/servicios/
+- https://demo.com.uy/pde/accommodation/standard-room/
+- https://demo.com.uy/pde/accommodation/luxury-suite-room-2/
+- https://demo.com.uy/pde/accommodation/junior-suite/
+- https://demo.com.uy/pde/accommodation/suite-y-master-suites/
+
+RESUMEN (ES)
+Hotel contemporáneo con ~55 habitaciones/suites. Se enfoca en confort y diseño: piscina climatizada interior/exterior, saunas (seca y húmeda), duchas escocesas, hidromasaje, gimnasio y bar para desayuno. Habitaciones amplias; algunas con balcón, vista al jardín o vista al mar.
+
+INFO RÁPIDA (ES)
+- Categorías: Standard (~22 m²), Superior (~26–40 m²), Junior Suite (~38 m², 2 ambientes), Master Suites (~39–45 m²)
+- Tecnología: Wi‑Fi alta velocidad; TV 4K (aprox. 58–65” según categoría)
+- Baño: ducha escocesa; hidromasaje en Master Suites
+- Climatización/amenities: aire acondicionado, frigobar, room service, libre de humo
+- Bienestar/ocio: piscina climatizada in/out, saunas, duchas escocesas, hidromasaje, masajes (con reserva), gimnasio
+- Accesibilidad: el sitio menciona habitaciones 100% accesibles
+- Reservas: https://demo.book-onlinenow.net/
+
+HABITACIONES (ES)
+ Standard (~22 m²)
+   Camas: 2 twin o 1 King; opción de habitaciones comunicadas para familias; algunas con balcón
+   Equipamiento: Wi‑Fi, TV 4K, área de trabajo, AC, frigobar, ducha escocesa, room service, libre de humo
+ Suite Superior (~26–40 m²)
+   Cama King; vista al jardín. Algunas con balcón. Unidades de ~40 m² admiten cama extra (ocupación triple)
+   Equipamiento: Wi‑Fi, TV 4K, AC, frigobar, ducha escocesa, room service, libre de humo
+ Junior Suite (~38 m²)
+   2 ambientes: dormitorio con King + estar con sofá cama de 2 plazas, independientes
+   Equipamiento: Wi‑Fi, TV 4K, AC, frigobar, ducha escocesa, room service, libre de humo
+ Master Suites (~39–45 m²)
+   Sector A; vista al mar, balcón amplio; bañera con hidromasaje. En algunos casos 2 camas King (2x2 m) y TV más grande
+   Equipamiento: Wi‑Fi, AC, frigobar, ducha escocesa, room service, libre de humo
+
+SERVICIOS DEL HOTEL (ES)
+ Piscina climatizada interior y exterior
+ Saunas seca y húmeda
+ Duchas escocesas; hidromasaje interior y exterior
+ Masajes con agenda previa
+ Gimnasio equipado
+ Bar con vista al jardín (desayuno)
+
+UBICACIÓN Y CONTACTO (ES)
+ Ciudad: Punta del Este, Uruguay
+ Contacto: formulario oficial
+   Español: https://demo.com.uy/pde/contactus/
+   Inglés: https://demo.com.uy/pde/en/contact-us-2/
+- Dirección/teléfono: no visibles como texto en páginas consultadas; confirmar vía formulario o motor de reservas
+
+RESERVAS Y TARIFAS (ES)
+- Motor: https://demo.book-onlinenow.net/
+- Tarifas: varían por fecha y disponibilidad
+
+POLÍTICAS (ES)
+ Check‑in/Check‑out: no publicados en páginas revisadas
+ Fumadores: habitaciones libres de humo
+ Mascotas/estacionamiento: no especificado; consultar
+ Salud: el sitio menciona señalética y medidas; confirmar vigencia
+
+RESÚMENES POR CATEGORÍA (ES)
+- Standard: Funcional y conveniente; opción twin/king y posibilidad de conectarlas para familias. Ideal corporativo.
+- Superior: Confort balanceado, varias con balcón y vista al jardín. Algunas admiten cama extra para 3 pax.
+- Junior Suite: Dos ambientes independientes; combinación ideal de descanso y espacio para familias o estancias largas.
+- Master Suite: Vistas al mar, balcón y bañera con hidromasaje; la opción más exclusiva.
+
+ENTITY MAP (ES)
+- amenities: [wifi, tv_4k, ducha_escocesa, ac, frigobar, room_service, no_fumadores, piscina_climatizada, sauna_humeda, sauna_seca, hidromasaje, masajes, gimnasio, bar_desayuno]
+- room_types:
+  - { name: standard, size_sqm: 22, beds: [twin, king], features: [conectables, balcon_opcional], views: [jardin_opcional], occupancy: "2" }
+  - { name: superior, size_sqm: "26-40", beds: [king, cama_extra_opcional], features: [balcon_opcional], views: [jardin], occupancy: "2-3" }
+  - { name: junior_suite, size_sqm: 38, beds: [king, sofa_cama], features: [dos_ambientes], views: [jardin_opcional], occupancy: "2-3" }
+  - { name: master_suite, size_sqm: "39-45", beds: [king, 2x_king_opcional], features: [balcon, hidromasaje], views: [mar], occupancy: "2-4" }
+- booking: { engine: book_onlinenow, url: "https://demo.book-onlinenow.net/" }
+ - accessibility: { rooms_accessible: "si" }
+- notes: ["marcar interrogantes si no está confirmado en la web"]

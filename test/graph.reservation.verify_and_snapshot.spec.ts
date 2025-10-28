@@ -64,7 +64,7 @@ describe("reservation verify/snapshot classification", () => {
     });
 
     it("shows confirmed snapshot (with code) when lastReservation exists", async () => {
-        (getConvState as any).mockResolvedValue({
+        (getConvState as any).mockResolvedValueOnce({
             _id: `${hotelId}:${conversationId}`,
             hotelId,
             conversationId,
@@ -91,7 +91,7 @@ describe("reservation verify/snapshot classification", () => {
             detectedLanguage: "es",
             hotelId,
             conversationId,
-            reservationSlots: {},
+            // No pasar reservationSlots para que el wiring no sobrescriba el persistido
         });
 
         expect(res.category).toBe("reservation_snapshot");

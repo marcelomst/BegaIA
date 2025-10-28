@@ -1,6 +1,6 @@
 // Path: /root/begasist/lib/retrieval/deleteVersionForHotel.ts
 import { getAstraDB } from "@/lib/astra/connection";
-import { getCollectionName } from "./index";
+import { getCollectionName } from "@/lib/retrieval";
 
 /**
  * Elimina todos los documentos de una versión específica para un hotel.

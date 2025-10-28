@@ -5,7 +5,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Server } from "lucide-react";
-import { CHANNELS, ChannelId } from "@/lib/config/channelsConfig";
+import { CHANNELS } from "@/lib/config/channelsConfig";
+import type { ChannelId } from "@/lib/config/channelsConfig";
 import { useCurrentHotel } from "@/lib/context/HotelContext";
 
 // --- i18n: carga dinámica SOLO el idioma del hotel

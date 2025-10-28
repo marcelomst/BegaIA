@@ -1,0 +1,14 @@
+# Soporte y contacto
+
+Categoria: support
+PromptKey: contact_support
+
+Resumen: Canales de soporte para huéspedes y consultas generales.
+
+Cuerpo:
+- Recepción: 24/7; teléfono interno desde habitación.
+- Email: begamshop.ventas@gmail.com (respuestas en 24–48 h hábiles y/0 interactuar con asistente de IA).
+- WhatsApp: +598 98 835 914 (mensajería; chatear con el asistente de IA).
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

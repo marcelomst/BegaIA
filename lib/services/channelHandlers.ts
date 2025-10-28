@@ -1,6 +1,6 @@
 // /root/begasist/lib/services/channelHandlers.ts
 
-import { ChannelMessage } from "@/types/channel";
+import type { ChannelMessage } from "@/types/channel";
 
 // 🔧 Define la interfaz que deben implementar todos los handlers
 export interface ChannelHandler {

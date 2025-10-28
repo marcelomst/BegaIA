@@ -1,5 +1,9 @@
 // /root/begasist/types/chunk.ts
 
+/**
+ * DEPRECADO para prompts/playbooks: Usar HotelContent/HotelVersionIndex (ver types/hotelContent.ts)
+ * ChunkResult se mantiene para chunks y embeddings de la base de conocimiento general.
+ */
 export type ChunkResult = {
   _id?: string;
   hotelId: string;
@@ -14,6 +18,7 @@ export type ChunkResult = {
   $vector: number[];      // puede ser number[] o cualquier tipo si lo pedís así
   detectedLang?: string | null; // 👈 AGREGAR
   targetLang?: string | null;   // 👈 AGREGAR
+  detectedLangScore?: number | null; // confianza detección 0-1
   // ... cualquier otro campo custom
 };
 
@@ -27,4 +32,5 @@ export type SearchFilters = {
   category?: string;
   promptKey?: string;
   version?: string;   // <--- nuevo campo
+  targetLang?: string; // filtro por idioma indexado (es|en|pt)
 };

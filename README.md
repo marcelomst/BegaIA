@@ -162,7 +162,59 @@ Ejemplo de ACK en replay idempotente:
 
 ---
 
-## 🗃️ Documentación histórica (DEPRECADA)
+## � Métricas operativas
+
+- Endpoint: GET `/api/diagnostics`
+- Alcance: solo en desarrollo y test.
+- Guarda de entorno: el endpoint responde 404 si `NODE_ENV === "production"` a menos que `DEBUG_BEGA === "1"`.
+  - Regla exacta: `ALLOW_DIAG = NODE_ENV !== "production" || DEBUG_BEGA === "1"`.
+
+Campos devueltos:
+
+- `version`: versión del handler (MH_VERSION).
+- `metrics` (snapshot en memoria):
+  - `at`: timestamp de la captura.
+  - `autosend_total`: total de decisiones de autosend registradas.
+  - `autosend_by_reason`: conteo por motivo de autosend.
+    - Claves: `snapshot_verify`, `close_stage`, `safe_category`, `supervised_pending`, `automatic_default`.
+  - `autosend_by_category`: conteo por categoría inferida (dinámico, en minúsculas).
+  - `supervised_ratio_window`: ventana de conteo `{ sent, pending }` según estado final del mensaje (`sent` vs `pending`).
+
+Ejemplo de respuesta:
+
+```json
+{
+  "ok": true,
+  "version": "mh-2025-09-23-structured-01",
+  "metrics": {
+    "at": "2025-10-09T12:34:56.000Z",
+    "autosend_total": 7,
+    "autosend_by_reason": {
+      "snapshot_verify": 3,
+      "close_stage": 1,
+      "safe_category": 2,
+      "supervised_pending": 1,
+      "automatic_default": 0
+    },
+    "autosend_by_category": {
+      "reservation_snapshot": 2,
+      "reservation_verify": 1,
+      "retrieval_based": 2,
+      "cancel_reservation": 1,
+      "unknown": 1
+    },
+    "supervised_ratio_window": { "sent": 6, "pending": 1 }
+  },
+  "now": "2025-10-09T12:34:56.000Z"
+}
+```
+
+Notas:
+
+- Los contadores son in-memory (se reinician al reiniciar el proceso). Para pruebas automatizadas existe un `reset()` interno no expuesto por HTTP.
+- Útil para diagnosticar razones de autosend y distribución por categorías durante sesiones de QA.
+
+## �🗃️ Documentación histórica (DEPRECADA)
 
 ATENCIÓN: Desde aquí y hasta el final, la documentación corresponde a un prototipo anterior y se mantiene solo como referencia histórica. No refleja la arquitectura y contratos actuales validados por la suite core ni el comportamiento documentado arriba (autosend, idempotencia, endpoints). Preferir las secciones superiores de este README y `README.dev.md`.
 

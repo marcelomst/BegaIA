@@ -7,28 +7,9 @@ Language: es
 
 HOTEL DEMÒ
 Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-HOTEL DEMÒ
-Hotel de Arte, adornado con obras de arte
-RESERVA AHORA
-¡RESERVA DIRECTAMENTE!
+
 ¡DESAYUNO DELICIOSO Y LA MEJOR TARIFA GARANTIZADA!
-HOTEL DEMÒ
+
 Cerca de la Estación Central de Milán
 
 Todas las habitaciones se desinfectan diariamente según las nuevas regulaciones.
@@ -83,7 +64,7 @@ Check-in hasta la 01pm.
 Check-out antes de las 12pm.
 Desayuno de 07am a 10am.
 
-HOTEL DEMÒ
+
 Nuestras Habitaciones
 
 Todas las habitaciones se desinfectan diariamente según las nuevas regulaciones. Así que, sea cual sea la
@@ -113,7 +94,7 @@ Toallas
 Calefacción
 TV LCD con canales satelitales
 1 cama individual
-RESERVA AHORA
+
 ¡MEJOR TARIFA!
 Habitación Doble
 
@@ -132,7 +113,7 @@ No Fumadores
 Toallas
 Calefacción
 2 camas individuales
-RESERVA AHORA
+
 ¡RECIÉN RESERVADA!
 Habitación Doble
 
@@ -150,7 +131,7 @@ No Fumadores
 Toallas
 Calefacción
 1 cama doble
-RESERVA AHORA
+
 
 ¡PRECIO MÁS BAJO!
 Habitación Triple
@@ -169,11 +150,11 @@ No Fumadores
 Toallas
 Calefacción
 1 cama doble + 1 cama individual
-RESERVA AHORA
+
 Relájese Disfrute Vacaciones Viaje Descubra Experiencia Relájese Disfrute Vacaciones Viaje Descubra
 Experiencia Relájese Disfrute Vacaciones Viaje Descubra Experiencia Relájese Disfrute Vacaciones Viaje
 Descubra Experiencia
-HOTEL DEMÒ
+
 Galería
 MÁS FOTOS
 Todo lo que necesitas para pasar una estancia
@@ -202,7 +183,7 @@ Negocios y Compras
 Entretenimiento
 Puntos de interés
 Distancias desde los puntos de interés más importantes en Milán
-HOTEL DEMÒ
+
 Cómo llegar
 En Avión
 En Coche

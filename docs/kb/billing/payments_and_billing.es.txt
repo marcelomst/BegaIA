@@ -1,0 +1,14 @@
+# Pagos y facturación
+
+Categoria: billing
+PromptKey: payments_and_billing
+
+Resumen: Medios de pago aceptados y lineamientos de facturación.
+
+Cuerpo:
+- Medios de pago: tarjetas de crédito/débito internacionales; transferencias bancarias; efectivo (moneda local).
+- Facturación: emitir factura a nombre de huésped o empresa; solicitar datos fiscales al check-in o durante la estadía.
+- Depósitos/anticipos: pueden ser requeridos en fechas de alta demanda.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

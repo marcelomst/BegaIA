@@ -1,0 +1,199 @@
+ pnpm exec tsx scripts/test-astra.ts --only-search
+[dotenv@16.6.0] injecting env (45) from .env
+🔍 Buscando información relevante por similitud...
+🗂️ _id de última versión por grupo lógico:
+  1. f79b5989-554b-488a-9b59-89554ba88ab4
+  2. af3ff275-c569-4a43-bff2-75c569ba4321
+  3. 507d6a5a-aa99-42d4-bd6a-5aaa9952d42f
+  4. 7255a266-e303-4164-95a2-66e30351649b
+  5. 3117d116-5df7-43b2-97d1-165df793b243
+  6. c98baad1-509d-49ff-8baa-d1509d79ffd0
+  7. 24662e73-87ff-4b97-a62e-7387ff1b9793
+  8. d695c6ce-d485-44ff-95c6-ced48544fff6
+  9. ea7126aa-a797-4613-b126-aaa797d613e3
+  10. c407ce83-9c4a-4ad9-87ce-839c4aaad931
+  11. 1b698cb4-01cb-4321-a98c-b401cb3321ad
+  12. c4219e62-fe54-4444-a19e-62fe549444b8
+⚠️ [searchFromAstra] hotelId no proporcionado, usando fallback: 'hotel999'
+OpenAI:DEBUG:response Decoding base64 embeddings to float32 array
+OpenAI:DEBUG:request https://api.openai.com/v1/embeddings {
+  method: 'post',
+  path: '/embeddings',
+  body: {
+    model: 'text-embedding-ada-002',
+    input: '¿A que hora es el check in?',
+    encoding_format: 'base64'
+  }
+} {
+  'content-length': '113',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  'user-agent': 'OpenAI/JS 4.104.0',
+  'x-stainless-lang': 'js',
+  'x-stainless-package-version': '4.104.0',
+  'x-stainless-os': 'Linux',
+  'x-stainless-arch': 'x64',
+  'x-stainless-runtime': 'node',
+  'x-stainless-runtime-version': 'v18.19.1',
+  authorization: 'REDACTED',
+  'x-stainless-retry-count': '0',
+  'x-stainless-timeout': '600'
+}
+OpenAI:DEBUG:response 200 https://api.openai.com/v1/embeddings Headers {
+  [Symbol(map)]: [Object: null prototype] {
+    date: [ 'Mon, 20 Oct 2025 13:40:46 GMT' ],
+    'content-type': [ 'application/json' ],
+    'transfer-encoding': [ 'chunked' ],
+    connection: [ 'keep-alive' ],
+    'access-control-allow-origin': [ '*' ],
+    'access-control-expose-headers': [ 'X-Request-ID' ],
+    'openai-model': [ 'text-embedding-ada-002-v2' ],
+    'openai-organization': [ 'begam-solutions' ],
+    'openai-processing-ms': [ '83' ],
+    'openai-project': [ 'proj_ObwDM4odjA5ZS7QnNUotiYHr' ],
+    'openai-version': [ '2020-10-01' ],
+    'strict-transport-security': [ 'max-age=31536000; includeSubDomains; preload' ],
+    via: [ 'envoy-router-84b9b6f796-2x4wh' ],
+    'x-envoy-upstream-service-time': [ '1002' ],
+    'x-ratelimit-limit-requests': [ '3000' ],
+    'x-ratelimit-limit-tokens': [ '1000000' ],
+    'x-ratelimit-remaining-requests': [ '2999' ],
+    'x-ratelimit-remaining-tokens': [ '999993' ],
+    'x-ratelimit-reset-requests': [ '20ms' ],
+    'x-ratelimit-reset-tokens': [ '0s' ],
+    'x-request-id': [ 'req_535cd04b049442b7be9ba33bd7a287b3' ],
+    'x-openai-proxy-wasm': [ 'v0.1' ],
+    'cf-cache-status': [ 'DYNAMIC' ],
+    'set-cookie': [
+      '__cf_bm=TRzmHnm2IJBjdsvhsbIKruVSB9fCm9tu0lgz9JeAVV8-1760967646-1.0.1.1-A2a3W1PohR2hr4SQi3dq3t0ZDMf.jZ4VNSRBW0LjpS.n9MtreqLgW5dJ_2MA8WjEW.UNHcil0Px6rInKjSUJKtd0niYZ.y7t7XtkIg2agFQ; path=/; expires=Mon, 20-Oct-25 14:10:46 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+      '_cfuvid=QadkbA3vJqzbXE.zPOvbH71J_..cYQrboHbT9jwmntM-1760967646358-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'
+    ],
+    'x-content-type-options': [ 'nosniff' ],
+    server: [ 'cloudflare' ],
+    'cf-ray': [ '9918edc3280d83ea-EZE' ],
+    'content-encoding': [ 'gzip' ],
+    'alt-svc': [ 'h3=":443"; ma=86400' ]
+  }
+} {
+  object: 'list',
+  data: [
+    {
+      object: 'embedding',
+      index: 0,
+      embedding: '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'
+    }
+  ],
+  model: 'text-embedding-ada-002-v2',
+  usage: { prompt_tokens: 9, total_tokens: 9 }
+}
+🐞 DEBUG: 🔄 Usando versión más reciente global: v12
+🐞 DEBUG: [searchFromAstra] Forzando búsqueda SOLO por similitud vectorial, ignorando promptKey/category
+🐞 DEBUG: [searchFromAstra] Chunks recuperados (sin filtrar): [
+  {
+    text: '# Habitaciones con iconos e imágenes\n' +
+      '\n' +
+      'Categoria: retrieval_based\n' +
+      'PromptKey: room_info_img\n' +
+      '\n' +
+      'Resumen: Tipos de habitaciones con iconos y links de imágenes para la UI.\n' +
+      '\n' +
+      'Cuerpo:\n' +
+      '- Tipo: Single Standard\n' +
+      'Images: ["/hotel999/rooms/single/single.jpg"]\n' +
+      '- Tipo: Doble\n' +
+      'Images: ["/hotel999/rooms/double/double.jpg"]\n' +
+      '- Tipo: Twin\n' +
+      'Images: ["/hotel999/rooms/twin/twin.jpg"]\n' +
+      '- Tipo: Triple\n' +
+      'Images: ["/hotel999/rooms/triple/hab-triple-1.jpg"]\n' +
+      '\n' +
+      'Fuentes:\n' +
+      '- URL(s) de referencia: http://127.0.0.1:8081/',
+    similarity: 0.86835617,
+    category: 'retrieval_based',
+    promptKey: 'room_info_img',
+    detectedLang: 'es',
+    version: 'v12'
+  }
+]
+🐞 DEBUG: [searchFromAstra] Chunks tras filtro y agrupamiento: [
+  {
+    text: '# Habitaciones con iconos e imágenes\n' +
+      '\n' +
+      'Categoria: retrieval_based\n' +
+      'PromptKey: room_info_img\n' +
+      '\n' +
+      'Resumen: Tipos de habitaciones con iconos y links de imágenes para la UI.\n' +
+      '\n' +
+      'Cuerpo:\n' +
+      '- Tipo: Single Standard\n' +
+      'Images: ["/hotel999/rooms/single/single.jpg"]\n' +
+      '- Tipo: Doble\n' +
+      'Images: ["/hotel999/rooms/double/double.jpg"]\n' +
+      '- Tipo: Twin\n' +
+      'Images: ["/hotel999/rooms/twin/twin.jpg"]\n' +
+      '- Tipo: Triple\n' +
+      'Images: ["/hotel999/rooms/triple/hab-triple-1.jpg"]\n' +
+      '\n' +
+      'Fuentes:\n' +
+      '- URL(s) de referencia: http://127.0.0.1:8081/',
+    similarity: 0.86835617,
+    category: 'retrieval_based',
+    promptKey: 'room_info_img',
+    detectedLang: 'es',
+    version: 'v12'
+  }
+]
+🔹 Chunk 1 (similitud: 0.868)
+   _id: c4219e62-fe54-4444-a19e-62fe549444b8
+   category: retrieval_based
+   promptKey: room_info_img
+   version: v12
+   detectedLang: es
+   ---
+# Habitaciones con iconos e imágenes
+
+Categoria: retrieval_based
+PromptKey: room_info_img
+
+Resumen: Tipos de habitaciones con iconos y links de imágenes para la UI.
+
+Cuerpo:
+- Tipo: Single Standard
+Images: ["/hotel999/rooms/single/single.jpg"]
+- Tipo: Doble
+Images: ["/hotel999/rooms/double/double.jpg"]
+- Tipo: Twin
+Images: ["/hotel999/rooms/twin/twin.jpg"]
+- Tipo: Triple
+Images: ["/hotel999/rooms/triple/hab-triple-1.jpg"]
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/
+---
+
+
+✅ Registro elegido (mayor similitud):
+Similitud: 0.868
+Texto:
+# Habitaciones con iconos e imágenes
+
+Categoria: retrieval_based
+PromptKey: room_info_img
+
+Resumen: Tipos de habitaciones con iconos y links de imágenes para la UI.
+
+Cuerpo:
+- Tipo: Single Standard
+Images: ["/hotel999/rooms/single/single.jpg"]
+- Tipo: Doble
+Images: ["/hotel999/rooms/double/double.jpg"]
+- Tipo: Twin
+Images: ["/hotel999/rooms/twin/twin.jpg"]
+- Tipo: Triple
+Images: ["/hotel999/rooms/triple/hab-triple-1.jpg"]
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/
+
+marcelo@Marcepower:~/begasist$ 

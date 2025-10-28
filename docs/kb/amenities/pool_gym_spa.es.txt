@@ -1,0 +1,15 @@
+# Piscina, gimnasio y spa
+
+Categoria: amenities
+PromptKey: pool_gym_spa
+
+Resumen: Detalle de piscina climatizada (interior/exterior), gimnasio y servicios de spa/masajes.
+
+Cuerpo:
+- Piscina: interior y exterior, climatizada; toallas disponibles.
+- Gimnasio: máquinas cardiovasculares y pesos libres; horario 07:00–22:00.
+- Saunas: seca y húmeda; duchas escocesas.
+- Spa/masajes: con agenda previa; tratamientos disponibles en recepción.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

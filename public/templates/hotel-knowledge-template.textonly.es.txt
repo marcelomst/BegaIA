@@ -1,0 +1,51 @@
+Hotel: <Nombre comercial>
+Ubicación: <Ciudad, País>
+Fecha: <YYYY-MM-DD>
+Fuentes:
+- <URL 1>
+- <URL 2>
+
+Resumen:
+<Breve descripción del hotel (estilo, propuesta de valor, nº aprox. de habitaciones si aplica)>
+
+Habitaciones:
+- Standard (~<m²>): <camas>, <rasgos clave>. Equipamiento: <Wi‑Fi, TV, AC, etc.>
+- Superior (~<m²>): <camas>, <vista/balcón si aplica>. Equipamiento: <...>
+- Junior Suite (~<m²>): <2 ambientes si aplica>, <sofá cama si aplica>. Equipamiento: <...>
+- Master Suite (~<m²>): <vista mar/balcón/hidromasaje si aplica>. Equipamiento: <...>
+
+Servicios del hotel:
+- <piscina/saunas/gym/bar/desayuno/masajes/etc.>
+
+Ubicación y contacto:
+- Ciudad/País: <>
+- Dirección: <si público>
+- Teléfono: <si público>
+- Contacto: <URL formulario o email>
+
+Reservas y tarifas:
+- Motor de reservas: <URL>
+- Tarifas: varían por fecha y disponibilidad
+
+Políticas (a confirmar):
+- Check‑in/Check‑out: <si público / a confirmar>
+- Fumadores: <>
+- Mascotas/estacionamiento: <>
+- Accesibilidad: <>
+
+Resúmenes por categoría:
+- Standard: <1–2 líneas orientadas a ventas>
+- Superior: <1–2 líneas>
+- Junior Suite: <1–2 líneas>
+- Master Suite: <1–2 líneas>
+
+Entity map (resumen para prompts):
+- amenities: [wifi, tv_4k, ducha_escocesa, ac, frigobar, room_service, no_fumadores, piscina_climatizada, sauna_humeda, sauna_seca, hidromasaje, masajes, gimnasio, bar_desayuno]
+- room_types:
+  - { name: standard, size_sqm: ~<m²>, beds: [twin|king], features: [conectables|balcon_opcional], views: [jardin_opcional], occupancy: "<n>–<n>" }
+  - { name: superior, size_sqm: ~<m²>, beds: [king|cama_extra_opcional], features: [balcon_opcional], views: [jardin], occupancy: "<n>–<n>" }
+  - { name: junior_suite, size_sqm: ~<m²>, beds: [king|sofa_cama], features: [dos_ambientes], views: [jardin_opcional], occupancy: "<n>–<n>" }
+  - { name: master_suite, size_sqm: ~<m²>, beds: [king|2x_king_opcional], features: [balcon|hidromasaje], views: [mar], occupancy: "<n>–<n>" }
+- booking: { engine: book_onlinenow, url: "<url>" }
+- accessibility: { rooms_accessible: "si|no|desconocido" }
+- notes: ["marcar 'desconocido' si no está confirmado"]

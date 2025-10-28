@@ -1,0 +1,78 @@
+{
+  "hotelId": "hotel999",
+  "count": 3,
+  "docs": [
+    {
+      "_id": "24553979-1d77-4f11-9539-791d773f11ba",
+      "hotelId": "hotel999",
+      "category": "amenities",
+      "version": "v3",
+      "originalName": "piscina_v3.md",
+      "uploadedAt": "2025-10-10T09:37:55.011Z",
+      "detectedLang": "es",
+      "detectedLangScore": 1,
+      "targetLang": "es",
+      "audience": "guest",
+      "valid_from": "2025-10-01T00:00:00.000Z",
+      "valid_to": null,
+      "tags": [
+        "piscina",
+        "toallas",
+        "familias"
+      ],
+      "jurisdiction": [
+        "UY"
+      ],
+      "textPreview": "- Horario: 08:00–20:00.\n- Niños acompañados por un adulto.",
+      "doc_json": "{\"source_ref\":\"/kb/hotel999/amenities/guest/es/piscina_v3.md\",\"title\":\"Piscina – Horarios y reglas\",\"chunkIndex\":0,\"audience\":\"guest\",\"tags\":[\"piscina\",\"toallas\",\"familias\"],\"jurisdiction\":[\"UY\"]}"
+    },
+    {
+      "_id": "d061e344-1e6b-4036-a1e3-441e6be03645",
+      "hotelId": "hotel999",
+      "category": "cancellation",
+      "version": "v1",
+      "originalName": "cancelamento_v1.md",
+      "uploadedAt": "2025-10-10T09:37:52.801Z",
+      "detectedLang": "pt",
+      "detectedLangScore": 1,
+      "targetLang": "pt",
+      "audience": "guest",
+      "valid_from": "2025-09-15T00:00:00.000Z",
+      "valid_to": null,
+      "tags": [
+        "cancelamento",
+        "não reembolsável",
+        "flex"
+      ],
+      "jurisdiction": [
+        "UY"
+      ],
+      "textPreview": "- Flex: cancelamento grátis até 48h antes do check-in.\n- NR: não admite cancelamento/gratuidade.",
+      "doc_json": "{\"source_ref\":\"/kb/hotel999/cancellation/guest/pt/cancelamento_v1.md\",\"title\":\"Política de Cancelamento – Tarifas Flex e NR\",\"chunkIndex\":0,\"audience\":\"guest\",\"tags\":[\"cancelamento\",\"não reembolsável\",\"flex\"],\"jurisdiction\":[\"UY\"]}"
+    },
+    {
+      "_id": "ac5fa230-5f22-439d-9fa2-305f22d39d95",
+      "hotelId": "hotel999",
+      "category": "billing",
+      "version": "v2",
+      "originalName": "invoice_uy_v2.md",
+      "uploadedAt": "2025-10-10T09:37:53.827Z",
+      "detectedLang": "en",
+      "detectedLangScore": 1,
+      "targetLang": "en",
+      "audience": "guest",
+      "valid_from": "2025-08-01T00:00:00.000Z",
+      "valid_to": null,
+      "tags": [
+        "invoice",
+        "tax id",
+        "vat"
+      ],
+      "jurisdiction": [
+        "UY"
+      ],
+      "textPreview": "Please provide your Tax ID (RUT) during check-in.",
+      "doc_json": "{\"source_ref\":\"/kb/hotel999/billing/guest/en/invoice_uy_v2.md\",\"title\":\"Invoice with Tax ID (Uruguay)\",\"chunkIndex\":0,\"audience\":\"guest\",\"tags\":[\"invoice\",\"tax id\",\"vat\"],\"jurisdiction\":[\"UY\"]}"
+    }
+  ]
+}

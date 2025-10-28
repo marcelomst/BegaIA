@@ -49,6 +49,9 @@ export async function saveOriginalTextChunksToAstra({
   author,
   uploadedAt,
   textContent,
+  category,
+  promptKey,
+  targetLang,
 }: {
   hotelId: string;
   originalName: string;
@@ -57,6 +60,9 @@ export async function saveOriginalTextChunksToAstra({
   author?: string | null;
   uploadedAt: string;
   textContent: string;
+  category?: string;
+  promptKey?: string;
+  targetLang?: string;
 }) {
   const client = await getAstraDB();
   const collection = client.collection("hotel_text_collection");
@@ -68,20 +74,23 @@ export async function saveOriginalTextChunksToAstra({
   await deleteChunksForDoc({ hotelId, originalName, version });
 
   // Insertar todos los chunks (cada uno un documento)
-for (let i = 0; i < totalChunks; i++) {
-  console.log(`Guardando chunk ${i + 1}/${totalChunks} para ${hotelId} - ${originalName}`);
-  await collection.insertOne({
-    id: uuidv4(),
-    author: author ?? null,
-    "chunkIndex": i,
-    "hotelId": hotelId,
-    "originalName": originalName,
-    "textPart": chunks[i],
-    "uploadedAt": uploadedAt,
-    uploader: uploader,
-    version: version,
-  });
-}
+  for (let i = 0; i < totalChunks; i++) {
+    console.log(`Guardando chunk ${i + 1}/${totalChunks} para ${hotelId} - ${originalName}`);
+    await collection.insertOne({
+      id: uuidv4(),
+      author: author ?? null,
+      chunkIndex: i,
+      hotelId: hotelId,
+      originalName: originalName,
+      textPart: chunks[i],
+      uploadedAt: uploadedAt,
+      uploader: uploader,
+      version: version,
+      category,
+      promptKey,
+      targetLang,
+    });
+  }
 
 }
 

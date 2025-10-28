@@ -1,0 +1,162 @@
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e.reservation.flow.spec.ts > e2e reservation flow (single-slot Q, guests and checkout mapping) > collects slots turn by turn and confirms, localizing roomType in ES
+AssertionError: expected 'undefined' to match /habitación/
+
+- Expected: 
+/habitación/
+
++ Received: 
+"undefined"
+
+ ❯ test/e2e.reservation.flow.spec.ts:25:52
+     23|         (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "question", par…
+     24|         let res = await agentGraph.invoke({ normalizedMessage: "Marcelo Martine…
+     25|         expect(String(res.messages?.[0]?.content)).toMatch(/habitación/);
+       |                                                    ^
+     26| 
+     27|         // 2) room type only
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  test/graph.confirm_firstname.spec.ts > graph confirmation uses first name in thank-you > ES: gracias, <primer nombre>
+AssertionError: expected 'Error técnico al procesar los datos d…' to match /¡Gracias, María José!/
+
+- Expected: 
+/¡Gracias, María José!/
+
++ Received: 
+"Error técnico al procesar los datos de reserva. Por favor, intenta nuevamente o contacta a un recepcionista."
+
+ ❯ test/graph.confirm_firstname.spec.ts:52:21
+     50| 
+     51|         const msg = String(res.messages?.[0]?.content || "");
+     52|         expect(msg).toMatch(/¡Gracias, María José!/);
+       |                     ^
+     53|     });
+     54| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  test/graph.reservation.persist.spec.ts > reservation handler - persistencia en conv_state > slots completos → persiste slots y lastProposal; responde con confirmación (quote)
+AssertionError: expected "spy" to be called with arguments: [ 'hotel999', 'conv-123', …(1) ]
+
+Received: 
+
+  1st spy call:
+
+  [
+    "hotel999",
+    "conv-123",
+-   ObjectContaining {
++   {
++     "lastProposal": {
++       "available": true,
++       "options": [
++         {
++           "currency": "USD",
++           "pricePerNight": 100,
++           "roomType": "double",
++         },
++       ],
++       "text": "Tengo double disponible. Tarifa por noche: 100 USD.",
++     },
+      "reservationSlots": {
+        "checkIn": "2025-09-10",
+        "checkOut": "2025-09-12",
+        "guestName": "Juan Perez",
+        "locale": "es",
+-       "numGuests": "2",
++       "numGuests": 2,
+        "roomType": "double",
+      },
++     "salesStage": "quote",
++     "updatedBy": "ai",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ test/graph.reservation.persist.spec.ts:103:29
+    101| 
+    102|     // 1) persistió slots completos
+    103|     expect(upsertConvState).toHaveBeenCalledWith(
+       |                             ^
+    104|       hotelId,
+    105|       conversationId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  test/graph.reservation.persist.spec.ts > reservation handler - persistencia en conv_state > al confirmar con todo completo en snapshot → crea reserva y persiste lastReservation (close)
+AssertionError: expected 'Error técnico al procesar los datos d…' to contain 'Reserva confirmada'
+
+Expected: "Reserva confirmada"
+Received: "Error técnico al procesar los datos de reserva. Por favor, intenta nuevamente o contacta a un recepcionista."
+
+ ❯ test/graph.reservation.persist.spec.ts:177:48
+    175| 
+    176|     // El grafo devuelve mensaje de confirmación estandarizado
+    177|     expect(String(res.messages?.[0]?.content)).toContain("Reserva confirmada");
+       |                                                ^
+    178|     expect(upsertConvState).toHaveBeenCalledWith(
+    179|       hotelId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  test/graph.reservation.verify_and_snapshot.spec.ts > reservation verify/snapshot classification > shows in-progress snapshot when there is a draft (salesStage=quote) but no lastReservation
+AssertionError: expected 'reservation_verify' to be 'reservation_snapshot' // Object.is equality
+
+Expected: "reservation_snapshot"
+Received: "reservation_verify"
+
+ ❯ test/graph.reservation.verify_and_snapshot.spec.ts:60:30
+     58|         });
+     59| 
+     60|         expect(res.category).toBe("reservation_snapshot");
+       |                              ^
+     61|         const txt = String(res.messages?.[0]?.content || "");
+     62|         expect(txt.toLowerCase()).toContain("en curso");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  test/graph.reservation.verify_and_snapshot.spec.ts > reservation verify/snapshot classification > shows confirmed snapshot (with code) when lastReservation exists
+AssertionError: expected 'reservation_verify' to be 'reservation_snapshot' // Object.is equality
+
+Expected: "reservation_snapshot"
+Received: "reservation_verify"
+
+ ❯ test/graph.reservation.verify_and_snapshot.spec.ts:97:30
+     95|         });
+     96| 
+     97|         expect(res.category).toBe("reservation_snapshot");
+       |                              ^
+     98|         const txt = String(res.messages?.[0]?.content || "");
+     99|         expect(txt.toLowerCase()).toContain("reserva confirmada");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  test/graph.signals.chrono.spec.ts > graph: signals include Chrono dates when flag is on > injects Chrono-derived dates into the augmented user text
+AssertionError: expected 'próximo viernes al domingo' to contain 'Señales detectadas'
+
+Expected: "Señales detectadas"
+Received: "próximo viernes al domingo"
+
+ ❯ test/graph.signals.chrono.spec.ts:60:35
+     58|         expect(spy).toHaveBeenCalled();
+     59|         const [augmentedUserText] = spy.mock.calls[0];
+     60|         expect(augmentedUserText).toContain('Señales detectadas');
+       |                                   ^
+     61|         expect(augmentedUserText).toContain('"checkIn":"2025-12-05"');
+     62|         expect(augmentedUserText).toContain('"checkOut":"2025-12-07"');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  5 failed | 44 passed (49)
+      Tests  7 failed | 125 passed (132)
+   Start at  05:56:25
+   Duration  18.66s (transform 8.21s, setup 29.63s, collect 138.41s, tests 24.70s, environment 6.42s, prepare 40.78s)
+
+ ELIFECYCLE  Test failed. See above for more details.
+marcelo@Marcepower:~/begasist$ 

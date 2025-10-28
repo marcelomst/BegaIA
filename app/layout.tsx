@@ -1,5 +1,5 @@
 // Path: /app/layout.tsx
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { ThemeProvider } from "@/lib/context/ThemeContext";
 import { ApplyThemeClass } from "@/components/utils/ApplyThemeClass";
 import { Toaster } from "sonner";

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   if (!hotelId) return NextResponse.json({ error: "Missing hotelId" }, { status: 400 });
   try {
     const config = await getHotelConfig(hotelId);
-    return NextResponse.json(config || {});
+    return NextResponse.json({ hotel: config || {} });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

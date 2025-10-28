@@ -1,5 +1,5 @@
 // /components/ui/BegAITable.tsx
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface BegAITableProps {
   headers: string[];

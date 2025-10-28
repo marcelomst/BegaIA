@@ -1,0 +1,18 @@
+# Amenidades principales del hotel
+
+Categoria: amenities
+PromptKey: amenities_list
+
+Resumen: Lista consolidada de amenidades y servicios del hotel con descripciones breves.
+
+Cuerpo:
+- Piscina: climatizada interior y exterior, apta todo el año.
+- Saunas: seca y húmeda.
+- Duchas escocesas e hidromasaje (interior y exterior).
+- Gimnasio: equipado, acceso incluido para huéspedes.
+- Desayuno: bar con vista al jardín, incluido según tarifa.
+- Estacionamiento: garaje en el establecimiento (cupos sujetos a disponibilidad).
+- Spa/Masajes: con agenda previa; lista de tratamientos en recepción.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

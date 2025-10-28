@@ -6,6 +6,7 @@ type Classification = {
 
 const validCategories = [
   "reservation",
+  "cancellation", // nueva categoría RAG dedicada
   "cancel_reservation", // ← faltaba
   "billing",
   "support",

@@ -16,12 +16,15 @@ vi.mock("@/lib/email/sendReservationCopy", () => ({
     sendReservationCopy: vi.fn(async () => { /* noop */ }),
 }));
 
+// Habilitar envío (simulado) para la prueba
+process.env.EMAIL_SENDING_ENABLED = "true";
+
 // Mock hotel config email channel
 vi.mock("@/lib/config/hotelConfig.server", () => ({
     getHotelConfig: vi.fn(async (_hotelId: string) => ({
         hotelName: "Hotel Demo",
         channelConfigs: {
-            email: { smtpHost: "smtp.example.com", smtpPort: 587, dirEmail: "noreply@example.com", password: "x" },
+            email: { smtpHost: "smtp.example.com", smtpPort: 587, dirEmail: "noreply@example.com", password: "x", enabled: true, mode: "supervised" },
         },
     })),
 }));

@@ -3,12 +3,12 @@
 import fs from "fs";
 import path from "path";
 
-const ALLOWED_TAGS = ["[Graph]", "[preLLM]", "[bodyLLM]", "[posLLM]", "[handleIncomingMessage]"];
-// const ALLOWED_TAGS = ["[Graph]"];
+const ALLOWED_TAGS: string[] = [];
+// const ALLOWED_TAGS: string[] = ["[RESERVATION]"];
 export function debugLog(...args: any[]) {
   if (process.env.DEBUG === "true") {
     const msg = args.map(String).join(" ");
-    if (ALLOWED_TAGS.some(tag => msg.includes(tag))) {
+    if (ALLOWED_TAGS.length === 0 || ALLOWED_TAGS.some(tag => msg.includes(tag))) {
       console.log("🐞 DEBUG:", ...args);
       logToFile("debug", ...args);
     }

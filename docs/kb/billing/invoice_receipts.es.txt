@@ -1,0 +1,14 @@
+# Comprobantes e invoice
+
+Categoria: billing
+PromptKey: invoice_receipts
+
+Resumen: Tipos de comprobantes y proceso para solicitar invoice/recibos.
+
+Cuerpo:
+- Tipos: factura electrónica (B o E según normativa), recibo simple.
+- Solicitud: indicar datos fiscales completos; entrega digital por email.
+- Tiempo de emisión: dentro de 48 h hábiles tras check-out (salvo feriados).
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/

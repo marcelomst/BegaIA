@@ -59,6 +59,8 @@ export function isSafeGuestName(s?: string) {
   if (t.length < 3 || t.length > 60) return false;
   return true;
 }
+// Re-export helpers from reservation/questions for modular handlers
+export * from './reservation/questions';
 // isConfirmIntentLight: Detecta confirmaciones ligeras
 export function isConfirmIntentLight(s: string) {
   const t = (s || "").toLowerCase().trim();

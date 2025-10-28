@@ -1,0 +1,14 @@
+# Estacionamiento (Parking)
+
+Categoria: amenities
+PromptKey: parking
+
+Resumen: Información sobre estacionamiento del hotel.
+
+Cuerpo:
+- Garaje cubierto en el establecimiento.
+- Cupos sujetos a disponibilidad.
+- Política: se asigna por orden de llegada; consultar en recepción para reservar/costo si aplica.
+
+Fuentes:
+- URL(s) de referencia: http://127.0.0.1:8081/
