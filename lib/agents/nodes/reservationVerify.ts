@@ -1,20 +1,23 @@
 // Path: lib/agents/nodes/reservationVerify.ts
 import { AIMessage } from "@langchain/core/messages";
-import type { GraphState } from "../graphState";
+import type { GraphState as GS } from "@/lib/agents/graph";
 
-/**
- * Nodo: reservation_verify
- * Pide el código de reserva y muestra confirmación si existe.
- */
-export async function handleReservationVerifyNode(state: typeof GraphState.State) {
-    const { detectedLanguage } = state;
-    const lang = (detectedLanguage || "es").slice(0, 2) as "es" | "en" | "pt";
-    // En un flujo real, aquí se consultaría la DB por el código
-    // Para demo, solo pide el código
-    const askCode = lang === "es"
-        ? "¿Podés indicarme el código de reserva para verificar el estado?"
-        : lang === "pt"
-            ? "Pode informar o código da reserva para verificar o status?"
-            : "Could you provide the booking code to verify the status?";
-    return { messages: [new AIMessage(askCode)], category: "reservation_verify" };
+export async function handleReservationVerifyNode(state: typeof GS.State) {
+    const lang = (state.detectedLanguage || "es").slice(0, 2);
+    let msg = "";
+    if (lang === "es") {
+        msg =
+            "Puedo corroborar tu reserva. ¿Me compartís el CÓDIGO de reserva? Si no lo tenés a mano, decime nombre completo y fechas aproximadas (check-in/check-out) para buscarla.";
+    } else if (lang === "pt") {
+        msg =
+            "Posso verificar sua reserva. Você pode me informar o CÓDIGO da reserva? Se não tiver, diga o nome completo e as datas aproximadas (check-in/check-out) para eu localizar.";
+    } else {
+        msg =
+            "I can check your booking. Please share the booking CODE. If you don't have it, tell me the full name and approximate dates (check-in/check-out) to look it up.";
+    }
+    return {
+        messages: [new AIMessage(msg)],
+        category: "reservation_verify",
+        desiredAction: undefined,
+    };
 }

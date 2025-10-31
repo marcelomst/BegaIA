@@ -835,3 +835,1703 @@
 [2025-10-28T09:14:57.195Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
 [2025-10-28T09:14:57.204Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
 [2025-10-28T09:15:00.812Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.615Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.620Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.853Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.869Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.967Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.975Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:00.995Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.116Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.133Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.134Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.166Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.211Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:35:01.216Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-28T18:35:01.349Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:35:01.442Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.509Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-28T18:35:01.651Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:35:01.688Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:35:01.708Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:35:01.722Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:35:01.805Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.806Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:01.815Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:35:01.821Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:35:01.846Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:35:03.896Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:04.307Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:04.847Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.066Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.238Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.571Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.635Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.736Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:05.886Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:35:06.870Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.258Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.411Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.428Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.432Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.489Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.521Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.522Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.527Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.592Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.593Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.610Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:13.648Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:38:13.659Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-28T18:38:13.771Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:38:13.790Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:38:13.799Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:38:13.806Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:38:13.808Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:38:13.816Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-28T18:38:13.817Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:38:13.827Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:38:15.457Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:15.458Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:16.073Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:16.561Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:17.876Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.103Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.126Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.150Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.193Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.340Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.341Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:18.397Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:38:19.989Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.302Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.344Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.374Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.397Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.492Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.567Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.618Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.687Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.772Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.796Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:52.867Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-28T18:39:52.887Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:53.145Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:39:53.146Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:39:53.221Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:39:53.250Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:39:53.268Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:39:54.840Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:54.841Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:56.056Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:56.741Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:56.861Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:56.941Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-28T18:39:57.221Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:39:57.258Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.290Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:39:57.296Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:39:57.315Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:39:57.413Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.531Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.571Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.643Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.705Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:57.786Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:39:59.459Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:40.867Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:40.916Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:40.952Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:40.985Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.005Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.153Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.153Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.212Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:40:41.238Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-28T18:40:41.291Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.293Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.300Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.344Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.358Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:41.362Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:40:41.368Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:40:41.431Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:40:41.451Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-28T18:40:41.470Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:40:41.633Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:40:41.648Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:40:41.656Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:40:41.665Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:40:43.364Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:43.365Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:45.183Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.180Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.273Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.277Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.595Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.625Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.637Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.715Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:46.759Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:40:48.560Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.662Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.664Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.711Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.783Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.858Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.903Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.939Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.941Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.961Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.976Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:55.982Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:56.199Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-28T18:47:56.246Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:47:56.431Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-28T18:47:56.590Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:47:56.654Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:47:56.679Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-28T18:47:58.538Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:58.539Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:59.129Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:47:59.330Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.130Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.284Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.293Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-28T18:48:00.335Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.389Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:48:00.414Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:48:00.420Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:48:00.433Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-28T18:48:00.466Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.470Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.489Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.589Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:00.803Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-28T18:48:02.468Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:54.943Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.073Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.109Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.208Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.208Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.229Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.244Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.256Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-29T13:10:55.255Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.269Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.324Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.335Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.337Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.381Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-29T13:10:55.395Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:55.547Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-29T13:10:55.717Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-29T13:10:55.737Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-29T13:10:56.897Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:56.901Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:57.699Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:57.853Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-29T13:10:58.195Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T13:10:58.304Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T13:10:58.324Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T13:10:58.357Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T13:10:58.442Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:59.752Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:59.899Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:10:59.969Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:11:00.518Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:11:00.591Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:11:00.603Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T13:11:02.008Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.492Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.659Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.784Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.825Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.899Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.913Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.916Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.918Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.921Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.924Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:10.991Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:11.071Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-29T16:32:11.101Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:11.150Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-29T16:32:11.279Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T16:32:11.289Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-29T16:32:11.307Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T16:32:11.315Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-29T16:32:11.317Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T16:32:11.321Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-29T16:32:11.336Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-29T16:32:11.355Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-29T16:32:11.525Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-29T16:32:12.959Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:12.960Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:13.259Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:13.639Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:14.272Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:15.209Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:15.785Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:15.832Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:15.927Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:15.943Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:17.102Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-29T16:32:17.581Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:42.847Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:42.901Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:42.943Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.054Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.080Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.151Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.364Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.389Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.443Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T09:46:43.454Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.471Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.495Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.551Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:43.735Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T09:46:43.754Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T09:46:43.776Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T09:46:43.789Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T09:46:43.805Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T09:46:43.962Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T09:46:43.970Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T09:46:44.233Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T09:46:44.348Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T09:46:44.394Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T09:46:46.990Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:46.991Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:47.615Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:48.027Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:49.355Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:50.088Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:50.514Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:50.615Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:50.777Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:50.814Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:53.037Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T09:46:53.608Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:28.987Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.228Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:15:29.324Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:15:29.540Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.645Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.645Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.757Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.763Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.800Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.829Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.918Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.955Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:29.967Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:30.071Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T12:15:30.073Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T12:15:30.274Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:15:30.378Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:15:30.405Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:15:30.412Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:15:30.422Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:15:30.435Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:15:30.437Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:15:31.267Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:31.268Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:31.823Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:32.333Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:32.362Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:33.524Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:34.025Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:34.289Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:34.357Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:34.400Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:34.468Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:35.792Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:15:35.794Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.233Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.274Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.289Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.383Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.430Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.579Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.595Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.690Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.738Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.756Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.768Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.819Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T12:21:27.852Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:27.912Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T12:21:28.025Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:21:28.068Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:21:28.082Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:21:28.096Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:21:28.108Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:21:28.218Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:21:28.374Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:21:28.447Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:21:28.480Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:21:30.155Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:30.155Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:30.605Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:31.553Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.186Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.279Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.576Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.577Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.587Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:32.600Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:34.281Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:21:34.346Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.382Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.462Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.506Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.536Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.629Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.641Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.749Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.763Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.831Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.850Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:30.953Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:34:31.025Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:31.058Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T12:34:31.132Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:34:31.157Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T12:34:31.283Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:34:31.308Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:34:31.317Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:34:31.329Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:34:31.330Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:34:31.360Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:34:33.689Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:33.690Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:33.928Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:34.024Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:34.262Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:34.754Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:35.296Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:35.534Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:35.576Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:36.100Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:36.160Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:36.453Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:34:38.177Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:20.985Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.010Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.071Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.323Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.356Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.366Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.391Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.416Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.472Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.478Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.491Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:21.646Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:48:21.710Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T12:48:21.815Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:48:21.849Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:48:21.869Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:48:21.906Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:48:24.288Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:24.289Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:24.338Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:25.039Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:25.098Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T12:48:25.349Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:25.530Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:48:25.635Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:48:25.665Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:48:25.722Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:48:25.893Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.030Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.591Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.599Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.793Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.895Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:26.965Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:48:28.852Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:08.531Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:08.690Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:08.838Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:08.907Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:08.944Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.007Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.059Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.117Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.136Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.136Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.192Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T12:57:09.206Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.231Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:09.290Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:57:09.355Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:57:09.408Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:57:09.420Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:57:09.437Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T12:57:09.596Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T12:57:09.630Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T12:57:09.654Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:57:09.686Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T12:57:11.836Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:11.842Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:12.543Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:12.902Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:12.959Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:13.486Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:14.027Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:14.604Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:14.612Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:14.620Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:14.625Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T12:57:16.490Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.415Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.481Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.721Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.773Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.803Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:39.976Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.015Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.041Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.048Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.060Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.062Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T13:03:40.072Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.120Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:40.140Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T13:03:40.147Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:03:40.165Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:03:40.220Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:03:40.299Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:03:40.332Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:03:40.343Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:03:40.363Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:03:40.440Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:03:42.923Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:42.924Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:43.257Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:43.899Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:44.304Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:44.534Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:44.724Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:45.203Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:45.261Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:45.271Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:45.404Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:03:47.296Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:54.903Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.036Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.124Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.173Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.173Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.304Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.339Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.342Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.371Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.374Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T13:14:55.375Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.394Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.496Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:14:55.585Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:55.676Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:14:55.698Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T13:14:55.785Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:14:55.806Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:14:55.809Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:14:55.817Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:14:55.849Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:14:55.866Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:14:58.069Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:58.071Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:58.291Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:58.694Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.142Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.736Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.841Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.844Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.857Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.895Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:14:59.901Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:15:02.099Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.683Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.750Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.911Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.921Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.949Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.975Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:30.995Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.029Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.046Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.108Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.122Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:25:31.160Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.172Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.251Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:25:31.281Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:31.332Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T13:25:31.365Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:25:31.394Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:25:31.434Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:25:33.939Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:34.010Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:34.010Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:34.580Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:35.965Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.075Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.075Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.088Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.259Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.336Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T13:25:36.433Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:25:36.515Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:25:36.553Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:25:36.573Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:25:36.594Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:25:38.279Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.003Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.250Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.283Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.291Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.308Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.309Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.313Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.313Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.465Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:33:18.468Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.492Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.521Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.601Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:33:18.623Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T13:33:18.636Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T13:33:18.678Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:18.763Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:33:18.857Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:33:18.869Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:33:18.871Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:33:18.892Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:33:18.912Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:33:18.925Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:33:21.045Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:21.046Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:21.451Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:22.074Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:22.294Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:22.942Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:23.311Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:23.304Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:23.468Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:23.664Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:23.674Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:33:25.274Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.200Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.204Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.285Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T13:43:42.482Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:43:42.508Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:43:42.516Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:43:42.523Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T13:43:42.576Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.582Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.605Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.652Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.654Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:43:42.700Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:43:42.714Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:43:42.733Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.760Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T13:43:42.759Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.765Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.765Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.779Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.781Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:42.879Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T13:43:43.067Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:43:43.221Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T13:43:44.903Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:44.905Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:45.330Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:46.155Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:46.860Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:47.145Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:47.167Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:47.346Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:47.598Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:47.649Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:48.280Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T13:43:49.422Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:27.821Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:27.989Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:27.998Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.002Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.040Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.043Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.059Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.074Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.085Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.112Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.122Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.147Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T14:04:28.213Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:28.290Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T14:04:28.323Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T14:04:28.348Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T14:04:28.360Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T14:04:28.380Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T14:04:28.429Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T14:04:28.603Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T14:04:28.604Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T14:04:28.681Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T14:04:28.716Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T14:04:30.751Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:30.754Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:31.300Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:31.828Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:32.151Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:32.879Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:32.977Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:33.431Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:33.444Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:33.458Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:33.463Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T14:04:35.710Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.307Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.373Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.400Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.412Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.428Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.435Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.436Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.478Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.490Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.561Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.573Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.646Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:10:47.655Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:47.751Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T16:10:47.782Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T16:10:47.933Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:10:47.968Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:10:47.975Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:10:47.990Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:10:48.005Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:10:48.390Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:10:48.538Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:10:48.581Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:10:50.544Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:50.544Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:50.895Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:50.932Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:51.036Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:51.612Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:52.276Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:52.276Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:52.296Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:52.490Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:53.144Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:10:54.397Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:18.896Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.336Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.378Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.441Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.464Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.480Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.487Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.494Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.578Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:14:19.636Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.636Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.637Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T16:14:19.678Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.681Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:14:19.682Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.688Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:19.819Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T16:14:19.918Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:14:19.944Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:14:19.949Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:14:19.981Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:14:19.982Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:14:19.986Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:14:20.001Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:14:21.835Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:21.836Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:22.708Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:23.752Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:23.789Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:24.120Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:24.129Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:24.140Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:24.238Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:24.244Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:14:25.929Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:57.607Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:57.663Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T16:21:57.716Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:57.728Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:57.798Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:21:57.842Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:21:57.853Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:21:57.867Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:21:57.931Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:57.982Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.061Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.072Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.096Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.155Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.157Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.181Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:21:58.191Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:21:58.216Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:21:58.220Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:21:58.272Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T16:21:58.351Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:22:00.662Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:01.130Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:01.131Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:01.230Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:01.924Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.004Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.483Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.665Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.821Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.843Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:02.986Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:03.094Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:22:04.870Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.111Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.141Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.384Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.458Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.481Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.485Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.487Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.512Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.527Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.600Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.634Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:27:24.688Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.702Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T16:27:24.744Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T16:27:24.804Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:27:24.834Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T16:27:24.855Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:24.975Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T16:27:25.126Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:27:25.147Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:27:25.160Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:27:25.182Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T16:27:26.621Z] [ERROR] [graph] runAvailabilityCheck error {}
+[2025-10-30T16:27:27.018Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:27.301Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:27.302Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:28.822Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:28.925Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.822Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.883Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.912Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.931Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.944Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:29.949Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T16:27:31.781Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.204Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.209Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.226Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.438Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.475Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.478Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.502Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.667Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.688Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.741Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:28.772Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T18:34:28.940Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T18:34:29.014Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:29.057Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T18:34:29.094Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T18:34:29.133Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T18:34:29.138Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T18:34:29.170Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T18:34:29.285Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:34:29.306Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:34:29.316Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:34:29.325Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:34:31.474Z] [ERROR] [graph] runAvailabilityCheck error {}
+[2025-10-30T18:34:31.568Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:32.141Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:32.142Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:32.221Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:32.424Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:32.841Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:33.145Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:33.358Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:33.477Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:33.528Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:33.620Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:34.032Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:34:35.983Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.294Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.455Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.530Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.541Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.569Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.655Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.715Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T18:45:29.716Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.868Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:29.893Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:30.001Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:30.098Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T18:45:30.182Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:30.195Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T18:45:30.211Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T18:45:30.213Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T18:45:30.231Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:32.703Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:32.704Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.002Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.494Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.801Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.838Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.949Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:33.965Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:34.071Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:34.913Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:34.993Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T18:45:35.051Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T18:45:35.286Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:45:35.341Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:45:35.365Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:45:35.393Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T18:45:36.347Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:06.824Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.086Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.156Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.161Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.185Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.301Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.327Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.339Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.348Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.382Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T20:03:07.421Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.440Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.443Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:07.476Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T20:03:07.494Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-30T20:03:07.502Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-30T20:03:07.507Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-30T20:03:07.531Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-30T20:03:07.657Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T20:03:07.692Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T20:03:07.700Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T20:03:07.710Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-30T20:03:10.118Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:10.129Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:10.315Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:11.088Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:11.770Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:11.883Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:12.116Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:12.332Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:12.370Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:12.448Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:12.529Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-30T20:03:14.352Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:36.711Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:36.900Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.047Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.089Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.156Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.225Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.239Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.309Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.317Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.375Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.384Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.489Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:37.518Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T08:11:37.594Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-31T08:11:37.801Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T08:11:37.820Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T08:11:37.829Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T08:11:37.860Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:11:37.862Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T08:11:37.891Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:11:37.916Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:11:37.952Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:11:40.911Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:40.911Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:41.048Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:41.570Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:41.633Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:41.830Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:41.977Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-31T08:11:42.601Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:42.639Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:43.053Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:43.088Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:43.091Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:11:45.157Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:14.832Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.037Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.068Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.168Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.169Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.172Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.255Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.339Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.399Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T08:25:15.405Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.414Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.415Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T08:25:15.415Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T08:25:15.432Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.538Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T08:25:15.557Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:15.595Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-31T08:25:15.604Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-31T08:25:15.704Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:25:15.745Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:25:15.758Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:25:15.777Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T08:25:18.430Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:18.431Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:19.661Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:19.665Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:19.683Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:19.910Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:20.027Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:20.104Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:20.136Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:20.486Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:20.644Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T08:25:22.720Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY

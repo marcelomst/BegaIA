@@ -479,7 +479,14 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
       options: (res.options ?? []) as AvailabilityOption[],
     };
     if (res.toolCall) {
-      result.toolCall = res.toolCall;
+      // Clonar toolCall y agregar numGuests como string si existe
+      result.toolCall = {
+        ...res.toolCall,
+        input: {
+          ...res.toolCall.input,
+          numGuests: res.toolCall.input.numGuests !== undefined ? String(res.toolCall.input.numGuests) : undefined,
+        },
+      };
     }
     return result;
   }

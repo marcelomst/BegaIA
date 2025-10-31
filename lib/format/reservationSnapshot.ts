@@ -32,9 +32,9 @@ export function formatReservationSnapshot(opts: {
     const ng = (slots.numGuests ?? '-') + '';
 
     if (confirmed) {
-        if (lang2 === 'es') return `Tienes una reserva confirmada:\n\n- Nombre: ${g}\n- Habitación: ${r}\n- Fechas: ${ci} → ${co}\n- Huéspedes: ${ng}\n- Código: ${code || '-'}`;
-        if (lang2 === 'pt') return `Você tem uma reserva confirmada:\n\n- Nome: ${g}\n- Quarto: ${r}\n- Datas: ${ci} → ${co}\n- Hóspedes: ${ng}\n- Código: ${code || '-'}`;
-        return `You have a confirmed booking:\n\n- Name: ${g}\n- Room: ${r}\n- Dates: ${ci} → ${co}\n- Guests: ${ng}\n- Code: ${code || '-'}`;
+        if (lang2 === 'es') return `reserva confirmada:\n\n- nombre: ${g}\n- habitación: ${r}\n- fechas: ${ci} → ${co}\n- huéspedes: ${ng}\n- código: ${code || '-'}`;
+        if (lang2 === 'pt') return `reserva confirmada:\n\n- nome: ${g}\n- quarto: ${r}\n- datas: ${ci} → ${co}\n- hóspedes: ${ng}\n- código: ${code || '-'}`;
+        return `booking confirmed:\n\n- name: ${g}\n- room: ${r}\n- dates: ${ci} → ${co}\n- guests: ${ng}\n- code: ${code || '-'}`;
     }
     // En progreso
     const hasCore = !!(slots.roomType && slots.checkIn && slots.checkOut);

@@ -1,3 +1,5 @@
+///home/marcelo/begasist/test/graph.reservation.verify_and_snapshot.spec.ts
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db/convState", () => ({
