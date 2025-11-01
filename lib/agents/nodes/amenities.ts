@@ -8,9 +8,9 @@ import { curatedPrompts, defaultPrompt } from "@/lib/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { debugLog } from "@/lib/utils/debugLog";
-import type { GraphState as GS } from "../graph";
+import type { GraphState } from "../graphState";
 
-export async function handleAmenitiesNode(state: typeof GS.State) {
+export async function handleAmenitiesNode(state: typeof GraphState.State) {
     const originalLang = state.detectedLanguage ?? "es";
     const hotelLang = await getHotelNativeLanguage(state.hotelId);
     const norm = (v: string) => (v || "").slice(0, 2).toLowerCase();

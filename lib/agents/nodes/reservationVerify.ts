@@ -1,8 +1,8 @@
 // Path: lib/agents/nodes/reservationVerify.ts
 import { AIMessage } from "@langchain/core/messages";
-import type { GraphState as GS } from "@/lib/agents/graph";
+import type { GraphState } from "../graphState";
 
-export async function handleReservationVerifyNode(state: typeof GS.State) {
+export async function handleReservationVerifyNode(state: typeof GraphState.State) {
     const lang = (state.detectedLanguage || "es").slice(0, 2);
     let msg = "";
     if (lang === "es") {

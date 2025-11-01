@@ -9,7 +9,7 @@ import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { debugLog } from "@/lib/utils/debugLog";
 import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, questionMentionsSlot, firstNameOf, extractDateRangeFromText, isConfirmIntentLight } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
-import type { GraphState as GS } from "@/lib/agents/graph";
+import type { GraphState } from "../graphState";
 
 const REQUIRED_SLOTS: RequiredSlot[] = [
     "guestName",
@@ -21,7 +21,7 @@ const REQUIRED_SLOTS: RequiredSlot[] = [
 const FORCE_CANONICAL_QUESTION = (process.env.FORCE_CANONICAL_QUESTION || "0") === "1";
 const ONE_QUESTION_PER_TURN = (process.env.ONE_QUESTION_PER_TURN || "1") === "1";
 
-export async function handleReservationNode(state: typeof GS.State) {
+export async function handleReservationNode(state: typeof GraphState.State) {
     debugLog('[Graph] Enter handleReservationNode', { state });
     const {
         detectedLanguage,

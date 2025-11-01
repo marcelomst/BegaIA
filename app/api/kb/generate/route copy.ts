@@ -8,8 +8,26 @@ import { getHotelConfig } from '@/lib/config/hotelConfig.server';
 import { loadDocumentFileForHotel } from '@/lib/retrieval';
 import { ChatOpenAI } from '@langchain/openai';
 import { generateKbFilesFromProfile, type Profile } from '@/lib/kb/generator';
+import { upsertHotelContent, versionTagToNumber } from '@/lib/astra/hotelContent';
+import { setCurrentVersionInIndex } from '@/lib/astra/hotelVersionIndex';
 
-/** Inferencia de metadatos a partir del filename y/o header */
+/** Mapeo mínimo para decidir el type (playbook vs standard) */
+function inferType(category: string, promptKey: string): "playbook" | "standard" {
+    // Si mañana agregamos reservation_flow / modify_reservation_* / verify / snapshot etc. → playbook
+    const PLAYBOOK_KEYS = new Set([
+        "reservation_flow",
+        "modify_reservation",
+        "reservation_snapshot",
+        "reservation_verify",
+        "ambiguity_policy"
+    ]);
+    if (PLAYBOOK_KEYS.has(promptKey)) return "playbook";
+    // Por categorías también se puede decidir:
+    // if (category === "reservation" && promptKey.endsWith("_flow")) return "playbook";
+    return "standard";
+}
+
+/** Inferencia de metadatos a partir del filename */
 function inferMetaFromFilename(rel: string): { category?: string; promptKey?: string; lang?: 'es' | 'en' | 'pt' } {
     // Esperado: category/promptKey.lang.txt  (ej: amenities/amenities_list.es.txt)
     const base = path.basename(rel);
@@ -20,6 +38,12 @@ function inferMetaFromFilename(rel: string): { category?: string; promptKey?: st
     const lang = (m[2] as any) as 'es' | 'en' | 'pt';
     const category = dir.split(path.sep).pop();
     return { category, promptKey, lang };
+}
+
+/** Extraer title del body (# Título ...) */
+function extractTitle(body: string): string | undefined {
+    const m = body.match(/^\s*#\s+(.+)\s*$/m);
+    return m ? m[1].trim() : undefined;
 }
 
 export async function POST(req: NextRequest) {
@@ -63,7 +87,7 @@ export async function POST(req: NextRequest) {
             rooms: cfg.rooms as any,
         };
 
-        // Merge overrides (desde el panel, valores aún no guardados)
+        // Merge overrides
         function merge<T>(base: T, extra: Partial<T> | undefined): T {
             if (!extra) return base;
             return { ...(base as any), ...(extra as any) } as T;
@@ -125,37 +149,75 @@ export async function POST(req: NextRequest) {
 
         const files = generateKbFilesFromProfile(enriched);
 
-        // Solo vista previa (no subir)
         if (!upload) {
             return NextResponse.json({ ok: true, count: Object.keys(files).length, files });
         }
 
-        // Subir cada archivo generado a la colección del hotel
+        // Subir + registrar contenido y version index
         const tmpBase = `/tmp/kb_gen_${hotelId}_${Date.now()}`;
         await fs.promises.mkdir(tmpBase, { recursive: true });
         const results: any[] = [];
 
         for (const [rel, content] of Object.entries(files)) {
+            const meta = inferMetaFromFilename(rel);
+            if (!meta.category || !meta.promptKey || !meta.lang) {
+                results.push({ file: rel, error: "No se pudo inferir (category,promptKey,lang) del nombre de archivo." });
+                continue;
+            }
             const tmpPath = path.join(tmpBase, path.basename(rel));
             await fs.promises.writeFile(tmpPath, content, 'utf8');
 
-            // 🔎 Extraer metadata: category, promptKey y lang
-            const meta = inferMetaFromFilename(rel);
-            const metadata: Record<string, any> = {};
-            if (meta.category) metadata.category = meta.category;
-            if (meta.promptKey) metadata.promptKey = meta.promptKey;
-            if (meta.lang) metadata.targetLang = meta.lang;
-
+            // Ingesta vectorial (devuelve versionTag "vN")
             const resp = await loadDocumentFileForHotel({
                 hotelId,
                 filePath: tmpPath,
                 originalName: path.basename(rel),
                 uploader: 'admin@panel',
                 mimeType: 'text/plain',
-                metadata,
+                metadata: {
+                    category: meta.category,
+                    promptKey: meta.promptKey,
+                    targetLang: meta.lang
+                },
             });
-            results.push({ file: rel, metadata, ...resp });
+
             await fs.promises.unlink(tmpPath).catch(() => { });
+            const versionTag = resp?.version || resp?.versionTag || "v1";
+            const versionNumber = versionTagToNumber(versionTag) ?? 1;
+
+            // Registrar en hotel_content
+            const title = extractTitle(content);
+            const type = inferType(meta.category, meta.promptKey);
+            const upsertRes = await upsertHotelContent({
+                hotelId,
+                category: meta.category,
+                promptKey: meta.promptKey,
+                lang: meta.lang,
+                versionNumber,
+                versionTag,
+                type,
+                title,
+                body: content
+            });
+
+            // Marcar versión vigente en hotel_version_index
+            await setCurrentVersionInIndex({
+                hotelId,
+                category: meta.category,
+                promptKey: meta.promptKey,
+                lang: meta.lang,
+                currentVersionNumber: versionNumber,
+                currentVersionTag: versionTag,
+                currentId: upsertRes._id
+            });
+
+            results.push({
+                file: rel,
+                metadata: meta,
+                versionTag,
+                versionNumber,
+                hotelContentId: upsertRes._id
+            });
         }
 
         return NextResponse.json({ ok: true, uploaded: results.length, results });

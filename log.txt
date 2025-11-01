@@ -2535,3 +2535,111 @@
 [2025-10-31T08:25:20.486Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
 [2025-10-31T08:25:20.644Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
 [2025-10-31T08:25:22.720Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:44.489Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:44.885Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:44.893Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:44.918Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.117Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.149Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.152Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.158Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.178Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.238Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.258Z] [ERROR] [MCP] fetch failed for both localhost and 127.0.0.1 {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+} {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T10:13:45.292Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.348Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:45.461Z] [ERROR] [askAvailability] Exception in checkAvailabilityTool: {
+  "cause": {
+    "errno": -111,
+    "code": "ECONNREFUSED",
+    "syscall": "connect",
+    "address": "127.0.0.1",
+    "port": 3000
+  }
+}
+[2025-10-31T10:13:45.557Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:45.613Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:45.718Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:45.879Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:46.082Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:46.177Z] [WARN] [wa-copy][email-followup] error: Remote dispatch publish failed {
+  "code": "WA_REMOTE_DISPATCH_FAILED"
+}
+[2025-10-31T10:13:46.251Z] [WARN] [Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379
+[2025-10-31T10:13:48.332Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.332Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.647Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.723Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.765Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=true | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY | openaiKey=missing
+[2025-10-31T10:13:48.785Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.897Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.899Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T10:13:48.941Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T10:13:48.954Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T10:13:48.958Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:48.977Z] [WARN] [/api/chat] POST → fastRoute=true forceGen=false testFast=true key=missing lang=es
+[2025-10-31T10:13:49.001Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:49.046Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:49.329Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:50.544Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:13:51.987Z] [WARN] [messageHandler] fastpath → forceGen=false | testFast=true | key=missing | reasons=ENABLE_TEST_FASTPATH,NO_OPENAI_API_KEY
+[2025-10-31T10:22:08.947Z] [WARN] [kb:generate] Respuesta cruda modelo: {
+  "airports": [
+    {
+      "code": "PDP",
+      "name": "Aeropuerto Internacional de Punta del Este",
+      "distanceKm": 20,
+      "driveTime": "25 minutos"
+    },
+    {
+      "code": "MVD",
+      "name": "Aeropuerto Internacional de Carrasco",
+      "distanceKm": 120,
+      "driveTime": "1 hora 30 minutos"
+    }
+  ],
+  "transport": {
+    "hasPrivateTransfer": true,
+    "transferNotes": "Se pueden organizar traslados privados desde y hacia el aeropuerto.",
+    "taxiNotes": "Los taxis están disponibles en el aeropuerto y en la ciudad.",
+    "busNotes": "Hay servicios de autobús desde Montevideo a Punta del Este."
+  },
+  "attractions": [
+    {
+      "name": "Playa Mansa",
+      "distanceKm": 0,
+      "notes": "Playa tranquila ideal para familias."
+    },
+    {
+      "name": "Casapueblo",
+      "distanceKm": 8,
+      "notes": "Museo y hotel diseñado por el artista Carlos Páez Vilaró."
+    },
+    {
+      "name": "Puerto de Punta del Este",
+      "distanceKm": 3,
+      "notes": "Zona de restaurantes y vida nocturna."
+    },
+    {
+      "name": "Isla Gorriti",
+      "distanceKm": 5,
+      "notes": "Ideal para excursiones y picnics."
+    }
+  ]
+}

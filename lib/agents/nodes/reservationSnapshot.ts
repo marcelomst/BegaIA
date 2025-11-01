@@ -2,9 +2,9 @@
 import { formatReservationSnapshot } from "@/lib/format/reservationSnapshot";
 import { getConvState } from "@/lib/db/convState";
 import { AIMessage } from "@langchain/core/messages";
-import type { GraphState as GS } from "@/lib/agents/graph";
+import type { GraphState } from "../graphState";
 
-export async function handleReservationSnapshotNode(state: typeof GS.State) {
+export async function handleReservationSnapshotNode(state: typeof GraphState.State) {
     const lang = (state.detectedLanguage || "es").slice(0, 2);
 
     // Helpers

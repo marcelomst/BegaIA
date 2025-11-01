@@ -1,3 +1,4 @@
+// types/hotelContent.ts
 export type HotelContent = {
     hotelId: string;
     category: string;

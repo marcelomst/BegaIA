@@ -7,8 +7,8 @@ import { handleAmenitiesNode } from "@/lib/agents/nodes/amenities";
 import { handleBillingNode } from "@/lib/agents/nodes/billing";
 import { handleSupportNode } from "@/lib/agents/nodes/support";
 import { retrievalBasedNode } from "@/lib/agents/nodes/retrieval";
-import { Annotation, StateGraph } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
+import { StateGraph } from "@langchain/langgraph";
+import { GraphState } from "./graphState";
 import { getConvState } from "@/lib/db/convState";
 import { classifyQuery } from "@/lib/classifier";
 import { looksLikeName, heuristicClassify } from "./helpers";
@@ -17,83 +17,6 @@ import { askModifyFieldNode, askNewValueNode, confirmModificationNode } from "./
 import { handleReservationNode } from "./nodes";
 import { handleCancelReservationNode } from "./nodes/cancelReservation";
 import type { IntentCategory, DesiredAction } from "@/types/audit";
-/* ========================= * STATE * ========================= */
-export const GraphState = Annotation.Root({
-  messages: Annotation<BaseMessage[]>({
-    reducer: (x, y) => x.concat(y),
-    default: () => [],
-  }),
-  normalizedMessage: Annotation<string>({
-    reducer: (_x, y) => y,
-    default: () => "",
-  }),
-  category: Annotation<string>({
-    reducer: (_x, y) => y,
-    default: () => "other",
-  }),
-  detectedLanguage: Annotation<string>({
-    reducer: (_x, y) => y,
-    default: () => "es",
-  }),
-  sentiment: Annotation<"positive" | "neutral" | "negative">({
-    reducer: (_x, y) => y,
-    default: () => "neutral",
-  }),
-  preferredLanguage: Annotation<string>({
-    reducer: (_x, y) => y,
-    default: () => "es",
-  }),
-  promptKey: Annotation<string | null>({
-    reducer: (_x, y) => y,
-    default: () => null,
-  }),
-  hotelId: Annotation<string>({
-    reducer: (_x, y) => y,
-    default: () => "hotel999",
-  }),
-  conversationId: Annotation<string | null>({
-    reducer: (_x, y) => y,
-    default: () => null,
-  }),
-  meta: Annotation<Record<string, unknown>>({
-    reducer: (x, y) => ({ ...x, ...y }),
-    default: () => ({}),
-  }),
-  reservationSlots: Annotation<{
-    guestName?: string;
-    roomType?: string;
-    checkIn?: string;
-    checkOut?: string;
-    numGuests?: string | number;
-  }>({
-    reducer: (x, y) => ({ ...x, ...y }),
-    default: () => ({}),
-  }),
-  intentConfidence: Annotation<number>({
-    reducer: (_x, y) => y,
-    default: () => 0.0,
-  }),
-  intentSource: Annotation<"heuristic" | "llm" | "embedding">({
-    reducer: (_x, y) => y,
-    default: () => "heuristic",
-  }),
-  desiredAction: Annotation<"create" | "modify" | "cancel" | undefined>({
-    reducer: (_x, y) => y,
-    default: () => undefined,
-  }),
-  salesStage: Annotation<"qualify" | "quote" | "close" | "followup">({
-    reducer: (_x, y) => y,
-    default: () => "qualify",
-  }),
-  lastOffer: Annotation<string | null>({
-    reducer: (_x, y) => y,
-    default: () => null,
-  }),
-  upsellCount: Annotation<number>({
-    reducer: (x, y) => (typeof y === "number" ? y : x ?? 0),
-    default: () => 0,
-  }),
-});
 
 // Nodo de clasificación principal
 export async function classifyNode(state: typeof GraphState.State) {
@@ -431,8 +354,6 @@ export async function classifyNode(state: typeof GraphState.State) {
     messages: [],
   };
 }
-
-
 
 /* ========================= * GRAPH * ========================= */
 const g = new StateGraph(GraphState)
