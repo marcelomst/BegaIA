@@ -19,9 +19,19 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
 
   // Evita que el panel de Copilot Chat robe foco/atajos del mouse
-  "github.copilot.chat.focusOnInlineChat": false
+  "github.copilot.chat.focusOnInlineChat": false,
 
   // Si el chat te sigue molestando:
   // "github.copilot.chat.enable": false,   // desactiva SOLO el Chat
   // "github.copilot.enable": true          // mantiene autocompletado inline
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.wwebjs_cache": true,
+    "**/.pnpm-store": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/*.txt": true,
+    "**/*.md": true
+  }
 }

@@ -20,6 +20,8 @@ export type ChunkResult = {
   targetLang?: string | null;   // 👈 AGREGAR
   detectedLangScore?: number | null; // confianza detección 0-1
   // ... cualquier otro campo custom
+  metadata?: Record<string, any>; // opcional: metadatos adicionales por chunk
+  doc_json?: any;                // espejo opcional para auditoría/compat
 };
 
 

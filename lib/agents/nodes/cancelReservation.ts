@@ -8,7 +8,7 @@ import { curatedPrompts, defaultPrompt } from "@/lib/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { debugLog } from "@/lib/utils/debugLog";
-import type { GraphState } from "../graph";
+import { GraphState } from "../graphState";
 
 export async function handleCancelReservationNode(state: typeof GraphState.State) {
     const originalLang = state.detectedLanguage ?? "es";

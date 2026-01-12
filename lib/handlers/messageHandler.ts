@@ -2,34 +2,20 @@
 // Path: /root/begasist/lib/handlers/messageHandler.ts
 import type { ChannelMessage, ChannelMode } from "@/types/channel";
 import { incAutosend } from "@/lib/telemetry/metrics";
-// --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
-const waPhoneMetrics = { invalidAttempts: 0, accepted: 0 };
-export function getWaPhoneMetrics() { return { ...waPhoneMetrics }; }
-export function resetWaPhoneMetrics() { waPhoneMetrics.invalidAttempts = 0; waPhoneMetrics.accepted = 0; }
-const STRICT_WA_NUMERIC = process.env.WHATSAPP_STRICT_NUMERIC === '1';
-function normalizeWA(raw: string): { normalized?: string; reason?: string } {
-  if (!raw) return { reason: 'empty' };
-  const plus = raw.trim().startsWith('+');
-  const cleaned = raw.replace(/[\s\-().]/g, '');
-  if (/[A-Za-z]/.test(cleaned)) {
-    if (STRICT_WA_NUMERIC) { waPhoneMetrics.invalidAttempts++; return { reason: 'alpha_present' }; }
-  }
-  const digits = cleaned.replace(/[^0-9]/g, '');
-  if (digits.length < 7) { waPhoneMetrics.invalidAttempts++; return { reason: 'too_short' }; }
-  waPhoneMetrics.accepted++;
-  return { normalized: (plus ? '+' : '') + digits };
-}
 import {
   getMessagesByConversation,
   type MessageDoc,
   saveChannelMessageToAstra,
 } from "@/lib/db/messages";
 import { agentGraph } from "@/lib/agents";
+import { decideSupervisorStatus } from "@/lib/agents/supervisorAgent";
+import { buildPendingNotice } from "@/lib/agents/outputFormatterAgent";
+import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
 import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
-import { getConvState, upsertConvState, CONVSTATE_VERSION } from "@/lib/db/convState";
+import { getConvState, CONVSTATE_VERSION } from "@/lib/db/convState";
 import type { ReservationSlots as DbReservationSlots } from "@/lib/db/convState";
 import crypto from "crypto";
 
@@ -70,6 +56,27 @@ import {
   isPureAffirmative,
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
+import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
+
+// ================================
+// --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
+const waPhoneMetrics = { invalidAttempts: 0, accepted: 0 };
+export function getWaPhoneMetrics() { return { ...waPhoneMetrics }; }
+export function resetWaPhoneMetrics() { waPhoneMetrics.invalidAttempts = 0; waPhoneMetrics.accepted = 0; }
+const STRICT_WA_NUMERIC = process.env.WHATSAPP_STRICT_NUMERIC === '1';
+function normalizeWA(raw: string): { normalized?: string; reason?: string } {
+  if (!raw) return { reason: 'empty' };
+  const plus = raw.trim().startsWith('+');
+  const cleaned = raw.replace(/[\s\-().]/g, '');
+  if (/[A-Za-z]/.test(cleaned)) {
+    if (STRICT_WA_NUMERIC) { waPhoneMetrics.invalidAttempts++; return { reason: 'alpha_present' }; }
+  }
+  const digits = cleaned.replace(/[^0-9]/g, '');
+  if (digits.length < 7) { waPhoneMetrics.invalidAttempts++; return { reason: 'too_short' }; }
+  waPhoneMetrics.accepted++;
+  return { normalized: (plus ? '+' : '') + digits };
+}
+
 export type ReservationSlotsStrict = SlotMap;
 
 // ----------------------
@@ -101,6 +108,8 @@ const CONFIG = {
 // ----------------------
 
 const FORCE_GENERATION = process.env.FORCE_GENERATION === '1';
+const USE_ORCHESTRATOR_AGENT = process.env.USE_ORCHESTRATOR_AGENT === '1' || process.env.USE_ORCHESTRATOR_AGENT === 'true';
+const USE_MH_FLOW_GRAPH = process.env.USE_MH_FLOW_GRAPH === '1' || process.env.USE_MH_FLOW_GRAPH === 'true';
 const ENABLE_TEST_FASTPATH = process.env.ENABLE_TEST_FASTPATH === '1' || process.env.DEBUG_FASTPATH === '1' || process.env.NODE_ENV === 'test' || Boolean((globalThis as any).vitest) || Boolean(process.env.VITEST);
 const IS_TEST = ENABLE_TEST_FASTPATH;
 export const MH_VERSION = "mh-2025-09-23-structured-01";
@@ -114,6 +123,14 @@ try {
   const hasKey = Boolean(process.env.OPENAI_API_KEY);
   console.warn(`[messageHandler] fastpath → forceGen=${FORCE_GENERATION} | testFast=${ENABLE_TEST_FASTPATH} | key=${hasKey ? 'present' : 'missing'} | reasons=${reasons.join(',') || 'none'}`);
 } catch { }
+
+// ===== Logical Agents Index =====
+// Agent: InputNormalizer (preLLM) — asegura guest/conversación, idempotencia, persistencia de entrante, historial y conv_state.
+// Agent: Orchestrator/Planner (bodyLLM + agentGraph) — atajos de negocio, llamada al grafo, ensamble de respuesta/categoría/slots.
+// Agent: SupervisorDecision — combina modos (canal+huésped) y needsSupervision para decidir sent/pending.
+// Agent: StateUpdater — actualiza conv_state con slots/categoría/flags de supervisión, etc.
+// Agent: OutputFormatter — construye el mensaje AI, define avisos de revisión y emite por canal/SSE.
+
 // Combina modos de canal y guest: si alguno es supervised → supervised
 function combineModes(a?: ChannelMode, b?: ChannelMode): ChannelMode {
   return (a === "supervised" || b === "supervised") ? "supervised" : "automatic";
@@ -196,19 +213,7 @@ function computeInModifyMode(
   const hasDraftOrConfirmed = hasDraft || hasConfirmed;
   return Boolean(prevWasModify || (hasDraftOrConfirmed && mentionsModify));
 }
-
-/** Extrae texto de content (LangChain puede devolver string o array de bloques) */
-function extractTextFromLCContent(content: any): string {
-  if (!content) return "";
-  if (typeof content === "string") return content.trim();
-  if (Array.isArray(content)) {
-    return content.map((b) => (typeof b === "string" ? b : b?.text || b?.content || ""))
-      .filter(Boolean).join("\n").trim();
-  }
-  if (typeof content?.text === "string") return content.text.trim();
-  return "";
-}
-
+// Historial seguro con fallback silencioso
 async function getRecentHistorySafe(
   hotelId: string,
   channel: ChannelMessage["channel"],
@@ -274,6 +279,24 @@ async function getRecentHistory(
     .sort(sortAscByTimestamp).slice(-limit);
 }
 
+// Extrae texto plano desde contenido LC que puede ser string o array de partes
+function extractTextFromLCContent(content: any): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (typeof part === "string") return part;
+      if (part && typeof part === "object") return String(part.text || part.content || "");
+      return "";
+    }).join(" ").trim();
+  }
+  if (typeof content === "object") {
+    if (content.text) return String(content.text);
+    if (content.content) return String(content.content);
+  }
+  return "";
+}
+
 /** Timeout defensivo para el grafo */
 async function withTimeout<T>(p: Promise<T>, ms: number, label = "graph"): Promise<T> {
   let t: any;
@@ -285,6 +308,8 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label = "graph"): Promi
 }
 
 /** Emite por adapter si está; si no, por SSE directo */
+// ===== Agent: OutputFormatter =====
+// Emite la respuesta final al canal/SSE. Si existe payload enriquecido, lo adjunta.
 async function emitReply(conversationId: string, text: string, sendReply?: (reply: string) => Promise<void>, rich?: { type: string; data?: any }) {
   if (sendReply) { await sendReply(text); }
   else {
@@ -511,6 +536,7 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
 // *************************************************
 
 // === División en preLLM, bodyLLM, posLLM ===
+// ===== Agent: InputNormalizer (preLLM) =====
 type PreLLMResult = {
   lang: "es" | "en" | "pt";
   currSlots: ReservationSlotsStrict;
@@ -710,6 +736,7 @@ function buildStateSummary(slots: ReservationSlotsStrict, st: any) {
 
 // runAvailabilityCheck moved to ./pipeline/availability
 
+// ===== Agent: Orchestrator/Planner (bodyLLM + agentGraph) =====
 async function bodyLLM(pre: PreLLMResult): Promise<any> {
   debugLog("[bodyLLM] IN", { pre });
   let finalText = "";
@@ -868,7 +895,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const lastEmail = emailInMsg || prevAttempt?.to;
     if (wantsEscalate) {
       needsSupervision = true;
-      await upsertConvState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', updatedBy: 'ai' } as any);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', updatedBy: 'ai' } as any);
       finalText = pre.lang === 'es'
         ? 'Derivo a recepción para que lo envíen manualmente.'
         : pre.lang === 'pt'
@@ -923,7 +950,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
         }
         if (sent) {
-          await upsertConvState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: 0, updatedAt: new Date().toISOString(), lastErrorType: undefined }, lastCategory: 'send_email_copy', updatedBy: 'ai' } as any);
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: 0, updatedAt: new Date().toISOString(), lastErrorType: undefined }, lastCategory: 'send_email_copy', updatedBy: 'ai' } as any);
           finalText = pre.lang === 'es'
             ? `Listo, te envié una copia por email a ${lastEmail}.`
             : pre.lang === 'pt'
@@ -940,7 +967,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const escalationThreshold = 3;
         if (prevFailures >= escalationThreshold) {
           needsSupervision = true;
-          await upsertConvState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorType: classification.type }, updatedBy: 'ai' } as any);
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorType: classification.type }, updatedBy: 'ai' } as any);
           finalText = pre.lang === 'es'
             ? 'No pude enviarlo tras varios intentos. Derivo a recepción.'
             : pre.lang === 'pt'
@@ -948,7 +975,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               : 'I couldn’t send it after several attempts. Escalating to reception.';
           return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };
         }
-        await upsertConvState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorType: classification.type }, lastCategory: 'send_email_copy', updatedBy: 'ai' } as any);
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorType: classification.type }, lastCategory: 'send_email_copy', updatedBy: 'ai' } as any);
         if (isNotConfigured) {
           finalText = pre.lang === 'es'
             ? 'Aún no está configurado el envío de correos. ¿Otro email o lo derivo?'
@@ -1446,7 +1473,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
       const r = await cancelReservation(pre.msg.hotelId, code);
-      await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: {
           reservationId: code,
           status: r.ok ? "cancelled" : "error",
@@ -1459,7 +1486,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     } catch (e) {
       needsSupervision = true;
-      await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         supervised: true,
         desiredAction: "notify_reception",
         updatedBy: "ai",
@@ -1542,7 +1569,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           roomType: rt, numGuests: ng, checkIn: ci, checkOut: co, locale: pre.lang,
         };
         const mod = await modifyReservation(pre.msg.hotelId, codeFromUser, snapshot, pre.msg.channel);
-        await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: snapshot,
           lastReservation: {
             reservationId: codeFromUser,
@@ -1556,7 +1583,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       } catch (e) {
         needsSupervision = true;
-        await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           supervised: true,
           desiredAction: "notify_reception",
           updatedBy: "ai",
@@ -1578,14 +1605,72 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const isTestEnvBody = process.env.NODE_ENV === 'test' || Boolean((globalThis as any).vitest) || Boolean(process.env.VITEST);
       const tLowerBody = String(pre.msg.content || "").toLowerCase();
       const looksGreetingBody = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/.test(tLowerBody);
+
       if (ENABLE_TEST_FASTPATH && looksGreetingBody && !pre.inModifyMode) {
+        // Camino ultra liviano para tests / saludos
         finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
         nextCategory = "retrieval_based";
       } else {
+        // ============================
+        // NEW: Fast-path KnowledgeBase
+        // ============================
+        const kbUserText = String(pre.msg.content || "");
+
+        // Consideramos "contexto de reserva" cuando hay borrador/confirmación o modo modificación activo
+        const hasReservationContext =
+          pre.inModifyMode ||
+          !!pre.stateForPlaybook?.draft ||
+          !!pre.stateForPlaybook?.confirmedBooking;
+
+        // Sólo usamos KB para consultas informativas (sin contexto de reserva)
+        if (!hasReservationContext) {
+          try {
+            const kb = await answerWithKnowledge({
+              question: kbUserText,
+              hotelId: pre.msg.hotelId,
+              desiredLang: pre.lang,
+            });
+
+            const cat = kb.category;
+            const safeCat = isSafeAutosendCategory(cat);
+            const text = kb.answer?.trim();
+
+            // Usamos sólo si:
+            // - ok = true
+            // - respuesta de texto no vacía
+            // - categoría "segura" (retrieval / info hotel)
+            if (kb.ok && safeCat && text) {
+              finalText = text;
+              nextCategory = cat || "retrieval_based";
+              nextSlots = pre.currSlots; // KB no toca slots de reserva
+
+              graphResult = {
+                ...(kb.debug || {}),
+                category: cat,
+                source: "knowledgeBaseAgent",
+                contentTitle: kb.contentTitle,
+                contentBody: kb.contentBody,
+                retrieved: kb.retrieved,
+              };
+
+              // Atajo: no llamamos agentGraph si el KB ya resolvió bien
+              return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+            }
+          } catch (e) {
+            console.warn("[KB] answerWithKnowledge error, sigo con agentGraph:", (e as any)?.message || e);
+          }
+        }
+
         // Enriquecer el SystemMessage con el estado de slots y reserva
         const systemInstruction = pre.systemInstruction + "\n" + buildStateSummary(pre.currSlots, pre.st);
-        debugLog("[bodyLLM] systemInstruction", systemInstruction)
-        const lcMessages = [new SystemMessage(systemInstruction), ...pre.lcHistory, new HumanMessage(String(pre.msg.content || ""))];
+        debugLog("[bodyLLM] systemInstruction", systemInstruction);
+
+        const lcMessages = [
+          new SystemMessage(systemInstruction),
+          ...pre.lcHistory,
+          new HumanMessage(String(pre.msg.content || "")),
+        ];
+
         graphResult = await withTimeout(
           agentGraph.invoke({
             hotelId: pre.msg.hotelId,
@@ -1601,17 +1686,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           CONFIG.GRAPH_TIMEOUT_MS,
           "agentGraph.invoke"
         );
+
         debugLog("[bodyLLM] graphResult", graphResult);
         const last = (graphResult as any)?.messages?.at?.(-1);
         const lastText = extractTextFromLCContent(last?.content);
         finalText = (lastText || "").trim();
         nextCategory = (graphResult as any).category ?? pre.prevCategory ?? null;
-        const merged: ReservationSlotsStrict = { ...(pre.currSlots || {}), ...((graphResult as any).reservationSlots || {}) };
+
+        const merged: ReservationSlotsStrict = {
+          ...(pre.currSlots || {}),
+          ...((graphResult as any).reservationSlots || {}),
+        };
         if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {
           merged.numGuests = String((merged as any).numGuests);
         }
         nextSlots = merged;
       }
+
       // === NEW: enriquecer con structured si aporta algo útil (no bloqueante)
       try {
         if (CONFIG.STRUCTURED_ENABLED) {
@@ -1640,11 +1731,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               needsSupervision = true;
             }
             if (!finalText && structured.answer) {
-              // Evita derivar al hotel cuando estamos en flujo de modificación: guía al usuario
-              if (structured.handoff === true && pre.inModifyMode) {
-                finalText = buildModifyGuidance(pre.lang, nextSlots);
+              if ((pre as any).__orchestratorActive) {
+                // Delega construcción del structured fallback al planner
+                graphResult = graphResult || {};
+                (graphResult as any).structuredFallback = structured;
               } else {
-                finalText = structured.answer;
+                // Evita derivar al hotel cuando estamos en flujo de modificación: guía al usuario
+                if (structured.handoff === true && pre.inModifyMode) {
+                  finalText = buildModifyGuidance(pre.lang, nextSlots);
+                } else {
+                  finalText = structured.answer;
+                }
               }
             }
             if (!nextCategory && structured.intent) {
@@ -1669,30 +1766,40 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           });
           debugLog("[bodyLLM] structured fallback", structured);
           if (structured?.answer) {
-            // En fallback structured, también evitar derivar en modo modificación
-            if (structured.handoff === true && pre.inModifyMode) {
-              finalText = buildModifyGuidance(pre.lang, pre.currSlots);
+            if ((pre as any).__orchestratorActive) {
+              graphResult = graphResult || {};
+              (graphResult as any).structuredFallback = structured;
             } else {
-              finalText = structured.answer;
+              // En fallback structured, también evitar derivar en modo modificación
+              if (structured.handoff === true && pre.inModifyMode) {
+                finalText = buildModifyGuidance(pre.lang, pre.currSlots);
+              } else {
+                finalText = structured.answer;
+              }
+              nextCategory = mapStructuredIntentToCategory(structured.intent || "general_question");
+              const s = structured.entities || {};
+              nextSlots = {
+                ...pre.currSlots,
+                checkIn: pre.currSlots.checkIn || s.checkin_date || undefined,
+                checkOut: pre.currSlots.checkOut || s.checkout_date || undefined,
+                roomType: pre.currSlots.roomType || s.room_type || undefined,
+                numGuests: pre.currSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
+              };
+              if (structured.handoff === true) needsSupervision = true;
             }
-            nextCategory = mapStructuredIntentToCategory(structured.intent || "general_question");
-            const s = structured.entities || {};
-            nextSlots = {
-              ...pre.currSlots,
-              checkIn: pre.currSlots.checkIn || s.checkin_date || undefined,
-              checkOut: pre.currSlots.checkOut || s.checkout_date || undefined,
-              roomType: pre.currSlots.roomType || s.room_type || undefined,
-              numGuests: pre.currSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
-            };
-            if (structured.handoff === true) needsSupervision = true;
           }
         }
       } catch (e) {
         console.warn("[structured] fallback error:", (e as any)?.message || e);
       }
       if (!finalText) {
-        finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
-        console.warn("⚠️ [graph] finalText vacío → fallback determinista");
+        // Si el orquestador está activo, dejamos finalText vacío para que el planner maneje el fallback determinista.
+        if (!(pre as any).__orchestratorActive) {
+          finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
+          console.warn("⚠️ [graph] finalText vacío → fallback determinista");
+        } else {
+          console.warn("⚠️ [graph] finalText vacío → delegando fallback determinista al OrchestratorPlanner");
+        }
       }
     }
   }
@@ -1736,42 +1843,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const prevGuestsVal = pre.prevSlotsStrict?.numGuests || pre.st?.reservationSlots?.numGuests || "";
     const hasNewGuests = Number.isFinite(guestsParsed) && guestsParsed > 0 && String(guestsParsed) !== prevGuestsVal;
     const haveDatesNow = Boolean((nextSlots.checkIn || pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut || pre.st?.reservationSlots?.checkOut));
-    if (hasNewGuests && haveDatesNow) {
-      const finalGuests = String(guestsParsed);
-      // Ajuste de tipo de habitación si la capacidad no alcanza
-      const currentType = nextSlots.roomType || pre.st?.reservationSlots?.roomType;
-      const { target, changed } = chooseRoomTypeForGuests(currentType, parseInt(finalGuests, 10));
-      nextSlots = { ...nextSlots, numGuests: finalGuests, roomType: target };
-      try {
-        const ciISO = (nextSlots.checkIn || pre.st?.reservationSlots?.checkIn)!;
-        const coISO = (nextSlots.checkOut || pre.st?.reservationSlots?.checkOut)!;
-        const res = await runAvailabilityCheck(pre, nextSlots, ciISO, coISO);
-        // Prependemos un ACK de reajuste si cambió el tipo de habitación
-        const ack = changed
-          ? (pre.lang === "es"
-            ? `Actualicé la capacidad a ${finalGuests} huésped(es) y ajusté el tipo a ${localizeRoomType(target, pre.lang)}.`
-            : pre.lang === "pt"
-              ? `Atualizei a capacidade para ${finalGuests} hóspede(s) e ajustei o tipo para ${localizeRoomType(target, pre.lang)}.`
-              : `I updated capacity to ${finalGuests} guest(s) and adjusted the room type to ${localizeRoomType(target, pre.lang)}.`)
-          : (pre.lang === "es"
-            ? `Actualicé la capacidad a ${finalGuests} huésped(es).`
-            : pre.lang === "pt"
-              ? `Atualizei a capacidade para ${finalGuests} hóspede(s).`
-              : `I updated capacity to ${finalGuests} guest(s).`);
-        finalText = `${ack}\n\n${res.finalText}`.trim();
-        nextSlots = res.nextSlots;
-        if (res.needsHandoff) needsSupervision = true;
-        return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
-      } catch (e) {
-        // Si falla el tool, al menos confirmamos el cambio y pedimos reintentar
-        finalText = pre.lang === "es"
-          ? `Actualicé la capacidad a ${finalGuests} huésped(es). Tuve un problema al recalcular disponibilidad; ¿querés que lo intente de nuevo?`
-          : pre.lang === "pt"
-            ? `Atualizei a capacidade para ${finalGuests} hóspede(s). Tive um problema ao recalcular a disponibilidade; deseja que eu tente novamente?`
-            : `I updated capacity to ${finalGuests} guest(s). I had an issue recalculating availability; would you like me to try again?`;
-        return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
-      }
-    }
+    // Legacy recotización eliminada: la recotización por cambio de huéspedes con fechas conocidas
+    // es manejada exclusivamente por el OrchestratorPlanner (runOrchestratorPlanner).
 
     // Oferta de menú compacto de modificación cuando el usuario dice "quiero modificar" y ya hay fechas conocidas
     if (pre.inModifyMode && wantsGenericModify(String(pre.msg.content || ""), pre.lang) && (nextSlots.checkIn || pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut || pre.st?.reservationSlots?.checkOut)) {
@@ -2151,6 +2224,7 @@ function detectWhatsAppCopyRequest(pre: PreLLMResult, text: string): { matched: 
   return { matched: false };
 }
 
+// ===== Agent: Orchestrator/Planner › Audit Advisory (posLLM) =====
 async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {
   // Solo asesoramiento/auditoría: comparación pre vs LLM
   // Si se requiere, puedes exponer el resultado de esta función para logging, análisis o UI
@@ -2194,6 +2268,8 @@ async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any;
   return { verdictInfo, llmInterp, needsSupervision };
 }
 
+// (SupervisorDecision and OutputFormatter helpers moved to /lib/agents)
+
 export async function handleIncomingMessage(
   msg: ChannelMessage,
   options?: {
@@ -2212,6 +2288,9 @@ export async function handleIncomingMessage(
    * Logs: lang_in, lang_retrieval, lang_out (cuando aplica) y autosend_reason
    */
   debugLog("[FlujoCHKI][handleIncomingMessage] IN", { msg, options });
+  // Flags evaluadas en runtime (evita cacheo entre tests por module scope)
+  const GRAPH_ENABLED = process.env.USE_MH_FLOW_GRAPH === '1' || process.env.USE_MH_FLOW_GRAPH === 'true';
+  const ORCH_ENABLED = process.env.USE_ORCHESTRATOR_AGENT === '1' || process.env.USE_ORCHESTRATOR_AGENT === 'true';
   const lockId = msg.conversationId || `${msg.hotelId}-${msg.channel}-${(msg.sender || msg.guestId || "guest")}`;
   // Aseguramos orden serial por conversación
   return runQueued(lockId, async () => {
@@ -2259,33 +2338,88 @@ export async function handleIncomingMessage(
       // Asegura que pre.options exista aunque preLLM no lo devuelva (retrocompatibilidad)
       if (!pre.options) pre.options = options ?? {};
     }
-    // --- bodyLLM ---
-    const body = await bodyLLM(pre);
+    // --- bodyLLM OR grafo completo (Fase 3) ---
+    let body: any;
+    let auditFromGraph: { verdictInfo?: any; llmInterp?: any; needsSupervision?: boolean } | null = null;
+    if (GRAPH_ENABLED) {
+      try { if (IS_TEST) console.log('[mh][branch] GRAPH_ENABLED=true → invoking orchestratorProxy'); } catch { }
+      // Camino nuevo: delegamos a grafo que incluye orquestación.
+      const { runOrchestratorProxy } = await import("@/lib/agents/orchestratorAgent");
+      const orch = await runOrchestratorProxy(pre, async () => await bodyLLM(pre));
+      const { runMhFlowGraph } = await import("@/lib/agents/mhFlowGraph");
+      const graphState = await runMhFlowGraph({
+        rawInput: { msg, options },
+        orchestrator: orch,
+        meta: { featureFlags: { USE_ORCHESTRATOR_AGENT: ORCH_ENABLED, USE_MH_FLOW_GRAPH: GRAPH_ENABLED, USE_PRE_POS_PIPELINE: pipelineEnabled }, timings: {} }
+      });
+      body = orch; // mantener nombre local body para reutilizar lógica existente si hiciera falta
+      debugLog("[handleIncomingMessage][graph] state", graphState);
+      // Reemplazar variables clave desde graphState (paridad con flujo legacy)
+      const gsAny: any = graphState as any;
+      const orchFromGraph = gsAny?.orchestrator as any;
+      if (orchFromGraph != null) {
+        body.finalText = orchFromGraph.finalText;
+        body.nextCategory = orchFromGraph.nextCategory;
+        body.nextSlots = orchFromGraph.nextSlots;
+      }
+      body.needsSupervision = graphState.supervision?.needsSupervision ?? body.needsSupervision;
+      // Capturamos auditoría desde el grafo si pipeline de pre/pos está activa
+      if (pipelineEnabled) {
+        auditFromGraph = {
+          verdictInfo: graphState.audit?.verdictInfo,
+          llmInterp: graphState.audit?.llmInterp,
+          needsSupervision: graphState.orchestrator?.needsSupervision,
+        };
+      }
+      // saltamos posLLM si grafo activo (Fase 3 solo pipeline principal)
+      if (ORCH_ENABLED && !skipPrePos) {
+        // Intencional: mantenemos posibilidad de posLLM si pre-pos pipeline activo y orquestador ON.
+      }
+    } else {
+      try { if (IS_TEST) console.log('[mh][branch] GRAPH_ENABLED=false → legacy path'); } catch { }
+      if (ORCH_ENABLED) {
+        const { runOrchestratorProxy } = await import("@/lib/agents/orchestratorAgent");
+        body = await runOrchestratorProxy(pre, async () => await bodyLLM(pre));
+      } else {
+        body = await bodyLLM(pre);
+      }
+    }
     debugLog("[handleIncomingMessage] bodyLLM/body", body);
+    // ===== Agent: StateUpdater =====
     // Persist minimal conv_state only for copy follow-ups so next turn can continue that flow
     const needsFollowupPersist = body?.nextCategory === "send_whatsapp_copy" || body?.nextCategory === "send_email_copy";
     if (needsFollowupPersist) {
       try {
-        await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: body?.nextSlots || pre.currSlots,
           lastCategory: body?.nextCategory ?? pre.prevCategory ?? null,
           updatedBy: "ai",
         } as any);
       } catch (e) {
-        console.warn("[handleIncomingMessage] upsertConvState warn:", (e as any)?.message || e);
+        console.warn("[handleIncomingMessage] updateConversationState warn:", (e as any)?.message || e);
       }
     }
     // --- Persistir y emitir respuesta (siempre, independientemente de posLLM) ---
     let needsSupervision = body.needsSupervision;
-    let verdictInfo = undefined;
-    let llmInterp = undefined;
+    let verdictInfo = undefined as any;
+    let llmInterp = undefined as any;
     if (!skipPrePos) {
-      // Si se usa posLLM, obtener asesoramiento
-      const pos = await posLLM(pre, body);
-      debugLog("[handleIncomingMessage] posLLM/pos", pos);
-      verdictInfo = pos.verdictInfo;
-      llmInterp = pos.llmInterp;
-      needsSupervision = pos.needsSupervision;
+      if (USE_MH_FLOW_GRAPH && auditFromGraph) {
+        // Paridad: cuando el grafo está activo, usar su nodo de auditoría
+        verdictInfo = auditFromGraph.verdictInfo;
+        llmInterp = auditFromGraph.llmInterp;
+        if (typeof auditFromGraph.needsSupervision === "boolean") {
+          needsSupervision = auditFromGraph.needsSupervision;
+        }
+        debugLog("[handleIncomingMessage][graph] audit", auditFromGraph);
+      } else {
+        // Flujo legacy: auditoría inline (posLLM)
+        const pos = await posLLM(pre, body);
+        debugLog("[handleIncomingMessage] posLLM/pos", pos);
+        verdictInfo = pos.verdictInfo;
+        llmInterp = pos.llmInterp;
+        needsSupervision = pos.needsSupervision;
+      }
     }
     // Fuerza bypass de supervisión en desarrollo cuando se solicita generación forzada.
     // Esto evita el estado "pendiente" y permite validar el flujo E2E en UI.
@@ -2299,40 +2433,19 @@ export async function handleIncomingMessage(
     debugLog("[handleIncomingMessage] suggestion", suggestion);
     // Payload enriquecido opcional emitido desde el grafo (p.ej., room-info-img)
     const richPayload: { type: string; data?: any } | undefined = (body as any)?.graphResult?.meta?.rich;
-    // Decidir si este turno debe salir como "sent" (sin supervisión)
-    // Reglas:
-    // 1) Si el grafo devolvió snapshot/verify o reservation(close) → directo
-    // 2) Si la categoría es "segura" y no hay needsSupervision → respeta modo combinado canal+guest
+    // ===== Agent: SupervisorDecision =====
     const respCategory = (body?.graphResult?.category || body?.nextCategory || pre.prevCategory) as string | undefined;
     const respSalesStage = (body?.graphResult?.salesStage || pre.st?.salesStage) as string | undefined;
-    const isSnapshotReply = !!(
-      respCategory && (
-        respCategory === "reservation_snapshot" ||
-        respCategory === "reservation_verify" ||
-        (respCategory === "reservation" && respSalesStage === "close")
-      )
-    );
-    // Modo combinado: preferimos supervised si alguno lo es
     const combinedMode: ChannelMode = combineModes(pre.options?.mode, pre.guest.mode ?? "automatic");
-    // Safe categories auto-send in automatic mode; snapshot/verify/close always auto-send
     const safeCat = isSafeAutosendCategory(respCategory || "");
-    let autosendReason: "snapshot_verify" | "close_stage" | "safe_category" | "supervised_pending" | "automatic_default" = "automatic_default";
-    let autoSend = false;
-    if (isSnapshotReply) {
-      autosendReason = (respCategory === "reservation" && respSalesStage === "close") ? "close_stage" : "snapshot_verify";
-      autoSend = true;
-    } else if (safeCat && combinedMode === "automatic" && !needsSupervision) {
-      autosendReason = "safe_category";
-      autoSend = true;
-    } else if (!needsSupervision && combinedMode === "automatic") {
-      autosendReason = "automatic_default";
-      autoSend = true;
-    } else {
-      autosendReason = "supervised_pending";
-      autoSend = false;
-    }
-    const cfgMode = combinedMode;
-    debugLog("[autosend]", { category: respCategory, salesStage: respSalesStage, mode: cfgMode, autosendReason });
+    const decision = decideSupervisorStatus({
+      combinedMode,
+      category: respCategory,
+      salesStage: respSalesStage,
+      needsSupervision,
+      isSafeCategory: safeCat,
+    });
+    debugLog("[autosend]", { category: respCategory, salesStage: respSalesStage, mode: combinedMode, autosendReason: decision.autosendReason });
 
     // Construir el mensaje AI sin heredar direction/content del mensaje del huésped
     const aiMsg: ChannelMessage = {
@@ -2345,7 +2458,7 @@ export async function handleIncomingMessage(
       role: "ai",
       content: suggestion,
       suggestion,
-      status: autoSend ? "sent" : "pending",
+      status: decision.status,
       timestamp: safeNowISO(),
       direction: 'out',
       detectedLanguage: pre.lang,
@@ -2355,7 +2468,7 @@ export async function handleIncomingMessage(
 
     // Telemetry: count autosend decision
     try {
-      incAutosend(autosendReason, respCategory ?? "unknown", aiMsg.status === "sent");
+      incAutosend(decision.autosendReason, respCategory ?? "unknown", aiMsg.status === "sent");
     } catch { /* metrics are best-effort */ }
     if ((pre.msg as any).sourceProvider) {
       (aiMsg as any).sourceProvider = (pre.msg as any).sourceProvider;
@@ -2371,11 +2484,7 @@ export async function handleIncomingMessage(
         debugLog("[handleIncomingMessage] emitReply sent", { conversationId: pre.conversationId, suggestion });
       } else {
         debugLog("[handleIncomingMessage] emitReply pending", { conversationId: pre.conversationId, reason: verdictInfo?.reason });
-        const pending = pre.lang.startsWith("es")
-          ? "🕓 Tu consulta está siendo revisada por un recepcionista."
-          : pre.lang.startsWith("pt")
-            ? "🕓 Sua solicitação está sendo revisada por um recepcionista."
-            : "🕓 Your request is being reviewed by a receptionist.";
+        const pending = buildPendingNotice(pre.lang, verdictInfo);
         await emitReply(pre.conversationId, pending, pre.options?.sendReply);
       }
     } catch (err) {

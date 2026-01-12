@@ -13,6 +13,27 @@ Para validar la UI end-to-end con generación del asistente (evitando el fast-pa
 
 En `.env.example` quedó un placeholder `FORCE_GENERATION=0` con comentario.
 
+## Fase 1.5 — Normalizador (resumen + pruebas)
+
+- Doc ampliada: ver `docs/messageHandler-agents.md` → sección “Fase 1.5 — Normalizador Avanzado (Cierre)”.
+- Cambios clave:
+  - Normalizador centraliza `lang`, `lcHistory`, `prevCategory`, `prevSlotsStrict`, `currSlots`, `stateForPlaybook`, `isDuplicateSoft` (placeholder), sin persistencia.
+  - El grafo (nodo `normalize`) invoca `runInputNormalizer` si no recibe `normalized`.
+  - El handler evita recomputar `normalized` cuando el grafo está ON.
+- Paridad validada con suite completa:
+  - ON: `USE_MH_FLOW_GRAPH=1 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1`
+  - OFF: `USE_MH_FLOW_GRAPH=0 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1`
+
+Comandos de test útiles:
+
+```bash
+# Flags ON (grafo + planner + pre/pos pipeline)
+USE_MH_FLOW_GRAPH=1 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1 pnpm test:run
+
+# Flags OFF (ruta legacy + planner + pre/pos pipeline)
+USE_MH_FLOW_GRAPH=0 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1 pnpm test:run
+```
+
 ## ✔️ **Lo que ya tenés implementado (respecto a RAG/Bot):**
 
 ### 1. **Arquitectura y Grafo Conversacional**

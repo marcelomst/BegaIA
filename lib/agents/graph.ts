@@ -90,9 +90,6 @@ export async function classifyNode(state: typeof GraphState.State) {
       };
     }
     // Si el usuario explícitamente quiere modificar/cancelar, seguir en reservation
-    // Path: /root/begasist/lib/agents/graph.ts
-
-    // ✅ En classifyNode, reemplazá SOLO este bloque "asksSnapshot" por este (mantén el resto igual):
     // ----------------------------------------------------------------
     const asksSnapshot =
       /(ver|mostrar|consultar|verificar|corroborar|comprobar|averiguar|confirmada|check|confirm|details)/i.test(t) &&
@@ -158,7 +155,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     const looksTransport = RE_TRANSPORT.test(t);
     if (looksTransport) {
       return {
-        category: "amenities",
+        category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
         intentSource: "heuristic",
@@ -239,7 +236,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Desvío específico con prioridad: transporte, billing, soporte, desayuno deben evitar kb_general aquí
     if (/(aeropuerto|airport|traslados?|transfer|taxi|remis|bus|[óo]mnibus|colectivo|metro|subte)/i.test(t)) {
       return {
-        category: "amenities",
+        category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
         intentSource: "heuristic",
@@ -340,7 +337,7 @@ export async function classifyNode(state: typeof GraphState.State) {
         ? "modify_reservation"
         : "reservation_flow"
       : cat === "cancel_reservation"
-        ? "modify_reservation"
+        ? "cancellation_policy"
         : looksRoomInfo(normalizedMessage)
           ? "room_info"
           : "ambiguity_policy";

@@ -1,5 +1,5 @@
-<!-- Path: /root/begAI/examples/hotel-demo/index.html -->
-<!-- npx http-server /home/marcelo/begasist/examples/hotel-demo/index.html -p 8081 -a 127.0.0.1 -c-1 -->
+<!-- Demo Hotel Page for Begasist Chat Widget -->
+<!-- Dev serve: npx http-server /home/marcelo/begasist/examples/hotel-demo -p 8081 -a 127.0.0.1 -c-1 --cors -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,7 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hotel Demo • Mini página para probar widget</title>
   <meta name="description" content="Mini página estática de Hotel Demo para probar el widget de chat Begasist.">
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta property="og:title" content="Hotel Demo" />
+  <meta property="og:description" content="Probá el widget de chat Begasist en este Hotel Demo." />
+  <meta property="og:type" content="website" />
   <link rel="icon" href="data:,"><!-- evita 404 de favicon -->
+  <link rel="preload" as="script" href="http://localhost:3000/widget/begai-chat.js" />
 
   <style>
     :root {
@@ -43,16 +49,16 @@
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-  <header role="banner">
-    <div class="wrap" aria-label="Encabezado de la página">
+  <header>
+    <div class="wrap">
       <div class="brand">
         <div class="brand-logo" aria-hidden="true">HD</div>
-        <div class="brand-title" aria-label="Nombre del hotel">Hotel Demo</div>
+        <div class="brand-title">Hotel Demo</div>
       </div>
     </div>
   </header>
 
-  <main id="contenido" class="wrap safe-bottom" role="main">
+  <main id="contenido" class="wrap safe-bottom">
     <section class="hero" aria-labelledby="hero-titulo">
       <h1 id="hero-titulo">Bienvenido a Hotel Demo</h1>
       <p>Un espacio moderno y cómodo. Probá el <strong>widget de chat</strong> (burbuja abajo a la derecha) para hablar con nuestro asistente 24/7.</p>
@@ -63,17 +69,17 @@
 
     <section id="servicios" aria-labelledby="servicios-titulo">
       <h2 id="servicios-titulo" style="margin:0 0 .5rem;">Servicios</h2>
-      <div class="cards" role="list">
-        <article class="card" role="listitem" aria-label="Wi-Fi de alta velocidad">
+      <div class="cards">
+        <article class="card" aria-label="Wi-Fi de alta velocidad">
           <h3>Wi-Fi de alta velocidad</h3><p>Conexión estable en todo el hotel.</p>
         </article>
-        <article class="card" role="listitem" aria-label="Desayuno buffet">
+        <article class="card" aria-label="Desayuno buffet">
           <h3>Desayuno buffet</h3><p>Opciones saludables y sin TACC. 7:00–10:30.</p>
         </article>
-        <article class="card" role="listitem" aria-label="Piscina climatizada">
+        <article class="card" aria-label="Piscina climatizada">
           <h3>Piscina climatizada</h3><p>Abierta todo el año, toallas incluidas.</p>
         </article>
-        <article class="card" role="listitem" aria-label="Recepción 24/7">
+        <article class="card" aria-label="Recepción 24/7">
           <h3>Recepción 24/7</h3><p>Siempre disponibles para ayudarte.</p>
         </article>
       </div>
@@ -81,7 +87,7 @@
 
     <section aria-labelledby="contacto-titulo" style="margin-top:1.5rem;">
       <h2 id="contacto-titulo" style="margin:0 0 .5rem;">Contacto</h2>
-      <div class="card" role="region" aria-label="Información de contacto">
+      <div class="card" aria-label="Información de contacto">
         <p><strong>Dirección:</strong> Av. Ejemplo 123, Ciudad</p>
         <p><strong>Teléfono:</strong> +598 2 123 4567</p>
         <p><strong>Email:</strong> contacto@hoteldemo.local</p>
@@ -105,19 +111,19 @@
     </div>
   </main>
 
-  <footer class="wrap" role="contentinfo" aria-label="Pie de página">
+  <footer class="wrap" aria-label="Pie de página">
     <p>© <span id="anio">2025</span> Hotel Demo. Todos los derechos reservados.</p>
   </footer>
 
   <noscript><div class="wrap" style="color:#ffb4b4;font-weight:600;">Para usar el chat necesitás habilitar JavaScript.</div></noscript>
   <script>document.getElementById('anio').textContent=new Date().getFullYear();</script>
 
-  <!-- 🧩 Widget Begasist Chat
-       - La config va ANTES del script del widget.
-       - Cambiar color: theme.primary
-       - Posición: "bottom-right" | "bottom-left"
-       - CORS: backend en http://localhost:3000 debe permitir origen http://localhost:8081
-       - No usa cookies; todo client-side-->>
+    <!-- 🧩 Widget Begasist Chat
+      - La config va ANTES del script del widget.
+      - Cambiar color: theme.primary
+      - Posición: "bottom-right" | "bottom-left"
+      - CORS: backend en http://localhost:3000 debe permitir origen http://localhost:8081
+      - No usa cookies; todo client-side -->
 <!-- BegAI Web Widget -->
 <script>
   window.BegAIChat = {

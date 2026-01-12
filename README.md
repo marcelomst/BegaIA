@@ -39,6 +39,24 @@ Incluye pruebas de alto valor y bajo costo de ejecución:
 
 Lo que queda fuera: pruebas lentas o con dependencias externas (van a `deprecated/` o jobs opt‑in).
 
+## 🧾 Changelog breve — Fase 1.5 Normalizador
+
+- Normalizador avanzado (`runInputNormalizer`) ahora calcula y centraliza: `lang`, `lcHistory`, `prevCategory`, `prevSlotsStrict`, `currSlots`, `stateForPlaybook` e `isDuplicateSoft` (placeholder), sin persistencia.
+- El grafo (nodo `normalize`) invoca el normalizador cuando no recibe `normalized`; el handler ya no recomputa `normalized` cuando el grafo está ON.
+- Paridad verificada con suite completa en ambos modos:
+  - ON: `USE_MH_FLOW_GRAPH=1 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1`
+  - OFF: `USE_MH_FLOW_GRAPH=0 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1`
+
+Comandos útiles para ejecutar la suite completa:
+
+```bash
+# Flags ON (grafo + planner + pre/pos pipeline)
+USE_MH_FLOW_GRAPH=1 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1 pnpm test:run
+
+# Flags OFF (ruta legacy + planner + pre/pos pipeline)
+USE_MH_FLOW_GRAPH=0 USE_ORCHESTRATOR_AGENT=1 USE_PRE_POS_PIPELINE=1 pnpm test:run
+```
+
 ## 📸 Snapshot/Verify de reservas (UX segura)
 
 - El grafo reconoce pedidos de “corroborar/comprobar/averiguar” y responde con un snapshot de la reserva:

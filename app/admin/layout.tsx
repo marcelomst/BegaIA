@@ -142,7 +142,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     {canAccessHotelSection(user.roleLevel) && (
                       <SidebarLink
                         href="/admin/hotel/edit"
-                        label={t.layout.myHotelEdit || "Editar mi hotel"}
+                        // Renombrado: foco claro en configuración base del hotel
+                        label={t.layout.myHotelEdit || "Hotel Config"}
                         icon={<Hotel className="w-5 h-5" />}
                       />
                     )}
@@ -157,14 +158,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     {canAccessUploadSection(user.roleLevel) && (
                       <SidebarLink
                         href="/admin/upload"
-                        label={sidebarOpen ? t.layout.upload : ""}
+                        // Modo avanzado: ingesta manual de documentos sueltos
+                        label={sidebarOpen ? (t.layout.uploadAdvanced || "Ingesta Manual") : ""}
                         icon={<Upload className="w-5 h-5" />}
                       />
                     )}
                     {canAccessUploadSection(user.roleLevel) && (
                       <SidebarLink
-                        href="/admin/kb/upload"
-                        label={sidebarOpen ? (t.layout?.kbUpload || "Cargar KB") : ""}
+                        href="/admin/kb/templates"
+                        // Punto único de generación/preview de KB
+                        label={sidebarOpen ? (t.layout?.kbGenerate || "Generar KB") : ""}
                         icon={<BookOpen className="w-5 h-5" />}
                       />
                     )}

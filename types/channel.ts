@@ -130,6 +130,15 @@ export type ChannelConfigMap = {
 };
 
 // --- HOTEL ---
+export type CancellationPolicy =
+  | string
+  | {
+    flexible?: string;
+    nonRefundable?: string;
+    channels?: string[]; // can also be string in legacy, hydration will coerce
+    noShow?: string;
+  };
+
 export type HotelConfig = {
   hotelId: string;
   hotelName: string;
@@ -152,15 +161,20 @@ export type HotelConfig = {
   contacts?: { email?: string; whatsapp?: string; phone?: string; website?: string };
   schedules?: { checkIn?: string; checkOut?: string; breakfast?: string; quietHours?: string };
   amenities?: {
+    // Nuevo modelo unificado
+    tags?: string[]; // p.ej. ["Estacionamiento","Piscina","Gimnasio","Spa", ...]
+    schedules?: Record<string, string>; // mapa amenity-> "HH:mm" o "HH:mm a HH:mm"
+    notes?: string; // notas generales (agrupa parkingNotes u otras observaciones)
+    // Compat: campos legacy aún soportados en carga (se migran a tags/schedules en UI)
     hasParking?: boolean; parkingNotes?: string;
     hasPool?: boolean; poolSchedule?: string;
     hasGym?: boolean; gymSchedule?: string;
     hasSpa?: boolean; spaSchedule?: string;
     other?: string[];
   };
-  payments?: { methods?: string[]; notes?: string; requiresCardForBooking?: boolean };
-  billing?: { issuesInvoices?: boolean; invoiceNotes?: string };
-  policies?: { pets?: string; smoking?: string; cancellation?: string };
+  payments?: { methods?: string[]; notes?: string; notesTags?: string[]; requiresCardForBooking?: boolean; currency?: string; currencies?: string[] };
+  billing?: { issuesInvoices?: boolean; invoiceNotes?: string; invoiceNotesTags?: string[] };
+  policies?: { pets?: string; smoking?: string; generalTags?: string[]; cancellation?: CancellationPolicy };
   rooms?: Array<{
     name: string;
     sizeM2?: number; capacity?: number; beds?: string;

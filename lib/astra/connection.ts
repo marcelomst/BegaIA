@@ -1,14 +1,30 @@
 import { Client } from "cassandra-driver";
 /**
- * Devuelve una instancia de Cassandra Client para CQL, usando las mismas envs y validaciones.
+ * Devuelve una instancia de Cassandra Client para CQL.
+ * Soporta 2 modos:
+ * - Modo Astra (recomendado): usando Secure Connect Bundle
+ *     Env: ASTRA_DB_SECURE_BUNDLE (ruta al .zip), ASTRA_DB_CLIENT_ID, ASTRA_DB_CLIENT_SECRET, ASTRA_DB_KEYSPACE
+ * - Modo contacto directo: usando host/datacenter (clusters self-managed)
+ *     Env: ASTRA_DB_HOST, ASTRA_DB_DATACENTER, ASTRA_DB_CLIENT_ID, ASTRA_DB_CLIENT_SECRET, ASTRA_DB_KEYSPACE
  */
 export function getCassandraClient() {
-  const host = requiredEnv("ASTRA_DB_HOST");
-  const datacenter = requiredEnv("ASTRA_DB_DATACENTER");
   const keyspace = requiredEnv("ASTRA_DB_KEYSPACE");
+
+  const secureBundle = process.env.ASTRA_DB_SECURE_BUNDLE || process.env.ASTRA_DB_SECURE_CONNECT_BUNDLE;
   const username = requiredEnv("ASTRA_DB_CLIENT_ID");
   const password = requiredEnv("ASTRA_DB_CLIENT_SECRET");
 
+  if (secureBundle && secureBundle.trim() !== "") {
+    return new Client({
+      cloud: { secureConnectBundle: secureBundle.trim() },
+      credentials: { username, password },
+      keyspace,
+    });
+  }
+
+  // Fallback: contacto directo (útil para clusters no-Astra)
+  const host = requiredEnv("ASTRA_DB_HOST");
+  const datacenter = requiredEnv("ASTRA_DB_DATACENTER");
   return new Client({
     contactPoints: [host],
     localDataCenter: datacenter,

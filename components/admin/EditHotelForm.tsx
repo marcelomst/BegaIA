@@ -1,264 +1,105 @@
-// Path: /root/begasist/components/admin/EditHotelForm.tsx
 "use client";
+import React, { useEffect, useState } from "react";
+import { Country, City } from "country-state-city";
+import TagSelect from "@/components/ui/TagSelect";
+import { normalizeAmenityTags, amenityLabel } from "@/lib/taxonomy/amenities";
+import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import type { HotelConfig, Channel, ChannelConfigMap, WhatsAppConfig } from "@/types/channel";
+import { ALL_CHANNELS, LANGUAGE_OPTIONS } from "@/types/channel";
 
-import { useEffect, useState } from "react";
-// Simple tabs component
-function Tabs({ tabs, current, onChange }: { tabs: string[]; current: string; onChange: (tab: string) => void }) {
+function Tabs({ tabs, current, onChange }: { tabs: string[]; current: string; onChange: (t: string) => void }) {
   return (
-    <div className="flex gap-2 mb-6 border-b">
-      {tabs.map(tab => (
-        <button
-          key={tab}
-          className={`px-4 py-2 font-semibold border-b-2 transition-colors ${current === tab ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-          onClick={() => onChange(tab)}
-          type="button"
-        >
-          {tab}
-        </button>
+    <div className="flex gap-2 mb-4 border-b">
+      {tabs.map(tb => (
+        <button key={tb} type="button" onClick={() => onChange(tb)} className={`px-3 py-1 text-sm border-b-2 transition-colors ${current === tb ? "border-blue-600 text-blue-700 font-medium" : "border-transparent text-gray-600 hover:text-blue-700"}`}>{tb}</button>
       ))}
     </div>
   );
 }
-import { Button } from "@/components/ui/button";
-import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
-import { getDictionary } from "@/lib/i18n/getDictionary";
-import type { HotelConfig, ChannelConfigMap, WhatsAppConfig } from "@/types/channel";
-import { Country, City } from "country-state-city";
-import { ALL_CHANNELS, LANGUAGE_OPTIONS } from "@/types/channel";
-import type { Channel } from "@/types/channel";
 
-// Opciones de zonas horarias comunes
 const TIMEZONES = [
-  "America/Montevideo", "America/Argentina/Buenos_Aires", "America/Sao_Paulo",
-  "America/Mexico_City", "Europe/Madrid", "Europe/Lisbon", "UTC"
+  "UTC","America/Buenos_Aires","America/Sao_Paulo","America/Montevideo","America/Mexico_City","America/Bogota","America/Lima","America/Santiago","Europe/Madrid","Europe/Lisbon","Europe/London",
 ];
 
 const EMPTY_CHANNEL_CONFIGS: Partial<ChannelConfigMap> = {};
 
-/**
- * Componente genérico para configurar un canal
- */
-function ChannelConfigCard({
-  channel,
-  config,
-  onChange,
-  t
-}: {
-  channel: Channel;
-  config?: ChannelConfigMap[Channel];
-  onChange: (cfg: ChannelConfigMap[Channel]) => void;
-  t: any;
-}) {
+function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel; config?: ChannelConfigMap[Channel]; onChange: (cfg: ChannelConfigMap[Channel]) => void; t: any; }) {
   const enabled = (config as any)?.enabled ?? false;
   const mode = (config as any)?.mode ?? "automatic";
   const forceCanonical = Boolean((config as any)?.reservations?.forceCanonicalQuestion);
-
-  // helper seguro que preserva el resto del objeto
-  const patch = (delta: Record<string, any>) =>
-    onChange({ ...(config as any), ...delta } as any);
-
+  const patch = (delta: Record<string, any>) => onChange({ ...(config as any), ...delta } as any);
   const patchReservations = (delta: Record<string, any>) => {
-    const prevRes = ((config as any)?.reservations ?? {});
-    onChange({ ...(config as any), reservations: { ...prevRes, ...delta } } as any);
+    const prev = (config as any)?.reservations ?? {};
+    patch({ reservations: { ...prev, ...delta } });
   };
-
   return (
     <div className="flex flex-col gap-2 border rounded p-3 bg-white dark:bg-zinc-900">
-      <label className="font-medium">{t.hotelEdit.channelLabels?.[channel] ?? channel}:</label>
-
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={e => patch({ enabled: e.target.checked, mode })}
-        />
-        {t.hotelEdit.enabled}
+      <label className="font-medium">{t.hotelEdit.channelLabels?.[channel] ?? channel}</label>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={enabled} onChange={e => patch({ enabled: e.target.checked })} />
+        <span>{t.hotelEdit.enabled}</span>
       </label>
-
-      <select
-        className="border p-2 rounded"
-        value={mode}
-        onChange={e => patch({ mode: e.target.value as "automatic" | "supervised" })}
-      >
+      <select className="border p-2 rounded text-sm" value={mode} onChange={e => patch({ mode: e.target.value as "automatic" | "supervised" })}>
         <option value="automatic">{t.hotelEdit.automatic}</option>
         <option value="supervised">{t.hotelEdit.supervised}</option>
       </select>
-
-      {/* Campos específicos por canal */}
       {channel === "whatsapp" && (
-        <input
-          className="border p-2 rounded"
-          type="text"
-          placeholder={t.hotelEdit.celNumber}
-          value={(config as WhatsAppConfig)?.celNumber || ""}
-          onChange={e => patch({ celNumber: e.target.value })}
-        />
+        <input className="border p-2 rounded text-sm" type="text" placeholder={t.hotelEdit.celNumber} value={(config as WhatsAppConfig)?.celNumber || ""} onChange={e => patch({ celNumber: e.target.value })} />
       )}
       {channel === "email" && (
         <div className="flex flex-col gap-2">
-          <input
-            className="border p-2 rounded"
-            type="email"
-            placeholder={t.hotelEdit.dirEmail}
-            value={(config as any)?.dirEmail || ""}
-            onChange={e => patch({ dirEmail: e.target.value })}
-          />
+          <input className="border p-2 rounded" type="email" placeholder={t.hotelEdit.dirEmail} value={(config as any)?.dirEmail || ""} onChange={e => patch({ dirEmail: e.target.value })} />
           <div className="grid grid-cols-2 gap-2">
-            <input
-              className="border p-2 rounded"
-              type="text"
-              placeholder="smtpHost"
-              value={(config as any)?.smtpHost || ""}
-              onChange={e => patch({ smtpHost: e.target.value })}
-            />
-            <input
-              className="border p-2 rounded"
-              type="number"
-              placeholder="smtpPort"
-              value={(config as any)?.smtpPort || ""}
-              onChange={e => patch({ smtpPort: Number(e.target.value) })}
-            />
-            <input
-              className="border p-2 rounded"
-              type="text"
-              placeholder="imapHost (opcional)"
-              value={(config as any)?.imapHost || ""}
-              onChange={e => patch({ imapHost: e.target.value })}
-            />
-            <input
-              className="border p-2 rounded"
-              type="number"
-              placeholder="imapPort (opcional)"
-              value={(config as any)?.imapPort || ""}
-              onChange={e => patch({ imapPort: Number(e.target.value) })}
-            />
+            <input className="border p-2 rounded" type="text" placeholder="smtpHost" value={(config as any)?.smtpHost || ""} onChange={e => patch({ smtpHost: e.target.value })} />
+            <input className="border p-2 rounded" type="number" placeholder="smtpPort" value={(config as any)?.smtpPort || ""} onChange={e => patch({ smtpPort: Number(e.target.value) })} />
+            <input className="border p-2 rounded" type="text" placeholder="imapHost (opcional)" value={(config as any)?.imapHost || ""} onChange={e => patch({ imapHost: e.target.value })} />
+            <input className="border p-2 rounded" type="number" placeholder="imapPort (opcional)" value={(config as any)?.imapPort || ""} onChange={e => patch({ imapPort: Number(e.target.value) })} />
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={Boolean((config as any)?.secure)}
-              onChange={e => patch({ secure: e.target.checked })}
-            />
+          <label className="flex items-center gap-2 text-xs">
+            <input type="checkbox" checked={Boolean((config as any)?.secure)} onChange={e => patch({ secure: e.target.checked })} />
             <span>Secure (TLS/SSL)</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
-            <input
-              className="border p-2 rounded"
-              type="text"
-              placeholder="secretRef (recomendado)"
-              value={(config as any)?.secretRef || ""}
-              onChange={e => patch({ secretRef: e.target.value })}
-            />
-            <select
-              className="border p-2 rounded"
-              value={(config as any)?.credentialsStrategy || ((config as any)?.secretRef ? "ref" : ((config as any)?.password ? "inline" : "ref"))}
-              onChange={e => patch({ credentialsStrategy: e.target.value })}
-            >
+            <input className="border p-2 rounded" type="text" placeholder="secretRef" value={(config as any)?.secretRef || ""} onChange={e => patch({ secretRef: e.target.value })} />
+            <select className="border p-2 rounded" value={(config as any)?.credentialsStrategy || ((config as any)?.secretRef ? "ref" : ((config as any)?.password ? "inline" : "ref"))} onChange={e => patch({ credentialsStrategy: e.target.value })}>
               <option value="ref">ref (secretRef)</option>
               <option value="inline">inline (legacy)</option>
             </select>
           </div>
-          <input
-            className="border p-2 rounded"
-            type="password"
-            placeholder="Password SMTP (LEGACY)"
-            value={(config as any)?.password || ""}
-            onChange={e => patch({ password: e.target.value })}
-          />
-          <p className="text-xs text-amber-600 dark:text-amber-400">
-            No guardes aquí la contraseña si ya configuraste un secretRef. Prioridad: secretRef &gt; password inline.
-          </p>
-          {(config as any)?.secretRef && (config as any)?.password && (
-            <p className="text-xs text-blue-600 dark:text-blue-400">Ambos presentes: en runtime se intentará variable de entorno EMAIL_PASS__{String((config as any)?.secretRef).replace(/[^A-Za-z0-9_]/g, '_').toUpperCase()} y si no existe se usa la inline.</p>
-          )}
+          <input className="border p-2 rounded" type="password" placeholder="Password SMTP (LEGACY)" value={(config as any)?.password || ""} onChange={e => patch({ password: e.target.value })} />
+          <p className="text-xs text-amber-600">No guardes la contraseña aquí si usas secretRef.</p>
         </div>
       )}
       {channel === "channelManager" && (
-        <>
-          <input
-            className="border p-2 rounded"
-            type="text"
-            placeholder="WSDL Endpoint URL"
-            value={(config as any)?.endpointUrl || ""}
-            onChange={e => patch({ endpointUrl: e.target.value })}
-          />
-          <input
-            className="border p-2 rounded"
-            type="text"
-            placeholder="Username"
-            value={(config as any)?.username || ""}
-            onChange={e => patch({ username: e.target.value })}
-          />
-          <input
-            className="border p-2 rounded"
-            type="password"
-            placeholder="Password"
-            value={(config as any)?.password || ""}
-            onChange={e => patch({ password: e.target.value })}
-          />
-        </>
+        <div className="flex flex-col gap-2">
+          <input className="border p-2 rounded" type="text" placeholder="WSDL Endpoint URL" value={(config as any)?.endpointUrl || ""} onChange={e => patch({ endpointUrl: e.target.value })} />
+          <input className="border p-2 rounded" type="text" placeholder="Username" value={(config as any)?.username || ""} onChange={e => patch({ username: e.target.value })} />
+          <input className="border p-2 rounded" type="password" placeholder="Password" value={(config as any)?.password || ""} onChange={e => patch({ password: e.target.value })} />
+        </div>
       )}
-
-      {/* 🆕 Bandera por canal: Forzar pregunta canónica (reservas) */}
-      <div className="mt-2 pt-2 border-t border-border/50">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={forceCanonical}
-            onChange={(e) =>
-              patchReservations({ forceCanonicalQuestion: e.target.checked })
-            }
-          />
-          <span className="text-sm">
-            {t.hotelEdit.forceCanonicalQuestion ?? "Forzar pregunta canónica (reservas)"}
-          </span>
+      <div className="mt-2 pt-2 border-t">
+        <label className="flex items-center gap-2 text-xs">
+          <input type="checkbox" checked={forceCanonical} onChange={e => patchReservations({ forceCanonicalQuestion: e.target.checked })} />
+          <span>Forzar pregunta canónica (reservas)</span>
         </label>
-        <p className="text-xs text-muted-foreground">
-          {t.hotelEdit.forceCanonicalHelp ??
-            "Si está activo, el primer pedido de dato faltante será la pregunta canónica (no la inventada por el modelo)."}
-        </p>
       </div>
     </div>
   );
 }
 
-export default function EditHotelForm({
-  hotelId,
-  onSaved,
-  showBackButton,
-}: {
-  hotelId: string;
-  onSaved?: (hotel: HotelConfig) => void;
-  showBackButton?: boolean;
-}) {
-  const [tab, setTab] = useState<string>("General");
+export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { hotelId: string; onSaved?: (hotel: HotelConfig) => void; showBackButton?: boolean }) {
+  const [tab, setTab] = useState("General");
   const [hotel, setHotel] = useState<HotelConfig | null>(null);
-  const [t, setT] = useState<any>(null);
+  const [t, setT] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateWarnings, setUpdateWarnings] = useState<string[]>([]);
-  // Hooks for KB generation UI must be declared before any early returns to keep consistent order
-  const [genLoading, setGenLoading] = useState(false);
   const [autoEnrich, setAutoEnrich] = useState(true);
-  const [genMsg, setGenMsg] = useState<string | null>(null);
-  // helpers: validación suave
-  const isUrl = (v?: string) => !!v && /^(https?:\/\/)[^\s]+$/i.test(v.trim());
-  const fillDefaultPolicies = () => {
-    setHotel(h => h ? ({
-      ...h,
-      policies: {
-        ...(h.policies ?? {}),
-        pets: h.policies?.pets ?? 'Se admiten mascotas pequeñas bajo solicitud previa y con posible cargo adicional. Pueden aplicar restricciones por tipo o tamaño.',
-        smoking: h.policies?.smoking ?? 'Está prohibido fumar en todas las áreas interiores. Se aplicará un cargo de limpieza en caso de incumplimiento.',
-        cancellation: h.policies?.cancellation ?? 'Las reservas pueden cancelarse sin cargo hasta 48 horas antes del check‑in. Dentro de las 48 horas o en caso de no presentarse (no‑show), se cobra el equivalente a 1 noche. Tarifas no reembolsables no admiten cambios ni devoluciones.',
-      }
-    }) : h);
-  };
 
+  const isUrl = (v?: string) => !!v && /^(https?:\/\/)[^\s]+$/i.test(v.trim());
   const countries = Country.getAllCountries();
-  const cities = hotel?.country
-    ? City.getCitiesOfCountry(hotel.country) || []
-    : [];
+  const cities = hotel?.country ? City.getCitiesOfCountry(hotel.country) || [] : [];
 
   useEffect(() => {
     async function load() {
@@ -266,16 +107,35 @@ export default function EditHotelForm({
       try {
         const { hotel: cfg } = await fetchHotelConfig(hotelId);
         const dict = await getDictionary(cfg.defaultLanguage || "en");
-        // asegurar estructuras opcionales
-        // Helpers bien explícitos
-        const isPlainObject = (v: unknown): v is Record<string, unknown> =>
-          v !== null && typeof v === "object" && !Array.isArray(v);
+        const isPlainObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+
+        const raw: any = isPlainObject(cfg.amenities) ? { ...cfg.amenities } : {};
+        // Normalize tags to slugs (legacy + other)
+        let slugs: string[] = Array.isArray(raw.tags) ? normalizeAmenityTags(raw.tags as any) : [];
+        if (raw.hasParking) slugs.push("parking");
+        if (raw.hasPool) slugs.push("pool");
+        if (raw.hasGym) slugs.push("gym");
+        if (raw.hasSpa) slugs.push("spa");
+        if (Array.isArray(raw.other)) slugs = slugs.concat(normalizeAmenityTags(raw.other as any));
+        slugs = Array.from(new Set(slugs));
+        // Normalize schedules keys to slugs and merge legacy
+        const sched: Record<string, string> = {};
+        const rawSched: Record<string, string> = isPlainObject(raw.schedules) ? (raw.schedules as any) : {};
+        for (const [k, v] of Object.entries(rawSched)) {
+          const keySlug = normalizeAmenityTags([k as string])[0] || (k as string);
+          if (v) sched[keySlug] = v as string;
+        }
+        if (raw.poolSchedule && !sched["pool"]) sched["pool"] = raw.poolSchedule;
+        if (raw.gymSchedule && !sched["gym"]) sched["gym"] = raw.gymSchedule;
+        if (raw.spaSchedule && !sched["spa"]) sched["spa"] = raw.spaSchedule;
+        for (const s of slugs) if (!(s in sched)) sched[s] = "";
+        const amenities = Object.keys(raw).length ? { ...raw, tags: slugs, schedules: sched } : undefined;
 
         setHotel({
           ...cfg,
+          amenities,
           reservations: isPlainObject(cfg.reservations) ? cfg.reservations : {},
           channelConfigs: isPlainObject(cfg.channelConfigs) ? cfg.channelConfigs : {},
-          amenities: isPlainObject(cfg.amenities) ? cfg.amenities : undefined,
           payments: isPlainObject(cfg.payments) ? cfg.payments : undefined,
           billing: isPlainObject(cfg.billing) ? cfg.billing : undefined,
           policies: isPlainObject(cfg.policies) ? cfg.policies : undefined,
@@ -283,408 +143,281 @@ export default function EditHotelForm({
           contacts: isPlainObject(cfg.contacts) ? cfg.contacts : undefined,
           schedules: isPlainObject(cfg.schedules) ? cfg.schedules : undefined,
         });
-
         setT(dict);
-      } catch {
+      } catch (e) {
         setError("Error cargando datos del hotel");
       } finally {
         setLoading(false);
       }
     }
-    if (hotelId) load();
+    if (hotelId) void load();
   }, [hotelId]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!hotel) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/hotels/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hotelId, updates: hotel }),
-      });
+      const res = await fetch("/api/hotels/update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hotelId, updates: hotel }) });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Error');
-      onSaved?.(hotel!);
+      if (!res.ok) throw new Error(json.error || "Error");
+      onSaved?.(hotel);
       setUpdateWarnings(Array.isArray(json.warnings) ? json.warnings : []);
     } catch (err: any) {
-      setError(err.message || t?.errors?.unknown);
+      setError(err.message || "Error guardando");
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading || !hotel || !t)
-    return <div className="mt-10 text-center">Cargando...</div>;
+  if (loading) return <div className="mt-10 text-center">Cargando…</div>;
+  if (error) return <div className="mt-10 text-center text-red-600">{error}</div>;
+  if (!hotel || !t) return <div className="mt-10 text-center">Sin datos</div>;
+
+  // Validación de horarios (HH:mm o HH:mm a HH:mm)
+  const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
+  const rangeRe = /^\s*([01]\d|2[0-3]):[0-5]\d\s+a\s+([01]\d|2[0-3]):[0-5]\d\s*$/i;
+  const isValidTimeOrRange = (v?: string) => !v || timeRe.test(v.trim()) || rangeRe.test(v.trim());
+  const scheduleErrors = {
+    checkIn: !isValidTimeOrRange(hotel.schedules?.checkIn),
+    checkOut: !isValidTimeOrRange(hotel.schedules?.checkOut),
+    breakfast: !isValidTimeOrRange(hotel.schedules?.breakfast),
+    quietHours: !isValidTimeOrRange(hotel.schedules?.quietHours),
+  } as const;
+  const amenScheduleErrors: Record<string, boolean> = Object.fromEntries(
+    Object.entries(hotel.amenities?.schedules || {}).map(([k, v]) => [k, !isValidTimeOrRange(v)])
+  );
+  const hasScheduleErrors = Object.values(scheduleErrors).some(Boolean) || Object.values(amenScheduleErrors).some(Boolean);
 
   const channelConfigs = hotel.channelConfigs || EMPTY_CHANNEL_CONFIGS;
-  const globalForceCanonical = Boolean(hotel.reservations?.forceCanonicalQuestion);
 
   return (
-    <div className="max-w-lg mx-auto mt-10 bg-muted p-6 rounded shadow">
-      <h1 className="text-xl font-bold mb-4">{t.hotelEdit.title}</h1>
+    <div className="max-w-3xl mx-auto mt-6 bg-muted/40 p-6 rounded shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-xl font-bold">{t.hotelEdit.title}</h1>
+        {showBackButton && (<a href="/admin" className="text-sm text-blue-700 hover:underline">Volver</a>)}
+      </div>
       <Tabs tabs={["General", "Canales", "Base de Conocimiento"]} current={tab} onChange={setTab} />
-      <form onSubmit={handleSave} className="flex flex-col gap-3">
-        {/* --- TABS --- */}
-        {tab === "General" && hotel && (
-          <>
-            {/* País */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.country || "País"}</span>
-              <select
-                className="border p-2 rounded w-full"
-                value={hotel!.country ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, country: e.target.value, city: "" } : hotel)}
-                aria-label={t.hotelEdit.country}
-              >
+      <form id="hotel-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
+        {tab === "General" && (
+          <div className="grid gap-4">
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.country || "País"}</span>
+              <select className="border p-2 rounded w-full mt-1" value={hotel.country ?? ""} onChange={e => setHotel(h => h ? { ...h, country: e.target.value, city: "" } : h)}>
                 <option value="">{t.hotelEdit.country || "País"}</option>
-                {countries.map(c => (
-                  <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
-                ))}
+                {countries.map(c => (<option key={c.isoCode} value={c.isoCode}>{c.name}</option>))}
               </select>
             </label>
-            {/* Ciudad */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.city || "Ciudad"}</span>
-              <select
-                className="border p-2 rounded w-full"
-                value={hotel!.city ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, city: e.target.value } : hotel)}
-                aria-label={t.hotelEdit.city}
-                disabled={!hotel!.country}
-              >
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.city || "Ciudad"}</span>
+              <select className="border p-2 rounded w-full mt-1" value={hotel.city ?? ""} disabled={!hotel.country} onChange={e => setHotel(h => h ? { ...h, city: e.target.value } : h)}>
                 <option value="">{t.hotelEdit.city || "Ciudad"}</option>
-                {cities.map((city, idx) => (
-                  <option
-                    key={`${city.name}-${idx}`}
-                    value={city.name}
-                  >
-                    {city.name}
-                  </option>
-                ))}
+                {cities.map((ct, i) => (<option key={i} value={ct.name}>{ct.name}</option>))}
               </select>
             </label>
-            {/* Nombre */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.name || "Nombre"}</span>
-              <input
-                className="border p-2 rounded w-full"
-                type="text"
-                placeholder={t.hotelEdit.name || "Nombre"}
-                value={hotel.hotelName ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, hotelName: e.target.value } : hotel)}
-                required
-              />
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.name || "Nombre"}</span>
+              <input className="border p-2 rounded w-full mt-1" value={hotel.hotelName ?? ""} onChange={e => setHotel(h => h ? { ...h, hotelName: e.target.value } : h)} required />
             </label>
-            {/* Dirección */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.address || "Dirección"}</span>
-              <input
-                className="border p-2 rounded w-full"
-                type="text"
-                placeholder={t.hotelEdit.address || "Dirección"}
-                value={hotel.address ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, address: e.target.value } : hotel)}
-              />
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.address || "Dirección"}</span>
+              <input className="border p-2 rounded w-full mt-1" value={hotel.address ?? ""} onChange={e => setHotel(h => h ? { ...h, address: e.target.value } : h)} />
             </label>
-            {/* Teléfono */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.phone || "Teléfono"}</span>
-              <input
-                className="border p-2 rounded w-full"
-                type="text"
-                placeholder={t.hotelEdit.phone || "Teléfono"}
-                value={hotel.phone ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, phone: e.target.value } : hotel)}
-              />
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.phone || "Teléfono"}</span>
+              <input className="border p-2 rounded w-full mt-1" value={hotel.phone ?? ""} onChange={e => setHotel(h => h ? { ...h, phone: e.target.value } : h)} />
             </label>
-            {/* Código Postal */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.postalCode || "Código Postal"}</span>
-              <input
-                className="border p-2 rounded w-full"
-                type="text"
-                placeholder={t.hotelEdit.postalCode || "Código Postal"}
-                value={hotel.postalCode ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, postalCode: e.target.value } : hotel)}
-              />
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.postalCode || "Código Postal"}</span>
+              <input className="border p-2 rounded w-full mt-1" value={hotel.postalCode ?? ""} onChange={e => setHotel(h => h ? { ...h, postalCode: e.target.value } : h)} />
             </label>
-            {/* Idioma */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.defaultLanguage || "Idioma"}</span>
-              <select
-                className="border p-2 rounded w-full"
-                value={hotel.defaultLanguage ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, defaultLanguage: e.target.value } : hotel)}
-                aria-label={t.hotelEdit.defaultLanguage}
-              >
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.defaultLanguage || "Idioma"}</span>
+              <select className="border p-2 rounded w-full mt-1" value={hotel.defaultLanguage ?? ""} onChange={e => setHotel(h => h ? { ...h, defaultLanguage: e.target.value } : h)}>
                 <option value="">{t.hotelEdit.defaultLanguage || "Idioma"}</option>
-                {LANGUAGE_OPTIONS.map(l => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
+                {LANGUAGE_OPTIONS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </label>
-            {/* Timezone */}
-            <label>
-              <span className="font-semibold">{t.hotelEdit.timezone || "Zona horaria"}</span>
-              <select
-                className="border p-2 rounded w-full"
-                value={hotel.timezone ?? ""}
-                onChange={e => setHotel(hotel => hotel ? { ...hotel, timezone: e.target.value } : hotel)}
-                aria-label={t.hotelEdit.timezone}
-              >
+            <label className="block">
+              <span className="font-semibold text-sm">{t.hotelEdit.timezone || "Zona horaria"}</span>
+              <select className="border p-2 rounded w-full mt-1" value={hotel.timezone ?? ""} onChange={e => setHotel(h => h ? { ...h, timezone: e.target.value } : h)}>
                 <option value="">{t.hotelEdit.timezone || "Zona horaria"}</option>
-                {TIMEZONES.map(tz => (
-                  <option key={tz} value={tz}>{tz}</option>
-                ))}
+                {TIMEZONES.map(z => <option key={z} value={z}>{z}</option>)}
               </select>
             </label>
-            {/* Contactos */}
-            <div className="mt-4 p-3 border rounded bg-white/50 dark:bg-zinc-900/50">
-              <h2 className="font-semibold mb-2">Contactos</h2>
-              <div className="grid grid-cols-1 gap-2">
-                <label>
-                  <span className="font-medium">Email</span>
-                  <input className="border p-2 rounded w-full" type="email" placeholder="Email" value={hotel.contacts?.email ?? ''}
-                    onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), email: e.target.value } }) : h)} />
-                </label>
-                <label>
-                  <span className="font-medium">WhatsApp</span>
-                  <input className="border p-2 rounded w-full" type="text" placeholder={t?.placeholders?.whatsapp ?? "WhatsApp (+54 9...)"} value={hotel.contacts?.whatsapp ?? ''}
-                    onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), whatsapp: e.target.value } }) : h)} />
-                </label>
-                <label>
-                  <span className="font-medium">Teléfono</span>
-                  <input className="border p-2 rounded w-full" type="text" placeholder="Teléfono" value={hotel.contacts?.phone ?? ''}
-                    onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), phone: e.target.value } }) : h)} />
-                </label>
-                <label>
-                  <span className="font-medium">Sitio web</span>
-                  <input className={`border p-2 rounded w-full ${hotel.contacts?.website && !isUrl(hotel.contacts?.website) ? 'border-red-400' : ''}`} type="url" placeholder={t?.placeholders?.website ?? "https://tu-hotel.com"} value={hotel.contacts?.website ?? ''}
-                    onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), website: e.target.value } }) : h)} />
-                </label>
-                {hotel.contacts?.website && !isUrl(hotel.contacts.website) && (
-                  <span className="text-xs text-red-500">URL inválida (debe empezar con http:// o https://)</span>
-                )}
+            <div className="p-3 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h2 className="font-semibold mb-2 text-sm">Contactos</h2>
+              <div className="grid gap-2">
+                <label className="text-xs"><span className="font-medium">Email</span><input className="border p-2 rounded w-full mt-1" type="email" value={hotel.contacts?.email ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), email: e.target.value } }) : h)} /></label>
+                <label className="text-xs"><span className="font-medium">WhatsApp</span><input className="border p-2 rounded w-full mt-1" value={hotel.contacts?.whatsapp ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), whatsapp: e.target.value } }) : h)} /></label>
+                <label className="text-xs"><span className="font-medium">Teléfono</span><input className="border p-2 rounded w-full mt-1" value={hotel.contacts?.phone ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), phone: e.target.value } }) : h)} /></label>
+                <label className="text-xs"><span className="font-medium">Sitio web</span><input className={`border p-2 rounded w-full mt-1 ${hotel.contacts?.website && !isUrl(hotel.contacts.website) ? 'border-red-500' : ''}`} value={hotel.contacts?.website ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), website: e.target.value } }) : h)} /></label>
+                {hotel.contacts?.website && !isUrl(hotel.contacts.website) && <span className="text-xs text-red-600">URL inválida</span>}
               </div>
             </div>
-          </>
+          </div>
         )}
-        {tab === "Canales" && <>
-          <h2 className="font-semibold mt-4">{t.hotelEdit.channels}</h2>
-          <div className="grid grid-cols-1 gap-4">
+
+        {tab === "Canales" && (
+          <div className="grid gap-4">
             {ALL_CHANNELS.map(ch => (
-              <ChannelConfigCard
-                key={ch}
-                channel={ch}
-                config={channelConfigs[ch]}
-                onChange={cfg => setHotel(h => ({ ...h!, channelConfigs: { ...channelConfigs, [ch]: cfg } }))}
-                t={t}
-              />
+              <ChannelConfigCard key={ch} channel={ch} config={channelConfigs[ch]} onChange={cfg => setHotel(h => h ? ({ ...h, channelConfigs: { ...channelConfigs, [ch]: cfg } }) : h)} t={t} />
             ))}
           </div>
-        </>}
-        {tab === "Base de Conocimiento" && hotel && (
-          <>
-            <div className="mt-6 p-4 border rounded bg-white/50 dark:bg-zinc-900/30">
-              <h3 className="font-semibold mb-2">Base de conocimiento</h3>
-              <p className="text-sm text-muted-foreground mb-2">Genera y edita los datos canónicos del hotel para la base de conocimiento.</p>
-              {/* Amenities */}
-              <h4 className="font-semibold mt-4">Amenities</h4>
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.amenities?.hasParking)} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), hasParking: e.target.checked } }) : h)} />
-                <span>Estacionamiento</span>
-              </label>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Notas de estacionamiento" value={hotel.amenities?.parkingNotes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), parkingNotes: e.target.value } }) : h)} />
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.amenities?.hasPool)} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), hasPool: e.target.checked } }) : h)} />
-                <span>Piscina</span>
-              </label>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Horario de piscina" value={hotel.amenities?.poolSchedule ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), poolSchedule: e.target.value } }) : h)} />
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.amenities?.hasGym)} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), hasGym: e.target.checked } }) : h)} />
-                <span>Gimnasio</span>
-              </label>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Horario de gimnasio" value={hotel.amenities?.gymSchedule ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), gymSchedule: e.target.value } }) : h)} />
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.amenities?.hasSpa)} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), hasSpa: e.target.checked } }) : h)} />
-                <span>Spa</span>
-              </label>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Horario de spa" value={hotel.amenities?.spaSchedule ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), spaSchedule: e.target.value } }) : h)} />
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Otros amenities (separar por coma)" value={(hotel.amenities?.other ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), other: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } }) : h)} />
+        )}
 
-              {/* Billing */}
-              <h4 className="font-semibold mt-4">Facturación</h4>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Notas de facturación" value={hotel.billing?.invoiceNotes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, billing: { ...(h.billing ?? {}), invoiceNotes: e.target.value } }) : h)} />
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.billing?.issuesInvoices)} onChange={e => setHotel(h => h ? ({ ...h, billing: { ...(h.billing ?? {}), issuesInvoices: e.target.checked } }) : h)} />
-                <span>Emitimos factura</span>
-              </label>
-
-              {/* Payments */}
-              <h4 className="font-semibold mt-4">Pagos</h4>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Métodos de pago (coma)" value={(hotel.payments?.methods ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), methods: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } }) : h)} />
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Notas de pago" value={hotel.payments?.notes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), notes: e.target.value } }) : h)} />
-              <label className="flex gap-2 items-center">
-                <input type="checkbox" checked={Boolean(hotel.payments?.requiresCardForBooking)} onChange={e => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), requiresCardForBooking: e.target.checked } }) : h)} />
-                <span>Solicitar tarjeta para garantizar</span>
-              </label>
-
-              {/* Policies */}
-              <h4 className="font-semibold mt-4">Políticas</h4>
-              <textarea className="border p-2 rounded w-full mb-2" rows={2} placeholder="Política de mascotas" value={hotel.policies?.pets ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), pets: e.target.value } }) : h)} />
-              <textarea className="border p-2 rounded w-full mb-2" rows={2} placeholder="Política de humo/tabaco" value={hotel.policies?.smoking ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), smoking: e.target.value } }) : h)} />
-              <textarea className="border p-2 rounded w-full mb-2" rows={3} placeholder="Política de cancelación" value={hotel.policies?.cancellation ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), cancellation: e.target.value } }) : h)} />
-
-              {/* Reservations */}
-              <h4 className="font-semibold mt-4">Reservas</h4>
-              <label className="flex gap-2 items-center mb-2">
-                <input type="checkbox" checked={Boolean(hotel.reservations?.forceCanonicalQuestion)} onChange={e => setHotel(h => h ? ({ ...h, reservations: { ...(h.reservations ?? {}), forceCanonicalQuestion: e.target.checked } }) : h)} />
-                <span>Forzar pregunta canónica (reservas) <strong>(Global)</strong></span>
-              </label>
-
-              {/* Rooms */}
-              <h4 className="font-semibold mt-4">Habitaciones</h4>
-              {(hotel.rooms ?? []).map((r, idx) => (
-                <div key={idx} className="border rounded p-3 mb-2 bg-white/60 dark:bg-zinc-900/40">
-                  <div className="flex justify-between items-center mb-2">
-                    <strong>Habitación #{idx + 1}</strong>
-                    <button type="button" className="text-red-600 text-sm" onClick={() => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).filter((_, i) => i !== idx) }) : h)}>Eliminar</button>
+        {tab === "Base de Conocimiento" && (
+          <div className="flex flex-col gap-6">
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Amenities y Horarios</h3>
+              <TagSelect
+                label="Amenities"
+                values={(hotel.amenities?.tags ?? []).map(slug => amenityLabel(slug, (hotel.defaultLanguage as any) || 'es'))}
+                suggestions={["Estacionamiento","Piscina","Gimnasio","Spa","Recepción 24h","Room service","Restaurante","Bar","Cafetería","Lavandería","Wi‑Fi gratis","Co‑working","Guardaequipaje","Conserjería","Caja de seguridad","Transfers","Tours","Bicicletas","Sillas altas","Cunas","Sauna","Hidromasaje","Salas de reuniones","Business center","Terraza","Jardín","Pet‑friendly"]}
+                placeholder="Escribe o selecciona"
+                onChange={vals => setHotel(h => {
+                  if (!h) return h;
+                  const slugs = normalizeAmenityTags(vals as any);
+                  const prevSched = h.amenities?.schedules || {};
+                  const nextSched: Record<string,string> = {};
+                  for (const s of slugs) nextSched[s] = prevSched[s] ?? '';
+                  return { ...h, amenities: { ...(h.amenities ?? {}), tags: slugs, schedules: nextSched } } as any;
+                })}
+              />
+              <textarea className="border p-2 rounded w-full mt-2 text-sm" placeholder="Notas generales de amenities (ej. 'Estacionamiento por orden de llegada')" value={hotel.amenities?.notes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), notes: e.target.value } }) : h)} />
+              <input className="border p-2 rounded w-full mt-2 text-sm" placeholder="Notas de estacionamiento" value={hotel.amenities?.parkingNotes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), parkingNotes: e.target.value } }) : h)} />
+              <h4 className="font-medium mt-4 mb-1 text-xs">Horarios por amenity</h4>
+              {(() => {
+                const lang = (hotel.defaultLanguage as any) || 'es';
+                const selectedSlugs = (hotel.amenities?.tags ?? []);
+                const existing = new Set(Object.keys(hotel.amenities?.schedules || {}));
+                const options = selectedSlugs.filter(slug => !existing.has(slug));
+                return (
+                  <div className="flex items-center gap-2 mb-2">
+                    <select className="border p-1 rounded text-xs" value="" onChange={e => {
+                      const slug = e.target.value; if (!slug) return;
+                      setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), schedules: { ...(h.amenities?.schedules ?? {}), [slug]: '' } } }) : h);
+                    }}>
+                      <option value="">Agregar horario…</option>
+                      {options.map(slug => <option key={slug} value={slug}>{amenityLabel(slug, lang)}</option>)}
+                    </select>
+                    <span className="text-[10px] text-muted-foreground">Formato HH:mm o HH:mm a HH:mm</span>
                   </div>
-                  <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Nombre" value={r.name ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, name: e.target.value } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="number" placeholder="Tamaño m²" value={r.sizeM2 ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, sizeM2: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="number" placeholder="Capacidad" value={r.capacity ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, capacity: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Camas" value={r.beds ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, beds: e.target.value } : rr) }) : h)} />
-                  <textarea className="border p-2 rounded w-full mb-2" rows={2} placeholder="Descripción" value={r.description ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, description: e.target.value } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Highlights (coma)" value={(r.highlights ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, highlights: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Imágenes (coma)" value={(r.images ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : rr) }) : h)} />
-                  <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Icono" value={r.icon ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, icon: e.target.value } : rr) }) : h)} />
-                  <label className="flex gap-2 items-center mb-2">
-                    <input type="checkbox" checked={Boolean(r.accessible)} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr, i) => i === idx ? { ...rr, accessible: e.target.checked } : rr) }) : h)} />
-                    <span>Accesible</span>
-                  </label>
+                );
+              })()}
+              <div className="space-y-2">
+                {Object.entries(hotel.amenities?.schedules || {}).map(([slug, val]) => (
+                  <div key={slug} className="flex items-center gap-2">
+                    <span className="text-xs w-28 truncate" title={slug}>{amenityLabel(slug, (hotel.defaultLanguage as any) || 'es')}</span>
+                    <input className={`border p-1 rounded text-xs flex-1 ${amenScheduleErrors[slug] ? 'border-red-500' : ''}`} value={val ?? ''} placeholder="08:00 a 20:00" onChange={e => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), schedules: { ...(h.amenities?.schedules ?? {}), [slug]: e.target.value } } }) : h)} />
+                    <button type="button" className="text-[10px] text-red-600" onClick={() => setHotel(h => h ? ({ ...h, amenities: { ...(h.amenities ?? {}), schedules: Object.fromEntries(Object.entries(h.amenities?.schedules || {}).filter(([k]) => k !== slug)) } }) : h)}>
+                      Quitar
+                    </button>
+                    {amenScheduleErrors[slug] && <span className="text-[10px] text-red-600">Formato inválido</span>}
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-2 mt-4 text-xs">
+                <label className="flex flex-col"><span>Check-in</span><input className={`border p-2 rounded ${scheduleErrors.checkIn ? 'border-red-500' : ''}`} value={hotel.schedules?.checkIn ?? ''} placeholder="15:00" onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), checkIn: e.target.value } }) : h)} />{scheduleErrors.checkIn && <span className="text-[10px] text-red-600">Formato inválido</span>}</label>
+                <label className="flex flex-col"><span>Check-out</span><input className={`border p-2 rounded ${scheduleErrors.checkOut ? 'border-red-500' : ''}`} value={hotel.schedules?.checkOut ?? ''} placeholder="11:00" onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), checkOut: e.target.value } }) : h)} />{scheduleErrors.checkOut && <span className="text-[10px] text-red-600">Formato inválido</span>}</label>
+                <label className="flex flex-col"><span>Desayuno</span><input className={`border p-2 rounded ${scheduleErrors.breakfast ? 'border-red-500' : ''}`} value={hotel.schedules?.breakfast ?? ''} placeholder="07:30 a 10:30" onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), breakfast: e.target.value } }) : h)} />{scheduleErrors.breakfast && <span className="text-[10px] text-red-600">Formato inválido</span>}</label>
+                <label className="flex flex-col"><span>Horas de silencio</span><input className={`border p-2 rounded ${scheduleErrors.quietHours ? 'border-red-500' : ''}`} value={hotel.schedules?.quietHours ?? ''} placeholder="22:00 a 07:00" onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), quietHours: e.target.value } }) : h)} />{scheduleErrors.quietHours && <span className="text-[10px] text-red-600">Formato inválido</span>}</label>
+              </div>
+              <div className="mt-3 p-2 border rounded bg-white/50 text-[11px]">
+                <strong>Resumen:</strong>{' '}
+                {(() => {
+                  const list = (hotel.amenities?.tags ?? []).map(slug => amenityLabel(slug, (hotel.defaultLanguage as any) || 'es')).join(', ');
+                  const svc = Object.entries(hotel.amenities?.schedules || {}).map(([slug,v]) => `${amenityLabel(slug, (hotel.defaultLanguage as any) || 'es')}:${v}`).join(' | ');
+                  const parts: string[] = [];
+                  if (list) parts.push(`Amenities: ${list}`);
+                  if (svc) parts.push(`Servicios: ${svc}`);
+                  if (hotel.schedules?.checkIn) parts.push(`Check-in: ${hotel.schedules.checkIn}`);
+                  if (hotel.schedules?.checkOut) parts.push(`Check-out: ${hotel.schedules.checkOut}`);
+                  if (hotel.schedules?.breakfast) parts.push(`Desayuno: ${hotel.schedules.breakfast}`);
+                  if (hotel.schedules?.quietHours) parts.push(`Silencio: ${hotel.schedules.quietHours}`);
+                  return parts.length ? parts.join(' | ') : 'Completa datos para ver el resumen.';
+                })()}
+              </div>
+            </div>
+
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Facturación</h3>
+              <TagSelect label="Notas de facturación" values={hotel.billing?.invoiceNotesTags ?? []} suggestions={["Factura A","Factura B","Factura C","Recibo","Ticket","IVA discriminado","Exportación","Cobro anticipado","Proforma","Datos fiscales","Sin datos fiscales"]} placeholder="Añade tags" onChange={vals => setHotel(h => h ? ({ ...h, billing: { ...(h.billing ?? {}), invoiceNotesTags: vals } }) : h)} />
+              <input className="border p-2 rounded w-full mt-2 text-sm" placeholder="Notas libres" value={hotel.billing?.invoiceNotes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, billing: { ...(h.billing ?? {}), invoiceNotes: e.target.value } }) : h)} />
+              <label className="flex items-center gap-2 mt-2 text-xs"><input type="checkbox" checked={Boolean(hotel.billing?.issuesInvoices)} onChange={e => setHotel(h => h ? ({ ...h, billing: { ...(h.billing ?? {}), issuesInvoices: e.target.checked } }) : h)} /><span>Emitimos facturas</span></label>
+            </div>
+
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Pagos</h3>
+              <TagSelect label="Métodos" values={hotel.payments?.methods ?? []} suggestions={["Efectivo","Transferencia","Tarjeta de crédito","Tarjeta de débito","Crypto"]} placeholder="Añade método" onChange={vals => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), methods: vals } }) : h)} />
+              <TagSelect label="Monedas" className="mt-2" values={hotel.payments?.currencies ?? (hotel.payments?.currency ? [hotel.payments.currency] : [])} suggestions={["USD","EUR","ARS","BRL","CLP","MXN","COP","PEN","UYU"]} placeholder="Código ISO" onChange={vals => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), currencies: vals, currency: vals[0] ?? h.payments?.currency } }) : h)} />
+              <TagSelect label="Notas (tags)" className="mt-2" values={hotel.payments?.notesTags ?? []} suggestions={["Depósito","Prepago","Saldo check-in","Saldo check-out","Garantía tarjeta","Sin anticipo","Fraccionado","Reembolsable parcial","No reembolsable","Cargo servicio"]} placeholder="Añade nota" onChange={vals => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), notesTags: vals } }) : h)} />
+              <input className="border p-2 rounded w-full mt-2 text-sm" placeholder="Notas libres" value={hotel.payments?.notes ?? ''} onChange={e => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), notes: e.target.value } }) : h)} />
+              <label className="flex items-center gap-2 mt-2 text-xs"><input type="checkbox" checked={Boolean(hotel.payments?.requiresCardForBooking)} onChange={e => setHotel(h => h ? ({ ...h, payments: { ...(h.payments ?? {}), requiresCardForBooking: e.target.checked } }) : h)} /><span>Requiere tarjeta para reservar</span></label>
+            </div>
+
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Políticas generales</h3>
+              <TagSelect label="Políticas (tags)" values={hotel.policies?.generalTags ?? []} suggestions={["Niños gratis","Late check-out","Early check-in","No fiestas","No mascotas","Pet-friendly","Depósito reembolsable","Depósito no reembolsable","Silencio nocturno","Solo adultos","Prohibido fumar","Área fumadores","Mascotas bajo petición","Mascotas con cargo","Check-in express","Uso gorro piscina"]} placeholder="Añade política" onChange={vals => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), generalTags: vals } }) : h)} />
+            </div>
+
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Políticas de reservas</h3>
+              {(() => {
+                const raw = hotel.policies?.cancellation as any;
+                const isString = typeof raw === 'string';
+                const can = (isString ? { flexible: raw } : (raw || {})) as { flexible?: string; nonRefundable?: string; channels?: string[]; noShow?: string };
+                return (
+                  <div className="p-3 border rounded bg-white/50">
+                    <h4 className="font-medium text-xs mb-2">Cancelación</h4>
+                    <textarea className="border p-2 rounded w-full text-xs mb-2" rows={2} placeholder="Flexible" value={can.flexible ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), cancellation: { ...(isString ? {} : (h.policies?.cancellation as any) || {}), flexible: e.target.value } } }) : h)} />
+                    <textarea className="border p-2 rounded w-full text-xs mb-2" rows={2} placeholder="No reembolsable" value={can.nonRefundable ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), cancellation: { ...(isString ? { flexible: can.flexible } : (h.policies?.cancellation as any) || {}), nonRefundable: e.target.value } } }) : h)} />
+                    <TagSelect label="Canales" values={Array.isArray(can.channels) ? can.channels : []} suggestions={["Email","Teléfono","Whatsapp","Portal OTA","Sitio web"]} placeholder="Añade canal" onChange={vals => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), cancellation: { ...(isString ? { flexible: can.flexible } : (h.policies?.cancellation as any) || {}), channels: vals } } }) : h)} />
+                    <textarea className="border p-2 rounded w-full text-xs mt-2" rows={2} placeholder="No-show" value={can.noShow ?? ''} onChange={e => setHotel(h => h ? ({ ...h, policies: { ...(h.policies ?? {}), cancellation: { ...(isString ? { flexible: can.flexible } : (h.policies?.cancellation as any) || {}), noShow: e.target.value } } }) : h)} />
+                  </div>
+                );
+              })()}
+              <div className="mt-3"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={Boolean(hotel.reservations?.forceCanonicalQuestion)} onChange={e => setHotel(h => h ? ({ ...h, reservations: { ...(h.reservations ?? {}), forceCanonicalQuestion: e.target.checked } }) : h)} /><span>Forzar pregunta canónica (reservas)</span></label></div>
+            </div>
+
+            <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h3 className="font-semibold mb-2 text-sm">Habitaciones</h3>
+              {(hotel.rooms ?? []).map((r, idx) => (
+                <div key={idx} className="border rounded p-3 mb-3 bg-white/70 dark:bg-zinc-800/50">
+                  <div className="flex justify-between items-center mb-2 text-xs"><strong>Habitación #{idx + 1}</strong><button type="button" className="text-red-600" onClick={() => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).filter((_, i) => i !== idx) }) : h)}>Eliminar</button></div>
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Nombre" value={r.name ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, name: e.target.value } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Tamaño m²" type="number" value={r.sizeM2 ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, sizeM2: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Capacidad" type="number" value={r.capacity ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, capacity: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Camas" value={r.beds ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, beds: e.target.value } : rr) }) : h)} />
+                  <textarea className="border p-1 rounded w-full mb-1 text-xs" rows={2} placeholder="Descripción" value={r.description ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, description: e.target.value } : rr) }) : h)} />
+                  <TagSelect label="Highlights" values={r.highlights ?? []} suggestions={["Vista al mar","Vista a la ciudad","Balcón","Terraza","A/C","Calefacción","TV Smart","Wi‑Fi alta velocidad","Caja fuerte","Escritorio","Minibar","Cafetera","Accesible","Ducha walk-in","Bañera","Cama King","Cama Queen","Sofá cama","Pet-friendly"]} placeholder="Añade highlight" onChange={vals => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, highlights: vals } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Imágenes (coma)" value={(r.images ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Icono" value={r.icon ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, icon: e.target.value } : rr) }) : h)} />
+                  <label className="flex items-center gap-2 text-[11px] mb-1"><input type="checkbox" checked={Boolean(r.accessible)} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, accessible: e.target.checked } : rr) }) : h)} /><span>Accesible</span></label>
                 </div>
               ))}
-              <button type="button" className="border px-3 py-1 rounded text-sm mb-2" onClick={() => setHotel(h => h ? ({ ...h, rooms: [ ...(h.rooms ?? []), { name: '' } ] }) : h)}>+ Agregar habitación</button>
-
-              {/* Schedules */}
-              <h4 className="font-semibold mt-4">Horarios</h4>
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Check-in" value={hotel.schedules?.checkIn ?? ''} onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), checkIn: e.target.value } }) : h)} />
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Check-out" value={hotel.schedules?.checkOut ?? ''} onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), checkOut: e.target.value } }) : h)} />
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Desayuno" value={hotel.schedules?.breakfast ?? ''} onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), breakfast: e.target.value } }) : h)} />
-              <input className="border p-2 rounded w-full mb-2" type="text" placeholder="Horas de silencio" value={hotel.schedules?.quietHours ?? ''} onChange={e => setHotel(h => h ? ({ ...h, schedules: { ...(h.schedules ?? {}), quietHours: e.target.value } }) : h)} />
-
-              <label className="flex items-center gap-2 mb-2 mt-4">
-                <input type="checkbox" checked={autoEnrich} onChange={e => setAutoEnrich(e.target.checked)} />
-                <span className="text-sm">Auto-enriquecer transporte y atracciones con IA</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" disabled={genLoading} onClick={async () => {
-                  setGenMsg(null); setGenLoading(true);
-                  try {
-                    const res = await fetch('/api/kb/generate', {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ hotelId, autoEnrich: autoEnrich, upload: false, overrides: hotel })
-                    });
-                    const text = await res.text();
-                    let j: any = null;
-                    try { j = JSON.parse(text); } catch { throw new Error(text || 'Respuesta no JSON'); }
-                    if (!res.ok || j.error) throw new Error(j.error || 'Error en vista previa');
-                    // Renderizar vista previa editable: lista de archivos + editor de texto por archivo
-                    const container = document.getElementById('kb-preview');
-                    if (container) {
-                      container.innerHTML = '';
-                      const count = document.createElement('div');
-                      count.className = 'text-sm mb-2';
-                      count.textContent = `Archivos generados: ${j.count}`;
-                      container.appendChild(count);
-                      const list = document.createElement('div');
-                      list.className = 'flex flex-col gap-2';
-                      // Estado local para los archivos editados
-                      const editedFiles: Record<string, string> = {};
-                      Object.entries(j.files as Record<string,string>).forEach(([name, content]) => {
-                        const item = document.createElement('details');
-                        item.className = 'border rounded p-2 bg-white/70 dark:bg-zinc-900/40';
-                        const sum = document.createElement('summary');
-                        sum.textContent = name;
-                        sum.className = 'cursor-pointer select-none';
-                        // Editor de texto
-                        const textarea = document.createElement('textarea');
-                        textarea.className = 'mt-2 w-full text-xs border rounded p-2 bg-zinc-50 dark:bg-zinc-900';
-                        textarea.rows = 8;
-                        textarea.value = content as string;
-                        textarea.addEventListener('input', e => {
-                          editedFiles[name] = textarea.value;
-                        });
-                        // Botón para guardar/cargar el archivo editado
-                        const saveBtn = document.createElement('button');
-                        saveBtn.type = 'button';
-                        saveBtn.className = 'mt-2 px-3 py-1 rounded border bg-blue-50 text-blue-700 text-xs';
-                        saveBtn.textContent = 'Guardar cambios';
-                        saveBtn.onclick = () => {
-                          j.files[name] = textarea.value;
-                          textarea.value = j.files[name];
-                          saveBtn.textContent = 'Guardado';
-                          setTimeout(() => { saveBtn.textContent = 'Guardar cambios'; }, 1200);
-                        };
-                        item.appendChild(sum);
-                        item.appendChild(textarea);
-                        item.appendChild(saveBtn);
-                        list.appendChild(item);
-                      });
-                      container.appendChild(list);
-                    }
-                    setGenMsg('Vista previa generada.');
-                  } catch (e: any) {
-                    const container = document.getElementById('kb-preview');
-                    if (container) {
-                      container.innerHTML = '';
-                      const pre = document.createElement('pre');
-                      pre.className = 'text-xs text-red-600 whitespace-pre-wrap';
-                      // Mostrar el mensaje de error completo si es JSON
-                      let msg = '';
-                      try {
-                        const errJson = JSON.parse(e?.message || '');
-                        msg = errJson.error || e?.message || String(e);
-                      } catch {
-                        msg = e?.message || String(e);
-                      }
-                      pre.textContent = msg;
-                      container.appendChild(pre);
-                    }
-                    setGenMsg('Error en vista previa');
-                  } finally { setGenLoading(false); }
-                }}>
-                  {genLoading ? 'Generando…' : 'Vista previa (sin subir)'}
-                </Button>
-                <Button type="button" disabled={genLoading} onClick={async () => {
-                  setGenMsg(null); setGenLoading(true);
-                  try {
-                    const res = await fetch('/api/kb/generate', {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ hotelId, autoEnrich: autoEnrich, upload: true, overrides: hotel })
-                    });
-                    let j: any = null;
-                    try { j = await res.json(); } catch {
-                      const text = await res.text();
-                      throw new Error(text || 'Respuesta no JSON');
-                    }
-                    if (!res.ok || j.error) throw new Error(j.error || 'Error generando KB');
-                    setGenMsg(`KB generada y subida (${j.uploaded} documentos).`);
-                  } catch (e: any) {
-                    setGenMsg(e.message || 'Error');
-                  } finally { setGenLoading(false); }
-                }}>
-                  {genLoading ? 'Generando…' : 'Generar y subir KB'}
-                </Button>
-                {genMsg && <span className="text-sm ml-2">{genMsg}</span>}
-              </div>
-              <div id="kb-preview" className="mt-3"></div>
+              <button type="button" className="border px-3 py-1 rounded text-xs" onClick={() => setHotel(h => h ? ({ ...h, rooms: [ ...(h.rooms ?? []), { name: '' } ] }) : h)}>+ Agregar habitación</button>
             </div>
-          </>
+
+            <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={autoEnrich} onChange={e => setAutoEnrich(e.target.checked)} /><span>Auto-enriquecer transporte y atracciones</span></label>
+          </div>
         )}
       </form>
+
+      <div className="mt-6 flex items-center justify-between">
+        {hasScheduleErrors && (<div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">Corrige horarios inválidos antes de guardar.</div>)}
+        <button type="submit" form="hotel-edit-form" disabled={loading || hasScheduleErrors} className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50">
+          {loading ? 'Guardando…' : hasScheduleErrors ? 'Corrige horarios' : 'Guardar configuración'}
+        </button>
+      </div>
+
+      {updateWarnings.length > 0 && (
+        <div className="mt-4 p-3 border rounded bg-yellow-50 text-xs text-yellow-800">
+          <strong>Advertencias:</strong>
+          <ul className="list-disc ml-4 mt-1">{updateWarnings.map((w,i) => <li key={i}>{w}</li>)}</ul>
+        </div>
+      )}
     </div>
   );
 }

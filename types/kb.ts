@@ -1,3 +1,7 @@
+// Path: /root/begasist/types/kb.ts
+
+import type { HotelConfig } from "./channel";
+
 /**
  * Knowledge Base record schema and helpers
  *
@@ -85,7 +89,7 @@ export interface KBRecord {
 export interface BuildIdsInput {
     hotelId: string;
     category: string;     // accept string to avoid coupling to union during building
-    promptKey: string;     // required for deterministic identity across languages
+    promptKey: string;    // required for deterministic identity across languages
     lang: LangISO1;
     version: number | string;
 }
@@ -169,3 +173,117 @@ export function makeKBRecordMinimal(params: {
  *   { $set: { isCurrent: false, updatedAt: new Date().toISOString() } }
  * );
  */
+
+// ============================================================================
+//                          KB TEMPLATES / COMPILER / HYDRATOR
+// ============================================================================
+
+/**
+ * Canales soportados por el sistema de plantillas / respuestas.
+ * (Se puede extender si aparece, por ejemplo, "instagram_dm" más adelante.)
+ */
+export type ChannelType = "whatsapp" | "web" | "email" | "ivr";
+
+/**
+ * Contexto mínimo para compilar/hidratar plantillas de KB.
+ * Se usa tanto en el compilador (Fase B, UI) como en el hydrator global.
+ */
+export interface TemplateContext {
+    hotelConfig: HotelConfig;
+    categoryId: string;
+    lang: string; // usamos string para no limitar a es/en/pt si luego agregás más
+}
+
+/**
+ * Resultado de compilación de texto humano → plantilla con tokens.
+ * Usado en la UI admin (Fase B).
+ */
+export interface CompiledTemplate {
+    text: string;
+    warnings: string[];
+}
+
+/**
+ * Resultado de hidratación simple.
+ * Esto lo usa la UI de plantillas (placeholder) y también lo extiende el hydrator global.
+ */
+export interface HydratedTemplate {
+    text: string;
+    missingKeys: string[];
+}
+
+/**
+ * Opciones del compilador.
+ */
+export interface CompileOptions {
+    /**
+     * Lista opcional de keys consideradas "válidas" para esta categoría.
+     * Si la etiqueta mapea a una key fuera de esta lista, el compilador
+     * emite un warning.
+     */
+    knownKeys?: string[];
+}
+
+/**
+ * De dónde se obtuvo el valor final para una key concreta.
+ */
+export interface KnowledgeSourceInfo {
+    source: "hotel_content" | "registry" | "seed" | "pms" | "graph" | "default";
+    key?: string;
+    detail?: string;
+}
+
+/**
+ * Estado global de conocimiento (PMS + grafo + overrides + config de canal)
+ * para un hotel.
+ *
+ * Cada entrada: key → valor concreto.
+ * Ejemplo:
+ * {
+ *   "contacts.phone": "+598 123 4567",
+ *   "wifi.available": "Sí en todo el hotel",
+ *   "policies.checkin.from": "14:00",
+ * }
+ */
+export interface KnowledgeState {
+    hotelId: string;
+    lang: string;
+    values: Record<string, string>;
+}
+
+/**
+ * Resultado enriquecido al hidratar tokens para runtime (no para la UI).
+ * Incluye:
+ *  - missingKeys (igual que HydratedTemplate)
+ *  - resolvedValues (qué valor terminó usando cada key)
+ *  - valueSources (de dónde salió ese valor)
+ */
+export interface HydrationResult extends HydratedTemplate {
+    resolvedValues: Record<string, string>;
+    valueSources: Record<string, KnowledgeSourceInfo>;
+}
+
+/**
+ * Contexto completo de hidratación global (plantilla + conocimiento).
+ */
+export interface GlobalHydrationContext extends TemplateContext {
+    knowledge: KnowledgeState;
+}
+
+/**
+ * Contrato principal del Hydrator de runtime.
+ * Dado un hotel + categoría + lang + canal:
+ * - busca el machineBody con tokens (override → registry → seed)
+ * - construye KnowledgeState
+ * - ejecuta hydrateTemplateGlobal
+ * - devuelve HydrationResult
+ */
+export interface KnowledgeBaseHydrator {
+    getHydratedContent(params: {
+        hotelId: string;
+        categoryId: string;
+        lang: string;
+        channel: ChannelType;
+        version?: string;
+    }): Promise<HydrationResult>;
+}

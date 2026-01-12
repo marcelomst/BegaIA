@@ -1,0 +1,3 @@
+{
+  "body": "# Pagos y facturación\n\n- Métodos de pago aceptados: [[join: payments.acceptedMethods | sep: ,  | default: Tarjetas, Efectivo, Transferencia -> [[item]]]]\n- Moneda: [[key: payments.currency | default: ARS/USD/EUR]]\n- Depósitos/Pre-autorización: [[key: payments.depositRules | default: Reglas]]\n- Facturación: [[key: billing.invoicingNotes | default: Datos requeridos y tiempos de emisión]]"
+}

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Desactivar structured para este test (evita llamadas externas)
 process.env.STRUCTURED_ENABLED = "false";
+// Activar planner/orquestador para este flujo
+process.env.USE_ORCHESTRATOR_AGENT = "1";
+process.env.USE_MH_FLOW_GRAPH = "1";
+process.env.USE_PRE_POS_PIPELINE = "1";
 
 // Infra mocks
 vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
@@ -65,6 +69,10 @@ describe("messageHandler: cambio de huéspedes autoajusta tipo y recotiza en el 
     });
 
     it("cuando el usuario pasa de 2 a 3 huéspedes con fechas conocidas, ajusta a 'triple', reconoce el cambio y recotiza con total", async () => {
+        // Reafirmar flags por si otros tests los modificaron
+        process.env.USE_ORCHESTRATOR_AGENT = "1";
+        process.env.USE_MH_FLOW_GRAPH = "1";
+        process.env.USE_PRE_POS_PIPELINE = "1";
         // Estado previo: reserva confirmada con double para 2 pax, fechas conocidas
         (getConvState as any).mockResolvedValue({
             hotelId,

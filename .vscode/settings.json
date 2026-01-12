@@ -4,5 +4,8 @@
   },
   "editor.formatOnSave": true,
   "files.eol": "\n",
-  "explorer.excludeGitIgnore": false
+  "explorer.excludeGitIgnore": false,
+  "files.associations": {
+    "*.agent.md": "markdown"
+  }
 }

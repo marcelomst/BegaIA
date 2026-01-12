@@ -7,6 +7,7 @@ export const promptMetadata: Record<string, string[]> = {
         "room_info_img",
         "ambiguity_policy",
         "kb_general",
+        "arrivals_transport",
     ],
 
     // Flujo de reservas
@@ -23,7 +24,6 @@ export const promptMetadata: Record<string, string[]> = {
 
     // Cancelación (alineado a category del grafo y filtro RAG)
     cancel_reservation: [
-        "cancel_reservation",  //falta
         "cancellation_policy",
     ],
 
@@ -48,13 +48,13 @@ export const promptMetadata: Record<string, string[]> = {
 
     // Subnodos explícitos de modificación (internos del flujo)
     modify_reservation_field: [
-        "ask_field",
+        "modify_reservation_field",
     ],
     modify_reservation_value: [
-        "ask_value",
+        "modify_reservation_value",
     ],
     modify_reservation_confirm: [
-        "confirm",
+        "modify_reservation_confirm",
     ],
 };
 

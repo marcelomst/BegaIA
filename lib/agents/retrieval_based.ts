@@ -76,6 +76,7 @@ export async function retrievalBased(state: any): Promise<any> {
     }, group[0])._id;
   });
   debugLog(`[retrievalBased] latestIds por grupo:`, latestIds);
+  // Realizar búsqueda con esos IDs filtrados
   const docs = await searchFromAstra(
     userQuery,
     state.hotelId ?? "hotel999",
@@ -84,21 +85,8 @@ export async function retrievalBased(state: any): Promise<any> {
     { forceVectorSearch: true, allowedIds: latestIds }
   );
 
-  // Inferir categoría y promptKey según chunks recuperados
-  if (Array.isArray(docs) && docs.length > 0) {
-    const topChunk = docs[0];
-    if (topChunk.category) category = topChunk.category;
-    if (topChunk.promptKey) promptKey = topChunk.promptKey;
-    debugLog(`[retrievalBased] categoría y promptKey inferidos:`, { category, promptKey });
-  }
-
-  // Si se forzó vector search, docs ya trae chunks completos
-  if (state.forceVectorSearch && Array.isArray(docs) && docs.length > 0 && docs[0].text) {
-    retrievedInfo = docs.map((d: any) => d.text).join("\n\n");
-    (state as any).vectorChunks = docs;
-  } else {
-    retrievedInfo = Array.isArray(docs) ? docs.join("\n\n") : String(docs ?? "");
-  }
+  // searchFromAstra retorna string[]; unificamos a texto
+  retrievedInfo = Array.isArray(docs) ? docs.join("\n\n") : String(docs ?? "");
 
   if (!retrievedInfo) {
     debugLog("⚠️ No se encontró información relevante en los documentos.");
@@ -109,11 +97,13 @@ export async function retrievalBased(state: any): Promise<any> {
     finalResponse = typeof response.content === "string" ? response.content.trim() : "Lo siento, no encontré información.";
   } else {
     const promptTemplate = (promptKey && curatedPrompts[promptKey]) || defaultPrompt;
+    // Preparar prompt final
     const finalPrompt = promptTemplate
       .replace("{{retrieved}}", retrievedInfo)
       .replace("{{query}}", userQuery);
 
     if (!localModel) throw new Error("localModel is not initialized.");
+    // Invocar modelo local con prompt final
     const response = await localModel.invoke([
       { role: "system", content: finalPrompt },
       { role: "user", content: userQuery },
@@ -126,10 +116,10 @@ export async function retrievalBased(state: any): Promise<any> {
         const items: Array<{ type?: string; icon?: string; highlights?: string[]; images?: string[] }> = [];
         const blocks = retrievedInfo.split(/\n\s*\n+/);
         for (const b of blocks) {
-          const type = (b.match(/\bTipo\s*:\s*(.+)/i)?.[1] || "").trim();
-          const icon = (b.match(/\bIcono\s*:\s*(.+)/i)?.[1] || "").trim();
-          const hiRaw = (b.match(/\bHighlights?\s*:\s*(.+)/i)?.[1] || "").trim();
-          const imgRaw = (b.match(/\bImages?\s*:\s*(\[.*\]|.+)/i)?.[1] || "").trim();
+          const type = (b.match(/\b(Tipo|Type)\s*:\s*(.+)/i)?.[2] || "").trim();
+          const icon = (b.match(/\b(Icono|Icon)\s*:\s*(.+)/i)?.[2] || "").trim();
+          const hiRaw = (b.match(/\b(Highlights?|Destacados?)\s*:\s*(.+)/i)?.[2] || "").trim();
+          const imgRaw = (b.match(/\b(Images?|Imágenes?)\s*:\s*(\[.*\]|.+)/i)?.[2] || "").trim();
           if (!type && !hiRaw && !imgRaw) continue;
           const highlights = hiRaw
             ? hiRaw.split(/[•\-\u2022]|\s*;\s*|\s*\|\s*|\n/).map((s: string) => s.trim()).filter(Boolean).slice(0, 6)

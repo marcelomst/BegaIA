@@ -42,5 +42,5 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["node_modules", "dist", "deprecated", ".next", "scripts"]
+  "exclude": ["node_modules", "dist", "deprecated", ".next", "scripts", "docs"]
 }

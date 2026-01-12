@@ -1,4 +1,4 @@
-// /root/begasist/middleware.ts
+// Path: /root/begasist/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/auth/jwt";
 import { canAccessAdminRoute } from "@/lib/auth/roles";
@@ -9,13 +9,30 @@ const ALLOWED_ORIGINS = new Set([
   "http://127.0.0.1:8081",
 ]);
 
+// 🆕 rutas de API que pueden usar x-admin-key para bypass de login
+// Agregamos endpoints del pipeline manual (seed, get, list) para permitir pruebas vía curl.
+const ADMIN_KEY_BYPASS_PATHS = new Set<string>([
+  "/api/kb/generate",
+  "/api/debug/astra/list-collections",
+  "/api/category/seed-to-hotel",
+  "/api/hotel-content/get",
+  "/api/hotel-content/list",
+  // futuro: vectorización manual
+  "/api/hotel-content/vectorize",
+  // acceso directo a la config del hotel (solo lectura) para inspección en scripts
+  "/api/hotels/get",
+  // si querés otras rutas “admin script-friendly”, agregalas acá
+  // "/api/upload",
+]);
+
 function applyCORSHeaders(res: NextResponse, origin: string | null) {
   if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Vary", "Origin");
   }
   res.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // 🆕 permitir el header x-admin-key además de los existentes
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-key");
   res.headers.set("Access-Control-Max-Age", "86400");
   return res;
 }
@@ -87,6 +104,26 @@ export async function middleware(req: NextRequest) {
   // 2) Públicos (incluye /api/chat y /api/web/events)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return applyCORSHeaders(NextResponse.next(), origin);
+  }
+
+  // 🆕 2b) Bypass por x-admin-key para rutas whitelisted
+  if (isApi && ADMIN_KEY_BYPASS_PATHS.has(pathname)) {
+    const normalize = (v: string | null | undefined) =>
+      (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
+    const hdr = normalize(req.headers.get("x-admin-key"));
+    const qp = normalize(req.nextUrl.searchParams.get("x-admin-key") || req.nextUrl.searchParams.get("admin_key") || req.nextUrl.searchParams.get("adminKey"));
+    const envKey = normalize(process.env.ADMIN_API_KEY);
+    const provided = hdr || qp;
+    // si hay key y coincide con la env (tolerando comillas/espacios), dejamos pasar (sin exigir cookie)
+    if (provided && envKey && provided === envKey) {
+      return applyCORSHeaders(NextResponse.next(), origin);
+    }
+    // si viene una key pero no coincide, devolvemos 401 explícito (no redirigir a /auth/login)
+    if (provided) {
+      const res = NextResponse.json({ error: "Unauthorized (invalid x-admin-key)" }, { status: 401 });
+      return applyCORSHeaders(res, origin);
+    }
+    // si no vino key, continúa flujo normal (pedirá login por cookie)
   }
 
   // 3) Auth por cookie JWT
