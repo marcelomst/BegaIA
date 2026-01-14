@@ -180,6 +180,13 @@ export type HotelConfig = {
     sizeM2?: number; capacity?: number; beds?: string;
     description?: string; highlights?: string[]; images?: string[]; icon?: string; accessible?: boolean;
   }>;
+  hotelProfile?: {
+    shortDescription?: string;
+    style?: string;
+    starRating?: number;
+    propertyType?: string;
+    brand?: string;
+  };
   // 🆕 Campos opcionales para KB enriquecida
   airports?: Array<{ code?: string; name?: string; distanceKm?: number; driveTime?: string }>;
   transport?: { hasPrivateTransfer?: boolean; transferNotes?: string; taxiNotes?: string; busNotes?: string };

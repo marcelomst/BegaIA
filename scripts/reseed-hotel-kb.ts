@@ -15,7 +15,7 @@ import 'dotenv/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getHotelConfig } from '../lib/config/hotelConfig.server';
-import { generateKbFilesFromProfile, type Profile } from '../lib/kb/generator';
+import { buildHydrationConfigFromProfile, generateKbFilesFromTemplates, type Profile } from '../lib/kb/generator';
 import { ChatOpenAI } from '@langchain/openai';
 import { getAstraDB, getHotelAstraCollection, getCassandraClient } from '../lib/astra/connection';
 import { loadDocumentFileForHotel } from '../lib/retrieval';
@@ -114,7 +114,8 @@ async function enrichProfile(p: Profile): Promise<Profile> {
 }
 
 async function scaffoldFiles(profile: Profile) {
-    return generateKbFilesFromProfile(profile); // { relativePath: content }
+    const hydration = buildHydrationConfigFromProfile(profile);
+    return generateKbFilesFromTemplates({ hotelConfig: hydration, defaultLanguage: profile.defaultLanguage });
 }
 
 async function ingestFiles(hotelId: string, files: Record<string, string>) {

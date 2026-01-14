@@ -150,16 +150,32 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'es',
             body:
-                `Titulo: Información general del hotel\n` +
-                `Categoria: retrieval_based\n` +
-                `Resumen: Breve descripción del hotel, estilo, servicios clave y público objetivo.\n` +
-                `- Estilo y ambiente:\n` +
-                `- Habitaciones (tipos, capacidad):\n` +
-                `- Servicios principales (desayuno, wifi, piscina, etc.):\n` +
-                `- Ubicación y puntos de interés cercanos:\n` +
-                `- Políticas generales (horarios, mascotas, fumadores):\n` +
-                `Fuentes:\n` +
-                `- URL(s) de referencia:`,
+                `# Información general del hotel\n\n` +
+                `## Datos básicos\n\n` +
+                `Nombre: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\n` +
+                `Ubicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\n` +
+                `Descripción breve: [[key: hotelProfile.shortDescription | default: (Completar hotelProfile.shortDescription)]]\n` +
+                `Tipo de hotel: [[key: hotelProfile.propertyType | default: (Completar hotelProfile.propertyType)]]\n` +
+                `Estilo: [[key: hotelProfile.style | default: (Completar hotelProfile.style)]]\n` +
+                `Estrellas: [[key: hotelProfile.starRating | default: (Completar hotelProfile.starRating)]]\n` +
+                `Marca: [[key: hotelProfile.brand | default: (Completar hotelProfile.brand)]]\n\n` +
+                `Puntos de interés y atracciones cercanas: [[key: attractionsInfo | default: (Completar attractionsInfo)]]\n\n` +
+                `Idioma principal de atención: [[key: defaultLanguage | default: es]]\n` +
+                `Zona horaria: [[key: timezone | default: America/Montevideo]]\n\n` +
+                `## Contacto\n\n` +
+                `Teléfono: [[key: contacts.phone | default: (Completar contacts.phone en hotel_config)]]\n` +
+                `WhatsApp: [[key: contacts.whatsapp | default: (Completar contacts.whatsapp en hotel_config)]]\n` +
+                `Email: [[key: contacts.email | default: (Completar contacts.email en hotel_config)]]\n` +
+                `Sitio web: [[key: contacts.website | default: (Completar contacts.website en hotel_config)]]\n\n` +
+                `## Horarios\n\n` +
+                `Check-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn en hotel_config)]]\n` +
+                `Check-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut en hotel_config)]]\n` +
+                `Desayuno: [[key: schedules.breakfast | default: (Definir schedules.breakfast en hotel_config)]]\n` +
+                `Horas de silencio: [[key: schedules.quietHours | default: (Definir schedules.quietHours en hotel_config)]]\n\n` +
+                `## Canales habilitados\n\n` +
+                `- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n` +
+                `- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n` +
+                `- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]`,
         },
         {
             promptKey: 'room_info',
@@ -167,15 +183,19 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'es',
             body:
-                `Titulo: Tipos de habitaciones – resumen\n` +
-                `Categoria: retrieval_based\n` +
-                `Cuerpo:\n` +
-                `- Tipos y capacidades (m² si aplica):\n` +
-                `- Configuración de camas por tipo:\n` +
-                `- Vistas/balcón si aplica:\n` +
-                `- Amenities destacados por tipo:\n` +
-                `Notas:\n` +
-                `- Accesibilidad si aplica:`,
+                `# Tipos de habitaciones – resumen\n\n` +
+                `[[each: rooms | default: (Completar rooms en hotel_config) ->\n` +
+                `- [[name | default: Nombre]]\n` +
+                `  - Capacidad: [[capacity | default: ?]] huéspedes\n` +
+                `  - Camas: [[beds | default: ?]]\n` +
+                `  - Superficie: [[sizeM2 | default: ?]] m²\n` +
+                `  - Descripción: [[description | default: (Agregar descripción)]]\n` +
+                `  - Highlights:\n` +
+                `  [[each: highlights | default: (Sin highlights) ->     - [[item]]]]\n` +
+                `  - Imágenes:\n` +
+                `  [[each: images | default: (Sin imágenes) ->     - !img([[item]])]]\n` +
+                `  - Accesible: [[accessible | default: (sin dato)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'room_info_img',
@@ -218,17 +238,32 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'en',
             body:
-                `Title: General hotel information\n` +
-                `Category: retrieval_based\n` +
-                `Summary: Brief description of the hotel, style, key services, and target audience.\n` +
-                `Body:\n` +
-                `- Style and atmosphere:\n` +
-                `- Rooms (types, capacity):\n` +
-                `- Main services (breakfast, wifi, pool, etc.):\n` +
-                `- Location and nearby points of interest:\n` +
-                `- General policies (hours, pets, smoking):\n` +
-                `Sources:\n` +
-                `- Reference URL(s):`,
+                `# General hotel information\n\n` +
+                `## Basic details\n\n` +
+                `Name: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\n` +
+                `Location: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\n` +
+                `Short description: [[key: hotelProfile.shortDescription | default: (Fill hotelProfile.shortDescription)]]\n` +
+                `Property type: [[key: hotelProfile.propertyType | default: (Fill hotelProfile.propertyType)]]\n` +
+                `Style: [[key: hotelProfile.style | default: (Fill hotelProfile.style)]]\n` +
+                `Star rating: [[key: hotelProfile.starRating | default: (Fill hotelProfile.starRating)]]\n` +
+                `Brand: [[key: hotelProfile.brand | default: (Fill hotelProfile.brand)]]\n\n` +
+                `Nearby points of interest and attractions: [[key: attractionsInfo | default: (Fill attractionsInfo)]]\n\n` +
+                `Main service language: [[key: defaultLanguage | default: en]]\n` +
+                `Timezone: [[key: timezone | default: America/Montevideo]]\n\n` +
+                `## Contact\n\n` +
+                `Phone: [[key: contacts.phone | default: (Fill contacts.phone in hotel_config)]]\n` +
+                `WhatsApp: [[key: contacts.whatsapp | default: (Fill contacts.whatsapp in hotel_config)]]\n` +
+                `Email: [[key: contacts.email | default: (Fill contacts.email in hotel_config)]]\n` +
+                `Website: [[key: contacts.website | default: (Fill contacts.website in hotel_config)]]\n\n` +
+                `## Schedules\n\n` +
+                `Check-in: [[key: schedules.checkIn | default: (Define schedules.checkIn in hotel_config)]]\n` +
+                `Check-out: [[key: schedules.checkOut | default: (Define schedules.checkOut in hotel_config)]]\n` +
+                `Breakfast: [[key: schedules.breakfast | default: (Define schedules.breakfast in hotel_config)]]\n` +
+                `Quiet hours: [[key: schedules.quietHours | default: (Define schedules.quietHours in hotel_config)]]\n\n` +
+                `## Enabled channels\n\n` +
+                `- Web: [[key: channelConfigs.web.enabled | default: (Define channelConfigs.web.enabled)]]\n` +
+                `- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Define channelConfigs.whatsapp.enabled)]]\n` +
+                `- Email: [[key: channelConfigs.email.enabled | default: (Define channelConfigs.email.enabled)]]`,
         },
         {
             promptKey: 'room_info',
@@ -236,15 +271,19 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'en',
             body:
-                `Title: Room types – summary\n` +
-                `Category: retrieval_based\n` +
-                `Body:\n` +
-                `- Types and capacities (sqm if applicable):\n` +
-                `- Bed configuration per type:\n` +
-                `- Views/balcony if applicable:\n` +
-                `- Highlighted amenities per type:\n` +
-                `Notes:\n` +
-                `- Accessibility if applicable:`,
+                `# Room types – summary\n\n` +
+                `[[each: rooms | default: (Fill rooms in hotel_config) ->\n` +
+                `- [[name | default: Name]]\n` +
+                `  - Capacity: [[capacity | default: ?]] guests\n` +
+                `  - Beds: [[beds | default: ?]]\n` +
+                `  - Size: [[sizeM2 | default: ?]] m²\n` +
+                `  - Description: [[description | default: (Add description)]]\n` +
+                `  - Highlights:\n` +
+                `  [[each: highlights | default: (No highlights) ->     - [[item]]]]\n` +
+                `  - Images:\n` +
+                `  [[each: images | default: (No images) ->     - !img([[item]])]]\n` +
+                `  - Accessible: [[accessible | default: (no data)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'room_info_img',
@@ -287,17 +326,32 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'pt',
             body:
-                `Título: Informações gerais do hotel\n` +
-                `Categoria: retrieval_based\n` +
-                `Resumo: Breve descrição do hotel, estilo, serviços principais e público alvo.\n` +
-                `Corpo:\n` +
-                `- Estilo e ambiente:\n` +
-                `- Quartos (tipos, capacidade):\n` +
-                `- Serviços principais (café da manhã, wifi, piscina, etc.):\n` +
-                `- Localização e pontos de interesse próximos:\n` +
-                `- Políticas gerais (horários, animais de estimação, fumantes):\n` +
-                `Fontes:\n` +
-                `- URLs de referência:`,
+                `# Informações gerais do hotel\n\n` +
+                `## Dados básicos\n\n` +
+                `Nome: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\n` +
+                `Localização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\n` +
+                `Descrição breve: [[key: hotelProfile.shortDescription | default: (Preencher hotelProfile.shortDescription)]]\n` +
+                `Tipo de hotel: [[key: hotelProfile.propertyType | default: (Preencher hotelProfile.propertyType)]]\n` +
+                `Estilo: [[key: hotelProfile.style | default: (Preencher hotelProfile.style)]]\n` +
+                `Estrelas: [[key: hotelProfile.starRating | default: (Preencher hotelProfile.starRating)]]\n` +
+                `Marca: [[key: hotelProfile.brand | default: (Preencher hotelProfile.brand)]]\n\n` +
+                `Pontos de interesse e atracoes proximas: [[key: attractionsInfo | default: (Preencher attractionsInfo)]]\n\n` +
+                `Idioma principal de atendimento: [[key: defaultLanguage | default: pt]]\n` +
+                `Fuso horário: [[key: timezone | default: America/Montevideo]]\n\n` +
+                `## Contato\n\n` +
+                `Telefone: [[key: contacts.phone | default: (Preencher contacts.phone em hotel_config)]]\n` +
+                `WhatsApp: [[key: contacts.whatsapp | default: (Preencher contacts.whatsapp em hotel_config)]]\n` +
+                `Email: [[key: contacts.email | default: (Preencher contacts.email em hotel_config)]]\n` +
+                `Site: [[key: contacts.website | default: (Preencher contacts.website em hotel_config)]]\n\n` +
+                `## Horários\n\n` +
+                `Check-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn em hotel_config)]]\n` +
+                `Check-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut em hotel_config)]]\n` +
+                `Café da manhã: [[key: schedules.breakfast | default: (Definir schedules.breakfast em hotel_config)]]\n` +
+                `Horário de silêncio: [[key: schedules.quietHours | default: (Definir schedules.quietHours em hotel_config)]]\n\n` +
+                `## Canais ativos\n\n` +
+                `- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n` +
+                `- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n` +
+                `- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]`,
         },
         {
             promptKey: 'room_info',
@@ -305,15 +359,19 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'pt',
             body:
-                `Título: Tipos de quartos – resumo\n` +
-                `Categoria: retrieval_based\n` +
-                `Corpo:\n` +
-                `- Tipos e capacidades (m² se aplicável):\n` +
-                `- Configuração de camas por tipo:\n` +
-                `- Vistas/varanda se aplicável:\n` +
-                `- Amenities destacados por tipo:\n` +
-                `Notas:\n` +
-                `- Acessibilidade se aplicável:`,
+                `# Tipos de quartos – resumo\n\n` +
+                `[[each: rooms | default: (Preencher rooms em hotel_config) ->\n` +
+                `- [[name | default: Nome]]\n` +
+                `  - Capacidade: [[capacity | default: ?]] hóspedes\n` +
+                `  - Camas: [[beds | default: ?]]\n` +
+                `  - Área: [[sizeM2 | default: ?]] m²\n` +
+                `  - Descrição: [[description | default: (Adicionar descrição)]]\n` +
+                `  - Destaques:\n` +
+                `  [[each: highlights | default: (Sem destaques) ->     - [[item]]]]\n` +
+                `  - Imagens:\n` +
+                `  [[each: images | default: (Sem imagens) ->     - !img([[item]])]]\n` +
+                `  - Acessível: [[accessible | default: (sem dado)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'room_info_img',

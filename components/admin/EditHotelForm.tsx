@@ -142,6 +142,8 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
           rooms: Array.isArray(cfg.rooms) ? cfg.rooms : undefined,
           contacts: isPlainObject(cfg.contacts) ? cfg.contacts : undefined,
           schedules: isPlainObject(cfg.schedules) ? cfg.schedules : undefined,
+          hotelProfile: isPlainObject(cfg.hotelProfile) ? cfg.hotelProfile : undefined,
+          attractionsInfo: typeof (cfg as any).attractionsInfo === "string" ? (cfg as any).attractionsInfo : undefined,
         });
         setT(dict);
       } catch (e) {
@@ -220,6 +222,40 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
               <span className="font-semibold text-sm">{t.hotelEdit.name || "Nombre"}</span>
               <input className="border p-2 rounded w-full mt-1" value={hotel.hotelName ?? ""} onChange={e => setHotel(h => h ? { ...h, hotelName: e.target.value } : h)} required />
             </label>
+            <div className="p-3 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h2 className="font-semibold mb-2 text-sm">Perfil del hotel</h2>
+              <div className="grid gap-2">
+                <label className="text-xs">
+                  <span className="font-medium">Descripción breve</span>
+                  <textarea className="border p-2 rounded w-full mt-1 text-sm" rows={3} value={hotel.hotelProfile?.shortDescription ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), shortDescription: e.target.value } }) : h)} />
+                </label>
+                <label className="text-xs">
+                  <span className="font-medium">Tipo de hotel</span>
+                  <input className="border p-2 rounded w-full mt-1" placeholder="Boutique, Resort, Business, Hostel..." value={hotel.hotelProfile?.propertyType ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), propertyType: e.target.value } }) : h)} />
+                </label>
+                <label className="text-xs">
+                  <span className="font-medium">Estilo</span>
+                  <input className="border p-2 rounded w-full mt-1" placeholder="Moderno, clásico, familiar..." value={hotel.hotelProfile?.style ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), style: e.target.value } }) : h)} />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs">
+                    <span className="font-medium">Estrellas</span>
+                    <select className="border p-2 rounded w-full mt-1" value={hotel.hotelProfile?.starRating ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), starRating: e.target.value ? Number(e.target.value) : undefined } }) : h)}>
+                      <option value="">Sin definir</option>
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs">
+                    <span className="font-medium">Marca</span>
+                    <input className="border p-2 rounded w-full mt-1" placeholder="(opcional)" value={hotel.hotelProfile?.brand ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), brand: e.target.value } }) : h)} />
+                  </label>
+                </div>
+                <label className="text-xs">
+                  <span className="font-medium">Puntos de interés y atracciones cercanas</span>
+                  <textarea className="border p-2 rounded w-full mt-1 text-sm" rows={3} placeholder="Ej.: Playa Mansa (500m), Puerto (10 min en taxi), Museo X" value={(hotel as any).attractionsInfo ?? ""} onChange={e => setHotel(h => h ? ({ ...h, attractionsInfo: e.target.value } as any) : h)} />
+                </label>
+              </div>
+            </div>
             <label className="block">
               <span className="font-semibold text-sm">{t.hotelEdit.address || "Dirección"}</span>
               <input className="border p-2 rounded w-full mt-1" value={hotel.address ?? ""} onChange={e => setHotel(h => h ? { ...h, address: e.target.value } : h)} />

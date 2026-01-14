@@ -6,6 +6,8 @@ export type Lang = 'es' | 'en' | 'pt';
 
 // Taxonomía de amenities: normalización y etiquetas
 import { normalizeAmenityTags, amenityLabel } from '../taxonomy/amenities';
+import { templates } from '../prompts/templates';
+import { hydrateTextFromConfig } from './hydrateFromConfig';
 
 // Perfil usado por el generador (subset/mapeo tolerante del nuevo HotelConfig)
 export interface Profile {
@@ -32,6 +34,59 @@ export interface Profile {
   transport?: { hasPrivateTransfer?: boolean; transferNotes?: string; taxiNotes?: string; busNotes?: string };
   attractions?: Array<{ name?: string; distanceKm?: number; notes?: string }>;
   rooms?: Array<{ name?: string; type?: string; capacity?: number; bed?: string; sizeSqm?: number; view?: string; amenities?: string[]; images?: string[] }>;
+  hotelProfile?: {
+    shortDescription?: string;
+    style?: string;
+    starRating?: number;
+    propertyType?: string;
+    brand?: string;
+  };
+}
+
+export function buildHydrationConfigFromProfile(p: Profile): Record<string, any> {
+  const address = p.location?.address || '';
+  const city = p.location?.city || '';
+  const country = p.location?.country || '';
+  return {
+    hotelId: p.hotelId,
+    hotelName: p.hotelName,
+    defaultLanguage: p.defaultLanguage,
+    timezone: p.timezone,
+    address,
+    city,
+    country,
+    location: p.location,
+    contacts: p.contacts,
+    schedules: p.schedules,
+    amenities: p.amenities,
+    payments: p.payments,
+    billing: p.billing,
+    policies: p.policies,
+    airports: p.airports,
+    transport: p.transport,
+    attractions: p.attractions,
+    rooms: p.rooms,
+    hotelProfile: p.hotelProfile,
+  };
+}
+
+export function generateKbFilesFromTemplates(args: {
+  hotelConfig: any;
+  defaultLanguage?: Lang;
+}): Record<string, string> {
+  const lang = (args.defaultLanguage || args.hotelConfig?.defaultLanguage || 'es') as Lang;
+  const files: Record<string, string> = {};
+  const cfg = args.hotelConfig || {};
+
+  for (const [category, entries] of Object.entries(templates)) {
+    for (const entry of entries) {
+      if (entry.lang !== lang) continue;
+      const body = hydrateTextFromConfig(entry.body || '', cfg);
+      const rel = `${category}/${entry.promptKey}.${entry.lang}.txt`;
+      files[rel] = body;
+    }
+  }
+  return files;
 }
 
 function t(lang: Lang) {

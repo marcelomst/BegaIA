@@ -1,0 +1,239 @@
+# hotel_config export
+hotelId: hotel999
+exportedAt: 2026-01-14T08:28:06.208Z
+
+{
+  "hotelId": "hotel999",
+  "hotelName": "Hotel Demo",
+  "defaultLanguage": "es",
+  "timezone": "America/Montevideo",
+  "channelConfigs": {
+    "web": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "whatsapp": {
+      "enabled": true,
+      "mode": "automatic",
+      "celNumber": "+59898835914",
+      "apiKey": ""
+    },
+    "email": {
+      "enabled": true,
+      "mode": "automatic",
+      "dirEmail": "begamshop.ventas@gmail.com",
+      "password": "umammswkuzoakqqu",
+      "imapHost": "imap.gmail.com",
+      "imapPort": 993,
+      "smtpHost": "smtp.gmail.com",
+      "smtpPort": 587,
+      "secure": false
+    },
+    "channelManager": {
+      "enabled": true,
+      "mode": "automatic",
+      "username": "marcelomst1@gmail.com",
+      "password": "nuevaClaveSuperSegura"
+    }
+  },
+  "users": [
+    {
+      "email": "marcelomst1@gmail.com",
+      "passwordHash": "$2b$10$tA3bsRsszWpTk48Vaz6cH.MSQIekSRjaNrEQex5IKpdVy8lPPfwYu",
+      "roleLevel": 1,
+      "active": true,
+      "createdAt": "2025-05-06T11:47:43.939Z",
+      "userId": "6d4eda74-2c25-40c4-9c32-7a0050082ab4",
+      "name": "Marcelo Martinez",
+      "position": "Tecnico SaaS",
+      "resetToken": "db624fab-1578-4274-bbdd-4a9b338b99ca",
+      "resetTokenExpires": "2025-09-04T10:36:56.089Z",
+      "updatedAt": "2025-08-28T19:26:30.372Z"
+    },
+    {
+      "userId": "f689b1f2-05c3-4ab4-bf11-9c807083b9c1",
+      "email": "begamshop.ventas@gmail.com",
+      "name": "Ana Gomez",
+      "position": "Recepcionista",
+      "roleLevel": 20,
+      "active": true,
+      "createdAt": "2025-05-22T11:21:03.488Z",
+      "passwordHash": "$2b$10$yImRrQgjzNh6iSwZFLXqJ.cqq9X7zq1n2INUuJWWCcPF1y42JZr5G"
+    },
+    {
+      "userId": "94d441e6-aeb9-4566-8599-1954a6486dfb",
+      "email": "marcelomst@protonmail.com",
+      "name": "Ana Maria",
+      "position": "Recepcionista",
+      "roleLevel": 20,
+      "passwordHash": "$2b$10$56KRF3JBs7tiwU5cWKJ0cOn69p7M3YsnUL9FQepRDRfMllDIDBavG",
+      "active": true,
+      "createdAt": "2025-07-02T08:49:04.863Z"
+    }
+  ],
+  "lastUpdated": "2026-01-13T12:59:08.816Z",
+  "verification": {},
+  "country": "UY",
+  "city": "Punta del Este",
+  "address": "Playa Mansa, Parada 5",
+  "postalCode": "20000",
+  "phone": "+598 98 835 914",
+  "reservations": {},
+  "amenities": {
+    "hasParking": true,
+    "parkingNotes": "Estacionamiento por orden de llegada, no se reserva",
+    "hasPool": true,
+    "poolSchedule": "10 a 19 ",
+    "hasGym": true,
+    "gymSchedule": "10 a 22",
+    "hasSpa": true,
+    "spaSchedule": "10 a 19",
+    "other": [
+      "Recepción 24h",
+      "Room service",
+      "Restaurante"
+    ],
+    "tags": [
+      "parking",
+      "pool",
+      "gym",
+      "spa",
+      "custom_custom_custom_custom_custom_reception_24",
+      "room_service",
+      "restaurant",
+      "custom_custom_custom_custom_reception_24h",
+      "custom_custom_custom_reception_24h",
+      "custom_custom_reception_24h",
+      "custom_reception_24h",
+      "reception_24h"
+    ],
+    "schedules": {
+      "pool": "10:00 a 19:00",
+      "gym": "10:00 a 22:00",
+      "spa": "10:00 a 19:00",
+      "parking": "",
+      "reception_24h": "",
+      "room_service": "",
+      "restaurant": "",
+      "custom_reception_24h": "",
+      "custom_custom_reception_24h": "",
+      "custom_custom_custom_reception_24h": "",
+      "custom_custom_custom_custom_reception_24h": "",
+      "custom_custom_custom_custom_custom_reception_24": ""
+    }
+  },
+  "billing": {
+    "issuesInvoices": true,
+    "invoiceNotesTags": [
+      "Factura A",
+      "Ticket",
+      "Recibo"
+    ]
+  },
+  "contacts": {
+    "email": "begamshop.ventas@gmail.com",
+    "whatsapp": "+598 98 835 914",
+    "phone": "+598 42558283",
+    "website": "http://127.0.0.1:8081/"
+  },
+  "payments": {
+    "methods": [
+      "Efectivo",
+      "Tarjeta de crédito",
+      "Tarjeta de débito",
+      "Transferencia",
+      "Crypto"
+    ],
+    "requiresCardForBooking": true,
+    "currencies": [
+      "USD",
+      "UYU"
+    ],
+    "currency": "USD"
+  },
+  "policies": {
+    "pets": "Se aceptan mascotas",
+    "smoking": "Hay areas para fumadores",
+    "cancellation": {
+      "flexible": "48 horas antes, sin recargo",
+      "channels": [
+        "Email",
+        "Whatsapp",
+        "Portal OTA",
+        "Sitio web",
+        "Teléfono"
+      ]
+    }
+  },
+  "rooms": [
+    {
+      "name": "Single Standard",
+      "sizeM2": 22,
+      "capacity": 1,
+      "beds": "1 cama indidual",
+      "description": "Son camas standard",
+      "highlights": [
+        "Vista al mar",
+        "Balcón",
+        "Calefacción",
+        "TV Smart",
+        "Caja fuerte",
+        "Minibar"
+      ],
+      "images": [
+        "/home/marcelo/begasist/public/hotel999/rooms/single/single.jpg"
+      ]
+    },
+    {
+      "name": "Doble",
+      "sizeM2": 30,
+      "capacity": 1,
+      "beds": "1 matrimonial",
+      "description": "Medida estandard de cama",
+      "images": [
+        "/home/marcelo/begasist/public/hotel999/rooms/double/double.jpg"
+      ],
+      "highlights": [
+        "Vista al mar",
+        "Balcón",
+        "Calefacción",
+        "TV Smart",
+        "Wi‑Fi alta velocidad"
+      ]
+    },
+    {
+      "name": "Twin",
+      "sizeM2": 30,
+      "capacity": 2,
+      "beds": "2 camas individuales",
+      "description": "Son camas de medida estandar",
+      "images": [
+        "/home/marcelo/begasist/public/hotel999/rooms/twin/twin.jpg"
+      ]
+    },
+    {
+      "name": "Triple",
+      "sizeM2": 35,
+      "capacity": 3,
+      "beds": "3 camas estandard",
+      "images": [
+        "/home/marcelo/begasist/public/hotel999/rooms/triple/hab-triple-1.jpg"
+      ],
+      "accessible": true
+    }
+  ],
+  "schedules": {
+    "checkIn": "15:00",
+    "checkOut": "11:00",
+    "breakfast": "07:30 a 10:30",
+    "quietHours": "22:00 a 07:30"
+  },
+  "attractionsInfo": "Ubicada en una de las zonas más tranquilas y agradables de Punta del Este, Playa Mansa, Parada 5, ofrece un entorno ideal para disfrutar del mar, la naturaleza y la vida urbana en perfecto equilibrio.\n\nA pocos pasos se extiende la Playa Mansa, reconocida por sus aguas calmas, ideales para familias, deportes náuticos suaves y paseos al atardecer, cuando el sol se oculta sobre la bahía brindando postales inolvidables.\n\nEn las cercanías se encuentra el Puerto de Punta del Este, un punto vibrante donde conviven embarcaciones, restaurantes y excursiones marítimas hacia la Isla Gorriti, un espacio natural protegido con playas y senderos históricos.\n\nA corta distancia también se accede a zonas comerciales, restaurantes, cafés y al centro de la ciudad, así como a atractivos emblemáticos como Casapueblo, en Punta Ballena, uno de los íconos culturales más importantes del Uruguay.\n\nEsta ubicación privilegiada combina serenidad, accesibilidad y cercanía a los principales atractivos del destino, convirtiéndola en un punto ideal para disfrutar de Punta del Este durante todo el año.",
+  "hotelProfile": {
+    "starRating": 3,
+    "brand": "Radison",
+    "style": "Colonial",
+    "propertyType": "Resort",
+    "shortDescription": "Este hotel histórico, declarado Patrimonio Nacional, es un testimonio vivo de la arquitectura y la cultura de otra época.\nConstruido a fines del siglo XIX, ha sido cuidadosamente conservado para mantener su carácter original, combinando elegancia clásica, materiales nobles y detalles artesanales. A lo largo de los años, ha alojado a personalidades destacadas y ha sido escenario de importantes acontecimientos históricos. Hoy ofrece a sus huéspedes una experiencia única, donde la tradición, la historia y el confort contemporáneo conviven en un entorno de gran valor cultural."
+  }
+}

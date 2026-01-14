@@ -2,7 +2,7 @@
 // Usage: pnpm tsx scripts/generate-kb-from-profile.ts path/to/profile.json [--out docs/kb]
 import * as fs from 'fs';
 import * as path from 'path';
-import { generateKbFilesFromProfile, type Profile } from '../lib/kb/generator';
+import { buildHydrationConfigFromProfile, generateKbFilesFromTemplates, type Profile } from '../lib/kb/generator';
 import { ChatOpenAI } from '@langchain/openai';
 
 
@@ -53,7 +53,8 @@ async function main() {
         } catch { /* fallback silently */ }
     }
 
-    const files = generateKbFilesFromProfile(profile);
+    const hydration = buildHydrationConfigFromProfile(profile);
+    const files = generateKbFilesFromTemplates({ hotelConfig: hydration, defaultLanguage: profile.defaultLanguage });
     // Write to disk
     for (const [rel, content] of Object.entries(files) as Array<[string, string]>) {
         const full = path.join(baseDir, rel);

@@ -7,7 +7,7 @@ import * as path from 'path';
 import { getHotelConfig } from '@/lib/config/hotelConfig.server';
 import { loadDocumentFileForHotel } from '@/lib/retrieval';
 import { ChatOpenAI } from '@langchain/openai';
-import { generateKbFilesFromProfile, type Profile } from '@/lib/kb/generator';
+import { buildHydrationConfigFromProfile, generateKbFilesFromTemplates, type Profile } from '@/lib/kb/generator';
 import {
   upsertHotelContent,
   normalizeVersionToNumber,
@@ -176,24 +176,30 @@ export async function POST(req: NextRequest) {
       rooms: cfg.rooms as any,
     };
 
-    const merge = <T,>(base: T, extra?: Partial<T>): T =>
-      extra ? ({ ...(base as any), ...(extra as any) }) : base;
+    const mergeDefined = <T extends Record<string, any>>(base: T, extra?: Partial<T>): T => {
+      if (!extra) return base;
+      const out = { ...(base as any) };
+      for (const [k, v] of Object.entries(extra)) {
+        if (v !== undefined) (out as any)[k] = v;
+      }
+      return out as T;
+    };
 
     const merged: Profile = {
       ...profile,
       hotelName: overrides?.hotelName ?? profile.hotelName,
       defaultLanguage: overrides?.defaultLanguage ?? profile.defaultLanguage,
       timezone: overrides?.timezone ?? profile.timezone,
-      location: merge(
-        profile.location,
-        overrides?.location || { address: overrides?.address, city: overrides?.city, country: overrides?.country } as any
+      location: mergeDefined(
+        profile.location || {},
+        (overrides?.location || { address: overrides?.address, city: overrides?.city, country: overrides?.country } as any)
       ),
-      contacts: merge(profile.contacts || {}, overrides?.contacts),
-      schedules: merge(profile.schedules || {}, overrides?.schedules),
-      amenities: merge(profile.amenities || {}, overrides?.amenities),
-      payments: merge(profile.payments || {}, overrides?.payments),
-      billing: merge(profile.billing || {}, overrides?.billing),
-      policies: merge(profile.policies || {}, overrides?.policies),
+      contacts: mergeDefined(profile.contacts || {}, overrides?.contacts),
+      schedules: mergeDefined(profile.schedules || {}, overrides?.schedules),
+      amenities: mergeDefined(profile.amenities || {}, overrides?.amenities),
+      payments: mergeDefined(profile.payments || {}, overrides?.payments),
+      billing: mergeDefined(profile.billing || {}, overrides?.billing),
+      policies: mergeDefined(profile.policies || {}, overrides?.policies),
       rooms: (overrides?.rooms as any) ?? profile.rooms,
     };
 
@@ -228,7 +234,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const files = generateKbFilesFromProfile(enriched);
+    const hydrationFromProfile = buildHydrationConfigFromProfile(enriched);
+    const hydrationConfig = {
+      ...cfg,
+      ...hydrationFromProfile,
+      address: hydrationFromProfile.address || cfg.address,
+      city: hydrationFromProfile.city || cfg.city,
+      country: hydrationFromProfile.country || cfg.country,
+      contacts: { ...(cfg.contacts || {}), ...(hydrationFromProfile.contacts || {}) },
+      schedules: { ...(cfg.schedules || {}), ...(hydrationFromProfile.schedules || {}) },
+      amenities: { ...(cfg.amenities || {}), ...(hydrationFromProfile.amenities || {}) },
+      payments: { ...(cfg.payments || {}), ...(hydrationFromProfile.payments || {}) },
+      billing: { ...(cfg.billing || {}), ...(hydrationFromProfile.billing || {}) },
+      policies: { ...(cfg.policies || {}), ...(hydrationFromProfile.policies || {}) },
+      airports: hydrationFromProfile.airports || (cfg as any).airports,
+      transport: hydrationFromProfile.transport || (cfg as any).transport,
+      attractions: hydrationFromProfile.attractions || (cfg as any).attractions,
+      rooms: hydrationFromProfile.rooms || cfg.rooms,
+      hotelProfile: { ...(cfg as any).hotelProfile, ...(hydrationFromProfile as any).hotelProfile },
+    };
+    const files = generateKbFilesFromTemplates({ hotelConfig: hydrationConfig, defaultLanguage: safeLang });
 
     // solo preview
     if (!upload) {
