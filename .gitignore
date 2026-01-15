@@ -38,3 +38,6 @@ lib/agents/dump.txt
 
 # secretos / credenciales
 "credenciales CQL"/
+
+# caches
+.wwebjs_cache/
