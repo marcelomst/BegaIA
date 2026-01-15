@@ -41,3 +41,7 @@ lib/agents/dump.txt
 
 # caches
 .wwebjs_cache/
+
+# local-only / sensitive
+.git-replace-secrets.txt
+credenciales CQL/
