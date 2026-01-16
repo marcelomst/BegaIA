@@ -1,6 +1,6 @@
 # hotel_config export
 hotelId: hotel999
-exportedAt: 2026-01-14T08:28:06.208Z
+exportedAt: 2026-01-15T18:46:59.712Z
 
 {
   "hotelId": "hotel999",
