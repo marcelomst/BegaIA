@@ -5,6 +5,8 @@ export const promptMetadata: Record<string, string[]> = {
     retrieval_based: [
         "room_info",
         "room_info_img",
+        "nearby_points",
+        "nearby_points_img",
         "ambiguity_policy",
         "kb_general",
         "arrivals_transport",

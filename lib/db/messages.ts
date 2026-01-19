@@ -1,6 +1,7 @@
 // Path: /root/begasist/lib/db/messages.ts
 import { getAstraDB } from "@/lib/astra/connection";
 import type { Channel, ChannelMessage } from "@/types/channel";
+import type { RichPayload } from "@/types/richPayload";
 
 /** ===== Tipos ===== */
 export type MessageStatus =
@@ -34,10 +35,7 @@ export type MessageDoc = {
   subject?: string;
   meta?: Record<string, any>;
   // UI enriquecida (opcional)
-  rich?: {
-    type: string;
-    data?: any;
-  };
+  rich?: RichPayload;
   createdAt?: string;
   updatedAt?: string;
   // Tracking de entrega

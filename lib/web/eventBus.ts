@@ -1,6 +1,8 @@
 // Path: /root/begasist/lib/web/eventBus.ts
+import type { RichPayload } from "@/types/richPayload";
+
 type EventPayload =
-  | { type: "message"; sender: "user" | "assistant"; text: string; timestamp: string; rich?: { type: string; data?: any } }
+  | { type: "message"; sender: "user" | "assistant"; text: string; timestamp: string; rich?: RichPayload }
   | { type: "status"; value: "open" | "pending" | "closed"; timestamp: string }
   | { type: string;[k: string]: any };
 

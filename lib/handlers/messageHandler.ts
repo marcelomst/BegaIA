@@ -35,8 +35,9 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
+import type { RichPayload } from "@/types/richPayload";
 // askAvailability moved to pipeline/availability via runAvailabilityCheck
 import {
   runAvailabilityCheck,
@@ -310,7 +311,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label = "graph"): Promi
 /** Emite por adapter si está; si no, por SSE directo */
 // ===== Agent: OutputFormatter =====
 // Emite la respuesta final al canal/SSE. Si existe payload enriquecido, lo adjunta.
-async function emitReply(conversationId: string, text: string, sendReply?: (reply: string) => Promise<void>, rich?: { type: string; data?: any }) {
+async function emitReply(conversationId: string, text: string, sendReply?: (reply: string) => Promise<void>, rich?: RichPayload) {
   if (sendReply) { await sendReply(text); }
   else {
     const { emitToConversation } = await import("@/lib/web/eventBus");
@@ -1623,7 +1624,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           !!pre.stateForPlaybook?.confirmedBooking;
 
         // Sólo usamos KB para consultas informativas (sin contexto de reserva)
-        if (!hasReservationContext) {
+        const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
+        if (wantsNearby) {
+          debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
+        }
+        if (!hasReservationContext && !wantsNearby) {
           try {
             const kb = await answerWithKnowledge({
               question: kbUserText,
@@ -2432,7 +2437,7 @@ export async function handleIncomingMessage(
     const suggestion = body.finalText;
     debugLog("[handleIncomingMessage] suggestion", suggestion);
     // Payload enriquecido opcional emitido desde el grafo (p.ej., room-info-img)
-    const richPayload: { type: string; data?: any } | undefined = (body as any)?.graphResult?.meta?.rich;
+    const richPayload: RichPayload | undefined = (body as any)?.graphResult?.meta?.rich;
     // ===== Agent: SupervisorDecision =====
     const respCategory = (body?.graphResult?.category || body?.nextCategory || pre.prevCategory) as string | undefined;
     const respSalesStage = (body?.graphResult?.salesStage || pre.st?.salesStage) as string | undefined;

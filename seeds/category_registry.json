@@ -137,6 +137,40 @@
     "version": 1
   },
   {
+    "categoryId": "retrieval_based/nearby_points",
+    "name": "Nearby points of interest",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "nearby_points",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Puntos de interés cercanos",
+        "body": "# Puntos de interés cercanos\n\nHotel: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nLista (6-10):\n- Nombre:\n  - Descripción corta:\n  - Search query:"
+      },
+      "en": {
+        "title": "Nearby points of interest",
+        "body": "# Nearby points of interest\n\nHotel: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nList (6-10):\n- Name:\n  - Short description:\n  - Search query:"
+      },
+      "pt": {
+        "title": "Pontos de interesse próximos",
+        "body": "# Pontos de interesse próximos\n\nHotel: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nLista (6-10):\n- Nome:\n  - Descrição curta:\n  - Search query:"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
     "categoryId": "retrieval_based/arrivals_transport",
     "name": "Arrivals and transport",
     "enabled": true,

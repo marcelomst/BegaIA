@@ -7,6 +7,7 @@
 // Cada nodo escribe su "cajón" dentro de ConversationFlowState.
 
 import type { ChannelMessage } from "@/types/channel";
+import type { RichPayload } from "@/types/richPayload";
 import { runInputNormalizer, type NormalizedContext } from "./inputNormalizerAgent";
 import { runOrchestratorProxy, type OrchestratorOutput } from "./orchestratorAgent";
 import { decideSupervisorStatus } from "./supervisorAgent";
@@ -39,7 +40,7 @@ export type ConversationFlowState = {
     };
     output?: {
         messageText: string;
-        richPayload?: { type: string; data?: any } | null;
+        richPayload?: RichPayload | null;
     };
     meta: {
         featureFlags: { USE_ORCHESTRATOR_AGENT: boolean; USE_MH_FLOW_GRAPH: boolean; USE_PRE_POS_PIPELINE?: boolean };

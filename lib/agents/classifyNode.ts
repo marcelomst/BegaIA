@@ -1,5 +1,5 @@
 import type { IntentCategory, DesiredAction } from "@/types/audit";
-import { heuristicClassify, looksRoomInfo } from "./helpers";
+import { heuristicClassify, looksRoomInfo, pickNearbyPromptKey } from "./helpers";
 import { classifyQuery } from "@/lib/classifier";
 
 function isConfirmIntentLight(s: string) {
@@ -13,6 +13,10 @@ function isGreeting(s: string) {
 
 export async function classifyNode(state: any) {
     const { normalizedMessage, reservationSlots, meta } = state;
+    const nearbyPK = pickNearbyPromptKey(normalizedMessage);
+    if (nearbyPK) {
+        return { category: "retrieval_based", desiredAction: undefined, intentConfidence: 0.96, intentSource: "heuristic", promptKey: nearbyPK, messages: [] };
+    }
     if (isConfirmIntentLight(normalizedMessage)) {
         return { category: "reservation", desiredAction: "create", intentConfidence: 0.99, intentSource: "heuristic", promptKey: "reservation_flow", messages: [] };
     }

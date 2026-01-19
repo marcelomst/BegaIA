@@ -8,6 +8,58 @@ import { getAdapter } from "@/lib/adapters/registry";
 import { emitToConversation } from "@/lib/web/eventBus";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import type { Channel, ChannelMessage, ChannelMode } from "@/types/channel";
+import type { RichResponse } from "@/types/richResponse";
+
+type ChatAckResponse = {
+  conversationId: string;
+  status: "sent" | "pending";
+  message: {
+    hotelId: string;
+    conversationId: string;
+    channel: Channel;
+    messageId: string;
+    status: "sent" | "pending";
+    suggestion?: string;
+  };
+  lang: string;
+  deduped?: boolean;
+  rich?: RichResponse;
+};
+
+const buildAck = ({
+  conversationId,
+  status,
+  hotelId,
+  channel,
+  messageId,
+  messageStatus,
+  suggestion,
+  lang,
+  deduped,
+}: {
+  conversationId: string;
+  status: "sent" | "pending";
+  hotelId: string;
+  channel: Channel;
+  messageId: string;
+  messageStatus: "sent" | "pending";
+  suggestion?: string;
+  lang: string;
+  deduped?: boolean;
+}): ChatAckResponse => ({
+  conversationId,
+  status,
+  message: {
+    hotelId,
+    conversationId,
+    channel,
+    messageId,
+    status: messageStatus,
+    suggestion,
+  },
+  lang,
+  deduped,
+});
 
 // Test/DEBUG-only fast path and idempotency cache to avoid heavy graph during integration tests
 const IS_TEST_ENV = process.env.NODE_ENV === 'test' || Boolean((globalThis as any).vitest) || Boolean(process.env.VITEST);
@@ -102,23 +154,18 @@ export async function POST(req: Request) {
     // In tests or when no API key, short-circuit to avoid long LLM/graph latency
     if (FAST_ROUTE_MODE) {
       if (clientMsgId && processedMsgIds.has(clientMsgId)) {
-        return NextResponse.json(
-          {
-            conversationId,
-            status: cfgMode === "supervised" ? "pending" : "sent",
-            message: {
-              hotelId,
-              conversationId,
-              channel,
-              messageId: preMessageId,
-              status: cfgMode === "supervised" ? "pending" : "sent",
-              suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
-            },
-            lang: detectedLanguage,
-            deduped: true,
-          },
-          { status: 200 }
-        );
+        const ack = buildAck({
+          conversationId,
+          status: cfgMode === "supervised" ? "pending" : "sent",
+          hotelId,
+          channel,
+          messageId: preMessageId,
+          messageStatus: cfgMode === "supervised" ? "pending" : "sent",
+          suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
+          lang: detectedLanguage,
+          deduped: true,
+        });
+        return NextResponse.json(ack, { status: 200 });
       }
       processedMsgIds.add(preMessageId);
     } else {
@@ -126,44 +173,34 @@ export async function POST(req: Request) {
     }
 
     // ACK homogéneo para el widget
-    return NextResponse.json(
-      {
-        conversationId,
-        status: cfgMode === "supervised" ? "pending" : "sent",
-        message: {
-          hotelId,
-          conversationId,
-          channel,
-          messageId,
-          status: cfgMode === "supervised" ? "pending" : "sent",
-          suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
-        },
-        lang: detectedLanguage,
-      },
-      { status: 200 }
-    );
+    const ack = buildAck({
+      conversationId,
+      status: cfgMode === "supervised" ? "pending" : "sent",
+      hotelId,
+      channel,
+      messageId,
+      messageStatus: cfgMode === "supervised" ? "pending" : "sent",
+      suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
+      lang: detectedLanguage,
+    });
+    return NextResponse.json(ack, { status: 200 });
   } catch (err: any) {
     console.error("[/api/chat] error:", err?.stack || err);
 
     // Caso especial: idempotente → devolvemos ACK homogéneo con el mismo messageId
     const isIdempotent = String(err?.message || err).toLowerCase().includes("idempotent");
     if (isIdempotent) {
-      return NextResponse.json(
-        {
-          conversationId,
-          status: "sent", // estado neutro para el widget; no reenvía nada nuevo
-          message: {
-            hotelId,
-            conversationId,
-            channel,
-            messageId: preMessageId,
-            status: "sent",
-          },
-          lang: detectedLanguage,
-          deduped: true,
-        },
-        { status: 200 }
-      );
+      const ack = buildAck({
+        conversationId,
+        status: "sent", // estado neutro para el widget; no reenvía nada nuevo
+        hotelId,
+        channel,
+        messageId: preMessageId,
+        messageStatus: "sent",
+        lang: detectedLanguage,
+        deduped: true,
+      });
+      return NextResponse.json(ack, { status: 200 });
     }
 
     // fallback SSE para UI (tu comportamiento original)

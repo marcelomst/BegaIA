@@ -11,8 +11,7 @@ import { StateGraph } from "@langchain/langgraph";
 import { GraphState } from "./graphState";
 import { getConvState } from "@/lib/db/convState";
 import { classifyQuery } from "@/lib/classifier";
-import { looksLikeName, heuristicClassify } from "./helpers";
-import { looksRoomInfo } from "./helpers";
+import { looksLikeName, heuristicClassify, looksRoomInfo, pickNearbyPromptKey } from "./helpers";
 import { askModifyFieldNode, askNewValueNode, confirmModificationNode } from "./nodes/reservationModify";
 import { handleReservationNode } from "./nodes";
 import { handleCancelReservationNode } from "./nodes/cancelReservation";
@@ -21,6 +20,17 @@ import type { IntentCategory, DesiredAction } from "@/types/audit";
 // Nodo de clasificación principal
 export async function classifyNode(state: typeof GraphState.State) {
   debugLog('[Graph] Enter classifyNode', { state });
+  const nearbyPK = pickNearbyPromptKey(state.normalizedMessage || "");
+  if (nearbyPK) {
+    return {
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.96,
+      intentSource: "heuristic",
+      promptKey: nearbyPK,
+      messages: [],
+    };
+  }
   // Si la reserva está cerrada, manejar casos especiales
   if (state.salesStage === "close") {
     const t = (state.normalizedMessage || "").toLowerCase();

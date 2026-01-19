@@ -10,6 +10,8 @@
 import React, { useEffect, useState, useRef, useCallback, useId } from "react";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams } from "next/navigation";
+import type { CarouselItem, RichResponse } from "@/types/richResponse";
+import type { LegacyRichPayload, RichPayload } from "@/types/richPayload";
 import {
   getConversationId,
   setConversationId,
@@ -29,17 +31,7 @@ type APIMessagesResponse = {
     status?: "sent" | "pending";
     approvedResponse?: string;
     // opcional futuro: rich desde backend
-    rich?: {
-      type:
-        | "quick-actions"
-        | "dates"
-        | "guests"
-        | "room-cards"
-        | "upsell"
-        | "handoff"
-        | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-      data?: any;
-    };
+    rich?: RichPayload;
   }>;
 };
 
@@ -50,17 +42,7 @@ type APIChatResponse = {
   conversationId?: string;
   lang?: string;
   // opcional futuro: payload enriquecido
-  rich?: {
-    type:
-      | "quick-actions"
-      | "dates"
-      | "guests"
-      | "room-cards"
-      | "upsell"
-      | "handoff"
-      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-    data?: any;
-  };
+  rich?: RichPayload;
 };
 
 type ConversationSummary = {
@@ -76,17 +58,7 @@ type ChatTurn = {
   text: string;
   timestamp: string;
   // UI enriquecida local o devuelta por backend
-  rich?: {
-    type:
-      | "quick-actions"
-      | "dates"
-      | "guests"
-      | "room-cards"
-      | "upsell"
-      | "handoff"
-      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-    data?: any;
-  };
+  rich?: RichPayload;
 };
 
 // ===== Componente principal =====
@@ -597,6 +569,12 @@ export default function ChatPage() {
     },
   ];
 
+  const getLegacyRich = (rich?: RichPayload): LegacyRichPayload | null =>
+    rich && typeof rich === "object" && "type" in rich ? (rich as LegacyRichPayload) : null;
+
+  const getCarouselRich = (rich?: RichPayload): RichResponse | null =>
+    rich && typeof rich === "object" && "carousel" in rich ? (rich as RichResponse) : null;
+
   // ===== Render =====
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 transition-colors">
@@ -647,68 +625,77 @@ export default function ChatPage() {
           style={{ minHeight: 120 }}
           aria-label="Historial del chat"
         >
-          {history.map((msg, idx) => (
-            <article
-              key={idx}
-              className={
-                msg.role === "user"
-                  ? "self-end bg-blue-200 text-blue-900 px-3 py-2 rounded-lg max-w-[70%]"
-                  : "self-start bg-gray-200 text-gray-900 px-3 py-2 rounded-lg max-w-[80%]"
-              }
-            >
-              {msg.text ? (
-                <ReactMarkdown
-                  components={{
-                    a: (props) => <a {...props} target="_blank" rel="nofollow noopener noreferrer" />,
-                  }}
-                >
-                  {msg.text}
-                </ReactMarkdown>
-              ) : null}
+          {history.map((msg, idx) => {
+            const legacy = getLegacyRich(msg.rich);
+            const carousel = getCarouselRich(msg.rich);
 
-              {/* Render de UI enriquecida */}
-              {msg.rich?.type === "quick-actions" && (
-                <QuickActions onClick={handleQuick} actions={msg.rich?.data?.actions} />
-              )}
+            return (
+              <article
+                key={idx}
+                className={
+                  msg.role === "user"
+                    ? "self-end bg-blue-200 text-blue-900 px-3 py-2 rounded-lg max-w-[70%]"
+                    : "self-start bg-gray-200 text-gray-900 px-3 py-2 rounded-lg max-w-[80%]"
+                }
+              >
+                {msg.text ? (
+                  <ReactMarkdown
+                    components={{
+                      a: (props) => <a {...props} target="_blank" rel="nofollow noopener noreferrer" />,
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                ) : null}
 
-              {msg.rich?.type === "dates" && (
-                <DatesInline
-                  checkIn={checkIn}
-                  checkOut={checkOut}
-                  onCheckIn={setCheckIn}
-                  onCheckOut={setCheckOut}
-                  onFind={handleFindAvailability}
-                />
-              )}
+                {/* Render de UI enriquecida */}
+                {carousel?.carousel && carousel.carousel.length > 0 ? (
+                  <RichCarousel items={carousel.carousel} />
+                ) : null}
 
-              {msg.rich?.type === "guests" && (
-                <GuestsPicker
-                  adults={adults}
-                  children={children}
-                  setAdults={setAdults}
-                  setChildren={setChildren}
-                />
-              )}
+                {legacy?.type === "quick-actions" && (
+                  <QuickActions onClick={handleQuick} actions={legacy?.data?.actions} />
+                )}
 
-              {msg.rich?.type === "room-cards" && (
-                <RoomsCarousel rooms={msg.rich.data} onSelect={handleSelectRoom} />
-              )}
+                {legacy?.type === "dates" && (
+                  <DatesInline
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    onCheckIn={setCheckIn}
+                    onCheckOut={setCheckOut}
+                    onFind={handleFindAvailability}
+                  />
+                )}
 
-              {msg.rich?.type === "upsell" && (
-                <Upsell options={msg.rich.data?.options ?? []} onAnswer={handleUpsell} />
-              )}
+                {legacy?.type === "guests" && (
+                  <GuestsPicker
+                    adults={adults}
+                    children={children}
+                    setAdults={setAdults}
+                    setChildren={setChildren}
+                  />
+                )}
 
-              {msg.rich?.type === "handoff" && <HandoffBar />}
+                {legacy?.type === "room-cards" && (
+                  <RoomsCarousel rooms={legacy.data} onSelect={handleSelectRoom} />
+                )}
 
-              {msg.rich?.type === "room-info-img" && (
-                <RoomInfoGallery items={Array.isArray(msg.rich.data) ? msg.rich.data : []} />
-              )}
+                {legacy?.type === "upsell" && (
+                  <Upsell options={legacy.data?.options ?? []} onAnswer={handleUpsell} />
+                )}
 
-              <time className="block mt-1 text-[10px] opacity-60" dateTime={new Date(msg.timestamp).toISOString()}>
-                {new Date(msg.timestamp).toLocaleString()}
-              </time>
-            </article>
-          ))}
+                {legacy?.type === "handoff" && <HandoffBar />}
+
+                {legacy?.type === "room-info-img" && (
+                  <RoomInfoGallery items={Array.isArray(legacy.data) ? legacy.data : []} />
+                )}
+
+                <time className="block mt-1 text-[10px] opacity-60" dateTime={new Date(msg.timestamp).toISOString()}>
+                  {new Date(msg.timestamp).toLocaleString()}
+                </time>
+              </article>
+            );
+          })}
           <div ref={chatEndRef} />
         </section>
 
@@ -975,6 +962,40 @@ function HandoffBar() {
       <a className="underline" href="tel:+59800000000">
         Llamar
       </a>
+    </div>
+  );
+}
+
+function RichCarousel({ items }: { items: CarouselItem[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mt-2 space-y-3">
+      {items.map((item, idx) => (
+        <div key={idx} className="border rounded-lg bg-white shadow-sm overflow-hidden">
+          {item.title || item.subtitle ? (
+            <div className="px-3 py-2 border-b">
+              {item.title ? <div className="font-medium">{item.title}</div> : null}
+              {item.subtitle ? <div className="text-xs text-gray-600">{item.subtitle}</div> : null}
+            </div>
+          ) : null}
+          {Array.isArray(item.images) && item.images.length > 0 ? (
+            <div className="flex gap-2 overflow-x-auto pb-2 px-2 scroll-smooth snap-x snap-mandatory">
+              {item.images.map((img, i) => (
+                <div key={i} className="min-w-[240px] max-w-[320px] snap-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt={img.alt || item.title || `Imagen ${i + 1}`}
+                    className="w-full h-40 object-cover rounded-md border"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ))}
     </div>
   );
 }

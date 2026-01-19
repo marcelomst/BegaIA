@@ -1,41 +1,11 @@
 import { getAstraDB, getCassandraClient } from "@/lib/astra/connection";
 import type { CategoryRegistry } from "@/types/categoryRegistry";
 import type { CategoryOverrides } from "@/types/categoryOverrides";
+import type { CategoryResolved } from "@/types/categoryResolved";
 import type { HotelContent } from "@/types/hotelContent";
+import type { PromptType } from "@/types/prompt";
 
-/**
- * Objeto consolidado que el resto del sistema puede consumir sin if..if..if.
- */
-export interface CategoryResolved {
-    /** "<category>/<promptKey>" */
-    categoryId: string;
-    hotelId: string;
-
-    /** habilitado globalmente? */
-    enabled: boolean;
-
-    /** definición global encontrada (category_registry) */
-    registry?: CategoryRegistry;
-
-    /** override por hotel si existe (category_overrides) */
-    override?: CategoryOverrides;
-
-    /** routing final ya mezclado (override > registry > input) */
-    router: {
-        category: string;
-        promptKey: string;
-    };
-
-    /** retriever final ya mezclado (override > registry > defaults) */
-    retriever: {
-        topK: number;
-        filters: Record<string, string>;
-    };
-
-    /** idioma final elegido */
-    lang: string;
-
-    /** contenido efectivo (hotel_content) si lo hay */
+type CategoryResolvedInternal = Omit<CategoryResolved, "debug" | "content"> & {
     content?: {
         id?: string;
         hotelId: string;
@@ -43,18 +13,16 @@ export interface CategoryResolved {
         promptKey: string;
         lang: string;
         version: string | number;
-        type?: "playbook" | "standard";
+        type?: PromptType;
         title?: string;
         body?: string;
         raw?: Record<string, any>;
     };
-
-    /** info de debug para logs */
     debug?: {
         reason?: string;
         sources?: Array<"registry" | "override" | "hotel_content" | "fallback_system" | "version_index">;
     };
-}
+};
 
 /**
  * Lee un registro de category_registry por categoryId.
@@ -270,7 +238,7 @@ export async function resolveCategoryForHotel(opts: {
     category: string;
     promptKey: string;
     desiredLang?: string;
-}): Promise<CategoryResolved> {
+}): Promise<CategoryResolvedInternal> {
     const { hotelId, category, promptKey, desiredLang } = opts;
     const categoryId = `${category}/${promptKey}`;
 

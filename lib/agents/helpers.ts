@@ -322,6 +322,23 @@ export function looksRoomInfo(s: string): boolean {
   return LOOKS_ROOM_INFO_RE.test(s || "");
 }
 
+const LOOKS_NEARBY_POINTS_RE =
+  /\b(puntos?\s+de\s+inter[eé]s|atracciones?\s+cercanas?|lugares?\s+cercanos?|lugares?\s+para\s+visitar|qué\s+hacer|que\s+hacer|qué\s+visitar|que\s+visitar|nearby\s+(attractions|points\s+of\s+interest|places)|points\s+of\s+interest|things\s+to\s+do|sights|attractions?\s+near)\b/i;
+const WANTS_IMAGES_RE = /\b(im[áa]genes?|fotos?|carrusel|carousel|galer[ií]a|gallery|imagens?)\b/i;
+
+export function looksNearbyPoints(s: string): boolean {
+  return LOOKS_NEARBY_POINTS_RE.test(s || "");
+}
+
+export function wantsNearbyImages(s: string): boolean {
+  return WANTS_IMAGES_RE.test(s || "");
+}
+
+export function pickNearbyPromptKey(s: string): "nearby_points_img" | "nearby_points" | null {
+  if (!looksNearbyPoints(s)) return null;
+  return wantsNearbyImages(s) ? "nearby_points_img" : "nearby_points";
+}
+
 
 
 export function looksLikeName(s: string) {

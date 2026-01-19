@@ -4324,3 +4324,3717 @@
   "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
   "suggestion": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```"
 }
+[2026-01-16T13:57:20.100Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T13:57:20.104Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T13:57:20.763Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T13:57:20.765Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:082f6fa4-3eb8-4996-9220-1276f289b81d",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T13:57:20.762Z",
+    "time": "10:57 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T13:57:25.331Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "Mostrar imágenes de la habitación triple",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2025-11-22T08:45:10.025Z"
+  },
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:082f6fa4-3eb8-4996-9220-1276f289b81d",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T13:57:20.762Z",
+    "time": "10:57 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T13:57:25.334Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "Mostrar imágenes de la habitación triple",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2025-11-22T08:45:10.025Z"
+    },
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "msg": {
+      "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:082f6fa4-3eb8-4996-9220-1276f289b81d",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-16T13:57:20.762Z",
+      "time": "10:57 a. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T13:57:39.683Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "nextCategory": "retrieval_based",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": {
+    "classified": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points"
+    },
+    "resolved": {
+      "categoryId": "retrieval_based/nearby_points",
+      "hotelId": "hotel999",
+      "enabled": true,
+      "router": {
+        "category": "retrieval_based",
+        "promptKey": "nearby_points"
+      },
+      "retriever": {
+        "topK": 6,
+        "filters": {
+          "category": "retrieval_based",
+          "promptKey": "nearby_points"
+        }
+      },
+      "lang": "es",
+      "debug": {
+        "reason": "no-content",
+        "sources": []
+      }
+    },
+    "filters": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points",
+      "targetLang": "es"
+    },
+    "usedPromptTemplate": "nearby_points",
+    "usedHydratedTemplate": false,
+    "category": "retrieval_based",
+    "source": "knowledgeBaseAgent",
+    "contentTitle": null,
+    "contentBody": null,
+    "retrieved": []
+  }
+}
+[2026-01-16T13:57:39.683Z] [DEBUG] [handleIncomingMessage] suggestion Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.
+[2026-01-16T13:57:39.683Z] [DEBUG] [autosend] {
+  "category": "retrieval_based",
+  "mode": "automatic",
+  "autosendReason": "safe_category"
+}
+[2026-01-16T13:57:39.684Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "7cc708ad-9c72-41c3-a1ca-bc782a8875cd",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "suggestion": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "status": "sent",
+  "timestamp": "2026-01-16T13:57:39.683Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T13:57:39.854Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "suggestion": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar."
+}
+[2026-01-16T14:48:04.535Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T14:48:04.539Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T14:48:05.363Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T14:48:05.365Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:34daa498-9fc1-4338-b997-0f817600db1c",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T14:48:05.362Z",
+    "time": "11:48 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T14:48:07.107Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "Mostrar imágenes de la habitación triple",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T13:57:21.300Z"
+  },
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:34daa498-9fc1-4338-b997-0f817600db1c",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T14:48:05.362Z",
+    "time": "11:48 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T14:48:07.111Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "Mostrar imágenes de la habitación triple",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T13:57:21.300Z"
+    },
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "msg": {
+      "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:34daa498-9fc1-4338-b997-0f817600db1c",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-16T14:48:05.362Z",
+      "time": "11:48 a. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T14:48:21.113Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "nextCategory": "retrieval_based",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": {
+    "classified": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points_img"
+    },
+    "resolved": {
+      "categoryId": "retrieval_based/nearby_points_img",
+      "hotelId": "hotel999",
+      "enabled": true,
+      "router": {
+        "category": "retrieval_based",
+        "promptKey": "nearby_points_img"
+      },
+      "retriever": {
+        "topK": 6,
+        "filters": {
+          "category": "retrieval_based",
+          "promptKey": "nearby_points_img"
+        }
+      },
+      "lang": "es",
+      "debug": {
+        "reason": "no-content",
+        "sources": []
+      }
+    },
+    "filters": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points_img",
+      "targetLang": "es"
+    },
+    "usedPromptTemplate": "nearby_points_img",
+    "usedHydratedTemplate": false,
+    "category": "retrieval_based",
+    "source": "knowledgeBaseAgent",
+    "contentTitle": null,
+    "contentBody": null,
+    "retrieved": []
+  }
+}
+[2026-01-16T14:48:21.113Z] [DEBUG] [handleIncomingMessage] suggestion Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.
+[2026-01-16T14:48:21.114Z] [DEBUG] [autosend] {
+  "category": "retrieval_based",
+  "mode": "automatic",
+  "autosendReason": "safe_category"
+}
+[2026-01-16T14:48:21.114Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "38ad22ad-0274-4fc2-ab31-91c80ead97ff",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "suggestion": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+  "status": "sent",
+  "timestamp": "2026-01-16T14:48:21.114Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T14:48:21.305Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "suggestion": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar."
+}
+[2026-01-16T15:12:16.669Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T15:12:16.672Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T15:12:17.803Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T15:12:17.806Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:450f86b6-ed30-4c44-ae29-a8326943cf39",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T15:12:17.803Z",
+    "time": "12:12 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T15:12:19.506Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "Mostrar imágenes de la habitación triple",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T14:48:05.997Z"
+  },
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:450f86b6-ed30-4c44-ae29-a8326943cf39",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T15:12:17.803Z",
+    "time": "12:12 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T15:12:19.509Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "Mostrar imágenes de la habitación triple",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T14:48:05.997Z"
+    },
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "msg": {
+      "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:450f86b6-ed30-4c44-ae29-a8326943cf39",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-16T15:12:17.803Z",
+      "time": "12:12 p. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T15:12:19.513Z] [DEBUG] [KB] skip fast-path for nearby_points_img {
+  "text": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel"
+}
+[2026-01-16T15:12:19.513Z] [DEBUG] [bodyLLM] systemInstruction Eres un asistente de reservas de hotel.
+Estado actual de la reserva:
+[2026-01-16T15:12:19.597Z] [DEBUG] [Graph] Enter classifyNode {
+  "state": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "Mostrar imágenes de la habitación triple",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "other",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": null,
+    "hotelId": "hotel999",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-16T15:12:19.778Z] [DEBUG] [retrievalBased] latestIds por grupo: []
+[2026-01-16T15:12:20.851Z] [DEBUG] ⚠️ No se encontró información relevante en los documentos.
+[2026-01-16T15:12:20.854Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "localModel is not initialized."
+}
+[2026-01-16T15:12:20.933Z] [DEBUG] [bodyLLM] agentGraph error {
+  "pregelTaskId": "8c69cd6f-1759-5033-ae55-42672a5640af"
+}
+[2026-01-16T15:12:26.039Z] [DEBUG] [bodyLLM] structured fallback {
+  "answer": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "intent": "out_of_scope",
+  "entities": {},
+  "actions": [],
+  "handoff": false,
+  "missing_fields": [],
+  "language": "es"
+}
+[2026-01-16T15:12:26.041Z] [DEBUG] [bodyLLM] OUT {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T15:12:26.041Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T15:12:26.041Z] [DEBUG] [handleIncomingMessage] suggestion Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.
+[2026-01-16T15:12:26.042Z] [DEBUG] [autosend] {
+  "category": "out_of_scope",
+  "mode": "automatic",
+  "autosendReason": "automatic_default"
+}
+[2026-01-16T15:12:26.042Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "5feb9c95-c6fa-4491-9a78-decb7d35cf14",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "status": "sent",
+  "timestamp": "2026-01-16T15:12:26.042Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T15:12:26.624Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte."
+}
+[2026-01-16T18:16:46.838Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T18:16:46.840Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T18:16:47.523Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T18:16:47.526Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:69812d3e-473a-44dc-abe2-6c9ca0beb8eb",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:16:47.523Z",
+    "time": "03:16 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:16:49.219Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T15:12:18.408Z"
+  },
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:69812d3e-473a-44dc-abe2-6c9ca0beb8eb",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:16:47.523Z",
+    "time": "03:16 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:16:49.222Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T15:12:18.408Z"
+    },
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "msg": {
+      "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:69812d3e-473a-44dc-abe2-6c9ca0beb8eb",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+      "suggestion": "",
+      "timestamp": "2026-01-16T18:16:47.523Z",
+      "time": "03:16 p. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T18:16:49.228Z] [DEBUG] [KB] skip fast-path for nearby_points_img {
+  "text": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse"
+}
+[2026-01-16T18:16:49.229Z] [DEBUG] [bodyLLM] systemInstruction Eres un asistente de reservas de hotel.
+Estado actual de la reserva:
+[2026-01-16T18:16:49.311Z] [DEBUG] [Graph] Enter classifyNode {
+  "state": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "```md\n**🏨 Habitación Doble**  \n\n| 🛏️  1 cama doble      | 📏 Área de 17 metros cuadrados |  \n| 🚿 Baño privado       | 📞 Teléfono                    |  \n| 📺 TV LCD             | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte        | 🚭 No fumadores                |  \n| 🛁 Toallas            | 🔥 Calefacción                 |  \n\n<br><br>\n\n**🏨 Habitación Triple**  \n\n| 🛏️  1 cama doble y 1 simple   | 📏 Área de 23 metros cuadrados |  \n| 🚿 Baño privado               | 📞 Teléfono                    |  \n| 📺 TV LCD                     | 💇‍♀️ Secador de pelo             |  \n| ❄️ Aire acondicionado         | 📶 WiFi gratis                 |  \n| 🔒 Caja fuerte                | 🚭 No fumadores                |  \n| 🛁 Toallas                    | 🔥 Calefacción                 |  \n\n<br><br>\n\n📅 **¡Reserva ahora para obtener el mejor precio!** 💰  \n🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)\n```",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+    "category": "other",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": null,
+    "hotelId": "hotel999",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-16T18:16:49.495Z] [DEBUG] [retrievalBased] latestIds por grupo: []
+[2026-01-16T18:16:50.854Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "localModel is not initialized."
+}
+[2026-01-16T18:16:50.946Z] [DEBUG] [bodyLLM] agentGraph error {
+  "pregelTaskId": "363ae416-2fda-594d-8ae1-c887c63600e7"
+}
+[2026-01-16T18:16:54.634Z] [DEBUG] [bodyLLM] structured fallback {
+  "answer": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+  "intent": "out_of_scope",
+  "entities": {},
+  "actions": [],
+  "handoff": false,
+  "missing_fields": [],
+  "language": "es"
+}
+[2026-01-16T18:16:54.635Z] [DEBUG] [bodyLLM] OUT {
+  "finalText": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:16:54.636Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:16:54.636Z] [DEBUG] [handleIncomingMessage] suggestion Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.
+[2026-01-16T18:16:54.636Z] [DEBUG] [autosend] {
+  "category": "out_of_scope",
+  "mode": "automatic",
+  "autosendReason": "automatic_default"
+}
+[2026-01-16T18:16:54.636Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "1740e97e-997a-44ca-9662-9d6bbd41f724",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+  "suggestion": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+  "status": "sent",
+  "timestamp": "2026-01-16T18:16:54.636Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T18:16:54.810Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "suggestion": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este."
+}
+[2026-01-16T18:21:00.359Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T18:21:00.362Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T18:21:00.363Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T18:21:00.363Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T18:21:00.926Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T18:21:00.926Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T18:21:00.927Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:0b1a9cbf-a048-493d-9923-5d930497aeee",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:21:00.925Z",
+    "time": "03:21 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:21:02.358Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T18:16:48.187Z"
+  },
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "msg": {
+    "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:0b1a9cbf-a048-493d-9923-5d930497aeee",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:21:00.925Z",
+    "time": "03:21 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:21:02.361Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T18:16:48.187Z"
+    },
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "msg": {
+      "messageId": "web:410bcf42-84b9-43f2-9c3a-e40d41bde3ce:0b1a9cbf-a048-493d-9923-5d930497aeee",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-16T18:21:00.925Z",
+      "time": "03:21 p. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T18:21:02.366Z] [DEBUG] [KB] skip fast-path for nearby_points_img {
+  "text": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel"
+}
+[2026-01-16T18:21:02.367Z] [DEBUG] [bodyLLM] systemInstruction Eres un asistente de reservas de hotel.
+Estado actual de la reserva:
+[2026-01-16T18:21:02.436Z] [DEBUG] [Graph] Enter classifyNode {
+  "state": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa turístico para obtener detalles sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información específica sobre los puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles precisos sobre las atracciones en esa área. Si necesitas más ayuda, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carruse",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lo siento, pero no tengo información sobre puntos de interés cerca de Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre los lugares de interés en Punta del Este.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "other",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": null,
+    "hotelId": "hotel999",
+    "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-16T18:21:02.622Z] [DEBUG] [retrievalBased] latestIds por grupo: []
+[2026-01-16T18:21:02.793Z] [DEBUG] [nearby_points] retrievedInfo {
+  "promptKey": "nearby_points_img",
+  "length": 0,
+  "parsedCount": 0,
+  "insufficient": true
+}
+[2026-01-16T18:21:02.794Z] [DEBUG] [nearby_points] web provider {
+  "promptKey": "nearby_points_img",
+  "provider": "BingWebSearchProvider"
+}
+[2026-01-16T18:21:03.723Z] [DEBUG] [nearby_points] web results {
+  "promptKey": "nearby_points_img",
+  "query": "puntos de interes cerca de puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+  "count": 0
+}
+[2026-01-16T18:21:03.726Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "localModel is not initialized."
+}
+[2026-01-16T18:21:03.726Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "localModel is not initialized."
+}
+[2026-01-16T18:21:03.801Z] [DEBUG] [bodyLLM] agentGraph error {
+  "pregelTaskId": "db94bfb5-9bde-563c-8374-752aa8f487cd"
+}
+[2026-01-16T18:21:08.753Z] [DEBUG] [bodyLLM] structured fallback {
+  "answer": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "intent": "out_of_scope",
+  "entities": {},
+  "actions": [],
+  "handoff": false,
+  "missing_fields": [],
+  "language": "es"
+}
+[2026-01-16T18:21:08.755Z] [DEBUG] [bodyLLM] OUT {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:21:08.755Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:21:08.755Z] [DEBUG] [handleIncomingMessage] suggestion Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.
+[2026-01-16T18:21:08.755Z] [DEBUG] [autosend] {
+  "category": "out_of_scope",
+  "mode": "automatic",
+  "autosendReason": "automatic_default"
+}
+[2026-01-16T18:21:08.756Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "ee6d643e-58f8-42d9-a5a3-3b3e30a82b3d",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "status": "sent",
+  "timestamp": "2026-01-16T18:21:08.756Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T18:21:08.926Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "410bcf42-84b9-43f2-9c3a-e40d41bde3ce",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar."
+}
+[2026-01-16T18:22:11.839Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-16T18:22:11.840Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-16T18:22:12.833Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-16T18:22:12.836Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:17f5ea8e-dce4-4069-a364-c6686c39b7a9",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:22:12.833Z",
+    "time": "03:22 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:22:14.467Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T18:21:01.451Z"
+  },
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "msg": {
+    "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:17f5ea8e-dce4-4069-a364-c6686c39b7a9",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-16T18:22:12.833Z",
+    "time": "03:22 p. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-16T18:22:14.470Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T18:21:01.451Z"
+    },
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "msg": {
+      "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:17f5ea8e-dce4-4069-a364-c6686c39b7a9",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-16T18:22:12.833Z",
+      "time": "03:22 p. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-16T18:22:14.474Z] [DEBUG] [KB] skip fast-path for nearby_points_img {
+  "text": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel"
+}
+[2026-01-16T18:22:14.474Z] [DEBUG] [bodyLLM] systemInstruction Eres un asistente de reservas de hotel.
+Estado actual de la reserva:
+[2026-01-16T18:22:14.534Z] [DEBUG] [Graph] Enter classifyNode {
+  "state": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "other",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": null,
+    "hotelId": "hotel999",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-16T18:22:14.714Z] [DEBUG] [retrievalBased] latestIds por grupo: []
+[2026-01-16T18:22:14.884Z] [DEBUG] [nearby_points] retrievedInfo {
+  "promptKey": "nearby_points_img",
+  "length": 0,
+  "parsedCount": 0,
+  "insufficient": true
+}
+[2026-01-16T18:22:14.884Z] [DEBUG] [nearby_points] web provider {
+  "promptKey": "nearby_points_img",
+  "provider": "BingWebSearchProvider"
+}
+[2026-01-16T18:22:15.828Z] [DEBUG] [nearby_points] web results {
+  "promptKey": "nearby_points_img",
+  "query": "puntos de interes cerca de puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+  "count": 0
+}
+[2026-01-16T18:22:15.832Z] [ERROR] ❌ [messageHandler] agentGraph error: {
+  "errMsg": "localModel is not initialized."
+}
+[2026-01-16T18:22:15.913Z] [DEBUG] [bodyLLM] agentGraph error {
+  "pregelTaskId": "5b3b315d-743c-51ad-88b7-09f75fe0d3eb"
+}
+[2026-01-16T18:22:19.392Z] [DEBUG] [bodyLLM] structured fallback {
+  "answer": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "intent": "out_of_scope",
+  "entities": {},
+  "actions": [],
+  "handoff": false,
+  "missing_fields": [],
+  "language": "es"
+}
+[2026-01-16T18:22:19.394Z] [DEBUG] [bodyLLM] OUT {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:22:19.394Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "nextCategory": "out_of_scope",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": null
+}
+[2026-01-16T18:22:19.394Z] [DEBUG] [handleIncomingMessage] suggestion Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.
+[2026-01-16T18:22:19.395Z] [DEBUG] [autosend] {
+  "category": "out_of_scope",
+  "mode": "automatic",
+  "autosendReason": "automatic_default"
+}
+[2026-01-16T18:22:19.395Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "d4b5747d-435f-488b-b763-0ba8f00cc8e6",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+  "status": "sent",
+  "timestamp": "2026-01-16T18:22:19.395Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "sourceProvider": "web"
+}
+[2026-01-16T18:22:19.570Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "suggestion": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte."
+}
+[2026-01-17T08:49:32.397Z] [WARN] [messageHandler] fastpath → forceGen=true | testFast=false | key=present | reasons=FORCE_GENERATION=1
+[2026-01-17T08:49:32.400Z] [WARN] [api/chat] fastpath → FAST_ROUTE_MODE=false | reasons=FORCE_GENERATION=1 | openaiKey=present
+[2026-01-17T08:49:33.571Z] [WARN] [/api/chat] POST → fastRoute=false forceGen=true testFast=false key=present lang=es
+[2026-01-17T08:49:33.575Z] [DEBUG] [FlujoCHKI][handleIncomingMessage] IN {
+  "msg": {
+    "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:96bea5f9-173e-4ab7-944a-7eede86dcb3c",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-17T08:49:33.570Z",
+    "time": "05:49 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-17T08:49:35.743Z] [DEBUG] [handleIncomingMessage] preLLM/pre {
+  "lang": "es",
+  "currSlots": {},
+  "prevCategory": null,
+  "prevSlotsStrict": {},
+  "st": null,
+  "stateForPlaybook": {
+    "draft": null,
+    "confirmedBooking": null,
+    "locale": "es"
+  },
+  "intent": "general_question",
+  "inModifyMode": false,
+  "hasDraftOrConfirmed": false,
+  "promptKey": "default",
+  "systemInstruction": "Eres un asistente de reservas de hotel.",
+  "lcHistory": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "hints": [],
+  "draftExists": false,
+  "guest": {
+    "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+    "guestId": "web-guest",
+    "hotelId": "hotel999",
+    "name": "Hola",
+    "mode": "automatic",
+    "createdAt": "2025-08-27T11:58:38.331Z",
+    "updatedAt": "2026-01-16T18:22:13.334Z"
+  },
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "msg": {
+    "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:96bea5f9-173e-4ab7-944a-7eede86dcb3c",
+    "hotelId": "hotel999",
+    "channel": "web",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "sender": "guest",
+    "guestId": "web-guest",
+    "role": "user",
+    "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "suggestion": "",
+    "timestamp": "2026-01-17T08:49:33.570Z",
+    "time": "05:49 a. m.",
+    "status": "sent",
+    "detectedLanguage": "es",
+    "direction": "in",
+    "sourceProvider": "web"
+  },
+  "options": {
+    "mode": "automatic"
+  }
+}
+[2026-01-17T08:49:35.752Z] [DEBUG] [bodyLLM] IN {
+  "pre": {
+    "lang": "es",
+    "currSlots": {},
+    "prevCategory": null,
+    "prevSlotsStrict": {},
+    "st": null,
+    "stateForPlaybook": {
+      "draft": null,
+      "confirmedBooking": null,
+      "locale": "es"
+    },
+    "intent": "general_question",
+    "inModifyMode": false,
+    "hasDraftOrConfirmed": false,
+    "promptKey": "default",
+    "systemInstruction": "Eres un asistente de reservas de hotel.",
+    "lcHistory": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "hints": [],
+    "draftExists": false,
+    "guest": {
+      "_id": "45eef3da-d6dd-4b8e-aef3-dad6ddeb8e89",
+      "guestId": "web-guest",
+      "hotelId": "hotel999",
+      "name": "Hola",
+      "mode": "automatic",
+      "createdAt": "2025-08-27T11:58:38.331Z",
+      "updatedAt": "2026-01-16T18:22:13.334Z"
+    },
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "msg": {
+      "messageId": "web:bf734dc1-99bc-4145-b5e0-acd9f0ab5e63:96bea5f9-173e-4ab7-944a-7eede86dcb3c",
+      "hotelId": "hotel999",
+      "channel": "web",
+      "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+      "sender": "guest",
+      "guestId": "web-guest",
+      "role": "user",
+      "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+      "suggestion": "",
+      "timestamp": "2026-01-17T08:49:33.570Z",
+      "time": "05:49 a. m.",
+      "status": "sent",
+      "detectedLanguage": "es",
+      "direction": "in",
+      "sourceProvider": "web"
+    },
+    "options": {
+      "mode": "automatic"
+    }
+  }
+}
+[2026-01-17T08:49:35.763Z] [DEBUG] [KB] skip fast-path for nearby_points_img {
+  "text": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel"
+}
+[2026-01-17T08:49:35.764Z] [DEBUG] [bodyLLM] systemInstruction Eres un asistente de reservas de hotel.
+Estado actual de la reserva:
+[2026-01-17T08:49:35.924Z] [DEBUG] [Graph] Enter classifyNode {
+  "state": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "other",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": null,
+    "hotelId": "hotel999",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-17T08:49:36.141Z] [DEBUG] [retrievalBased] latestIds por grupo: []
+[2026-01-17T08:49:36.346Z] [DEBUG] [nearby_points] retrievedInfo {
+  "promptKey": "nearby_points_img",
+  "length": 0,
+  "parsedCount": 0,
+  "insufficient": true
+}
+[2026-01-17T08:49:36.347Z] [DEBUG] [nearby_points] web provider {
+  "promptKey": "nearby_points_img",
+  "provider": "BingWebSearchProvider"
+}
+[2026-01-17T08:49:37.576Z] [DEBUG] [nearby_points] web results {
+  "promptKey": "nearby_points_img",
+  "query": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+  "count": 0
+}
+[2026-01-17T08:49:49.055Z] [DEBUG] [nearby_points_img] image provider {
+  "promptKey": "nearby_points_img",
+  "provider": "BingImageSearchProvider",
+  "points": 5
+}
+[2026-01-17T08:49:50.230Z] [DEBUG] [nearby_points_img] images {
+  "promptKey": "nearby_points_img",
+  "query": "Playa Brava Punta del Este Uruguay",
+  "count": 0
+}
+[2026-01-17T08:49:50.237Z] [DEBUG] [nearby_points_img] images {
+  "promptKey": "nearby_points_img",
+  "query": "Playa Mansa Punta del Este Uruguay",
+  "count": 0
+}
+[2026-01-17T08:49:50.399Z] [DEBUG] [nearby_points_img] images {
+  "promptKey": "nearby_points_img",
+  "query": "Puerto de Punta del Este Punta del Este Uruguay",
+  "count": 0
+}
+[2026-01-17T08:49:50.552Z] [DEBUG] [nearby_points_img] images {
+  "promptKey": "nearby_points_img",
+  "query": "Avenida Gorlero Punta del Este Uruguay",
+  "count": 0
+}
+[2026-01-17T08:49:50.990Z] [DEBUG] [nearby_points_img] images {
+  "promptKey": "nearby_points_img",
+  "query": "Monumento Los Dedos Punta del Este Uruguay",
+  "count": 0
+}
+[2026-01-17T08:49:51.003Z] [DEBUG] [bodyLLM] graphResult {
+  "messages": [
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "SystemMessage"
+      ],
+      "kwargs": {
+        "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "SystemMessage"
+      ],
+      "kwargs": {
+        "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "HumanMessage"
+      ],
+      "kwargs": {
+        "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    },
+    {
+      "lc": 1,
+      "type": "constructor",
+      "id": [
+        "langchain_core",
+        "messages",
+        "AIMessage"
+      ],
+      "kwargs": {
+        "content": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "additional_kwargs": {},
+        "response_metadata": {}
+      }
+    }
+  ],
+  "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+  "category": "retrieval_based",
+  "detectedLanguage": "es",
+  "sentiment": "neutral",
+  "preferredLanguage": "es",
+  "promptKey": "nearby_points_img",
+  "hotelId": "hotel999",
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "meta": {
+    "channel": "web",
+    "prevCategory": null,
+    "rich": {
+      "carousel": []
+    }
+  },
+  "reservationSlots": {},
+  "intentConfidence": 0.96,
+  "intentSource": "heuristic",
+  "lastOffer": null,
+  "upsellCount": 0
+}
+[2026-01-17T08:49:54.374Z] [DEBUG] [bodyLLM] structured {
+  "answer": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomiendo consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas ayuda con algo relacionado con el hotel, no dudes en preguntar.",
+  "intent": "out_of_scope",
+  "entities": {},
+  "actions": [],
+  "handoff": false,
+  "missing_fields": [],
+  "language": "es"
+}
+[2026-01-17T08:49:54.380Z] [DEBUG] [bodyLLM] OUT {
+  "finalText": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+  "nextCategory": "retrieval_based",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "retrieval_based",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": "nearby_points_img",
+    "hotelId": "hotel999",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null,
+      "rich": {
+        "carousel": []
+      }
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0.96,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-17T08:49:54.384Z] [DEBUG] [handleIncomingMessage] bodyLLM/body {
+  "finalText": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+  "nextCategory": "retrieval_based",
+  "nextSlots": {},
+  "needsSupervision": false,
+  "graphResult": {
+    "messages": [
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "SystemMessage"
+        ],
+        "kwargs": {
+          "content": "Eres un asistente de reservas de hotel.\nEstado actual de la reserva:",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Lamentablemente, no tengo información sobre puntos de interés cercanos a Playa Mansa, Parada 5. Te recomendaría consultar una guía local o un mapa en línea para obtener detalles sobre atracciones y actividades en la zona. Si necesitas información sobre el hotel o servicios, estaré encantado de ayudarte.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      },
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "AIMessage"
+        ],
+        "kwargs": {
+          "content": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ],
+    "normalizedMessage": "puntos de interés cerca de Playa Mansa, Parada 5, Punta del Este, con carrusel",
+    "category": "retrieval_based",
+    "detectedLanguage": "es",
+    "sentiment": "neutral",
+    "preferredLanguage": "es",
+    "promptKey": "nearby_points_img",
+    "hotelId": "hotel999",
+    "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+    "meta": {
+      "channel": "web",
+      "prevCategory": null,
+      "rich": {
+        "carousel": []
+      }
+    },
+    "reservationSlots": {},
+    "intentConfidence": 0.96,
+    "intentSource": "heuristic",
+    "lastOffer": null,
+    "upsellCount": 0
+  }
+}
+[2026-01-17T08:49:54.384Z] [DEBUG] [handleIncomingMessage] suggestion Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:
+
+1. **Playa Mansa**: Playa tranquila, ideal para familias. 
+   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)
+
+2. **Playa Brava**: Playa oceánica con olas más fuertes.
+   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)
+
+3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.
+   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)
+
+4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.
+   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)
+
+5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.
+   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)
+
+6. **Isla Gorriti**: Isla con playas y senderos.
+   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)
+
+7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.
+   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)
+
+8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.
+   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)
+
+9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.
+   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)
+
+10. **Arboretum Lussich**: Reserva natural y jardín botánico.
+    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)
+
+Espero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.
+[2026-01-17T08:49:54.385Z] [DEBUG] [autosend] {
+  "category": "retrieval_based",
+  "mode": "automatic",
+  "autosendReason": "safe_category"
+}
+[2026-01-17T08:49:54.386Z] [DEBUG] [handleIncomingMessage] aiMsg {
+  "messageId": "05317702-dbfc-4302-8dac-c10bc00b6b32",
+  "hotelId": "hotel999",
+  "channel": "web",
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "sender": "assistant",
+  "guestId": "web-guest",
+  "role": "ai",
+  "content": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+  "suggestion": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar.",
+  "status": "sent",
+  "timestamp": "2026-01-17T08:49:54.385Z",
+  "direction": "out",
+  "detectedLanguage": "es",
+  "rich": {
+    "carousel": []
+  },
+  "sourceProvider": "web"
+}
+[2026-01-17T08:49:54.588Z] [DEBUG] [handleIncomingMessage] emitReply sent {
+  "conversationId": "bf734dc1-99bc-4145-b5e0-acd9f0ab5e63",
+  "suggestion": "Cerca de Playa Mansa, Parada 5, puedes encontrar los siguientes puntos de interés:\n\n1. **Playa Mansa**: Playa tranquila, ideal para familias. \n   - [Buscar más sobre Playa Mansa](https://www.google.com/search?q=Playa+Mansa+Punta+del+Este+Uruguay)\n\n2. **Playa Brava**: Playa oceánica con olas más fuertes.\n   - [Buscar más sobre Playa Brava](https://www.google.com/search?q=Playa+Brava+Punta+del+Este+Uruguay)\n\n3. **Monumento Los Dedos**: Escultura icónica en Playa Brava.\n   - [Buscar más sobre Monumento Los Dedos](https://www.google.com/search?q=Monumento+Los+Dedos+Punta+del+Este+Uruguay)\n\n4. **Puerto de Punta del Este**: Puerto con yates, cafés y lobos marinos.\n   - [Buscar más sobre Puerto de Punta del Este](https://www.google.com/search?q=Puerto+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n5. **Avenida Gorlero**: Avenida principal de tiendas y restaurantes.\n   - [Buscar más sobre Avenida Gorlero](https://www.google.com/search?q=Avenida+Gorlero+Punta+del+Este+Uruguay)\n\n6. **Isla Gorriti**: Isla con playas y senderos.\n   - [Buscar más sobre Isla Gorriti](https://www.google.com/search?q=Isla+Gorriti+Punta+del+Este+Uruguay)\n\n7. **Faro de Punta del Este**: Faro histórico con vistas panorámicas.\n   - [Buscar más sobre Faro de Punta del Este](https://www.google.com/search?q=Faro+de+Punta+del+Este+Punta+del+Este+Uruguay)\n\n8. **Casapueblo**: Museo de arte y mirador en Punta Ballena.\n   - [Buscar más sobre Casapueblo](https://www.google.com/search?q=Casapueblo+Punta+del+Este+Uruguay)\n\n9. **Museo Ralli**: Museo de arte contemporáneo con entrada gratuita.\n   - [Buscar más sobre Museo Ralli](https://www.google.com/search?q=Museo+Ralli+Punta+del+Este+Uruguay)\n\n10. **Arboretum Lussich**: Reserva natural y jardín botánico.\n    - [Buscar más sobre Arboretum Lussich](https://www.google.com/search?q=Arboretum+Lussich+Punta+del+Este+Uruguay)\n\nEspero que esta información te sea útil. Si necesitas más detalles, no dudes en preguntar."
+}
+[2026-01-17T09:27:39.240Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0
+[2026-01-17T13:27:13.892Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0
+[2026-01-17T13:35:47.528Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0
+[2026-01-17T13:41:40.132Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0
+[2026-01-17T14:05:19.023Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0
+[2026-01-17T14:12:10.763Z] [WARN] [kb:generate] auto-enrich falló: Unexpected token ` in JSON at position 0

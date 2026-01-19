@@ -1,11 +1,13 @@
 // types/hotelContent.ts
+import type { PromptType } from "@/types/prompt";
+
 export type HotelContent = {
     hotelId: string;
     category: string;
     promptKey: string;
     lang: string; // ISO 639-1
     version: string | number;
-    type: "playbook" | "standard";
+    type: PromptType;
     title?: string;
     body: string;
     createdAt?: string; // ISO timestamp

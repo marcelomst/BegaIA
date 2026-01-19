@@ -1,6 +1,8 @@
 // Path: /home/marcelo/begasist/lib/prompts/templates.ts
 
 // ==================== Tipos base del contrato ====================
+import type { PromptType } from "@/types/prompt";
+import { PROMPT_TYPES } from "@/types/prompt";
 export type Lang = 'es' | 'en' | 'pt';
 
 // Categorías alineadas al grafo y al clasificador
@@ -20,7 +22,7 @@ export type Category =
     // Categoría comodín que puede devolver el clasificador
     | 'other';
 
-export type TemplateType = 'playbook' | 'standard';
+export type TemplateType = PromptType;
 
 export type TemplateEntry = {
     promptKey: string;       // <<— alineado con hotel_content.promptKey
@@ -69,7 +71,7 @@ export const defaultCategories: Category[] = [
 
 // Claves válidas por categoría (para validar hotel_content.promptKey)
 export const PROMPT_KEYS_BY_CATEGORY: Record<Exclude<Category, 'other'>, string[]> = {
-    retrieval_based: ['kb_general', 'room_info', 'room_info_img', 'ambiguity_policy', 'arrivals_transport'],
+    retrieval_based: ['kb_general', 'room_info', 'room_info_img', 'nearby_points', 'nearby_points_img', 'ambiguity_policy', 'arrivals_transport'],
     reservation: ['reservation_flow', 'modify_reservation'],
     reservation_snapshot: ['reservation_snapshot'],
     reservation_verify: ['reservation_verify'],
@@ -114,8 +116,8 @@ export function validateHotelContentRecord(rec: HotelContentRecord): {
         return { ok: false, error: `lang no soportado: ${rec.lang}. Debe ser uno de ${SUPPORTED_LANGS.join(', ')}` };
     }
     // type
-    if (rec.type !== 'playbook' && rec.type !== 'standard') {
-        return { ok: false, error: `type inválido: ${rec.type}. Debe ser 'playbook' | 'standard'` };
+    if (!PROMPT_TYPES.includes(rec.type as PromptType)) {
+        return { ok: false, error: `type inválido: ${rec.type}. Debe ser ${PROMPT_TYPES.map(t => `'${t}'`).join(" | ")}` };
     }
     // category
     const cat = (rec.category as Category) === 'other' ? 'retrieval_based' : (rec.category as Category);
@@ -200,20 +202,49 @@ export const templates: TemplatesByCategory = {
         {
             promptKey: 'room_info_img',
             title: 'Habitaciones con iconos e imágenes',
+            type: 'presentation',
+            lang: 'es',
+            body:
+                `# Tipos de habitaciones – con iconos e imágenes\n\n` +
+                `[[each: rooms | default: (Completar rooms en hotel_config) ->\n` +
+                `Tipo: [[name | default: Nombre]]\n` +
+                `Icono: 🛏️\n` +
+                `Highlights:\n` +
+                `[[each: highlights | default: (Sin highlights) -> - [[item]]]]\n` +
+                `Images:\n` +
+                `[[each: images | default: (Sin imágenes) -> - [[item]]]]\n` +
+                `]]`,
+        },
+        {
+            promptKey: 'nearby_points',
+            title: 'Puntos de interés cercanos',
             type: 'standard',
             lang: 'es',
             body:
-                `Titulo: Tipos de habitaciones – con iconos e imágenes\n` +
+                // Fuente de verdad KB: seeds/category_registry.json (evitar drift). TODO A6.2: deduplicar.
+                `# Puntos de interés cercanos\n\n` +
+                `Hotel: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\n` +
+                `Ubicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\n` +
+                `Lista (6-10):\n` +
+                `- Nombre:\n` +
+                `  - Descripción corta:\n` +
+                `  - Search query:\n`,
+        },
+        {
+            promptKey: 'nearby_points_img',
+            title: 'Puntos de interés – con carrusel',
+            type: 'presentation',
+            lang: 'es',
+            body:
+                `Titulo: Puntos de interés cercanos – con carrusel\n` +
                 `Categoria: retrieval_based\n` +
-                `Resumen: Descripción breve por tipo con icono/emoji y carrusel de imágenes (URLs).\n` +
-                `Cuerpo (por cada tipo):\n` +
-                `- Tipo: (ej.: Doble Superior)\n` +
-                `- Icono: (ej.: 🛏️✨)\n` +
-                `- Highlights: (3-5 bullets cortos)\n` +
-                `- Images: [url1, url2, url3...]\n` +
+                `Resumen: Respuesta con texto amigable y un carrusel opcional de imágenes.\n` +
+                `Cuerpo:\n` +
+                `- Texto: resumen breve con 6-10 puntos de interés.\n` +
+                `- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\n` +
                 `Notas:\n` +
-                `- Preferir URLs públicas optimizadas; 1200x800 aprox.\n` +
-                `- Mantener 3-6 imágenes por tipo.`,
+                `- 3-5 items en el carrusel, 2-4 imágenes por item.\n` +
+                `- Si no hay imágenes, devolver carousel vacío pero mantener el texto.`,
         },
         {
             promptKey: 'ambiguity_policy',
@@ -288,20 +319,49 @@ export const templates: TemplatesByCategory = {
         {
             promptKey: 'room_info_img',
             title: 'Rooms with icons and images',
+            type: 'presentation',
+            lang: 'en',
+            body:
+                `# Room types – with icons and images\n\n` +
+                `[[each: rooms | default: (Fill rooms in hotel_config) ->\n` +
+                `Type: [[name | default: Name]]\n` +
+                `Icon: 🛏️\n` +
+                `Highlights:\n` +
+                `[[each: highlights | default: (No highlights) -> - [[item]]]]\n` +
+                `Images:\n` +
+                `[[each: images | default: (No images) -> - [[item]]]]\n` +
+                `]]`,
+        },
+        {
+            promptKey: 'nearby_points',
+            title: 'Nearby points of interest',
             type: 'standard',
             lang: 'en',
             body:
-                `Title: Room types – with icons and images\n` +
+                // KB source of truth: seeds/category_registry.json (avoid drift). TODO A6.2: dedupe.
+                `# Nearby points of interest\n\n` +
+                `Hotel: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\n` +
+                `Location: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\n` +
+                `List (6-10):\n` +
+                `- Name:\n` +
+                `  - Short description:\n` +
+                `  - Search query:\n`,
+        },
+        {
+            promptKey: 'nearby_points_img',
+            title: 'Nearby points – with carousel',
+            type: 'presentation',
+            lang: 'en',
+            body:
+                `Title: Nearby points of interest – with carousel\n` +
                 `Category: retrieval_based\n` +
-                `Summary: Brief description per type with icon/emoji and image carousel (URLs).\n` +
-                `Body (per type):\n` +
-                `- Type: (e.g.: Superior Double)\n` +
-                `- Icon: (e.g.: 🛏️✨)\n` +
-                `- Highlights: (3-5 short bullets)\n` +
-                `- Images: [url1, url2, url3...]\n` +
+                `Summary: Reply with friendly text and an optional image carousel.\n` +
+                `Body:\n` +
+                `- Text: brief summary with 6-10 points of interest.\n` +
+                `- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\n` +
                 `Notes:\n` +
-                `- Prefer public optimized URLs; approx. 1200x800\n` +
-                `- Keep 3-6 images per type.`,
+                `- 3-5 items in the carousel, 2-4 images per item.\n` +
+                `- If there are no images, return an empty carousel but keep the text.`,
         },
         {
             promptKey: 'ambiguity_policy',
@@ -376,20 +436,49 @@ export const templates: TemplatesByCategory = {
         {
             promptKey: 'room_info_img',
             title: 'Quartos com ícones e imagens',
+            type: 'presentation',
+            lang: 'pt',
+            body:
+                `# Tipos de quartos – com ícones e imagens\n\n` +
+                `[[each: rooms | default: (Preencher rooms em hotel_config) ->\n` +
+                `Tipo: [[name | default: Nome]]\n` +
+                `Ícone: 🛏️\n` +
+                `Destaques:\n` +
+                `[[each: highlights | default: (Sem destaques) -> - [[item]]]]\n` +
+                `Imagens:\n` +
+                `[[each: images | default: (Sem imagens) -> - [[item]]]]\n` +
+                `]]`,
+        },
+        {
+            promptKey: 'nearby_points',
+            title: 'Pontos de interesse próximos',
             type: 'standard',
             lang: 'pt',
             body:
-                `Título: Tipos de quartos – com ícones e imagens\n` +
+                // Fonte da verdade KB: seeds/category_registry.json (evitar drift). TODO A6.2: deduplicar.
+                `# Pontos de interesse próximos\n\n` +
+                `Hotel: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\n` +
+                `Localização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\n` +
+                `Lista (6-10):\n` +
+                `- Nome:\n` +
+                `  - Descrição curta:\n` +
+                `  - Search query:\n`,
+        },
+        {
+            promptKey: 'nearby_points_img',
+            title: 'Pontos de interesse – com carrossel',
+            type: 'presentation',
+            lang: 'pt',
+            body:
+                `Título: Pontos de interesse próximos – com carrossel\n` +
                 `Categoria: retrieval_based\n` +
-                `Resumo: Descrição breve por tipo com ícone/emoji e carrossel de imagens (URLs).\n` +
-                `Corpo (por tipo):\n` +
-                `- Tipo: (ex.: Duplo Superior)\n` +
-                `- Ícone: (ex.: 🛏️✨)\n` +
-                `- Destaques: (3-5 bullets curtos)\n` +
-                `- Imagens: [url1, url2, url3...]\n` +
+                `Resumo: Resposta com texto amigável e um carrossel opcional de imagens.\n` +
+                `Corpo:\n` +
+                `- Texto: resumo breve com 6-10 pontos de interesse.\n` +
+                `- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\n` +
                 `Notas:\n` +
-                `- Preferir URLs públicas otimizadas; aprox. 1200x800\n` +
-                `- Manter 3-6 imagens por tipo.`,
+                `- 3-5 itens no carrossel, 2-4 imagens por item.\n` +
+                `- Se não houver imagens, devolver carousel vazio mas manter o texto.`,
         },
         {
             promptKey: 'ambiguity_policy',

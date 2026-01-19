@@ -1,6 +1,7 @@
 // Path: /root/begasist/types/channel.ts
 
 import type { HotelUser } from "./user";
+import type { RichPayload } from "./richPayload";
 
 // 🧩 Core types (modularizados para claridad)
 import type {
@@ -276,17 +277,7 @@ export interface ChannelMessage {
   };
 
   // 🆕 payload enriquecido opcional para UI (renderers locales)
-  rich?: {
-    type:
-    | "quick-actions"
-    | "dates"
-    | "guests"
-    | "room-cards"
-    | "upsell"
-    | "handoff"
-    | "room-info-img";
-    data?: any;
-  };
+  rich?: RichPayload;
 
 }
 
