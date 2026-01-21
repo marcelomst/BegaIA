@@ -1,3 +1,4 @@
+// Path: /root/begasist/components/admin/EditHotelForm.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Country, City } from "country-state-city";
@@ -5,6 +6,7 @@ import TagSelect from "@/components/ui/TagSelect";
 import { normalizeAmenityTags, amenityLabel } from "@/lib/taxonomy/amenities";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { suggestRoomIcon } from "@/lib/rooms/roomIcons";
 import type { HotelConfig, Channel, ChannelConfigMap, WhatsAppConfig } from "@/types/channel";
 import { ALL_CHANNELS, LANGUAGE_OPTIONS } from "@/types/channel";
 
@@ -96,10 +98,28 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   const [error, setError] = useState<string | null>(null);
   const [updateWarnings, setUpdateWarnings] = useState<string[]>([]);
   const [autoEnrich, setAutoEnrich] = useState(true);
+  const [iconManual, setIconManual] = useState<Record<number, boolean>>({});
+  const [attractionsBusy, setAttractionsBusy] = useState(false);
+  const [attractionsMsg, setAttractionsMsg] = useState<string | null>(null);
+  const [attractionsPreview, setAttractionsPreview] = useState<Array<{ name?: string; notes?: string; distanceKm?: number; driveTime?: string }> | null>(null);
+
+  const approxLabel = (lang?: string) => (lang || "").startsWith("pt") ? "aprox." : (lang || "").startsWith("en") ? "approx." : "aprox.";
 
   const isUrl = (v?: string) => !!v && /^(https?:\/\/)[^\s]+$/i.test(v.trim());
   const countries = Country.getAllCountries();
   const cities = hotel?.country ? City.getCitiesOfCountry(hotel.country) || [] : [];
+
+  const shiftIconManual = (removedIdx: number) => {
+    setIconManual(prev => {
+      const next: Record<number, boolean> = {};
+      Object.keys(prev).forEach((k) => {
+        const idx = Number(k);
+        if (idx < removedIdx) next[idx] = prev[idx];
+        else if (idx > removedIdx) next[idx - 1] = prev[idx];
+      });
+      return next;
+    });
+  };
 
   useEffect(() => {
     async function load() {
@@ -145,6 +165,7 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
           hotelProfile: isPlainObject(cfg.hotelProfile) ? cfg.hotelProfile : undefined,
           attractionsInfo: typeof (cfg as any).attractionsInfo === "string" ? (cfg as any).attractionsInfo : undefined,
         });
+        setAttractionsPreview(Array.isArray((cfg as any).attractions) ? (cfg as any).attractions : null);
         setT(dict);
       } catch (e) {
         setError("Error cargando datos del hotel");
@@ -254,6 +275,63 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                   <span className="font-medium">Puntos de interés y atracciones cercanas</span>
                   <textarea className="border p-2 rounded w-full mt-1 text-sm" rows={3} placeholder="Ej.: Playa Mansa (500m), Puerto (10 min en taxi), Museo X" value={(hotel as any).attractionsInfo ?? ""} onChange={e => setHotel(h => h ? ({ ...h, attractionsInfo: e.target.value } as any) : h)} />
                 </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="border px-3 py-1 rounded text-xs bg-white"
+                    disabled={attractionsBusy}
+                    onClick={async () => {
+                      setAttractionsBusy(true);
+                      setAttractionsMsg(null);
+                      try {
+                        const res = await fetch("/api/hotels/enrich-attractions", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ hotelId }),
+                        });
+                        const json = await res.json();
+                        if (!res.ok) throw new Error(json.error || "Error");
+                        setHotel(h => h ? ({ ...h, attractions: json.attractions || [] } as any) : h);
+                        setAttractionsPreview(Array.isArray(json.attractions) ? json.attractions : null);
+                        setAttractionsMsg(`Atracciones fijas generadas (${json.count || 0}).`);
+                      } catch (e: any) {
+                        setAttractionsMsg(e?.message || "Error generando atracciones");
+                        setAttractionsPreview(null);
+                      } finally {
+                        setAttractionsBusy(false);
+                      }
+                    }}
+                  >
+                    {attractionsBusy ? "Generando…" : "Autogenerar atracciones fijas (LLM)"}
+                  </button>
+                  {attractionsMsg && <span className="text-xs">{attractionsMsg}</span>}
+                </div>
+                {attractionsPreview && attractionsPreview.length > 0 && (
+                  <div className="mt-2 border rounded bg-white/70 dark:bg-zinc-900/40 p-2">
+                    <div className="text-xs font-medium mb-1">Vista previa (atracciones fijas)</div>
+                    <ul className="text-xs list-disc list-inside space-y-1">
+                      {attractionsPreview.map((a, i) => {
+                        const rawNotes = a.notes || "";
+                        const m = rawNotes.match(/(Distancia estimada|Estimated distance|Distância estimada):\s*([0-9.,–-]+\s*km)\.?/i);
+                        const est = m ? m[2] : "";
+                        const cleanNotes = m ? rawNotes.replace(m[0], "").trim() : rawNotes;
+                        return (
+                          <li key={i}>
+                            <span className="font-medium">{a.name || "Atracción"}</span>
+                            {typeof a.distanceKm === "number"
+                              ? (a.distanceKm < 1
+                                  ? ` — ${Math.round(a.distanceKm * 1000)} m`
+                                  : ` — ${a.distanceKm.toFixed(1)} km`)
+                              : ""}
+                            {a.driveTime ? ` — ${a.driveTime} ${approxLabel(hotel.defaultLanguage)}` : ""}
+                            {est ? ` — ${est}` : ""}
+                            {cleanNotes ? ` — ${cleanNotes}` : ""}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
             <label className="block">
@@ -421,15 +499,37 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
               <h3 className="font-semibold mb-2 text-sm">Habitaciones</h3>
               {(hotel.rooms ?? []).map((r, idx) => (
                 <div key={idx} className="border rounded p-3 mb-3 bg-white/70 dark:bg-zinc-800/50">
-                  <div className="flex justify-between items-center mb-2 text-xs"><strong>Habitación #{idx + 1}</strong><button type="button" className="text-red-600" onClick={() => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).filter((_, i) => i !== idx) }) : h)}>Eliminar</button></div>
-                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Nombre" value={r.name ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, name: e.target.value } : rr) }) : h)} />
+                  <div className="flex justify-between items-center mb-2 text-xs"><strong>Habitación #{idx + 1}</strong><button type="button" className="text-red-600" onClick={() => { shiftIconManual(idx); setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).filter((_, i) => i !== idx) }) : h); }}>Eliminar</button></div>
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Nombre" value={r.name ?? ''} onChange={e => {
+                    const newName = e.target.value;
+                    setHotel(h => h ? ({
+                      ...h,
+                      rooms: (h.rooms ?? []).map((rr,i) => i === idx ? {
+                        ...rr,
+                        name: newName,
+                        icon: (!iconManual[idx] && !(rr.icon ?? "").trim()) ? suggestRoomIcon(newName) : rr.icon,
+                      } : rr),
+                    }) : h);
+                  }} />
                   <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Tamaño m²" type="number" value={r.sizeM2 ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, sizeM2: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
                   <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Capacidad" type="number" value={r.capacity ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, capacity: e.target.value ? Number(e.target.value) : undefined } : rr) }) : h)} />
                   <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Camas" value={r.beds ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, beds: e.target.value } : rr) }) : h)} />
                   <textarea className="border p-1 rounded w-full mb-1 text-xs" rows={2} placeholder="Descripción" value={r.description ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, description: e.target.value } : rr) }) : h)} />
                   <TagSelect label="Highlights" values={r.highlights ?? []} suggestions={["Vista al mar","Vista a la ciudad","Balcón","Terraza","A/C","Calefacción","TV Smart","Wi‑Fi alta velocidad","Caja fuerte","Escritorio","Minibar","Cafetera","Accesible","Ducha walk-in","Bañera","Cama King","Cama Queen","Sofá cama","Pet-friendly"]} placeholder="Añade highlight" onChange={vals => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, highlights: vals } : rr) }) : h)} />
                   <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Imágenes (coma)" value={(r.images ?? []).join(', ')} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } : rr) }) : h)} />
-                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Icono" value={r.icon ?? ''} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, icon: e.target.value } : rr) }) : h)} />
+                  <input className="border p-1 rounded w-full mb-1 text-xs" placeholder="Icono" value={r.icon ?? ''} onChange={e => {
+                    const nextIcon = e.target.value;
+                    setIconManual(prev => ({ ...prev, [idx]: Boolean(nextIcon) }));
+                    setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, icon: nextIcon } : rr) }) : h);
+                  }} />
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {["🛏️","👑","✨","👨‍👩‍👧‍👦","♿","🌊","🌿","🏙️","🏠"].map((emoji) => (
+                      <button key={emoji} type="button" className="text-xs border rounded px-1" onClick={() => {
+                        setIconManual(prev => ({ ...prev, [idx]: true }));
+                        setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, icon: emoji } : rr) }) : h);
+                      }}>{emoji}</button>
+                    ))}
+                  </div>
                   <label className="flex items-center gap-2 text-[11px] mb-1"><input type="checkbox" checked={Boolean(r.accessible)} onChange={e => setHotel(h => h ? ({ ...h, rooms: (h.rooms ?? []).map((rr,i) => i === idx ? { ...rr, accessible: e.target.checked } : rr) }) : h)} /><span>Accesible</span></label>
                 </div>
               ))}

@@ -69,6 +69,7 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
     policies: doc.policies ?? undefined,
     rooms: doc.rooms ?? undefined,
     schedules: doc.schedules ?? undefined,
+    attractions: doc.attractions ?? undefined,
     attractionsInfo: doc.attractionsInfo ?? undefined,
     hotelProfile: doc.hotelProfile ?? undefined,
     // Puedes agregar aquí otros campos que quieras exponer

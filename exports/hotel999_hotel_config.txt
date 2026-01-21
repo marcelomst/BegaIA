@@ -1,6 +1,6 @@
 # hotel_config export
 hotelId: hotel999
-exportedAt: 2026-01-17T14:14:27.790Z
+exportedAt: 2026-01-20T10:06:56.724Z
 
 {
   "hotelId": "hotel999",
@@ -71,7 +71,7 @@ exportedAt: 2026-01-17T14:14:27.790Z
       "createdAt": "2025-07-02T08:49:04.863Z"
     }
   ],
-  "lastUpdated": "2026-01-17T14:14:17.122Z",
+  "lastUpdated": "2026-01-20T09:51:21.256Z",
   "verification": {},
   "country": "UY",
   "city": "Punta del Este",
@@ -98,9 +98,10 @@ exportedAt: 2026-01-17T14:14:27.790Z
       "pool",
       "gym",
       "spa",
-      "custom_custom_custom_custom_custom_custom_recep",
+      "custom_custom_custom_custom_custom_custom_custo",
       "room_service",
       "restaurant",
+      "custom_custom_custom_custom_custom_custom_recep",
       "custom_custom_custom_custom_custom_reception_24",
       "custom_custom_custom_custom_reception_24h",
       "custom_custom_custom_reception_24h",
@@ -121,7 +122,8 @@ exportedAt: 2026-01-17T14:14:27.790Z
       "custom_custom_custom_reception_24h": "",
       "custom_custom_custom_custom_reception_24h": "",
       "custom_custom_custom_custom_custom_reception_24": "",
-      "custom_custom_custom_custom_custom_custom_recep": ""
+      "custom_custom_custom_custom_custom_custom_recep": "",
+      "custom_custom_custom_custom_custom_custom_custo": ""
     }
   },
   "billing": {
@@ -249,6 +251,56 @@ exportedAt: 2026-01-17T14:14:27.790Z
     "breakfast": "07:30 a 10:30",
     "quietHours": "22:00 a 07:30"
   },
+  "attractions": [
+    {
+      "name": "Playa Mansa",
+      "notes": "Playa tranquila ideal para familias y actividades acuáticas.",
+      "distanceKm": 0.5,
+      "driveTime": "2 min"
+    },
+    {
+      "name": "Hotel L'Auberge",
+      "notes": "Hotel emblemático con restaurante y vistas al mar.",
+      "distanceKm": 1,
+      "driveTime": "3 min"
+    },
+    {
+      "name": "Parque El Jagüel",
+      "notes": "Parque con áreas verdes, senderos y espacios para picnic.",
+      "distanceKm": 2,
+      "driveTime": "5 min"
+    },
+    {
+      "name": "Puerto de Punta del Este",
+      "notes": "Zona de restaurantes y tiendas, con vistas a los yates.",
+      "distanceKm": 3,
+      "driveTime": "7 min"
+    },
+    {
+      "name": "Museo Ralli",
+      "notes": "Museo de arte contemporáneo latinoamericano.",
+      "distanceKm": 2.5,
+      "driveTime": "6 min"
+    },
+    {
+      "name": "Playa Brava",
+      "notes": "Playa famosa por sus olas y la escultura 'La Mano'.",
+      "distanceKm": 3.5,
+      "driveTime": "8 min"
+    },
+    {
+      "name": "Centro Comercial Punta Shopping",
+      "notes": "Centro comercial con diversas tiendas y opciones de entretenimiento.",
+      "distanceKm": 4,
+      "driveTime": "10 min"
+    },
+    {
+      "name": "Casa Pueblo",
+      "notes": "Museo y hotel, obra del artista Carlos Páez Vilaró, con vistas espectaculares.",
+      "distanceKm": 5,
+      "driveTime": "12 min"
+    }
+  ],
   "attractionsInfo": "Ubicada en una de las zonas más tranquilas y agradables de Punta del Este, Playa Mansa, Parada 5, ofrece un entorno ideal para disfrutar del mar, la naturaleza y la vida urbana en perfecto equilibrio.\n\nA pocos pasos se extiende la Playa Mansa, reconocida por sus aguas calmas, ideales para familias, deportes náuticos suaves y paseos al atardecer, cuando el sol se oculta sobre la bahía brindando postales inolvidables.\n\nEn las cercanías se encuentra el Puerto de Punta del Este, un punto vibrante donde conviven embarcaciones, restaurantes y excursiones marítimas hacia la Isla Gorriti, un espacio natural protegido con playas y senderos históricos.\n\nA corta distancia también se accede a zonas comerciales, restaurantes, cafés y al centro de la ciudad, así como a atractivos emblemáticos como Casapueblo, en Punta Ballena, uno de los íconos culturales más importantes del Uruguay.\n\nEsta ubicación privilegiada combina serenidad, accesibilidad y cercanía a los principales atractivos del destino, convirtiéndola en un punto ideal para disfrutar de Punta del Este durante todo el año.",
   "hotelProfile": {
     "starRating": 3,

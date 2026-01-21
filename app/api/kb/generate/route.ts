@@ -48,6 +48,42 @@ function extractTitle(body: string): string | undefined {
   return m ? m[1].trim() : undefined;
 }
 
+type NearbyPoint = { name: string; description?: string; searchQuery?: string; distanceKm?: number; driveTime?: string };
+
+function nearbyLabels(lang: 'es' | 'en' | 'pt') {
+  if (lang === 'en') return { title: 'Nearby points of interest', list: 'List (6-10)', name: 'Name', desc: 'Short description', query: 'Search query', hotel: 'Hotel', location: 'Location' };
+  if (lang === 'pt') return { title: 'Pontos de interesse próximos', list: 'Lista (6-10)', name: 'Nome', desc: 'Descrição curta', query: 'Search query', hotel: 'Hotel', location: 'Localização' };
+  return { title: 'Puntos de interés cercanos', list: 'Lista (6-10)', name: 'Nombre', desc: 'Descripción corta', query: 'Search query', hotel: 'Hotel', location: 'Ubicación' };
+}
+
+function estimatedNote(lang: 'es' | 'en' | 'pt') {
+  if (lang === 'en') return 'Preview note: estimated list (not verified).';
+  if (lang === 'pt') return 'Nota (preview): lista estimada (não verificada).';
+  return 'Nota (preview): listado estimado (no verificado).';
+}
+
+function buildNearbyInfoTextFromConfig(
+  points: NearbyPoint[],
+  lang: 'es' | 'en' | 'pt',
+  hotelName?: string,
+  locationText?: string
+) {
+  const L = nearbyLabels(lang);
+  const header =
+    `# ${L.title}\n\n` +
+    `${L.hotel}: ${hotelName || ''}\n` +
+    `${L.location}: ${locationText || ''}\n` +
+    `${estimatedNote(lang)}\n\n` +
+    `${L.list}:\n`;
+  const body = points.map((p) =>
+    `- ${L.name}: ${p.name}\n` +
+    `  - ${L.desc}: ${p.description || ''}\n` +
+    (typeof p.distanceKm === 'number' ? `  - Distancia (km): ${p.distanceKm.toFixed(1)}\n` : '') +
+    (p.driveTime ? `  - Tiempo en auto: ${p.driveTime}\n` : '') +
+    `  - ${L.query}: ${p.searchQuery || p.name}\n`
+  ).join('');
+  return header + body;
+}
 async function ensureCategoryRegistered(args: {
   category: string;
   promptKey: string;
@@ -257,7 +293,23 @@ export async function POST(req: NextRequest) {
 
     // solo preview
     if (!upload) {
-      return NextResponse.json({ ok: true, count: Object.keys(files).length, files });
+      const out = { ...files };
+      const key = `retrieval_based/nearby_points.${safeLang}.txt`;
+      const keyImg = `retrieval_based/nearby_points_img.${safeLang}.txt`;
+      if ((out[key] || out[keyImg]) && Array.isArray((cfg as any).attractions) && (cfg as any).attractions.length > 0) {
+        const locationText = [cfg.address, cfg.city, cfg.country].filter(Boolean).join(", ");
+        const points = (cfg as any).attractions.map((a: any) => ({
+          name: String(a?.name || "").trim(),
+          description: a?.notes ? String(a.notes) : undefined,
+          searchQuery: locationText ? `${String(a?.name || "").trim()} ${locationText}` : String(a?.name || "").trim(),
+          distanceKm: typeof a?.distanceKm === "number" ? a.distanceKm : undefined,
+          driveTime: a?.driveTime ? String(a.driveTime) : undefined,
+        })).filter((p: any) => p.name);
+        const text = buildNearbyInfoTextFromConfig(points, safeLang, cfg.hotelName, locationText);
+        if (out[key]) out[key] = text;
+        if (out[keyImg]) out[keyImg] = `${text}\nRichResponse.carousel: []\n`;
+      }
+      return NextResponse.json({ ok: true, count: Object.keys(out).length, files: out });
     }
 
     const tmpBase = `/tmp/kb_gen_${hotelId}_${Date.now()}`;

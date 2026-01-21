@@ -208,7 +208,7 @@ export const templates: TemplatesByCategory = {
                 `# Tipos de habitaciones – con iconos e imágenes\n\n` +
                 `[[each: rooms | default: (Completar rooms en hotel_config) ->\n` +
                 `Tipo: [[name | default: Nombre]]\n` +
-                `Icono: 🛏️\n` +
+                `Icono: [[icon | default: 🛏️]]\n` +
                 `Highlights:\n` +
                 `[[each: highlights | default: (Sin highlights) -> - [[item]]]]\n` +
                 `Images:\n` +
@@ -325,7 +325,7 @@ export const templates: TemplatesByCategory = {
                 `# Room types – with icons and images\n\n` +
                 `[[each: rooms | default: (Fill rooms in hotel_config) ->\n` +
                 `Type: [[name | default: Name]]\n` +
-                `Icon: 🛏️\n` +
+                `Icon: [[icon | default: 🛏️]]\n` +
                 `Highlights:\n` +
                 `[[each: highlights | default: (No highlights) -> - [[item]]]]\n` +
                 `Images:\n` +
@@ -442,7 +442,7 @@ export const templates: TemplatesByCategory = {
                 `# Tipos de quartos – com ícones e imagens\n\n` +
                 `[[each: rooms | default: (Preencher rooms em hotel_config) ->\n` +
                 `Tipo: [[name | default: Nome]]\n` +
-                `Ícone: 🛏️\n` +
+                `Ícone: [[icon | default: 🛏️]]\n` +
                 `Destaques:\n` +
                 `[[each: highlights | default: (Sem destaques) -> - [[item]]]]\n` +
                 `Imagens:\n` +

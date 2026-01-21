@@ -12,6 +12,7 @@ import type { RichPayload } from "@/types/richPayload";
 import type { CarouselItem } from "@/types/richResponse";
 import { getImageSearchProvider } from "@/lib/media/imageSearch";
 import { getWebSearchProvider } from "@/lib/media/webSearch";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 let localModel: ChatOpenAI | null = null;
 
@@ -62,6 +63,24 @@ type NearbyPoint = {
   description?: string;
   searchQuery?: string;
 };
+
+function toNearbyPointsFromConfig(
+  attractions: Array<{ name?: string; notes?: string }> | undefined,
+  locationHint: string
+): NearbyPoint[] {
+  if (!Array.isArray(attractions)) return [];
+  return attractions
+    .map((a) => {
+      const name = String(a?.name || "").trim();
+      if (!name) return null;
+      return {
+        name,
+        description: a?.notes ? String(a.notes) : undefined,
+        searchQuery: locationHint ? `${name} ${locationHint}` : name,
+      } as NearbyPoint;
+    })
+    .filter(Boolean) as NearbyPoint[];
+}
 
 function extractLocationHints(text: string): { city?: string; country?: string } {
   const line =
@@ -185,6 +204,12 @@ function offlineNearbyPoints(locationText: string, lang: "es" | "en" | "pt"): Ne
     ...it,
     searchQuery: `${it.name} ${locationText}`.trim(),
   }));
+}
+
+function estimatedNote(lang: "es" | "en" | "pt") {
+  if (lang === "en") return "Note: estimated list (not verified).";
+  if (lang === "pt") return "Nota: lista estimada (não verificada).";
+  return "Nota: listado estimado (no verificado).";
 }
 
 export function cleanWebTitle(title: string): string {
@@ -368,9 +393,16 @@ export async function retrievalBased(state: any): Promise<any> {
         nearbyPoints = fromWeb;
         retrievedInfo = buildNearbyInfoText(fromWeb, langForNearby);
       } else {
-        const offline = offlineNearbyPoints(locationHint || userQuery, langForNearby).slice(0, 10);
-        nearbyPoints = offline;
-        retrievedInfo = buildNearbyInfoText(offline, langForNearby);
+        const cfg = await getHotelConfig(state.hotelId ?? "hotel999");
+        const fromConfig = toNearbyPointsFromConfig(cfg?.attractions, locationHint || userQuery).slice(0, 10);
+        if (fromConfig.length) {
+          nearbyPoints = fromConfig;
+          retrievedInfo = buildNearbyInfoText(fromConfig, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
+        } else {
+          const offline = offlineNearbyPoints(locationHint || userQuery, langForNearby).slice(0, 10);
+          nearbyPoints = offline;
+          retrievedInfo = buildNearbyInfoText(offline, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
+        }
       }
     }
   }
