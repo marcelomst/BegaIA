@@ -323,8 +323,8 @@ export function looksRoomInfo(s: string): boolean {
 }
 
 const LOOKS_NEARBY_POINTS_RE =
-  /\b(puntos?\s+de\s+inter[eé]s|atracciones?\s+cercanas?|lugares?\s+cercanos?|lugares?\s+para\s+visitar|qué\s+hacer|que\s+hacer|qué\s+visitar|que\s+visitar|nearby\s+(attractions|points\s+of\s+interest|places)|points\s+of\s+interest|things\s+to\s+do|sights|attractions?\s+near)\b/i;
-const WANTS_IMAGES_RE = /\b(im[áa]genes?|fotos?|carrusel|carousel|galer[ií]a|gallery|imagens?)\b/i;
+  /\b(puntos?\s+de\s+inter[eé]s?|puntos?\s+de\s+interese|puntos?\s+cercanos?|atracciones?\s+cercanas?|lugares?\s+cercanos?|lugares?\s+para\s+visitar|qué\s+hacer|que\s+hacer|qué\s+visitar|que\s+visitar|nearby\s+(attractions|points\s+of\s+interest|places)|points\s+of\s+interest|things\s+to\s+do|sights|attractions?\s+near)\b/i;
+const WANTS_IMAGES_RE = /\b(im[áa]genes?|fotos?|carrusel|carrussel|carrousel|carroussel|carousel|galer[ií]a|gallery|imagens?)\b/i;
 
 export function looksNearbyPoints(s: string): boolean {
   return LOOKS_NEARBY_POINTS_RE.test(s || "");

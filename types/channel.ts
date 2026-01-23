@@ -191,7 +191,7 @@ export type HotelConfig = {
   // 🆕 Campos opcionales para KB enriquecida
   airports?: Array<{ code?: string; name?: string; distanceKm?: number; driveTime?: string }>;
   transport?: { hasPrivateTransfer?: boolean; transferNotes?: string; taxiNotes?: string; busNotes?: string };
-  attractions?: Array<{ name?: string; distanceKm?: number; notes?: string }>;
+  attractions?: Array<{ name?: string; distanceKm?: number; driveTime?: string; notes?: string; placeId?: string; photoName?: string }>;
   /** Información propia del hotel para llegada, transporte y atracciones */
   arrivalInfo?: string;
   transportInfo?: string;

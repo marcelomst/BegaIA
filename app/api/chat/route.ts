@@ -7,6 +7,7 @@ import { handleIncomingMessage, MH_VERSION } from "@/lib/handlers/messageHandler
 import { getAdapter } from "@/lib/adapters/registry";
 import { emitToConversation } from "@/lib/web/eventBus";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import { getMessagesByConversationService } from "@/lib/services/messages";
 import type { Channel, ChannelMessage, ChannelMode } from "@/types/channel";
 
 // Test/DEBUG-only fast path and idempotency cache to avoid heavy graph during integration tests
@@ -125,6 +126,32 @@ export async function POST(req: Request) {
       await handleIncomingMessage(incoming, opts);
     }
 
+    let responseText: string | undefined;
+    let responseRich: any | undefined;
+    if (!FAST_ROUTE_MODE) {
+      try {
+        const msgs = await getMessagesByConversationService(hotelId, channel, conversationId);
+        const aiMsgs = (msgs || []).filter((m) => m?.sender === "assistant" || m?.role === "ai");
+        const incomingTs = Date.parse(incoming.timestamp || "");
+        let lastAi = aiMsgs
+          .filter((m) => {
+            const ts = Date.parse(m?.timestamp || "");
+            return Number.isFinite(incomingTs) && Number.isFinite(ts) ? ts >= incomingTs : false;
+          })
+          .sort((a, b) => Date.parse(a?.timestamp || "") - Date.parse(b?.timestamp || ""))
+          .at(-1);
+        if (!lastAi) {
+          lastAi = [...aiMsgs].sort((a, b) => Date.parse(a?.timestamp || "") - Date.parse(b?.timestamp || "")).at(-1);
+        }
+        if (lastAi) {
+          responseText = (lastAi.content || lastAi.suggestion || "").trim() || undefined;
+          responseRich = (lastAi as any).rich;
+        }
+      } catch (e) {
+        console.warn("[/api/chat] could not load last AI message:", (e as any)?.message || e);
+      }
+    }
+
     // ACK homogéneo para el widget
     return NextResponse.json(
       {
@@ -138,6 +165,8 @@ export async function POST(req: Request) {
           status: cfgMode === "supervised" ? "pending" : "sent",
           suggestion: cfgMode === "supervised" ? "【TEST】borrador de respuesta" : undefined,
         },
+        response: responseText,
+        rich: responseRich,
         lang: detectedLanguage,
       },
       { status: 200 }

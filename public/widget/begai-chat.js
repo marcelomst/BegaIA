@@ -93,13 +93,19 @@
   .bgst-lang{appearance:none;background:#0b1220;border:1px solid #263650;color:#e5eef9;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer}
   .bgst-close{background:transparent;border:0;color:#9fb3c8;cursor:pointer;font-size:18px}
   .bgst-msgs{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto}
-  .bgst-row{max-width:80%;padding:8px 10px;border-radius:12px}
+  .bgst-row{max-width:80%;padding:8px 10px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
   .bgst-user{align-self:flex-end;background:#cfe8ff;color:#043a63}
   .bgst-ai{align-self:flex-start;background:#e5e7eb;color:#111827}
   .bgst-input{border-top:1px solid #263650;display:flex;gap:8px;padding:8px;background:#0c1428}
   .bgst-input textarea{flex:1;resize:none;height:64px;background:#0b1220;color:#e5eef9;border:1px solid #263650;border-radius:8px;padding:8px;outline:none}
   .bgst-input button{background:${primary};border:0;color:#03131d;font-weight:700;padding:8px 12px;border-radius:10px;cursor:pointer}
   .bgst-input button:disabled{opacity:.6;cursor:not-allowed}
+  .bgst-carousel{display:flex;gap:8px;overflow:auto;padding:4px 2px;width:100%;flex-shrink:0}
+  .bgst-card{min-width:180px;background:#0c1428;border:1px solid #263650;border-radius:12px;overflow:hidden}
+  .bgst-card img{width:100%;height:120px;object-fit:cover;display:block}
+  .bgst-card-body{padding:6px 8px;font-size:12px}
+  .bgst-card-title{font-weight:700;font-size:12px}
+  .bgst-card-sub{color:#9fb3c8;font-size:11px}
   `;
   document.head.appendChild(style);
 
@@ -175,12 +181,54 @@
     appendMsg("ai", `${t("assistant")} (${t("statusOpen")})`);
   });
 
+  let lastAiText = "";
   const appendMsg = (role, text) => {
     if (!text) return;
+    if (role === "ai") {
+      const clean = String(text).trim();
+      if (!clean || clean === lastAiText) return;
+      lastAiText = clean;
+    }
     const row = document.createElement("div");
     row.className = `bgst-row ${role === "user" ? "bgst-user" : "bgst-ai"}`;
     row.textContent = text;
     msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+
+  const appendCarousel = (items) => {
+    if (!Array.isArray(items) || !items.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "bgst-carousel";
+    for (const item of items) {
+      const card = document.createElement("div");
+      card.className = "bgst-card";
+      const img = item?.images?.[0];
+      if (img && img.url) {
+        const el = document.createElement("img");
+        const rawUrl = img.url;
+        el.src = rawUrl.startsWith("/api/") ? `${api}${rawUrl}` : rawUrl;
+        el.alt = img.alt || item.title || "imagen";
+        card.appendChild(el);
+      }
+      const body = document.createElement("div");
+      body.className = "bgst-card-body";
+      if (item?.title) {
+        const tEl = document.createElement("div");
+        tEl.className = "bgst-card-title";
+        tEl.textContent = item.title;
+        body.appendChild(tEl);
+      }
+      if (item?.subtitle) {
+        const sEl = document.createElement("div");
+        sEl.className = "bgst-card-sub";
+        sEl.textContent = item.subtitle;
+        body.appendChild(sEl);
+      }
+      card.appendChild(body);
+      wrap.appendChild(card);
+    }
+    msgs.appendChild(wrap);
     msgs.scrollTop = msgs.scrollHeight;
   };
 
@@ -201,6 +249,9 @@
           const data = JSON.parse(ev.data);
           const text = data.response || data.delta || data.text || "";
           if (text) appendMsg("ai", text);
+          if (data.rich && Array.isArray(data.rich.carousel)) {
+            appendCarousel(data.rich.carousel);
+          }
         } catch { if (ev.data) appendMsg("ai", ev.data); }
       };
     } catch (e) {
@@ -269,7 +320,13 @@
 
       // Fallback si no hay adapter web
       if (data && data.response) {
-        appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
+        const sseOpen = es && es.readyState === 1;
+        if (!sseOpen) {
+          appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
+        }
+        if (data.rich && Array.isArray(data.rich.carousel)) {
+          appendCarousel(data.rich.carousel);
+        }
       } else if (!res.ok) {
         appendMsg("ai", "⚠️ Error del servidor o ruta no disponible.");
       }

@@ -38,6 +38,7 @@ import type { Interpretation, SlotMap } from "@/types/audit";
 import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
+import { retrievalBased } from "@/lib/agents/retrieval_based";
 // askAvailability moved to pipeline/availability via runAvailabilityCheck
 import {
   runAvailabilityCheck,
@@ -294,6 +295,19 @@ function extractTextFromLCContent(content: any): string {
   if (typeof content === "object") {
     if (content.text) return String(content.text);
     if (content.content) return String(content.content);
+  }
+  return "";
+}
+
+function extractLastAIText(messages: any[] | undefined): string {
+  if (!Array.isArray(messages) || messages.length === 0) return "";
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    const id = Array.isArray(m?.id) ? m.id : [];
+    const isAI = id.includes("AIMessage") || m?.type === "ai" || m?.role === "ai";
+    if (!isAI) continue;
+    const text = extractTextFromLCContent(m?.content);
+    if (text) return text;
   }
   return "";
 }
@@ -745,6 +759,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let nextSlots: ReservationSlotsStrict = pre.currSlots;
   let needsSupervision = false;
   let graphResult: any = null;
+  let explicitRich: RichPayload | undefined;
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
@@ -1695,7 +1710,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         debugLog("[bodyLLM] graphResult", graphResult);
         const last = (graphResult as any)?.messages?.at?.(-1);
         const lastText = extractTextFromLCContent(last?.content);
-        finalText = (lastText || "").trim();
+        const lastAiText = extractLastAIText((graphResult as any)?.messages);
+        finalText = ((lastAiText || lastText) || "").trim();
         nextCategory = (graphResult as any).category ?? pre.prevCategory ?? null;
 
         const merged: ReservationSlotsStrict = {
@@ -1706,6 +1722,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           merged.numGuests = String((merged as any).numGuests);
         }
         nextSlots = merged;
+
+        // Si KB no tiene contenido para nearby_points*, forzamos retrievalBased directo para evitar fallback genérico
+      try {
+        const resolved = (graphResult as any)?.resolved;
+        const classified = (graphResult as any)?.classified;
+        const noContent = resolved?.debug?.reason === "no-content";
+        const pk = classified?.promptKey;
+        const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
+          if (noContent && isNearby) {
+            debugLog("[nearby_points] forcing retrievalBased fallback", { promptKey: pk });
+            const rbState = await retrievalBased({
+              hotelId: pre.msg.hotelId,
+              conversationId: pre.conversationId,
+              normalizedMessage: String(pre.msg.content || ""),
+              retrievalLang: pre.lang,
+              originalLang: pre.lang,
+              messages: lcMessages,
+              promptKey: pk,
+              category: classified?.category || "retrieval_based",
+            });
+            const rbLast = (rbState as any)?.messages?.at?.(-1);
+            const rbText = extractTextFromLCContent(rbLast?.content);
+            const rbRich = (rbState as any)?.meta?.rich as RichPayload | undefined;
+            if (rbRich) explicitRich = rbRich;
+            if (rbText) {
+              finalText = rbText.trim();
+              graphResult = {
+                ...(graphResult || {}),
+                meta: { ...(graphResult as any)?.meta, ...(rbState?.meta || {}) },
+              };
+            }
+          }
+        } catch (e) {
+          console.warn("[nearby_points] retrievalBased fallback error:", (e as any)?.message || e);
+        }
       }
 
       // === NEW: enriquecer con structured si aporta algo útil (no bloqueante)
@@ -2076,8 +2127,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           : "I had an issue checking availability. Could you try again?";
     }
   }
+  const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
   debugLog("[bodyLLM] OUT", { finalText, nextCategory, nextSlots, needsSupervision, graphResult });
-  return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich };
 }
 
 function buildModifyGuidance(
@@ -2437,7 +2489,7 @@ export async function handleIncomingMessage(
     const suggestion = body.finalText;
     debugLog("[handleIncomingMessage] suggestion", suggestion);
     // Payload enriquecido opcional emitido desde el grafo (p.ej., room-info-img)
-    const richPayload: RichPayload | undefined = (body as any)?.graphResult?.meta?.rich;
+    const richPayload: RichPayload | undefined = (body as any)?.rich ?? (body as any)?.graphResult?.meta?.rich;
     // ===== Agent: SupervisorDecision =====
     const respCategory = (body?.graphResult?.category || body?.nextCategory || pre.prevCategory) as string | undefined;
     const respSalesStage = (body?.graphResult?.salesStage || pre.st?.salesStage) as string | undefined;

@@ -52,6 +52,7 @@ const PUBLIC_PATHS = [
   "/api/users/validate-reset-token",
   "/api/test",
   "/api/chat",
+  "/api/places/photo",
   // 🔎 Endpoint de debug de fast-path
   "/api/debug/fastpath",
   "/api/upload-hotel-document",

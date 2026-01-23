@@ -101,7 +101,7 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   const [iconManual, setIconManual] = useState<Record<number, boolean>>({});
   const [attractionsBusy, setAttractionsBusy] = useState(false);
   const [attractionsMsg, setAttractionsMsg] = useState<string | null>(null);
-  const [attractionsPreview, setAttractionsPreview] = useState<Array<{ name?: string; notes?: string; distanceKm?: number; driveTime?: string }> | null>(null);
+  const [attractionsPreview, setAttractionsPreview] = useState<Array<{ name?: string; notes?: string; distanceKm?: number; driveTime?: string; placeId?: string; photoName?: string }> | null>(null);
 
   const approxLabel = (lang?: string) => (lang || "").startsWith("pt") ? "aprox." : (lang || "").startsWith("en") ? "approx." : "aprox.";
 
@@ -317,6 +317,16 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                         const cleanNotes = m ? rawNotes.replace(m[0], "").trim() : rawNotes;
                         return (
                           <li key={i}>
+                            {a.photoName ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={`/api/places/photo?name=${encodeURIComponent(a.photoName)}&maxWidth=600`}
+                                alt={a.name || "Atracción"}
+                                className="my-1 h-20 w-32 object-cover rounded border"
+                                loading="lazy"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                              />
+                            ) : null}
                             <span className="font-medium">{a.name || "Atracción"}</span>
                             {typeof a.distanceKm === "number"
                               ? (a.distanceKm < 1

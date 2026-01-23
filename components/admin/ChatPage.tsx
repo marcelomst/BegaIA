@@ -11,6 +11,7 @@ import React, { useEffect, useState, useRef, useCallback, useId } from "react";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams } from "next/navigation";
 import { suggestRoomIcon } from "@/lib/rooms/roomIcons";
+import type { RichPayload } from "@/types/richPayload";
 import {
   getConversationId,
   setConversationId,
@@ -30,17 +31,7 @@ type APIMessagesResponse = {
     status?: "sent" | "pending";
     approvedResponse?: string;
     // opcional futuro: rich desde backend
-    rich?: {
-      type:
-        | "quick-actions"
-        | "dates"
-        | "guests"
-        | "room-cards"
-        | "upsell"
-        | "handoff"
-        | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-      data?: any;
-    };
+    rich?: RichPayload;
   }>;
 };
 
@@ -51,17 +42,7 @@ type APIChatResponse = {
   conversationId?: string;
   lang?: string;
   // opcional futuro: payload enriquecido
-  rich?: {
-    type:
-      | "quick-actions"
-      | "dates"
-      | "guests"
-      | "room-cards"
-      | "upsell"
-      | "handoff"
-      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-    data?: any;
-  };
+  rich?: RichPayload;
 };
 
 type ConversationSummary = {
@@ -77,17 +58,7 @@ type ChatTurn = {
   text: string;
   timestamp: string;
   // UI enriquecida local o devuelta por backend
-  rich?: {
-    type:
-      | "quick-actions"
-      | "dates"
-      | "guests"
-      | "room-cards"
-      | "upsell"
-      | "handoff"
-      | "room-info-img"; // nuevo tipo rico para galerías de habitaciones
-    data?: any;
-  };
+  rich?: RichPayload;
 };
 
 // ===== Componente principal =====
@@ -666,6 +637,26 @@ export default function ChatPage() {
                   {msg.text}
                 </ReactMarkdown>
               ) : null}
+
+              {Array.isArray((msg.rich as any)?.carousel) && (msg.rich as any).carousel.length > 0 && (
+                <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                  {(msg.rich as any).carousel.map((item: any, idx: number) => (
+                    <div key={idx} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                      {item?.images?.[0]?.url && (
+                        <img
+                          src={item.images[0].url}
+                          alt={item.images[0].alt || item.title || "imagen"}
+                          className="h-32 w-full object-cover"
+                        />
+                      )}
+                      <div className="p-2">
+                        {item?.title && <div className="text-sm font-semibold">{item.title}</div>}
+                        {item?.subtitle && <div className="text-xs text-slate-500">{item.subtitle}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Render de UI enriquecida */}
               {msg.rich?.type === "quick-actions" && (

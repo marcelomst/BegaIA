@@ -2,8 +2,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ChatOpenAI } from "@langchain/openai";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
+import { searchNearbyPlaces } from "@/lib/media/googlePlaces";
 
 const DEFAULT_COUNT = 8;
+const MAX_ENRICH_CONCURRENCY = 3;
+
+function shouldLog() {
+  return process.env.DEBUG_NEARBY_POINTS === "1";
+}
+
+async function mapWithLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  const executing = new Set<Promise<void>>();
+  for (const item of items) {
+    const p = (async () => {
+      results.push(await fn(item));
+    })();
+    executing.add(p);
+    p.finally(() => executing.delete(p));
+    if (executing.size >= limit) await Promise.race(executing);
+  }
+  await Promise.all(executing);
+  return results;
+}
 
 function normalizeLang(raw?: string | null): "es" | "en" | "pt" {
   const v = (raw || "").toLowerCase();
@@ -102,6 +123,40 @@ async function generateFixedAttractions(args: {
   );
 }
 
+async function enrichAttractionsWithPlaces(args: {
+  attractions: Array<{ name?: string; notes?: string; distanceKm?: number; driveTime?: string }>;
+  locationText: string;
+  lang: "es" | "en" | "pt";
+}) {
+  if (!process.env.GOOGLE_PLACES_API_KEY) return args.attractions;
+  if (!args.attractions.length) return args.attractions;
+
+  if (shouldLog()) {
+    console.log("[poi-enrich] Google Places enabled", { count: args.attractions.length });
+  }
+
+  const enriched = await mapWithLimit(args.attractions, MAX_ENRICH_CONCURRENCY, async (a) => {
+    const name = String(a?.name || "").trim();
+    if (!name) return a;
+    const places = await searchNearbyPlaces({
+      queryText: name,
+      locationText: args.locationText,
+      lang: args.lang,
+      count: 1,
+    });
+    const match = places[0];
+    if (shouldLog()) {
+      console.log("[poi-enrich] match", { name, matched: Boolean(match?.placeId) });
+    }
+    return {
+      ...a,
+      placeId: match?.placeId,
+      photoName: match?.photoName,
+    };
+  });
+  return enriched;
+}
+
 export async function POST(req: NextRequest) {
   const { hotelId, count } = await req.json();
   if (!hotelId) return NextResponse.json({ error: "Falta hotelId" }, { status: 400 });
@@ -112,13 +167,22 @@ export async function POST(req: NextRequest) {
   const lang = normalizeLang(cfg.defaultLanguage);
   const locationText = [cfg.address, cfg.city, cfg.country].filter(Boolean).join(", ");
   const max = Math.max(5, Math.min(Number(count) || DEFAULT_COUNT, 10));
-  const attractions = await generateFixedAttractions({
+  const baseAttractions = await generateFixedAttractions({
     hotelName: cfg.hotelName,
     locationText,
     lang,
     count: max,
   });
 
+  const attractions = await enrichAttractionsWithPlaces({
+    attractions: baseAttractions,
+    locationText,
+    lang,
+  });
+
   await updateHotelConfig(hotelId, { attractions });
   return NextResponse.json({ ok: true, count: attractions.length, attractions });
 }
+
+// Exported for unit tests
+export { enrichAttractionsWithPlaces };

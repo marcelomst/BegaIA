@@ -10,8 +10,7 @@ import { getHotelNativeLanguage } from "../config/hotelLanguage";
 import { translateIfNeeded } from "../i18n/translateIfNeeded";
 import type { RichPayload } from "@/types/richPayload";
 import type { CarouselItem } from "@/types/richResponse";
-import { getImageSearchProvider } from "@/lib/media/imageSearch";
-import { getWebSearchProvider } from "@/lib/media/webSearch";
+import { searchNearbyPlaces } from "@/lib/media/googlePlaces";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 let localModel: ChatOpenAI | null = null;
@@ -63,6 +62,48 @@ type NearbyPoint = {
   description?: string;
   searchQuery?: string;
 };
+
+function normalizeText(value: string): string {
+  return (value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim();
+}
+
+function buildLocationTokens(city?: string, country?: string): string[] {
+  const tokens: string[] = [];
+  const cityNorm = normalizeText(city || "");
+  const countryNorm = normalizeText(country || "");
+  if (cityNorm) tokens.push(cityNorm);
+  if (countryNorm) {
+    tokens.push(countryNorm);
+    if (countryNorm === "uy") tokens.push("uruguay");
+  }
+  return Array.from(new Set(tokens)).filter(Boolean);
+}
+
+function placeMatchesLocation(place: { name: string; description?: string }, tokens: string[]): boolean {
+  if (!tokens.length) return true;
+  const hay = normalizeText([place.name, place.description || ""].join(" "));
+  return tokens.some((t) => t && hay.includes(t));
+}
+
+function isRelevantPoi(place: { name: string; description?: string }): boolean {
+  const hay = normalizeText([place.name, place.description || ""].join(" "));
+  const keywords = [
+    // ES
+    "playa", "museo", "monumento", "parque", "plaza", "puerto", "mirador", "faro", "isla",
+    "avenida", "paseo", "mercado", "teatro", "galeria", "jardin", "shopping",
+    // EN
+    "beach", "museum", "monument", "park", "square", "port", "marina", "viewpoint", "lighthouse", "island",
+    "avenue", "promenade", "market", "theater", "gallery", "garden", "mall",
+    // PT
+    "praia", "museu", "monumento", "parque", "praca", "porto", "mirante", "farol", "ilha",
+    "avenida", "passeio", "mercado", "teatro", "galeria", "jardim", "shopping",
+  ];
+  return keywords.some((k) => hay.includes(k));
+}
 
 function toNearbyPointsFromConfig(
   attractions: Array<{ name?: string; notes?: string }> | undefined,
@@ -230,24 +271,37 @@ export function cleanWebTitle(title: string): string {
   return out;
 }
 
-function toNearbyPointsFromWeb(
-  results: Array<{ title: string; snippet?: string }>,
+export function toNearbyPointsFromPlaces(
+  places: Array<{ name: string; description?: string; photoName?: string }>,
   locationHint: string
 ): NearbyPoint[] {
-  const seen = new Set<string>();
-  const points: NearbyPoint[] = [];
-  for (const r of results) {
-    const name = cleanWebTitle(r.title);
-    const key = name.toLowerCase();
-    if (!name || seen.has(key)) continue;
-    seen.add(key);
-    points.push({
-      name,
-      description: r.snippet || undefined,
-      searchQuery: [name, locationHint].filter(Boolean).join(" ").trim() || undefined,
-    });
-  }
-  return points;
+  return places
+    .filter((p) => p && p.name)
+    .map((p) => ({
+      name: p.name,
+      description: p.description || undefined,
+      searchQuery: [p.name, locationHint].filter(Boolean).join(" ").trim() || undefined,
+    }));
+}
+
+export function buildNearbyCarouselFromPlaces(
+  places: Array<{ name: string; description?: string; photoName?: string }>,
+  maxItems = 5
+): CarouselItem[] {
+  // Regla: incluir SOLO items con foto; si hay menos de 3, se devuelve lo que haya.
+  return places
+    .filter((p) => p.photoName)
+    .slice(0, maxItems)
+    .map((p) => ({
+      title: p.name,
+      subtitle: p.description,
+      images: [
+        {
+          url: `/api/places/photo?name=${encodeURIComponent(p.photoName!)}&maxWidth=900`,
+          alt: p.name,
+        },
+      ],
+    }));
 }
 
 function buildNearbyInfoText(points: NearbyPoint[], lang: "es" | "en" | "pt"): string {
@@ -276,9 +330,33 @@ function buildNearbyQuery(text: string, lang: "es" | "en" | "pt"): string {
     /pontos?\s+de\s+interesse.*perto\s+de/i.test(base) ||
     /puntos?\s+de\s+inter[eé]s.*cerca\s+de/i.test(base);
   if (already) return base;
-  if (lang === "en") return `points of interest near ${base}`;
-  if (lang === "pt") return `pontos de interesse perto de ${base}`;
-  return `puntos de interes cerca de ${base}`;
+  if (lang === "en") return `tourist attractions near ${base}`;
+  if (lang === "pt") return `atrações turísticas perto de ${base}`;
+  return `atracciones turísticas cerca de ${base}`;
+}
+
+function buildNearbyQueries(text: string, lang: "es" | "en" | "pt"): string[] {
+  const base = text.trim();
+  if (!base) return [];
+  if (lang === "en") {
+    return [
+      `tourist attractions near ${base}`,
+      `points of interest near ${base}`,
+      `things to do near ${base}`,
+    ];
+  }
+  if (lang === "pt") {
+    return [
+      `atrações turísticas perto de ${base}`,
+      `pontos de interesse perto de ${base}`,
+      `lugares turísticos perto de ${base}`,
+    ];
+  }
+  return [
+    `atracciones turísticas cerca de ${base}`,
+    `puntos de interés cerca de ${base}`,
+    `lugares turísticos cerca de ${base}`,
+  ];
 }
 
 function stripUrls(text: string): string {
@@ -346,6 +424,7 @@ export async function retrievalBased(state: any): Promise<any> {
   const isNearbyPrompt = promptKey === "nearby_points" || promptKey === "nearby_points_img";
   const normalizedLang = normalizeLang(state.originalLang ?? state.retrievalLang);
   let nearbyPoints: NearbyPoint[] = [];
+  let placesForNearby: Array<{ name: string; description?: string; photoName?: string }> = [];
 
   if (isNearbyPrompt) {
     const parsed = parseNearbyPoints(retrievedInfo);
@@ -365,44 +444,98 @@ export async function retrievalBased(state: any): Promise<any> {
     if (!insufficient) {
       nearbyPoints = parsed;
     } else {
-      const provider = getWebSearchProvider();
+      const hints = extractLocationHints(retrievedInfo);
+      let locationHint = [hints.city, hints.country].filter(Boolean).join(" ").trim();
+      const cfg = await getHotelConfig(state.hotelId ?? "hotel999");
+      if (!locationHint) {
+        locationHint = [
+          cfg?.address,
+          cfg?.city,
+          cfg?.country,
+        ]
+          .filter(Boolean)
+          .join(", ")
+          .trim();
+      }
       if (process.env.DEBUG_NEARBY_POINTS === "1") {
-        debugLog("[nearby_points] web provider", {
+        debugLog("[nearby_points] location hint", {
           promptKey,
-          provider: provider.constructor?.name || "unknown",
+          locationHint,
+          hotelAddress: cfg?.address,
+          hotelCity: cfg?.city,
+          hotelCountry: cfg?.country,
         });
       }
-      const locationHint = [
-        extractLocationHints(retrievedInfo).city,
-        extractLocationHints(retrievedInfo).country,
-      ]
+      const queryBase = [hints.city || cfg?.city, hints.country || cfg?.country]
         .filter(Boolean)
-        .join(" ")
+        .join(", ")
         .trim();
-      const query = buildNearbyQuery(locationHint || userQuery, langForNearby);
-      const webResults = await provider.searchWeb(query, { count: 8 });
+      const primaryLocation = queryBase || locationHint || userQuery;
+      const primaryQueries = buildNearbyQueries(primaryLocation, langForNearby);
+      let places: Array<{ name: string; description?: string; photoName?: string }> = [];
+      let usedQuery = primaryQueries[0] || primaryLocation;
+      for (const q of primaryQueries) {
+        usedQuery = q;
+        places = await searchNearbyPlaces({
+          queryText: q,
+          locationText: primaryLocation,
+          lang: langForNearby,
+          count: 20,
+        });
+        if (places.length >= 3) break;
+      }
+      if (places.length < 3 && locationHint && locationHint !== primaryLocation) {
+        const fallbackQueries = buildNearbyQueries(locationHint, langForNearby);
+        for (const q of fallbackQueries) {
+          usedQuery = q;
+          places = await searchNearbyPlaces({
+            queryText: q,
+            locationText: locationHint,
+            lang: langForNearby,
+            count: 20,
+          });
+          if (places.length >= 3) break;
+        }
+      }
+      const locationTokens = buildLocationTokens(hints.city || cfg?.city, hints.country || cfg?.country);
+      const locationFiltered = locationTokens.length
+        ? places.filter((p) => placeMatchesLocation(p, locationTokens))
+        : places;
+      const candidatePlaces = locationFiltered.length >= 3 ? locationFiltered : places;
+      const typeFiltered = candidatePlaces.filter((p) => isRelevantPoi(p));
+      const pickedPlaces = typeFiltered.length >= 3 ? typeFiltered : candidatePlaces;
+      placesForNearby = pickedPlaces;
       if (process.env.DEBUG_NEARBY_POINTS === "1") {
-        debugLog("[nearby_points] web results", {
+        debugLog("[nearby_points] places results", {
           promptKey,
-          query,
-          count: webResults.length,
+          query: usedQuery,
+          count: pickedPlaces.length,
+        });
+        debugLog("[nearby_points] places typeFilter", {
+          promptKey,
+          total: candidatePlaces.length,
+          typeFiltered: typeFiltered.length,
+          picked: pickedPlaces.length,
         });
       }
-      const fromWeb = toNearbyPointsFromWeb(webResults, locationHint || userQuery).slice(0, 10);
-      if (fromWeb.length) {
-        nearbyPoints = fromWeb;
-        retrievedInfo = buildNearbyInfoText(fromWeb, langForNearby);
+      const fromPlaces = toNearbyPointsFromPlaces(pickedPlaces, locationHint || userQuery).slice(0, 10);
+      const fromConfig = toNearbyPointsFromConfig(cfg?.attractions, locationHint || userQuery).slice(0, 10);
+      if (fromPlaces.length >= 3) {
+        nearbyPoints = fromPlaces;
+        retrievedInfo = buildNearbyInfoText(fromPlaces, langForNearby);
+      } else if (fromConfig.length) {
+        nearbyPoints = fromConfig;
+        retrievedInfo = buildNearbyInfoText(fromConfig, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
+        // Si usamos fallback de hotel_config, evitamos carrusel pobre
+        placesForNearby = [];
+      } else if (fromPlaces.length) {
+        nearbyPoints = fromPlaces;
+        retrievedInfo = buildNearbyInfoText(fromPlaces, langForNearby);
       } else {
-        const cfg = await getHotelConfig(state.hotelId ?? "hotel999");
-        const fromConfig = toNearbyPointsFromConfig(cfg?.attractions, locationHint || userQuery).slice(0, 10);
-        if (fromConfig.length) {
-          nearbyPoints = fromConfig;
-          retrievedInfo = buildNearbyInfoText(fromConfig, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
-        } else {
-          const offline = offlineNearbyPoints(locationHint || userQuery, langForNearby).slice(0, 10);
-          nearbyPoints = offline;
-          retrievedInfo = buildNearbyInfoText(offline, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
-        }
+        const offline = offlineNearbyPoints(locationHint || userQuery, langForNearby).slice(0, 10);
+        nearbyPoints = offline;
+        retrievedInfo = buildNearbyInfoText(offline, langForNearby) + `\n\n${estimatedNote(langForNearby)}`;
+        placesForNearby = [];
       }
     }
   }
@@ -484,33 +617,13 @@ export async function retrievalBased(state: any): Promise<any> {
     }
   }
   if (promptKey === "nearby_points_img" && !rich) {
-    const provider = getImageSearchProvider();
-    const location = extractLocationHints(retrievedInfo);
-    const points = (nearbyPoints.length ? nearbyPoints : parseNearbyPoints(retrievedInfo)).slice(0, 5);
     if (process.env.DEBUG_NEARBY_POINTS === "1") {
-      debugLog("[nearby_points_img] image provider", {
+      debugLog("[nearby_points_img] places for carousel", {
         promptKey,
-        provider: provider.constructor?.name || "unknown",
-        points: points.length,
+        count: placesForNearby.length,
       });
     }
-    const withImages = await mapWithLimit(points, 2, async (p): Promise<CarouselItem | null> => {
-      const query = p.searchQuery
-        ? p.searchQuery
-        : [p.name, location.city, location.country].filter(Boolean).join(" ");
-      if (!query) return null;
-      const images = await provider.searchImages(query, { count: 4 });
-      if (process.env.DEBUG_NEARBY_POINTS === "1") {
-        debugLog("[nearby_points_img] images", { promptKey, query, count: images.length });
-      }
-      if (!images.length) return null;
-      return {
-        title: p.name,
-        subtitle: p.description,
-        images: images.slice(0, 4).map((img) => ({ url: img.url, alt: img.alt })),
-      };
-    });
-    const carousel = withImages.filter(Boolean) as CarouselItem[];
+    const carousel = buildNearbyCarouselFromPlaces(placesForNearby, 5);
     rich = { carousel };
   }
 
