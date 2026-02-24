@@ -2,6 +2,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import crypto from "crypto";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -109,15 +110,17 @@ async function tryRegisterCategory(category: string, promptKey: string) {
       categoryId,
       name: promptKey,
       enabled: true,
-      router: { category, promptKey },
-      retriever: {
-        topK: 6,
-        filters: {
-          category,
-          promptKey,
-          status: "active",
-        },
+      routerCategory: category,
+      routerPromptKey: promptKey,
+      retrieverTopK: 6,
+      retrieverFilters: {
+        category,
+        promptKey,
+        status: "active",
       },
+      intents: [],
+      templates: {},
+      fallback: "qa",
       createdAt: now,
       updatedAt: now,
       version: 1,
@@ -125,7 +128,11 @@ async function tryRegisterCategory(category: string, promptKey: string) {
   } catch (e: any) {
     const msg = String(e?.message || e);
     // si la colección no existe, no hacemos nada (modo manual)
-    if (/Collection does not exist/i.test(msg)) {
+    if (
+      /Collection does not exist/i.test(msg) ||
+      /Only columns defined in the table schema/i.test(msg) ||
+      /unknown columns/i.test(msg)
+    ) {
       return;
     }
     // para otros errores sí lanzamos
@@ -276,9 +283,19 @@ export async function loadDocumentFileForHotel(args: LoadDocumentArgs) {
     const cleanText = normalizeForEmbedding(doc.pageContent);
     const vector = await embeddings.embedQuery(cleanText);
 
-    const id = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${i}`);
+    // ID determinístico por chunk para evitar duplicados lógicos en reintentos/race conditions.
+    const dedupeRaw = [
+      hotelId,
+      category,
+      promptKey,
+      lang,
+      nextVersion,
+      originalName,
+      String(i),
+    ].join("|");
+    const id = crypto.createHash("sha256").update(dedupeRaw).digest("hex");
 
-    await coll.insertOne({
+    const payload = {
       _id: id,
       hotelId,
       category,
@@ -299,7 +316,18 @@ export async function loadDocumentFileForHotel(args: LoadDocumentArgs) {
       mimeType,
       uploadedAt: new Date().toISOString(),
       ...metadata,
-    } as any);
+    } as any;
+    try {
+      await coll.insertOne(payload);
+    } catch (e: any) {
+      const msg = String(e?.message || e).toLowerCase();
+      // Si ya existe el _id, lo tratamos como upsert idempotente.
+      if (msg.includes("duplicate") || msg.includes("already exists")) {
+        await coll.replaceOne({ _id: id } as any, payload, { upsert: true } as any);
+      } else {
+        throw e;
+      }
+    }
     inserted++;
 
     // intento de alta en registry (no crea tabla)

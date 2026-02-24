@@ -443,7 +443,7 @@ export function heuristicClassify(text: string): IntentResult {
     return { category: "amenities", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
   }
 
-  const isBilling = /\b(factura|invoice|cobro|charge|billing|recibo)\b/.test(t);
+  const isBilling = /\b(factura|invoice|cobro|charge|billing|recibo|btc|bitcoin|crypto|criptomoneda|criptomoeda)\b/.test(t);
   if (isBilling) {
     return { category: "billing", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };
   }

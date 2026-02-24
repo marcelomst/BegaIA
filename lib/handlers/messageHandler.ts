@@ -13,7 +13,7 @@ import { buildPendingNotice } from "@/lib/agents/outputFormatterAgent";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
 import { channelMemory } from "@/lib/services/channelMemory";
-import { getOrCreateConversation } from "@/lib/db/conversations";
+import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import { getConvState, CONVSTATE_VERSION } from "@/lib/db/convState";
 import type { ReservationSlots as DbReservationSlots } from "@/lib/db/convState";
@@ -35,7 +35,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -59,6 +59,7 @@ import {
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
 import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
+import { RE_BILLING } from "@/lib/agents/classify/keywords";
 
 // ================================
 // --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
@@ -637,6 +638,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const confirmedBooking = hasConfirmed ? { code: "-" } : null;
   const stateForPlaybook: ConversationState = { draft: draftExists ? { ...currSlots } : null, confirmedBooking, locale: lang };
   const intent = detectIntent(String(msg.content || ""), stateForPlaybook);
+  const hotelConfig = await getHotelConfig(msg.hotelId).catch(() => null);
 
   // --- NUEVO: modo modificación persistente reforzado ---
   const prevWasModify = st?.lastCategory === "modify_reservation" || st?.lastCategory === "modify";
@@ -653,6 +655,27 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
     promptKey = "modify_reservation";
   } else {
     try { promptKey = choosePlaybookKey(intent); } catch (e) { console.warn("[playbook] choosePlaybookKey error; using default", e); }
+  }
+  // DEBUG: trazas de detección nearby en preLLM
+  const rawContent = String(msg.content || "");
+  if (process.env.DEBUG_NEARBY_POINTS === "1") {
+    console.warn("[nearby_points] preLLM check", { content: rawContent, looksNearby: looksNearbyPoints(rawContent), nearbyPK: pickNearbyPromptKey(rawContent) });
+  }
+  // Si parece consulta de puntos cercanos, forzar promptKey (web -> carrusel)
+  const nearbyPK = pickNearbyPromptKey(rawContent);
+  if (promptKey === "default" && nearbyPK) {
+    const pref = (hotelConfig as any)?.nearbyPointsMode;
+    if (pref === "text") {
+      promptKey = "nearby_points";
+    } else if (pref === "always" || pref === "carousel") {
+      promptKey = "nearby_points_img";
+    } else {
+      // auto/undefined: usa imágenes solo si el mensaje las pide
+      promptKey = wantsNearbyImages(rawContent) ? "nearby_points_img" : "nearby_points";
+    }
+    if (process.env.DEBUG_NEARBY_POINTS === "1") {
+      console.warn("[nearby_points] preLLM override", { promptKey, channel: msg.channel, pref, hotelId: msg.hotelId });
+    }
   }
   debugLog("[FlujoCHKI][preLLM] intent detected", { intent, inModifyMode, promptKey });
   let systemInstruction = "";
@@ -738,6 +761,10 @@ function hasRecentReservationMention(pre: PreLLMResult): boolean {
   } catch { /* noop */ }
   return false;
 }
+function looksLikeEventsQuery(text: string): boolean {
+  const t = String(text || "").toLowerCase();
+  return /\b(evento|eventos|agenda|calendario|festival|festivales|concierto|conciertos|recital|recitales|feria|ferias|show|shows|teatro|exposicion|exposición|exposiciones|carnaval)\b/.test(t);
+}
 function buildStateSummary(slots: ReservationSlotsStrict, st: any) {
   return [
     "Estado actual de la reserva:",
@@ -760,11 +787,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let needsSupervision = false;
   let graphResult: any = null;
   let explicitRich: RichPayload | undefined;
+  const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
     const dr0 = extractDateRangeFromText(userTxt0);
-    if (dr0.checkIn && dr0.checkOut) {
+    if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
       const ciTxt = isoToDDMMYYYY(dr0.checkIn) || dr0.checkIn;
       const coTxt = isoToDDMMYYYY(dr0.checkOut) || dr0.checkOut;
       finalText = pre.lang === 'es'
@@ -782,7 +810,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxtFast = String(pre.msg.content || "");
     const drFast = extractDateRangeFromText(userTxtFast);
     const hasOneDateOnly = (drFast.checkIn && !drFast.checkOut) || (!drFast.checkIn && drFast.checkOut);
-    const hasContext = pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
+    const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
     if (hasOneDateOnly && hasContext) {
       // Si existe una fecha única previa en el historial del usuario (excluyendo el mensaje actual), emparejar y confirmar rango
       const hist = [...pre.lcHistory];
@@ -1631,6 +1659,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // NEW: Fast-path KnowledgeBase
         // ============================
         const kbUserText = String(pre.msg.content || "");
+        const kbLower = kbUserText.toLowerCase();
 
         // Consideramos "contexto de reserva" cuando hay borrador/confirmación o modo modificación activo
         const hasReservationContext =
@@ -1640,10 +1669,86 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
         // Sólo usamos KB para consultas informativas (sin contexto de reserva)
         const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
+        const looksEventIntent = (() => {
+          const hay = kbUserText
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "");
+          const keys = [
+            "evento", "eventos", "agenda", "que hay", "que hacer", "hoy", "manana", "esta noche",
+            "fin de semana", "este fin de semana", "este mes", "mes", "mensual",
+            "evento turistico", "eventos turisticos",
+            "event", "events", "tourist event", "tourist events", "today", "tomorrow", "tonight",
+            "weekend", "this weekend", "this month", "month", "monthly",
+            "hoje", "amanha", "esta noite", "fim de semana", "este fim de semana", "este mes", "mes", "mensal",
+          ];
+          return keys.some((k) => hay.includes(k));
+        })();
+        const hasEventMemory = pre.st?.lastIntentGroup === "events";
+        const isShortFollowup = kbUserText.trim().length <= 40;
+        const startsWithFollowup = /^\s*(¿?\s*y\b|and\b|e\b)\b/i.test(kbUserText);
+        const hasPhotoSignal = /\b(foto|fotos|imagen|imagenes|imágenes|photos|pics)\b/i.test(kbUserText);
+        const skipKbFastpath = hasEventMemory && (isShortFollowup || startsWithFollowup || hasPhotoSignal);
+        const looksBillingByRule = RE_BILLING.test(kbLower);
+        const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
+        console.warn("[KB] fastpath check", { hasReservationContext, wantsNearby });
         if (wantsNearby) {
           debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
         }
-        if (!hasReservationContext && !wantsNearby) {
+        if (looksBillingByRule) {
+          let forcedBillingResolved = false;
+          try {
+            const forcedPromptKey = looksInvoiceDetail ? "invoice_receipts" : "payments_and_billing";
+            const kbForced = await answerWithKnowledge({
+              question: kbUserText,
+              hotelId: pre.msg.hotelId,
+              desiredLang: pre.lang,
+              override: { category: "billing", promptKey: forcedPromptKey },
+            });
+            const forcedText = kbForced.answer?.trim();
+            if (kbForced.ok && forcedText) {
+              finalText = forcedText;
+              finalText = await harmonizeBillingCurrencyAnswer(finalText, kbUserText, pre.msg.hotelId, pre.lang);
+              finalText = stripOffTopicBillingTail(finalText, pre.lang);
+              finalText = ensureBillingContextualFollowup(finalText, pre.lang);
+              finalText = stripGlobalTailNoise(finalText);
+              // Guardrail: si quedó texto fuera de dominio billing, reconstruimos respuesta desde config.
+              if (/(actividad|actividades|zona|lugares para visitar|restaurants? cercanos|atracciones)/i.test(finalText)) {
+                finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);
+              }
+              nextCategory = "billing";
+              nextSlots = pre.currSlots;
+              graphResult = {
+                ...(kbForced.debug || {}),
+                category: "billing",
+                promptKey: forcedPromptKey,
+                source: "knowledgeBaseAgent_forced_billing",
+                contentTitle: kbForced.contentTitle,
+                contentBody: kbForced.contentBody,
+                retrieved: kbForced.retrieved,
+              };
+              forcedBillingResolved = true;
+              return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+            }
+          } catch (e) {
+            console.warn("[KB] forced billing fastpath error, sigo flujo normal:", (e as any)?.message || e);
+          }
+          if (!forcedBillingResolved) {
+            finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);
+            nextCategory = "billing";
+            nextSlots = pre.currSlots;
+            graphResult = {
+              ...(graphResult || {}),
+              category: "billing",
+              source: "deterministic_billing_fallback",
+            };
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+          }
+        }
+        if (!hasReservationContext && !wantsNearby && !looksEventIntent) {
+          if (skipKbFastpath) {
+            debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
+          } else {
           try {
             const kb = await answerWithKnowledge({
               question: kbUserText,
@@ -1660,6 +1765,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             // - respuesta de texto no vacía
             // - categoría "segura" (retrieval / info hotel)
             if (kb.ok && safeCat && text) {
+              console.warn("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
               finalText = text;
               nextCategory = cat || "retrieval_based";
               nextSlots = pre.currSlots; // KB no toca slots de reserva
@@ -1678,6 +1784,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             }
           } catch (e) {
             console.warn("[KB] answerWithKnowledge error, sigo con agentGraph:", (e as any)?.message || e);
+          }
           }
         }
 
@@ -1713,6 +1820,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const lastAiText = extractLastAIText((graphResult as any)?.messages);
         finalText = ((lastAiText || lastText) || "").trim();
         nextCategory = (graphResult as any).category ?? pre.prevCategory ?? null;
+        debugLog("[messageHandler] resolved category", {
+          nextCategory,
+          promptKey: (graphResult as any)?.classified?.promptKey,
+          category: (graphResult as any)?.category,
+          userQuery: String(pre.msg.content || ""),
+        });
 
         const merged: ReservationSlotsStrict = {
           ...(pre.currSlots || {}),
@@ -1724,13 +1837,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         nextSlots = merged;
 
         // Si KB no tiene contenido para nearby_points*, forzamos retrievalBased directo para evitar fallback genérico
-      try {
-        const resolved = (graphResult as any)?.resolved;
-        const classified = (graphResult as any)?.classified;
-        const noContent = resolved?.debug?.reason === "no-content";
-        const pk = classified?.promptKey;
-        const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
+        try {
+          const resolved = (graphResult as any)?.resolved;
+          const classified = (graphResult as any)?.classified;
+          const noContent = resolved?.debug?.reason === "no-content";
+          const pk = classified?.promptKey;
+          const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
+          console.warn("[nearby_points] fallback check", {
+            reason: resolved?.debug?.reason,
+            promptKey: pk,
+            noContent,
+            isNearby,
+          });
           if (noContent && isNearby) {
+            console.warn("[nearby_points] fallback enter", { promptKey: pk });
             debugLog("[nearby_points] forcing retrievalBased fallback", { promptKey: pk });
             const rbState = await retrievalBased({
               hotelId: pre.msg.hotelId,
@@ -1783,10 +1903,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             const structuredCat = structured.intent ? mapStructuredIntentToCategory(structured.intent) : undefined;
             const candidateCat = graphResult?.category || structuredCat;
             const safeCat = isSafeAutosendCategory(candidateCat);
+            const hasRichPayload = Boolean(explicitRich ?? (graphResult as any)?.meta?.rich);
             if (structured.handoff === true && !safeCat) {
               needsSupervision = true;
             }
-            if (!finalText && structured.answer) {
+            if (!finalText && structured.answer && !hasRichPayload) {
               if ((pre as any).__orchestratorActive) {
                 // Delega construcción del structured fallback al planner
                 graphResult = graphResult || {};
@@ -2127,9 +2248,271 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           : "I had an issue checking availability. Could you try again?";
     }
   }
+  const promptKeyUsed = String((graphResult as any)?.classified?.promptKey || "");
+  const isAmenitiesTurn =
+    nextCategory === "amenities" ||
+    nextCategory === "amenities_info" ||
+    ["amenities_list", "pool_gym_spa", "breakfast_bar", "parking"].includes(promptKeyUsed);
+  const isBillingTurn =
+    nextCategory === "billing" ||
+    ["payments_and_billing", "invoice_receipts"].includes(promptKeyUsed);
+  const isSupportTurn =
+    nextCategory === "support" ||
+    ["contact_support"].includes(promptKeyUsed);
+  if (isAmenitiesTurn) {
+    finalText = stripOffTopicAmenitiesTail(String(finalText || ""), pre.lang);
+    finalText = applyCommittedHotelTone(String(finalText || ""), pre.lang);
+  }
+  if (isBillingTurn) {
+    finalText = await harmonizeBillingCurrencyAnswer(
+      String(finalText || ""),
+      String(pre.msg.content || ""),
+      pre.msg.hotelId,
+      pre.lang
+    );
+    finalText = stripOffTopicBillingTail(String(finalText || ""), pre.lang);
+    finalText = ensureBillingContextualFollowup(String(finalText || ""), pre.lang);
+  }
+  if (isSupportTurn) {
+    finalText = applyCommittedHotelTone(String(finalText || ""), pre.lang);
+  }
+  finalText = stripGlobalTailNoise(String(finalText || ""));
   const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
   debugLog("[bodyLLM] OUT", { finalText, nextCategory, nextSlots, needsSupervision, graphResult });
   return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich };
+}
+
+function stripOffTopicAmenitiesTail(text: string, lang: "es" | "en" | "pt"): string {
+  const raw = String(text || "").trim();
+  if (!raw) return raw;
+  const patterns =
+    lang === "es"
+      ? [
+        /(?:\n|\r\n){1,}si deseas explorar la zona[\s\S]*$/i,
+        /(?:\n|\r\n){1,}te recomiendo visitar[\s\S]*$/i,
+        /(?:\n|\r\n){1,}¿hay alguna actividad específica[\s\S]*$/i,
+      ]
+      : lang === "pt"
+        ? [
+          /(?:\n|\r\n){1,}se quiser explorar a regi[aã]o[\s\S]*$/i,
+          /(?:\n|\r\n){1,}recomendo visitar[\s\S]*$/i,
+        ]
+        : [
+          /(?:\n|\r\n){1,}if you want to explore the area[\s\S]*$/i,
+          /(?:\n|\r\n){1,}i recommend visiting[\s\S]*$/i,
+        ];
+  let out = raw;
+  for (const re of patterns) out = out.replace(re, "").trim();
+  return out;
+}
+
+function stripOffTopicBillingTail(text: string, lang: "es" | "en" | "pt"): string {
+  const raw = String(text || "").trim();
+  if (!raw) return raw;
+  const patterns =
+    lang === "es"
+      ? [
+        /(?:\n|\r\n){1,}¿prefer[íi]s opciones tranquilas o con m[aá]s movimiento\??[\s\S]*$/i,
+        /(?:\n|\r\n){1,}si deseas explorar la zona[\s\S]*$/i,
+        /(?:\n|\r\n){1,}te recomiendo visitar[\s\S]*$/i,
+        /(?:\n|\r\n){1,}¿le gustar[íi]a saber m[aá]s sobre alg[uú]n otro servicio o actividad en la zona\??[\s\S]*$/i,
+        /(?:\n|\r\n){1,}¿te gustar[íi]a saber m[aá]s sobre las actividades en la zona\??[\s\S]*$/i,
+        /(?:\n|\r\n){1,}¿hay alg[uú]n otro aspecto en el que pueda ayudarle\??[\s\S]*$/i,
+      ]
+      : lang === "pt"
+        ? [
+          /(?:\n|\r\n){1,}voc[eê] prefere op[cç][oõ]es tranquilas ou com mais movimento\??[\s\S]*$/i,
+          /(?:\n|\r\n){1,}gostaria de saber mais sobre algum outro servi[cç]o ou atividade na regi[aã]o\??[\s\S]*$/i,
+        ]
+        : [
+          /(?:\n|\r\n){1,}do you prefer quiet options or more activity\??[\s\S]*$/i,
+          /(?:\n|\r\n){1,}would you like to know more about other services or activities in the area\??[\s\S]*$/i,
+        ];
+  let out = raw;
+  for (const re of patterns) out = out.replace(re, "").trim();
+  return out;
+}
+
+async function harmonizeBillingCurrencyAnswer(
+  answer: string,
+  userText: string,
+  hotelId: string,
+  lang: "es" | "en" | "pt"
+): Promise<string> {
+  const norm = String(userText || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const asksAcceptance = /(aceptan|acepta|pagar con|pay with|accept|aceitam|aceita|pagar com)/i.test(norm);
+  if (!asksAcceptance) return answer;
+
+  const aliases: Array<{ code: string; re: RegExp }> = [
+    { code: "BTC", re: /\b(btc|bitcoin)\b/i },
+    { code: "USDT", re: /\b(usdt|tether)\b/i },
+    { code: "ETH", re: /\b(eth|ethereum)\b/i },
+    { code: "USDC", re: /\b(usdc)\b/i },
+  ];
+  const hit = aliases.find((a) => a.re.test(norm));
+  if (!hit) return answer;
+
+  try {
+    const cfg = await getHotelConfig(hotelId);
+    const currencies = new Set<string>(
+      [
+        ...(Array.isArray((cfg as any)?.payments?.currencies) ? (cfg as any).payments.currencies : []),
+        (cfg as any)?.payments?.currency,
+      ]
+        .filter(Boolean)
+        .map((x: any) => String(x).trim().toUpperCase())
+    );
+    const accepted = currencies.has(hit.code);
+    if (accepted) {
+      const isNegative = new RegExp(`\\b(no\\s+aceptamos|no\\s+admitimos)\\b[\\s\\S]*\\b${hit.code}\\b`, "i").test(answer);
+      if (!isNegative) return answer;
+      return lang === "es"
+        ? `Sí, ${hit.code} está habilitado actualmente como medio de pago.\n\n¿Querés que te detalle monedas y comprobantes disponibles?`
+        : lang === "pt"
+          ? `Sim, ${hit.code} está habilitado atualmente como meio de pagamento.\n\nQuer que eu detalhe moedas e comprovantes disponíveis?`
+          : `Yes, ${hit.code} is currently enabled as a payment method.\n\nDo you want details on available currencies and invoices?`;
+    }
+
+    const enabledList = Array.from(currencies).join(", ") || (lang === "es" ? "sin monedas configuradas" : lang === "pt" ? "sem moedas configuradas" : "no currencies configured");
+    return lang === "es"
+      ? `Por el momento ${hit.code} está deshabilitado. Si querés, lo consulto con recepción y te confirmo alternativas para tu reserva.\n\nMonedas habilitadas hoy: ${enabledList}.`
+      : lang === "pt"
+        ? `No momento, ${hit.code} está desabilitado. Se quiser, consulto a recepção e confirmo alternativas para a sua reserva.\n\nMoedas habilitadas hoje: ${enabledList}.`
+        : `At the moment, ${hit.code} is disabled. If you want, I can check with reception and confirm alternatives for your booking.\n\nEnabled currencies today: ${enabledList}.`;
+  } catch {
+    return answer;
+  }
+}
+
+function ensureBillingContextualFollowup(text: string, lang: "es" | "en" | "pt"): string {
+  const out = String(text || "").trim();
+  if (!out) return out;
+  const hasQuestion = /[?؟]\s*$/.test(out) || /\n\s*[-*]\s*¿/.test(out);
+  if (hasQuestion) return out;
+  const followup =
+    lang === "es"
+      ? "¿Querés que te detalle medios, monedas o comprobantes?"
+      : lang === "pt"
+        ? "Quer que eu detalhe meios de pagamento, moedas ou comprovantes?"
+        : "Do you want details on payment methods, currencies, or invoices?";
+  return `${out}\n\n${followup}`;
+}
+
+async function buildDeterministicBillingReply(
+  hotelId: string,
+  lang: "es" | "en" | "pt",
+  userText: string
+): Promise<string> {
+  try {
+    const cfg = await getHotelConfig(hotelId);
+    const methods = Array.isArray((cfg as any)?.payments?.methods) ? (cfg as any).payments.methods : [];
+    const currencies = Array.isArray((cfg as any)?.payments?.currencies)
+      ? (cfg as any).payments.currencies
+      : ((cfg as any)?.payments?.currency ? [(cfg as any).payments.currency] : []);
+    const requiresCard = Boolean((cfg as any)?.payments?.requiresCardForBooking);
+    const issuesInvoices = Boolean((cfg as any)?.billing?.issuesInvoices);
+    const docs = Array.isArray((cfg as any)?.billing?.invoiceNotesTags) ? (cfg as any).billing.invoiceNotesTags : [];
+
+    const textNorm = (userText || "").toLowerCase();
+    const asksCurrency = /(moneda|monedas|currency|currencies|moeda|moedas)/i.test(textNorm);
+    const asksAcceptance = /(aceptan|acepta|pagar con|pay with|accept|aceitam|aceita|pagar com)/i.test(textNorm);
+    const asksInvoices = /(factura|facturas|invoice|invoices|comprobante|comprobantes|recibo|recibos)/i.test(textNorm);
+    const alias: Array<{ code: string; re: RegExp }> = [
+      { code: "BTC", re: /\b(btc|bitcoin)\b/i },
+      { code: "USDT", re: /\b(usdt|tether)\b/i },
+      { code: "ETH", re: /\b(eth|ethereum)\b/i },
+      { code: "USDC", re: /\b(usdc)\b/i },
+    ];
+    const hit = alias.find((a) => a.re.test(textNorm));
+    const accepted = hit ? currencies.map((c: any) => String(c).toUpperCase()).includes(hit.code) : false;
+
+    if (lang === "pt") {
+      if (asksAcceptance && hit) {
+        return accepted
+          ? `Sim, aceitamos ${hit.code} no momento.\n\nMoedas habilitadas hoje: ${currencies.join(", ") || "(a confirmar)"}.\nQuer que eu detalhe meios de pagamento e comprovantes?`
+          : `No momento, ${hit.code} está desabilitado. Se quiser, consulto a recepção e confirmo alternativas para a sua reserva.\n\nMoedas habilitadas hoje: ${currencies.join(", ") || "(a confirmar)"}.`;
+      }
+      if (asksCurrency) return `Moedas habilitadas hoje: ${currencies.join(", ") || "(a confirmar)"}.\n\nQuer que eu detalhe meios de pagamento e comprovantes?`;
+      if (asksInvoices) return `Emitimos fatura: ${issuesInvoices ? "sim" : "por enquanto não"}.\nComprovantes: ${docs.join(", ") || "(a confirmar)"}.\n\nQuer que eu detalhe meios de pagamento e moedas?`;
+      return `Meios de pagamento habilitados: ${methods.join(", ") || "(a confirmar)"}.\nMoedas habilitadas: ${currencies.join(", ") || "(a confirmar)"}.\nGarantia com cartão: ${requiresCard ? "sim" : "não"}.\nFatura: ${issuesInvoices ? "sim" : "a confirmar"}.\n\nQuer que eu detalhe meios, moedas ou comprovantes?`;
+    }
+    if (lang === "en") {
+      if (asksAcceptance && hit) {
+        return accepted
+          ? `Yes, ${hit.code} is currently enabled.\n\nEnabled currencies today: ${currencies.join(", ") || "(to be confirmed)"}.\nDo you want details on payment methods and invoices?`
+          : `At the moment, ${hit.code} is disabled. If you want, I can check with reception and confirm alternatives for your booking.\n\nEnabled currencies today: ${currencies.join(", ") || "(to be confirmed)"}.`;
+      }
+      if (asksCurrency) return `Enabled currencies today: ${currencies.join(", ") || "(to be confirmed)"}.\n\nDo you want details on payment methods and invoices?`;
+      if (asksInvoices) return `Invoices issued: ${issuesInvoices ? "yes" : "currently disabled"}.\nInvoice documents: ${docs.join(", ") || "(to be confirmed)"}.\n\nDo you want details on payment methods and currencies?`;
+      return `Enabled payment methods: ${methods.join(", ") || "(to be confirmed)"}.\nEnabled currencies: ${currencies.join(", ") || "(to be confirmed)"}.\nCard required for guarantee: ${requiresCard ? "yes" : "no"}.\nInvoices: ${issuesInvoices ? "yes" : "to be confirmed"}.\n\nDo you want details on methods, currencies, or invoices?`;
+    }
+
+    if (asksAcceptance && hit) {
+      return accepted
+        ? `Sí, ${hit.code} está habilitado por el momento.\n\nMonedas habilitadas hoy: ${currencies.join(", ") || "(a confirmar)"}.\n¿Querés que te detalle medios de pago y comprobantes?`
+        : `Por el momento ${hit.code} está deshabilitado. Si querés, lo consulto con recepción y te confirmo alternativas para tu reserva.\n\nMonedas habilitadas hoy: ${currencies.join(", ") || "(a confirmar)"}.`;
+    }
+    if (asksCurrency) return `Monedas habilitadas hoy: ${currencies.join(", ") || "(a confirmar)"}.\n\n¿Querés que te detalle medios de pago y comprobantes?`;
+    if (asksInvoices) return `Emitimos factura: ${issuesInvoices ? "sí" : "por el momento no"}.\nComprobantes: ${docs.join(", ") || "(a confirmar)"}.\n\n¿Querés que te detalle medios de pago y monedas?`;
+    return `Medios de pago habilitados: ${methods.join(", ") || "(a confirmar)"}.\nMonedas habilitadas: ${currencies.join(", ") || "(a confirmar)"}.\nTarjeta para garantía: ${requiresCard ? "sí" : "no"}.\nFactura: ${issuesInvoices ? "sí" : "a confirmar"}.\n\n¿Querés que te detalle medios, monedas o comprobantes?`;
+  } catch {
+    if (lang === "pt") return "Posso te ajudar com pagamentos e faturamento. Quer que eu detalhe meios, moedas ou comprovantes?";
+    if (lang === "en") return "I can help with payments and billing. Do you want details on methods, currencies, or invoices?";
+    return "Puedo ayudarte con pagos y facturación. ¿Querés que te detalle medios, monedas o comprobantes?";
+  }
+}
+
+function applyCommittedHotelTone(text: string, lang: "es" | "en" | "pt"): string {
+  let out = String(text || "").trim();
+  if (!out) return out;
+
+  if (lang === "es") {
+    out = out
+      .replace(/\blamentablemente,\s*no\b/gi, "Por el momento")
+      .replace(/\blamentamos,\s*pero\s*no\b/gi, "Por el momento")
+      .replace(/\bno est[aá] habilitad[oa]\b/gi, "por el momento no está habilitado")
+      .replace(/\bno est[aá] disponible\b/gi, "por el momento no está disponible")
+      .replace(/\bno contamos con\b/gi, "por el momento no contamos con")
+      .replace(/\bno hay\b/gi, "por el momento no hay")
+      .replace(/(^|\n)\s*no\s+([a-záéíóúñ])/gi, "$1Por el momento no $2");
+
+    const hasRestriction = /(por el momento no est[aá]|por el momento no contamos|por el momento no hay)/i.test(out);
+    const hasProactive = /(si quer[eé]s.*consult|te lo consulto|te confirmo alternativas|puedo consultarlo)/i.test(out);
+    if (hasRestriction && !hasProactive) {
+      out = `${out}\n\nSi querés, lo consulto con recepción y te confirmo alternativas para tu estadía.`;
+    }
+  }
+
+  if (lang === "pt") {
+    out = out
+      .replace(/\bn[aã]o est[aá] habilitad[oa]\b/gi, "no momento, não está habilitado")
+      .replace(/\bn[aã]o est[aá] dispon[ií]vel\b/gi, "no momento, não está disponível")
+      .replace(/\bn[aã]o contamos com\b/gi, "no momento, não contamos com");
+  }
+
+  if (lang === "en") {
+    out = out
+      .replace(/\bis not enabled\b/gi, "is currently not enabled")
+      .replace(/\bis not available\b/gi, "is currently not available");
+  }
+
+  return out;
+}
+
+function stripGlobalTailNoise(text: string): string {
+  let out = String(text || "").trim();
+  if (!out) return out;
+  const patterns = [
+    /(?:\n|\r\n){1,}¿prefer[íi]s opciones tranquilas o con m[aá]s movimiento\??[\s\S]*$/i,
+    /(?:\n|\r\n){1,}preferis opciones tranquilas o con mas movimiento\??[\s\S]*$/i,
+    /(?:\n|\r\n){1,}do you prefer quiet options or more activity\??[\s\S]*$/i,
+    /(?:\n|\r\n){1,}voc[eê] prefere op[cç][oõ]es tranquilas ou com mais movimento\??[\s\S]*$/i,
+  ];
+  for (const re of patterns) out = out.replace(re, "").trim();
+  return out;
 }
 
 function buildModifyGuidance(
@@ -2337,6 +2720,14 @@ export async function handleIncomingMessage(
     preLLMInput?: PreLLMResult;
   }
 ): Promise<void> {
+  if (process.env.DEBUG_ROUTING === "1") {
+    debugLog("[routing] handleIncomingMessage input", {
+      conversationId: msg.conversationId,
+      content: msg.content,
+      hotelId: msg.hotelId,
+      mode: options?.mode,
+    });
+  }
   /**
    * Autosend policy:
    * - SENT siempre: reservation_snapshot, reservation_verify, salesStage=close
@@ -2345,6 +2736,7 @@ export async function handleIncomingMessage(
    * Logs: lang_in, lang_retrieval, lang_out (cuando aplica) y autosend_reason
    */
   debugLog("[FlujoCHKI][handleIncomingMessage] IN", { msg, options });
+
   // Flags evaluadas en runtime (evita cacheo entre tests por module scope)
   const GRAPH_ENABLED = process.env.USE_MH_FLOW_GRAPH === '1' || process.env.USE_MH_FLOW_GRAPH === 'true';
   const ORCH_ENABLED = process.env.USE_ORCHESTRATOR_AGENT === '1' || process.env.USE_ORCHESTRATOR_AGENT === 'true';
@@ -2355,6 +2747,9 @@ export async function handleIncomingMessage(
     // Por defecto (sin la env) conservamos comportamiento actual (skip = true)
     const pipelineEnabled = process.env.USE_PRE_POS_PIPELINE === '1';
     const skipPrePos = options?.onlyBodyLLM === true ? true : !pipelineEnabled;
+    if (process.env.DEBUG_ROUTING === "1") {
+      debugLog("[mh][flags]", { GRAPH_ENABLED, ORCH_ENABLED, pipelineEnabled, skipPrePos });
+    }
     if (!skipPrePos) {
       if (!(globalThis as any).__loggedPrePosOnce) {
         (globalThis as any).__loggedPrePosOnce = true;
@@ -2366,8 +2761,14 @@ export async function handleIncomingMessage(
     }
     let pre: PreLLMResult;
     if (skipPrePos) {
+      if (process.env.DEBUG_ROUTING === "1") {
+        debugLog("[routing] before getObjectiveContext", { conversationId: msg.conversationId, content: msg.content });
+      }
       // Inicializa contexto objetivo antes de bodyLLM
       const ctx = await getObjectiveContext(msg, options);
+      if (process.env.DEBUG_ROUTING === "1") {
+        debugLog("[routing] after getObjectiveContext", { conversationId: msg.conversationId, lang: ctx.lang, prevCategory: ctx.prevCategory });
+      }
       const inModifyModeFallback = computeInModifyMode(ctx.st, ctx.currSlots, String(msg.content || ""));
       pre = options?.preLLMInput || {
         lang: ctx.lang,
@@ -2398,6 +2799,9 @@ export async function handleIncomingMessage(
     // --- bodyLLM OR grafo completo (Fase 3) ---
     let body: any;
     let auditFromGraph: { verdictInfo?: any; llmInterp?: any; needsSupervision?: boolean } | null = null;
+    if (process.env.DEBUG_ROUTING === "1") {
+      debugLog("[mh][branch]", { GRAPH_ENABLED, ORCH_ENABLED, skipPrePos });
+    }
     if (GRAPH_ENABLED) {
       try { if (IS_TEST) console.log('[mh][branch] GRAPH_ENABLED=true → invoking orchestratorProxy'); } catch { }
       // Camino nuevo: delegamos a grafo que incluye orquestación.
@@ -2492,6 +2896,21 @@ export async function handleIncomingMessage(
     const richPayload: RichPayload | undefined = (body as any)?.rich ?? (body as any)?.graphResult?.meta?.rich;
     // ===== Agent: SupervisorDecision =====
     const respCategory = (body?.graphResult?.category || body?.nextCategory || pre.prevCategory) as string | undefined;
+    const respPromptKey = (
+      body?.graphResult?.promptKey ||
+      body?.graphResult?.classified?.promptKey ||
+      pre.promptKey ||
+      null
+    ) as string | null;
+    const respContentVersion = (
+      body?.graphResult?.resolved?.content?.version ||
+      body?.graphResult?.debug?.resolved?.content?.version ||
+      null
+    ) as string | null;
+    const respSource = (
+      body?.graphResult?.source ||
+      null
+    ) as string | null;
     const respSalesStage = (body?.graphResult?.salesStage || pre.st?.salesStage) as string | undefined;
     const combinedMode: ChannelMode = combineModes(pre.options?.mode, pre.guest.mode ?? "automatic");
     const safeCat = isSafeAutosendCategory(respCategory || "");
@@ -2520,6 +2939,14 @@ export async function handleIncomingMessage(
       direction: 'out',
       detectedLanguage: pre.lang,
       respondedBy: needsSupervision ? "assistant" : undefined,
+      meta: {
+        responseTrace: {
+          category: respCategory ?? null,
+          promptKey: respPromptKey,
+          contentVersion: respContentVersion,
+          source: respSource,
+        },
+      },
     } as ChannelMessage;
     if (richPayload) (aiMsg as any).rich = richPayload;
 
@@ -2533,6 +2960,18 @@ export async function handleIncomingMessage(
     debugLog("[handleIncomingMessage] aiMsg", aiMsg);
     (aiMsg as any).audit = verdictInfo ? { verdict: verdictInfo, llm: llmInterp } : undefined;
     await saveChannelMessageToAstra(aiMsg);
+    try {
+      await appendConversationReplyTrace(pre.conversationId, {
+        messageId: aiMsg.messageId,
+        timestamp: aiMsg.timestamp,
+        category: respCategory ?? null,
+        promptKey: respPromptKey,
+        contentVersion: respContentVersion,
+        source: respSource,
+      }, 300);
+    } catch (e) {
+      console.warn("[conversation-trace] stamp warn:", (e as any)?.message || e);
+    }
     channelMemory.addMessage(aiMsg);
     try {
       if (aiMsg.status === "sent") {

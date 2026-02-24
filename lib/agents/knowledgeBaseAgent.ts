@@ -46,9 +46,24 @@ export async function answerWithKnowledge(args: {
         desiredLang,
     });
 
-    // Enforce promptKey consistency with metadata
+    // Enforce promptKey consistency with metadata and choose a safe template fallback.
+    // Priority:
+    // 1) explicit valid promptKey
+    // 2) resolved router promptKey (if available)
+    // 3) kb_general
+    // 4) first metadata key for the category (legacy last resort, non-retrieval only)
     const validPK = promptKey && promptMetadata[category]?.includes(promptKey);
-    const finalPromptKey = validPK ? promptKey : (promptMetadata[category]?.[0] ?? null);
+    const resolvedPromptKey =
+        typeof resolved.router?.promptKey === "string" && resolved.router.promptKey.trim()
+            ? resolved.router.promptKey.trim()
+            : null;
+    const safeFallbackPromptKey = "kb_general";
+    const legacyMetadataFallback =
+        category === "retrieval_based" ? null : (promptMetadata[category]?.[0] ?? null);
+    const finalPromptKey = validPK
+        ? promptKey
+        : ((resolvedPromptKey || safeFallbackPromptKey)
+            || legacyMetadataFallback);
 
     // 2.b: intentar obtener contenido hidratado de plantillas (machineBody + grafo/PMS)
     let hydratedTemplateText: string | null = null;
@@ -104,10 +119,12 @@ export async function answerWithKnowledge(args: {
             modelName: process.env.LLM_KB_MODEL || "gpt-4o-mini",
             temperature: 0.2,
         });
+        const scopedSystem =
+            category === "amenities"
+                ? "Eres un asistente del hotel. Responde claro y profesional usando sólo el contexto disponible. Mantén el foco en amenities/horarios y no agregues recomendaciones de actividades, eventos o paseos."
+                : "Eres un asistente del hotel. Responde claro y profesional usando sólo el contexto disponible.";
         const res = await model.invoke([
-            new SystemMessage(
-                "Eres un asistente del hotel. Responde claro y profesional usando sólo el contexto disponible."
-            ),
+            new SystemMessage(scopedSystem),
             new HumanMessage(prompt),
         ]);
         answer = typeof res.content === "string" ? res.content : JSON.stringify(res.content);

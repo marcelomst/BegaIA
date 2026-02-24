@@ -4,6 +4,10 @@ import fs from "fs";
 import path from "path";
 
 const ALLOWED_TAGS: string[] = [];
+// TRACE para confirmar que este módulo se está cargando en runtime
+try {
+  console.warn("[debugLog] TRACE module loaded (log.txt writer active)");
+} catch {}
 // const ALLOWED_TAGS: string[] = ["[RESERVATION]"];
 export function debugLog(...args: any[]) {
   if (process.env.DEBUG === "true") {
@@ -50,5 +54,4 @@ console.error = (...args) => {
 export async function logToFile(type: "warn" | "error" | "debug", ...args: any[]) {
   writeLog(type, ...args);
 }
-
 

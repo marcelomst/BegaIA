@@ -5,6 +5,7 @@ import { searchFromAstra } from "@/lib/retrieval";
 import { curatedPrompts, defaultPrompt } from "@/lib/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { translateIfNeeded } from "@/lib/i18n/translateIfNeeded";
+import { getCurrentVersionFromIndex } from "@/lib/astra/hotelVersionIndex";
 import type { GraphState } from "../graphState";
 
 export async function handleSupportNode(state: typeof GraphState.State) {
@@ -18,6 +19,7 @@ export async function handleSupportNode(state: typeof GraphState.State) {
         : ((["es", "en", "pt"].includes(hotel2) ? (hotel2 as any) : "es"));
     const userQuery = state.normalizedMessage || "";
     const hotelId = state.hotelId || "hotel999";
+    const promptKey = state.promptKey || "contact_support";
     const filters = {
         category: "support",
         promptKey: state.promptKey ?? undefined,
@@ -60,8 +62,23 @@ export async function handleSupportNode(state: typeof GraphState.State) {
                     : "Contame el problema y te ayudo.";
     }
     const responseToUser = await translateIfNeeded(text, retrievalLang, originalLang);
+    let contentVersion: string | null = null;
+    try {
+        const idx = await getCurrentVersionFromIndex(hotelId, "support", promptKey, retrievalLang);
+        contentVersion = idx?.currentVersion ? String(idx.currentVersion) : null;
+    } catch {
+        contentVersion = null;
+    }
     return {
         messages: [new AIMessage(responseToUser || text)],
         category: "support",
+        source: "support_kb",
+        resolved: {
+            ...(state.resolved || {}),
+            content: {
+                ...((state.resolved as any)?.content || {}),
+                version: contentVersion,
+            },
+        },
     };
 }

@@ -55,6 +55,14 @@ export const GraphState = Annotation.Root({
         reducer: (x, y) => ({ ...x, ...y }),
         default: () => ({}),
     }),
+    source: Annotation<string | null>({
+        reducer: (_x, y) => y,
+        default: () => null,
+    }),
+    resolved: Annotation<Record<string, any>>({
+        reducer: (x, y) => ({ ...(x || {}), ...(y || {}) }),
+        default: () => ({}),
+    }),
 
     // Slots de reserva
     reservationSlots: Annotation<{

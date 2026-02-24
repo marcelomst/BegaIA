@@ -54,11 +54,26 @@ function normalizeText(s: string): string {
         .trim();
 }
 
+function canonicalizeCustomSlug(slug: string): string {
+    let out = (slug || "").trim().toLowerCase();
+    // Evita crecimiento tipo custom_custom_custom_x por normalizaciones repetidas.
+    while (out.startsWith("custom_custom_")) out = "custom_" + out.slice("custom_custom_".length);
+    return out;
+}
+
 export function normalizeAmenityTags(input: string[]): string[] {
     const out: string[] = [];
     for (const raw of input) {
+        const rawStr = String(raw).trim().toLowerCase();
         const norm = normalizeText(String(raw));
-        const slug = indexSynonymToSlug[norm] || generateCustomSlug(norm);
+        let slug: string;
+        // Si ya viene en formato slug canónico, preservarlo (evita encadenar custom_).
+        if (/^[a-z0-9_]+$/.test(rawStr) && (rawStr.startsWith("custom_") || AMENITIES_TAXONOMY.some(a => a.slug === rawStr))) {
+            slug = canonicalizeCustomSlug(rawStr);
+        } else {
+            slug = indexSynonymToSlug[norm] || generateCustomSlug(norm);
+            slug = canonicalizeCustomSlug(slug);
+        }
         if (!out.includes(slug)) out.push(slug);
     }
     return out;

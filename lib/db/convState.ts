@@ -92,6 +92,12 @@ export type ConversationFlowState = {
   supervised?: boolean;                  // flag de pendiente/revisión
   lastSupervision?: SupervisionRecord | null; // último registro de auditoría
 
+  // Eventos (follow-ups)
+  lastEventCity?: string | null;
+  lastEventRange?: { from: string; to: string; tz: string } | null;
+  lastEventPromptKey?: string | null;
+  lastIntentGroup?: string | null;
+
 
   // Auditoría
   updatedAt: string;
@@ -163,6 +169,10 @@ export async function upsertConvState(
   if ("lastCategory" in patch) $set.lastCategory = patch.lastCategory ?? null;
   if ("activeFlow" in patch) $set.activeFlow = patch.activeFlow ?? null;
   if ("salesStage" in patch) $set.salesStage = patch.salesStage ?? null;
+  if ("lastEventCity" in patch) $set.lastEventCity = (patch as any).lastEventCity ?? null;
+  if ("lastEventRange" in patch) $set.lastEventRange = (patch as any).lastEventRange ?? null;
+  if ("lastEventPromptKey" in patch) $set.lastEventPromptKey = (patch as any).lastEventPromptKey ?? null;
+  if ("lastIntentGroup" in patch) $set.lastIntentGroup = (patch as any).lastIntentGroup ?? null;
 
   const $unset: Record<string, any> = {};
 

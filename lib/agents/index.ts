@@ -5,6 +5,7 @@ type AgentGraph = {
   invoke(input: Record<string, unknown>): Promise<{
     messages: BaseMessage[];
     category?: string;
+    promptKey?: string;
     reservationSlots?: Record<string, unknown>;
   }>;
 };
@@ -112,6 +113,29 @@ async function loadGraph(): Promise<AgentGraph> {
 // Wrapper público estable
 export const agentGraph: AgentGraph = {
   async invoke(input) {
+    const category = typeof input?.category === "string" ? input.category : undefined;
+    if (category === "greeting") {
+      const iso = typeof input?.detectedLanguage === "string"
+        ? input.detectedLanguage
+        : "spa";
+      const lang =
+        iso === "eng" || iso === "en" ? "en" :
+        iso === "por" || iso === "pt" ? "pt" :
+        "es";
+      const reply =
+        lang === "en"
+          ? "Hello! 👋 How can I assist you today?"
+          : lang === "pt"
+            ? "Olá! 👋 Como posso ajudar você hoje?"
+            : "¡Hola! 👋 ¿En qué puedo ayudarte hoy?";
+      const prior = Array.isArray(input?.messages) ? (input.messages as BaseMessage[]) : [];
+      return {
+        ...input,
+        messages: [...prior, new AIMessage(reply)],
+        category: "greeting",
+        promptKey: "greeting",
+      };
+    }
     const g = await loadGraph();
     return g.invoke(input);
   },

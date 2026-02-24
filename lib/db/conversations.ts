@@ -90,6 +90,62 @@ export async function updateConversation(
   );
 }
 
+export type ConversationReplyTrace = {
+  messageId: string;
+  timestamp: string;
+  category?: string | null;
+  promptKey?: string | null;
+  contentVersion?: string | null;
+  source?: string | null;
+};
+
+/**
+ * Deja una huella mínima de la última respuesta AI de la conversación
+ * (útil para auditoría de categoría/prompt/version).
+ */
+export async function stampConversationReplyTrace(
+  conversationId: string,
+  trace: ConversationReplyTrace
+) {
+  const collection = getConversationsCollection();
+  await collection.updateOne(
+    { conversationId },
+    {
+      $set: {
+        lastUpdatedAt: trace.timestamp,
+        "metadata.lastResponseTrace": trace,
+      } as any,
+    }
+  );
+}
+
+/**
+ * Agrega huella al historial y actualiza "lastResponseTrace".
+ * Mantiene sólo las últimas N huellas para evitar crecimiento infinito.
+ */
+export async function appendConversationReplyTrace(
+  conversationId: string,
+  trace: ConversationReplyTrace,
+  maxItems = 200
+) {
+  const collection = getConversationsCollection();
+  await collection.updateOne(
+    { conversationId },
+    {
+      $set: {
+        lastUpdatedAt: trace.timestamp,
+        "metadata.lastResponseTrace": trace,
+      } as any,
+      $push: {
+        "metadata.responseTraceHistory": {
+          $each: [trace],
+          $slice: -Math.max(1, maxItems),
+        },
+      } as any,
+    }
+  );
+}
+
 /**
  * Trae todas las conversaciones de un hotel+canal (sin importar guestId/userId)
  */

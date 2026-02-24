@@ -44,6 +44,15 @@ function deepMerge<T extends Record<string, any>>(base: T, updates: Partial<T>):
  * Evita casts peligrosos (WithSim<FoundDoc<...>> → HotelConfig).
  */
 function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
+  const rawNearby = typeof doc.nearbyPointsMode === "string" ? doc.nearbyPointsMode.toLowerCase() : undefined;
+  const nearbyPointsMode =
+    rawNearby === "allwais" ? "always" :
+    rawNearby === "always" ? "always" :
+    rawNearby === "auto" ? "auto" :
+    rawNearby === "text" ? "text" :
+    rawNearby === "carousel" ? "carousel" :
+    undefined;
+
   const cfg: HotelConfig = {
     hotelId: String(doc.hotelId),
     hotelName: doc.hotelName ?? "Unnamed Hotel",
@@ -69,9 +78,17 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
     policies: doc.policies ?? undefined,
     rooms: doc.rooms ?? undefined,
     schedules: doc.schedules ?? undefined,
+    airports: doc.airports ?? undefined,
+    transport: doc.transport ?? undefined,
     attractions: doc.attractions ?? undefined,
+    touristEvents: doc.touristEvents ?? undefined,
+    arrivalInfo: doc.arrivalInfo ?? undefined,
+    transportInfo: doc.transportInfo ?? undefined,
     attractionsInfo: doc.attractionsInfo ?? undefined,
     hotelProfile: doc.hotelProfile ?? undefined,
+    nearbyPointsMode,
+    eventsRegion: doc.eventsRegion ?? undefined,
+    globalEventsProvider: doc.globalEventsProvider ?? undefined,
     // Puedes agregar aquí otros campos que quieras exponer
   };
   return cfg;

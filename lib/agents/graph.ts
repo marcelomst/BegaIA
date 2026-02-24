@@ -1,5 +1,5 @@
 import { detectCheckinCheckoutTimeQuery } from "@/lib/agents/classify/detect";
-import { RE_TRANSPORT, RE_BILLING, RE_SUPPORT, RE_BREAKFAST, looksGeneralInfo } from "@/lib/agents/classify/keywords";
+import { RE_TRANSPORT, RE_BILLING, RE_SUPPORT, RE_BREAKFAST, RE_AMENITIES, looksGeneralInfo } from "@/lib/agents/classify/keywords";
 import { debugLog } from "@/lib/utils/debugLog";
 import { handleReservationSnapshotNode } from "@/lib/agents/nodes/reservationSnapshot";
 import { handleReservationVerifyNode } from "@/lib/agents/nodes/reservationVerify";
@@ -10,40 +10,235 @@ import { retrievalBasedNode } from "@/lib/agents/nodes/retrieval";
 import { StateGraph } from "@langchain/langgraph";
 import { GraphState } from "./graphState";
 import { getConvState } from "@/lib/db/convState";
-import { classifyQuery } from "@/lib/classifier";
+import { classifyQuery, isPureGreeting } from "@/lib/classifier";
 import { looksLikeName, heuristicClassify, looksRoomInfo, pickNearbyPromptKey } from "./helpers";
 import { askModifyFieldNode, askNewValueNode, confirmModificationNode } from "./nodes/reservationModify";
 import { handleReservationNode } from "./nodes";
 import { handleCancelReservationNode } from "./nodes/cancelReservation";
 import type { IntentCategory, DesiredAction } from "@/types/audit";
 
+function wantsEvents(s: string) {
+  const t = (s || "").toLowerCase();
+  const keys = [
+    // ES
+    "evento", "eventos", "agenda", "hoy", "mañana", "manana",
+    "esta noche", "fin de semana", "este fin de semana",
+    "evento turistico", "evento turístico", "eventos turisticos", "eventos turísticos",
+    // EN
+    "event", "events", "tourist event", "tourist events", "today", "tomorrow", "tonight",
+    "weekend", "this weekend",
+    // PT
+    "evento", "eventos", "agenda", "hoje", "amanhã", "amanha", "esta noite",
+    "fim de semana", "este fim de semana",
+    "evento turistico", "eventos turisticos",
+  ];
+  return keys.some((k) => t.includes(k));
+}
+
+function hasEventFollowupCue(s: string) {
+  const t = (s || "").toLowerCase();
+  if (!t) return false;
+  if (/\b(evento|eventos|agenda|concierto|recital|festival|feria|show|teatro|exposicion|exposición)\b/.test(t)) return true;
+  if (/\b(foto|fotos|imagen|imagenes|imágenes|photos|pics)\b/.test(t)) return true;
+  if (/\b(hoy|mañana|manana|esta noche|fin de semana|este fin de semana|proxima semana|próxima semana|weekend|this weekend|next week)\b/.test(t)) return true;
+  return false;
+}
+
+function hasStrongNonEventIntent(s: string) {
+  const t = (s || "").toLowerCase();
+  if (!t) return false;
+  if (RE_SUPPORT.test(t) || RE_BILLING.test(t) || RE_TRANSPORT.test(t) || RE_BREAKFAST.test(t) || RE_AMENITIES.test(t)) {
+    return true;
+  }
+  // Refuerzo para consultas de contacto/soporte que no siempre matchean regex amplias
+  if (/\b(contacto|contactar|telefono|teléfono|whatsapp|email|correo|soporte|ayuda|recepcion|recepción|guardia|guardia nocturna|horario|atencion|atención)\b/.test(t)) {
+    return true;
+  }
+  return false;
+}
+
+function isSeasonalQuery(s: string) {
+  const t = (s || "").toLowerCase();
+  return /\b(este mes|temporada|verano|invierno|otoño|oton(o)?|primavera|this month|season|summer|winter|fall|spring|este mês|neste mês|estação|verao|verão|inverno|outono|primavera)\b/.test(t);
+}
+
+function hasExplicitAgendaSignal(s: string) {
+  const t = (s || "").toLowerCase();
+  return /\b(evento(s)?|agenda|calendario|calendar|event calendar|concierto(s)?|recital(es)?|festival(es)?|feria(s)?|show(s)?|teatro|exposici[oó]n(es)?|carnaval|muestra(s)?)\b/.test(t);
+}
+
+function wantsThingsToDo(s: string) {
+  const t = (s || "").toLowerCase();
+  const keys = [
+    // ES
+    "que hacer",
+    "qué hacer",
+    "que se puede hacer",
+    "planes",
+    "plan",
+    "diversion",
+    "diversión",
+    "actividades",
+    "recomendas",
+    "recomendás",
+    "lugares para ir",
+    "salir de noche",
+    "que hay",
+    // EN
+    "what to do",
+    "things to do",
+    "plans",
+    "activities",
+    "nightlife",
+    // PT
+    "o que fazer",
+    "planos",
+    "atividades",
+    "vida noturna",
+  ];
+  return keys.some((k) => t.includes(k));
+}
+
+function wantsImages(s: string) {
+  const t = (s || "").toLowerCase();
+  return /\b(imagenes|imágenes|fotos|con\s+imagenes|con\s+imágenes|con\s+fotos|images|photos|pictures|pics|with\s+images|with\s+photos|with\s+pictures|with\s+pics|imagens|com\s+imagens|com\s+fotos)\b/.test(t);
+}
+
+function wantsChannelManager(s: string) {
+  const t = (s || "").toLowerCase();
+  if (!t) return false;
+  return /\b(canal|canales|channel|channels|por que canal|por qué canal|v[ií]a de contacto|contactar por|escribir por|fuera de horario|out of hours|canal recomendado)\b/.test(t);
+}
+
 // Nodo de clasificación principal
 export async function classifyNode(state: typeof GraphState.State) {
   debugLog('[Graph] Enter classifyNode', { state });
+
+  if (process.env.DEBUG_ROUTING === "1") {
+    debugLog("[routing] enter classifyNode", {
+      conversationId: state.conversationId,
+      normalizedMessage: state.normalizedMessage,
+    });
+  }
+  debugger;
+  const conversationId = state.conversationId || "";
+  let st: any = null;
+  if (conversationId) {
+    try {
+      st = await getConvState(state.hotelId, conversationId);
+    } catch {
+      st = null;
+    }
+  }
+  if (process.env.DEBUG_ROUTING === "1") {
+    debugLog("[routing] conv_state", { conversationId, lastIntentGroup: st?.lastIntentGroup });
+  }
+  const hasPhotoSignal = (text: string) => /\b(foto|fotos|imagen|imagenes|imágenes|photos|pics)\b/i.test(text || "");
+  const startsWithFollowup = (text: string) => /^\s*(¿?\s*y\b|and\b|e\b)\b/i.test(text || "");
+  const isShortFollowup = (text: string) => String(text || "").trim().length <= 40;
+  const seasonal = isSeasonalQuery(state.normalizedMessage || "");
+  const explicitAgenda = hasExplicitAgendaSignal(state.normalizedMessage || "");
+  const debugRouting = process.env.DEBUG_ROUTING === "1";
+  const withRoutingDebug = (
+    payload: Record<string, any>,
+    route_source: string,
+    route_match: string,
+    confidence: number
+  ) => {
+    if (!debugRouting) return payload;
+    const metaBase = { ...(state.meta || {}), ...(payload.meta || {}) } as Record<string, any>;
+    const debugBase = { ...(metaBase.debug || {}) } as Record<string, any>;
+    return {
+      ...payload,
+      meta: {
+        ...metaBase,
+        debug: {
+          ...debugBase,
+          route_source,
+          route_match,
+          intentConfidence: confidence,
+        },
+      },
+    };
+  };
+  if (
+    st?.lastIntentGroup === "events" &&
+    (
+      startsWithFollowup(state.normalizedMessage || "") ||
+      (isShortFollowup(state.normalizedMessage || "") && hasEventFollowupCue(state.normalizedMessage || ""))
+    ) &&
+    !hasStrongNonEventIntent(state.normalizedMessage || "")
+  ) {
+    const pk = hasPhotoSignal(state.normalizedMessage || "") ? "tourist_events_img" : "tourist_events";
+    if (process.env.DEBUG_ROUTING === "1") {
+      debugLog("[routing] followup-events decision", {
+        conversationId,
+        normalizedMessage: state.normalizedMessage,
+        lastIntentGroup: st?.lastIntentGroup,
+        hasPhotoSignal: hasPhotoSignal(state.normalizedMessage || ""),
+        promptKey: pk,
+      });
+    }
+    return withRoutingDebug({
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.92,
+      intentSource: "heuristic",
+      promptKey: pk,
+      messages: [],
+    }, "heuristic_events_followup", "followup_events", 0.92);
+  }
+  if (wantsEvents(state.normalizedMessage || "") && !(seasonal && !explicitAgenda)) {
+    const pk = wantsImages(state.normalizedMessage || "") ? "tourist_events_img" : "tourist_events";
+    return withRoutingDebug({
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.96,
+      intentSource: "heuristic",
+      promptKey: pk,
+      messages: [],
+    }, "heuristic_events", "wantsEvents", 0.96);
+  }
   const nearbyPK = pickNearbyPromptKey(state.normalizedMessage || "");
   if (nearbyPK) {
-    return {
+    return withRoutingDebug({
       category: "retrieval_based",
       desiredAction: undefined,
       intentConfidence: 0.96,
       intentSource: "heuristic",
       promptKey: nearbyPK,
       messages: [],
-    };
+    }, "heuristic_nearby", "pickNearbyPromptKey", 0.96);
+  }
+  const isEventExplicit = wantsEvents(state.normalizedMessage || "") || state.promptKey === "tourist_events" || state.promptKey === "tourist_events_img";
+  if (!isEventExplicit && wantsThingsToDo(state.normalizedMessage || "")) {
+    const langRaw = String((state as any).originalLang || state.detectedLanguage || "").toLowerCase();
+    const isEn = langRaw.startsWith("en") || langRaw === "eng";
+    const isPt = langRaw.startsWith("pt") || langRaw === "por";
+    const basePk = isEn ? "things_to_do_en" : isPt ? "things_to_do_pt" : "things_to_do";
+    const pk = wantsImages(state.normalizedMessage || "") ? `${basePk}_img` : basePk;
+    return withRoutingDebug({
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.95,
+      intentSource: "heuristic",
+      promptKey: pk,
+      messages: [],
+    }, "heuristic_things_to_do", "wantsThingsToDo", 0.95);
   }
   // Si la reserva está cerrada, manejar casos especiales
   if (state.salesStage === "close") {
     const t = (state.normalizedMessage || "").toLowerCase();
     // Si pregunta por horario de check-in/out, derivar a RAG
     if (detectCheckinCheckoutTimeQuery(t)) {
-      return {
+      return withRoutingDebug({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.98,
         intentSource: "heuristic",
         promptKey: undefined,
         messages: [],
-      };
+      }, "heuristic_kb_general", "detectCheckinCheckoutTimeQuery", 0.98);
     }
     // Si el usuario explícitamente quiere modificar/cancelar, seguir en reservation
     if (
@@ -164,50 +359,74 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Transporte / aeropuertos: ruta específica a arrivals_transport
     const looksTransport = RE_TRANSPORT.test(t);
     if (looksTransport) {
-      return {
+      return withRoutingDebug({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
         intentSource: "heuristic",
         promptKey: "arrivals_transport",
         messages: [],
-      };
+      }, "heuristic_transport", "RE_TRANSPORT", 0.97);
     }
     // Billing / pagos: ruta específica a payments_and_billing
     const looksBilling = RE_BILLING.test(t);
     if (looksBilling) {
-      return {
+      return withRoutingDebug({
         category: "billing",
         desiredAction: undefined,
         intentConfidence: 0.98,
         intentSource: "heuristic",
         promptKey: "payments_and_billing",
         messages: [],
-      };
+      }, "heuristic_billing", "RE_BILLING", 0.98);
+    }
+    // Soporte / canales: ruta específica a contact_channel_selector
+    const looksChannelManager = wantsChannelManager(t);
+    if (looksChannelManager) {
+      return withRoutingDebug({
+        category: "support",
+        desiredAction: undefined,
+        intentConfidence: 0.98,
+        intentSource: "heuristic",
+        promptKey: "contact_channel_selector",
+        messages: [],
+      }, "heuristic_contact_channel_selector", "wantsChannelManager", 0.98);
     }
     // Soporte / contacto: ruta específica a contact_support
     const looksSupport = RE_SUPPORT.test(t);
     if (looksSupport) {
-      return {
+      return withRoutingDebug({
         category: "support",
         desiredAction: undefined,
         intentConfidence: 0.98,
         intentSource: "heuristic",
         promptKey: "contact_support",
         messages: [],
-      };
+      }, "heuristic_support", "RE_SUPPORT", 0.98);
     }
     // Desayuno / breakfast: ruta específica a breakfast_bar
     const looksBreakfast = RE_BREAKFAST.test(t);
     if (looksBreakfast) {
-      return {
+      return withRoutingDebug({
         category: "amenities",
         desiredAction: undefined,
         intentConfidence: 0.97,
         intentSource: "heuristic",
         promptKey: "breakfast_bar",
         messages: [],
-      };
+      }, "heuristic_breakfast", "RE_BREAKFAST", 0.97);
+    }
+    // Amenities generales: ruta específica a amenities_list
+    const looksAmenities = RE_AMENITIES.test(t);
+    if (looksAmenities) {
+      return withRoutingDebug({
+        category: "amenities",
+        desiredAction: undefined,
+        intentConfidence: 0.97,
+        intentSource: "heuristic",
+        promptKey: "amenities_list",
+        messages: [],
+      }, "heuristic_amenities", "RE_AMENITIES", 0.97);
     }
   } catch { }
   // Regla temprana: si el texto claramente es de info general (mascotas, ubicación, servicios), forzar retrieval kb_general
@@ -215,14 +434,14 @@ export async function classifyNode(state: typeof GraphState.State) {
     const t = (normalizedMessage || "").toLowerCase();
     // Detección de keywords de info general
     if (looksGeneralInfo(t)) {
-      return {
+      return withRoutingDebug({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
         intentSource: "heuristic",
         promptKey: "kb_general",
         messages: [],
-      };
+      }, "heuristic_kb_general", "looksGeneralInfo", 0.97);
     }
   } catch { }
   // Refuerzo: si el mensaje contiene un dato parcial de slot, forzar reservation
@@ -254,13 +473,23 @@ export async function classifyNode(state: typeof GraphState.State) {
         messages: [],
       };
     }
-    if (/(pago|pagos|pagar|medio(?:s)? de pago|tarjeta|tarjetas|d[eé]bito|cr[eé]dito|facturaci[oó]n|factura|invoice|billing|cobro|cobrar)/i.test(t)) {
+    if (/(pago|pagos|pagar|medio(?:s)? de pago|tarjeta|tarjetas|d[eé]bito|cr[eé]dito|facturaci[oó]n|factura|invoice|billing|cobro|cobrar|btc|bitcoin|crypto|cript(o|o)moneda|criptomoeda)/i.test(t)) {
       return {
         category: "billing",
         desiredAction: undefined,
         intentConfidence: 0.98,
         intentSource: "heuristic",
         promptKey: "payments_and_billing",
+        messages: [],
+      };
+    }
+    if (wantsChannelManager(t)) {
+      return {
+        category: "support",
+        desiredAction: undefined,
+        intentConfidence: 0.98,
+        intentSource: "heuristic",
+        promptKey: "contact_channel_selector",
         messages: [],
       };
     }
@@ -292,7 +521,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Otros desvíos (cancel, billing, soporte) no deben ir a kb_general; se dejan caer para recomputar categoría más abajo
     const isOtherHardSwitch =
       /\b(cancel|cancelar|anular)\b/.test(t) ||
-      /\b(factura|invoice|cobro|billing)\b/.test(t) ||
+            /\b(factura|invoice|cobro|billing|btc|bitcoin|crypto)\b/.test(t) ||
       /\b(soporte|ayuda|problema|support)\b/.test(t);
     if (isGeneralInfoSwitch) {
       return {
@@ -304,15 +533,15 @@ export async function classifyNode(state: typeof GraphState.State) {
         messages: [],
       };
     }
-    if (!isOtherHardSwitch) {
-      const result = {
+    if (!isOtherHardSwitch && !isPureGreeting(normalizedMessage || "")) {
+      const result = withRoutingDebug({
         category: "reservation",
         desiredAction: "modify",
         intentConfidence: 0.95,
         intentSource: "heuristic",
         promptKey: "reservation_flow",
         messages: [],
-      };
+      }, "heuristic_reservation_refuerzo", "hasAnySlot", 0.95);
       debugLog('[Graph] Exit classifyNode (reservation/hasAnySlot refuerzo)', { result });
       return result;
     }
@@ -329,14 +558,14 @@ export async function classifyNode(state: typeof GraphState.State) {
       };
       const forcedPK = llmC.promptKey ?? (looksRoomInfo(normalizedMessage) ? "room_info" : undefined);
       if (forcedPK)
-        return {
+        return withRoutingDebug({
           category: "retrieval_based",
           desiredAction: h.desiredAction,
           intentConfidence: h.intentConfidence,
           intentSource: "llm",
           promptKey: forcedPK,
           messages: [],
-        };
+        }, "llm_classifier", "classifyQuery", h.intentConfidence);
     } catch {
       console.log("Error classifying with LLM, falling back to heuristic");
     }
@@ -352,14 +581,14 @@ export async function classifyNode(state: typeof GraphState.State) {
           ? "room_info"
           : "ambiguity_policy";
   const promptKey = pickPK(h.category, h.desiredAction);
-  return {
+  return withRoutingDebug({
     category: h.category,
     desiredAction: h.desiredAction,
     intentConfidence: h.intentConfidence,
     intentSource: h.intentSource,
     promptKey,
     messages: [],
-  };
+  }, h.intentSource === "llm" ? "llm_classifier" : "fallback_other", "heuristicClassify", h.intentConfidence);
 }
 
 /* ========================= * GRAPH * ========================= */

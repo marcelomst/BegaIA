@@ -7,17 +7,35 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { IntentCategory, DesiredAction } from "@/types/audit"; // ⬅️ tipos centrales
 import { looksRoomInfo } from "@/lib/agents/helpers";
 
+type ClassifierCategory = IntentCategory | "greeting";
+
 export type Classification = {
-  category: IntentCategory;
+  category: ClassifierCategory;
   promptKey: string | null;
   desiredAction?: DesiredAction; // ⬅️ ahora opcional y tipado
 };
 
 // …resto del archivo igual…
 
-function normalizeCategory(c: string): IntentCategory {
+export function isPureGreeting(question: string): boolean {
+  const q = String(question || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .replace(/\s+/g, " ");
+  const ql = q.toLowerCase();
+  if (!q) return false;
+  if (q.length > 40) return false;
+  if (/\d{1,2}[/-]\d{1,2}([/-]\d{2,4})?|\d{4}-\d{2}-\d{2}/.test(q)) return false;
+  if (/\b(reserv(ar|a|as|e|o)?|reserva|booking|book|precio|tarifa|disponibilidad|habitaci[oó]n|room|rooms|doble|triple|suite|check[- ]?in|check[- ]?out)\b/i.test(q)) return false;
+  if (!/^(hola|hi|hello|hey|buenas( tardes| noches)?|buenos dias|bom dia|ola|oi)$/i.test(q)) return false;
+  return ql.split(/\s+/).length <= 3;
+}
+
+function normalizeCategory(c: string): ClassifierCategory {
   const m = (c || "").trim().toLowerCase();
-  const known: IntentCategory[] = [
+  const known: ClassifierCategory[] = [
+    "greeting",
     "reservation",
     // Nueva categoría RAG (no intent explícito del grafo, pero válida para RAG)
     "cancellation" as any,
@@ -34,6 +52,13 @@ export async function classifyQuery(
   question: string,
   hotelId: string
 ): Promise<Classification> {
+  if (isPureGreeting(question)) {
+    return {
+      category: "greeting",
+      promptKey: "greeting",
+    };
+  }
+
   // ⚙️ Aseguramos idioma siempre definido (evita TS2345: string | undefined)
   const nativeLang = await getHotelNativeLanguage(hotelId);
   const lang: string = (typeof nativeLang === "string" && nativeLang) ? nativeLang : "es";
@@ -41,7 +66,7 @@ export async function classifyQuery(
   // ⚙️ getDictionary exige string (no undefined)
   const dict = await getDictionary(lang);
 
-  const allowedCategories = Object.keys(promptMetadata).join(", ");
+  const allowedCategories = [...Object.keys(promptMetadata), "greeting"].join(", ");
   const allPromptKeys = Object.entries(promptMetadata)
     .flatMap(([_, keys]) => keys)
     .filter(Boolean);
@@ -50,6 +75,11 @@ export async function classifyQuery(
     .replace("{{allowedCategories}}", allowedCategories)
     .replace("{{allPromptKeys}}", allPromptKeys.join(", "))
     .replace("{{question}}", question);
+  prompt += `
+
+Regla adicional obligatoria:
+- Responde {"category":"greeting","promptKey":"greeting"} SOLO si el mensaje es un saludo puro (ej: "Hola", "Hi", "Hello", "Bom dia").
+- NO uses "greeting" si el mensaje mezcla saludo + intención (ej: "Hola quiero reservar", "Buenas, precio doble").`;
 
   const model = new ChatOpenAI({
     modelName: process.env.LLM_CLASSIFIER_MODEL || "gpt-4o-mini",
@@ -65,10 +95,10 @@ export async function classifyQuery(
 
     // 🧼 Tipado fuerte: cat final es IntentCategory (evita TS2322)
     const rawCategory = typeof parsed.category === "string" ? parsed.category : "";
-    const cat: IntentCategory = normalizeCategory(rawCategory);
+    let cat: ClassifierCategory = normalizeCategory(rawCategory);
 
     // Validación de categoría
-    if (!promptMetadata[cat]) {
+    if (cat !== "greeting" && !promptMetadata[cat]) {
       throw new Error(`❌ Categoría inválida detectada: ${rawCategory}`);
     }
 
@@ -76,10 +106,24 @@ export async function classifyQuery(
     let promptKey: string | null =
       typeof parsed.promptKey === "string" ? parsed.promptKey : null;
 
-    const validPK = promptKey === null || promptMetadata[cat].includes(promptKey);
+    const validPK =
+      cat === "greeting"
+        ? (promptKey === null || promptKey === "greeting")
+        : (promptKey === null || promptMetadata[cat].includes(promptKey));
     if (!validPK) {
       // Si el PK no cuadra con la categoría, lo descartamos
       promptKey = null;
+    }
+
+    if (cat === "greeting") {
+      if (isPureGreeting(question)) {
+        promptKey = "greeting";
+      } else {
+        cat = /\b(reserv(ar|a|as|e|o)?|reserva|booking|book)\b/i.test(question)
+          ? "reservation"
+          : "retrieval_based";
+        promptKey = null;
+      }
     }
 
     // 🔎 Regla de negocio: si es pregunta de horarios/políticas → forzar room_info
