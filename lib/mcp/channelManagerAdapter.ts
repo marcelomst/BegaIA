@@ -17,10 +17,20 @@ import crypto from "crypto";
  * Para real: leer envs como CM_PROVIDER, CM_API_BASE, CM_API_KEY, etc.
  */
 export class InMemoryCMAdapter implements ChannelManagerAdapter {
-  private reservations: Map<string, Reservation> = new Map();
+  private stores: Map<string, Map<string, Reservation>> = new Map();
+
+  private getStore(hotelId: string): Map<string, Reservation> {
+    const key = normalizeHotelKey(hotelId);
+    const existing = this.stores.get(key);
+    if (existing) return existing;
+    const created = new Map<string, Reservation>();
+    this.stores.set(key, created);
+    return created;
+  }
 
   async searchAvailability(q: AvailabilityQuery): Promise<AvailabilityItem[]> {
-    // Simulación simple
+    this.getStore(q.hotelId);
+    // Catálogo alineado con roomType canónico usado por el pipeline de reservas.
     const base: AvailabilityItem[] = [
       { roomType: "standard", description: "Hab. Estándar", pricePerNight: 80, currency: "USD", availability: 5 },
       { roomType: "deluxe", description: "Hab. Deluxe", pricePerNight: 120, currency: "USD", availability: 3 },
@@ -30,6 +40,7 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 
   async createReservation(input: CreateReservationInput): Promise<Reservation> {
+    const store = this.getStore(input.hotelId);
     const reservationId = crypto.randomUUID();
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
@@ -54,26 +65,29 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
       createdAt,
       updatedAt,
     };
-    this.reservations.set(reservationId, r);
+    store.set(reservationId, r);
     return r;
   }
 
   async cancelReservation(input: CancelReservationInput): Promise<Reservation> {
-    const r = this.reservations.get(input.reservationId);
+    const store = this.getStore(input.hotelId);
+    const r = store.get(input.reservationId);
     if (!r || r.hotelId !== input.hotelId) throw new Error("Reservation not found");
     const updated: Reservation = { ...r, status: "cancelled", updatedAt: new Date().toISOString() };
-    this.reservations.set(input.reservationId, updated);
+    store.set(input.reservationId, updated);
     return updated;
   }
 
   async getReservation(hotelId: string, reservationId: string): Promise<Reservation | null> {
-    const r = this.reservations.get(reservationId);
+    const store = this.getStore(hotelId);
+    const r = store.get(reservationId);
     if (!r || r.hotelId !== hotelId) return null;
     return r;
   }
 
   async listReservations(q: ListReservationsQuery): Promise<ListReservationsResult> {
-    const all = [...this.reservations.values()].filter(r => r.hotelId === q.hotelId);
+    const store = this.getStore(q.hotelId);
+    const all = [...store.values()].filter(r => r.hotelId === q.hotelId);
     const filtered = all.filter(r => (q.status ? r.status === q.status : true));
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
@@ -83,7 +97,8 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 
   async updateReservation(input: UpdateReservationInput): Promise<Reservation> {
-    const r = this.reservations.get(input.reservationId);
+    const store = this.getStore(input.hotelId);
+    const r = store.get(input.reservationId);
     if (!r || r.hotelId !== input.hotelId) throw new Error("Reservation not found");
     const updated: Reservation = {
       ...r,
@@ -95,7 +110,7 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
       checkOutDate: input.checkOutDate ?? r.checkOutDate,
       updatedAt: new Date().toISOString(),
     };
-    this.reservations.set(input.reservationId, updated);
+    store.set(input.reservationId, updated);
     return updated;
   }
 }
