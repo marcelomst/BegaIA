@@ -101,6 +101,7 @@ describe("tourist_events_img carousel", () => {
       retrievalLang: "es",
       originalLang: "es",
       messages: [new HumanMessage("eventos hoy")],
+      nowISO: "2026-01-31T12:00:00.000Z",
     } as any);
 
     const msg = res?.messages?.[res.messages.length - 1]?.content || "";
@@ -132,6 +133,7 @@ describe("tourist_events_img carousel", () => {
       retrievalLang: "es",
       originalLang: "es",
       messages: [new HumanMessage("eventos hoy")],
+      nowISO: "2026-01-31T12:00:00.000Z",
     } as any);
 
     const carousel = res?.meta?.rich?.carousel;

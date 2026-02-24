@@ -686,9 +686,12 @@ type EventSummary = {
   endsAt?: string;
   startDate?: string;
   endDate?: string;
+  venue?: string;
   sourceUrl?: string;
   location?: { name?: string; address?: string; locality?: string; mapsUrl?: string };
+  images?: Array<{ url: string; alt?: string }>;
 };
+
 
 type LocalTouristEventOverride = {
   poiRefId?: string;
@@ -700,6 +703,7 @@ type LocalTouristEventOverride = {
   sourceUrl?: string;
   priority?: number;
   hidden?: boolean;
+  images?: Array<{ url: string; alt?: string }>;
 };
 
 function eventOverrideKey(args: { name?: string; startsAt?: string; endsAt?: string; venue?: string }) {
@@ -1046,7 +1050,7 @@ export async function retrievalBased(state: any): Promise<any> {
     const range = (!hasTimeSignal && (st as any)?.lastEventRange?.from && (st as any)?.lastEventRange?.to)
       ? { from: (st as any).lastEventRange.from, to: (st as any).lastEventRange.to, tz: (st as any).lastEventRange.tz || tz }
       : { ...resolveEventRange(userQuery, tz, langForEvents), tz };
-    const events = await searchEvents({
+    const providerEvents: EventSummary[] = await searchEvents({
       from: range.from,
       to: range.to,
       city,
@@ -1054,6 +1058,26 @@ export async function retrievalBased(state: any): Promise<any> {
       limit: 5,
       tz: range.tz,
     });
+
+    const localCfgEvents: LocalTouristEventOverride[] = Array.isArray((cfg as any)?.touristEvents)
+      ? ((cfg as any).touristEvents as LocalTouristEventOverride[])
+      : [];
+
+    const events: EventSummary[] =
+      providerEvents.length > 0
+        ? providerEvents
+        : localCfgEvents.map((e: LocalTouristEventOverride): EventSummary => ({
+          name: e?.name || "",
+          startsAt: e?.startsAt,
+          endsAt: e?.endsAt,
+          startDate: (e as any)?.startDate,
+          endDate: (e as any)?.endDate,
+          venue: e?.venue,
+          sourceUrl: (e as any)?.sourceUrl,
+          notes: e?.notes,
+          location: (e as any)?.location || { locality: cfg?.city },
+          images: e?.images,
+        }));
     const rangeText = formatEventRange(range.from, range.to, range.tz, langForEvents);
     // Honor deterministic "now" for tests and for filtering past events.
     const nowMs = (() => {

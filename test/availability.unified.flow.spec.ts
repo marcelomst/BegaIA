@@ -1,11 +1,17 @@
+// /home/marcelo/begasist/test/availability.unified.flow.spec.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 // Mock modules early to ensure spies attach before imports
 vi.mock('@/lib/db/convState', () => ({ getConvState: vi.fn(), upsertConvState: vi.fn(), CONVSTATE_VERSION: 'convstate-test' }));
 vi.mock('@/lib/agents/reservations', () => ({ askAvailability: vi.fn(), fillSlotsWithLLM: vi.fn(), confirmAndCreate: vi.fn() }));
 vi.mock('@/lib/config/hotelConfig.server', () => ({ getHotelConfig: vi.fn().mockResolvedValue({ timezone: 'UTC' }) }));
-vi.mock('@/lib/classifier', () => ({ classifyQuery: vi.fn().mockResolvedValue({ category: 'reservation', promptKey: undefined }) }));
-// We don't mock the whole availability pipeline; we'll spy on its export after import
+vi.mock('@/lib/classifier', async (importOriginal) => {
+    const actual = await importOriginal<typeof import("@/lib/classifier")>();
+    return {
+        ...actual,
+        isPureGreeting: vi.fn(() => false),
+    };
+});// We don't mock the whole availability pipeline; we'll spy on its export after import
 import * as availabilityPipeline from '@/lib/handlers/pipeline/availability';
 import * as reservations from '@/lib/agents/reservations';
 import { agentGraph } from '@/lib/agents';
@@ -31,7 +37,7 @@ const snapshotBase = {
 
 describe('availability unified flow', () => {
     beforeEach(() => {
-        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('runAvailabilityCheck enriches response and persists lastProposal', async () => {

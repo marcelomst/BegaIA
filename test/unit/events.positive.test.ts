@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { HumanMessage } from "@langchain/core/messages";
 
-vi.mock("@/lib/utils/debugLog", () => ({ debugLog: () => {} }));
+vi.mock("@/lib/utils/debugLog", () => ({ debugLog: () => { } }));
 
 vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class {
@@ -15,8 +15,8 @@ vi.mock("@/lib/poi/searchEvents", () => ({
   searchEvents: vi.fn(async () => [
     {
       name: "Mercadillo Orgánico",
-      startsAt: "2026-02-08T10:00:00-03:00",
-      endsAt: "2026-02-08T13:00:00-03:00",
+      startsAt: "2026-01-26T10:00:00-03:00",
+      endsAt: "2026-01-26T13:00:00-03:00",
       location: { name: "Cantegril Country Club", locality: "Piriápolis" },
       sourceUrl: "https://example.com/agenda",
     },
@@ -51,6 +51,7 @@ describe("events positive responses", () => {
       retrievalLang: "es",
       originalLang: "es",
       messages: [new HumanMessage("eventos en piriapolis")],
+      nowISO: "2026-01-26T12:00:00Z",
     } as any);
 
     const msg = String(res?.messages?.[res.messages.length - 1]?.content || "");
@@ -71,6 +72,7 @@ describe("events positive responses", () => {
       retrievalLang: "es",
       originalLang: "es",
       messages: [new HumanMessage("eventos en piriapolis con fotos")],
+      nowISO: "2026-01-26T12:00:00Z",
     } as any);
 
     const msg = String(res?.messages?.[res.messages.length - 1]?.content || "");
