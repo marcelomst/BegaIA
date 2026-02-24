@@ -2,6 +2,7 @@
 
 import type { HotelUser } from "./user";
 import type { RichPayload } from "./richPayload";
+import type { ManualPOIRecord } from "./poi";
 
 // 🧩 Core types (modularizados para claridad)
 import type {
@@ -159,7 +160,14 @@ export type HotelConfig = {
   reservations?: ReservationsFlags;
   lastUpdated?: string;
   // 🆕 Canon (1–6) + rooms
-  contacts?: { email?: string; whatsapp?: string; phone?: string; website?: string };
+  contacts?: {
+    email?: string;
+    whatsapp?: string;
+    phone?: string;
+    website?: string;
+    supportHours?: string;
+    supportEscalation?: string;
+  };
   schedules?: { checkIn?: string; checkOut?: string; breakfast?: string; quietHours?: string };
   amenities?: {
     // Nuevo modelo unificado
@@ -192,10 +200,38 @@ export type HotelConfig = {
   airports?: Array<{ code?: string; name?: string; distanceKm?: number; driveTime?: string }>;
   transport?: { hasPrivateTransfer?: boolean; transferNotes?: string; taxiNotes?: string; busNotes?: string };
   attractions?: Array<{ name?: string; distanceKm?: number; driveTime?: string; notes?: string; placeId?: string; photoName?: string }>;
+  touristEvents?: Array<{
+    /** Referencia opcional al evento base en POI (_id) */
+    poiRefId?: string;
+    name?: string;
+    /** Nota editorial local del hotel (curaduría) */
+    notes?: string;
+    startsAt?: string;
+    endsAt?: string;
+    venue?: string;
+    sourceUrl?: string;
+    /** Prioridad local para ordenar sugerencias (mayor = primero) */
+    priority?: number;
+    /** Oculta el evento en la vista local del hotel */
+    hidden?: boolean;
+    images?: Array<{ url: string; alt?: string }>;
+  }>;
   /** Información propia del hotel para llegada, transporte y atracciones */
   arrivalInfo?: string;
   transportInfo?: string;
   attractionsInfo?: string;
+  /** Preferencia de respuesta para puntos de interés */
+  nearbyPointsMode?: "auto" | "always" | "text" | "carousel";
+  /** Región de eventos del hotel (p.ej. "maldonado_uy") */
+  eventsRegion?: string;
+  /** Proveedor global de eventos (fallback) */
+  globalEventsProvider?: "places" | "none";
+  /** Curaduría regional de POIs (colección global `poi`) */
+  poiOverrides?: {
+    featuredPoiIds?: string[];
+    hiddenPoiIds?: string[];
+    customPois?: ManualPOIRecord[];
+  };
 };
 
 // --- CONVERSACIONES Y MENSAJES ---
@@ -217,6 +253,12 @@ export type ChatTurnWithMeta = ChatTurn & {
   bcc?: string[];
   attachments?: { filename: string }[];
   originalMessageId?: string;
+  responseTrace?: {
+    category?: string | null;
+    promptKey?: string | null;
+    contentVersion?: string | null;
+    source?: string | null;
+  };
 };
 
 export type ConversationSummary = {
@@ -278,6 +320,8 @@ export interface ChannelMessage {
 
   // 🆕 payload enriquecido opcional para UI (renderers locales)
   rich?: RichPayload;
+  /** Metadata técnico opcional por mensaje (auditoría/trazas) */
+  meta?: Record<string, any>;
 
 }
 

@@ -12,4 +12,10 @@ export type LegacyRichPayload = {
   data?: any;
 };
 
-export type RichPayload = LegacyRichPayload | RichResponse;
+// Ensure common optional fields exist across union for simpler UI access.
+type RichPayloadBase = {
+  type?: LegacyRichPayload["type"];
+  data?: any;
+};
+
+export type RichPayload = LegacyRichPayload | (RichResponse & RichPayloadBase);

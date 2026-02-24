@@ -7,6 +7,10 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: ["./test/setup.ts", "./test/frontend/setup.dom.ts"],
+    onConsoleLog(log) {
+      if (typeof log === "string" && log.includes("[events]")) return false;
+      return true;
+    },
     include: [
       "test/**/*.{test,spec}.{ts,tsx}",
       "!test/freezer/e2e.reservation.flow.spec.ts"

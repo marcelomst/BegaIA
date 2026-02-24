@@ -19,9 +19,9 @@
 
   // i18n mínimo
   const I18N = {
-    es: { assistant: "Asistente", placeholder: "Escribí tu mensaje...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Cerrar", statusOpen: "abierto" },
-    en: { assistant: "Assistant", placeholder: "Type your message...", send: "Send", ariaOpen: "Open chat", ariaClose: "Close", statusOpen: "open" },
-    pt: { assistant: "Assistente", placeholder: "Escreva sua mensagem...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Fechar", statusOpen: "aberto" },
+    es: { assistant: "Asistente", placeholder: "Escribí tu mensaje...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Cerrar", statusOpen: "abierto", newChat: "Nuevo", ariaNewChat: "Nueva conversación" },
+    en: { assistant: "Assistant", placeholder: "Type your message...", send: "Send", ariaOpen: "Open chat", ariaClose: "Close", statusOpen: "open", newChat: "New", ariaNewChat: "New conversation" },
+    pt: { assistant: "Assistente", placeholder: "Escreva sua mensagem...", send: "Enviar", ariaOpen: "Abrir chat", ariaClose: "Fechar", statusOpen: "aberto", newChat: "Novo", ariaNewChat: "Nova conversa" },
   };
 
   // Diccionarios/Traductor externos opcionales
@@ -75,6 +75,10 @@
   const convKeyOld = `${OLD_PREFIX}:conversationId:${hotelId}`;
   const getConv = () => localStorage.getItem(convKeyNew) || localStorage.getItem(convKeyOld);
   const setConv = (id) => localStorage.setItem(convKeyNew, id);
+  const clearConv = () => {
+    localStorage.removeItem(convKeyNew);
+    localStorage.removeItem(convKeyOld);
+  };
 
   if (!api) console.warn("[BegAIChat] Falta apiBase en window.BegAIChat");
 
@@ -92,6 +96,7 @@
   .bgst-header-right{display:flex;align-items:center;gap:8px}
   .bgst-lang{appearance:none;background:#0b1220;border:1px solid #263650;color:#e5eef9;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer}
   .bgst-close{background:transparent;border:0;color:#9fb3c8;cursor:pointer;font-size:18px}
+  .bgst-newchat{background:#0b1220;border:1px solid #263650;color:#9fb3c8;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer}
   .bgst-msgs{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto}
   .bgst-row{max-width:80%;padding:8px 10px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
   .bgst-user{align-self:flex-end;background:#cfe8ff;color:#043a63}
@@ -102,7 +107,7 @@
   .bgst-input button:disabled{opacity:.6;cursor:not-allowed}
   .bgst-carousel{display:flex;gap:8px;overflow:auto;padding:4px 2px;width:100%;flex-shrink:0}
   .bgst-card{min-width:180px;background:#0c1428;border:1px solid #263650;border-radius:12px;overflow:hidden}
-  .bgst-card img{width:100%;height:120px;object-fit:cover;display:block}
+  .bgst-card img{width:100%;height:170px;object-fit:cover;object-position:center 70%;background:#0c1428;display:block}
   .bgst-card-body{padding:6px 8px;font-size:12px}
   .bgst-card-title{font-weight:700;font-size:12px}
   .bgst-card-sub{color:#9fb3c8;font-size:11px}
@@ -140,6 +145,7 @@
       <div class="bgst-title" id="bgst-title">${t("assistant")} • ${hotelId}</div>
       <div class="bgst-header-right">
         <!-- select de idioma se inserta aquí -->
+        <button class="bgst-newchat" id="bgst-newchat" aria-label="${t("ariaNewChat")}">${t("newChat")}</button>
         <button class="bgst-close" aria-label="${t("ariaClose")}">✕</button>
       </div>
     </div>
@@ -160,12 +166,15 @@
   const ta = panel.querySelector("#bgst-input");
   const btn = panel.querySelector("#bgst-send");
   const btnClose = panel.querySelector(".bgst-close");
+  const btnNewChat = panel.querySelector("#bgst-newchat");
   const titleEl = panel.querySelector("#bgst-title");
 
   const applyLangToUI = () => {
     document.documentElement.lang = currentLang;
     bubble.setAttribute("aria-label", t("ariaOpen"));
     btnClose.setAttribute("aria-label", t("ariaClose"));
+    btnNewChat.setAttribute("aria-label", t("ariaNewChat"));
+    btnNewChat.textContent = t("newChat");
     titleEl.textContent = `${t("assistant")} • ${hotelId}`;
     ta.placeholder = t("placeholder");
     btn.textContent = t("send");
@@ -275,12 +284,22 @@
   };
   bubble.addEventListener("click", toggle);
   btnClose.addEventListener("click", toggle);
+  btnNewChat.addEventListener("click", () => {
+    if (es) { try { es.close(); } catch {} es = null; }
+    esConvId = null;
+    clearConv();
+    msgs.innerHTML = "";
+    lastAiText = "";
+    ta.focus();
+  });
 
   const send = async () => {
     const text = (ta.value || "").trim();
     if (!text) return;
     ta.value = "";
     btn.disabled = true;
+    // Reset dedupe so AI text can render for each new user message
+    lastAiText = "";
     appendMsg("user", text);
 
     // Asegurar conversationId y SSE antes del POST
@@ -299,7 +318,6 @@
       channel: "web",
       hotelId,
       conversationId: conv,
-      lang: currentLang,        // idioma preferido del usuario
     };
 
     try {
@@ -324,11 +342,11 @@
         if (!sseOpen) {
           appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
         }
-        if (data.rich && Array.isArray(data.rich.carousel)) {
-          appendCarousel(data.rich.carousel);
-        }
       } else if (!res.ok) {
         appendMsg("ai", "⚠️ Error del servidor o ruta no disponible.");
+      }
+      if (data && data.rich && Array.isArray(data.rich.carousel)) {
+        appendCarousel(data.rich.carousel);
       }
     } catch (err) {
       appendMsg("ai", "⚠️ No se pudo conectar con el servidor.");

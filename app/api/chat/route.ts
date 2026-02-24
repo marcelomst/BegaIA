@@ -25,6 +25,28 @@ function normText(value: unknown, max = SAFE_INPUT_MAX): string {
   return value.trim().slice(0, max);
 }
 
+function normalizeApiLang(value: unknown): "es" | "en" | "pt" | null {
+  const v = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (v === "eng" || v === "en") return "en";
+  if (v === "por" || v === "pt") return "pt";
+  if (v === "spa" || v === "es") return "es";
+  return null;
+}
+
+function inferGreetingLangFromQuery(q: string): "es" | "en" | "pt" | null {
+  const s = String(q || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (!s) return null;
+  if (/^(bom dia|ola|oi)\b/.test(s)) return "pt";
+  if (/^(hello|hi|hey)\b/.test(s)) return "en";
+  if (/^(hola|buenas|buenos dias)\b/.test(s)) return "es";
+  return null;
+}
+
 function logChat(event: string, data: Record<string, unknown>, level: "log" | "warn" | "error" = "log") {
   const payload = {
     ts: new Date().toISOString(),
@@ -157,6 +179,7 @@ export async function POST(req: Request) {
 
     let responseText: string | undefined = undefined;
     let responseRich: unknown | undefined = undefined;
+    let responseLang = normalizeApiLang(langResolved) || "es";
     if (!FAST_ROUTE_MODE) {
       try {
         const msgs = await getMessagesByConversationService(hotelId, channel, conversationId);
@@ -175,6 +198,11 @@ export async function POST(req: Request) {
         if (lastAi) {
           responseText = (lastAi.content || lastAi.suggestion || "").trim() || undefined;
           responseRich = (lastAi as Record<string, unknown>).rich;
+          const lastAiRec = lastAi as Record<string, unknown>;
+          responseLang =
+            normalizeApiLang(lastAiRec.detectedLanguage) ||
+            normalizeApiLang(lastAiRec.preferredLanguage) ||
+            responseLang;
         }
       } catch (e: unknown) {
         logChat(
@@ -188,6 +216,10 @@ export async function POST(req: Request) {
           "warn"
         );
       }
+    }
+    if (responseLang === "es") {
+      const inferred = inferGreetingLangFromQuery(content);
+      if (inferred) responseLang = inferred;
     }
 
     const responsePayload = {
@@ -204,7 +236,7 @@ export async function POST(req: Request) {
       response: resolvedStatus === "pending" ? undefined : responseText,
       suggestedReply: resolvedStatus === "pending" ? responseText : undefined,
       rich: responseRich,
-      lang: langResolved,
+      lang: responseLang,
     };
 
     logChat("request.completed", {

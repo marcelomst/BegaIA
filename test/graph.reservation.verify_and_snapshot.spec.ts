@@ -35,7 +35,7 @@ describe("reservation verify/snapshot classification", () => {
     });
 
     it("shows in-progress snapshot when there is a draft (salesStage=quote) but no lastReservation", async () => {
-        (getConvState as any).mockResolvedValueOnce({
+        (getConvState as any).mockResolvedValue({
             _id: `${hotelId}:${conversationId}`,
             hotelId,
             conversationId,
@@ -66,7 +66,7 @@ describe("reservation verify/snapshot classification", () => {
     });
 
     it("shows confirmed snapshot (with code) when lastReservation exists", async () => {
-        (getConvState as any).mockResolvedValueOnce({
+        (getConvState as any).mockResolvedValue({
             _id: `${hotelId}:${conversationId}`,
             hotelId,
             conversationId,

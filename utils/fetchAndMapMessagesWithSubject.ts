@@ -35,6 +35,14 @@ export async function fetchAndMapMessagesWithSubject(
     approvedResponse: msg.approvedResponse ?? undefined,
     suggestion: msg.suggestion ?? undefined,  // Para "Ver original"
     messageId: msg.messageId,                 // Por si se necesita editar/enviar
+    responseTrace: msg?.meta?.responseTrace
+      ? {
+          category: msg.meta.responseTrace.category ?? null,
+          promptKey: msg.meta.responseTrace.promptKey ?? null,
+          contentVersion: msg.meta.responseTrace.contentVersion ?? null,
+          source: msg.meta.responseTrace.source ?? null,
+        }
+      : undefined,
   }));
 
   return { messages, subject: data.subject };

@@ -17,6 +17,10 @@ const ADMIN_KEY_BYPASS_PATHS = new Set<string>([
   "/api/category/seed-to-hotel",
   "/api/hotel-content/get",
   "/api/hotel-content/list",
+  "/api/poi/refresh",
+  "/api/poi/events",
+  "/api/admin/poi/propagate-locality",
+  "/api/admin/poi/event",
   // futuro: vectorización manual
   "/api/hotel-content/vectorize",
   // acceso directo a la config del hotel (solo lectura) para inspección en scripts

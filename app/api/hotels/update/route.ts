@@ -8,6 +8,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import { resolveEmailCredentials } from "@/lib/email/resolveEmailCredentials";
 
+function normalizeText(v: string) {
+  return String(v || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function airportCodeWarnings(airports: Array<{ code?: string; name?: string }> | undefined): string[] {
+  if (!Array.isArray(airports)) return [];
+  const out: string[] = [];
+  for (const a of airports) {
+    const code = String(a?.code || "").trim().toUpperCase();
+    const name = normalizeText(String(a?.name || ""));
+    if (!code || !name) continue;
+    if (/laguna del sauce|punta del este/.test(name) && code !== "PDP") {
+      out.push(`airport_code_mismatch:${code}->PDP:${a?.name || ""}`);
+    }
+    if (/carrasco/.test(name) && code !== "MVD") {
+      out.push(`airport_code_mismatch:${code}->MVD:${a?.name || ""}`);
+    }
+    if (/jaguel|jaguel/.test(name) && code !== "MDO") {
+      out.push(`airport_code_mismatch:${code}->MDO:${a?.name || ""}`);
+    }
+  }
+  return out;
+}
+
 export async function POST(req: NextRequest) {
   const { hotelId, updates } = await req.json();
 
@@ -65,6 +92,8 @@ export async function POST(req: NextRequest) {
     }
     updates.channelConfigs.email = mergedEmail;
   }
+
+  warnings.push(...airportCodeWarnings(updates.airports));
 
   await updateHotelConfig(hotelId, updates);
 

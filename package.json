@@ -49,7 +49,8 @@
     "kb:reset:apply": "tsx scripts/reset-hotel-kb.ts --apply",
     "kb:reseed": "tsx scripts/reseed-hotel-kb.ts",
     "kb:reseed:apply": "tsx scripts/reseed-hotel-kb.ts --apply",
-    "api:smoke": "bash scripts/api-smoke.sh"
+    "api:smoke": "bash scripts/api-smoke.sh",
+    "mcp:smoke": "tsx scripts/mcp_smoke_reservations.ts --hotelId=hotel123"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "github:datastax/astra-db-ts",

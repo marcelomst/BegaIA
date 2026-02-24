@@ -956,6 +956,28 @@ Implementamos un laboratorio con MCP real para manejar todo el ciclo de vida de 
    - **Email**: IMAP/SMTP polling con filtros anti-spam, idempotencia por `messageId`, handler universal.
    - **WhatsApp**: basado en `whatsapp-web.js`, heartbeat, idempotencia doble (Redis + DB), poller para respuestas supervisadas.
 
+### Deuda Técnica Abierta: Identidad de Conversación (Email/WhatsApp)
+
+Estado actual:
+- `conversationId` se deriva del identificador de remitente:
+- Email: `${hotelId}-email-${guestId}` (guestId viene de `from` parseado).
+- WhatsApp: `${hotelId}-whatsapp-${guestId|jid}`.
+
+Riesgo:
+- Si cambia la representación del remitente (variantes de `from` o `jid`), se fragmenta el hilo en múltiples `conversationId` para la misma persona.
+
+Objetivo pendiente:
+- Introducir identificador canónico por canal para construir `conversationId`:
+- Email: email normalizado.
+- WhatsApp: teléfono en formato E.164.
+
+Checklist para próxima ronda de pruebas de canales:
+1. Enviar 2+ mensajes del mismo remitente con variaciones de formato.
+2. Verificar que persistan en el mismo `conversationId`.
+3. Verificar continuidad de `conv_state` (`lastCategory`, slots) en ese hilo.
+4. Verificar que trazas (`meta.responseTrace`) queden en una sola conversación lógica.
+5. Confirmar idempotencia (`sourceMsgId` / `originalMessageId`) sin duplicados.
+
 5. **MCP defensivo**
    - `withTimeout` al invocar grafo.
    - `ruleBasedFallback` cuando el grafo falla o no responde.

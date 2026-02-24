@@ -2,9 +2,17 @@
 export function getConversationId(): string | null {
   if (typeof window === "undefined") return null;
   const localValue = localStorage.getItem("conversationId");
-  if (localValue !== null) return localValue;
+  if (localValue !== null) {
+    const v = String(localValue).trim();
+    if (v && v !== "undefined" && v !== "null") return v;
+    return null;
+  }
   const cookieValue = getCookie("conversationId");
-  return cookieValue !== undefined ? cookieValue : null;
+  if (cookieValue !== undefined) {
+    const v = String(cookieValue).trim();
+    if (v && v !== "undefined" && v !== "null") return v;
+  }
+  return null;
 }
 export function hasConversationId(): boolean {
   if (typeof window === "undefined") return false;

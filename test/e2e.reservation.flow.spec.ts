@@ -80,7 +80,7 @@ describe("e2e reservation flow (single-slot Q, guests and checkout mapping)", ()
         expect(String(res.messages?.[0]?.content)).toMatch(/CONFIRMAR/);
 
         // 6) confirm
-        (getConvState as any).mockResolvedValueOnce({ _id: `${hotelId}:${conversationId}`, hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2025-10-02", checkOut: "2025-10-04", numGuests: "2", locale: "es" } });
+        (getConvState as any).mockResolvedValue({ _id: `${hotelId}:${conversationId}`, hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2025-10-02", checkOut: "2025-10-04", numGuests: "2", locale: "es" } });
         (confirmAndCreate as any).mockResolvedValueOnce({ ok: true, reservationId: "mock-211075", message: "✅ Reserva creada. ID: mock-211075" });
         res = await agentGraph.invoke({ normalizedMessage: "CONFIRMAR", detectedLanguage: "es", hotelId, conversationId, reservationSlots: {} });
         const text = String(res.messages?.[0]?.content);
