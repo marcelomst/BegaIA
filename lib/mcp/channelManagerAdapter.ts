@@ -1,4 +1,3 @@
-import type { UpdateReservationInput } from "./types";
 // Path: /root/begasist/lib/mcp/channelManagerAdapter.ts
 import type {
   ChannelManagerAdapter,
@@ -9,12 +8,15 @@ import type {
   CancelReservationInput,
   ListReservationsQuery,
   ListReservationsResult,
+  UpdateReservationInput,
 } from "./types";
 import crypto from "crypto";
 
 /**
- * Mock in-memory. Reemplazar por implementación real (SiteMinder, etc).
- * Para real: leer envs como CM_PROVIDER, CM_API_BASE, CM_API_KEY, etc.
+ * Channel Manager provider selection (env):
+ * - CM_PROVIDER=inmemory (default): adapter in-memory aislado por hotelId en registry Map.
+ * - CM_PROVIDER=redis: reservado para implementación futura; esperado (cuando exista) CM_REDIS_URL.
+ * - CM_PROVIDER=real: reservado para integración real; esperados (cuando exista) CM_API_BASE y CM_API_KEY.
  */
 export class InMemoryCMAdapter implements ChannelManagerAdapter {
   private stores: Map<string, Map<string, Reservation>> = new Map();
@@ -32,8 +34,9 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     this.getStore(q.hotelId);
     // Catálogo alineado con roomType canónico usado por el pipeline de reservas.
     const base: AvailabilityItem[] = [
-      { roomType: "standard", description: "Hab. Estándar", pricePerNight: 80, currency: "USD", availability: 5 },
-      { roomType: "deluxe", description: "Hab. Deluxe", pricePerNight: 120, currency: "USD", availability: 3 },
+      { roomType: "single", description: "Hab. Single", pricePerNight: 70, currency: "USD", availability: 5 },
+      { roomType: "double", description: "Hab. Doble", pricePerNight: 100, currency: "USD", availability: 4 },
+      { roomType: "triple", description: "Hab. Triple", pricePerNight: 140, currency: "USD", availability: 2 },
       { roomType: "suite", description: "Suite Ejecutiva", pricePerNight: 180, currency: "USD", availability: 1 },
     ];
     return q.roomType ? base.filter(b => b.roomType === q.roomType) : base;
@@ -46,7 +49,15 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     const updatedAt = createdAt;
 
     const nights = Math.max(1, Math.ceil((Date.parse(input.checkOutDate) - Date.parse(input.checkInDate)) / 86400000));
-    const pricePerNight = input.roomType === "suite" ? 180 : input.roomType === "deluxe" ? 120 : 80;
+    const normalizedRoomType = String(input.roomType || "").toLowerCase();
+    const pricePerNight =
+      normalizedRoomType === "suite"
+        ? 180
+        : normalizedRoomType === "triple"
+          ? 140
+          : normalizedRoomType === "double"
+            ? 100
+            : 70;
     const currency = "USD";
     const priceTotal = pricePerNight * nights;
 
@@ -115,13 +126,52 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 }
 
+const registry = new Map<string, ChannelManagerAdapter>();
+
+function normalizeHotelKey(hotelId?: string): string {
+  const key = String(hotelId ?? "").trim();
+  return key || "default";
+}
+
+function getInMemoryAdapter(hotelId?: string): ChannelManagerAdapter {
+  const key = normalizeHotelKey(hotelId);
+  const existing = registry.get(key);
+  if (existing) return existing;
+  const created = new InMemoryCMAdapter();
+  registry.set(key, created);
+  return created;
+}
+
+function resolveCMProvider(): "inmemory" | "redis" | "real" {
+  const rawProvider = String(process.env.CM_PROVIDER ?? "").trim().toLowerCase();
+  if (rawProvider === "redis" || rawProvider === "real" || rawProvider === "inmemory") {
+    return rawProvider;
+  }
+  return "inmemory";
+}
+
+export function getCMProvider(): string {
+  return resolveCMProvider();
+}
+
 // Factory para permitir cambiar a SiteMinder u otro CM por env
-export function getCMAdapter(): ChannelManagerAdapter {
-  const provider = process.env.CM_PROVIDER?.toLowerCase() || "inmemory";
+export function getCMAdapter(hotelId?: string): ChannelManagerAdapter {
+  const provider = resolveCMProvider();
   switch (provider) {
+    case "inmemory":
+      return getInMemoryAdapter(hotelId);
+    case "redis":
+      throw new Error(
+        "CM_PROVIDER=redis is not implemented yet. Configure CM_PROVIDER=inmemory or provide a Redis-backed adapter."
+      );
+    case "real":
+      throw new Error(
+        "CM_PROVIDER=real is not implemented yet. Missing real Channel Manager adapter/configuration."
+      );
     // case "siteminder":
     //   return new SiteMinderAdapter({ baseUrl: process.env.CM_API_BASE!, apiKey: process.env.CM_API_KEY! });
     default:
-      return new InMemoryCMAdapter();
+      // Valor desconocido: fallback no disruptivo para dev/test.
+      return getInMemoryAdapter(hotelId);
   }
 }

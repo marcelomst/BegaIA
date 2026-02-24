@@ -88,6 +88,7 @@ export type UpdateReservationInput = {
 
 export type UpdateReservationOutput = {
   ok: boolean;
+  status?: "updated";
   reservation?: Reservation;
   error?: string;
 };
