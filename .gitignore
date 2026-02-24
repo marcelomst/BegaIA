@@ -45,3 +45,25 @@ lib/agents/dump.txt
 # local-only / sensitive
 .git-replace-secrets.txt
 credenciales CQL/
+
+# local artifacts / debug
+log.txt
+info.txt
+claves.txt
+exports/
+salida.html
+*.html
+
+# local notes
+*.ms
+Eventos.md
+KB.md
+README_EVENTS.md
+README_PROMPT_SWITCH.MD
+hitos.md
+resumen_hitos.ms
+Que Hacemos Hoy _ Agenda.html
+docs/debug_paper.html
+docs/debug_paper.md
+docs/aux.ts
+registro_hotel_config_hotel999.json
