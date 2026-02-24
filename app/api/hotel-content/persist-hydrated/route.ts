@@ -8,6 +8,7 @@ import { upsertHotelContent, normalizeVersionToTag } from "@/lib/astra/hotelCont
 import { setCurrentVersionInIndex } from "@/lib/astra/hotelVersionIndex";
 import type { HotelContent } from "@/types/hotelContent";
 import { verifyJWT } from "@/lib/auth/jwt";
+import { buildHydrationContext } from "@/lib/kb/hydrationContext";
 
 function normalize(v: string | null | undefined) {
     return (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
@@ -53,6 +54,9 @@ export async function POST(req: NextRequest) {
     const hotelId: string = (body?.hotelId || "").trim();
     const categoryId: string = (body?.categoryId || "").trim();
     const lang: string = (body?.lang || "es").trim().toLowerCase();
+    const runtimeContext: any = body?.runtimeContext && typeof body.runtimeContext === "object"
+        ? body.runtimeContext
+        : null;
     let version: string = (body?.version || "v1").toString();
     const setCurrent: boolean = body?.setCurrent !== false; // default true
     version = normalizeVersionToTag(version);
@@ -120,7 +124,7 @@ export async function POST(req: NextRequest) {
     const cfg2 = enrichConfigForHydration(cfg, categoryId);
 
     // 3) Hidratar contenido
-    const hydrated = hydrateContent({ title: template.title || null, body: template.body || null }, cfg2, categoryId, lang);
+    const hydrated = hydrateContent({ title: template.title || null, body: template.body || null }, cfg2, categoryId, lang, runtimeContext);
     const hTitle = hydrated?.content.title || template.title || extractTitle(template.body) || undefined;
     const hBody = hydrated?.content.body || template.body || undefined;
 
@@ -241,21 +245,22 @@ function replaceTokenSyntax(text: string, cfg: any): { out: string; used: Record
     return { out, used };
 }
 
-function hydrateContent(content: Content, cfg: any, categoryId: string, lang: string): { content: Content; meta: any } | null {
+function hydrateContent(content: Content, cfg: any, categoryId: string, lang: string, runtimeContext?: any): { content: Content; meta: any } | null {
     if (!content) return null;
     const meta: any = { used: {}, strategy: [] as string[] };
     let title = content.title || "";
     let body = content.body || "";
-    if (cfg) {
-        const eTitle = expandIterators(title, cfg, meta);
+    const hydrationCtx = buildHydrationContext(cfg, runtimeContext);
+    if (hydrationCtx) {
+        const eTitle = expandIterators(title, hydrationCtx, meta);
         if (eTitle !== title) meta.strategy.push("iterator");
         title = eTitle;
-        const eBody = expandIterators(body, cfg, meta);
+        const eBody = expandIterators(body, hydrationCtx, meta);
         if (eBody !== body) meta.strategy.push("iterator");
         body = eBody;
 
-        const t1 = replaceTokenSyntax(title, cfg);
-        const b1 = replaceTokenSyntax(body, cfg);
+        const t1 = replaceTokenSyntax(title, hydrationCtx);
+        const b1 = replaceTokenSyntax(body, hydrationCtx);
         meta.used = { ...meta.used, ...t1.used, ...b1.used };
         if (t1.out !== title) meta.strategy.push("token-key");
         if (b1.out !== body) meta.strategy.push("token-key");

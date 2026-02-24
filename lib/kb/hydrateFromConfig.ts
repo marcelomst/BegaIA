@@ -1,10 +1,29 @@
+import { buildHydrationContext } from "./hydrationContext";
+
 // Hydrate template text using hotel_config-like data.
 // Supports [[key: path | default: ...]], [[path]], [[each: arr -> ...]], and [[join: arr -> ...]].
-export function hydrateTextFromConfig(text: string, cfg: any): string {
+export function hydrateTextFromConfig(
+  text: string,
+  cfg: any,
+  runtimeContext?: any
+): string {
   if (!text) return text;
-  let out = expandIterators(text, cfg);
-  out = replaceTokenSyntax(out, cfg).out;
+  const ctx = buildHydrationContext(cfg, runtimeContext);
+  let out = expandIterators(text, ctx);
+  out = replaceTokenSyntax(out, ctx).out;
   return out;
+}
+
+function normalizeMaybePublicPath(val: string): string {
+  const v = String(val || "").trim();
+  if (!v) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  const idx = v.lastIndexOf("/public/");
+  if (idx >= 0) {
+    const rel = v.slice(idx + "/public".length);
+    return rel.startsWith("/") ? rel : `/${rel}`;
+  }
+  return v;
 }
 
 function getIn(obj: any, path: string): any {
@@ -33,7 +52,7 @@ function replaceTokenSyntax(text: string, cfg: any): { out: string; used: Record
     for (const p of parts) {
       const km = p.match(/^key\s*:\s*(.+)$/i);
       if (km) { keyPath = km[1].trim(); continue; }
-      const dm = p.match(/^default\s*:\s*(.+)$/i);
+      const dm = p.match(/^default\s*:\s*([\s\S]*)$/i);
       if (dm) { def = dm[1].trim(); continue; }
     }
     if (!keyPath && parts.length === 1) keyPath = parts[0];
@@ -102,20 +121,22 @@ function parseEachTokens(text: string, rootCfg: any): string {
             for (const segment of segments) {
               const keyMatch = segment.match(/^key\s*:\s*(.+)$/i);
               if (keyMatch) { fieldPath = keyMatch[1].trim(); continue; }
-              const defaultMatch = segment.match(/^default\s*:\s*(.+)$/i);
+              const defaultMatch = segment.match(/^default\s*:\s*([\s\S]*)$/i);
               if (defaultMatch) { fieldDefault = defaultMatch[1].trim(); continue; }
               if (!segment.includes(":") && !fieldPath) fieldPath = segment;
             }
           }
           if (!fieldPath) return tokenMatch;
           if (fieldPath === "item") {
-            return item == null ? (fieldDefault != null ? fieldDefault : tokenMatch) : String(item);
+            if (item == null) return fieldDefault != null ? fieldDefault : tokenMatch;
+            const raw = String(item);
+            return normalizeMaybePublicPath(raw);
           }
           const value = getIn(item, fieldPath);
           if (value == null || value === "") {
             return fieldDefault != null ? fieldDefault : tokenMatch;
           }
-          return String(value);
+          return normalizeMaybePublicPath(String(value));
         });
         return itemOutput;
       });
@@ -152,7 +173,7 @@ function parsePathAndOptions(raw: string): { path: string; options: Record<strin
   const path = (parts[0] || "").replace(/^each:\s*/i, "").replace(/^join:\s*/i, "").trim();
   const options: Record<string, string> = {};
   for (const part of parts.slice(1)) {
-    const m = part.match(/^([a-z0-9_-]+)\s*:\s*(.+)$/i);
+    const m = part.match(/^([a-z0-9_-]+)\s*:\s*([\s\S]*)$/i);
     if (m) options[m[1]] = m[2];
   }
   return { path, options };
