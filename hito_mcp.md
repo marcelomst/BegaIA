@@ -22,6 +22,22 @@ Regla: 1 commit = 1 hito. No mezclar capas.
 
 MCP se considera congelado salvo hito explícito HCM-\*.
 
+### HCM-1 — InMemory CM Adapter (aislamiento por hotelId)
+
+Estado: CERRADO  
+Commit: 1bcb3be  
+
+Descripción:
+- Se reemplazó store global por Map<hotelId, Map<reservationId, Reservation>>.
+- Se agregó getStore(hotelId) con normalización.
+- Todas las operaciones ahora resuelven store por hotelId.
+- No afecta CM real; aplica solo al simulador inMemory (dev/test).
+
+Tests ejecutados (PASS):
+- test/unit/channelManagerAdapter.registry.spec.ts
+- test/integration/reservations.mcp.channel-manager.spec.ts
+- test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
