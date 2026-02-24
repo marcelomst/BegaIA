@@ -5,6 +5,7 @@ import type {
   CreateReservationInput,
   CancelReservationInput,
   ListReservationsQuery,
+  UpdateReservationInput,
 } from "./types";
 import { getCMAdapter } from "./channelManagerAdapter";
 
@@ -33,6 +34,22 @@ export function getReservationsCapabilities() {
         roomType: "string",
         checkInDate: "ISO string",
         checkOutDate: "ISO string",
+        notes: { type: "string", required: false },
+      },
+      returns: "Reservation",
+    },
+    {
+      name: "updateReservation",
+      description: "Modifica una reserva existente",
+      parameters: {
+        hotelId: "string",
+        reservationId: "string",
+        guestName: { type: "string", required: false },
+        guestEmail: { type: "string", required: false },
+        guestPhone: { type: "string", required: false },
+        roomType: { type: "string", required: false },
+        checkInDate: { type: "ISO string", required: false },
+        checkOutDate: { type: "ISO string", required: false },
         notes: { type: "string", required: false },
       },
       returns: "Reservation",
@@ -80,11 +97,10 @@ export function getReservationsCapabilities() {
 }
 
 export async function handleMcpCall(name: string, params: any) {
-  const cm = getCMAdapter();
-
   switch (name) {
     case "searchAvailability": {
       const p: AvailabilityQuery = ensure(params, ["hotelId", "startDate", "endDate"]);
+      const cm = getCMAdapter(p.hotelId);
       return cm.searchAvailability(p);
     }
     case "createReservation": {
@@ -95,18 +111,27 @@ export async function handleMcpCall(name: string, params: any) {
         "checkInDate",
         "checkOutDate",
       ]);
+      const cm = getCMAdapter(p.hotelId);
       return cm.createReservation(p);
     }
     case "cancelReservation": {
       const p: CancelReservationInput = ensure(params, ["hotelId", "reservationId"]);
+      const cm = getCMAdapter(p.hotelId);
       return cm.cancelReservation(p);
+    }
+    case "updateReservation": {
+      const p: UpdateReservationInput = ensure(params, ["hotelId", "reservationId"]);
+      const cm = getCMAdapter(p.hotelId);
+      return cm.updateReservation(p);
     }
     case "getReservation": {
       const { hotelId, reservationId } = ensure(params, ["hotelId", "reservationId"]);
+      const cm = getCMAdapter(hotelId);
       return cm.getReservation(hotelId, reservationId);
     }
     case "listReservations": {
       const p: ListReservationsQuery = ensure(params, ["hotelId"], true);
+      const cm = getCMAdapter(p.hotelId);
       return cm.listReservations(p);
     }
     default:
