@@ -1,29 +1,12 @@
-import * as fs from "fs";
-import * as path from "path";
 import KbTemplatesClient from "../../../../components/admin/KbTemplatesClient";
 import KbGeneratorControls from "../../../../components/admin/KbGeneratorControls";
+import { listBaseTemplatesFromCode } from "@/lib/prompts/sourceOfTruth";
 
 export const dynamic = "force-dynamic";
 
-type SeedEntry = {
-  categoryId: string;
-  name?: string;
-  templates?: Record<string, { title?: string; body?: string }>;
-  enabled?: boolean;
-};
-
 export default async function Page() {
-  // Listamos categorías desde el seed local como fuente canónica para UI
-  // (el backend ya está sincronizado via scripts/seed-category-registry.ts)
-  const file = path.resolve(process.cwd(), "seeds/category_registry.json");
-  let seeds: SeedEntry[] = [];
-  try {
-    const raw = fs.readFileSync(file, "utf8");
-    seeds = JSON.parse(raw);
-  } catch {}
-
-  // Preparamos datos mínimos para la UI
-  const rows = seeds.map(s => ({
+  // Fuente de verdad: templates.ts (catálogo en código)
+  const rows = listBaseTemplatesFromCode().map((s) => ({
     categoryId: s.categoryId,
     name: s.name || s.categoryId.split("/")[1],
     enabled: s.enabled !== false,

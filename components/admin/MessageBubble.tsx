@@ -149,6 +149,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   : msg.status}
               </span>
             )}
+            {msg.role === "ai" && msg.responseTrace && (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-zinc-900/40 dark:text-gray-300 font-mono"
+                title={`cat=${msg.responseTrace.category ?? "-"} | pk=${msg.responseTrace.promptKey ?? "-"} | ver=${msg.responseTrace.contentVersion ?? "-"} | src=${msg.responseTrace.source ?? "-"}`}
+              >
+                {`${msg.responseTrace.category ?? "-"}/${msg.responseTrace.promptKey ?? "-"}${msg.responseTrace.contentVersion ? ` ${msg.responseTrace.contentVersion}` : ""}`}
+              </span>
+            )}
             {msg.respondedBy && (
               <span className="inline-block ml-2">
                 <span className="text-muted-foreground">{t.channelInbox?.respondedBy || "Respondido por:"}</span>{" "}

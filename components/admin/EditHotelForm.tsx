@@ -97,15 +97,48 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateWarnings, setUpdateWarnings] = useState<string[]>([]);
-  const [autoEnrich, setAutoEnrich] = useState(true);
   const [iconManual, setIconManual] = useState<Record<number, boolean>>({});
   const [attractionsBusy, setAttractionsBusy] = useState(false);
   const [attractionsMsg, setAttractionsMsg] = useState<string | null>(null);
   const [attractionsPreview, setAttractionsPreview] = useState<Array<{ name?: string; notes?: string; distanceKm?: number; driveTime?: string; placeId?: string; photoName?: string }> | null>(null);
+  const [attractionsStats, setAttractionsStats] = useState<any>(null);
+  const [arrivalsBusy, setArrivalsBusy] = useState(false);
+  const [arrivalsMsg, setArrivalsMsg] = useState<string | null>(null);
+  const [adminKey, setAdminKey] = useState("");
+  const isSystemHotel = hotelId === "system";
 
   const approxLabel = (lang?: string) => (lang || "").startsWith("pt") ? "aprox." : (lang || "").startsWith("en") ? "approx." : "aprox.";
 
   const isUrl = (v?: string) => !!v && /^(https?:\/\/)[^\s]+$/i.test(v.trim());
+  const normalizeText = (v: string) =>
+    String(v || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  const sanitizeLegacyAmenitySlug = (slug?: string): string | undefined => {
+    const s = String(slug || "").trim().toLowerCase();
+    if (!s) return undefined;
+    if (s === "custo" || s === "custom_custo") return undefined;
+    if (
+      s === "recep" ||
+      s === "custom_recep" ||
+      s.includes("reception_24") ||
+      s.includes("recepcion_24") ||
+      s.includes("recepcao_24")
+    ) {
+      return "reception_24h";
+    }
+    return s;
+  };
+  const airportHints = (hotel?.airports ?? []).flatMap((a, idx) => {
+    const code = String(a?.code || "").trim().toUpperCase();
+    const name = normalizeText(String(a?.name || ""));
+    if (!code || !name) return [];
+    if (/laguna del sauce|punta del este/.test(name) && code !== "PDP") return [`Fila ${idx + 1}: para "${a?.name}" suele usarse PDP.`];
+    if (/carrasco/.test(name) && code !== "MVD") return [`Fila ${idx + 1}: para "${a?.name}" suele usarse MVD.`];
+    if (/jaguel/.test(name) && code !== "MDO") return [`Fila ${idx + 1}: para "${a?.name}" suele usarse MDO.`];
+    return [];
+  });
   const countries = Country.getAllCountries();
   const cities = hotel?.country ? City.getCitiesOfCountry(hotel.country) || [] : [];
 
@@ -137,12 +170,18 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
         if (raw.hasGym) slugs.push("gym");
         if (raw.hasSpa) slugs.push("spa");
         if (Array.isArray(raw.other)) slugs = slugs.concat(normalizeAmenityTags(raw.other as any));
-        slugs = Array.from(new Set(slugs));
+        slugs = normalizeAmenityTags(
+          slugs
+            .map(sanitizeLegacyAmenitySlug)
+            .filter((x): x is string => Boolean(x))
+        );
         // Normalize schedules keys to slugs and merge legacy
         const sched: Record<string, string> = {};
         const rawSched: Record<string, string> = isPlainObject(raw.schedules) ? (raw.schedules as any) : {};
         for (const [k, v] of Object.entries(rawSched)) {
-          const keySlug = normalizeAmenityTags([k as string])[0] || (k as string);
+          const normK = sanitizeLegacyAmenitySlug(k as string);
+          if (!normK) continue;
+          const keySlug = normalizeAmenityTags([normK])[0] || normK;
           if (v) sched[keySlug] = v as string;
         }
         if (raw.poolSchedule && !sched["pool"]) sched["pool"] = raw.poolSchedule;
@@ -175,6 +214,21 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     }
     if (hotelId) void load();
   }, [hotelId]);
+
+  useEffect(() => {
+    if (!isSystemHotel) return;
+    try {
+      const saved = localStorage.getItem("bg_admin_key");
+      if (saved) setAdminKey(saved);
+    } catch { }
+  }, [isSystemHotel]);
+
+  useEffect(() => {
+    if (!isSystemHotel) return;
+    try {
+      localStorage.setItem("bg_admin_key", adminKey);
+    } catch { }
+  }, [adminKey, isSystemHotel]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -271,11 +325,31 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                     <input className="border p-2 rounded w-full mt-1" placeholder="(opcional)" value={hotel.hotelProfile?.brand ?? ""} onChange={e => setHotel(h => h ? ({ ...h, hotelProfile: { ...(h.hotelProfile ?? {}), brand: e.target.value } }) : h)} />
                   </label>
                 </div>
+                <div className="text-xs text-muted-foreground">
+                  Atracciones del hotel (hotel_config.attractions)
+                </div>
                 <label className="text-xs">
                   <span className="font-medium">Puntos de interés y atracciones cercanas</span>
+                  <select
+                    className="border p-2 rounded w-full mt-1 text-sm"
+                    value={(hotel as any).nearbyPointsMode ?? "auto"}
+                    onChange={e => setHotel(h => h ? ({ ...h, nearbyPointsMode: e.target.value } as any) : h)}
+                  >
+                    <option value="auto">Auto (carrusel si hay fotos)</option>
+                    <option value="always">Siempre carrusel</option>
+                    <option value="text">Sin carrusel de imágenes</option>
+                  </select>
                   <textarea className="border p-2 rounded w-full mt-1 text-sm" rows={3} placeholder="Ej.: Playa Mansa (500m), Puerto (10 min en taxi), Museo X" value={(hotel as any).attractionsInfo ?? ""} onChange={e => setHotel(h => h ? ({ ...h, attractionsInfo: e.target.value } as any) : h)} />
                 </label>
                 <div className="flex items-center gap-3">
+                  {isSystemHotel && (
+                    <input
+                      className="border px-2 py-1 rounded text-xs"
+                      placeholder="Admin key"
+                      value={adminKey}
+                      onChange={e => setAdminKey(e.target.value)}
+                    />
+                  )}
                   <button
                     type="button"
                     className="border px-3 py-1 rounded text-xs bg-white"
@@ -283,6 +357,7 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                     onClick={async () => {
                       setAttractionsBusy(true);
                       setAttractionsMsg(null);
+                      setAttractionsStats(null);
                       try {
                         const res = await fetch("/api/hotels/enrich-attractions", {
                           method: "POST",
@@ -294,6 +369,25 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                         setHotel(h => h ? ({ ...h, attractions: json.attractions || [] } as any) : h);
                         setAttractionsPreview(Array.isArray(json.attractions) ? json.attractions : null);
                         setAttractionsMsg(`Atracciones fijas generadas (${json.count || 0}).`);
+                        const headers: Record<string, string> = { "Content-Type": "application/json" };
+                        if (adminKey) headers["x-admin-key"] = adminKey;
+                        if (!isSystemHotel) {
+                          setAttractionsMsg(`Atracciones fijas generadas (${json.count || 0}). Enriquecimiento de imágenes solo en system.`);
+                          return;
+                        }
+                        if (!adminKey) {
+                          setAttractionsMsg("Admin key requerida para enriquecer imágenes.");
+                          return;
+                        }
+                        headers["x-hotel-id"] = hotelId;
+                        const enrichRes = await fetch("/api/admin/hotel-config/enrich-attractions", {
+                          method: "POST",
+                          headers,
+                          body: JSON.stringify({ hotelId, maxItems: 12, maxImagesPerItem: 3, force: false }),
+                        });
+                        const enrichJson = await enrichRes.json();
+                        if (!enrichRes.ok) throw new Error(enrichJson.error || "Error enriqueciendo imágenes");
+                        setAttractionsStats(enrichJson);
                       } catch (e: any) {
                         setAttractionsMsg(e?.message || "Error generando atracciones");
                         setAttractionsPreview(null);
@@ -304,7 +398,19 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                   >
                     {attractionsBusy ? "Generando…" : "Autogenerar atracciones fijas (LLM)"}
                   </button>
+                  {!isSystemHotel && (
+                    <span className="text-xs text-muted-foreground">Enriquecimiento de imágenes: solo system</span>
+                  )}
                   {attractionsMsg && <span className="text-xs">{attractionsMsg}</span>}
+                  {attractionsStats?.stats && (
+                    <span className="text-xs text-gray-600">
+                      Enrich: {attractionsStats.stats.enrichedImages ?? 0} img, {attractionsStats.stats.enrichedNotes ?? 0} notes, {attractionsStats.stats.skippedImages ?? 0} skip
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground mt-3">
+                  Eventos del hotel se gestionan en la sección Eventos del panel.{" "}
+                  <a href="/admin/events" className="underline">Ir a Eventos</a>
                 </div>
                 {attractionsPreview && attractionsPreview.length > 0 && (
                   <div className="mt-2 border rounded bg-white/70 dark:bg-zinc-900/40 p-2">
@@ -377,7 +483,80 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                 <label className="text-xs"><span className="font-medium">WhatsApp</span><input className="border p-2 rounded w-full mt-1" value={hotel.contacts?.whatsapp ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), whatsapp: e.target.value } }) : h)} /></label>
                 <label className="text-xs"><span className="font-medium">Teléfono</span><input className="border p-2 rounded w-full mt-1" value={hotel.contacts?.phone ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), phone: e.target.value } }) : h)} /></label>
                 <label className="text-xs"><span className="font-medium">Sitio web</span><input className={`border p-2 rounded w-full mt-1 ${hotel.contacts?.website && !isUrl(hotel.contacts.website) ? 'border-red-500' : ''}`} value={hotel.contacts?.website ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), website: e.target.value } }) : h)} /></label>
+                <label className="text-xs"><span className="font-medium">Horario de atención (soporte)</span><input className="border p-2 rounded w-full mt-1" placeholder="Ej: 08:00 a 22:00" value={hotel.contacts?.supportHours ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), supportHours: e.target.value } }) : h)} /></label>
+                <label className="text-xs"><span className="font-medium">Escalamiento nocturno / guardia</span><textarea className="border p-2 rounded w-full mt-1" rows={2} placeholder="Ej: Guardia por WhatsApp +598... o recepcionista de turno" value={hotel.contacts?.supportEscalation ?? ''} onChange={e => setHotel(h => h ? ({ ...h, contacts: { ...(h.contacts ?? {}), supportEscalation: e.target.value } }) : h)} /></label>
                 {hotel.contacts?.website && !isUrl(hotel.contacts.website) && <span className="text-xs text-red-600">URL inválida</span>}
+              </div>
+            </div>
+            <div className="p-3 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h2 className="font-semibold mb-2 text-sm">Transporte de llegada</h2>
+              <div className="flex items-center gap-3 mb-3">
+                <button
+                  type="button"
+                  className="border px-3 py-1 rounded text-xs bg-white"
+                  disabled={arrivalsBusy}
+                  onClick={async () => {
+                    setArrivalsBusy(true);
+                    setArrivalsMsg(null);
+                    try {
+                      const res = await fetch("/api/hotels/enrich-arrivals-transport", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ hotelId }),
+                      });
+                      const json = await res.json();
+                      if (!res.ok) throw new Error(json.error || "Error");
+                      setHotel(h => h ? ({ ...h, airports: json.airports || [], transport: json.transport || {} } as any) : h);
+                      setArrivalsMsg(`Transporte de llegada autogenerado (${json.count || 0} aeropuertos).`);
+                    } catch (e: any) {
+                      setArrivalsMsg(e?.message || "Error autogenerando transporte");
+                    } finally {
+                      setArrivalsBusy(false);
+                    }
+                  }}
+                >
+                  {arrivalsBusy ? "Generando…" : "Autogenerar (IA)"}
+                </button>
+                {arrivalsMsg && <span className="text-xs">{arrivalsMsg}</span>}
+              </div>
+              <div className="space-y-2">
+                {(hotel.airports ?? []).length > 0 && (
+                  <div className="hidden md:grid md:grid-cols-5 gap-2 text-[11px] text-muted-foreground font-medium px-1">
+                    <span>Código</span>
+                    <span className="md:col-span-2">Aeropuerto</span>
+                    <span>Distancia (km)</span>
+                    <span>Tiempo en auto</span>
+                  </div>
+                )}
+                {(hotel.airports ?? []).map((a, idx) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center">
+                    <input className="border p-2 rounded text-xs" placeholder="IATA (ej. PDP)" value={a.code ?? ""} onChange={e => setHotel(h => h ? ({ ...h, airports: (h.airports ?? []).map((x, i) => i === idx ? { ...x, code: e.target.value } : x) }) : h)} />
+                    <input className="border p-2 rounded text-xs md:col-span-2" placeholder="Nombre de aeropuerto" value={a.name ?? ""} onChange={e => setHotel(h => h ? ({ ...h, airports: (h.airports ?? []).map((x, i) => i === idx ? { ...x, name: e.target.value } : x) }) : h)} />
+                    <input className="border p-2 rounded text-xs" placeholder="Distancia (km)" type="number" value={a.distanceKm ?? ""} onChange={e => setHotel(h => h ? ({ ...h, airports: (h.airports ?? []).map((x, i) => i === idx ? { ...x, distanceKm: e.target.value ? Number(e.target.value) : undefined } : x) }) : h)} />
+                    <div className="flex items-center gap-2">
+                      <input className="border p-2 rounded text-xs w-full" placeholder="Tiempo en auto (ej. 25 min)" value={a.driveTime ?? ""} onChange={e => setHotel(h => h ? ({ ...h, airports: (h.airports ?? []).map((x, i) => i === idx ? { ...x, driveTime: e.target.value } : x) }) : h)} />
+                      <button type="button" className="text-xs text-red-600" onClick={() => setHotel(h => h ? ({ ...h, airports: (h.airports ?? []).filter((_, i) => i !== idx) }) : h)}>Quitar</button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="border px-2 py-1 rounded text-xs" onClick={() => setHotel(h => h ? ({ ...h, airports: [ ...(h.airports ?? []), { code: "", name: "", distanceKm: undefined, driveTime: "" } ] }) : h)}>+ Agregar aeropuerto</button>
+              </div>
+              {airportHints.length > 0 && (
+                <div className="mt-2 p-2 border rounded bg-amber-50 text-[11px] text-amber-800">
+                  <strong>Sugerencias IATA:</strong>
+                  <ul className="list-disc ml-4 mt-1">
+                    {airportHints.map((w, i) => <li key={i}>{w}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="grid gap-2 mt-3">
+                <label className="flex items-center gap-2 text-xs">
+                  <input type="checkbox" checked={Boolean(hotel.transport?.hasPrivateTransfer)} onChange={e => setHotel(h => h ? ({ ...h, transport: { ...(h.transport ?? {}), hasPrivateTransfer: e.target.checked } }) : h)} />
+                  <span>Transfer privado disponible</span>
+                </label>
+                <textarea className="border p-2 rounded text-xs" rows={2} placeholder="Notas de transfer" value={hotel.transport?.transferNotes ?? ""} onChange={e => setHotel(h => h ? ({ ...h, transport: { ...(h.transport ?? {}), transferNotes: e.target.value } }) : h)} />
+                <textarea className="border p-2 rounded text-xs" rows={2} placeholder="Notas de taxi/apps" value={hotel.transport?.taxiNotes ?? ""} onChange={e => setHotel(h => h ? ({ ...h, transport: { ...(h.transport ?? {}), taxiNotes: e.target.value } }) : h)} />
+                <textarea className="border p-2 rounded text-xs" rows={2} placeholder="Notas de bus/ómnibus" value={hotel.transport?.busNotes ?? ""} onChange={e => setHotel(h => h ? ({ ...h, transport: { ...(h.transport ?? {}), busNotes: e.target.value } }) : h)} />
               </div>
             </div>
           </div>
@@ -546,7 +725,6 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
               <button type="button" className="border px-3 py-1 rounded text-xs" onClick={() => setHotel(h => h ? ({ ...h, rooms: [ ...(h.rooms ?? []), { name: '' } ] }) : h)}>+ Agregar habitación</button>
             </div>
 
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={autoEnrich} onChange={e => setAutoEnrich(e.target.checked)} /><span>Auto-enriquecer transporte y atracciones</span></label>
           </div>
         )}
       </form>

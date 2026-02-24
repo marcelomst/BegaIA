@@ -1,18 +1,26 @@
 "use client";
 import React, { useState } from "react";
+import { useCurrentUser } from "@/lib/context/UserContext";
 
 export default function KbGeneratorControls() {
-  const [hotelId, setHotelId] = useState<string>("hotel999");
+  const { user, loading } = useCurrentUser();
+  const isSystem = user?.hotelId === "system";
+  const [hotelId, setHotelId] = useState<string>(user?.hotelId || "hotel999");
   const [autoEnrich, setAutoEnrich] = useState<boolean>(true);
   const [busy, setBusy] = useState<"preview" | "upload" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [files, setFiles] = useState<Record<string,string> | null>(null);
 
+  React.useEffect(() => {
+    if (user?.hotelId && !isSystem) setHotelId(user.hotelId);
+  }, [user?.hotelId, isSystem]);
+
   async function preview() {
     setMsg(null); setBusy("preview"); setFiles(null);
     try {
       const res = await fetch('/api/kb/generate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-hotel-id': user?.hotelId || "" },
         body: JSON.stringify({ hotelId, autoEnrich, upload: false })
       });
       const text = await res.text();
@@ -32,7 +40,8 @@ export default function KbGeneratorControls() {
     setMsg(null); setBusy("upload");
     try {
       const res = await fetch('/api/kb/generate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-hotel-id': user?.hotelId || "" },
         body: JSON.stringify({ hotelId, autoEnrich, upload: true })
       });
       const j = await res.json();
@@ -48,17 +57,32 @@ export default function KbGeneratorControls() {
   return (
     <div className="space-y-3">
       <h2 className="text-lg font-semibold">Generar KB desde configuración</h2>
+      {loading ? (
+        <div className="text-xs text-muted-foreground">Cargando sesión…</div>
+      ) : (
+        <div className="text-xs text-muted-foreground">
+          {isSystem
+            ? "Modo system: podés generar KB para cualquier hotel."
+            : `Modo hotel: solo podés generar KB para ${user?.hotelId}.`}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm">Hotel ID</label>
-        <input className="border rounded px-2 py-1 text-sm" value={hotelId} onChange={e => setHotelId(e.target.value)} placeholder="hotel999" />
+        <input
+          className="border rounded px-2 py-1 text-sm disabled:bg-gray-100 disabled:text-gray-500"
+          value={hotelId}
+          onChange={e => setHotelId(e.target.value)}
+          placeholder="hotel999"
+          disabled={loading || (!isSystem && Boolean(user?.hotelId))}
+        />
         <label className="text-sm flex items-center gap-2">
           <input type="checkbox" checked={autoEnrich} onChange={e => setAutoEnrich(e.target.checked)} />
           Auto-enriquecer con IA
         </label>
-        <button type="button" className="px-3 py-1 rounded border bg-white text-sm disabled:opacity-50" disabled={busy === 'preview'} onClick={preview}>
+        <button type="button" className="px-3 py-1 rounded border bg-white text-sm disabled:opacity-50" disabled={busy === 'preview' || loading || !user?.hotelId} onClick={preview}>
           {busy === 'preview' ? 'Generando…' : 'Vista previa (sin subir)'}
         </button>
-        <button type="button" className="px-3 py-1 rounded bg-blue-600 text-white text-sm disabled:opacity-50" disabled={busy === 'upload'} onClick={upload}>
+        <button type="button" className="px-3 py-1 rounded bg-blue-600 text-white text-sm disabled:opacity-50" disabled={busy === 'upload' || loading || !user?.hotelId} onClick={upload}>
           {busy === 'upload' ? 'Subiendo…' : 'Generar y subir KB'}
         </button>
         {msg && <span className="text-sm">{msg}</span>}

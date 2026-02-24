@@ -178,6 +178,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         icon={<Server className="w-5 h-5" />}
                       />
                     )}
+                    {(canAccessHotelSection(user.roleLevel) || user.hotelId === "system") && (
+                      <SidebarGroup
+                        label={sidebarOpen ? "Eventos" : ""}
+                        icon={<FileText className="w-5 h-5" />}
+                      >
+                        {user.hotelId === "system" ? (
+                          <SidebarLink
+                            href="/admin/poi"
+                            label={sidebarOpen ? "Eventos (POI - system)" : ""}
+                            icon={<FileText className="w-4 h-4" />}
+                          />
+                        ) : (
+                          <SidebarLink
+                            href="/admin/events"
+                            label={sidebarOpen ? "Eventos del hotel" : ""}
+                            icon={<FileText className="w-4 h-4" />}
+                          />
+                        )}
+                      </SidebarGroup>
+                    )}
                     {canAccessUsersSection(user.roleLevel) && (
                       <SidebarGroup
                         label={sidebarOpen ? t.layout.users : ""}

@@ -126,6 +126,13 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        <div className="rounded-lg bg-white dark:bg-zinc-900 shadow border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-3">
+          <a className="text-sm underline" href="/admin/events">Eventos</a>
+          <span className="text-xs text-muted-foreground">
+            {user.hotelId === "system" ? "Incluye POI" : "Eventos del hotel"}
+          </span>
+        </div>
+
         {/* Bloque: Estado de Canales */}
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2 mb-3">

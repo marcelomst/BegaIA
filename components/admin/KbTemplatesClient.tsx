@@ -14,6 +14,26 @@ type Row = {
   languages: string[];
 };
 
+type TraceRow = {
+  conversationId: string;
+  messageId: string;
+  timestamp: string;
+  category?: string | null;
+  promptKey?: string | null;
+  contentVersion?: string | null;
+  source?: string | null;
+};
+
+type ValidationState = {
+  missingFromHotelConfig: string[];
+  missingFromRuntime: string[];
+  invalidEachBlocks: string[];
+  invalidJoinBlocks: string[];
+  tokensMissingInDBVersion: string[];
+  legacyRuntimeCandidates: string[];
+  summary: "OK" | "ISSUES";
+};
+
 // Helper puro fuera del componente
 function availableLangsFor(row: { languages: string[] }): string[] {
   return row.languages && row.languages.length > 0 ? row.languages : ["es"];
@@ -28,6 +48,69 @@ function safeToString(value: any): string {
   } catch {
     return String(value);
   }
+}
+
+// Algunos registros viejos quedaron serializados como:
+// { "title": "...", "body": "..." } dentro del body.
+// Este helper desenvuelve ese caso para mostrar/editar sólo el body real.
+function extractBodyText(value: any): string {
+  if (value == null) return "";
+
+  if (typeof value === "object") {
+    if ("body" in value) return extractBodyText((value as any).body);
+    return safeToString(value);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object" && "body" in parsed) {
+          return extractBodyText(parsed.body);
+        }
+      } catch {
+        // Fallback tolerante para JSON histórico mal serializado
+        // (ej. con saltos no escapados dentro de body).
+        const m = trimmed.match(/"body"\s*:\s*"([\s\S]*)"\s*}\s*$/);
+        if (m?.[1]) {
+          return m[1]
+            .replace(/\\"/g, '"')
+            .replace(/\\\\/g, "\\")
+            .replace(/\\n/g, "\n")
+            .replace(/\\r/g, "\r")
+            .trim();
+        }
+      }
+    }
+    return value;
+  }
+
+  return safeToString(value);
+}
+
+function normalizeValidation(raw: any): ValidationState {
+  return {
+    missingFromHotelConfig: Array.isArray(raw?.missingFromHotelConfig)
+      ? raw.missingFromHotelConfig
+      : [],
+    missingFromRuntime: Array.isArray(raw?.missingFromRuntime)
+      ? raw.missingFromRuntime
+      : [],
+    invalidEachBlocks: Array.isArray(raw?.invalidEachBlocks)
+      ? raw.invalidEachBlocks
+      : [],
+    invalidJoinBlocks: Array.isArray(raw?.invalidJoinBlocks)
+      ? raw.invalidJoinBlocks
+      : [],
+    tokensMissingInDBVersion: Array.isArray(raw?.tokensMissingInDBVersion)
+      ? raw.tokensMissingInDBVersion
+      : [],
+    legacyRuntimeCandidates: Array.isArray(raw?.legacyRuntimeCandidates)
+      ? raw.legacyRuntimeCandidates
+      : [],
+    summary: raw?.summary === "ISSUES" ? "ISSUES" : "OK",
+  };
 }
 
 export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
@@ -92,6 +175,7 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
 
   const [compileWarnings, setCompileWarnings] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState<boolean>(true);
+  const [humanDirty, setHumanDirty] = useState<boolean>(false);
   const [versionHistory, setVersionHistory] = useState<Array<any>>([]);
   const [versionHistoryLoading, setVersionHistoryLoading] =
     useState<boolean>(false);
@@ -99,15 +183,16 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
   const [rowSourceByCat, setRowSourceByCat] = useState<
     Record<string, "hotel" | "registry" | "seed" | "unknown">
   >({});
+  const [traceRows, setTraceRows] = useState<TraceRow[]>([]);
+  const [traceLoading, setTraceLoading] = useState(false);
+  const [traceCategoryFilter, setTraceCategoryFilter] = useState("");
+  const [tracePromptFilter, setTracePromptFilter] = useState("");
+  const [traceFromDate, setTraceFromDate] = useState("");
+  const [traceToDate, setTraceToDate] = useState("");
+  const [mainTab, setMainTab] = useState<"templates" | "traces">("templates");
 
   // Estado de validación de tokens
-  const [validation, setValidation] = useState<null | {
-    missingFromHotelConfig: string[];
-    invalidEachBlocks: string[];
-    invalidJoinBlocks: string[];
-    tokensMissingInDBVersion: string[];
-    summary: "OK" | "ISSUES";
-  }>(null);
+  const [validation, setValidation] = useState<ValidationState | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Cargar plantilla para edición
@@ -124,21 +209,27 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
       if (res.ok && json?.ok) {
         setEditorTitle(json.title || "");
 
-        // humano: priorizamos hydrated.body; si no, content
-        const hydratedBody =
-          json?.hydrated?.body ?? json?.content ?? json?.body ?? "";
-        setHumanBody(safeToString(hydratedBody));
-
-        // máquina: priorizamos hydrated.machineBody; si no, content
-        const templateTokens =
-          json?.hydrated?.machineBody ??
+        // humano: priorizamos hydrated.body; si no, content.body/content
+        const hydratedBodyRaw =
+          json?.hydrated?.body ??
+          json?.content?.body ??
+          json?.body ??
           json?.content ??
-          json?.template ??
           "";
-        setMachineBody(safeToString(templateTokens));
+        setHumanBody(extractBodyText(hydratedBodyRaw));
+
+        // máquina: priorizamos hydrated.machineBody; si no, content.body/content/template
+        const templateTokensRaw =
+          json?.hydrated?.machineBody ??
+          json?.content?.body ??
+          json?.template ??
+          json?.content ??
+          "";
+        setMachineBody(extractBodyText(templateTokensRaw));
+        setHumanDirty(false);
 
         if (json.validation) {
-          setValidation(json.validation);
+          setValidation(normalizeValidation(json.validation));
         } else {
           setValidation(null);
         }
@@ -155,6 +246,7 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
         setEditorTitle("");
         setHumanBody("");
         setMachineBody("");
+        setHumanDirty(false);
         setValidation(null);
         setValidationError("No se pudo validar la plantilla");
       }
@@ -162,6 +254,7 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
       setEditorTitle("");
       setHumanBody("");
       setMachineBody("");
+      setHumanDirty(false);
       setValidation(null);
       setValidationError("No se pudo validar la plantilla");
     } finally {
@@ -292,11 +385,60 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
     }
   }
 
+  async function vectorizeOne(categoryId: string) {
+    const lang = langByCat[categoryId] || defaultLang || "es";
+    setBusy(categoryId);
+    const tId = toast.loading(`Subiendo ${categoryId} a vector…`);
+    try {
+      const res = await fetch("/api/hotel-content/vectorize-one", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotelId, categoryId, lang, clearPrevious: true }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error || "Error");
+      toast.success(
+        `OK ${categoryId} (${lang}) · borrados=${json?.deleted ?? 0} · indexados=${json?.indexed ?? 0} · versión=${json?.vectorVersion ?? "-"}`,
+        { id: tId }
+      );
+      setRowSourceByCat((m) => ({ ...m, [categoryId]: "hotel" }));
+    } catch (e: any) {
+      toast.error(`Error ${categoryId}: ${e?.message || e}`, { id: tId });
+    } finally {
+      setBusy(null);
+    }
+  }
+
   // ---
   // Sincronizar desde seed (Hito 3) — pendiente de implementación fina
   // ---
   const syncFromSeed = async () => {
-    // TODO: implementar llamada a endpoint de sync cuando lo tengas listo
+    if (!editorCatId) return;
+    setBusy(editorCatId);
+    const tId = toast.loading(`Actualizando ${editorCatId} desde plantilla base…`);
+    try {
+      const res = await fetch("/api/hotel-content/sync-from-seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hotelId,
+          categoryId: editorCatId,
+          lang: editorLang,
+          setCurrent,
+          version: editorVersion || version || "v1",
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Error");
+      toast.success(`Plantilla base aplicada en ${editorCatId}`, { id: tId });
+      await loadTemplate(editorCatId, editorLang);
+      await loadVersionHistory(editorCatId, editorLang);
+      setRowSourceByCat((m) => ({ ...m, [editorCatId]: "hotel" }));
+    } catch (e: any) {
+      toast.error(`Error al actualizar: ${e?.message || e}`, { id: tId });
+    } finally {
+      setBusy(null);
+    }
   };
 
   async function openEditor(categoryId: string) {
@@ -307,12 +449,50 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
     setEditorVersion(version || "v1");
     setHumanBody("");
     setMachineBody("");
+    setHumanDirty(false);
     setCompileWarnings([]);
     setVersionHistory([]);
     setShowDiffBlocks(false);
     setEditorOpen(true);
     await loadTemplate(categoryId, lang);
     await loadVersionHistory(categoryId, lang);
+  }
+
+  async function restoreVersionInEditor(versionTag: string) {
+    if (!editorCatId) return;
+    setEditorLoading(true);
+    try {
+      const url = `/api/hotel-content/get?hotelId=${encodeURIComponent(
+        hotelId
+      )}&categoryId=${encodeURIComponent(
+        editorCatId
+      )}&lang=${encodeURIComponent(editorLang)}&version=${encodeURIComponent(
+        versionTag
+      )}`;
+      const res = await fetch(url);
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "No se pudo cargar la versión");
+      }
+
+      const hydratedBody =
+        json?.hydrated?.body ?? json?.content?.body ?? json?.body ?? "";
+      const templateTokens =
+        json?.hydrated?.machineBody ??
+        json?.content?.body ??
+        json?.template ??
+        "";
+
+      setHumanBody(extractBodyText(hydratedBody));
+      setMachineBody(extractBodyText(templateTokens));
+      setHumanDirty(false);
+      setCompileWarnings([]);
+      toast.success(`Versión ${versionTag} cargada en el editor`);
+    } catch (e: any) {
+      toast.error(`No se pudo restaurar ${versionTag}: ${e?.message || e}`);
+    } finally {
+      setEditorLoading(false);
+    }
   }
 
   async function saveEditorAndSeed() {
@@ -322,27 +502,31 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
     try {
       // Compilamos SIEMPRE el texto humano actual a plantilla con tokens.
       let bodyToSave = machineBody;
-      try {
-        const compiled = compileTemplate(
-          humanBody || "",
-          {
-            hotelConfig: {} as any,
-            categoryId: editorCatId,
-            lang: editorLang,
-          },
-          {}
-        );
-        bodyToSave = compiled.text;
-        setMachineBody(compiled.text);
-        setCompileWarnings(compiled.warnings);
-        if (compiled.warnings?.length) {
-          console.warn("[KB compileTemplate] Warnings:", compiled.warnings);
+      // Si el usuario no tocó la vista humana, preservamos tokens machine tal como están.
+      // Evita degradar la plantilla al re-guardar un contenido ya hidratado.
+      if (humanDirty || !machineBody) {
+        try {
+          const compiled = compileTemplate(
+            humanBody || "",
+            {
+              hotelConfig: {} as any,
+              categoryId: editorCatId,
+              lang: editorLang,
+            },
+            {}
+          );
+          bodyToSave = compiled.text;
+          setMachineBody(compiled.text);
+          setCompileWarnings(compiled.warnings);
+          if (compiled.warnings?.length) {
+            console.warn("[KB compileTemplate] Warnings:", compiled.warnings);
+          }
+        } catch (e) {
+          console.warn(
+            "[KB compileTemplate] Error al compilar, se guarda machineBody actual:",
+            e
+          );
         }
-      } catch (e) {
-        console.warn(
-          "[KB compileTemplate] Error al compilar, se guarda machineBody actual:",
-          e
-        );
       }
 
       const res = await fetch("/api/category/seed-to-hotel", {
@@ -375,6 +559,68 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
       setBusy(null);
     }
   }
+
+  async function loadTraceHistory() {
+    setTraceLoading(true);
+    try {
+      const url = `/api/conversations/trace-history?hotelId=${encodeURIComponent(
+        hotelId
+      )}&limit=1000`;
+      const res = await fetch(url);
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "No se pudo cargar trazas");
+      }
+      setTraceRows(Array.isArray(json.traces) ? json.traces : []);
+    } catch (e: any) {
+      toast.error(`Trace history: ${e?.message || e}`);
+      setTraceRows([]);
+    } finally {
+      setTraceLoading(false);
+    }
+  }
+
+  const traceCategoryOptions = useMemo(() => {
+    const fromRows = new Set<string>();
+    for (const r of sorted) {
+      const cat = String(r.categoryId || "").split("/")[0] || "";
+      if (cat) fromRows.add(cat);
+    }
+    const fromTrace = new Set<string>();
+    for (const t of traceRows) {
+      const cat = String(t.category || "").trim();
+      if (cat) fromTrace.add(cat);
+    }
+    return Array.from(new Set([...fromRows, ...fromTrace])).sort();
+  }, [sorted, traceRows]);
+
+  const tracePromptOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of sorted) {
+      const [cat, pk] = String(r.categoryId || "").split("/");
+      if (!pk) continue;
+      if (!traceCategoryFilter || cat === traceCategoryFilter) set.add(pk);
+    }
+    for (const t of traceRows) {
+      const cat = String(t.category || "");
+      const pk = String(t.promptKey || "");
+      if (!pk) continue;
+      if (!traceCategoryFilter || cat === traceCategoryFilter) set.add(pk);
+    }
+    return Array.from(set).sort();
+  }, [sorted, traceRows, traceCategoryFilter]);
+
+  const filteredTraceRows = useMemo(() => {
+    return traceRows.filter((r) => {
+      const okCat = !traceCategoryFilter || String(r.category || "") === traceCategoryFilter;
+      const okPk = !tracePromptFilter || String(r.promptKey || "") === tracePromptFilter;
+      const ts = String(r.timestamp || "");
+      const day = ts.length >= 10 ? ts.slice(0, 10) : "";
+      const okFrom = !traceFromDate || (day && day >= traceFromDate);
+      const okTo = !traceToDate || (day && day <= traceToDate);
+      return okCat && okPk && okFrom && okTo;
+    });
+  }, [traceRows, traceCategoryFilter, tracePromptFilter, traceFromDate, traceToDate]);
 
   return (
     <div className="space-y-4">
@@ -413,13 +659,6 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
           Set current version
         </label>
         <button
-          className="px-3 py-1 rounded bg-green-600 text-white disabled:opacity-50"
-          disabled={batchBusy || sorted.length === 0}
-          onClick={seedAll}
-        >
-          {batchBusy ? "Creando todo…" : `Crear todo (${sorted.length})`}
-        </button>
-        <button
           className="px-3 py-1 rounded bg-purple-700 text-white disabled:opacity-50"
           disabled={vectorizing}
           onClick={handleVectorizeKB}
@@ -428,76 +667,215 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
         </button>
       </div>
 
+      <div className="flex items-end gap-1 border-b">
+        <button
+          type="button"
+          className={`relative px-3 py-1 rounded-t transition border-b-2 text-xs font-medium ${
+            mainTab === "templates"
+              ? "border-blue-500 bg-white dark:bg-zinc-900 text-blue-800 dark:text-primary"
+              : "border-transparent bg-muted/70 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-primary/10"
+          }`}
+          onClick={() => setMainTab("templates")}
+        >
+          Plantillas KB
+        </button>
+        <button
+          type="button"
+          className={`relative px-3 py-1 rounded-t transition border-b-2 text-xs font-medium ${
+            mainTab === "traces"
+              ? "border-blue-500 bg-white dark:bg-zinc-900 text-blue-800 dark:text-primary"
+              : "border-transparent bg-muted/70 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-primary/10"
+          }`}
+          onClick={() => setMainTab("traces")}
+        >
+          Trazas de respuestas
+        </button>
+      </div>
+
+      {mainTab === "traces" && (
+        <div className="rounded border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">
+              Trazas de respuestas (conversation)
+            </h3>
+            <button
+              className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-50"
+              onClick={loadTraceHistory}
+              disabled={traceLoading}
+            >
+              {traceLoading ? "Cargando…" : "Refrescar trazas"}
+            </button>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs">Category</label>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={traceCategoryFilter}
+              onChange={(e) => {
+                const nextCat = e.target.value;
+                setTraceCategoryFilter(nextCat);
+                setTracePromptFilter("");
+              }}
+            >
+              <option value="">(todas)</option>
+              {traceCategoryOptions.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <label className="text-xs">PromptKey</label>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={tracePromptFilter}
+              onChange={(e) => setTracePromptFilter(e.target.value)}
+            >
+              <option value="">(todos)</option>
+              {tracePromptOptions.map((pk) => (
+                <option key={pk} value={pk}>
+                  {pk}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-muted-foreground">
+              {filteredTraceRows.length} registros
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs">Desde</label>
+            <input
+              type="date"
+              className="border rounded px-2 py-1 text-sm"
+              value={traceFromDate}
+              onChange={(e) => setTraceFromDate(e.target.value)}
+            />
+            <label className="text-xs">Hasta</label>
+            <input
+              type="date"
+              className="border rounded px-2 py-1 text-sm"
+              value={traceToDate}
+              onChange={(e) => setTraceToDate(e.target.value)}
+            />
+            <button
+              className="px-2 py-1 rounded border text-xs"
+              type="button"
+              onClick={() => {
+                setTraceFromDate("");
+                setTraceToDate("");
+              }}
+            >
+              Limpiar fechas
+            </button>
+          </div>
+          <div className="overflow-auto rounded border max-h-64">
+            <table className="min-w-full text-xs">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="text-left p-2">Timestamp</th>
+                  <th className="text-left p-2">Conversation</th>
+                  <th className="text-left p-2">Category</th>
+                  <th className="text-left p-2">PromptKey</th>
+                  <th className="text-left p-2">Version</th>
+                  <th className="text-left p-2">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTraceRows.map((r) => (
+                  <tr
+                    key={`${r.messageId}-${r.timestamp}`}
+                    className="border-t"
+                  >
+                    <td className="p-2 whitespace-nowrap">{r.timestamp || "-"}</td>
+                    <td className="p-2 font-mono">{r.conversationId || "-"}</td>
+                    <td className="p-2">{r.category || "-"}</td>
+                    <td className="p-2">{r.promptKey || "-"}</td>
+                    <td className="p-2">{r.contentVersion || "-"}</td>
+                    <td className="p-2">{r.source || "-"}</td>
+                  </tr>
+                ))}
+                {!traceLoading && filteredTraceRows.length === 0 && (
+                  <tr className="border-t">
+                    <td className="p-2 text-muted-foreground" colSpan={6}>
+                      Sin trazas para los filtros actuales.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Tabla de categorías */}
-      <div className="overflow-auto rounded border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted">
-            <tr>
-              <th className="text-left p-2">CategoryId</th>
-              <th className="text-left p-2">Name</th>
-              <th className="text-left p-2">Lang</th>
-              <th className="text-left p-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.categoryId} className="border-t">
-                <td className="p-2 font-mono">{r.categoryId}</td>
-                <td className="p-2">{r.name}</td>
-                <td className="p-2">
-                  <select
-                    className="border rounded px-2 py-1"
-                    value={
-                      langByCat[r.categoryId] ||
-                      availableLangsFor(r)[0] ||
-                      defaultLang ||
-                      "es"
-                    }
-                    onChange={(e) =>
-                      setLangByCat((m) => ({
-                        ...m,
-                        [r.categoryId]: e.target.value,
-                      }))
-                    }
-                  >
-                    {availableLangsFor(r).map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="ml-2 text-[11px] px-1.5 py-0.5 rounded border align-middle">
-                    {rowSourceByCat[r.categoryId] === "hotel" &&
-                      "hotel_content"}
-                    {(rowSourceByCat[r.categoryId] === "registry" ||
-                      rowSourceByCat[r.categoryId] === "seed") &&
-                      "fallback"}
-                    {!rowSourceByCat[r.categoryId] && "?"}
-                  </span>
-                </td>
-                <td className="p-2">
+      {mainTab === "templates" && (
+        <div className="overflow-auto rounded border">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted">
+              <tr>
+                <th className="text-left p-2">CategoryId</th>
+                <th className="text-left p-2">Name</th>
+                <th className="text-left p-2">Lang</th>
+                <th className="text-left p-2">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((r) => (
+                <tr key={r.categoryId} className="border-t">
+                  <td className="p-2 font-mono">{r.categoryId}</td>
+                  <td className="p-2">{r.name}</td>
+                  <td className="p-2">
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={
+                        langByCat[r.categoryId] ||
+                        availableLangsFor(r)[0] ||
+                        defaultLang ||
+                        "es"
+                      }
+                      onChange={(e) =>
+                        setLangByCat((m) => ({
+                          ...m,
+                          [r.categoryId]: e.target.value,
+                        }))
+                      }
+                    >
+                      {availableLangsFor(r).map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="ml-2 text-[11px] px-1.5 py-0.5 rounded border align-middle">
+                      {rowSourceByCat[r.categoryId] === "hotel" &&
+                        "hotel_content"}
+                      {(rowSourceByCat[r.categoryId] === "registry" ||
+                        rowSourceByCat[r.categoryId] === "seed") &&
+                        "fallback"}
+                      {!rowSourceByCat[r.categoryId] && "?"}
+                    </span>
+                  </td>
+                  <td className="p-2">
                   <button
-                    className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
-                    disabled={busy === r.categoryId}
-                    onClick={() => seed(r.categoryId)}
-                  >
-                    {busy === r.categoryId
-                      ? "Creando…"
-                      : "Crear desde plantilla"}
-                  </button>
-                  <button
-                    className="ml-2 px-3 py-1 rounded bg-gray-700 text-white disabled:opacity-50"
+                    className="px-3 py-1 rounded bg-gray-700 text-white disabled:opacity-50"
                     disabled={busy === r.categoryId}
                     onClick={() => openEditor(r.categoryId)}
                   >
                     Ver / Editar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </button>
+                    <button
+                      className="ml-2 px-3 py-1 rounded bg-emerald-700 text-white disabled:opacity-50"
+                      disabled={busy === r.categoryId}
+                      onClick={() => vectorizeOne(r.categoryId)}
+                    >
+                      Subir esta categoría
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {batchLog.length > 0 && (
         <div className="rounded border p-2 text-xs font-mono whitespace-pre-wrap max-h-64 overflow-auto">
@@ -570,6 +948,18 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                   Estado:{" "}
                   {validation.summary === "OK" ? "OK" : "Con issues"}
                 </span>
+                {validation.legacyRuntimeCandidates.length > 0 && (
+                  <div className="mt-1">
+                    <span className="font-semibold">
+                      Advertencias de migración (tokens runtime legacy sin prefijo):
+                    </span>
+                    <ul className="list-disc list-inside ml-4">
+                      {validation.legacyRuntimeCandidates.map((k) => (
+                        <li key={k}>{k}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {validation.summary === "ISSUES" && (
                   <div className="mt-1 space-y-1">
                     {validation.missingFromHotelConfig.length > 0 && (
@@ -579,6 +969,18 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                         </span>
                         <ul className="list-disc list-inside ml-4">
                           {validation.missingFromHotelConfig.map((k) => (
+                            <li key={k}>{k}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {validation.missingFromRuntime.length > 0 && (
+                      <div>
+                        <span className="font-semibold">
+                          Campos faltantes en runtime:
+                        </span>
+                        <ul className="list-disc list-inside ml-4">
+                          {validation.missingFromRuntime.map((k) => (
                             <li key={k}>{k}</li>
                           ))}
                         </ul>
@@ -659,6 +1061,7 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                       onChange={(e) => {
                         const value = e.target.value;
                         setHumanBody(value);
+                        setHumanDirty(true);
                         if (!editorCatId) return;
                         try {
                           const compiled = compileTemplate(
@@ -707,12 +1110,29 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                   )}
                 </div>
                 <div className="flex items-center gap-2 justify-end">
+                  <div className="mr-auto rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-900 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
+                    <div className="font-semibold mb-1">Nota rápida</div>
+                    <div>
+                      <b>Restaurar base:</b> reemplaza el editor con la plantilla oficial.
+                    </div>
+                    <div>
+                      <b>Guardar versión:</b> guarda el contenido actual como nueva versión.
+                    </div>
+                  </div>
                   <button
                     className="px-3 py-1 rounded bg-orange-500 text-white disabled:opacity-50"
                     disabled={busy === editorCatId}
-                    onClick={syncFromSeed}
+                    onClick={async () => {
+                      const ok = window.confirm(
+                        "Esto restaurará la plantilla base y reemplazará el contenido actual del editor. El historial no se pierde. ¿Continuar?"
+                      );
+                      if (!ok) return;
+                      await syncFromSeed();
+                    }}
+                    title="Restaura la plantilla oficial para esta categoría"
+                    aria-label="Restaurar plantilla base para esta categoría"
                   >
-                    Actualizar desde plantilla base
+                    Restaurar base (sobrescribe borrador)
                   </button>
                   <button
                     className="px-3 py-1 rounded"
@@ -724,8 +1144,10 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                     className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
                     disabled={!humanBody || busy === editorCatId}
                     onClick={saveEditorAndSeed}
+                    title="Guardar versión de plantilla editada"
+                    aria-label="Guardar versión de plantilla editada"
                   >
-                    Guardar y crear
+                    Guardar versión
                   </button>
                 </div>
 
@@ -798,6 +1220,16 @@ export default function KbTemplatesClient({ rows }: { rows: Row[] }) {
                             </div>
                             <div className="mt-1 line-clamp-3 whitespace-pre-wrap break-words">
                               {v.bodyPreview}
+                            </div>
+                            <div className="mt-2">
+                              <button
+                                type="button"
+                                className="px-2 py-1 rounded border text-[11px]"
+                                onClick={() => restoreVersionInEditor(v.versionTag)}
+                                disabled={editorLoading}
+                              >
+                                Restaurar esta versión
+                              </button>
                             </div>
                             {showDiffBlocks &&
                               v.diff &&
