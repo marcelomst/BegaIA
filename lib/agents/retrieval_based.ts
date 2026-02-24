@@ -1055,6 +1055,12 @@ export async function retrievalBased(state: any): Promise<any> {
       tz: range.tz,
     });
     const rangeText = formatEventRange(range.from, range.to, range.tz, langForEvents);
+    // Honor deterministic "now" for tests and for filtering past events.
+    const nowMs = (() => {
+      const raw = String((state as any)?.nowISO || "").trim();
+      const t = raw ? Date.parse(raw) : NaN;
+      return Number.isFinite(t) ? t : Date.now();
+    })();
     let eventsContentVersion: string | null = null;
     try {
       const idx = await getCurrentVersionFromIndex(hotelId, "retrieval_based", eventPromptKey, langForEvents);
@@ -1076,10 +1082,19 @@ export async function retrievalBased(state: any): Promise<any> {
           return normalizeText(`${x.name}|${xs}|${xe}|${xp}`) === key;
         }) === idx;
       });
-    const curatedEvents = applyLocalEventOverrides(
+    let curatedEvents = applyLocalEventOverrides(
       deduped as EventSummary[],
       (cfg as any)?.touristEvents as LocalTouristEventOverride[] | undefined
     );
+    // Filter out past events (endsAt/endDate strictly before "now").
+    // Important: do this AFTER local overrides because overrides can add extra items.
+    curatedEvents = (curatedEvents || []).filter((e) => {
+      const endRaw = String((e as any)?.endsAt || (e as any)?.endDate || "").trim();
+      if (!endRaw) return true; // no end -> keep
+      const endMs = Date.parse(endRaw);
+      if (!Number.isFinite(endMs)) return true; // unparseable -> keep (fail-safe)
+      return endMs >= nowMs;
+    });
     let venues: Array<{ name: string }> = [];
     let placesForVenues: Array<{ name: string; description?: string; photoName?: string }> = [];
     const allowPlacesRuntime = (cfg as any)?.globalEventsProvider === "places" || process.env.ALLOW_PLACES_RUNTIME === "1";
@@ -1133,7 +1148,7 @@ export async function retrievalBased(state: any): Promise<any> {
           : langForEvents === "pt"
             ? "Aqui estão locais onde costumam ocorrer eventos na região:\n"
             : "Acá tenés lugares donde suelen anunciarse eventos en la zona:\n") +
-          `${venues.map((v) => `- ${v.name}`).join("\n")}\n`
+        `${venues.map((v) => `- ${v.name}`).join("\n")}\n`
         : "";
     const eventsFallbackBase =
       langForEvents === "en"
@@ -1160,17 +1175,17 @@ export async function retrievalBased(state: any): Promise<any> {
     const questionBlock = questionText ? `${questionText}\n ->\n` : "";
     const eventsBlock = curatedEvents.length
       ? curatedEvents
-          .map((e) => {
-            const start = e.startsAt || e.startDate;
-            const end = e.endsAt || e.endDate;
-            const when = start ? formatEventRange(start, end, tz, langForEvents) : "";
-            const place = e.location?.name || e.location?.address || e.location?.locality || "";
-            const sourceUrl =
-              typeof e.sourceUrl === "string" && /^https?:\/\//i.test(e.sourceUrl) ? e.sourceUrl : "";
-            const details = String((e as any)?.notes || "").trim();
-            return `- ${e.name}\n  - ${labelWhen}: ${when}\n  - ${labelPlace}: ${place}\n  - ${labelSource}: ${sourceUrl}\n${details ? `  - ${labelDetails}: ${details}\n` : ""}`;
-          })
-          .join("")
+        .map((e) => {
+          const start = e.startsAt || e.startDate;
+          const end = e.endsAt || e.endDate;
+          const when = start ? formatEventRange(start, end, tz, langForEvents) : "";
+          const place = e.location?.name || e.location?.address || e.location?.locality || "";
+          const sourceUrl =
+            typeof e.sourceUrl === "string" && /^https?:\/\//i.test(e.sourceUrl) ? e.sourceUrl : "";
+          const details = String((e as any)?.notes || "").trim();
+          return `- ${e.name}\n  - ${labelWhen}: ${when}\n  - ${labelPlace}: ${place}\n  - ${labelSource}: ${sourceUrl}\n${details ? `  - ${labelDetails}: ${details}\n` : ""}`;
+        })
+        .join("")
       : (eventsFallback || eventsFallbackBase);
     const viewModel = {
       title:
