@@ -7,6 +7,8 @@ import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { getCurrentVersionFromIndex } from "@/lib/astra/hotelVersionIndex";
 import { normalizeVersionToTag } from "@/lib/astra/hotelContent";
 import { verifyJWT } from "@/lib/auth/jwt";
+import { getBaseTemplateFromCode } from "@/lib/prompts/sourceOfTruth";
+import { buildHydrationContext } from "@/lib/kb/hydrationContext";
 
 function normalize(v: string | null | undefined) {
     return (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
@@ -21,14 +23,22 @@ export async function GET(req: NextRequest) {
     const envKey = normalize(process.env.ADMIN_API_KEY);
     const headerAuthOk = !!envKey && providedKey === envKey;
 
-    let cookieAuthOk = false;
     let jwtPayload: any = null;
-    const token = req.cookies.get("token")?.value;
-    if (token) {
-        jwtPayload = await verifyJWT(token);
-        cookieAuthOk = !!jwtPayload;
+    const cookieToken = normalize(req.cookies.get("token")?.value);
+    const authHeader = normalize(req.headers.get("authorization"));
+    const bearerToken = authHeader.toLowerCase().startsWith("bearer ")
+        ? normalize(authHeader.slice(7))
+        : "";
+
+    if (cookieToken) {
+        jwtPayload = await verifyJWT(cookieToken);
     }
-    if (!headerAuthOk && !cookieAuthOk) {
+    if (!jwtPayload && bearerToken) {
+        jwtPayload = await verifyJWT(bearerToken);
+    }
+
+    const cookieOrBearerAuthOk = !!jwtPayload;
+    if (!headerAuthOk && !cookieOrBearerAuthOk) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -36,6 +46,11 @@ export async function GET(req: NextRequest) {
     const rawCategoryId = normalize(search.get("categoryId"));
     const lang = normalize(search.get("lang") || "es").toLowerCase();
     const versionRaw = normalize(search.get("version") || "");
+    const runtimeRaw = normalize(search.get("runtimeContext") || search.get("runtime") || "");
+    let runtimeContext: any = null;
+    if (runtimeRaw) {
+        try { runtimeContext = JSON.parse(runtimeRaw); } catch { runtimeContext = null; }
+    }
 
     if (!hotelId || !rawCategoryId || !rawCategoryId.includes("/")) {
         return NextResponse.json({ error: "hotelId y categoryId requeridos" }, { status: 400 });
@@ -49,7 +64,7 @@ export async function GET(req: NextRequest) {
     // Determinar visibilidad solicitante: staff (técnicos, managers, recepción) vs invitados
     // Regla: recepción (roleLevel 20) y superiores pueden ver "internal"; invitados (>=30) no.
     const roleLevel = Number(jwtPayload?.roleLevel ?? NaN);
-    const isStaff = headerAuthOk || (cookieAuthOk && Number.isFinite(roleLevel) && roleLevel < 30);
+    const isStaff = headerAuthOk || (cookieOrBearerAuthOk && Number.isFinite(roleLevel) && roleLevel < 30);
 
     async function getCategoryAudience(): Promise<string | undefined> {
         try {
@@ -160,22 +175,13 @@ export async function GET(req: NextRequest) {
         // Hydratar con hotel_config
         const cfg = await safeGetHotelConfig(hotelId);
         const cfg2 = enrichConfigForHydration(cfg, `${category}/${promptKey}`);
-        const hydrated = hydrateContent({ title: d.title || null, body: d.body || null }, cfg2, `${category}/${promptKey}`, lang);
+        const hydrated = hydrateContent({ title: d.title || null, body: d.body || null }, cfg2, `${category}/${promptKey}`, lang, runtimeContext);
 
-        // Obtener plantilla seed para validación
+        // Obtener plantilla base desde source-of-truth de código (templates.ts) para validación
         let seedTemplate: string | undefined = undefined;
         try {
-            const fs = await import("fs");
-            const path = await import("path");
-            const file = path.resolve(process.cwd(), "seeds/category_registry.json");
-            if (fs.existsSync(file)) {
-                const raw = fs.readFileSync(file, "utf8");
-                const list = JSON.parse(raw);
-                const entry = list.find((x: any) => x?.categoryId === `${category}/${promptKey}`);
-                if (entry && entry.templates && entry.templates[lang] && entry.templates[lang].body) {
-                    seedTemplate = entry.templates[lang].body;
-                }
-            }
+            const base = getBaseTemplateFromCode(`${category}/${promptKey}`, lang);
+            seedTemplate = typeof base?.body === "string" ? base.body : undefined;
         } catch { }
 
         // Validar plantilla actual
@@ -186,6 +192,7 @@ export async function GET(req: NextRequest) {
                 hotelConfig: cfg,
                 template: d.body || "",
                 seedTemplate,
+                promptKey,
             });
         } catch { }
 
@@ -219,7 +226,7 @@ export async function GET(req: NextRequest) {
             // Hydratar con hotel_config
             const cfg = await safeGetHotelConfig(hotelId);
             const cfg2 = enrichConfigForHydration(cfg, `${category}/${promptKey}`);
-            const hydrated = hydrateContent({ title: picked.tpl?.title || null, body: picked.tpl?.body || null }, cfg2, `${category}/${promptKey}`, picked.lang);
+            const hydrated = hydrateContent({ title: picked.tpl?.title || null, body: picked.tpl?.body || null }, cfg2, `${category}/${promptKey}`, picked.lang, runtimeContext);
             return NextResponse.json({
                 ok: true,
                 source: "registry",
@@ -235,7 +242,7 @@ export async function GET(req: NextRequest) {
             });
         }
         // Si no hay entry en DB, caer al seed local
-        return await localSeedFallback({ hotelId, category, promptKey, lang });
+        return await localSeedFallback({ hotelId, category, promptKey, lang, runtimeContext });
     } catch (e: any) {
         const msg = String(e?.message || e);
         if (!/Collection does not exist/i.test(msg)) {
@@ -260,7 +267,7 @@ export async function GET(req: NextRequest) {
         if (picked) {
             const cfg = await safeGetHotelConfig(hotelId);
             const cfg2 = enrichConfigForHydration(cfg, `${category}/${promptKey}`);
-            const hydrated = hydrateContent({ title: picked.tpl?.title || null, body: picked.tpl?.body || null }, cfg2, `${category}/${promptKey}`, picked.lang);
+            const hydrated = hydrateContent({ title: picked.tpl?.title || null, body: picked.tpl?.body || null }, cfg2, `${category}/${promptKey}`, picked.lang, runtimeContext);
             return NextResponse.json({
                 ok: true,
                 source: "registry",
@@ -276,7 +283,7 @@ export async function GET(req: NextRequest) {
             });
         }
         // Sin resultados en DB/CQL → seed local
-        return await localSeedFallback({ hotelId, category, promptKey, lang });
+        return await localSeedFallback({ hotelId, category, promptKey, lang, runtimeContext });
     }
 }
 
@@ -300,9 +307,32 @@ function pickTemplate(templates: any, requestedLang: string): { lang: string; tp
     return { lang: chosen, tpl: templates[chosen], availableLangs: validKeys };
 }
 
-async function localSeedFallback(args: { hotelId: string; category: string; promptKey: string; lang: string }) {
-    const { hotelId, category, promptKey, lang } = args;
+async function localSeedFallback(args: { hotelId: string; category: string; promptKey: string; lang: string; runtimeContext?: any }) {
+    const { hotelId, category, promptKey, lang, runtimeContext } = args;
     try {
+        const categoryId = `${category}/${promptKey}`;
+        // Fuente de verdad en código
+        const tplFromCode = getBaseTemplateFromCode(categoryId, lang);
+        if (tplFromCode?.body) {
+            const cfg = await safeGetHotelConfig(hotelId);
+            const cfg2 = enrichConfigForHydration(cfg, categoryId);
+            const hydrated = hydrateContent({ title: tplFromCode?.title || null, body: tplFromCode?.body || null }, cfg2, categoryId, lang, runtimeContext);
+            return NextResponse.json({
+                ok: true,
+                source: "seed",
+                hotelId,
+                categoryId,
+                lang,
+                version: null,
+                content: { title: tplFromCode?.title || null, body: tplFromCode?.body || null },
+                hydrated: hydrated?.content || null,
+                hydrationMeta: hydrated?.meta || null,
+                isFallback: true,
+                availableTemplateLangs: [lang, "es", "en", "pt"],
+            });
+        }
+
+        // Fallback legacy a seeds/category_registry.json
         const fs = await import("fs");
         const path = await import("path");
         const file = path.resolve(process.cwd(), "seeds/category_registry.json");
@@ -319,7 +349,7 @@ async function localSeedFallback(args: { hotelId: string; category: string; prom
         // Hydratar con hotel_config
         const cfg = await safeGetHotelConfig(hotelId);
         const cfg2 = enrichConfigForHydration(cfg, `${category}/${promptKey}`);
-        const hydrated = hydrateContent({ title: tpl?.title || null, body: tpl?.body || null }, cfg2, `${category}/${promptKey}`, chosen || lang);
+        const hydrated = hydrateContent({ title: tpl?.title || null, body: tpl?.body || null }, cfg2, `${category}/${promptKey}`, chosen || lang, runtimeContext);
         return NextResponse.json({
             ok: true,
             source: "seed",
@@ -396,6 +426,18 @@ function getIn(obj: any, path: string): any {
     return cur;
 }
 
+function normalizeMaybePublicPath(val: string): string {
+    const v = String(val || "").trim();
+    if (!v) return v;
+    if (/^https?:\/\//i.test(v)) return v;
+    const idx = v.lastIndexOf("/public/");
+    if (idx >= 0) {
+        const rel = v.slice(idx + "/public".length);
+        return rel.startsWith("/") ? rel : `/${rel}`;
+    }
+    return v;
+}
+
 function replaceTokenSyntax(text: string, cfg: any): { out: string; used: Record<string, any> } {
     const used: Record<string, any> = {};
     if (!text) return { out: text, used };
@@ -425,28 +467,29 @@ function replaceTokenSyntax(text: string, cfg: any): { out: string; used: Record
         const val = keyPath ? getIn(cfg, keyPath) : undefined;
         if (val == null || val === "") return def != null ? String(def) : m;
         used[keyPath] = val;
-        return String(val);
+        return normalizeMaybePublicPath(String(val));
     });
     return { out, used };
 }
 
-function hydrateContent(content: Content, cfg: any, categoryId: string, lang: string): { content: Content; meta: any } | null {
+function hydrateContent(content: Content, cfg: any, categoryId: string, lang: string, runtimeContext?: any): { content: Content; meta: any } | null {
     if (!content) return null;
     const meta: any = { used: {}, strategy: [] as string[] };
     let title = content.title || "";
     let body = content.body || "";
-    if (cfg) {
+    const hydrationCtx = buildHydrationContext(cfg, runtimeContext);
+    if (hydrationCtx) {
         // Primero, expandimos iteradores (each/join) para no romper su sintaxis con el reemplazo simple
-        const eTitle = expandIterators(title, cfg, meta);
+        const eTitle = expandIterators(title, hydrationCtx, meta);
         if (eTitle !== title) meta.strategy.push("iterator");
         title = eTitle;
-        const eBody = expandIterators(body, cfg, meta);
+        const eBody = expandIterators(body, hydrationCtx, meta);
         if (eBody !== body) meta.strategy.push("iterator");
         body = eBody;
 
         // Luego, reemplazos por sintaxis de claves restantes
-        const t1 = replaceTokenSyntax(title, cfg);
-        const b1 = replaceTokenSyntax(body, cfg);
+        const t1 = replaceTokenSyntax(title, hydrationCtx);
+        const b1 = replaceTokenSyntax(body, hydrationCtx);
         meta.used = { ...meta.used, ...t1.used, ...b1.used };
         if (t1.out !== title) meta.strategy.push("token-key");
         if (b1.out !== body) meta.strategy.push("token-key");
@@ -553,7 +596,8 @@ function parseEachTokens(text: string, rootCfg: any, meta: any): string {
 
                     if (!fieldPath) return tokenMatch;
 
-                    const value = getIn(item, fieldPath);
+                    // Caso común en listas primitivas: [[item]]
+                    const value = fieldPath === "item" ? item : getIn(item, fieldPath);
                     if (value == null || value === "") {
                         return fieldDefault != null ? fieldDefault : tokenMatch;
                     }
@@ -562,7 +606,7 @@ function parseEachTokens(text: string, rootCfg: any, meta: any): string {
                     if (Array.isArray(value)) {
                         return value.join(", ");
                     }
-                    return String(value);
+                    return normalizeMaybePublicPath(String(value));
                 });
 
                 return itemOutput;

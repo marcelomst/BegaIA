@@ -7,6 +7,7 @@ import { upsertHotelContent, normalizeVersionToTag } from "@/lib/astra/hotelCont
 import { setCurrentVersionInIndex } from "@/lib/astra/hotelVersionIndex";
 import type { HotelContent } from "@/types/hotelContent";
 import { verifyJWT } from "@/lib/auth/jwt";
+import { getBaseTemplateFromCode } from "@/lib/prompts/sourceOfTruth";
 
 function normalize(v: string | null | undefined) {
     return (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
@@ -64,39 +65,11 @@ export async function POST(req: NextRequest) {
     }
     const [category, promptKey] = categoryId.split("/");
 
-    // Obtener templates desde category_registry (Document API o CQL)
-    const db = await getAstraDB();
-    const col = db.collection("category_registry");
     let template: { title?: string; body?: string } | null = null;
-    try {
-        const doc: any = await col.findOne({ categoryId });
-        if (doc?.templates) {
-            const tpl = typeof doc.templates === "string" ? JSON.parse(doc.templates) : doc.templates;
-            template = tpl?.[lang] ?? null;
-        }
-    } catch (e: any) {
-        const msg = String(e?.message || e);
-        if (!/Collection does not exist/i.test(msg)) {
-            return NextResponse.json({ error: msg }, { status: 500 });
-        }
-        // Fallback CQL
-        const client = getCassandraClient();
-        const rs = await client.execute(
-            `SELECT templates FROM "${process.env.ASTRA_DB_KEYSPACE}"."category_registry" WHERE "categoryId"=? LIMIT 1`,
-            [categoryId],
-            { prepare: true }
-        );
-        const row = rs.first();
-        if (row) {
-            let templates: any = row.get("templates");
-            if (typeof templates === "string") {
-                try { templates = JSON.parse(templates); } catch { }
-            }
-            template = templates?.[lang] ?? null;
-        }
-    }
+    // 1) Fuente de verdad en código: templates.ts
+    template = getBaseTemplateFromCode(categoryId, lang);
 
-    // Si no encontramos template en DB/CQL intentamos seed local
+    // 2) Fallback legacy: seed local (mientras exista transición)
     if (!template) {
         try {
             const fs = await import("fs");
@@ -110,7 +83,40 @@ export async function POST(req: NextRequest) {
                 if (tpl) template = tpl;
             }
         } catch {
-            // ignorar errores de lectura
+            // ignorar: seguimos con DB/CQL
+        }
+    }
+
+    // 3) Fallback category_registry (Document API o CQL)
+    if (!template) {
+        const db = await getAstraDB();
+        const col = db.collection("category_registry");
+        try {
+            const doc: any = await col.findOne({ categoryId });
+            if (doc?.templates) {
+                const tpl = typeof doc.templates === "string" ? JSON.parse(doc.templates) : doc.templates;
+                template = tpl?.[lang] ?? null;
+            }
+        } catch (e: any) {
+            const msg = String(e?.message || e);
+            if (!/Collection does not exist/i.test(msg)) {
+                return NextResponse.json({ error: msg }, { status: 500 });
+            }
+            // Fallback CQL
+            const client = getCassandraClient();
+            const rs = await client.execute(
+                `SELECT templates FROM "${process.env.ASTRA_DB_KEYSPACE}"."category_registry" WHERE "categoryId"=? LIMIT 1`,
+                [categoryId],
+                { prepare: true }
+            );
+            const row = rs.first();
+            if (row) {
+                let templates: any = row.get("templates");
+                if (typeof templates === "string") {
+                    try { templates = JSON.parse(templates); } catch { }
+                }
+                template = templates?.[lang] ?? null;
+            }
         }
     }
 

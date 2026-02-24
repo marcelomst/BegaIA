@@ -44,14 +44,22 @@ export async function GET(req: NextRequest) {
     const envKey = normalize(process.env.ADMIN_API_KEY);
     const headerAuthOk = !!envKey && providedKey === envKey;
 
-    let cookieAuthOk = false;
     let jwtPayload: any = null;
-    const token = req.cookies.get("token")?.value;
-    if (token) {
-        jwtPayload = await verifyJWT(token);
-        cookieAuthOk = !!jwtPayload;
+    const cookieToken = normalize(req.cookies.get("token")?.value);
+    const authHeader = normalize(req.headers.get("authorization"));
+    const bearerToken = authHeader.toLowerCase().startsWith("bearer ")
+        ? normalize(authHeader.slice(7))
+        : "";
+
+    if (cookieToken) {
+        jwtPayload = await verifyJWT(cookieToken);
     }
-    if (!headerAuthOk && !cookieAuthOk) {
+    if (!jwtPayload && bearerToken) {
+        jwtPayload = await verifyJWT(bearerToken);
+    }
+
+    const cookieOrBearerAuthOk = !!jwtPayload;
+    if (!headerAuthOk && !cookieOrBearerAuthOk) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
