@@ -1,210 +1,5 @@
 [
   {
-    "categoryId": "support/channel_manager",
-    "name": "Channel Manager status (internal)",
-    "enabled": true,
-    "audience": "internal",
-    "router": {
-      "category": "support",
-      "promptKey": "channel_manager"
-    },
-    "retriever": {
-      "topK": 3,
-      "filters": {
-        "category": "support",
-        "promptKey": "channel_manager",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Estado Channel Manager (interno)",
-        "body": "# Estado Channel Manager (interno)\n\n- Habilitado: [[key: channelConfigs.channelManager.enabled | default: ?]]\n- Usuario: [[key: channelConfigs.channelManager.username | default: (sin usuario)]]\n- Última sync: [[key: channelConfigs.channelManager.lastSync | default: (sin dato)]]\n- Proveedor: [[key: channelConfigs.channelManager.provider | default: (sin proveedor)]]"
-      },
-      "en": {
-        "title": "Channel Manager status (internal)",
-        "body": "# Channel Manager status (internal)\n\n- Enabled: [[key: channelConfigs.channelManager.enabled | default: ?]]\n- Username: [[key: channelConfigs.channelManager.username | default: (no user)]]\n- Last sync: [[key: channelConfigs.channelManager.lastSync | default: (no data)]]\n- Provider: [[key: channelConfigs.channelManager.provider | default: (no provider)]]"
-      },
-      "pt": {
-        "title": "Status Channel Manager (interno)",
-        "body": "# Status Channel Manager (interno)\n\n- Ativado: [[key: channelConfigs.channelManager.enabled | default: ?]]\n- Usuário: [[key: channelConfigs.channelManager.username | default: (sem usuário)]]\n- Última sincronização: [[key: channelConfigs.channelManager.lastSync | default: (sem dado)]]\n- Provedor: [[key: channelConfigs.channelManager.provider | default: (sem provedor)]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "retrieval_based/kb_general",
-    "name": "General hotel info",
-    "enabled": true,
-    "router": {
-      "category": "retrieval_based",
-      "promptKey": "kb_general"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "retrieval_based",
-        "promptKey": "kb_general",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Información general del hotel",
-        "body": "# Información general del hotel\n\n## Datos básicos\n\nNombre: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nIdioma principal de atención: [[key: defaultLanguage | default: es]]\nZona horaria: [[key: timezone | default: America/Montevideo]]\n\n## Contacto\n\nTeléfono: [[key: contacts.phone | default: (Completar contacts.phone en hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Completar contacts.whatsapp en hotel_config)]]\nEmail: [[key: contacts.email | default: (Completar contacts.email en hotel_config)]]\nSitio web: [[key: contacts.website | default: (Completar contacts.website en hotel_config)]]\n\n## Horarios\n\nCheck-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn en hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut en hotel_config)]]\nDesayuno: [[key: schedules.breakfast | default: (Definir schedules.breakfast en hotel_config)]]\nHoras de silencio: [[key: schedules.quietHours | default: (Definir schedules.quietHours en hotel_config)]]\n\n## Canales habilitados\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
-      },
-      "en": {
-        "title": "General hotel information",
-        "body": "# General hotel information\n\n## Basic details\n\nName: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nMain service language: [[key: defaultLanguage | default: en]]\nTimezone: [[key: timezone | default: America/Montevideo]]\n\n## Contact\n\nPhone: [[key: contacts.phone | default: (Fill contacts.phone in hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Fill contacts.whatsapp in hotel_config)]]\nEmail: [[key: contacts.email | default: (Fill contacts.email in hotel_config)]]\nWebsite: [[key: contacts.website | default: (Fill contacts.website in hotel_config)]]\n\n## Schedules\n\nCheck-in: [[key: schedules.checkIn | default: (Define schedules.checkIn in hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Define schedules.checkOut in hotel_config)]]\nBreakfast: [[key: schedules.breakfast | default: (Define schedules.breakfast in hotel_config)]]\nQuiet hours: [[key: schedules.quietHours | default: (Define schedules.quietHours in hotel_config)]]\n\n## Enabled channels\n\n- Web: [[key: channelConfigs.web.enabled | default: (Define channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Define channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Define channelConfigs.email.enabled)]]"
-      },
-      "pt": {
-        "title": "Informações gerais do hotel",
-        "body": "# Informações gerais do hotel\n\n## Dados básicos\n\nNome: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nIdioma principal de atendimento: [[key: defaultLanguage | default: pt]]\nFuso horário: [[key: timezone | default: America/Montevideo]]\n\n## Contato\n\nTelefone: [[key: contacts.phone | default: (Preencher contacts.phone em hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Preencher contacts.whatsapp em hotel_config)]]\nEmail: [[key: contacts.email | default: (Preencher contacts.email em hotel_config)]]\nSite: [[key: contacts.website | default: (Preencher contacts.website em hotel_config)]]\n\n## Horários\n\nCheck-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn em hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut em hotel_config)]]\nCafé da manhã: [[key: schedules.breakfast | default: (Definir schedules.breakfast em hotel_config)]]\nHorário de silêncio: [[key: schedules.quietHours | default: (Definir schedules.quietHours em hotel_config)]]\n\n## Canais ativos\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "retrieval_based/room_info",
-    "name": "Room info summary",
-    "enabled": true,
-    "router": {
-      "category": "retrieval_based",
-      "promptKey": "room_info"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "retrieval_based",
-        "promptKey": "room_info",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Tipos de habitaciones – resumen",
-        "body": "# Tipos de habitaciones – resumen\n\n[[each: rooms | default: (Completar rooms en hotel_config) ->\n- [[name | default: Nombre]]\n  - Capacidad: [[capacity | default: ?]] huéspedes\n  - Cama(s): [[beds | default: ?]]\n  - Superficie: [[sizeM2 | default: ?]] m²\n  - Descripción: [[description | default: (Agregar descripción)]]\n  - Highlights:\n  [[join: highlights | sep: \\n | default: (Sin highlights) ->     - [[item]]]]\n  - Imágenes:\n  [[join: images | sep: \\n | default: (Sin imágenes) ->     - !img([[item]])]]\n]]"
-      },
-      "en": {
-        "title": "Room types – summary",
-        "body": "# Room types – summary\n\n[[each: rooms | default: (Fill rooms in hotel_config) ->\n- [[name | default: Name]]\n  - Capacity: [[capacity | default: ?]] guests\n  - Bed(s): [[beds | default: ?]]\n  - Size: [[sizeM2 | default: ?]] m²\n  - Description: [[description | default: (Add description)]]\n  - Highlights:\n  [[join: highlights | sep: \\n | default: (No highlights) ->     - [[item]]]]\n  - Images:\n  [[join: images | sep: \\n | default: (No images) ->     - !img([[item]])]]\n]]"
-      },
-      "pt": {
-        "title": "Tipos de quartos – resumo",
-        "body": "# Tipos de quartos – resumo\n\n[[each: rooms | default: (Preencher rooms em hotel_config) ->\n- [[name | default: Nome]]\n  - Capacidade: [[capacity | default: ?]] hóspedes\n  - Cama(s): [[beds | default: ?]]\n  - Área: [[sizeM2 | default: ?]] m²\n  - Descrição: [[description | default: (Adicionar descrição)]]\n  - Destaques:\n  [[join: highlights | sep: \\n | default: (Sem destaques) ->     - [[item]]]]\n  - Imagens:\n  [[join: images | sep: \\n | default: (Sem imagens) ->     - !img([[item]])]]\n]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "retrieval_based/room_info_img",
-    "name": "Room info (imágenes)",
-    "enabled": true,
-    "router": {
-      "category": "retrieval_based",
-      "promptKey": "room_info_img"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "retrieval_based",
-        "promptKey": "room_info_img",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Tipos de habitaciones + imágenes (dinámico)",
-        "body": "# Tipos de habitaciones con imágenes\n\n[[each: rooms | default: (Completar rooms en hotel_config) ->\nTipo: [[name | default: Nombre]]\nDetalles: Capacidad [[capacity | default:?]] huéspedes | Camas [[beds | default:?]] | Superficie [[sizeM2 | default:?]] m²\nDescripción: [[description | default: (Agregar descripción breve)]]\nHighlights: [[join: highlights | sep: ,  | default: (Sin highlights) -> [[item]]]]\nImages: [[join: images | sep: ,  | default: (Sin imágenes) -> [[item]]]]\n]]"
-      },
-      "en": {
-        "title": "Room types + images (dynamic)",
-        "body": "# Room types with images\n\n[[each: rooms | default: (Fill rooms in hotel_config) ->\nType: [[name | default: Name]]\nDetails: Capacity [[capacity | default:?]] guests | Beds [[beds | default:?]] | Size [[sizeM2 | default:?]] m²\nDescription: [[description | default: (Add short description)]]\nHighlights: [[join: highlights | sep: ,  | default: (No highlights) -> [[item]]]]\nImages: [[join: images | sep: ,  | default: (No images) -> [[item]]]]\n]]"
-      },
-      "pt": {
-        "title": "Tipos de quartos + imagens (dinâmico)",
-        "body": "# Tipos de quartos com imagens\n\n[[each: rooms | default: (Preencher rooms em hotel_config) ->\nTipo: [[name | default: Nome]]\nDetalhes: Capacidade [[capacity | default:?]] hóspedes | Camas [[beds | default:?]] | Área [[sizeM2 | default:?]] m²\nDescrição: [[description | default: (Adicionar descrição breve)]]\nDestaques: [[join: highlights | sep: ,  | default: (Sem destaques) -> [[item]]]]\nImagens: [[join: images | sep: ,  | default: (Sem imagens) -> [[item]]]]\n]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "retrieval_based/nearby_points",
-    "name": "Nearby points of interest",
-    "enabled": true,
-    "router": {
-      "category": "retrieval_based",
-      "promptKey": "nearby_points"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "retrieval_based",
-        "promptKey": "nearby_points",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Puntos de interés cercanos",
-        "body": "# Puntos de interés cercanos\n\nHotel: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nLista (6-10):\n- Nombre:\n  - Descripción corta:\n  - Search query:"
-      },
-      "en": {
-        "title": "Nearby points of interest",
-        "body": "# Nearby points of interest\n\nHotel: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nList (6-10):\n- Name:\n  - Short description:\n  - Search query:"
-      },
-      "pt": {
-        "title": "Pontos de interesse próximos",
-        "body": "# Pontos de interesse próximos\n\nHotel: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nLista (6-10):\n- Nome:\n  - Descrição curta:\n  - Search query:"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "retrieval_based/arrivals_transport",
-    "name": "Arrivals and transport",
-    "enabled": true,
-    "router": {
-      "category": "retrieval_based",
-      "promptKey": "arrivals_transport"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "retrieval_based",
-        "promptKey": "arrivals_transport",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Transporte de llegada",
-        "body": "# Transporte de llegada\n\n## Aeropuertos cercanos\n\n[[each: airports | default: (Completar aeropuertos en hotel_config) ->\n- [[code | default: COD]] – [[name | default: Nombre]]\n  - Distancia (km): [[distanceKm | default: ?]]\n  - Tiempo de viaje: [[driveTime | default: ?]]\n]]\n\n- Transfer privado: [[key: transport.hasPrivateTransfer | default: sí/no]]\n  - Notas: [[key: transport.transferNotes | default: Reservar con 24h de antelación.]]\n- Taxi: [[key: transport.taxiNotes | default: Tarifa estimada y paradas cercanas]]\n- Bus: [[key: transport.busNotes | default: Líneas y frecuencia]]"
-      },
-      "en": {
-        "title": "Arrival transport",
-        "body": "# Arrival transport\n\n## Nearby airports\n\n[[each: airports | default: (Fill airports in hotel_config) ->\n- [[code | default: CODE]] – [[name | default: Name]]\n  - Distance (km): [[distanceKm | default: ?]]\n  - Drive time: [[driveTime | default: ?]]\n]]\n\n- Private transfer: [[key: transport.hasPrivateTransfer | default: yes/no]]\n  - Notes: [[key: transport.transferNotes | default: Book 24h in advance.]]\n- Taxi: [[key: transport.taxiNotes | default: Estimated fare and nearest stops]]\n- Bus: [[key: transport.busNotes | default: Lines and frequency]]"
-      },
-      "pt": {
-        "title": "Transporte de chegada",
-        "body": "# Transporte de chegada\n\n## Aeroportos próximos\n\n[[each: airports | default: (Preencher aeroportos em hotel_config) ->\n- [[code | default: COD]] – [[name | default: Nome]]\n  - Distância (km): [[distanceKm | default: ?]]\n  - Tempo de viagem: [[driveTime | default: ?]]\n]]\n\n- Transfer privado: [[key: transport.hasPrivateTransfer | default: sim/não]]\n  - Notas: [[key: transport.transferNotes | default: Reservar com 24h de antecedência.]]\n- Táxi: [[key: transport.taxiNotes | default: Tarifa estimada e pontos próximos]]\n- Ônibus: [[key: transport.busNotes | default: Linhas e frequência]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
     "categoryId": "amenities/amenities_list",
     "name": "Amenities and schedules",
     "enabled": true,
@@ -222,16 +17,16 @@
     },
     "templates": {
       "es": {
-        "title": "Amenities y horarios",
-        "body": "# Amenities y horarios\n\n- Desayuno: [[key: schedules.breakfast | default: Indicar horario y lugar del servicio]]\n- Piscina: [[key: amenities.poolSchedule | default: Detallar horario y temperatura]]\n- Gimnasio: [[key: amenities.gymSchedule | default: Detallar horario y servicios]]\n- Spa: [[key: amenities.spaSchedule | default: Detallar horario y servicios incluidos]]\n- Estacionamiento: [[key: amenities.parkingNotes | default: Describir costo y disponibilidad]]\n- Mascotas: [[key: policies.pets | default: Especificar política vigente]]"
+        "title": "Listado de amenities y horarios",
+        "body": "Titulo: Amenities y horarios\nCategoria: amenities\nCuerpo:\n- Amenities disponibles:\n[[each: amenitiesDisplay | default: - (Sin datos)\n -> - [[item]]]]\n- Desayuno: [[key: schedules.breakfast | default: (Horario a confirmar)]]\n- Piscina: [[key: amenities.schedules.pool | default: (Horario a confirmar)]]\n- Gimnasio: [[key: amenities.schedules.gym | default: (Horario a confirmar)]]\n- Spa: [[key: amenities.schedules.spa | default: (Horario a confirmar)]]\n- Estacionamiento: [[key: amenities.parkingNotes | default: (Detalle a confirmar con recepción)]]\n- Mascotas: [[key: policies.pets | default: (Condiciones a confirmar)]].\n- Si un servicio no está habilitado por el momento, ofrecer alternativa y escalar a recepción."
       },
       "en": {
-        "title": "Amenities and schedules",
-        "body": "# Amenities and schedules\n\n- Breakfast: [[key: schedules.breakfast | default: Provide serving hours and venue]]\n- Pool: [[key: amenities.poolSchedule | default: Provide opening hours and temperature]]\n- Gym: [[key: amenities.gymSchedule | default: Provide operating hours and services]]\n- Spa: [[key: amenities.spaSchedule | default: Provide operating hours and treatments]]\n- Parking: [[key: amenities.parkingNotes | default: Describe cost and availability]]\n- Pets: [[key: policies.pets | default: Specify current policy]]"
+        "title": "Amenities list and schedules",
+        "body": "Title: Amenities and schedules\nCategory: amenities\nBody:\n- Available amenities:\n[[each: amenitiesDisplay | default: - (No data)\n -> - [[item]]]]\n- Breakfast: [[key: schedules.breakfast | default: (Not defined)]].\n- Pool: [[key: amenities.schedules.pool | default: (Not defined)]].\n- Gym: [[key: amenities.schedules.gym | default: (Not defined)]].\n- Spa: [[key: amenities.schedules.spa | default: (Not defined)]].\n- Parking: [[key: amenities.parkingNotes | default: (No notes)]].\n- Pets: [[key: policies.pets | default: (Not defined)]]."
       },
       "pt": {
-        "title": "Comodidades e horários",
-        "body": "# Comodidades e horários\n\n- Café da manhã: [[key: schedules.breakfast | default: Informar horário e local do serviço]]\n- Piscina: [[key: amenities.poolSchedule | default: Informar horário e temperatura]]\n- Academia: [[key: amenities.gymSchedule | default: Informar horário e serviços]]\n- Spa: [[key: amenities.spaSchedule | default: Informar horário e tratamentos]]\n- Estacionamento: [[key: amenities.parkingNotes | default: Descrever custo e disponibilidade]]\n- Animais de estimação: [[key: policies.pets | default: Especificar política atual]]"
+        "title": "Lista de amenities e horários",
+        "body": "Título: Amenities e horários\nCategoria: amenities\nCorpo:\n- Amenities disponíveis:\n[[each: amenitiesDisplay | default: - (Sem dados)\n -> - [[item]]]]\n- Café da manhã: [[key: schedules.breakfast | default: (Não definido)]].\n- Piscina: [[key: amenities.schedules.pool | default: (Não definido)]].\n- Academia: [[key: amenities.schedules.gym | default: (Não definido)]].\n- Spa: [[key: amenities.schedules.spa | default: (Não definido)]].\n- Estacionamento: [[key: amenities.parkingNotes | default: (Sem notas)]].\n- Animais: [[key: policies.pets | default: (Não definido)]]."
       }
     },
     "fallback": "qa",
@@ -239,271 +34,33 @@
     "version": 1
   },
   {
-    "categoryId": "billing/payments_and_billing",
-    "name": "Payments and billing",
+    "categoryId": "amenities/breakfast_bar",
+    "name": "Breakfast and bar",
     "enabled": true,
     "router": {
-      "category": "billing",
-      "promptKey": "payments_and_billing"
+      "category": "amenities",
+      "promptKey": "breakfast_bar"
     },
     "retriever": {
       "topK": 6,
       "filters": {
-        "category": "billing",
-        "promptKey": "payments_and_billing",
+        "category": "amenities",
+        "promptKey": "breakfast_bar",
         "status": "active"
       }
     },
     "templates": {
       "es": {
-        "title": "Pagos y facturación",
-        "body": "# Pagos y facturación\n\n- Métodos de pago: [[join: payments.methods | sep: ,  | default: Tarjetas, Efectivo, Transferencia -> [[item]]]]\n- Moneda(s): [[join: payments.currencies | sep: ,  | default: [[key: payments.currency | default: ARS/USD/EUR]] -> [[item]]]]\n- Solicitar tarjeta para garantizar: [[key: payments.requiresCardForBooking | default: sí/no]]\n- Emitimos factura: [[key: billing.issuesInvoices | default: sí/no]]\n- Tipos de comprobantes: [[join: billing.invoiceNotesTags | sep: ,  | default: Factura, Ticket, Recibo -> [[item]]]]"
+        "title": "Desayuno y Bar – Tiempos y opciones",
+        "body": "Titulo: Desayuno y Bar – Tiempos y opciones\nCategoria: amenities\nCuerpo:\n- Desayuno: [[key: schedules.breakfast | default: (Horario a confirmar)]].\n- Restaurante/Bar: [[key: amenities.schedules.restaurant | default: (Horario a confirmar)]].\n- Room service: [[key: amenities.schedules.room_service | default: (Horario a confirmar)]].\n- Notas adicionales: (Detalle a confirmar con recepción).\n- Si room service no está habilitado por el momento, ofrecer alternativa y escalar a recepción."
       },
       "en": {
-        "title": "Payment methods and billing",
-        "body": "# Payment methods and billing\n\n- Payment methods: [[join: payments.methods | sep: ,  | default: Cards, Cash, Bank transfer -> [[item]]]]\n- Currency(ies): [[join: payments.currencies | sep: ,  | default: [[key: payments.currency | default: USD/EUR/...]] -> [[item]]]]\n- Require card to guarantee: [[key: payments.requiresCardForBooking | default: yes/no]]\n- We issue invoices: [[key: billing.issuesInvoices | default: yes/no]]\n- Document types: [[join: billing.invoiceNotesTags | sep: ,  | default: Invoice, Receipt -> [[item]]]]"
+        "title": "Breakfast and Bar – Times and options",
+        "body": "Title: Breakfast and Bar – Times and options\nCategory: amenities\nBody:\n- Breakfast: (schedule, place, type)\n- Bar: (schedule, menu, room service)"
       },
       "pt": {
-        "title": "Pagamentos e faturamento",
-        "body": "# Pagamentos e faturamento\n\n- Métodos de pagamento: [[join: payments.methods | sep: ,  | default: Cartões, Dinheiro, Transferência -> [[item]]]]\n- Moeda(s): [[join: payments.currencies | sep: ,  | default: [[key: payments.currency | default: BRL/USD/EUR]] -> [[item]]]]\n- Solicitar cartão para garantir: [[key: payments.requiresCardForBooking | default: sim/não]]\n- Emitimos nota fiscal: [[key: billing.issuesInvoices | default: sim/não]]\n- Tipos de comprovantes: [[join: billing.invoiceNotesTags | sep: ,  | default: Nota fiscal, Recibo -> [[item]]]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "billing/invoice_receipts",
-    "name": "Invoices and receipts",
-    "enabled": true,
-    "router": {
-      "category": "billing",
-      "promptKey": "invoice_receipts"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "billing",
-        "promptKey": "invoice_receipts",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Facturación – Facturas y recibos",
-        "body": "# Facturas y recibos\n\n- Emitimos factura: [[key: billing.issuesInvoices | default: sí/no]]\n- Tipos de comprobantes: [[join: billing.invoiceNotesTags | sep: ,  | default: Factura, Ticket, Recibo -> [[item]]]]"
-      },
-      "en": {
-        "title": "Billing – Invoices and receipts",
-        "body": "# Invoices and receipts\n\n- We issue invoices: [[key: billing.issuesInvoices | default: yes/no]]\n- Document types: [[join: billing.invoiceNotesTags | sep: ,  | default: Invoice, Receipt -> [[item]]]]"
-      },
-      "pt": {
-        "title": "Faturamento – Notas fiscais e recibos",
-        "body": "# Notas fiscais e recibos\n\n- Emitimos nota fiscal: [[key: billing.issuesInvoices | default: sim/não]]\n- Tipos de documentos: [[join: billing.invoiceNotesTags | sep: ,  | default: Nota fiscal, Recibo -> [[item]]]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "support/contact_support",
-    "name": "Contact and support",
-    "enabled": true,
-    "router": {
-      "category": "support",
-      "promptKey": "contact_support"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "support",
-        "promptKey": "contact_support",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Contacto y soporte",
-        "body": "# Contacto y soporte\n\n- Teléfono: [[key: contacts.phone | default: (Completar contacts.phone en hotel_config)]]\n- WhatsApp: [[key: contacts.whatsapp | default: (Completar contacts.whatsapp en hotel_config)]]\n- Email: [[key: contacts.email | default: (Completar contacts.email en hotel_config)]]\n- Sitio web: [[key: contacts.website | default: (Completar contacts.website en hotel_config)]]\n\n## Horarios\n\n- Check-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn en hotel_config)]]\n- Check-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut en hotel_config)]]\n\n## Canales habilitados\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
-      },
-      "en": {
-        "title": "Contact and support",
-        "body": "# Contact and support\n\n- Phone: [[key: contacts.phone | default: (Fill contacts.phone in hotel_config)]]\n- WhatsApp: [[key: contacts.whatsapp | default: (Fill contacts.whatsapp in hotel_config)]]\n- Email: [[key: contacts.email | default: (Fill contacts.email in hotel_config)]]\n- Website: [[key: contacts.website | default: (Fill contacts.website in hotel_config)]]\n\n## Hours\n\n- Check-in: [[key: schedules.checkIn | default: (Define schedules.checkIn in hotel_config)]]\n- Check-out: [[key: schedules.checkOut | default: (Define schedules.checkOut in hotel_config)]]\n\n## Enabled channels\n\n- Web: [[key: channelConfigs.web.enabled | default: (Define channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Define channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Define channelConfigs.email.enabled)]]"
-      },
-      "pt": {
-        "title": "Contato e suporte",
-        "body": "# Contato e suporte\n\n- Telefone: [[key: contacts.phone | default: (Preencher contacts.phone em hotel_config)]]\n- WhatsApp: [[key: contacts.whatsapp | default: (Preencher contacts.whatsapp em hotel_config)]]\n- Email: [[key: contacts.email | default: (Preencher contacts.email em hotel_config)]]\n- Site: [[key: contacts.website | default: (Preencher contacts.website em hotel_config)]]\n\n## Horários\n\n- Check-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn em hotel_config)]]\n- Check-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut em hotel_config)]]\n\n## Canais ativos\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "cancel_reservation/cancellation_policy",
-    "name": "Cancellation policy",
-    "enabled": true,
-    "router": {
-      "category": "cancel_reservation",
-      "promptKey": "cancellation_policy"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "cancel_reservation",
-        "promptKey": "cancellation_policy",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Política de cancelación",
-        "body": "# Política de cancelación\n\n- Tarifa flexible: [[key: policies.cancellation.flexible | default: Plazo sin cargo y penalidad]]\n- Tarifa no reembolsable: [[key: policies.cancellation.nonRefundable | default: Condiciones]]\n- Canales de cancelación: [[join: policies.cancellation.channels | sep: ,  | default: Web, teléfono, OTA -> [[item]]]]\n- No-show: [[key: policies.cancellation.noShow | default: Penalidad]]"
-      },
-      "en": {
-        "title": "Cancellation policy",
-        "body": "# Cancellation policy\n\n- Flexible rate: [[key: policies.cancellation.flexible | default: Free window and penalty]]\n- Non-refundable rate: [[key: policies.cancellation.nonRefundable | default: Conditions]]\n- Cancellation channels: [[join: policies.cancellation.channels | sep: ,  | default: Website, phone, OTA -> [[item]]]]\n- No-show: [[key: policies.cancellation.noShow | default: Penalty]]"
-      },
-      "pt": {
-        "title": "Política de cancelamento",
-        "body": "# Política de cancelamento\n\n- Tarifa flexível: [[key: policies.cancellation.flexible | default: Janela gratuita e penalidade]]\n- Tarifa não reembolsável: [[key: policies.cancellation.nonRefundable | default: Condições]]\n- Canais de cancelamento: [[join: policies.cancellation.channels | sep: ,  | default: Site, telefone, OTA -> [[item]]]]\n- No-show: [[key: policies.cancellation.noShow | default: Penalidade]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "reservation/reservation_flow",
-    "name": "Reservation flow (playbook)",
-    "enabled": true,
-    "router": {
-      "category": "reservation",
-      "promptKey": "reservation_flow"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "reservation",
-        "promptKey": "reservation_flow",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Flujo de reserva – Datos necesarios",
-        "body": "# Flujo de reserva – Datos necesarios\n\n1) Fechas: [[key: reservation.required.dates | default: Entrada y salida]]\n2) Huéspedes: [[key: reservation.required.guests | default: Adultos, menores, edades]]\n3) Habitación: [[key: reservation.required.room | default: Tipo preferido]]\n4) Datos de contacto: [[key: reservation.required.contact | default: Nombre, email, teléfono]]\n5) Garantía: [[key: reservation.required.guarantee | default: Tarjeta o depósito]]\n6) Políticas: [[key: reservation.required.policies | default: Aceptar términos y cancelación]]"
-      },
-      "en": {
-        "title": "Reservation flow – Required data",
-        "body": "# Reservation flow – Required data\n\n1) Dates: [[key: reservation.required.dates | default: Check-in and check-out]]\n2) Guests: [[key: reservation.required.guests | default: Adults, children, ages]]\n3) Room: [[key: reservation.required.room | default: Preferred type]]\n4) Contact data: [[key: reservation.required.contact | default: Name, email, phone]]\n5) Guarantee: [[key: reservation.required.guarantee | default: Card or deposit]]\n6) Policies: [[key: reservation.required.policies | default: Accept terms and cancellation]]"
-      },
-      "pt": {
-        "title": "Fluxo de reserva – Dados necessários",
-        "body": "# Fluxo de reserva – Dados necessários\n\n1) Datas: [[key: reservation.required.dates | default: Check-in e check-out]]\n2) Hóspedes: [[key: reservation.required.guests | default: Adultos, crianças, idades]]\n3) Quarto: [[key: reservation.required.room | default: Tipo preferido]]\n4) Contato: [[key: reservation.required.contact | default: Nome, email, telefone]]\n5) Garantia: [[key: reservation.required.guarantee | default: Cartão ou depósito]]\n6) Políticas: [[key: reservation.required.policies | default: Aceitar termos e cancelamento]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "reservation/modify_reservation",
-    "name": "Modify reservation (playbook)",
-    "enabled": true,
-    "router": {
-      "category": "reservation",
-      "promptKey": "modify_reservation"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "reservation",
-        "promptKey": "modify_reservation",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Modificar reserva – Campo y nuevo valor",
-        "body": "# Modificar reserva – Campo y nuevo valor\n\n- Localizar reserva por: [[key: reservation.modify.locateBy | default: Código o email]]\n- Campo a modificar: [[key: reservation.modify.fields | default: Fecha/Nombre/Huéspedes]]\n- Nuevo valor: [[key: reservation.modify.newValue | default: ...]]\n- Reglas: [[key: reservation.modify.rules | default: Mantener tarifa o recalcular]]\n- Confirmación al huésped: [[key: reservation.modify.confirmation | default: Mensaje estándar]]"
-      },
-      "en": {
-        "title": "Modify reservation – Field and new value",
-        "body": "# Modify reservation – Field and new value\n\n- Locate reservation by: [[key: reservation.modify.locateBy | default: Code or email]]\n- Field to modify: [[key: reservation.modify.fields | default: Date/Name/Guests]]\n- New value: [[key: reservation.modify.newValue | default: ...]]\n- Rules: [[key: reservation.modify.rules | default: Keep rate or recalculate]]\n- Guest confirmation: [[key: reservation.modify.confirmation | default: Standard message]]"
-      },
-      "pt": {
-        "title": "Modificar reserva – Campo e novo valor",
-        "body": "# Modificar reserva – Campo e novo valor\n\n- Localizar reserva por: [[key: reservation.modify.locateBy | default: Código ou email]]\n- Campo a modificar: [[key: reservation.modify.fields | default: Data/Nome/Hóspedes]]\n- Novo valor: [[key: reservation.modify.newValue | default: ...]]\n- Regras: [[key: reservation.modify.rules | default: Manter tarifa ou recalcular]]\n- Confirmação ao hóspede: [[key: reservation.modify.confirmation | default: Mensagem padrão]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "reservation_snapshot/reservation_snapshot",
-    "name": "Reservation snapshot (playbook)",
-    "enabled": true,
-    "router": {
-      "category": "reservation_snapshot",
-      "promptKey": "reservation_snapshot"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "reservation_snapshot",
-        "promptKey": "reservation_snapshot",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Snapshot de reserva – Contenido",
-        "body": "# Snapshot de reserva – Contenido\n\n- Código: [[key: reservation.snapshot.code | default: ABC123]]\n- Nombre: [[key: reservation.snapshot.name | default: Nombre del huésped]]\n- Fechas: [[key: reservation.snapshot.dates | default: dd/mm – dd/mm]]\n- Habitación: [[key: reservation.snapshot.room | default: Tipo]]\n- Total: [[key: reservation.snapshot.total | default: Moneda y monto]]\n- Estado: [[key: reservation.snapshot.status | default: Confirmada/Pendiente/Cancelada]]"
-      },
-      "en": {
-        "title": "Reservation snapshot – Content",
-        "body": "# Reservation snapshot – Content\n\n- Code: [[key: reservation.snapshot.code | default: ABC123]]\n- Name: [[key: reservation.snapshot.name | default: Guest name]]\n- Dates: [[key: reservation.snapshot.dates | default: mm/dd – mm/dd]]\n- Room: [[key: reservation.snapshot.room | default: Type]]\n- Total: [[key: reservation.snapshot.total | default: Currency and amount]]\n- Status: [[key: reservation.snapshot.status | default: Confirmed/Pending/Canceled]]"
-      },
-      "pt": {
-        "title": "Snapshot de reserva – Conteúdo",
-        "body": "# Snapshot de reserva – Conteúdo\n\n- Código: [[key: reservation.snapshot.code | default: ABC123]]\n- Nome: [[key: reservation.snapshot.name | default: Nome do hóspede]]\n- Datas: [[key: reservation.snapshot.dates | default: dd/mm – dd/mm]]\n- Quarto: [[key: reservation.snapshot.room | default: Tipo]]\n- Total: [[key: reservation.snapshot.total | default: Moeda e valor]]\n- Status: [[key: reservation.snapshot.status | default: Confirmada/Pendente/Cancelada]]"
-      }
-    },
-    "fallback": "qa",
-    "intents": [],
-    "version": 1
-  },
-  {
-    "categoryId": "reservation_verify/reservation_verify",
-    "name": "Reservation verification (playbook)",
-    "enabled": true,
-    "router": {
-      "category": "reservation_verify",
-      "promptKey": "reservation_verify"
-    },
-    "retriever": {
-      "topK": 6,
-      "filters": {
-        "category": "reservation_verify",
-        "promptKey": "reservation_verify",
-        "status": "active"
-      }
-    },
-    "templates": {
-      "es": {
-        "title": "Verificación de reserva – Reglas",
-        "body": "# Verificación de reserva – Reglas\n\n- Disponibilidad de fecha y tipo de habitación: [[key: reservation.verify.availability | default: Reglas]]\n- Precio y moneda: [[key: reservation.verify.priceCurrency | default: Validaciones]]\n- Datos del huésped: [[key: reservation.verify.guestData | default: Obligatorios]]\n- Garantía: [[key: reservation.verify.guarantee | default: Tarjeta o depósito]]\n- Políticas: [[key: reservation.verify.policies | default: Cancelación, menores, mascotas]]"
-      },
-      "en": {
-        "title": "Reservation verification – Rules",
-        "body": "# Reservation verification – Rules\n\n- Date and room type availability: [[key: reservation.verify.availability | default: Rules]]\n- Price and currency: [[key: reservation.verify.priceCurrency | default: Validations]]\n- Guest data: [[key: reservation.verify.guestData | default: Required]]\n- Guarantee: [[key: reservation.verify.guarantee | default: Card or deposit]]\n- Policies: [[key: reservation.verify.policies | default: Cancellation, children, pets]]"
-      },
-      "pt": {
-        "title": "Verificação de reserva – Regras",
-        "body": "# Verificação de reserva – Regras\n\n- Disponibilidade de datas e tipo de quarto: [[key: reservation.verify.availability | default: Regras]]\n- Preço e moeda: [[key: reservation.verify.priceCurrency | default: Validações]]\n- Dados do hóspede: [[key: reservation.verify.guestData | default: Obrigatórios]]\n- Garantia: [[key: reservation.verify.guarantee | default: Cartão ou depósito]]\n- Políticas: [[key: reservation.verify.policies | default: Cancelamento, crianças, pets]]"
+        "title": "Café da manhã e Bar – Horários e opções",
+        "body": "Título: Café da manhã e Bar – Horários e opções\nCategoria: amenities\nCorpo:\n- Café da manhã: (horário, local, tipo)\n- Bar: (horário, cardápio, room service)"
       }
     },
     "fallback": "qa",
@@ -538,6 +95,823 @@
       "pt": {
         "title": "Carregadores para carros elétricos",
         "body": "# Carregadores para carros elétricos\n\nAinda não há dados de evCharging configurados em hotel_config.\n\n- Disponibilidade: confirmar com a recepção se há pontos de carga internos ou convênios com estacionamentos próximos.\n- Uso: indicar tempo máximo por veículo e se é preciso agendar com antecedência.\n- Alternativas: sugerir estações públicas nas proximidades ou aplicativos locais que listem carregadores para os hóspedes."
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "amenities/parking",
+    "name": "Parking spots and costs",
+    "enabled": true,
+    "router": {
+      "category": "amenities",
+      "promptKey": "parking"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "amenities",
+        "promptKey": "parking",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Estacionamiento – Cupos y costos",
+        "body": "Titulo: Estacionamiento – Cupos y costos\nCategoria: amenities\nCuerpo:\n- Disponibilidad/cupos: [[key: amenities.parkingNotes | default: (Disponibilidad a confirmar)]]\n- Costo y reservas: [[key: amenities.parkingNotes | default: (Costo/condiciones a confirmar)]]\n- Condiciones adicionales: (Detalle a confirmar con recepción)."
+      },
+      "en": {
+        "title": "Parking – Spots and costs",
+        "body": "Title: Parking – Spots and costs\nCategory: amenities\nBody:\n- Availability/spots\n- Cost and reservations\n- Max height/conditions"
+      },
+      "pt": {
+        "title": "Estacionamento – Vagas e custos",
+        "body": "Título: Estacionamento – Vagas e custos\nCategoria: amenities\nCorpo:\n- Disponibilidade/vagas\n- Custo e reservas\n- Altura máxima/condições"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "amenities/pool_gym_spa",
+    "name": "Pool, Gym and Spa",
+    "enabled": true,
+    "router": {
+      "category": "amenities",
+      "promptKey": "pool_gym_spa"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "amenities",
+        "promptKey": "pool_gym_spa",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Piscina, Gimnasio y Spa – Horarios y reglas",
+        "body": "Titulo: Piscina, Gimnasio y Spa – Horarios y reglas\nCategoria: amenities\nCuerpo:\n- Piscina: [[key: amenities.schedules.pool | default: (Horario a confirmar)]].\n- Gimnasio: [[key: amenities.schedules.gym | default: (Horario a confirmar)]].\n- Spa: [[key: amenities.schedules.spa | default: (Horario a confirmar)]].\n- Reglas/observaciones: (Detalle a confirmar con recepción).\n- Si un servicio no está habilitado por el momento, ofrecer alternativa y escalar a recepción."
+      },
+      "en": {
+        "title": "Pool, Gym and Spa – Schedules and rules",
+        "body": "Title: Pool, Gym and Spa – Schedules and rules\nCategory: amenities\nBody:\n- Pool: (schedule, season, towels)\n- Gym: (schedule, requirements)\n- Spa: (services, reservations, cost)"
+      },
+      "pt": {
+        "title": "Piscina, Academia e Spa – Horários e regras",
+        "body": "Título: Piscina, Academia e Spa – Horários e regras\nCategoria: amenities\nCorpo:\n- Piscina: (horário, temporada, toalhas)\n- Academia: (horário, requisitos)\n- Spa: (serviços, reservas, custo)"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "billing/invoice_receipts",
+    "name": "Invoices and receipts",
+    "enabled": true,
+    "router": {
+      "category": "billing",
+      "promptKey": "invoice_receipts"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "billing",
+        "promptKey": "invoice_receipts",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Facturación – Facturas y recibos",
+        "body": "Titulo: Facturación – Facturas y recibos\nCategoria: billing\nCuerpo:\n- Emite facturas: [[key: billing.issuesInvoices | default: (No definido)]].\n- Datos/formatos aceptados:\n[[each: billing.invoiceNotesTags | default: - (Sin datos)\n -> - [[item]]]]\n- Notas de facturación: [[key: billing.invoiceNotes | default: (Sin notas)]]."
+      },
+      "en": {
+        "title": "Billing – Invoices and receipts",
+        "body": "Title: Billing – Invoices and receipts\nCategory: billing\nBody:\n- Required data for invoice\n- Currency and taxes\n- Deadlines and issuance of receipts"
+      },
+      "pt": {
+        "title": "Faturamento – Faturas e recibos",
+        "body": "Título: Faturamento – Faturas e recibos\nCategoria: billing\nCorpo:\n- Dados necessários para fatura\n- Moeda e impostos\n- Prazos e emissão de comprovantes"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "billing/payments_and_billing",
+    "name": "Payments and billing",
+    "enabled": true,
+    "router": {
+      "category": "billing",
+      "promptKey": "payments_and_billing"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "billing",
+        "promptKey": "payments_and_billing",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Medios de pago y facturación",
+        "body": "Titulo: Pagos y facturación\nCategoria: billing\nCuerpo:\n- Medios de pago aceptados:\n[[each: payments.methods | default: - (No definidos)\n -> - [[item]]]]\n- Monedas:\n[[each: payments.currencies | default: - (No definidas)\n -> - [[item]]]]\n- Requiere tarjeta para reservar: [[key: payments.requiresCardForBooking | default: (No definido)]].\n- Emite facturas: [[key: billing.issuesInvoices | default: (No definido)]].\n- Tipos de comprobantes:\n[[each: billing.invoiceNotesTags | default: - (Sin datos)\n -> - [[item]]]]."
+      },
+      "en": {
+        "title": "Payment methods and billing",
+        "body": "Title: Payment methods and billing\nCategory: billing\nBody:\n- Accepted payment methods:\n- Deposits/prepayments:\n- Billing (required data, deadlines):\n- Currency and exchange rate:"
+      },
+      "pt": {
+        "title": "Meios de pagamento e faturamento",
+        "body": "Título: Meios de pagamento e faturamento\nCategoria: billing\nCorpo:\n- Meios de pagamento aceitos:\n- Depósitos/pré-pagamentos:\n- Faturamento (dados necessários, prazos):\n- Moeda e taxa de câmbio:"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "cancel_reservation/cancellation_policy",
+    "name": "Cancellation policy",
+    "enabled": true,
+    "router": {
+      "category": "cancel_reservation",
+      "promptKey": "cancellation_policy"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "cancel_reservation",
+        "promptKey": "cancellation_policy",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Política de cancelación",
+        "body": "Titulo: Política de cancelación\nCategoria: cancel_reservation\nCuerpo:\n- Ventana de cancelación sin cargo: [[key: policies.cancellation.flexible | default: (No definida)]].\n- Penalidad no reembolsable / fuera de término: [[key: policies.cancellation.nonRefundable | default: (No definida)]].\n- No-show: [[key: policies.cancellation.noShow | default: (No definido)]].\n- Canales de cancelación:\n[[each: policies.cancellation.channels | default: - (No definidos)\n -> - [[item]]]]"
+      },
+      "en": {
+        "title": "Cancellation policy",
+        "body": "Title: Cancellation policy\nCategory: cancel_reservation\nBody:\n- Free cancellation window\n- Penalties for no show or late cancellation\n- Modification/cancellation channels"
+      },
+      "pt": {
+        "title": "Política de cancelamento",
+        "body": "Título: Política de cancelamento\nCategoria: cancel_reservation\nCorpo:\n- Janela de cancelamento sem custo\n- Penalidades por no show ou fora do prazo\n- Canais de modificação/cancelamento"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "modify_reservation_confirm/modify_reservation_confirm",
+    "name": "modify_reservation_confirm",
+    "enabled": true,
+    "router": {
+      "category": "modify_reservation_confirm",
+      "promptKey": "modify_reservation_confirm"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "modify_reservation_confirm",
+        "promptKey": "modify_reservation_confirm",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Modificar reserva – Confirmación de cambios",
+        "body": "Titulo: Modificar reserva – Confirmación de cambios\nCategoria: modify_reservation_confirm\nCuerpo:\n- Mostrar resumen (snapshot previo y cambios propuestos).\n- Pedir confirmación explícita para aplicar.\n- Si confirma, aplicar y responder con resumen final actualizado.\n- Si no confirma, ofrecer corregir otro campo o finalizar sin cambios."
+      },
+      "en": {
+        "title": "Modify reservation – Change confirmation",
+        "body": "Title: Modify reservation – Change confirmation\nCategory: modify_reservation_confirm\nBody:\n- Show a summary (previous snapshot and proposed changes).\n- Ask for explicit confirmation to apply.\n- Offer to modify another field or finish."
+      },
+      "pt": {
+        "title": "Modificar reserva – Confirmação das mudanças",
+        "body": "Título: Modificar reserva – Confirmação das mudanças\nCategoria: modify_reservation_confirm\nCorpo:\n- Mostrar resumo (snapshot anterior e mudanças propostas).\n- Solicitar confirmação explícita para aplicar.\n- Oferecer modificar outro campo ou finalizar."
+      }
+    }
+  },
+  {
+    "categoryId": "modify_reservation_field/modify_reservation_field",
+    "name": "modify_reservation_field",
+    "enabled": true,
+    "router": {
+      "category": "modify_reservation_field",
+      "promptKey": "modify_reservation_field"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "modify_reservation_field",
+        "promptKey": "modify_reservation_field",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Modificar reserva – Seleccionar campo",
+        "body": "Titulo: Modificar reserva – Seleccionar campo\nCategoria: modify_reservation_field\nCuerpo:\n- Pedir al huésped qué campo desea cambiar (fechas, nombre, habitación, huéspedes).\n- Validar que el campo exista y sea modificable.\n- Si hay ambigüedad, listar opciones claras y pedir confirmación.\n- Responder en una sola pregunta concreta (sin mezclar múltiples pasos)."
+      },
+      "en": {
+        "title": "Modify reservation – Select field",
+        "body": "Title: Modify reservation – Select field\nCategory: modify_reservation_field\nBody:\n- Ask which field the guest wants to change (dates, name, room, guests).\n- Validate it is a modifiable field.\n- If ambiguous, list options and ask for confirmation."
+      },
+      "pt": {
+        "title": "Modificar reserva – Selecionar campo",
+        "body": "Título: Modificar reserva – Selecionar campo\nCategoria: modify_reservation_field\nCorpo:\n- Pergunte qual campo o hóspede deseja alterar (datas, nome, quarto, hóspedes).\n- Valide que o campo é modificável.\n- Em caso de ambiguidade, liste opções e peça confirmação."
+      }
+    }
+  },
+  {
+    "categoryId": "modify_reservation_value/modify_reservation_value",
+    "name": "modify_reservation_value",
+    "enabled": true,
+    "router": {
+      "category": "modify_reservation_value",
+      "promptKey": "modify_reservation_value"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "modify_reservation_value",
+        "promptKey": "modify_reservation_value",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Modificar reserva – Pedir nuevo valor",
+        "body": "Titulo: Modificar reserva – Pedir nuevo valor\nCategoria: modify_reservation_value\nCuerpo:\n- Solicitar el nuevo valor del campo seleccionado (ej.: nuevas fechas, nuevo nombre).\n- Validar formato y consistencia (ej.: rango de fechas válido, capacidad de habitación).\n- Si no cumple, explicar el motivo y pedir un valor válido.\n- Para fechas, pedir ambas si solo llega una; para huéspedes, validar entero positivo."
+      },
+      "en": {
+        "title": "Modify reservation – Ask for new value",
+        "body": "Title: Modify reservation – Ask for new value\nCategory: modify_reservation_value\nBody:\n- Request the new value for the selected field (e.g., new dates, new name).\n- Validate format and consistency (e.g., valid date range, room capacity).\n- If invalid, explain and ask for a corrected value."
+      },
+      "pt": {
+        "title": "Modificar reserva – Solicitar novo valor",
+        "body": "Título: Modificar reserva – Solicitar novo valor\nCategoria: modify_reservation_value\nCorpo:\n- Solicite o novo valor do campo selecionado (ex.: novas datas, novo nome).\n- Valide formato e consistência (ex.: intervalo de datas válido, capacidade do quarto).\n- Se inválido, explique e peça correção."
+      }
+    }
+  },
+  {
+    "categoryId": "reservation_snapshot/reservation_snapshot",
+    "name": "Reservation snapshot (playbook)",
+    "enabled": true,
+    "router": {
+      "category": "reservation_snapshot",
+      "promptKey": "reservation_snapshot"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "reservation_snapshot",
+        "promptKey": "reservation_snapshot",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Snapshot de reserva – Contenido",
+        "body": "Titulo: Snapshot de reserva – Contenido\nCategoria: reservation_snapshot\nCuerpo:\n- Campos mínimos: código/id, check-in, check-out, habitación, huéspedes, nombre del huésped.\n- Formato sugerido: lista clara en bullets y orden fijo.\n- Si falta un campo, mostrar \"(sin dato)\" en vez de omitirlo."
+      },
+      "en": {
+        "title": "Reservation snapshot – Content",
+        "body": "Title: Reservation snapshot – Content\nCategory: reservation_snapshot\nBody:\n- Included fields: id, dates, room, guests\n- Format and visibility"
+      },
+      "pt": {
+        "title": "Snapshot de reserva – Conteúdo",
+        "body": "Título: Snapshot de reserva – Conteúdo\nCategoria: reservation_snapshot\nCorpo:\n- Campos incluídos: id, datas, quarto, hóspedes\n- Formato e visibilidade"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "reservation_verify/reservation_verify",
+    "name": "Reservation verification (playbook)",
+    "enabled": true,
+    "router": {
+      "category": "reservation_verify",
+      "promptKey": "reservation_verify"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "reservation_verify",
+        "promptKey": "reservation_verify",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Verificación de reserva – Reglas",
+        "body": "Titulo: Verificación de reserva – Reglas\nCategoria: reservation_verify\nCuerpo:\n- Verificar consistencia: check-out > check-in, fechas válidas, huéspedes <= capacidad.\n- Verificar coherencia del cambio (si modifica fechas o habitación).\n- Confirmaciones requeridas: aceptación explícita del resumen final antes de aplicar."
+      },
+      "en": {
+        "title": "Reservation verification – Rules",
+        "body": "Title: Reservation verification – Rules\nCategory: reservation_verify\nBody:\n- Date and capacity consistency\n- Required confirmations"
+      },
+      "pt": {
+        "title": "Verificação de reserva – Regras",
+        "body": "Título: Verificação de reserva – Regras\nCategoria: reservation_verify\nCorpo:\n- Consistência de datas e capacidades\n- Confirmações requeridas"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "reservation/modify_reservation",
+    "name": "Modify reservation (playbook)",
+    "enabled": true,
+    "router": {
+      "category": "reservation",
+      "promptKey": "modify_reservation"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "reservation",
+        "promptKey": "modify_reservation",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Modificar reserva – Campo y nuevo valor",
+        "body": "Titulo: Modificar reserva – Campo y nuevo valor\nCategoria: reservation\nCuerpo:\n- Campos modificables: fechas, nombre del huésped, tipo de habitación, cantidad de huéspedes.\n- Si la reserva está confirmada y no hay código, pedir código de reserva antes de modificar.\n- Aplicar cambio por pasos: seleccionar campo -> pedir nuevo valor -> validar -> confirmar.\n- Mostrar snapshot previo + cambio propuesto antes de aplicar.\n- Si el huésped no confirma, no aplicar cambios."
+      },
+      "en": {
+        "title": "Modify reservation – Field and new value",
+        "body": "Title: Modify reservation – Field and new value\nCategory: reservation\nBody:\n- Modifiable fields: dates, name, room, guests\n- Change confirmation and snapshot:"
+      },
+      "pt": {
+        "title": "Modificar reserva – Campo e novo valor",
+        "body": "Título: Modificar reserva – Campo e novo valor\nCategoria: reservation\nCorpo:\n- Campos modificáveis: datas, nome, quarto, hóspedes\n- Confirmação de mudanças e snapshot:"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "reservation/reservation_flow",
+    "name": "Reservation flow (playbook)",
+    "enabled": true,
+    "router": {
+      "category": "reservation",
+      "promptKey": "reservation_flow"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "reservation",
+        "promptKey": "reservation_flow",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Flujo de reserva – Datos necesarios",
+        "body": "Titulo: Flujo de reserva – Datos necesarios\nCategoria: reservation\nCuerpo:\n- Datos requeridos (mínimos): nombre completo, tipo de habitación, check-in, check-out, huéspedes.\n- Orden sugerido: 1) fechas, 2) huéspedes, 3) habitación, 4) nombre, 5) recapitulación.\n- Validaciones: check-out > check-in; fechas válidas; huéspedes <= capacidad; tipo de habitación disponible.\n- Si falta un dato, pedir SOLO ese dato faltante.\n- Antes de confirmar, mostrar resumen completo y pedir confirmación explícita (\"¿Confirmás esta reserva?\")."
+      },
+      "en": {
+        "title": "Reservation flow – Required data",
+        "body": "Title: Reservation flow – Required data\nCategory: reservation\nBody:\n- Required data: full name, room type, check-in, check-out, guests\n- Suggested question order:\n- Rules/validations (valid dates, room capacity):"
+      },
+      "pt": {
+        "title": "Fluxo de reserva – Dados necessários",
+        "body": "Título: Fluxo de reserva – Dados necessários\nCategoria: reservation\nCorpo:\n- Dados requeridos: nome completo, tipo de quarto, check-in, check-out, hóspedes\n- Ordem sugerida de perguntas:\n- Regras/validações (datas válidas, capacidade do quarto):"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/ambiguity_policy",
+    "name": "ambiguity_policy",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "ambiguity_policy"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "ambiguity_policy",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Política de ambigüedad y desambiguación",
+        "body": "Titulo: Política de ambigüedad y desambiguación\nCategoria: retrieval_based\nResumen: Guía para manejar consultas ambiguas del huésped.\nCuerpo:\n- Señales de ambigüedad (falta de fechas, tipo de habitación no especificado, términos vagos):\n- Preguntas de aclaración sugeridas (2-3 por caso):\n- Ejemplos de reformulación segura (confirmar antes de accionar):\n- Respuestas cuando falta información crítica (pedir datos mínimos):\n- Tono y límites (no inventar; pedir confirmación explícita):"
+      },
+      "en": {
+        "title": "Ambiguity and disambiguation policy",
+        "body": "Title: Ambiguity and disambiguation policy\nCategory: retrieval_based\nSummary: Guide to handle ambiguous guest queries.\nBody:\n- Ambiguity signals (missing dates, unspecified room type, vague terms):\n- Suggested clarification questions (2-3 per case):\n- Examples of safe reformulation (confirm before acting):\n- Responses when critical info is missing (ask for minimum data):\n- Tone and limits (do not invent; ask for explicit confirmation):"
+      },
+      "pt": {
+        "title": "Política de ambiguidade e desambiguação",
+        "body": "Título: Política de ambiguidade e desambiguação\nCategoria: retrieval_based\nResumo: Guia para lidar com consultas ambíguas de hóspedes.\nCorpo:\n- Sinais de ambiguidade (falta de datas, tipo de quarto não especificado, termos vagos):\n- Perguntas de esclarecimento sugeridas (2-3 por caso):\n- Exemplos de reformulação segura (confirmar antes de agir):\n- Respostas quando falta informação crítica (pedir dados mínimos):\n- Tom e limites (não inventar; pedir confirmação explícita):"
+      }
+    }
+  },
+  {
+    "categoryId": "retrieval_based/arrivals_transport",
+    "name": "Arrivals and transport",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "arrivals_transport"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "arrivals_transport",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Transporte de llegada",
+        "body": "# Transporte de llegada\n\nHotel: [[key: hotelName | default: (Completar hotelName)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nAeropuertos cercanos:\n[[each: airports | default: - (No hay aeropuertos cargados)\n ->- [[code | default: IATA]] — [[name | default: Aeropuerto]] ([[distanceKm | default: ?]] km, [[driveTime | default: tiempo estimado]])]]\n\nOpciones de transporte:\n- Transfer privado: [[key: transport.hasPrivateTransfer | default: (sin dato)]]\n- Notas transfer: [[key: transport.transferNotes | default: (Sin notas)]]\n- Taxi/remise/apps: [[key: transport.taxiNotes | default: (Sin notas)]]\n- Bus/ómnibus: [[key: transport.busNotes | default: (Sin notas)]]\n\n¿Querés que te recomiende la opción más conveniente según tu horario de llegada?"
+      },
+      "en": {
+        "title": "Arrival transport",
+        "body": "# Arrival transport\n\nHotel: [[key: hotelName | default: (Fill hotelName)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nNearby airports:\n[[each: airports | default: - (No airports loaded)\n ->- [[code | default: IATA]] — [[name | default: Airport]] ([[distanceKm | default: ?]] km, [[driveTime | default: estimated drive time]])]]\n\nTransport options:\n- Private transfer: [[key: transport.hasPrivateTransfer | default: (no data)]]\n- Transfer notes: [[key: transport.transferNotes | default: (No notes)]]\n- Taxi/ride-hailing: [[key: transport.taxiNotes | default: (No notes)]]\n- Bus/public transport: [[key: transport.busNotes | default: (No notes)]]\n\nDo you want me to suggest the best option based on your arrival time?"
+      },
+      "pt": {
+        "title": "Transporte de chegada",
+        "body": "# Transporte de chegada\n\nHotel: [[key: hotelName | default: (Preencher hotelName)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nAeroportos próximos:\n[[each: airports | default: - (Sem aeroportos carregados)\n ->- [[code | default: IATA]] — [[name | default: Aeroporto]] ([[distanceKm | default: ?]] km, [[driveTime | default: tempo estimado]])]]\n\nOpções de transporte:\n- Transfer privado: [[key: transport.hasPrivateTransfer | default: (sem dado)]]\n- Notas do transfer: [[key: transport.transferNotes | default: (Sem notas)]]\n- Táxi/app: [[key: transport.taxiNotes | default: (Sem notas)]]\n- Ônibus/transporte público: [[key: transport.busNotes | default: (Sem notas)]]\n\nQuer que eu recomende a opção mais conveniente para seu horário de chegada?"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/kb_general",
+    "name": "General hotel info",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "kb_general"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "kb_general",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Información general del hotel (KB general)",
+        "body": "# Información general del hotel\n\n## Datos básicos\n\nNombre: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nDescripción breve: [[key: hotelProfile.shortDescription | default: (Completar hotelProfile.shortDescription)]]\nTipo de hotel: [[key: hotelProfile.propertyType | default: (Completar hotelProfile.propertyType)]]\nEstilo: [[key: hotelProfile.style | default: (Completar hotelProfile.style)]]\nEstrellas: [[key: hotelProfile.starRating | default: (Completar hotelProfile.starRating)]]\nMarca: [[key: hotelProfile.brand | default: (Completar hotelProfile.brand)]]\n\nPuntos de interés y atracciones cercanas: [[key: attractionsInfo | default: (Completar attractionsInfo)]]\n\nIdioma principal de atención: [[key: defaultLanguage | default: es]]\nZona horaria: [[key: timezone | default: America/Montevideo]]\n\n## Contacto\n\nTeléfono: [[key: contacts.phone | default: (Completar contacts.phone en hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Completar contacts.whatsapp en hotel_config)]]\nEmail: [[key: contacts.email | default: (Completar contacts.email en hotel_config)]]\nSitio web: [[key: contacts.website | default: (Completar contacts.website en hotel_config)]]\n\n## Horarios\n\nCheck-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn en hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut en hotel_config)]]\nDesayuno: [[key: schedules.breakfast | default: (Definir schedules.breakfast en hotel_config)]]\nHoras de silencio: [[key: schedules.quietHours | default: (Definir schedules.quietHours en hotel_config)]]\n\n## Canales habilitados\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
+      },
+      "en": {
+        "title": "General hotel information (KB general)",
+        "body": "# General hotel information\n\n## Basic details\n\nName: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nShort description: [[key: hotelProfile.shortDescription | default: (Fill hotelProfile.shortDescription)]]\nProperty type: [[key: hotelProfile.propertyType | default: (Fill hotelProfile.propertyType)]]\nStyle: [[key: hotelProfile.style | default: (Fill hotelProfile.style)]]\nStar rating: [[key: hotelProfile.starRating | default: (Fill hotelProfile.starRating)]]\nBrand: [[key: hotelProfile.brand | default: (Fill hotelProfile.brand)]]\n\nNearby points of interest and attractions: [[key: attractionsInfo | default: (Fill attractionsInfo)]]\n\nMain service language: [[key: defaultLanguage | default: en]]\nTimezone: [[key: timezone | default: America/Montevideo]]\n\n## Contact\n\nPhone: [[key: contacts.phone | default: (Fill contacts.phone in hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Fill contacts.whatsapp in hotel_config)]]\nEmail: [[key: contacts.email | default: (Fill contacts.email in hotel_config)]]\nWebsite: [[key: contacts.website | default: (Fill contacts.website in hotel_config)]]\n\n## Schedules\n\nCheck-in: [[key: schedules.checkIn | default: (Define schedules.checkIn in hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Define schedules.checkOut in hotel_config)]]\nBreakfast: [[key: schedules.breakfast | default: (Define schedules.breakfast in hotel_config)]]\nQuiet hours: [[key: schedules.quietHours | default: (Define schedules.quietHours in hotel_config)]]\n\n## Enabled channels\n\n- Web: [[key: channelConfigs.web.enabled | default: (Define channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Define channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Define channelConfigs.email.enabled)]]"
+      },
+      "pt": {
+        "title": "Informações gerais do hotel (KB geral)",
+        "body": "# Informações gerais do hotel\n\n## Dados básicos\n\nNome: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nDescrição breve: [[key: hotelProfile.shortDescription | default: (Preencher hotelProfile.shortDescription)]]\nTipo de hotel: [[key: hotelProfile.propertyType | default: (Preencher hotelProfile.propertyType)]]\nEstilo: [[key: hotelProfile.style | default: (Preencher hotelProfile.style)]]\nEstrelas: [[key: hotelProfile.starRating | default: (Preencher hotelProfile.starRating)]]\nMarca: [[key: hotelProfile.brand | default: (Preencher hotelProfile.brand)]]\n\nPontos de interesse e atracoes proximas: [[key: attractionsInfo | default: (Preencher attractionsInfo)]]\n\nIdioma principal de atendimento: [[key: defaultLanguage | default: pt]]\nFuso horário: [[key: timezone | default: America/Montevideo]]\n\n## Contato\n\nTelefone: [[key: contacts.phone | default: (Preencher contacts.phone em hotel_config)]]\nWhatsApp: [[key: contacts.whatsapp | default: (Preencher contacts.whatsapp em hotel_config)]]\nEmail: [[key: contacts.email | default: (Preencher contacts.email em hotel_config)]]\nSite: [[key: contacts.website | default: (Preencher contacts.website em hotel_config)]]\n\n## Horários\n\nCheck-in: [[key: schedules.checkIn | default: (Definir schedules.checkIn em hotel_config)]]\nCheck-out: [[key: schedules.checkOut | default: (Definir schedules.checkOut em hotel_config)]]\nCafé da manhã: [[key: schedules.breakfast | default: (Definir schedules.breakfast em hotel_config)]]\nHorário de silêncio: [[key: schedules.quietHours | default: (Definir schedules.quietHours em hotel_config)]]\n\n## Canais ativos\n\n- Web: [[key: channelConfigs.web.enabled | default: (Definir channelConfigs.web.enabled)]]\n- WhatsApp: [[key: channelConfigs.whatsapp.enabled | default: (Definir channelConfigs.whatsapp.enabled)]]\n- Email: [[key: channelConfigs.email.enabled | default: (Definir channelConfigs.email.enabled)]]"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/nearby_points",
+    "name": "Nearby points of interest",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "nearby_points",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Puntos de interés cercanos",
+        "body": "# Puntos de interés cercanos\n\nHotel: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\nUbicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\nLista (6-10):\n[[each: attractions | default: - Nombre: (Sin puntos cargados)\n  - Descripción corta: (Sin descripción)\n  - Search query: (Sin query)\n -> - Nombre: [[name | default: (Sin nombre)]]\n  - Descripción corta: [[notes | default: (Sin descripción)]]\n  - Search query: [[name | default: (Sin query)]]\n]]"
+      },
+      "en": {
+        "title": "Nearby points of interest",
+        "body": "# Nearby points of interest\n\nHotel: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\nLocation: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\nList (6-10):\n[[each: attractions | default: - Name: (No points loaded)\n  - Short description: (No description)\n  - Search query: (No query)\n -> - Name: [[name | default: (No name)]]\n  - Short description: [[notes | default: (No description)]]\n  - Search query: [[name | default: (No query)]]\n]]"
+      },
+      "pt": {
+        "title": "Pontos de interesse próximos",
+        "body": "# Pontos de interesse próximos\n\nHotel: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\nLocalização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\nLista (6-10):\n[[each: attractions | default: - Nome: (Sem pontos carregados)\n  - Descrição curta: (Sem descrição)\n  - Search query: (Sem query)\n -> - Nome: [[name | default: (Sem nome)]]\n  - Descrição curta: [[notes | default: (Sem descrição)]]\n  - Search query: [[name | default: (Sem query)]]\n]]"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/nearby_points_img",
+    "name": "nearby_points_img",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "nearby_points_img"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "nearby_points_img",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Puntos de interés – con carrusel",
+        "body": "Titulo: Puntos de interés cercanos – con carrusel\nCategoria: retrieval_based\nResumen: Respuesta con texto amigable y un carrusel opcional de imágenes.\nCuerpo:\n- Texto: resumen breve con 6-10 puntos de interés.\n- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\nNotas:\n- 3-5 items en el carrusel, 2-4 imágenes por item.\n- Si no hay imágenes, devolver carousel vacío pero mantener el texto."
+      },
+      "en": {
+        "title": "Nearby points – with carousel",
+        "body": "Title: Nearby points of interest – with carousel\nCategory: retrieval_based\nSummary: Reply with friendly text and an optional image carousel.\nBody:\n- Text: brief summary with 6-10 points of interest.\n- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\nNotes:\n- 3-5 items in the carousel, 2-4 images per item.\n- If there are no images, return an empty carousel but keep the text."
+      },
+      "pt": {
+        "title": "Pontos de interesse – com carrossel",
+        "body": "Título: Pontos de interesse próximos – com carrossel\nCategoria: retrieval_based\nResumo: Resposta com texto amigável e um carrossel opcional de imagens.\nCorpo:\n- Texto: resumo breve com 6-10 pontos de interesse.\n- RichResponse.carousel: [ { title, subtitle, images: [ { url, alt } ] } ]\nNotas:\n- 3-5 itens no carrossel, 2-4 imagens por item.\n- Se não houver imagens, devolver carousel vazio mas manter o texto."
+      }
+    }
+  },
+  {
+    "categoryId": "retrieval_based/room_info",
+    "name": "Room info summary",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "room_info"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "room_info",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Tipos de habitaciones – resumen",
+        "body": "# Tipos de habitaciones – resumen\n\n[[each: rooms | default: (Completar rooms en hotel_config) ->\n- [[name | default: Nombre]]\n  - Capacidad: [[capacity | default: ?]] huéspedes\n  - Camas: [[beds | default: ?]]\n  - Superficie: [[sizeM2 | default: ?]] m²\n  - Descripción: [[description | default: (Agregar descripción)]]\n  - Highlights:\n  [[each: highlights | default: (Sin highlights) ->     - [[item]]]]\n  - Imágenes:\n  [[each: images | default: (Sin imágenes) ->     - !img([[item]])]]\n  - Accesible: [[accessible | default: (sin dato)]]\n]]"
+      },
+      "en": {
+        "title": "Room types – summary",
+        "body": "# Room types – summary\n\n[[each: rooms | default: (Fill rooms in hotel_config) ->\n- [[name | default: Name]]\n  - Capacity: [[capacity | default: ?]] guests\n  - Beds: [[beds | default: ?]]\n  - Size: [[sizeM2 | default: ?]] m²\n  - Description: [[description | default: (Add description)]]\n  - Highlights:\n  [[each: highlights | default: (No highlights) ->     - [[item]]]]\n  - Images:\n  [[each: images | default: (No images) ->     - !img([[item]])]]\n  - Accessible: [[accessible | default: (no data)]]\n]]"
+      },
+      "pt": {
+        "title": "Tipos de quartos – resumo",
+        "body": "# Tipos de quartos – resumo\n\n[[each: rooms | default: (Preencher rooms em hotel_config) ->\n- [[name | default: Nome]]\n  - Capacidade: [[capacity | default: ?]] hóspedes\n  - Camas: [[beds | default: ?]]\n  - Área: [[sizeM2 | default: ?]] m²\n  - Descrição: [[description | default: (Adicionar descrição)]]\n  - Destaques:\n  [[each: highlights | default: (Sem destaques) ->     - [[item]]]]\n  - Imagens:\n  [[each: images | default: (Sem imagens) ->     - !img([[item]])]]\n  - Acessível: [[accessible | default: (sem dado)]]\n]]"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/room_info_img",
+    "name": "Room info (imágenes)",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "room_info_img"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "room_info_img",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Habitaciones con iconos e imágenes",
+        "body": "# Tipos de habitaciones – con iconos e imágenes\n\n[[each: rooms | default: (Completar rooms en hotel_config) ->\nTipo: [[name | default: Nombre]]\nIcono: [[icon | default: 🛏️]]\nResumen visual: [[description | default: (Sin descripción breve)]]\nImages:\n[[each: images | default: (Sin imágenes) -> - [[item]]]]\n]]"
+      },
+      "en": {
+        "title": "Rooms with icons and images",
+        "body": "# Room types – with icons and images\n\n[[each: rooms | default: (Fill rooms in hotel_config) ->\nType: [[name | default: Name]]\nIcon: [[icon | default: 🛏️]]\nVisual summary: [[description | default: (No short description)]]\nImages:\n[[each: images | default: (No images) -> - [[item]]]]\n]]"
+      },
+      "pt": {
+        "title": "Quartos com ícones e imagens",
+        "body": "# Tipos de quartos – com ícones e imagens\n\n[[each: rooms | default: (Preencher rooms em hotel_config) ->\nTipo: [[name | default: Nome]]\nÍcone: [[icon | default: 🛏️]]\nResumo visual: [[description | default: (Sem descrição curta)]]\nImagens:\n[[each: images | default: (Sem imagens) -> - [[item]]]]\n]]"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "retrieval_based/tourist_events",
+    "name": "tourist_events",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "tourist_events"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "tourist_events",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Eventos turísticos",
+        "body": "# [[key: runtime.title | default: Eventos turísticos]]\n\nRango: [[key: runtime.rangeText | default: (sin rango)]]\nCiudad: [[key: city | default: (sin ciudad)]]\n\nEventos:\n[[key: runtime.eventsBlock | default: No encontré eventos cargados para este período.\nPodés consultar fuentes actualizadas y, si querés, ampliar rango o ciudad.\n\n- Paseos por la rambla y playas cercanas\n- Gastronomía local y mercados\n- Miradores y atardeceres\n- Museos o centros culturales\n]]\n[[key: runtime.questionBlock | default: ]]"
+      },
+      "en": {
+        "title": "Tourist events",
+        "body": "# [[key: runtime.title | default: Tourist events]]\n\nRange: [[key: runtime.rangeText | default: (no range)]]\nCity: [[key: city | default: (no city)]]\n\nEvents:\n[[key: runtime.eventsBlock | default: I couldn't find any events loaded for this period.\nYou can check up‑to‑date sources and, if you want, I can expand the range or city.\n\n- Walks along the waterfront and nearby beaches\n- Local food spots and markets\n- Viewpoints and sunsets\n- Museums or cultural centers\n]]\n[[key: runtime.questionBlock | default: ]]"
+      },
+      "pt": {
+        "title": "Eventos turísticos",
+        "body": "# [[key: runtime.title | default: Eventos turísticos]]\n\nIntervalo: [[key: runtime.rangeText | default: (sem intervalo)]]\nCidade: [[key: city | default: (sem cidade)]]\n\nEventos:\n[[key: runtime.eventsBlock | default: Não encontrei eventos carregados para este período.\nVocê pode consultar fontes atualizadas e, se quiser, posso ampliar o intervalo ou a cidade.\n\n- Passeios pela orla e praias próximas\n- Gastronomia local e mercados\n- Mirantes e pôr do sol\n- Museus ou centros culturais\n]]\n[[key: runtime.questionBlock | default: ]]"
+      }
+    }
+  },
+  {
+    "categoryId": "retrieval_based/tourist_events_img",
+    "name": "tourist_events_img",
+    "enabled": true,
+    "router": {
+      "category": "retrieval_based",
+      "promptKey": "tourist_events_img"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "retrieval_based",
+        "promptKey": "tourist_events_img",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Eventos turísticos con imágenes",
+        "body": "# [[key: runtime.title | default: Eventos turísticos]]\n\nRango: [[key: runtime.rangeText | default: (sin rango)]]\nCiudad: [[key: city | default: (sin ciudad)]]\n\nEventos:\n[[key: runtime.eventsBlock | default: No encontré eventos cargados para este período.\nPodés consultar fuentes actualizadas y, si querés, ampliar rango o ciudad.\n\n- Paseos por la rambla y playas cercanas\n- Gastronomía local y mercados\n- Miradores y atardeceres\n- Museos o centros culturales\n]]\n[[key: runtime.questionBlock | default: ]]"
+      },
+      "en": {
+        "title": "Tourist events with images",
+        "body": "# [[key: runtime.title | default: Tourist events]]\n\nRange: [[key: runtime.rangeText | default: (no range)]]\nCity: [[key: city | default: (no city)]]\n\nEvents:\n[[key: runtime.eventsBlock | default: I couldn't find any events loaded for this period.\nYou can check up‑to‑date sources and, if you want, I can expand the range or city.\n\n- Walks along the waterfront and nearby beaches\n- Local food spots and markets\n- Viewpoints and sunsets\n- Museums or cultural centers\n]]\n[[key: runtime.questionBlock | default: ]]"
+      },
+      "pt": {
+        "title": "Eventos turísticos com imagens",
+        "body": "# [[key: runtime.title | default: Eventos turísticos]]\n\nIntervalo: [[key: runtime.rangeText | default: (sem intervalo)]]\nCidade: [[key: city | default: (sem cidade)]]\n\nEventos:\n[[key: runtime.eventsBlock | default: Não encontrei eventos carregados para este período.\nVocê pode consultar fontes atualizadas e, se quiser, posso ampliar o intervalo ou a cidade.\n\n- Passeios pela orla e praias próximas\n- Gastronomia local e mercados\n- Mirantes e pôr do sol\n- Museus ou centros culturais\n]]\n[[key: runtime.questionBlock | default: ]]"
+      }
+    }
+  },
+  {
+    "categoryId": "support/channel_manager",
+    "name": "Channel Manager status (internal)",
+    "enabled": true,
+    "audience": "internal",
+    "router": {
+      "category": "support",
+      "promptKey": "channel_manager"
+    },
+    "retriever": {
+      "topK": 3,
+      "filters": {
+        "category": "support",
+        "promptKey": "channel_manager",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Gestión de canal de contacto",
+        "body": "Titulo: Gestión de canal de contacto\nCategoria: support\nCuerpo:\n- Canal consultado: [[key: runtime.channel | default: (No informado)]].\n- Disponibilidad del canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n- Política de escalamiento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n- Acción sugerida: [[key: runtime.suggestedAction | default: Contactar por WhatsApp o teléfono de recepción.)]].\n"
+      },
+      "en": {
+        "title": "Contact channel manager",
+        "body": "Title: Contact channel manager\nCategory: support\nBody:\n- Requested channel: [[key: runtime.channel | default: (Not provided)]].\n- Channel availability: [[key: runtime.channelAvailability | default: (To be confirmed)]].\n- Escalation policy: [[key: runtime.escalationPolicy | default: (To be confirmed)]].\n- Suggested action: [[key: runtime.suggestedAction | default: Contact via WhatsApp or reception phone.)]].\n"
+      },
+      "pt": {
+        "title": "Gestão de canal de contato",
+        "body": "Título: Gestão de canal de contato\nCategoria: support\nCorpo:\n- Canal consultado: [[key: runtime.channel | default: (Não informado)]].\n- Disponibilidade do canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n- Política de escalonamento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n- Ação sugerida: [[key: runtime.suggestedAction | default: Contatar por WhatsApp ou telefone da recepção.)]].\n"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1
+  },
+  {
+    "categoryId": "support/contact_channel_selector",
+    "name": "contact_channel_selector",
+    "enabled": true,
+    "router": {
+      "category": "support",
+      "promptKey": "contact_channel_selector"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "support",
+        "promptKey": "contact_channel_selector",
+        "status": "active"
+      }
+    },
+    "fallback": "qa",
+    "intents": [],
+    "version": 1,
+    "templates": {
+      "es": {
+        "title": "Gestión de canal de contacto",
+        "body": "Titulo: Gestión de canal de contacto\nCategoria: support\nCuerpo:\n- Canal consultado: [[key: runtime.channel | default: (No informado)]].\n- Disponibilidad del canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n- Política de escalamiento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n- Acción sugerida: [[key: runtime.suggestedAction | default: Contactar por WhatsApp o teléfono de recepción.)]].\n"
+      },
+      "en": {
+        "title": "Contact channel manager",
+        "body": "Title: Contact channel manager\nCategory: support\nBody:\n- Requested channel: [[key: runtime.channel | default: (Not provided)]].\n- Channel availability: [[key: runtime.channelAvailability | default: (To be confirmed)]].\n- Escalation policy: [[key: runtime.escalationPolicy | default: (To be confirmed)]].\n- Suggested action: [[key: runtime.suggestedAction | default: Contact via WhatsApp or reception phone.)]].\n"
+      },
+      "pt": {
+        "title": "Gestão de canal de contato",
+        "body": "Título: Gestão de canal de contato\nCategoria: support\nCorpo:\n- Canal consultado: [[key: runtime.channel | default: (Não informado)]].\n- Disponibilidade do canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n- Política de escalonamento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n- Ação sugerida: [[key: runtime.suggestedAction | default: Contatar por WhatsApp ou telefone da recepção.)]].\n"
+      }
+    }
+  },
+  {
+    "categoryId": "support/contact_support",
+    "name": "Contact and support",
+    "enabled": true,
+    "router": {
+      "category": "support",
+      "promptKey": "contact_support"
+    },
+    "retriever": {
+      "topK": 6,
+      "filters": {
+        "category": "support",
+        "promptKey": "contact_support",
+        "status": "active"
+      }
+    },
+    "templates": {
+      "es": {
+        "title": "Contacto y soporte",
+        "body": "Titulo: Contacto y soporte\nCategoria: support\nCuerpo:\n- Teléfono recepción: [[key: contacts.phone | default: (No definido)]].\n- WhatsApp: [[key: contacts.whatsapp | default: (No definido)]].\n- Email: [[key: contacts.email | default: (No definido)]].\n- Horario de atención: [[key: contacts.supportHours | default: (Horario a confirmar)]].\n- Escalamiento (guardia/nocturno): [[key: contacts.supportEscalation | default: (Guardia/alternativa a confirmar)]].\n- Si una vía no está habilitada por el momento, ofrecer alternativa de contacto y escalar a recepción."
+      },
+      "en": {
+        "title": "Contact and support",
+        "body": "Title: Contact and support\nCategory: support\nBody:\n- Reception phone: [[key: contacts.phone | default: (Not defined)]].\n- WhatsApp: [[key: contacts.whatsapp | default: (Not defined)]].\n- Email: [[key: contacts.email | default: (Not defined)]].\n- Service hours: [[key: contacts.supportHours | default: (Not defined)]].\n- Escalation (night guard): [[key: contacts.supportEscalation | default: (Not defined)]]."
+      },
+      "pt": {
+        "title": "Contato e suporte",
+        "body": "Título: Contato e suporte\nCategoria: support\nCorpo:\n- Telefone da recepção: [[key: contacts.phone | default: (Não definido)]].\n- WhatsApp: [[key: contacts.whatsapp | default: (Não definido)]].\n- Email: [[key: contacts.email | default: (Não definido)]].\n- Horário de atendimento: [[key: contacts.supportHours | default: (Não definido)]].\n- Escalonamento (plantão noturno): [[key: contacts.supportEscalation | default: (Não definido)]]."
       }
     },
     "fallback": "qa",

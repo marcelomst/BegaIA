@@ -8,6 +8,7 @@ import { getHotelConfig } from '@/lib/config/hotelConfig.server';
 import { loadDocumentFileForHotel } from '@/lib/retrieval';
 import { ChatOpenAI } from '@langchain/openai';
 import { buildHydrationConfigFromProfile, generateKbFilesFromTemplates, type Profile } from '@/lib/kb/generator';
+import { amenityLabel, normalizeAmenityTags } from '@/lib/taxonomy/amenities';
 import {
   upsertHotelContent,
   normalizeVersionToNumber,
@@ -20,6 +21,10 @@ import { assertAstraCollectionsExist } from "@/lib/astra/bootstrap";
 import { getCollectionName } from '@/lib/retrieval';
 // 👇 importa tu verifyJWT para validar cookie
 import { verifyJWT } from "@/lib/auth/jwt";
+
+function normalize(v: string | null | undefined): string {
+  return (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
+}
 
 function inferType(category: string, promptKey: string): HotelContent["type"] {
   const PLAYBOOK_KEYS = new Set([
@@ -46,6 +51,58 @@ function inferMetaFromFilename(rel: string): { category?: string; promptKey?: st
 function extractTitle(body: string): string | undefined {
   const m = body.match(/^\s*#\s+(.+)\s*$/m);
   return m ? m[1].trim() : undefined;
+}
+
+function getRequestHotelId(req: NextRequest): string {
+  return normalize(req.headers.get("x-hotel-id"));
+}
+
+function toPublicImageUrl(raw: string): string {
+  const v = String(raw || "").trim();
+  if (!v) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  const idx = v.lastIndexOf("/public/");
+  if (idx >= 0) {
+    const rel = v.slice(idx + "/public".length);
+    return rel.startsWith("/") ? rel : `/${rel}`;
+  }
+  if (v.startsWith("/")) return v;
+  return v;
+}
+
+function normalizeRoomsForKb(rooms: any[] | undefined): any[] | undefined {
+  if (!Array.isArray(rooms)) return rooms;
+  return rooms.map((r) => {
+    const images = Array.isArray(r?.images)
+      ? r.images
+          .map((img: any) => {
+            if (typeof img === "string") return toPublicImageUrl(img);
+            if (img && typeof img === "object" && typeof img.url === "string") {
+              return { ...img, url: toPublicImageUrl(img.url) };
+            }
+            return img;
+          })
+          .filter(Boolean)
+      : r?.images;
+    return { ...r, images };
+  });
+}
+
+function normalizeDisplayLabel(label: string, lang: "es" | "en" | "pt"): string | null {
+  const raw = String(label || "").trim();
+  if (!raw) return null;
+  const norm = raw
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const noise = new Set(["custo", "recep"]);
+  if (noise.has(norm)) return null;
+  if (/^(reception 24|reception 24h|recepcion 24|recepcion 24h|recepcao 24|recepcao 24h)$/.test(norm)) {
+    return amenityLabel("reception_24h", lang);
+  }
+  return raw;
 }
 
 type NearbyPoint = { name: string; description?: string; searchQuery?: string; distanceKm?: number; driveTime?: string };
@@ -84,6 +141,40 @@ function buildNearbyInfoTextFromConfig(
   ).join('');
   return header + body;
 }
+
+function buildNearbyCarouselPreview(
+  attractions: Array<{ name?: string; notes?: string; photoName?: string; images?: Array<{ url?: string; alt?: string } | string> }> | undefined,
+  maxItems = 5
+) {
+  if (!Array.isArray(attractions)) return [];
+  return attractions
+    .map((a) => {
+      const title = String(a?.name || "").trim();
+      if (!title) return null;
+      const subtitle = a?.notes ? String(a.notes).trim() : undefined;
+      const images: Array<{ url: string; alt?: string }> = [];
+      if (a?.photoName) {
+        images.push({
+          url: `/api/places/photo?name=${encodeURIComponent(String(a.photoName))}&maxWidth=900`,
+          alt: title,
+        });
+      }
+      if (Array.isArray(a?.images)) {
+        for (const img of a.images) {
+          if (typeof img === "string" && img.trim()) {
+            images.push({ url: img.trim(), alt: title });
+          } else if (img && typeof img === "object" && typeof img.url === "string" && img.url.trim()) {
+            images.push({ url: img.url.trim(), alt: img.alt || title });
+          }
+        }
+      }
+      const dedup = Array.from(new Map(images.map((i) => [i.url, i])).values()).slice(0, 3);
+      if (!dedup.length) return null;
+      return { title, subtitle, images: dedup };
+    })
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
 async function ensureCategoryRegistered(args: {
   category: string;
   promptKey: string;
@@ -102,8 +193,10 @@ async function ensureCategoryRegistered(args: {
       categoryId,
       name: args.name ?? args.promptKey,
       enabled: true,
-      router: { category: args.category, promptKey: args.promptKey },
-      retriever: { topK: 6, filters: { category: args.category, promptKey: args.promptKey, status: "active" } },
+      routerCategory: args.category,
+      routerPromptKey: args.promptKey,
+      retrieverTopK: 6,
+      retrieverFilters: { category: args.category, promptKey: args.promptKey, status: "active" },
       intents: [],
       templates: {},
       fallback: "qa",
@@ -114,7 +207,11 @@ async function ensureCategoryRegistered(args: {
     return { ok: true, categoryId, created: true };
   } catch (e: any) {
     const msg = String(e?.message || e);
-    if (!/Collection does not exist/i.test(msg)) throw e;
+    if (
+      !/Collection does not exist/i.test(msg) &&
+      !/Only columns defined in the table schema/i.test(msg) &&
+      !/unknown columns/i.test(msg)
+    ) throw e;
     // Fallback CQL
     const { getCassandraClient } = await import('@/lib/astra/connection');
     const client = getCassandraClient();
@@ -138,8 +235,6 @@ async function ensureCategoryRegistered(args: {
 
 export async function POST(req: NextRequest) {
   // 1) auth por header o query (scripts / curl)
-  const normalize = (v: string | null | undefined) =>
-    (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").replace(/^'([\s\S]*)'$/, "$1");
   const search = new URL(req.url).searchParams;
   const hdrKey = normalize(req.headers.get("x-admin-key"));
   const qpKey = normalize(search.get("x-admin-key") || search.get("admin_key") || search.get("adminKey"));
@@ -166,6 +261,13 @@ export async function POST(req: NextRequest) {
     const parsed = await req.json();
     const { hotelId, autoEnrich = false, upload = true, overrides } = parsed || {};
     if (!hotelId) return NextResponse.json({ error: 'hotelId requerido' }, { status: 400 });
+    const requestHotelId = getRequestHotelId(req);
+    if (!requestHotelId) {
+      return NextResponse.json({ error: "Forbidden (x-hotel-id)" }, { status: 403 });
+    }
+    if (requestHotelId !== "system" && requestHotelId !== hotelId) {
+      return NextResponse.json({ error: "Forbidden (x-hotel-id)" }, { status: 403 });
+    }
 
     const cfg = await getHotelConfig(hotelId);
     if (!cfg) return NextResponse.json({ error: 'Hotel no encontrado' }, { status: 404 });
@@ -206,9 +308,9 @@ export async function POST(req: NextRequest) {
       payments: cfg.payments,
       billing: cfg.billing,
       policies: cfg.policies,
-      airports: cfg as any as Profile['airports'],
-      transport: cfg as any as Profile['transport'],
-      attractions: cfg as any as Profile['attractions'],
+      airports: (cfg as any).airports as Profile['airports'],
+      transport: (cfg as any).transport as Profile['transport'],
+      attractions: (cfg as any).attractions as Profile['attractions'],
       rooms: cfg.rooms as any,
     };
 
@@ -236,6 +338,9 @@ export async function POST(req: NextRequest) {
       payments: mergeDefined(profile.payments || {}, overrides?.payments),
       billing: mergeDefined(profile.billing || {}, overrides?.billing),
       policies: mergeDefined(profile.policies || {}, overrides?.policies),
+      airports: (overrides?.airports as any) ?? profile.airports,
+      transport: mergeDefined(profile.transport || {}, overrides?.transport),
+      attractions: (overrides?.attractions as any) ?? profile.attractions,
       rooms: (overrides?.rooms as any) ?? profile.rooms,
     };
 
@@ -286,9 +391,17 @@ export async function POST(req: NextRequest) {
       airports: hydrationFromProfile.airports || (cfg as any).airports,
       transport: hydrationFromProfile.transport || (cfg as any).transport,
       attractions: hydrationFromProfile.attractions || (cfg as any).attractions,
-      rooms: hydrationFromProfile.rooms || cfg.rooms,
+      rooms: normalizeRoomsForKb((hydrationFromProfile.rooms || cfg.rooms) as any[] | undefined),
       hotelProfile: { ...(cfg as any).hotelProfile, ...(hydrationFromProfile as any).hotelProfile },
     };
+    const amenityTags = normalizeAmenityTags(Array.isArray((hydrationConfig as any)?.amenities?.tags) ? (hydrationConfig as any).amenities.tags : []);
+    const display = amenityTags
+      .map((s) => amenityLabel(s, safeLang as any))
+      .map((l) => normalizeDisplayLabel(l, safeLang as any))
+      .filter(Boolean) as string[];
+    (hydrationConfig as any).amenitiesDisplay = Array.from(
+      new Map(display.map((d) => [d.toLowerCase(), d])).values()
+    );
     const files = generateKbFilesFromTemplates({ hotelConfig: hydrationConfig, defaultLanguage: safeLang });
 
     // solo preview
@@ -307,7 +420,10 @@ export async function POST(req: NextRequest) {
         })).filter((p: any) => p.name);
         const text = buildNearbyInfoTextFromConfig(points, safeLang, cfg.hotelName, locationText);
         if (out[key]) out[key] = text;
-        if (out[keyImg]) out[keyImg] = `${text}\nRichResponse.carousel: []\n`;
+        if (out[keyImg]) {
+          const carousel = buildNearbyCarouselPreview((cfg as any).attractions, 5);
+          out[keyImg] = `${text}\nRichResponse.carousel: ${JSON.stringify(carousel)}\n`;
+        }
       }
       return NextResponse.json({ ok: true, count: Object.keys(out).length, files: out });
     }

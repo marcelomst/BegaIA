@@ -11,6 +11,9 @@ export const promptMetadata: Record<string, string[]> = {
         "kb_general",
         "arrivals_transport",
     ],
+    greeting: [
+        "greeting",
+    ],
 
     // Flujo de reservas
     reservation: [
@@ -46,6 +49,7 @@ export const promptMetadata: Record<string, string[]> = {
     // Soporte general
     support: [
         "contact_support",
+        "contact_channel_selector",
     ],
 
     // Subnodos explícitos de modificación (internos del flujo)

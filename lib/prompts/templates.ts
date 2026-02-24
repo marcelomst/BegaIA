@@ -71,14 +71,14 @@ export const defaultCategories: Category[] = [
 
 // Claves válidas por categoría (para validar hotel_content.promptKey)
 export const PROMPT_KEYS_BY_CATEGORY: Record<Exclude<Category, 'other'>, string[]> = {
-    retrieval_based: ['kb_general', 'room_info', 'room_info_img', 'nearby_points', 'nearby_points_img', 'ambiguity_policy', 'arrivals_transport'],
+    retrieval_based: ['kb_general', 'room_info', 'room_info_img', 'nearby_points', 'nearby_points_img', 'tourist_events', 'tourist_events_img', 'ambiguity_policy', 'arrivals_transport'],
     reservation: ['reservation_flow', 'modify_reservation'],
     reservation_snapshot: ['reservation_snapshot'],
     reservation_verify: ['reservation_verify'],
     cancel_reservation: ['cancellation_policy'],
     amenities: ['amenities_list', 'pool_gym_spa', 'breakfast_bar', 'parking'],
     billing: ['payments_and_billing', 'invoice_receipts'],
-    support: ['contact_support'],
+    support: ['contact_support', 'contact_channel_selector'],
     modify_reservation_field: ['modify_reservation_field'],
     modify_reservation_value: ['modify_reservation_value'],
     modify_reservation_confirm: ['modify_reservation_confirm'],
@@ -209,8 +209,7 @@ export const templates: TemplatesByCategory = {
                 `[[each: rooms | default: (Completar rooms en hotel_config) ->\n` +
                 `Tipo: [[name | default: Nombre]]\n` +
                 `Icono: [[icon | default: 🛏️]]\n` +
-                `Highlights:\n` +
-                `[[each: highlights | default: (Sin highlights) -> - [[item]]]]\n` +
+                `Resumen visual: [[description | default: (Sin descripción breve)]]\n` +
                 `Images:\n` +
                 `[[each: images | default: (Sin imágenes) -> - [[item]]]]\n` +
                 `]]`,
@@ -221,14 +220,17 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'es',
             body:
-                // Fuente de verdad KB: seeds/category_registry.json (evitar drift). TODO A6.2: deduplicar.
                 `# Puntos de interés cercanos\n\n` +
                 `Hotel: [[key: hotelName | default: (Completar hotelName en hotel_config)]]\n` +
                 `Ubicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\n` +
                 `Lista (6-10):\n` +
-                `- Nombre:\n` +
-                `  - Descripción corta:\n` +
-                `  - Search query:\n`,
+                `[[each: attractions | default: - Nombre: (Sin puntos cargados)\n` +
+                `  - Descripción corta: (Sin descripción)\n` +
+                `  - Search query: (Sin query)\n` +
+                ` -> - Nombre: [[name | default: (Sin nombre)]]\n` +
+                `  - Descripción corta: [[notes | default: (Sin descripción)]]\n` +
+                `  - Search query: [[name | default: (Sin query)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'nearby_points_img',
@@ -245,6 +247,44 @@ export const templates: TemplatesByCategory = {
                 `Notas:\n` +
                 `- 3-5 items en el carrusel, 2-4 imágenes por item.\n` +
                 `- Si no hay imágenes, devolver carousel vacío pero mantener el texto.`,
+        },
+        {
+            promptKey: 'tourist_events',
+            title: 'Eventos turísticos',
+            type: 'standard',
+            lang: 'es',
+            body:
+                `# [[key: runtime.title | default: Eventos turísticos]]\n\n` +
+                `Rango: [[key: runtime.rangeText | default: (sin rango)]]\n` +
+                `Ciudad: [[key: city | default: (sin ciudad)]]\n\n` +
+                `Eventos:\n` +
+                `[[key: runtime.eventsBlock | default: No encontré eventos cargados para este período.\n` +
+                `Podés consultar fuentes actualizadas y, si querés, ampliar rango o ciudad.\n\n` +
+                `- Paseos por la rambla y playas cercanas\n` +
+                `- Gastronomía local y mercados\n` +
+                `- Miradores y atardeceres\n` +
+                `- Museos o centros culturales\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
+        },
+        {
+            promptKey: 'tourist_events_img',
+            title: 'Eventos turísticos con imágenes',
+            type: 'standard',
+            lang: 'es',
+            body:
+                `# [[key: runtime.title | default: Eventos turísticos]]\n\n` +
+                `Rango: [[key: runtime.rangeText | default: (sin rango)]]\n` +
+                `Ciudad: [[key: city | default: (sin ciudad)]]\n\n` +
+                `Eventos:\n` +
+                `[[key: runtime.eventsBlock | default: No encontré eventos cargados para este período.\n` +
+                `Podés consultar fuentes actualizadas y, si querés, ampliar rango o ciudad.\n\n` +
+                `- Paseos por la rambla y playas cercanas\n` +
+                `- Gastronomía local y mercados\n` +
+                `- Miradores y atardeceres\n` +
+                `- Museos o centros culturales\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
         },
         {
             promptKey: 'ambiguity_policy',
@@ -326,8 +366,7 @@ export const templates: TemplatesByCategory = {
                 `[[each: rooms | default: (Fill rooms in hotel_config) ->\n` +
                 `Type: [[name | default: Name]]\n` +
                 `Icon: [[icon | default: 🛏️]]\n` +
-                `Highlights:\n` +
-                `[[each: highlights | default: (No highlights) -> - [[item]]]]\n` +
+                `Visual summary: [[description | default: (No short description)]]\n` +
                 `Images:\n` +
                 `[[each: images | default: (No images) -> - [[item]]]]\n` +
                 `]]`,
@@ -338,14 +377,17 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'en',
             body:
-                // KB source of truth: seeds/category_registry.json (avoid drift). TODO A6.2: dedupe.
                 `# Nearby points of interest\n\n` +
                 `Hotel: [[key: hotelName | default: (Fill hotelName in hotel_config)]]\n` +
                 `Location: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\n` +
                 `List (6-10):\n` +
-                `- Name:\n` +
-                `  - Short description:\n` +
-                `  - Search query:\n`,
+                `[[each: attractions | default: - Name: (No points loaded)\n` +
+                `  - Short description: (No description)\n` +
+                `  - Search query: (No query)\n` +
+                ` -> - Name: [[name | default: (No name)]]\n` +
+                `  - Short description: [[notes | default: (No description)]]\n` +
+                `  - Search query: [[name | default: (No query)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'nearby_points_img',
@@ -362,6 +404,44 @@ export const templates: TemplatesByCategory = {
                 `Notes:\n` +
                 `- 3-5 items in the carousel, 2-4 images per item.\n` +
                 `- If there are no images, return an empty carousel but keep the text.`,
+        },
+        {
+            promptKey: 'tourist_events',
+            title: 'Tourist events',
+            type: 'standard',
+            lang: 'en',
+            body:
+                `# [[key: runtime.title | default: Tourist events]]\n\n` +
+                `Range: [[key: runtime.rangeText | default: (no range)]]\n` +
+                `City: [[key: city | default: (no city)]]\n\n` +
+                `Events:\n` +
+                `[[key: runtime.eventsBlock | default: I couldn't find any events loaded for this period.\n` +
+                `You can check up‑to‑date sources and, if you want, I can expand the range or city.\n\n` +
+                `- Walks along the waterfront and nearby beaches\n` +
+                `- Local food spots and markets\n` +
+                `- Viewpoints and sunsets\n` +
+                `- Museums or cultural centers\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
+        },
+        {
+            promptKey: 'tourist_events_img',
+            title: 'Tourist events with images',
+            type: 'standard',
+            lang: 'en',
+            body:
+                `# [[key: runtime.title | default: Tourist events]]\n\n` +
+                `Range: [[key: runtime.rangeText | default: (no range)]]\n` +
+                `City: [[key: city | default: (no city)]]\n\n` +
+                `Events:\n` +
+                `[[key: runtime.eventsBlock | default: I couldn't find any events loaded for this period.\n` +
+                `You can check up‑to‑date sources and, if you want, I can expand the range or city.\n\n` +
+                `- Walks along the waterfront and nearby beaches\n` +
+                `- Local food spots and markets\n` +
+                `- Viewpoints and sunsets\n` +
+                `- Museums or cultural centers\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
         },
         {
             promptKey: 'ambiguity_policy',
@@ -443,8 +523,7 @@ export const templates: TemplatesByCategory = {
                 `[[each: rooms | default: (Preencher rooms em hotel_config) ->\n` +
                 `Tipo: [[name | default: Nome]]\n` +
                 `Ícone: [[icon | default: 🛏️]]\n` +
-                `Destaques:\n` +
-                `[[each: highlights | default: (Sem destaques) -> - [[item]]]]\n` +
+                `Resumo visual: [[description | default: (Sem descrição curta)]]\n` +
                 `Imagens:\n` +
                 `[[each: images | default: (Sem imagens) -> - [[item]]]]\n` +
                 `]]`,
@@ -455,14 +534,17 @@ export const templates: TemplatesByCategory = {
             type: 'standard',
             lang: 'pt',
             body:
-                // Fonte da verdade KB: seeds/category_registry.json (evitar drift). TODO A6.2: deduplicar.
                 `# Pontos de interesse próximos\n\n` +
                 `Hotel: [[key: hotelName | default: (Preencher hotelName em hotel_config)]]\n` +
                 `Localização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\n` +
                 `Lista (6-10):\n` +
-                `- Nome:\n` +
-                `  - Descrição curta:\n` +
-                `  - Search query:\n`,
+                `[[each: attractions | default: - Nome: (Sem pontos carregados)\n` +
+                `  - Descrição curta: (Sem descrição)\n` +
+                `  - Search query: (Sem query)\n` +
+                ` -> - Nome: [[name | default: (Sem nome)]]\n` +
+                `  - Descrição curta: [[notes | default: (Sem descrição)]]\n` +
+                `  - Search query: [[name | default: (Sem query)]]\n` +
+                `]]`,
         },
         {
             promptKey: 'nearby_points_img',
@@ -479,6 +561,44 @@ export const templates: TemplatesByCategory = {
                 `Notas:\n` +
                 `- 3-5 itens no carrossel, 2-4 imagens por item.\n` +
                 `- Se não houver imagens, devolver carousel vazio mas manter o texto.`,
+        },
+        {
+            promptKey: 'tourist_events',
+            title: 'Eventos turísticos',
+            type: 'standard',
+            lang: 'pt',
+            body:
+                `# [[key: runtime.title | default: Eventos turísticos]]\n\n` +
+                `Intervalo: [[key: runtime.rangeText | default: (sem intervalo)]]\n` +
+                `Cidade: [[key: city | default: (sem cidade)]]\n\n` +
+                `Eventos:\n` +
+                `[[key: runtime.eventsBlock | default: Não encontrei eventos carregados para este período.\n` +
+                `Você pode consultar fontes atualizadas e, se quiser, posso ampliar o intervalo ou a cidade.\n\n` +
+                `- Passeios pela orla e praias próximas\n` +
+                `- Gastronomia local e mercados\n` +
+                `- Mirantes e pôr do sol\n` +
+                `- Museus ou centros culturais\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
+        },
+        {
+            promptKey: 'tourist_events_img',
+            title: 'Eventos turísticos com imagens',
+            type: 'standard',
+            lang: 'pt',
+            body:
+                `# [[key: runtime.title | default: Eventos turísticos]]\n\n` +
+                `Intervalo: [[key: runtime.rangeText | default: (sem intervalo)]]\n` +
+                `Cidade: [[key: city | default: (sem cidade)]]\n\n` +
+                `Eventos:\n` +
+                `[[key: runtime.eventsBlock | default: Não encontrei eventos carregados para este período.\n` +
+                `Você pode consultar fontes atualizadas e, se quiser, posso ampliar o intervalo ou a cidade.\n\n` +
+                `- Passeios pela orla e praias próximas\n` +
+                `- Gastronomia local e mercados\n` +
+                `- Mirantes e pôr do sol\n` +
+                `- Museus ou centros culturais\n` +
+                `]]\n` +
+                `[[key: runtime.questionBlock | default: ]]`,
         },
         {
             promptKey: 'ambiguity_policy',
@@ -500,21 +620,63 @@ export const templates: TemplatesByCategory = {
         {
             promptKey: 'arrivals_transport',
             title: 'Transporte de llegada',
-            body: '¿Necesitas que te ayudemos a coordinar tu transporte desde el aeropuerto o terminal? Por favor indícanos tu preferencia.',
+            body:
+                `# Transporte de llegada\n\n` +
+                `Hotel: [[key: hotelName | default: (Completar hotelName)]]\n` +
+                `Ubicación: [[key: address | default: (Completar address)]], [[key: city | default: (Completar city)]], [[key: country | default: (Completar country)]]\n\n` +
+                `Aeropuertos cercanos:\n` +
+                `[[each: airports | default: - (No hay aeropuertos cargados)\n ->` +
+                `- [[code | default: IATA]] — [[name | default: Aeropuerto]]` +
+                ` ([[distanceKm | default: ?]] km, [[driveTime | default: tiempo estimado]])` +
+                `]]\n\n` +
+                `Opciones de transporte:\n` +
+                `- Transfer privado: [[key: transport.hasPrivateTransfer | default: (sin dato)]]\n` +
+                `- Notas transfer: [[key: transport.transferNotes | default: (Sin notas)]]\n` +
+                `- Taxi/remise/apps: [[key: transport.taxiNotes | default: (Sin notas)]]\n` +
+                `- Bus/ómnibus: [[key: transport.busNotes | default: (Sin notas)]]\n\n` +
+                `¿Querés que te recomiende la opción más conveniente según tu horario de llegada?`,
             type: 'standard',
             lang: 'es',
         },
         {
             promptKey: 'arrivals_transport',
             title: 'Arrival transport',
-            body: 'Do you need help arranging your transport from the airport or station? Please let us know your preference.',
+            body:
+                `# Arrival transport\n\n` +
+                `Hotel: [[key: hotelName | default: (Fill hotelName)]]\n` +
+                `Location: [[key: address | default: (Fill address)]], [[key: city | default: (Fill city)]], [[key: country | default: (Fill country)]]\n\n` +
+                `Nearby airports:\n` +
+                `[[each: airports | default: - (No airports loaded)\n ->` +
+                `- [[code | default: IATA]] — [[name | default: Airport]]` +
+                ` ([[distanceKm | default: ?]] km, [[driveTime | default: estimated drive time]])` +
+                `]]\n\n` +
+                `Transport options:\n` +
+                `- Private transfer: [[key: transport.hasPrivateTransfer | default: (no data)]]\n` +
+                `- Transfer notes: [[key: transport.transferNotes | default: (No notes)]]\n` +
+                `- Taxi/ride-hailing: [[key: transport.taxiNotes | default: (No notes)]]\n` +
+                `- Bus/public transport: [[key: transport.busNotes | default: (No notes)]]\n\n` +
+                `Do you want me to suggest the best option based on your arrival time?`,
             type: 'standard',
             lang: 'en',
         },
         {
             promptKey: 'arrivals_transport',
             title: 'Transporte de chegada',
-            body: 'Precisa de ajuda para organizar seu transporte do aeroporto ou terminal? Por favor, indique sua preferência.',
+            body:
+                `# Transporte de chegada\n\n` +
+                `Hotel: [[key: hotelName | default: (Preencher hotelName)]]\n` +
+                `Localização: [[key: address | default: (Preencher address)]], [[key: city | default: (Preencher city)]], [[key: country | default: (Preencher country)]]\n\n` +
+                `Aeroportos próximos:\n` +
+                `[[each: airports | default: - (Sem aeroportos carregados)\n ->` +
+                `- [[code | default: IATA]] — [[name | default: Aeroporto]]` +
+                ` ([[distanceKm | default: ?]] km, [[driveTime | default: tempo estimado]])` +
+                `]]\n\n` +
+                `Opções de transporte:\n` +
+                `- Transfer privado: [[key: transport.hasPrivateTransfer | default: (sem dado)]]\n` +
+                `- Notas do transfer: [[key: transport.transferNotes | default: (Sem notas)]]\n` +
+                `- Táxi/app: [[key: transport.taxiNotes | default: (Sem notas)]]\n` +
+                `- Ônibus/transporte público: [[key: transport.busNotes | default: (Sem notas)]]\n\n` +
+                `Quer que eu recomende a opção mais conveniente para seu horário de chegada?`,
             type: 'standard',
             lang: 'pt',
         },
@@ -530,9 +692,11 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Flujo de reserva – Datos necesarios\n` +
                 `Categoria: reservation\n` +
                 `Cuerpo:\n` +
-                `- Datos requeridos: nombre completo, tipo de habitación, check-in, check-out, huéspedes\n` +
-                `- Orden sugerido de preguntas:\n` +
-                `- Reglas/validaciones (fechas válidas, capacidad por habitación):`,
+                `- Datos requeridos (mínimos): nombre completo, tipo de habitación, check-in, check-out, huéspedes.\n` +
+                `- Orden sugerido: 1) fechas, 2) huéspedes, 3) habitación, 4) nombre, 5) recapitulación.\n` +
+                `- Validaciones: check-out > check-in; fechas válidas; huéspedes <= capacidad; tipo de habitación disponible.\n` +
+                `- Si falta un dato, pedir SOLO ese dato faltante.\n` +
+                `- Antes de confirmar, mostrar resumen completo y pedir confirmación explícita ("¿Confirmás esta reserva?").`,
         },
         {
             promptKey: 'reservation_flow',
@@ -570,8 +734,11 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Modificar reserva – Campo y nuevo valor\n` +
                 `Categoria: reservation\n` +
                 `Cuerpo:\n` +
-                `- Campos modificables: fechas, nombre, habitación, huéspedes\n` +
-                `- Confirmación de cambios y snapshot:`,
+                `- Campos modificables: fechas, nombre del huésped, tipo de habitación, cantidad de huéspedes.\n` +
+                `- Si la reserva está confirmada y no hay código, pedir código de reserva antes de modificar.\n` +
+                `- Aplicar cambio por pasos: seleccionar campo -> pedir nuevo valor -> validar -> confirmar.\n` +
+                `- Mostrar snapshot previo + cambio propuesto antes de aplicar.\n` +
+                `- Si el huésped no confirma, no aplicar cambios.`,
         },
         {
             promptKey: 'modify_reservation',
@@ -612,7 +779,8 @@ export const templates: TemplatesByCategory = {
                 `Cuerpo:\n` +
                 `- Pedir al huésped qué campo desea cambiar (fechas, nombre, habitación, huéspedes).\n` +
                 `- Validar que el campo exista y sea modificable.\n` +
-                `- Si hay ambigüedad, listar opciones claras y pedir confirmación.`,
+                `- Si hay ambigüedad, listar opciones claras y pedir confirmación.\n` +
+                `- Responder en una sola pregunta concreta (sin mezclar múltiples pasos).`,
         },
         {
             promptKey: 'modify_reservation_field',
@@ -653,7 +821,8 @@ export const templates: TemplatesByCategory = {
                 `Cuerpo:\n` +
                 `- Solicitar el nuevo valor del campo seleccionado (ej.: nuevas fechas, nuevo nombre).\n` +
                 `- Validar formato y consistencia (ej.: rango de fechas válido, capacidad de habitación).\n` +
-                `- Si no cumple, explicar el motivo y pedir un valor válido.`,
+                `- Si no cumple, explicar el motivo y pedir un valor válido.\n` +
+                `- Para fechas, pedir ambas si solo llega una; para huéspedes, validar entero positivo.`,
         },
         {
             promptKey: 'modify_reservation_value',
@@ -694,7 +863,8 @@ export const templates: TemplatesByCategory = {
                 `Cuerpo:\n` +
                 `- Mostrar resumen (snapshot previo y cambios propuestos).\n` +
                 `- Pedir confirmación explícita para aplicar.\n` +
-                `- Indicar que puede modificar otro campo o finalizar.`,
+                `- Si confirma, aplicar y responder con resumen final actualizado.\n` +
+                `- Si no confirma, ofrecer corregir otro campo o finalizar sin cambios.`,
         },
         {
             promptKey: 'modify_reservation_confirm',
@@ -734,11 +904,16 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Amenities y horarios\n` +
                 `Categoria: amenities\n` +
                 `Cuerpo:\n` +
-                `- Desayuno: (horario, lugar)\n` +
-                `- Piscina: (horario, temporada)\n` +
-                `- Gimnasio/Spa: (horario, requisitos)\n` +
-                `- Estacionamiento: (costo, cupos, reservas)\n` +
-                `- Mascotas: (permitidas/no, condiciones)`,
+                `- Amenities disponibles:\n` +
+                `[[each: amenitiesDisplay | default: - (Sin datos)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Desayuno: [[key: schedules.breakfast | default: (Horario a confirmar)]]\n` +
+                `- Piscina: [[key: amenities.schedules.pool | default: (Horario a confirmar)]]\n` +
+                `- Gimnasio: [[key: amenities.schedules.gym | default: (Horario a confirmar)]]\n` +
+                `- Spa: [[key: amenities.schedules.spa | default: (Horario a confirmar)]]\n` +
+                `- Estacionamiento: [[key: amenities.parkingNotes | default: (Detalle a confirmar con recepción)]]\n` +
+                `- Mascotas: [[key: policies.pets | default: (Condiciones a confirmar)]].\n` +
+                `- Si un servicio no está habilitado por el momento, ofrecer alternativa y escalar a recepción.`,
         },
         {
             promptKey: 'amenities_list',
@@ -749,11 +924,15 @@ export const templates: TemplatesByCategory = {
                 `Title: Amenities and schedules\n` +
                 `Category: amenities\n` +
                 `Body:\n` +
-                `- Breakfast: (schedule, place)\n` +
-                `- Pool: (schedule, season)\n` +
-                `- Gym/Spa: (schedule, requirements)\n` +
-                `- Parking: (cost, spots, reservations)\n` +
-                `- Pets: (allowed/not, conditions)`,
+                `- Available amenities:\n` +
+                `[[each: amenitiesDisplay | default: - (No data)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Breakfast: [[key: schedules.breakfast | default: (Not defined)]].\n` +
+                `- Pool: [[key: amenities.schedules.pool | default: (Not defined)]].\n` +
+                `- Gym: [[key: amenities.schedules.gym | default: (Not defined)]].\n` +
+                `- Spa: [[key: amenities.schedules.spa | default: (Not defined)]].\n` +
+                `- Parking: [[key: amenities.parkingNotes | default: (No notes)]].\n` +
+                `- Pets: [[key: policies.pets | default: (Not defined)]].`,
         },
         {
             promptKey: 'amenities_list',
@@ -764,11 +943,15 @@ export const templates: TemplatesByCategory = {
                 `Título: Amenities e horários\n` +
                 `Categoria: amenities\n` +
                 `Corpo:\n` +
-                `- Café da manhã: (horário, local)\n` +
-                `- Piscina: (horário, temporada)\n` +
-                `- Academia/Spa: (horário, requisitos)\n` +
-                `- Estacionamento: (custo, vagas, reservas)\n` +
-                `- Animais: (permitidos/não, condições)`,
+                `- Amenities disponíveis:\n` +
+                `[[each: amenitiesDisplay | default: - (Sem dados)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Café da manhã: [[key: schedules.breakfast | default: (Não definido)]].\n` +
+                `- Piscina: [[key: amenities.schedules.pool | default: (Não definido)]].\n` +
+                `- Academia: [[key: amenities.schedules.gym | default: (Não definido)]].\n` +
+                `- Spa: [[key: amenities.schedules.spa | default: (Não definido)]].\n` +
+                `- Estacionamento: [[key: amenities.parkingNotes | default: (Sem notas)]].\n` +
+                `- Animais: [[key: policies.pets | default: (Não definido)]].`,
         },
         {
             promptKey: 'pool_gym_spa',
@@ -779,9 +962,11 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Piscina, Gimnasio y Spa – Horarios y reglas\n` +
                 `Categoria: amenities\n` +
                 `Cuerpo:\n` +
-                `- Piscina: (horario, temporada, toallas)\n` +
-                `- Gimnasio: (horario, requisitos)\n` +
-                `- Spa: (servicios, reservas, costo)`,
+                `- Piscina: [[key: amenities.schedules.pool | default: (Horario a confirmar)]].\n` +
+                `- Gimnasio: [[key: amenities.schedules.gym | default: (Horario a confirmar)]].\n` +
+                `- Spa: [[key: amenities.schedules.spa | default: (Horario a confirmar)]].\n` +
+                `- Reglas/observaciones: (Detalle a confirmar con recepción).\n` +
+                `- Si un servicio no está habilitado por el momento, ofrecer alternativa y escalar a recepción.`,
         },
         {
             promptKey: 'pool_gym_spa',
@@ -818,8 +1003,11 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Desayuno y Bar – Tiempos y opciones\n` +
                 `Categoria: amenities\n` +
                 `Cuerpo:\n` +
-                `- Desayuno: (horario, lugar, tipo)\n` +
-                `- Bar: (horario, carta, room service)`,
+                `- Desayuno: [[key: schedules.breakfast | default: (Horario a confirmar)]].\n` +
+                `- Restaurante/Bar: [[key: amenities.schedules.restaurant | default: (Horario a confirmar)]].\n` +
+                `- Room service: [[key: amenities.schedules.room_service | default: (Horario a confirmar)]].\n` +
+                `- Notas adicionales: (Detalle a confirmar con recepción).\n` +
+                `- Si room service no está habilitado por el momento, ofrecer alternativa y escalar a recepción.`,
         },
         {
             promptKey: 'breakfast_bar',
@@ -854,9 +1042,9 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Estacionamiento – Cupos y costos\n` +
                 `Categoria: amenities\n` +
                 `Cuerpo:\n` +
-                `- Disponibilidad/cupos\n` +
-                `- Costo y reservas\n` +
-                `- Altura máxima/condiciones`,
+                `- Disponibilidad/cupos: [[key: amenities.parkingNotes | default: (Disponibilidad a confirmar)]]\n` +
+                `- Costo y reservas: [[key: amenities.parkingNotes | default: (Costo/condiciones a confirmar)]]\n` +
+                `- Condiciones adicionales: (Detalle a confirmar con recepción).`,
         },
         {
             promptKey: 'parking',
@@ -897,9 +1085,16 @@ export const templates: TemplatesByCategory = {
                 `Categoria: billing\n` +
                 `Cuerpo:\n` +
                 `- Medios de pago aceptados:\n` +
-                `- Depósitos/prepagos:\n` +
-                `- Facturación (datos requeridos, plazos):\n` +
-                `- Moneda y tipo de cambio:`,
+                `[[each: payments.methods | default: - (No definidos)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Monedas:\n` +
+                `[[each: payments.currencies | default: - (No definidas)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Requiere tarjeta para reservar: [[key: payments.requiresCardForBooking | default: (No definido)]].\n` +
+                `- Emite facturas: [[key: billing.issuesInvoices | default: (No definido)]].\n` +
+                `- Tipos de comprobantes:\n` +
+                `[[each: billing.invoiceNotesTags | default: - (Sin datos)\n` +
+                ` -> - [[item]]]].`,
         },
         {
             promptKey: 'payments_and_billing',
@@ -938,9 +1133,11 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Facturación – Facturas y recibos\n` +
                 `Categoria: billing\n` +
                 `Cuerpo:\n` +
-                `- Datos necesarios para factura\n` +
-                `- Moneda e impuestos\n` +
-                `- Plazos y emisión de comprobantes`,
+                `- Emite facturas: [[key: billing.issuesInvoices | default: (No definido)]].\n` +
+                `- Datos/formatos aceptados:\n` +
+                `[[each: billing.invoiceNotesTags | default: - (Sin datos)\n` +
+                ` -> - [[item]]]]\n` +
+                `- Notas de facturación: [[key: billing.invoiceNotes | default: (Sin notas)]].`,
         },
         {
             promptKey: 'invoice_receipts',
@@ -980,10 +1177,12 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Contacto y soporte\n` +
                 `Categoria: support\n` +
                 `Cuerpo:\n` +
-                `- Teléfono recepción:\n` +
-                `- Whatsapp/Email:\n` +
-                `- Horario de atención:\n` +
-                `- Escalamiento (guardia/nocturno):`,
+                `- Teléfono recepción: [[key: contacts.phone | default: (No definido)]].\n` +
+                `- WhatsApp: [[key: contacts.whatsapp | default: (No definido)]].\n` +
+                `- Email: [[key: contacts.email | default: (No definido)]].\n` +
+                `- Horario de atención: [[key: contacts.supportHours | default: (Horario a confirmar)]].\n` +
+                `- Escalamiento (guardia/nocturno): [[key: contacts.supportEscalation | default: (Guardia/alternativa a confirmar)]].\n` +
+                `- Si una vía no está habilitada por el momento, ofrecer alternativa de contacto y escalar a recepción.`,
         },
         {
             promptKey: 'contact_support',
@@ -994,10 +1193,11 @@ export const templates: TemplatesByCategory = {
                 `Title: Contact and support\n` +
                 `Category: support\n` +
                 `Body:\n` +
-                `- Reception phone:\n` +
-                `- Whatsapp/Email:\n` +
-                `- Service hours:\n` +
-                `- Escalation (night guard):`,
+                `- Reception phone: [[key: contacts.phone | default: (Not defined)]].\n` +
+                `- WhatsApp: [[key: contacts.whatsapp | default: (Not defined)]].\n` +
+                `- Email: [[key: contacts.email | default: (Not defined)]].\n` +
+                `- Service hours: [[key: contacts.supportHours | default: (Not defined)]].\n` +
+                `- Escalation (night guard): [[key: contacts.supportEscalation | default: (Not defined)]].`,
         },
         {
             promptKey: 'contact_support',
@@ -1008,10 +1208,53 @@ export const templates: TemplatesByCategory = {
                 `Título: Contato e suporte\n` +
                 `Categoria: support\n` +
                 `Corpo:\n` +
-                `- Telefone da recepção:\n` +
-                `- Whatsapp/Email:\n` +
-                `- Horário de atendimento:\n` +
-                `- Escalonamento (plantão noturno):`,
+                `- Telefone da recepção: [[key: contacts.phone | default: (Não definido)]].\n` +
+                `- WhatsApp: [[key: contacts.whatsapp | default: (Não definido)]].\n` +
+                `- Email: [[key: contacts.email | default: (Não definido)]].\n` +
+                `- Horário de atendimento: [[key: contacts.supportHours | default: (Não definido)]].\n` +
+                `- Escalonamento (plantão noturno): [[key: contacts.supportEscalation | default: (Não definido)]].`,
+        },
+        {
+            promptKey: 'contact_channel_selector',
+            title: 'Gestión de canal de contacto',
+            type: 'standard',
+            lang: 'es',
+            body:
+                `Titulo: Gestión de canal de contacto\n` +
+                `Categoria: support\n` +
+                `Cuerpo:\n` +
+                `- Canal consultado: [[key: runtime.channel | default: (No informado)]].\n` +
+                `- Disponibilidad del canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n` +
+                `- Política de escalamiento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n` +
+                `- Acción sugerida: [[key: runtime.suggestedAction | default: Contactar por WhatsApp o teléfono de recepción.)]].\n`,
+        },
+        {
+            promptKey: 'contact_channel_selector',
+            title: 'Contact channel manager',
+            type: 'standard',
+            lang: 'en',
+            body:
+                `Title: Contact channel manager\n` +
+                `Category: support\n` +
+                `Body:\n` +
+                `- Requested channel: [[key: runtime.channel | default: (Not provided)]].\n` +
+                `- Channel availability: [[key: runtime.channelAvailability | default: (To be confirmed)]].\n` +
+                `- Escalation policy: [[key: runtime.escalationPolicy | default: (To be confirmed)]].\n` +
+                `- Suggested action: [[key: runtime.suggestedAction | default: Contact via WhatsApp or reception phone.)]].\n`,
+        },
+        {
+            promptKey: 'contact_channel_selector',
+            title: 'Gestão de canal de contato',
+            type: 'standard',
+            lang: 'pt',
+            body:
+                `Título: Gestão de canal de contato\n` +
+                `Categoria: support\n` +
+                `Corpo:\n` +
+                `- Canal consultado: [[key: runtime.channel | default: (Não informado)]].\n` +
+                `- Disponibilidade do canal: [[key: runtime.channelAvailability | default: (A confirmar)]].\n` +
+                `- Política de escalonamento: [[key: runtime.escalationPolicy | default: (A confirmar)]].\n` +
+                `- Ação sugerida: [[key: runtime.suggestedAction | default: Contatar por WhatsApp ou telefone da recepção.)]].\n`,
         },
     ],
 
@@ -1025,9 +1268,12 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Política de cancelación\n` +
                 `Categoria: cancel_reservation\n` +
                 `Cuerpo:\n` +
-                `- Ventana de cancelación sin cargo\n` +
-                `- Penalidades por no show o fuera de término\n` +
-                `- Canales de modificación/cancelación`,
+                `- Ventana de cancelación sin cargo: [[key: policies.cancellation.flexible | default: (No definida)]].\n` +
+                `- Penalidad no reembolsable / fuera de término: [[key: policies.cancellation.nonRefundable | default: (No definida)]].\n` +
+                `- No-show: [[key: policies.cancellation.noShow | default: (No definido)]].\n` +
+                `- Canales de cancelación:\n` +
+                `[[each: policies.cancellation.channels | default: - (No definidos)\n` +
+                ` -> - [[item]]]]`,
         },
         {
             promptKey: 'cancellation_policy',
@@ -1067,8 +1313,9 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Snapshot de reserva – Contenido\n` +
                 `Categoria: reservation_snapshot\n` +
                 `Cuerpo:\n` +
-                `- Campos incluidos: id, fechas, habitación, huéspedes\n` +
-                `- Formato y visibilidad`,
+                `- Campos mínimos: código/id, check-in, check-out, habitación, huéspedes, nombre del huésped.\n` +
+                `- Formato sugerido: lista clara en bullets y orden fijo.\n` +
+                `- Si falta un campo, mostrar "(sin dato)" en vez de omitirlo.`,
         },
         {
             promptKey: 'reservation_snapshot',
@@ -1106,8 +1353,9 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Verificación de reserva – Reglas\n` +
                 `Categoria: reservation_verify\n` +
                 `Cuerpo:\n` +
-                `- Consistencia de fechas y capacidades\n` +
-                `- Confirmaciones requeridas`,
+                `- Verificar consistencia: check-out > check-in, fechas válidas, huéspedes <= capacidad.\n` +
+                `- Verificar coherencia del cambio (si modifica fechas o habitación).\n` +
+                `- Confirmaciones requeridas: aceptación explícita del resumen final antes de aplicar.`,
         },
         {
             promptKey: 'reservation_verify',
