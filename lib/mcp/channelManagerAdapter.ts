@@ -12,12 +12,6 @@ import type {
 } from "./types";
 import crypto from "crypto";
 
-/**
- * Channel Manager provider selection (env):
- * - CM_PROVIDER=inmemory (default): adapter in-memory aislado por hotelId en registry Map.
- * - CM_PROVIDER=redis: reservado para implementación futura; esperado (cuando exista) CM_REDIS_URL.
- * - CM_PROVIDER=real: reservado para integración real; esperados (cuando exista) CM_API_BASE y CM_API_KEY.
- */
 export class InMemoryCMAdapter implements ChannelManagerAdapter {
   private stores: Map<string, Map<string, Reservation>> = new Map();
 
@@ -142,36 +136,10 @@ function getInMemoryAdapter(hotelId?: string): ChannelManagerAdapter {
   return created;
 }
 
-function resolveCMProvider(): "inmemory" | "redis" | "real" {
-  const rawProvider = String(process.env.CM_PROVIDER ?? "").trim().toLowerCase();
-  if (rawProvider === "redis" || rawProvider === "real" || rawProvider === "inmemory") {
-    return rawProvider;
-  }
+export function getCMProvider(): string {
   return "inmemory";
 }
 
-export function getCMProvider(): string {
-  return resolveCMProvider();
-}
-
-// Factory para permitir cambiar a SiteMinder u otro CM por env
 export function getCMAdapter(hotelId?: string): ChannelManagerAdapter {
-  const provider = resolveCMProvider();
-  switch (provider) {
-    case "inmemory":
-      return getInMemoryAdapter(hotelId);
-    case "redis":
-      throw new Error(
-        "CM_PROVIDER=redis is not implemented yet. Configure CM_PROVIDER=inmemory or provide a Redis-backed adapter."
-      );
-    case "real":
-      throw new Error(
-        "CM_PROVIDER=real is not implemented yet. Missing real Channel Manager adapter/configuration."
-      );
-    // case "siteminder":
-    //   return new SiteMinderAdapter({ baseUrl: process.env.CM_API_BASE!, apiKey: process.env.CM_API_KEY! });
-    default:
-      // Valor desconocido: fallback no disruptivo para dev/test.
-      return getInMemoryAdapter(hotelId);
-  }
+  return getInMemoryAdapter(hotelId);
 }
