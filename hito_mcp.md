@@ -73,6 +73,26 @@ Resultado:
 Recomendación:
 - Próximo hito: HPM-1 / HCM-real-1 (implementar adapter real `ChannelManagerAdapter` + wiring en `getCMAdapter` + configuración/env + tests de integración).
 
+### PIPE-WEB-1 — Validación E2E Web + MCP (Quickstart inMemory)
+
+Estado: CERRADO  
+Fecha: 2026-02-25  
+
+Evidencia (tests PASS):
+- test/integration/reservations.mcp.channel-manager.spec.ts
+- test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
+- test/e2e.reservation.flow.spec.ts
+
+Cobertura validada:
+- MCP reservas inMemory: availability → create → update → get → cancel → get
+- Aislamiento por hotelId (multihotel)
+- Contrato WEB `/api/chat`: conversationId + messageId + status + response/suggestedReply
+- Endpoints de lectura: `/api/conversations/list` y `/api/messages/by-conversation`
+- MCP unificado `/api/mcp` (action=call) incluye get/list; legacy routes presentes (availability/create/update/cancel)
+
+Fuera de alcance:
+- Integración CM/PMS real (se valida Quickstart inMemory)
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
