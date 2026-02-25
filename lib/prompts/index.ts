@@ -61,8 +61,7 @@ Ejemplo de formato esperado:
 
 <br><br>
 
-📅 **¡Reserva ahora para obtener el mejor precio!** 💰  
-🔗 [Haz clic aquí para reservar](https://booking.bedzzle.com/desktop/?&apikey=6177b98dc5c442893dd76be7da149008&lang=es)
+📅 **¿Deseas que continúe con la reserva desde aquí?**
 \`\`\`
 
 **Aquí está la información relevante del hotel:**  

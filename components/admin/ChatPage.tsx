@@ -535,7 +535,7 @@ export default function ChatPage() {
         role: "ai",
         text: "Perfecto. ¿Confirmo la reserva y avanzo con el pago?",
         timestamp: new Date().toISOString(),
-        rich: { type: "quick-actions", data: { actions: ["Confirmar y pagar", "Editar fechas"] } },
+        rich: { type: "quick-actions", data: { actions: ["Confirmar reserva", "Editar fechas"] } },
       },
     ]);
   };

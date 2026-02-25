@@ -734,8 +734,8 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Modificar reserva – Campo y nuevo valor\n` +
                 `Categoria: reservation\n` +
                 `Cuerpo:\n` +
-                `- Campos modificables: fechas, nombre del huésped, tipo de habitación, cantidad de huéspedes.\n` +
-                `- Si la reserva está confirmada y no hay código, pedir código de reserva antes de modificar.\n` +
+                `- Campos modificables: fechas, nombre del huésped, tipo de habitación.\n` +
+                `- Si la reserva está confirmada y no hay código, pedir reservationId (código interno de la reserva) antes de modificar.\n` +
                 `- Aplicar cambio por pasos: seleccionar campo -> pedir nuevo valor -> validar -> confirmar.\n` +
                 `- Mostrar snapshot previo + cambio propuesto antes de aplicar.\n` +
                 `- Si el huésped no confirma, no aplicar cambios.`,
@@ -749,7 +749,7 @@ export const templates: TemplatesByCategory = {
                 `Title: Modify reservation – Field and new value\n` +
                 `Category: reservation\n` +
                 `Body:\n` +
-                `- Modifiable fields: dates, name, room, guests\n` +
+                `- Modifiable fields: dates, guest name, room type\n` +
                 `- Change confirmation and snapshot:`,
         },
         {
@@ -761,7 +761,7 @@ export const templates: TemplatesByCategory = {
                 `Título: Modificar reserva – Campo e novo valor\n` +
                 `Categoria: reservation\n` +
                 `Corpo:\n` +
-                `- Campos modificáveis: datas, nome, quarto, hóspedes\n` +
+                `- Campos modificáveis: datas, nome do hóspede, tipo de quarto\n` +
                 `- Confirmação de mudanças e snapshot:`,
         },
     ],
@@ -777,7 +777,7 @@ export const templates: TemplatesByCategory = {
                 `Titulo: Modificar reserva – Seleccionar campo\n` +
                 `Categoria: modify_reservation_field\n` +
                 `Cuerpo:\n` +
-                `- Pedir al huésped qué campo desea cambiar (fechas, nombre, habitación, huéspedes).\n` +
+                `- Pedir al huésped qué campo desea cambiar (fechas, nombre, habitación).\n` +
                 `- Validar que el campo exista y sea modificable.\n` +
                 `- Si hay ambigüedad, listar opciones claras y pedir confirmación.\n` +
                 `- Responder en una sola pregunta concreta (sin mezclar múltiples pasos).`,
@@ -791,7 +791,7 @@ export const templates: TemplatesByCategory = {
                 `Title: Modify reservation – Select field\n` +
                 `Category: modify_reservation_field\n` +
                 `Body:\n` +
-                `- Ask which field the guest wants to change (dates, name, room, guests).\n` +
+                `- Ask which field the guest wants to change (dates, guest name, room type).\n` +
                 `- Validate it is a modifiable field.\n` +
                 `- If ambiguous, list options and ask for confirmation.`,
         },
@@ -804,7 +804,7 @@ export const templates: TemplatesByCategory = {
                 `Título: Modificar reserva – Selecionar campo\n` +
                 `Categoria: modify_reservation_field\n` +
                 `Corpo:\n` +
-                `- Pergunte qual campo o hóspede deseja alterar (datas, nome, quarto, hóspedes).\n` +
+                `- Pergunte qual campo o hóspede deseja alterar (datas, nome do hóspede, tipo de quarto).\n` +
                 `- Valide que o campo é modificável.\n` +
                 `- Em caso de ambiguidade, liste opções e peça confirmação.`,
         },
