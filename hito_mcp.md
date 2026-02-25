@@ -38,6 +38,28 @@ Tests ejecutados (PASS):
 - test/integration/reservations.mcp.channel-manager.spec.ts
 - test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
 
+### HCM-2 — Estabilización del puerto ChannelManagerAdapter (factory inMemory única)
+
+Estado: CERRADO  
+Commit: f06a1f7  
+
+Descripción:
+- Se eliminó la selección de provider por CM_PROVIDER.
+- Se removieron stubs no implementados (`redis`, `real`) del factory.
+- Se mantuvo el puerto `ChannelManagerAdapter` intacto.
+- Se conservó el registry por hotelId para aislamiento multitenant en dev/test.
+- `getCMAdapter(hotelId)` ahora retorna directamente el adapter inMemory.
+
+Resultado arquitectónico:
+- El sistema queda estabilizado en una única implementación concreta (Quickstart).
+- Se elimina abstracción prematura.
+- El puerto queda listo para futura implementación de un adapter real en un hito independiente.
+
+Tests ejecutados (PASS):
+- test/unit/channelManagerAdapter.registry.spec.ts
+- test/integration/reservations.mcp.channel-manager.spec.ts
+- test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
+
 ### DIAG-PMS-REAL-1 — Estado integración PMS/CM real
 
 Estado: COMPLETADO
