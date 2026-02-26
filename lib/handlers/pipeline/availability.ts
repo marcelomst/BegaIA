@@ -323,28 +323,39 @@ export async function runAvailabilityCheck(
         const currency = String(opt.currency || "").toUpperCase();
         const total = perNight != null ? perNight * nights : undefined;
         const rtLocalized = localizeRoomType(opt.roomType || snapshot.roomType, pre.lang as any);
+        const guestFirstName = String(snapshot.guestName || "").trim().split(/\s+/).filter(Boolean)[0] || "";
+        const withNamePrefix = (text: string) => guestFirstName ? `${guestFirstName}, ${text.charAt(0).toLowerCase()}${text.slice(1)}` : text;
         if (perNight != null) {
             base = pre.lang === "es"
                 ? `Tengo ${rtLocalized} disponible. Tarifa por noche: ${perNight} ${currency}. Total ${nights} noches: ${total} ${currency}.`
                 : pre.lang === "pt"
                     ? `Tenho ${rtLocalized} disponível. Tarifa por noite: ${perNight} ${currency}. Total ${nights} noites: ${total} ${currency}.`
                     : `I have a ${rtLocalized} available. Rate per night: ${perNight} ${currency}. Total ${nights} nights: ${total} ${currency}.`;
+            base = withNamePrefix(base);
         } else {
             base = pre.lang === "es"
                 ? `Hay disponibilidad para ${rtLocalized}.`
                 : pre.lang === "pt"
                     ? `Há disponibilidade para ${rtLocalized}.`
                     : `Availability for ${rtLocalized}.`;
+            base = withNamePrefix(base);
         }
     }
 
     const needsGuests = !snapshot.numGuests;
     const needsName = !isSafeGuestName(snapshot.guestName || "");
+    const hasPartialName = !!snapshot.guestName && !isSafeGuestName(snapshot.guestName || "");
+    const askLastNameOnly =
+        pre.lang === "es"
+            ? "¿Cuál es tu apellido?"
+            : pre.lang === "pt"
+                ? "Qual é o seu sobrenome?"
+                : "What's your last name?";
     const actionLine = availability.available
         ? (needsGuests
             ? `\n\n${buildAskGuests(pre.lang)}`
             : (needsName
-                ? `\n\n${buildAskGuestName(pre.lang)}`
+                ? `\n\n${hasPartialName ? askLastNameOnly : buildAskGuestName(pre.lang)}`
                 : (pre.lang === "es"
                     ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
                     : pre.lang === "pt"

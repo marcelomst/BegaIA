@@ -102,7 +102,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // 1b) Mock MCP endpoints: acceso libre
-  if (pathname.startsWith("/api/mcp/")) {
+  if (pathname === "/api/mcp" || pathname.startsWith("/api/mcp/")) {
     return applyCORSHeaders(NextResponse.next(), origin);
   }
 
