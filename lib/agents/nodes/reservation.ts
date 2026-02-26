@@ -307,7 +307,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                         : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
             return {
                 messages: [
-                    new AIMessage(res.finalText + (res.finalText.includes("CONFIRMAR") ? "" : confirmLine)),
+                    new AIMessage(
+                        res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                    ),
                 ],
                 reservationSlots: completeSnapshot,
                 category: "reservation",
@@ -396,7 +398,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                             : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
                 return {
                     messages: [
-                        new AIMessage(res.finalText + (res.finalText.includes("CONFIRMAR") ? "" : confirmLine)),
+                        new AIMessage(
+                            res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                        ),
                     ],
                     reservationSlots: completeSnapshot,
                     category: "reservation",
@@ -513,7 +517,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                     : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
         return {
             messages: [
-                new AIMessage(res.finalText + (res.finalText.includes("CONFIRMAR") ? "" : confirmLine)),
+                new AIMessage(
+                    res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                ),
             ],
             reservationSlots: completeSnapshot,
             category: "reservation",
