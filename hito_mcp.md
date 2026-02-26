@@ -93,6 +93,28 @@ Cobertura validada:
 Fuera de alcance:
 - Integración CM/PMS real (se valida Quickstart inMemory)
 
+### PIPE-UI-RES-1 — Estabilización UX reservas WEB sobre MCP (Quickstart inMemory)
+
+Estado: CERRADO  
+Fecha: 2026-02-26  
+
+Resumen técnico:
+- Se corrigió la mezcla semántica “error availability + CTA CONFIRMAR” (no anexar confirmación cuando `needsHandoff=true`).
+- Se habilitó `/api/mcp` (sin slash) en middleware para que `checkAvailabilityTool()` llegue al MCP unificado y no redirija a `/auth/login`.
+- Se mejoró la UX de nombre parcial: si el usuario da solo nombre, se personaliza la respuesta y se pide solo apellido.
+
+Referencias a commits:
+- FIX-RES-AVAIL-ERROR-1
+- PIPE-UI-RES-1
+
+Tests PASS:
+- test/e2e.reservation.flow.spec.ts
+- test/e2e.reservation.golden-transcripts.spec.ts
+- test/integration/reservations.mcp.channel-manager.spec.ts
+
+Estado final:
+- OK en WEB (MCP inMemory)
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
