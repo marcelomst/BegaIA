@@ -150,6 +150,36 @@ Nota de disciplina:
 - Desviación detectada: `bedcbe8` mezcló `FIX-TEST-RECOTIZACION-1` + `FEAT-WA-TWILIO-1` en el mismo commit.
 - Decisión: NO reescribir historia (ya pusheado). Se registra aquí y se retoma disciplina 1 commit = 1 hito a partir del próximo cambio.
 
+### WA-TUNNEL-DEV-1 — Cloudflare Tunnel DEV (nativo)
+
+Estado: ACTIVO (DEV)  
+Fecha: 2026-02-28  
+
+Descripción:
+- Se creó túnel `begasist-dev` (UUID: c3d5dea7-fc68-4374-9211-cf7fa8c20da2).
+- Se creó hostname `wa-dev.begam.uy` apuntando al túnel.
+- Se utiliza config nativa:
+  `/home/marcelo/begasist/.cloudflared/config.dev.native.yml`
+- Ingress:
+  - `wa-dev.begam.uy` → `http://localhost:3000`
+- Ejecución DEV (nativo, no Docker):
+
+  cloudflared tunnel --config /home/marcelo/begasist/.cloudflared/config.dev.native.yml run begasist-dev
+
+Validación:
+- `curl` público devuelve `200 {"ok":true}`.
+- Endpoint funcional:
+  https://wa-dev.begam.uy/api/webhooks/whatsapp/twilio
+
+Decisión arquitectónica:
+- En entorno DEV se utiliza cloudflared nativo para evitar problemas de networking Docker/WSL.
+- Docker tunnel queda reservado para futuros entornos server o producción.
+
+Fuera de alcance:
+- No es túnel de producción.
+- No hay validación de firma Twilio.
+- No hay outbound Twilio aún.
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
