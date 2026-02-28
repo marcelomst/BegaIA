@@ -115,6 +115,41 @@ Tests PASS:
 Estado final:
 - OK en WEB (MCP inMemory)
 
+## WhatsApp Oficial (Twilio)
+
+### FEAT-WA-TWILIO-1 — Webhook inbound Twilio (MVP hotel999)
+
+Estado: IMPLEMENTADO (commit mezclado)  
+Commit: bedcbe8  
+
+Descripción:
+- Se agregó endpoint `POST /api/webhooks/whatsapp/twilio` (inbound Twilio).
+- Se parsea `application/x-www-form-urlencoded` con campos `From`, `To`, `Body`, `MessageSid`.
+- Routing MVP por env:
+  - `TWILIO_WA_TO_HOTEL999` → `hotelId="hotel999"`.
+- Normalización a `ChannelMessage`:
+  - `messageId="twilio:<MessageSid>"`
+  - `channel="whatsapp"`
+  - `role="user"`, `direction="in"`
+  - `sourceProvider="whatsapp.twilio"`, `sourceMsgId=<MessageSid>`
+  - `meta` con `{ to, from, twilio: { messageSid } }`
+- Responde `200 OK` siempre; si `To` no mapea, registra `[WA_TWILIO_UNMAPPED_TO]`.
+
+Tests ejecutados (PASS):
+- test/api.webhooks.whatsapp.twilio.route.spec.ts ✅
+- test/integration/recotizacion.planner_only.test.ts ✅
+- pnpm test ✅ (91 passed files, 267 passed tests)
+
+Fuera de alcance:
+- No conecta aún con handler `/api/chat` (solo inbound + normalización).
+- No outbound (sendText) ni credenciales Twilio.
+- No validación firma Twilio.
+- No routing SaaS real vía `hotel_config` (solo env MVP).
+
+Nota de disciplina:
+- Desviación detectada: `bedcbe8` mezcló `FIX-TEST-RECOTIZACION-1` + `FEAT-WA-TWILIO-1` en el mismo commit.
+- Decisión: NO reescribir historia (ya pusheado). Se registra aquí y se retoma disciplina 1 commit = 1 hito a partir del próximo cambio.
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
