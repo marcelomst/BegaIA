@@ -16,6 +16,7 @@ import { setQR, clearQR, setWhatsAppState } from "@/lib/services/redis";
 import { startChannelHeartbeat } from "@/lib/services/heartbeat";
 import { normalizePhone } from "@/lib/config/hotelPhoneMap";
 import { shouldIngestWaMessageOnce } from "@/lib/utils/waIdempotency";
+import { debugLog } from "@/lib/utils/debugLog";
 import type { ChannelMessage } from "@/types/channel";
 
 // Logs recortados
@@ -73,33 +74,65 @@ export function startWhatsAppBot({
   client.on("qr", async (qr: string) => {
     try {
       console.log(`⚡ [whatsapp] QR generado para hotelId=${hotelId}. Escaneá para conectar:`);
+      debugLog("[wa.lifecycle]", { event: "qr", hotelId, qrLen: String(qr || "").length });
       qrcode.generate(qr, { small: true });
       await setQR(hotelId, qr);
       await setWhatsAppState(hotelId, "waiting_qr");
       startChannelHeartbeat("whatsapp", hotelId);
     } catch (err) {
       console.error("⛔ [whatsapp] Error seteando QR/estado:", err);
+      debugLog("[wa.lifecycle]", { event: "qr_error", hotelId, error: String((err as any)?.message || err) }, "error");
     }
+  });
+
+  client.on("authenticated", () => {
+    console.log(`🔐 [whatsapp] authenticated hotelId=${hotelId}`);
+    debugLog("[wa.lifecycle]", { event: "authenticated", hotelId });
+  });
+
+  client.on("loading_screen", (percent: number, message: string) => {
+    console.log(`⏳ [whatsapp] loading_screen hotelId=${hotelId} ${percent}% ${message || ""}`.trim());
+    debugLog("[wa.lifecycle]", { event: "loading_screen", hotelId, percent, message: message || "" });
+  });
+
+  client.on("change_state", (state: string) => {
+    console.log(`🔄 [whatsapp] change_state hotelId=${hotelId} state=${state}`);
+    debugLog("[wa.lifecycle]", { event: "change_state", hotelId, state });
+  });
+
+  client.on("remote_session_saved", () => {
+    console.log(`💾 [whatsapp] remote_session_saved hotelId=${hotelId}`);
+    debugLog("[wa.lifecycle]", { event: "remote_session_saved", hotelId });
+  });
+
+  client.on("error", (err: unknown) => {
+    const error = String((err as any)?.message || err || "");
+    console.error(`⛔ [whatsapp] client error hotelId=${hotelId}:`, err);
+    debugLog("[wa.lifecycle]", { event: "client_error", hotelId, error }, "error");
   });
 
   client.on("ready", async () => {
     console.log(`✅ [whatsapp] Bot listo para hotelId=${hotelId}`);
+    debugLog("[wa.lifecycle]", { event: "ready", hotelId });
     try {
       await clearQR(hotelId);
       await setWhatsAppState(hotelId, "connected");
     } catch (err) {
       console.error("⛔ [whatsapp] Error en ready (limpiar QR/estado):", err);
+      debugLog("[wa.lifecycle]", { event: "ready_error", hotelId, error: String((err as any)?.message || err) }, "error");
     }
     startChannelHeartbeat("whatsapp", hotelId);
   });
 
   client.on("auth_failure", async (msg: string) => {
     console.error(`❌ [whatsapp] auth_failure para hotelId=${hotelId}:`, msg);
+    debugLog("[wa.lifecycle]", { event: "auth_failure", hotelId, message: msg || "" }, "error");
     await setWhatsAppState(hotelId, "auth_failed");
   });
 
   client.on("disconnected", async (reason: string) => {
     console.warn(`❌ [whatsapp] Bot desconectado hotelId=${hotelId}: ${reason}`);
+    debugLog("[wa.lifecycle]", { event: "disconnected", hotelId, reason: reason || "" }, "warn");
     await setWhatsAppState(hotelId, "disconnected");
     clearPoller(hotelId);
   });
@@ -267,8 +300,20 @@ export function startWhatsAppBot({
   );
 
   try {
-    (client as any).initialize?.();
+    const init = (client as any).initialize?.();
+    if (init && typeof init.then === "function") {
+      init.catch((err: unknown) => {
+        const error = String((err as any)?.message || err || "");
+        console.error("⛔ [whatsapp] Error async en initialize():", err);
+        debugLog("[wa.lifecycle]", { event: "initialize_failed_async", hotelId, error }, "error");
+      });
+    }
   } catch (err) {
     console.error("⛔ [whatsapp] Error en initialize():", err);
+    debugLog(
+      "[wa.lifecycle]",
+      { event: "initialize_failed_sync", hotelId, error: String((err as any)?.message || err || "") },
+      "error"
+    );
   }
 }

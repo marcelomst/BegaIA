@@ -1,6 +1,6 @@
 # hotel_config export
 hotelId: hotel999
-exportedAt: 2026-01-20T10:06:56.724Z
+exportedAt: 2026-02-27T11:03:40.654Z
 
 {
   "hotelId": "hotel999",
@@ -15,7 +15,7 @@ exportedAt: 2026-01-20T10:06:56.724Z
     "whatsapp": {
       "enabled": true,
       "mode": "automatic",
-      "celNumber": "+59898835914",
+      "celNumber": "+59891359375",
       "apiKey": ""
     },
     "email": {
@@ -27,7 +27,8 @@ exportedAt: 2026-01-20T10:06:56.724Z
       "imapPort": 993,
       "smtpHost": "smtp.gmail.com",
       "smtpPort": 587,
-      "secure": false
+      "secure": false,
+      "credentialsStrategy": "inline"
     },
     "channelManager": {
       "enabled": true,
@@ -71,7 +72,7 @@ exportedAt: 2026-01-20T10:06:56.724Z
       "createdAt": "2025-07-02T08:49:04.863Z"
     }
   ],
-  "lastUpdated": "2026-01-20T09:51:21.256Z",
+  "lastUpdated": "2026-02-27T10:58:22.378Z",
   "verification": {},
   "country": "UY",
   "city": "Punta del Este",
@@ -98,15 +99,8 @@ exportedAt: 2026-01-20T10:06:56.724Z
       "pool",
       "gym",
       "spa",
-      "custom_custom_custom_custom_custom_custom_custo",
       "room_service",
       "restaurant",
-      "custom_custom_custom_custom_custom_custom_recep",
-      "custom_custom_custom_custom_custom_reception_24",
-      "custom_custom_custom_custom_reception_24h",
-      "custom_custom_custom_reception_24h",
-      "custom_custom_reception_24h",
-      "custom_reception_24h",
       "reception_24h"
     ],
     "schedules": {
@@ -123,7 +117,10 @@ exportedAt: 2026-01-20T10:06:56.724Z
       "custom_custom_custom_custom_reception_24h": "",
       "custom_custom_custom_custom_custom_reception_24": "",
       "custom_custom_custom_custom_custom_custom_recep": "",
-      "custom_custom_custom_custom_custom_custom_custo": ""
+      "custom_custom_custom_custom_custom_custom_custo": "",
+      "custom_custo": "",
+      "custom_recep": "",
+      "custom_reception_24": ""
     }
   },
   "billing": {
@@ -132,13 +129,16 @@ exportedAt: 2026-01-20T10:06:56.724Z
       "Factura A",
       "Ticket",
       "Recibo"
-    ]
+    ],
+    "invoiceNotes": "Se emiten comprobantes al momento del pago. Para factura, por favor indicar razón social, RUT/CI y dirección fiscal."
   },
   "contacts": {
     "email": "begamshop.ventas@gmail.com",
     "whatsapp": "+598 98 835 914",
     "phone": "+598 42558283",
-    "website": "http://127.0.0.1:8081/"
+    "website": "http://127.0.0.1:8081/",
+    "supportHours": "08:00 a 22:00",
+    "supportEscalation": "22:00 a 08:00 - Guardia por Whatsapp."
   },
   "payments": {
     "methods": [
@@ -151,7 +151,8 @@ exportedAt: 2026-01-20T10:06:56.724Z
     "requiresCardForBooking": true,
     "currencies": [
       "USD",
-      "UYU"
+      "UYU",
+      "BTC"
     ],
     "currency": "USD"
   },
@@ -166,7 +167,9 @@ exportedAt: 2026-01-20T10:06:56.724Z
         "Portal OTA",
         "Sitio web",
         "Teléfono"
-      ]
+      ],
+      "nonRefundable": "Reservas no reembolsables o canceladas fuera de plazo pueden tener cargo de 1 noche o del total, según la tarifa contratada.",
+      "noShow": "En caso de no-show se aplica cargo de 1 noche como mínimo; en tarifas no reembolsables puede aplicarse el total de la estadía."
     }
   },
   "rooms": [
@@ -251,56 +254,77 @@ exportedAt: 2026-01-20T10:06:56.724Z
     "breakfast": "07:30 a 10:30",
     "quietHours": "22:00 a 07:30"
   },
+  "airports": [
+    {
+      "code": "MVD",
+      "name": "Aeropuerto Internacional de Carrasco",
+      "distanceKm": 120,
+      "driveTime": "90 min"
+    },
+    {
+      "code": "PDP",
+      "name": "Aeropuerto de Punta del Este",
+      "distanceKm": 5,
+      "driveTime": "10 min"
+    }
+  ],
+  "transport": {
+    "hasPrivateTransfer": true,
+    "transferNotes": "Se puede organizar un servicio de traslado privado al hotel con antelación.",
+    "taxiNotes": "Los taxis están disponibles en el aeropuerto y el viaje al hotel es rápido.",
+    "busNotes": "Hay servicios de autobús que conectan el aeropuerto con Punta del Este, pero pueden requerir transbordos."
+  },
   "attractions": [
     {
       "name": "Playa Mansa",
-      "notes": "Playa tranquila ideal para familias y actividades acuáticas.",
-      "distanceKm": 0.5,
-      "driveTime": "2 min"
-    },
-    {
-      "name": "Hotel L'Auberge",
-      "notes": "Hotel emblemático con restaurante y vistas al mar.",
-      "distanceKm": 1,
-      "driveTime": "3 min"
-    },
-    {
-      "name": "Parque El Jagüel",
-      "notes": "Parque con áreas verdes, senderos y espacios para picnic.",
-      "distanceKm": 2,
-      "driveTime": "5 min"
-    },
-    {
-      "name": "Puerto de Punta del Este",
-      "notes": "Zona de restaurantes y tiendas, con vistas a los yates.",
-      "distanceKm": 3,
-      "driveTime": "7 min"
-    },
-    {
-      "name": "Museo Ralli",
-      "notes": "Museo de arte contemporáneo latinoamericano.",
-      "distanceKm": 2.5,
-      "driveTime": "6 min"
+      "notes": "Playa tranquila, ideal para familias. Distancia estimada: 0.5–1 km.",
+      "placeId": "ChIJiTKLR4ARdZURwm2jYj6U_eU",
+      "photoName": "places/ChIJiTKLR4ARdZURwm2jYj6U_eU/photos/ATCDNfXWGYZ58nIbDpguUP8S-F5i9a7uWJ-VWCpDUPkXP8vBFopLV49L1BlCbN3hiLebalIPV2ORi9FyBc6GmE1zuBZh3v7adS5aMhi9b4LwSuESznriRADMh5KLJZORM6J3LeqhUNXTYWBqFGX72HxBabErKBCrwQ40GXR2ATyO4o52GJ03SnFJnu1PR1hfLQ2S3_KsBRMXtcDtrQ5zBsY6TG2cj-VQMM6lgB37HH__Ok5gpYpXZ_y24MVA9kjxHgTUPGdrqBDE-iFLWXmAhw8nWu8XBdXDazXz8vrlJFks-iwmwx2iQPttmS_AIpVy6OZR2vX8ju1CzxW2yQBRa1oz9i2JKOSY8O3lW6et1Ge4luc1Ik-W_HjuwSEiZwDHPo22-i7YUzEl6_YgeIUB5FbKOShZKNliTIAQtdlHTZ1pqqf_4A"
     },
     {
       "name": "Playa Brava",
-      "notes": "Playa famosa por sus olas y la escultura 'La Mano'.",
-      "distanceKm": 3.5,
-      "driveTime": "8 min"
+      "notes": "Playa oceánica con olas más fuertes. Distancia estimada: 1–3 km.",
+      "placeId": "ChIJA0nssx8FdZURSz7ivf71x3o",
+      "photoName": "places/ChIJA0nssx8FdZURSz7ivf71x3o/photos/ATCDNfW882y-zIi4C00fcS-3_0njgQmMycjWDbah2ltj2rMAJxoTBQ34Bg7JSr6Xn_t6BgX1KWUNQWlOSr7oRcpmHXtIyu27kUbT6E4uSn0G26xBq4E4_lgNQsTiLV9CvqujcLx3Q4z6_ggo-o3Ksb5NKm0J4B_TO_Hqk4S9qKh8dUu-yG8nEqvrCW8WEbd1UlQqhw0cg-pgk72lUwwfS4Ax521ql5rwaMRWuu6x-dLDQGU2qjoateHHIMUeQnFSRYxxJxXxT9U1Ak7KQYPHjGstB0eWbAI6U5Hq9M7nEyjfCU6IQ0d_YRUdAmW39Zm9KP-4hN4yzO61qPVeLBZ3AwNUiIpMZjBAc7nKxbUkhTXpknqPKxavmhNUbbWV8xLvThoZa8aWJtqyjLOIdpgFyCDe5YPa2GEuKhlEty3-5xQTqUfjkwMt"
     },
     {
-      "name": "Centro Comercial Punta Shopping",
-      "notes": "Centro comercial con diversas tiendas y opciones de entretenimiento.",
-      "distanceKm": 4,
-      "driveTime": "10 min"
+      "name": "Monumento Los Dedos",
+      "notes": "Escultura icónica en Playa Brava. Distancia estimada: 3–6 km.",
+      "placeId": "ChIJfZ2g7RIFdZUR7vqjH95LJLY",
+      "photoName": "places/ChIJfZ2g7RIFdZUR7vqjH95LJLY/photos/ATCDNfXAQ2m3uoAGlN8P1gF6AlE0KuY4PWSDqFje0c17qtk1qvZSZEcJzVyPLyDmQrBl8--4CqTnIzYAAFxohlvNPlXeRzYqce90k861jLBe9u5xN2Tjx176swpcgMC8NTcGwFtMNmYXh3WBwMEntDXCEENejTBuogLDBRHMpmhbL2sq1W3R669DafsIUyGJho_w2NprbQjA6MUvl8krVkCoUi2KkB2mHeLqEmqZUJ7przp9sZj7r0G-Ildd5SXcJeIbceRAoGaUNfxOv8LhfxxZR3A0MdeCSZX9tsl1BjBoTq2s4uFKOsNgha_J81zXgoJ550jamuXrJc5BvyULy7Cmf1Yc4sidkOhiq5G8Vb0NDIuGW-dw-n5xDxnv2Ap-jCT_1FcdbV8G1ls2VE5JIAwG51sW61pN7zPh8MiiZDp7lYznZw"
     },
     {
-      "name": "Casa Pueblo",
-      "notes": "Museo y hotel, obra del artista Carlos Páez Vilaró, con vistas espectaculares.",
-      "distanceKm": 5,
-      "driveTime": "12 min"
+      "name": "Puerto de Punta del Este",
+      "notes": "Puerto con yates, cafés y lobos marinos. Distancia estimada: 6–10 km.",
+      "placeId": "ChIJzaVG7kAFdZURF5hs92xch3I",
+      "photoName": "places/ChIJzaVG7kAFdZURF5hs92xch3I/photos/ATCDNfVPnAWUgi6t8L5UtA7sOe-M6VnNmCQz6Hf3AQVNjd6HHzUa2utFmjLwCgPDMofTc5ZZO-xgomeLY8lxmSXK0Qt_HGYJbhIm0MKJqptwF09mW8cpehvUHz12kSNsW2wOZF57c1uK4OsZn_wXPmObFRJnC4oMar5Q-fbYFxEQt9YejgPebsXNlXqbiWV5uciBXcfTL8Pr4PQeuNDKI43v1bGWVkUjDfcsUV7NgIavwkV4qT8Sq8Nn5qrlhcK81r2reRXa8IlygQtaylSVdkRGMznOVG6HPIrpCGDPIBpfaUVoaokZ-VZJuQ6ihkHsDONzbn71i-cfMHMDQ8gTXPzgkehUkuSl2-tpBWfyRVVznMmoqE3Qx-DHXWaBM2t1MZ3boaAfV5lPrti9kLMYiIkiCW3PTYhEJsycjPYBsB51jVqOt68"
+    },
+    {
+      "name": "Avenida Gorlero",
+      "notes": "Avenida principal de tiendas y restaurantes. Distancia estimada: 0.5–1 km.",
+      "placeId": "ChIJzaVG7kAFdZURF5hs92xch3I",
+      "photoName": "places/ChIJzaVG7kAFdZURF5hs92xch3I/photos/ATCDNfXC2HfHAW9qiVNUK1Mgn0jV2Ti1DHMsI5J3J63Z0r5SZWIwhIuk7QqcV5ASw_fanrc5mvhJN3P5wm9kOgBl4CKylvf33qQFsZk8sJ8IL4W9QlEC0D3h2Ylmauc14rL3HNv_juPRG-9a3z60RNdnsf8UV1YhbZwYqECikJnkUe1legevvFFzNYKSQ10MMQ1jmspE0Ub0I4hL6XURLjuD0NVrUmzXNqNg2mcBCOwkMZq9td_AcM2zUi7-t_XH6jF2zE8uCHlL4UclzIVcG6k-WLEjNnw0HVgwA1pjRuLr8kJSNOEHiiFNO5RR7QByKdOOO0HwsLj5HwbBS-5dWjuMRx0NjkZvmN-7THsHUcidVHr7yaNYYdmL-5M5uV5NkKsQe3gVKUc2yVmZgvPddmbWXifrMOkCX-KezQ7PbyuFcBLYi-I"
+    },
+    {
+      "name": "Isla Gorriti",
+      "notes": "Isla con playas y senderos. Distancia estimada: 1–3 km.",
+      "placeId": "ChIJm7_udk4FdZURk3MceYNr4MM",
+      "photoName": "places/ChIJm7_udk4FdZURk3MceYNr4MM/photos/ATCDNfX55imRUsHq_Xg38IuGBc9EPNK-cK--7EgVDGhEeXzykrNY-671ypHR92YAIKw11K4sgPKHlvGHgMCA7sr7rSUqIH7rgQ7lwH-M00shX26cuD7p5c4FCV-_7RG53ZmyMldUCOm70MP2NQOLe55ur2ffyAi_pS1C5tZZDBizR3TP_GqgxAzw8QXcmS_F6iib3w90op3oFol_rpWJWXICYkA0Bp2ZcM00MF8LrVWyM8UeTnaZeM2p88Pd4TkenchPBO2MxIZiqLvpzw60mqOJR4bmqdkHWNMOVS0G2LEZaQBqAKG_Pcbo6uwrXKFgKCnmrbW1uj7mri_nqLqE455kJWpTS4NoFpFkariaThOuOHYM6RIBV8oV_CZyHvSb3GEUMCDYR_bwoq7kBN5u8_GsTscbj66-XZaAu_YEmTj60YW8wbu7"
+    },
+    {
+      "name": "Faro de Punta del Este",
+      "notes": "Faro histórico con vistas costeras. Distancia estimada: 3–6 km.",
+      "placeId": "ChIJ09VpKAAFdZURjERwgL4u-Ig",
+      "photoName": "places/ChIJ09VpKAAFdZURjERwgL4u-Ig/photos/ATCDNfVW1wwNY3Xueu51dkyYtlDqEBDnVWWkO2kMmBSTNcjmGjbcclNDOkb0enjRJqhaipOjnRKtYwJdt1LS4b9SX6mQ-qwmEfWJNqCVOZ1NJMhZgL0ATM5gXtshGiSKZPgTqGIpD3L65yt_Ohe8BVogSj9E_d62cg9iRDoUNax4UwC8cLiIE1KLev9Gh3_4kFr5Gpiw0Vb-8Emt2rbO8L1n5ijstTyF2WPbgqPHGDQcXlRvCFvkdTAb7Ae90uWXH4ajyWTqMym4sGLxx4GRNAZbQmj2REwc43ERqcgM7kaRbp5ks1S9Vx3f2LLpbl9R0_ZKiDM-hfGg934IPSxOLJdaAdN90xHkJ8Q9vhD6KreP1wPYK3f99CnY-IR4ZQLnfOa586TeDEJiah7GOwqSWBUlkNrSTInjYNex8a8H4xa2mL7xg9LiNtlaOyOmZ_EID16Z"
+    },
+    {
+      "name": "Casapueblo (Punta Ballena)",
+      "notes": "Museo y galería icónica sobre el acantilado. Distancia estimada: 6–10 km.",
+      "placeId": "ChIJiZ7Bx2ARdZURUDo_ouWMy3k",
+      "photoName": "places/ChIJiZ7Bx2ARdZURUDo_ouWMy3k/photos/ATCDNfUCDBFnir53rmd807IZOws3z6Ai4K7V5fNjrsWlLsraCWFuymZQ74v1Ei8SZdbWaoLfrTn7fupPH0E8UGtSkUqWLvrzumuLJFbhnmzl44GnZS-OWAtuyI4XsRvKILMLy_XteS3GQWFzrLuUg879rdu94V12a2o2fxWuSmBt-pQZkw1xvShvULuJVyW3yw2KmJ0AahE01GYd72M_KdlsIbBO9mz0gaYyy-ereLUapx1xufB1cdXb6JBsxmACysMUgmF-BlwYTQYt6bLP3L6zp9h95vTADgodInAthzQc-EJGKQ"
     }
   ],
+  "touristEvents": [],
   "attractionsInfo": "Ubicada en una de las zonas más tranquilas y agradables de Punta del Este, Playa Mansa, Parada 5, ofrece un entorno ideal para disfrutar del mar, la naturaleza y la vida urbana en perfecto equilibrio.\n\nA pocos pasos se extiende la Playa Mansa, reconocida por sus aguas calmas, ideales para familias, deportes náuticos suaves y paseos al atardecer, cuando el sol se oculta sobre la bahía brindando postales inolvidables.\n\nEn las cercanías se encuentra el Puerto de Punta del Este, un punto vibrante donde conviven embarcaciones, restaurantes y excursiones marítimas hacia la Isla Gorriti, un espacio natural protegido con playas y senderos históricos.\n\nA corta distancia también se accede a zonas comerciales, restaurantes, cafés y al centro de la ciudad, así como a atractivos emblemáticos como Casapueblo, en Punta Ballena, uno de los íconos culturales más importantes del Uruguay.\n\nEsta ubicación privilegiada combina serenidad, accesibilidad y cercanía a los principales atractivos del destino, convirtiéndola en un punto ideal para disfrutar de Punta del Este durante todo el año.",
   "hotelProfile": {
     "starRating": 3,
@@ -308,5 +332,8 @@ exportedAt: 2026-01-20T10:06:56.724Z
     "style": "Colonial",
     "propertyType": "Resort",
     "shortDescription": "Este hotel histórico, declarado Patrimonio Nacional, es un testimonio vivo de la arquitectura y la cultura de otra época.\nConstruido a fines del siglo XIX, ha sido cuidadosamente conservado para mantener su carácter original, combinando elegancia clásica, materiales nobles y detalles artesanales. A lo largo de los años, ha alojado a personalidades destacadas y ha sido escenario de importantes acontecimientos históricos. Hoy ofrece a sus huéspedes una experiencia única, donde la tradición, la historia y el confort contemporáneo conviven en un entorno de gran valor cultural."
-  }
+  },
+  "nearbyPointsMode": "always",
+  "eventsRegion": "maldonado_uy",
+  "globalEventsProvider": "places"
 }

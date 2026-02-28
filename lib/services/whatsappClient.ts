@@ -6,11 +6,19 @@ import path from "node:path";
 const { Client, LocalAuth } = WhatsAppWeb as any;
 
 const HOTEL_ID = process.env.HOTEL_ID || "default";
-const AUTH_PATH = process.env.WWEBJS_AUTH_PATH || "/data/wwebjs_auth";
-const WWEBJS_DIR = path.join(AUTH_PATH, "WWebJS");
+const dataPath =
+  process.env.WWEBJS_AUTH_PATH?.trim()
+    ? process.env.WWEBJS_AUTH_PATH.trim()
+    : path.join(process.cwd(), ".local", "wwebjs_auth");
+const WWEBJS_DIR = path.join(dataPath, "WWebJS");
+const headless = process.env.WWEBJS_HEADLESS === "0" ? false : true;
+const executablePath =
+  process.env.WWEBJS_EXECUTABLE_PATH?.trim() ||
+  process.env.PUPPETEER_EXECUTABLE_PATH?.trim() ||
+  undefined;
 
 // Asegurar carpetas
-for (const p of [AUTH_PATH, WWEBJS_DIR, path.join(WWEBJS_DIR, "Default")]) {
+for (const p of [dataPath, WWEBJS_DIR, path.join(WWEBJS_DIR, "Default")]) {
   try { fs.mkdirSync(p, { recursive: true }); } catch {}
 }
 
@@ -27,12 +35,12 @@ try {
 export const whatsappClient = new Client({
   authStrategy: new LocalAuth({
     clientId: HOTEL_ID,
-    dataPath: AUTH_PATH, // LocalAuth gestiona el perfil en AUTH_PATH/WWebJS
+    dataPath, // LocalAuth gestiona el perfil en dataPath/WWebJS
   }),
   puppeteer: {
-    headless: true,
+    headless,
     // ⚠️ NO userDataDir si usamos LocalAuth
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
