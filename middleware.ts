@@ -56,6 +56,7 @@ const PUBLIC_PATHS = [
   "/api/users/validate-reset-token",
   "/api/test",
   "/api/chat",
+  "/api/webhooks/whatsapp/twilio",
   "/api/places/photo",
   // 🔎 Endpoint de debug de fast-path
   "/api/debug/fastpath",
