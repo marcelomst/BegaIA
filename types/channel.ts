@@ -58,6 +58,7 @@ export type BaseChannelConfig = {
 export type WhatsAppConfig = BaseChannelConfig & {
   celNumber: string;
   apiKey?: string;
+  slaMinutes?: number;
   /** Si true, no procesa mensajes de grupos (@g.us). Default: true */
   ignoreGroups?: boolean;
 };
@@ -247,6 +248,9 @@ export type ChatTurnWithMeta = ChatTurn & {
   approvedResponse?: string;
   suggestion?: string;
   messageId?: string;
+  conversationId?: string;
+  guestId?: string;
+  originalContent?: string;
   subject?: string;
   recipient?: string;
   cc?: string[];

@@ -6,6 +6,7 @@ import { fetchAllConversationsByChannel } from "@/utils/fetchAndOrderConversatio
 import { fetchAndMapMessagesWithSubject } from "@/utils/fetchAndMapMessagesWithSubject";
 import { fetchGuest } from "@/utils/fetchGuest";
 import { shortGuestId } from "@/lib/utils/shortGuestId";
+import { useCurrentUser } from "@/lib/context/UserContext";
 import GuestProfileModal from "./GuestProfileModal";
 import MessageBubble from "./MessageBubble";
 import ConversationsTabs from "./ConversationsTabs";
@@ -19,7 +20,19 @@ interface ChannelInboxProps {
   curationModel?: CurationModel;
 }
 
+type PendingItem = {
+  messageId: string;
+  conversationId?: string | null;
+  guestId?: string | null;
+  approvedResponse?: string | null;
+  suggestion?: string | null;
+  content?: string | null;
+  ageMinutes: number;
+  breach: boolean;
+};
+
 export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, curationModel }: ChannelInboxProps) {
+  const { user } = useCurrentUser();
   if (!hotelId) {
     console.warn("⚠️ [ChannelInbox] hotelId no disponible aún. Esperando...");
     return null;
@@ -44,6 +57,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({});
+  const [pendingList, setPendingList] = useState<PendingItem[]>([]);
   const [modalMsg, setModalMsg] = useState<{ original?: string; visible: boolean }>({ visible: false });
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -93,6 +107,32 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
       })
       .finally(() => setLoading(false));
   }, [selectedConv, hotelId, channel, reloadFlag]);
+
+  useEffect(() => {
+    if (channel !== "whatsapp") {
+      setPendingList([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/messages/pending?hotelId=${encodeURIComponent(hotelId)}&channel=${encodeURIComponent(channel)}`,
+          { credentials: "same-origin" },
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setPendingList(Array.isArray(data?.pending) ? data.pending : []);
+        }
+      } catch {
+        if (!cancelled) setPendingList([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotelId, channel, reloadFlag, selectedConv, messages.length]);
 
   // Cargar snapshot de reserva (si existe) para mostrar encabezado
   useEffect(() => {
@@ -168,21 +208,73 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   }
 
   async function handleSendEdit(msg: ChatTurnWithMeta, idx: number) {
-    await fetch("/api/messages", {
+    const payload = channel === "whatsapp"
+      ? {
+          action: "approve_and_send",
+          messageId: msg.messageId,
+          approvedResponse: editingText,
+          channel,
+          respondedBy: user?.email,
+          to: msg.guestId,
+        }
+      : {
+          messageId: msg.messageId,
+          approvedResponse: editingText,
+          status: "sent",
+          channel,
+          respondedBy: user?.email,
+        };
+
+    const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messageId: msg.messageId,
-        approvedResponse: editingText,
-        status: "sent",
-        channel,
-      }),
+      body: JSON.stringify(payload),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err?.error || "No se pudo enviar el mensaje");
+      return;
+    }
     fetchAndMapMessagesWithSubject(channel, selectedConv!, hotelId).then(({ messages }) => {
       setMessages(messages);
       setEditingIdx(null);
       setEditingText("");
     });
+  }
+
+  async function handleApproveSendPending(item: PendingItem) {
+    const text = item.approvedResponse || item.suggestion || item.content || "";
+    if (!text) return;
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "approve_and_send",
+        messageId: item.messageId,
+        approvedResponse: text,
+        channel: "whatsapp",
+        respondedBy: user?.email,
+        to: item.guestId || undefined,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err?.error || "No se pudo enviar el pendiente");
+      return;
+    }
+    if (selectedConv) {
+      fetchAndMapMessagesWithSubject(channel, selectedConv, hotelId).then(({ messages }) => {
+        setMessages(messages);
+      });
+    }
+    const pendingRes = await fetch(
+      `/api/messages/pending?hotelId=${encodeURIComponent(hotelId)}&channel=whatsapp`,
+      { credentials: "same-origin" },
+    );
+    if (pendingRes.ok) {
+      const data = await pendingRes.json().catch(() => ({}));
+      setPendingList(Array.isArray(data?.pending) ? data.pending : []);
+    }
   }
 
   return (
@@ -257,6 +349,28 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
             </span>
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+            {channel === "whatsapp" && pendingList.length > 0 && (
+              <div className="border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 rounded p-3 text-sm">
+                <div className="font-semibold mb-2">Pendientes WhatsApp: {pendingList.length}</div>
+                <div className="space-y-2">
+                  {pendingList.slice(0, 8).map((p) => (
+                    <div key={p.messageId} className="flex items-center gap-2">
+                      <span className="font-mono text-xs">#{p.messageId.slice(0, 8)}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded ${p.breach ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
+                        {p.ageMinutes} min
+                      </span>
+                      {p.breach && <span className="text-xs text-red-600 font-semibold">SLA breach</span>}
+                      <button
+                        className="ml-auto px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs"
+                        onClick={() => handleApproveSendPending(p)}
+                      >
+                        Aprobar y enviar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {snapshot && (
               <div className="border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 text-blue-900 dark:text-blue-100 rounded p-3 text-sm">
                 <div className="flex items-center justify-between mb-1">
