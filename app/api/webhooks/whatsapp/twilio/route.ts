@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { twilioSendWhatsAppMessage } from "@/lib/channels/whatsapp/twilioSendMessage";
 import { validateTwilioSignature } from "@/lib/channels/whatsapp/twilioValidateSignature";
+import { hasInboundMessageBySourceMsgId } from "@/lib/db/messagesDedupe";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -71,6 +72,18 @@ export async function POST(req: Request) {
   if (!hotelId) {
     console.warn("[WA_TWILIO_UNMAPPED_TO]", { to, from, messageSid });
     return Response.json({ ok: true }, { status: 200 });
+  }
+
+  if (messageSid) {
+    const alreadyProcessed = await hasInboundMessageBySourceMsgId({
+      hotelId,
+      channel: "whatsapp",
+      sourceMsgId: messageSid,
+    });
+    if (alreadyProcessed) {
+      console.log("[WA_TWILIO_DEDUPED]", { hotelId, messageSid });
+      return Response.json({ ok: true, deduped: true }, { status: 200 });
+    }
   }
 
   try {

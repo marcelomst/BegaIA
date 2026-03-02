@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const handleChannelMessageMock = vi.fn();
 const twilioSendWhatsAppMessageMock = vi.fn();
 const validateTwilioSignatureMock = vi.fn();
+const hasInboundMessageBySourceMsgIdMock = vi.fn();
 
 vi.mock("@/lib/pipeline/handleChannelMessage", () => ({
   handleChannelMessage: handleChannelMessageMock,
@@ -14,6 +15,10 @@ vi.mock("@/lib/channels/whatsapp/twilioSendMessage", () => ({
 
 vi.mock("@/lib/channels/whatsapp/twilioValidateSignature", () => ({
   validateTwilioSignature: validateTwilioSignatureMock,
+}));
+
+vi.mock("@/lib/db/messagesDedupe", () => ({
+  hasInboundMessageBySourceMsgId: hasInboundMessageBySourceMsgIdMock,
 }));
 
 function makeFormReq(data: Record<string, string>): Request {
@@ -30,6 +35,8 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     handleChannelMessageMock.mockReset();
     twilioSendWhatsAppMessageMock.mockReset();
     validateTwilioSignatureMock.mockReset();
+    hasInboundMessageBySourceMsgIdMock.mockReset();
+    hasInboundMessageBySourceMsgIdMock.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -207,6 +214,57 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     expect(res.status).toBe(200);
     expect(json.ok).toBe(true);
     expect(validateTwilioSignatureMock).toHaveBeenCalledTimes(1);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
+    expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("dedupe: returns 200 and does not call pipeline/outbound when inbound already exists", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    hasInboundMessageBySourceMsgIdMock.mockResolvedValueOnce(true);
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+11111111111",
+      Body: "hola",
+      MessageSid: "SM_DEDUPE_1",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(json.deduped).toBe(true);
+    expect(hasInboundMessageBySourceMsgIdMock).toHaveBeenCalledTimes(1);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(0);
+    expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("dedupe: when check returns false, continues processing", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    hasInboundMessageBySourceMsgIdMock.mockResolvedValueOnce(false);
+    handleChannelMessageMock.mockResolvedValueOnce({
+      response: "",
+      status: "pending",
+      messageId: "mid-dedupe-fallback",
+      conversationId: "conv-dedupe-fallback",
+      lang: "es",
+    });
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+11111111111",
+      Body: "hola",
+      MessageSid: "SM_DEDUPE_FALLBACK",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
     expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
   });
