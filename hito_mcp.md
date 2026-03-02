@@ -180,6 +180,77 @@ Fuera de alcance:
 - No hay validación de firma Twilio.
 - No hay outbound Twilio aún.
 
+### FEAT-WA-TWILIO-2 — Inbound conectado al pipeline central
+
+Estado: COMPLETADO  
+Commit: 10cf47e  
+
+Descripción:
+- Se extrajo `handleChannelMessage` como handler central.
+- `/api/chat` delega en el pipeline.
+- Webhook Twilio ahora invoca el mismo handler central.
+- Persistencia en `messages` vía flujo normal.
+- Multi-tenant preservado por `hotelId`.
+- FAST_ROUTE_MODE limitado exclusivamente a entorno test.
+
+Impacto arquitectónico:
+- Eliminación de lógica paralela entre Web y WhatsApp.
+- Canal desacoplado del motor conversacional.
+- Pipeline único real.
+
+Fuera de alcance:
+- No outbound.
+- No validación de firma.
+- No dedupe persistente.
+
+### FEAT-WA-TWILIO-3 — Outbound automático vía API Twilio
+
+Estado: COMPLETADO  
+Commit: 9b366bf  
+
+Descripción:
+- Se implementó helper `twilioSendWhatsAppMessage`.
+- Si el pipeline retorna `status="sent"` → se envía reply automático.
+- Si `status="pending"` → no se envía outbound.
+- No se altera respuesta HTTP del webhook (siempre 200 OK).
+- Tests con mocks para sent vs pending.
+
+Variables de entorno requeridas:
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_WHATSAPP_FROM`
+- opcional: `TWILIO_STATUS_CALLBACK_URL`
+
+Impacto arquitectónico:
+- Canal WhatsApp oficial funcional end-to-end.
+- Primer canal productivo completo.
+- Transporte sigue desacoplado de lógica de negocio.
+
+Fuera de alcance:
+- No validación de firma Twilio.
+- No deduplicación persistente por `MessageSid`.
+- No binding automático de conversación por número.
+- Routing multi-hotel aún basado en env mapping.
+
+### Estado Actual del Canal WhatsApp Oficial
+
+Actualmente:
+
+- Webhook inbound operativo.
+- Normalización a `ChannelMessage`.
+- Pipeline central invocado.
+- Persistencia en AstraDB.
+- Respuesta automática outbound cuando status=sent.
+- Modo supervisado (pending) respetado.
+- Multi-tenant por `hotelId`.
+
+Pendientes estratégicos:
+
+1. SEC-WA-TWILIO-4 — Validación firma `X-Twilio-Signature`.
+2. FEAT-WA-TWILIO-5 — Dedupe persistente por `sourceMsgId`.
+3. FEAT-WA-TWILIO-6 — Binding conversación por número WhatsApp.
+4. FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde `hotel_config`.
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
