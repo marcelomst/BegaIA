@@ -1,5 +1,5 @@
 // Path: /root/begasist/app/api/webhooks/whatsapp/twilio/route.ts
-import type { ChannelMessage } from "@/types/channel";
+import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -18,31 +18,31 @@ export async function POST(req: Request) {
     return Response.json({ ok: true }, { status: 200 });
   }
 
-  const normalized: ChannelMessage = {
-    messageId: `twilio:${messageSid}`,
-    hotelId,
-    channel: "whatsapp",
-    sender: from,
-    content: body ?? "",
-    timestamp: new Date().toISOString(),
-    role: "user",
-    direction: "in",
-    sourceProvider: "whatsapp.twilio",
-    sourceMsgId: messageSid,
-    meta: {
+  try {
+    const result = await handleChannelMessage({
+      query: body,
+      channel: "whatsapp",
+      hotelId,
+      conversationId: undefined,
+      guestId: from,
+      sourceMsgId: messageSid,
+      sender: from,
+    });
+    console.log("[WA_TWILIO_INBOUND]", {
+      hotelId,
       to,
       from,
-      twilio: { messageSid },
-    },
-  };
-
-  console.log("[WA_TWILIO_INBOUND]", {
-    hotelId,
-    to,
-    from,
-    messageId: normalized.messageId,
-  });
+      messageId: result.messageId,
+    });
+  } catch (error) {
+    console.warn("[WA_TWILIO_PIPELINE_ERROR]", {
+      hotelId,
+      to,
+      from,
+      messageSid,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 
   return Response.json({ ok: true }, { status: 200 });
 }
-
