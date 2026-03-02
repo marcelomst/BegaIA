@@ -232,6 +232,34 @@ Fuera de alcance:
 - No binding automático de conversación por número.
 - Routing multi-hotel aún basado en env mapping.
 
+### FEAT-WA-TWILIO-6 — Binding conversación por número WhatsApp
+
+Estado: COMPLETADO  
+Commit: 0bc79da  
+
+Descripción:
+- Reutiliza `conversationId` por `(hotelId + guestPhone)`.
+- Busca último mensaje en `messages` para el canal "whatsapp".
+- Compatibilidad con documentos antiguos usando fallback a `guestId`.
+- No crea nueva colección.
+- No modifica esquema base.
+
+Impacto arquitectónico:
+- Conversación persistente real por huésped.
+- Historial consistente en modo supervisado.
+- Multi-tenant garantizado por `hotelId`.
+- Base para CRM futuro.
+
+Fallback:
+- Si falla Astra DB → log `[WA_TWILIO_BINDING_FAILED]`
+- No bloquea webhook.
+- Pipeline continúa normalmente.
+
+Fuera de alcance:
+- No normalización avanzada de número (Twilio ya envía E.164).
+- No binding cross-channel.
+- No routing dinámico multi-hotel desde `hotel_config`.
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
@@ -248,8 +276,7 @@ Pendientes estratégicos:
 
 1. SEC-WA-TWILIO-4 — Validación firma `X-Twilio-Signature`.
 2. FEAT-WA-TWILIO-5 — Dedupe persistente por `sourceMsgId`.
-3. FEAT-WA-TWILIO-6 — Binding conversación por número WhatsApp.
-4. FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde `hotel_config`.
+3. FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde `hotel_config`.
 
 ---
 
