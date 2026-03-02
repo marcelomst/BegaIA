@@ -1,3 +1,4 @@
+// Path: /root/begasist/test/api.webhooks.whatsapp.twilio.route.spec.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const handleChannelMessageMock = vi.fn();
@@ -5,6 +6,7 @@ const twilioSendWhatsAppMessageMock = vi.fn();
 const validateTwilioSignatureMock = vi.fn();
 const hasInboundMessageBySourceMsgIdMock = vi.fn();
 const getConversationIdByGuestPhoneMock = vi.fn();
+const resolveHotelIdByTwilioToMock = vi.fn();
 
 vi.mock("@/lib/pipeline/handleChannelMessage", () => ({
   handleChannelMessage: handleChannelMessageMock,
@@ -26,6 +28,10 @@ vi.mock("@/lib/db/conversationBinding", () => ({
   getConversationIdByGuestPhone: getConversationIdByGuestPhoneMock,
 }));
 
+vi.mock("@/lib/db/whatsappTwilioRouting", () => ({
+  resolveHotelIdByTwilioTo: resolveHotelIdByTwilioToMock,
+}));
+
 function makeFormReq(data: Record<string, string>): Request {
   const body = new URLSearchParams(data);
   return new Request("http://localhost/api/webhooks/whatsapp/twilio", {
@@ -42,8 +48,10 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     validateTwilioSignatureMock.mockReset();
     hasInboundMessageBySourceMsgIdMock.mockReset();
     getConversationIdByGuestPhoneMock.mockReset();
+    resolveHotelIdByTwilioToMock.mockReset();
     hasInboundMessageBySourceMsgIdMock.mockResolvedValue(false);
     getConversationIdByGuestPhoneMock.mockResolvedValue(null);
+    resolveHotelIdByTwilioToMock.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -186,6 +194,35 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     expect(json.ok).toBe(true);
     expect(handleChannelMessageMock).toHaveBeenCalledTimes(0);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("resolves hotelId dynamically from hotel_config routing", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    resolveHotelIdByTwilioToMock.mockResolvedValueOnce("hotel-dynamic");
+    handleChannelMessageMock.mockResolvedValueOnce({
+      response: "",
+      status: "pending",
+      messageId: "mid-dynamic",
+      conversationId: "conv-dynamic",
+      lang: "es",
+    });
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+99999999999",
+      Body: "hola",
+      MessageSid: "SM_DYNAMIC",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(resolveHotelIdByTwilioToMock).toHaveBeenCalledWith({ to: "whatsapp:+99999999999" });
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({ hotelId: "hotel-dynamic" }),
+    );
   });
 
   it("non-enforced: still returns 200 and processes", async () => {
