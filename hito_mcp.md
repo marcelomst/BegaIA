@@ -260,6 +260,35 @@ Fuera de alcance:
 - No binding cross-channel.
 - No routing dinámico multi-hotel desde `hotel_config`.
 
+### FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde hotel_config
+
+Estado: COMPLETADO  
+Commit: 82afda1  
+
+Descripción:
+- Resuelve `hotelId` dinámicamente a partir del campo `To` (Twilio WhatsApp).
+- Consulta colección `hotel_config` como fuente de verdad.
+- Lookup tolerante en `channelConfigs.whatsapp`.
+- Normalización E.164 con prefijo `whatsapp:`.
+
+Impacto arquitectónico:
+- Elimina dependencia principal de mapping estático por `.env`.
+- Soporte real multi-hotel en canal WhatsApp Oficial.
+- Routing gobernado por configuración en DB.
+- Compatible con arquitectura SaaS multi-tenant.
+
+Optimización:
+- Cache TTL in-memory (60s).
+
+Fallback:
+- Si DB no encuentra match → fallback a env.
+- Si DB falla → log y continúa.
+- Si no hay mapping → UNMAPPED_TO (200 OK).
+
+Fuera de alcance:
+- No routing cross-channel.
+- No invalidación activa de cache (solo TTL).
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
@@ -276,7 +305,6 @@ Pendientes estratégicos:
 
 1. SEC-WA-TWILIO-4 — Validación firma `X-Twilio-Signature`.
 2. FEAT-WA-TWILIO-5 — Dedupe persistente por `sourceMsgId`.
-3. FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde `hotel_config`.
 
 ---
 
