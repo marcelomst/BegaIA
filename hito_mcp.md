@@ -289,6 +289,23 @@ Fuera de alcance:
 - No routing cross-channel.
 - No invalidación activa de cache (solo TTL).
 
+### SUP-WA-1 — Supervisión avanzada v1 (WhatsApp Twilio)
+
+Estado: COMPLETADO  
+Commit: 40ad5ec  
+
+Descripción:
+- Soporte de aprobación manual con envío real por Twilio.
+- Persistencia de outboundSid en meta.
+- Endpoint de pendientes con cálculo de ageMinutes.
+- Soporte SLA por hotel vía channelConfigs.whatsapp.slaMinutes.
+- UI en ChannelInbox con badge de breach y acción “Aprobar y enviar”.
+
+Impacto:
+- Convierte el panel admin en flujo de supervisión real.
+- Permite control humano con SLA por hotel.
+- Base para alertas y métricas futuras.
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
