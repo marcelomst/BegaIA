@@ -4,6 +4,7 @@ const handleChannelMessageMock = vi.fn();
 const twilioSendWhatsAppMessageMock = vi.fn();
 const validateTwilioSignatureMock = vi.fn();
 const hasInboundMessageBySourceMsgIdMock = vi.fn();
+const getConversationIdByGuestPhoneMock = vi.fn();
 
 vi.mock("@/lib/pipeline/handleChannelMessage", () => ({
   handleChannelMessage: handleChannelMessageMock,
@@ -21,6 +22,10 @@ vi.mock("@/lib/db/messagesDedupe", () => ({
   hasInboundMessageBySourceMsgId: hasInboundMessageBySourceMsgIdMock,
 }));
 
+vi.mock("@/lib/db/conversationBinding", () => ({
+  getConversationIdByGuestPhone: getConversationIdByGuestPhoneMock,
+}));
+
 function makeFormReq(data: Record<string, string>): Request {
   const body = new URLSearchParams(data);
   return new Request("http://localhost/api/webhooks/whatsapp/twilio", {
@@ -36,7 +41,9 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     twilioSendWhatsAppMessageMock.mockReset();
     validateTwilioSignatureMock.mockReset();
     hasInboundMessageBySourceMsgIdMock.mockReset();
+    getConversationIdByGuestPhoneMock.mockReset();
     hasInboundMessageBySourceMsgIdMock.mockResolvedValue(false);
+    getConversationIdByGuestPhoneMock.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -267,5 +274,90 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     expect(json.ok).toBe(true);
     expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("binding: reuses existing conversationId", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    getConversationIdByGuestPhoneMock.mockResolvedValueOnce("conv-existing");
+    handleChannelMessageMock.mockResolvedValueOnce({
+      response: "",
+      status: "pending",
+      messageId: "mid-binding-existing",
+      conversationId: "conv-existing",
+      lang: "es",
+    });
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+11111111111",
+      Body: "hola",
+      MessageSid: "SM_BINDING_EXISTING",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationId: "conv-existing" }),
+    );
+  });
+
+  it("binding: when no previous conversation, pipeline generates new", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    getConversationIdByGuestPhoneMock.mockResolvedValueOnce(null);
+    handleChannelMessageMock.mockResolvedValueOnce({
+      response: "",
+      status: "pending",
+      messageId: "mid-binding-new",
+      conversationId: "conv-generated",
+      lang: "es",
+    });
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+11111111111",
+      Body: "hola",
+      MessageSid: "SM_BINDING_NEW",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
+    expect(handleChannelMessageMock.mock.calls[0]?.[0]).not.toHaveProperty("conversationId");
+  });
+
+  it("binding: DB error does not block", async () => {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    getConversationIdByGuestPhoneMock.mockRejectedValueOnce(new Error("binding down"));
+    handleChannelMessageMock.mockResolvedValueOnce({
+      response: "",
+      status: "pending",
+      messageId: "mid-binding-fallback",
+      conversationId: "conv-generated",
+      lang: "es",
+    });
+
+    const req = makeFormReq({
+      From: "whatsapp:+59800000000",
+      To: "whatsapp:+11111111111",
+      Body: "hola",
+      MessageSid: "SM_BINDING_FALLBACK",
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
   });
 });

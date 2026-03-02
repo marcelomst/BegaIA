@@ -4,6 +4,7 @@ import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { twilioSendWhatsAppMessage } from "@/lib/channels/whatsapp/twilioSendMessage";
 import { validateTwilioSignature } from "@/lib/channels/whatsapp/twilioValidateSignature";
 import { hasInboundMessageBySourceMsgId } from "@/lib/db/messagesDedupe";
+import { getConversationIdByGuestPhone } from "@/lib/db/conversationBinding";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -87,15 +88,30 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await handleChannelMessage({
+    let existingConversationId: string | null = null;
+    try {
+      existingConversationId = await getConversationIdByGuestPhone({
+        hotelId,
+        channel: "whatsapp",
+        guestPhone: from,
+      });
+    } catch {
+      existingConversationId = null;
+    }
+
+    const handlerInput: Parameters<typeof handleChannelMessage>[0] = {
       query: body,
       channel: "whatsapp",
       hotelId,
-      conversationId: undefined,
       guestId: from,
       sourceMsgId: messageSid,
       sender: from,
-    });
+    };
+    if (existingConversationId) {
+      handlerInput.conversationId = existingConversationId;
+    }
+
+    const result = await handleChannelMessage(handlerInput);
     console.log("[WA_TWILIO_INBOUND]", {
       hotelId,
       to,
