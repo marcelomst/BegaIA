@@ -1,9 +1,63 @@
 // Path: /root/begasist/app/api/webhooks/whatsapp/twilio/route.ts
+export const runtime = "nodejs";
 import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { twilioSendWhatsAppMessage } from "@/lib/channels/whatsapp/twilioSendMessage";
+import { validateTwilioSignature } from "@/lib/channels/whatsapp/twilioValidateSignature";
 
 export async function POST(req: Request) {
   const form = await req.formData();
+  const params: Record<string, string> = {};
+  for (const [key, value] of form.entries()) {
+    params[key] = typeof value === "string" ? value : String(value);
+  }
+
+  const sigHeader = req.headers.get("x-twilio-signature");
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const reqUrl = new URL(req.url);
+  const urlForSig = forwardedProto && forwardedHost
+    ? `${forwardedProto}://${forwardedHost}${reqUrl.pathname}${reqUrl.search}`
+    : reqUrl.toString();
+  const signatureEnforced = process.env.TWILIO_SIGNATURE_ENFORCE === "1";
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+
+  if (signatureEnforced) {
+    const isValid = Boolean(
+      authToken &&
+      sigHeader &&
+      validateTwilioSignature({
+        authToken,
+        url: urlForSig,
+        params,
+        signatureHeader: sigHeader,
+      }),
+    );
+    if (!isValid) {
+      console.warn("[WA_TWILIO_SIGNATURE_INVALID]", {
+        hasHeader: Boolean(sigHeader),
+        hasAuthToken: Boolean(authToken),
+        urlForSig,
+        reqUrl: reqUrl.toString(),
+      });
+      return Response.json({ ok: false }, { status: 403 });
+    }
+  } else if (sigHeader && authToken) {
+    const isValid = validateTwilioSignature({
+      authToken,
+      url: urlForSig,
+      params,
+      signatureHeader: sigHeader,
+    });
+    if (isValid) {
+      console.log("[WA_TWILIO_SIGNATURE_OK]", { urlForSig });
+    } else {
+      console.warn("[WA_TWILIO_SIGNATURE_BAD_NON_ENFORCED]", {
+        urlForSig,
+        reqUrl: reqUrl.toString(),
+      });
+    }
+  }
+
   const from = String(form.get("From") || "");
   const to = String(form.get("To") || "");
   const body = String(form.get("Body") || "");
