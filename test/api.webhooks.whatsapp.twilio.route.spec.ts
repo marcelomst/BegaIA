@@ -62,9 +62,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
   it("returns 200 and sends outbound when pipeline returns sent", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
     vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
-    vi.stubEnv("TWILIO_ACCOUNT_SID", "AC123");
-    vi.stubEnv("TWILIO_AUTH_TOKEN", "token123");
-    vi.stubEnv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886");
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "respuesta bot",
       status: "sent",
@@ -89,8 +86,8 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(1);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledWith({
+      hotelId: "hotel999",
       to: "whatsapp:+59800000000",
-      from: "whatsapp:+14155238886",
       body: "respuesta bot",
     });
   });

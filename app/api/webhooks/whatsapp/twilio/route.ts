@@ -133,42 +133,25 @@ export async function POST(req: Request) {
 
     const shouldSendOutbound = result.status === "sent" && typeof result.response === "string" && result.response.trim().length > 0;
     if (shouldSendOutbound) {
-      const twilioFrom = process.env.TWILIO_WHATSAPP_FROM?.trim();
-      const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-      const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
-      if (!twilioFrom || !accountSid || !authToken) {
-        console.warn("[WA_TWILIO_OUTBOUND_SKIPPED_MISSING_ENV]", {
+      try {
+        const outbound = await twilioSendWhatsAppMessage({
           hotelId,
-          to,
-          from,
-          messageSid,
-          hasFrom: Boolean(twilioFrom),
-          hasAccountSid: Boolean(accountSid),
-          hasAuthToken: Boolean(authToken),
+          to: from,
+          body: result.response,
         });
-      } else {
-        try {
-          const outbound = await twilioSendWhatsAppMessage({
-            to: from,
-            from: twilioFrom,
-            body: result.response,
-          });
-          console.log("[WA_TWILIO_OUTBOUND]", {
-            hotelId,
-            to: from,
-            from: twilioFrom,
-            messageSid,
-            outboundSid: outbound.sid,
-          });
-        } catch (error) {
-          console.warn("[WA_TWILIO_OUTBOUND_ERROR]", {
-            hotelId,
-            to: from,
-            from: twilioFrom,
-            messageSid,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+        console.log("[WA_TWILIO_OUTBOUND]", {
+          hotelId,
+          to: from,
+          messageSid,
+          outboundSid: outbound.sid,
+        });
+      } catch (error) {
+        console.warn("[WA_TWILIO_OUTBOUND_ERROR]", {
+          hotelId,
+          to: from,
+          messageSid,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   } catch (error) {

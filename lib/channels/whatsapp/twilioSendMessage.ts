@@ -1,18 +1,20 @@
 // Path: /root/begasist/lib/channels/whatsapp/twilioSendMessage.ts
+import { getTwilioClientForHotel } from "@/lib/channels/whatsapp/getTwilioClientForHotel";
+
 export async function twilioSendWhatsAppMessage(input: {
+  hotelId: string;
   to: string;
-  from: string;
   body: string;
+  fromOverride?: string;
 }): Promise<{ sid?: string }> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
-  if (!accountSid || !authToken) {
-    throw new Error("Missing Twilio credentials (TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN)");
-  }
+  const { client, from } = await getTwilioClientForHotel(input.hotelId);
+  const accountSid = client.accountSid;
+  const authToken = client.authToken;
+  const fromToUse = input.fromOverride?.trim() || from;
 
   const form = new URLSearchParams();
   form.set("To", input.to);
-  form.set("From", input.from);
+  form.set("From", fromToUse);
   form.set("Body", input.body);
   if (process.env.TWILIO_STATUS_CALLBACK_URL?.trim()) {
     form.set("StatusCallback", process.env.TWILIO_STATUS_CALLBACK_URL.trim());

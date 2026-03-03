@@ -92,18 +92,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "No se pudo resolver destinatario WhatsApp" }, { status: 400 });
       }
 
-      const twilioFrom = process.env.TWILIO_WHATSAPP_FROM?.trim();
-      if (!twilioFrom) {
-        return NextResponse.json(
-          { error: "Falta TWILIO_WHATSAPP_FROM para envío manual" },
-          { status: 500 },
-        );
-      }
-
       try {
         const outbound = await twilioSendWhatsAppMessage({
+          hotelId: user.hotelId,
           to: twilioTo,
-          from: twilioFrom,
           body: textToSend,
         });
 

@@ -44,7 +44,6 @@ describe("/api/messages POST approve_and_send", () => {
 
   it("Twilio ok: marca sent y persiste outboundSid", async () => {
     const { POST } = await import("@/app/api/messages/route");
-    vi.stubEnv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886");
 
     getMessageByIdMock.mockResolvedValueOnce({
       messageId: "m1",
@@ -76,6 +75,11 @@ describe("/api/messages POST approve_and_send", () => {
     expect(json.success).toBe(true);
     expect(json.outboundSid).toBe("SM_OUT_123");
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(1);
+    expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledWith({
+      hotelId: "hotel999",
+      to: "whatsapp:+59800000000",
+      body: "texto final",
+    });
     expect(updateMessageInAstraMock).toHaveBeenCalledWith(
       "hotel999",
       "m1",
@@ -90,7 +94,6 @@ describe("/api/messages POST approve_and_send", () => {
 
   it("Twilio falla: devuelve 502 y mantiene pending (sin update)", async () => {
     const { POST } = await import("@/app/api/messages/route");
-    vi.stubEnv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886");
 
     getMessageByIdMock.mockResolvedValueOnce({
       messageId: "m2",
