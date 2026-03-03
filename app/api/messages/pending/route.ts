@@ -32,7 +32,8 @@ export async function GET(req: NextRequest) {
   const pending = all
     .filter((m) => m.status === "pending" && (m.role === "ai" || m.sender === "assistant"))
     .map((m) => {
-      const baseTs = m.createdAt || m.timestamp;
+      const createdAt = "createdAt" in m ? m.createdAt : undefined;
+      const baseTs = createdAt || m.timestamp;
       const ageMinutes = baseTs ? Math.max(0, Math.floor((now - Date.parse(baseTs)) / 60000)) : 0;
       return {
         messageId: m.messageId,
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
         content: m.content ?? null,
         respondedBy: m.respondedBy ?? null,
         timestamp: m.timestamp ?? null,
-        createdAt: m.createdAt ?? null,
+        createdAt: createdAt ?? null,
         ageMinutes,
         breach: slaMinutes != null ? ageMinutes >= slaMinutes : false,
       };
