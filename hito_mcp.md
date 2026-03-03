@@ -117,6 +117,11 @@ Estado final:
 
 ## WhatsApp Oficial (Twilio)
 
+**Nota sobre subjects no estándar (HITO-DOC-AUDIT-STD-1):**
+- Algunos commits asociados a hitos existen, pero su subject no comienza con `HITO- / FEAT- / FIX- / DOC-` (ej: `docs(wa): register ...`).
+- Por eso no aparecen en auditorías basadas en `git log --grep="HITO-" --grep="FEAT-" --grep="FIX-" --grep="DOC-"`.
+- No se reescribe historia: se documenta la excepción y se retoma disciplina estándar para los próximos hitos.
+
 ### FEAT-WA-TWILIO-1 — Webhook inbound Twilio (MVP hotel999)
 
 Estado: IMPLEMENTADO (commit mezclado)  
