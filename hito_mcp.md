@@ -306,6 +306,19 @@ Impacto:
 - Permite control humano con SLA por hotel.
 - Base para alertas y métricas futuras.
 
+### FIX-SUP-WA-1A — Ajuste TypeScript en endpoint de pendientes
+
+Estado: COMPLETADO  
+Commit: pendiente de push local  
+
+Descripción:
+- Se corrigió el acceso tipado a `createdAt` en `app/api/messages/pending/route.ts`.
+- El endpoint recibía una unión `ChannelMessage | MessageDoc` y TypeScript no garantizaba `createdAt` en ambos tipos.
+- Se aplicó narrowing seguro (`"createdAt" in m`) y se reutilizó ese valor en `baseTs` y en la respuesta.
+
+Validación:
+- `pnpm run ts-check` ✅
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
