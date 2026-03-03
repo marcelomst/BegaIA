@@ -150,6 +150,34 @@ Nota de disciplina:
 - Desviación detectada: `bedcbe8` mezcló `FIX-TEST-RECOTIZACION-1` + `FEAT-WA-TWILIO-1` en el mismo commit.
 - Decisión: NO reescribir historia (ya pusheado). Se registra aquí y se retoma disciplina 1 commit = 1 hito a partir del próximo cambio.
 
+### DOC-WA-TWILIO-1 — Registro documental de FEAT-WA-TWILIO-1
+
+Estado: COMPLETADO  
+Commit: d5c8c98  
+
+Descripción:
+- Se registró formalmente en `hito_mcp.md` la implementación inicial de inbound Twilio.
+- Se dejó explícita la desviación de disciplina (commit mezclado) y su decisión de no reescribir historia.
+
+### FIX-WA-TWILIO-MW-1 — Allowlist webhook Twilio en middleware
+
+Estado: COMPLETADO  
+Commit: a4f3a96  
+
+Descripción:
+- Se habilitó `/api/webhooks/whatsapp/twilio` como ruta pública en middleware.
+- Se evitó redirección a `/auth/login` para webhook machine-to-machine.
+
+### HITO-ADMIN-WA-CONFIG-1 — UI Admin WhatsApp Twilio creds (hotel_config)
+
+Estado: COMPLETADO  
+Commits: 0d6847f, 606ac1e  
+
+Descripción:
+- Se extendió UI Admin para editar `channelConfigs.whatsapp` con campos Twilio (DB-first).
+- Persistencia de `provider`, `twilioAccountSid`, `twilioAuthToken`, `twilioWhatsAppNumber`.
+- `606ac1e` agrega follow-up de validaciones obligatorias (sender/SID/token).
+
 ### WA-TUNNEL-DEV-1 — Cloudflare Tunnel DEV (nativo)
 
 Estado: ACTIVO (DEV)  
@@ -179,6 +207,15 @@ Fuera de alcance:
 - No es túnel de producción.
 - No hay validación de firma Twilio.
 - No hay outbound Twilio aún.
+
+### DOC-WA-TWILIO-DEV-TUNNEL-1 — Registro documental túnel Cloudflare DEV
+
+Estado: COMPLETADO  
+Commit: a455ac7  
+
+Descripción:
+- Se documentó el estado del túnel DEV operativo para webhook Twilio.
+- Alias/continuidad: esta entrada corresponde al mismo frente documental que `WA-TUNNEL-DEV-1`.
 
 ### FEAT-WA-TWILIO-2 — Inbound conectado al pipeline central
 
@@ -309,7 +346,7 @@ Impacto:
 ### FIX-SUP-WA-1A — Ajuste TypeScript en endpoint de pendientes
 
 Estado: COMPLETADO  
-Commit: pendiente de push local  
+Commit: a184514  
 
 Descripción:
 - Se corrigió el acceso tipado a `createdAt` en `app/api/messages/pending/route.ts`.
@@ -335,6 +372,20 @@ Pendientes estratégicos:
 
 1. SEC-WA-TWILIO-4 — Validación firma `X-Twilio-Signature`.
 2. FEAT-WA-TWILIO-5 — Dedupe persistente por `sourceMsgId`.
+
+Nota de auditoría (HITO-DOC-AUDIT-1):
+- `FEAT-WA-TWILIO-2`, `FEAT-WA-TWILIO-3` y `SUP-WA-1` figuran en este documento, pero no se detectaron por subject en el log filtrado (`HITO/FEAT/FIX/DOC`).
+- Se mantienen como estado actual y queda pendiente verificación explícita de commit/hash en próxima pasada documental.
+
+### HITO-ADMIN-WA-UX-1 — Claridad UX WhatsApp config (Twilio vs legacy)
+
+Estado: COMPLETADO  
+Commit: 9febf0d  
+
+Descripción:
+- Se clarificaron labels y ayudas de campo para configuración WhatsApp Twilio.
+- Se ocultaron campos legacy por defecto en modo Twilio, manteniéndolos en bloque opcional.
+- Se reforzó validación visual para evitar confusión entre número personal y sender oficial Twilio.
 
 ---
 
