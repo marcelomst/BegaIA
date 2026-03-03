@@ -27,9 +27,13 @@ const TIMEZONES = [
 const EMPTY_CHANNEL_CONFIGS: Partial<ChannelConfigMap> = {};
 
 function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel; config?: ChannelConfigMap[Channel]; onChange: (cfg: ChannelConfigMap[Channel]) => void; t: any; }) {
+  const [showTwilioToken, setShowTwilioToken] = useState(false);
   const enabled = (config as any)?.enabled ?? false;
   const mode = (config as any)?.mode ?? "automatic";
   const forceCanonical = Boolean((config as any)?.reservations?.forceCanonicalQuestion);
+  const waProvider = ((config as any)?.provider ?? "legacy") as "legacy" | "twilio";
+  const twilioNumberValue = (config as any)?.twilioWhatsAppNumber ?? (config as any)?.twilioFrom ?? "";
+  const twilioE164Valid = !twilioNumberValue || /^\+\d{8,15}$/.test(String(twilioNumberValue).trim());
   const patch = (delta: Record<string, any>) => onChange({ ...(config as any), ...delta } as any);
   const patchReservations = (delta: Record<string, any>) => {
     const prev = (config as any)?.reservations ?? {};
@@ -47,7 +51,79 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
         <option value="supervised">{t.hotelEdit.supervised}</option>
       </select>
       {channel === "whatsapp" && (
-        <input className="border p-2 rounded text-sm" type="text" placeholder={t.hotelEdit.celNumber} value={(config as WhatsAppConfig)?.celNumber || ""} onChange={e => patch({ celNumber: e.target.value })} />
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-medium">Provider</label>
+          <select
+            className="border p-2 rounded text-sm"
+            value={waProvider}
+            onChange={e => patch({ provider: e.target.value as "legacy" | "twilio" })}
+          >
+            <option value="legacy">legacy</option>
+            <option value="twilio">twilio</option>
+          </select>
+
+          <input
+            className="border p-2 rounded text-sm"
+            type="text"
+            placeholder={t.hotelEdit.celNumber}
+            value={(config as WhatsAppConfig)?.celNumber || ""}
+            onChange={e => patch({ celNumber: e.target.value })}
+          />
+          <input
+            className="border p-2 rounded text-sm"
+            type="text"
+            placeholder="apiKey (legacy)"
+            value={(config as WhatsAppConfig)?.apiKey || ""}
+            onChange={e => patch({ apiKey: e.target.value })}
+          />
+
+          {waProvider === "twilio" && (
+            <div className="flex flex-col gap-2 border rounded p-2 bg-slate-50 dark:bg-zinc-950">
+              <input
+                className="border p-2 rounded text-sm"
+                type="text"
+                placeholder="Twilio Account SID (AC...)"
+                value={(config as WhatsAppConfig)?.twilioAccountSid || ""}
+                onChange={e => patch({ twilioAccountSid: e.target.value })}
+              />
+              <div className="flex gap-2">
+                <input
+                  className="border p-2 rounded text-sm flex-1"
+                  type={showTwilioToken ? "text" : "password"}
+                  placeholder="Twilio Auth Token"
+                  value={(config as WhatsAppConfig)?.twilioAuthToken || ""}
+                  onChange={e => patch({ twilioAuthToken: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs rounded border"
+                  onClick={() => setShowTwilioToken(v => !v)}
+                >
+                  {showTwilioToken ? "Ocultar" : "Mostrar"}
+                </button>
+              </div>
+              <input
+                className={`border p-2 rounded text-sm ${twilioE164Valid ? "" : "border-red-500"}`}
+                type="text"
+                placeholder='Twilio WhatsApp Number (ej: "+15558847361")'
+                value={twilioNumberValue}
+                onChange={e => {
+                  const next = e.target.value.trim();
+                  patch({
+                    twilioWhatsAppNumber: next,
+                    twilioFrom: next,
+                  });
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Para Twilio, usar el sender registrado en formato E.164 (ej: +15558847361).
+              </p>
+              {!twilioE164Valid && (
+                <p className="text-xs text-red-600">Formato inválido: usar E.164 con prefijo +.</p>
+              )}
+            </div>
+          )}
+        </div>
       )}
       {channel === "email" && (
         <div className="flex flex-col gap-2">
@@ -233,6 +309,14 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!hotel) return;
+    const waCfg: any = hotel.channelConfigs?.whatsapp;
+    if (waCfg?.provider === "twilio") {
+      const twilioNum = String(waCfg?.twilioWhatsAppNumber ?? waCfg?.twilioFrom ?? "").trim();
+      if (twilioNum && !/^\+\d{8,15}$/.test(twilioNum)) {
+        setError("WhatsApp Twilio Number inválido. Debe estar en formato E.164 (ej: +15558847361).");
+        return;
+      }
+    }
     setLoading(true);
     setError(null);
     try {

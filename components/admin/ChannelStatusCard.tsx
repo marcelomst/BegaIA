@@ -22,7 +22,10 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
   const [showWhatsAppConfig, setShowWhatsAppConfig] = useState(false);
   const Icon = icons[channel] || Server;
   const isMissing = !config;
-  const needsConfig = channel === "whatsapp" && config && !config.celNumber;
+  const needsConfig = channel === "whatsapp" && config && (
+    (config.provider === "twilio" && !config.twilioWhatsAppNumber && !config.twilioFrom) ||
+    (config.provider !== "twilio" && !config.celNumber)
+  );
 
   const getStatusIcon = () => {
     if (isMissing) return <AlertCircle className="w-5 h-5 text-yellow-400" />;
@@ -53,7 +56,15 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
           {showWhatsAppConfig && (
             <WhatsAppConfigForm
               hotelId={hotelId}
-              initial={{ celNumber: config.celNumber, apiKey: config.apiKey }}
+              initial={{
+                celNumber: config.celNumber,
+                apiKey: config.apiKey,
+                provider: config.provider,
+                twilioAccountSid: config.twilioAccountSid,
+                twilioAuthToken: config.twilioAuthToken,
+                twilioWhatsAppNumber: config.twilioWhatsAppNumber,
+                twilioFrom: config.twilioFrom,
+              }}
               onClose={() => setShowWhatsAppConfig(false)}
               onSaved={() => window.location.reload()}
             />

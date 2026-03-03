@@ -56,8 +56,15 @@ export type BaseChannelConfig = {
 };
 
 export type WhatsAppConfig = BaseChannelConfig & {
-  celNumber: string;
+  celNumber?: string;
   apiKey?: string;
+  provider?: "legacy" | "twilio";
+  twilioAccountSid?: string;
+  twilioAuthToken?: string;
+  /** Sender registrado en Twilio. Se almacena también en twilioFrom por compatibilidad backend actual */
+  twilioWhatsAppNumber?: string;
+  /** Compatibilidad con helper DB-first existente */
+  twilioFrom?: string;
   slaMinutes?: number;
   /** Si true, no procesa mensajes de grupos (@g.us). Default: true */
   ignoreGroups?: boolean;

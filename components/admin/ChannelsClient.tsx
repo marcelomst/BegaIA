@@ -21,6 +21,11 @@ type SingleChannelConfig = {
   mode: ChannelMode;
   celNumber?: string;
   apiKey?: string;
+  provider?: "legacy" | "twilio";
+  twilioAccountSid?: string;
+  twilioAuthToken?: string;
+  twilioWhatsAppNumber?: string;
+  twilioFrom?: string;
 };
 
 type Props = {
@@ -112,6 +117,11 @@ export default function ChannelsClient({ initialConfig, hotelId }: Props) {
                     initial={{
                       celNumber: channelConfig?.celNumber,
                       apiKey: channelConfig?.apiKey,
+                      provider: channelConfig?.provider,
+                      twilioAccountSid: channelConfig?.twilioAccountSid,
+                      twilioAuthToken: channelConfig?.twilioAuthToken,
+                      twilioWhatsAppNumber: channelConfig?.twilioWhatsAppNumber,
+                      twilioFrom: channelConfig?.twilioFrom,
                     }}
                     onClose={() => setShowWhatsAppConfig(false)}
                     onSaved={() => window.location.reload()}
