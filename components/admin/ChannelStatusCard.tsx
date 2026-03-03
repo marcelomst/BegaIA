@@ -49,7 +49,10 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
       </div>
       {needsConfig && (
         <div className="bg-yellow-100 text-yellow-900 rounded px-2 py-1 mt-1 text-xs">
-          WhatsApp sin configurar. <button
+          {config.provider === "twilio"
+            ? "WhatsApp Twilio sin sender/configuración completa."
+            : "WhatsApp legacy sin configurar."}{" "}
+          <button
             className="text-blue-500 underline"
             onClick={() => setShowWhatsAppConfig(true)}
           >Configurar</button>

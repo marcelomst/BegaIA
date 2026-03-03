@@ -52,7 +52,7 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
       </select>
       {channel === "whatsapp" && (
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium">Provider</label>
+          <label className="text-xs font-medium">Proveedor</label>
           <select
             className="border p-2 rounded text-sm"
             value={waProvider}
@@ -61,24 +61,32 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
             <option value="legacy">legacy</option>
             <option value="twilio">twilio</option>
           </select>
-
-          <input
-            className="border p-2 rounded text-sm"
-            type="text"
-            placeholder={t.hotelEdit.celNumber}
-            value={(config as WhatsAppConfig)?.celNumber || ""}
-            onChange={e => patch({ celNumber: e.target.value })}
-          />
-          <input
-            className="border p-2 rounded text-sm"
-            type="text"
-            placeholder="apiKey (legacy)"
-            value={(config as WhatsAppConfig)?.apiKey || ""}
-            onChange={e => patch({ apiKey: e.target.value })}
-          />
+          <p className="text-xs text-muted-foreground">
+            legacy = integración antigua / twilio = WhatsApp Oficial (Twilio)
+          </p>
 
           {waProvider === "twilio" && (
             <div className="flex flex-col gap-2 border rounded p-2 bg-slate-50 dark:bg-zinc-950">
+              <label className="text-xs font-medium">Twilio WhatsApp Sender (FROM)</label>
+              <input
+                className={`border p-2 rounded text-sm ${twilioE164Valid ? "" : "border-red-500"}`}
+                type="text"
+                placeholder="+15558847361"
+                value={twilioNumberValue}
+                onChange={e => {
+                  const next = e.target.value.trim();
+                  patch({
+                    twilioWhatsAppNumber: next,
+                    twilioFrom: next,
+                  });
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Número registrado como WhatsApp Sender en Twilio (formato E.164 con +).
+              </p>
+              <p className="text-xs text-amber-700">
+                Este NO es tu número personal. Es el sender oficial.
+              </p>
               <input
                 className="border p-2 rounded text-sm"
                 type="text"
@@ -86,6 +94,9 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
                 value={(config as WhatsAppConfig)?.twilioAccountSid || ""}
                 onChange={e => patch({ twilioAccountSid: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Credencial LIVE en Twilio → API keys & tokens → Auth tokens (Live credentials).
+              </p>
               <div className="flex gap-2">
                 <input
                   className="border p-2 rounded text-sm flex-1"
@@ -102,26 +113,54 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
                   {showTwilioToken ? "Ocultar" : "Mostrar"}
                 </button>
               </div>
-              <input
-                className={`border p-2 rounded text-sm ${twilioE164Valid ? "" : "border-red-500"}`}
-                type="text"
-                placeholder='Twilio WhatsApp Number (ej: "+15558847361")'
-                value={twilioNumberValue}
-                onChange={e => {
-                  const next = e.target.value.trim();
-                  patch({
-                    twilioWhatsAppNumber: next,
-                    twilioFrom: next,
-                  });
-                }}
-              />
+              <p className="text-xs text-muted-foreground">Usar LIVE Auth Token (no Test).</p>
+              <details>
+                <summary className="cursor-pointer text-xs font-medium">Legacy (opcional)</summary>
+                <div className="mt-2 flex flex-col gap-2 border rounded p-2 bg-white dark:bg-zinc-900">
+                  <p className="text-xs text-muted-foreground">
+                    No se usa para Twilio. Solo histórico/compatibilidad.
+                  </p>
+                  <input
+                    className="border p-2 rounded text-sm"
+                    type="text"
+                    placeholder="Número (legacy)"
+                    value={(config as WhatsAppConfig)?.celNumber || ""}
+                    onChange={e => patch({ celNumber: e.target.value })}
+                  />
+                  <input
+                    className="border p-2 rounded text-sm"
+                    type="text"
+                    placeholder="API key (legacy)"
+                    value={(config as WhatsAppConfig)?.apiKey || ""}
+                    onChange={e => patch({ apiKey: e.target.value })}
+                  />
+                </div>
+              </details>
               <p className="text-xs text-muted-foreground">
-                Para Twilio, usar el sender registrado en formato E.164 (ej: +15558847361).
+                Para Twilio, el envío real usa el sender oficial.
               </p>
               {!twilioE164Valid && (
                 <p className="text-xs text-red-600">Formato inválido: usar E.164 con prefijo +.</p>
               )}
             </div>
+          )}
+          {waProvider === "legacy" && (
+            <>
+              <input
+                className="border p-2 rounded text-sm"
+                type="text"
+                placeholder="Número (legacy)"
+                value={(config as WhatsAppConfig)?.celNumber || ""}
+                onChange={e => patch({ celNumber: e.target.value })}
+              />
+              <input
+                className="border p-2 rounded text-sm"
+                type="text"
+                placeholder="API key (legacy)"
+                value={(config as WhatsAppConfig)?.apiKey || ""}
+                onChange={e => patch({ apiKey: e.target.value })}
+              />
+            </>
           )}
         </div>
       )}

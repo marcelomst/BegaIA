@@ -26,13 +26,14 @@ describe("WhatsAppConfigForm Twilio fields", () => {
       />
     );
 
+    expect(screen.getByText("Proveedor")).toBeInTheDocument();
+    expect(screen.getByText("Twilio WhatsApp Sender (FROM)")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("AC...")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("+15558847361")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText("+598..."), { target: { value: "+59898835914" } });
+    fireEvent.change(screen.getByPlaceholderText("+15558847361"), { target: { value: "+15558847361" } });
     fireEvent.change(screen.getByPlaceholderText("AC..."), { target: { value: "AC_TEST_123" } });
     fireEvent.change(screen.getByPlaceholderText("Auth Token"), { target: { value: "token_test_123" } });
-    fireEvent.change(screen.getByPlaceholderText("+15558847361"), { target: { value: "+15558847361" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
 
@@ -51,5 +52,23 @@ describe("WhatsAppConfigForm Twilio fields", () => {
     );
     expect(onSaved).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides legacy fields by default for twilio and shows them when expanding legacy block", () => {
+    render(
+      <WhatsAppConfigForm
+        hotelId="hotel999"
+        initial={{ provider: "twilio" }}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Número (legacy)")).not.toBeVisible();
+    expect(screen.getByText("API key (legacy)")).not.toBeVisible();
+
+    fireEvent.click(screen.getByText("Legacy (opcional)"));
+
+    expect(screen.getByText("Número (legacy)")).toBeInTheDocument();
+    expect(screen.getByText("API key (legacy)")).toBeInTheDocument();
   });
 });

@@ -84,7 +84,7 @@ export default function WhatsAppConfigForm({ hotelId, initial, onClose, onSaved 
         <h2 className="text-xl font-bold mb-2">Configurar WhatsApp</h2>
         <form className="flex flex-col gap-3" onSubmit={handleSave}>
           <label>
-            Provider
+            Proveedor
             <select
               className="block w-full mt-1 p-2 border rounded"
               value={provider}
@@ -93,28 +93,27 @@ export default function WhatsAppConfigForm({ hotelId, initial, onClose, onSaved 
               <option value="legacy">legacy</option>
               <option value="twilio">twilio</option>
             </select>
-          </label>
-          <label>
-            Número de WhatsApp
-            <input
-              className="block w-full mt-1 p-2 border rounded"
-              value={celNumber}
-              onChange={e => setCelNumber(e.target.value)}
-              required
-              placeholder="+598..."
-            />
-          </label>
-          <label>
-            API Key (opcional)
-            <input
-              className="block w-full mt-1 p-2 border rounded"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder="API key del proveedor"
-            />
+            <span className="text-xs text-muted-foreground">
+              legacy = integración antigua / twilio = WhatsApp Oficial (Twilio)
+            </span>
           </label>
           {provider === "twilio" && (
             <>
+              <label>
+                Twilio WhatsApp Sender (FROM)
+                <input
+                  className="block w-full mt-1 p-2 border rounded"
+                  value={twilioWhatsAppNumber}
+                  onChange={e => setTwilioWhatsAppNumber(e.target.value)}
+                  placeholder="+15558847361"
+                />
+                <span className="text-xs text-muted-foreground block">
+                  Número registrado como WhatsApp Sender en Twilio (formato E.164 con +).
+                </span>
+                <span className="text-xs text-amber-700 block">
+                  Este NO es tu número personal. Es el sender oficial.
+                </span>
+              </label>
               <label>
                 Twilio Account SID
                 <input
@@ -123,6 +122,9 @@ export default function WhatsAppConfigForm({ hotelId, initial, onClose, onSaved 
                   onChange={e => setTwilioAccountSid(e.target.value)}
                   placeholder="AC..."
                 />
+                <span className="text-xs text-muted-foreground block">
+                  Credencial LIVE en Twilio → API keys & tokens → Auth tokens (Live credentials).
+                </span>
               </label>
               <label>
                 Twilio Auth Token
@@ -142,18 +144,58 @@ export default function WhatsAppConfigForm({ hotelId, initial, onClose, onSaved 
                     {showTwilioToken ? "Ocultar" : "Mostrar"}
                   </button>
                 </div>
+                <span className="text-xs text-muted-foreground block">
+                  Usar LIVE Auth Token (no Test).
+                </span>
               </label>
+              <details>
+                <summary className="cursor-pointer text-sm font-medium">Legacy (opcional)</summary>
+                <div className="mt-2 flex flex-col gap-3 border rounded p-2">
+                  <p className="text-xs text-muted-foreground">
+                    No se usa para Twilio. Solo histórico/compatibilidad.
+                  </p>
+                  <label>
+                    Número (legacy)
+                    <input
+                      className="block w-full mt-1 p-2 border rounded"
+                      value={celNumber}
+                      onChange={e => setCelNumber(e.target.value)}
+                      placeholder="+598..."
+                    />
+                  </label>
+                  <label>
+                    API key (legacy)
+                    <input
+                      className="block w-full mt-1 p-2 border rounded"
+                      value={apiKey}
+                      onChange={e => setApiKey(e.target.value)}
+                      placeholder="API key del proveedor"
+                    />
+                  </label>
+                </div>
+              </details>
+            </>
+          )}
+          {provider === "legacy" && (
+            <>
               <label>
-                Twilio WhatsApp Number
+                Número (legacy)
                 <input
                   className="block w-full mt-1 p-2 border rounded"
-                  value={twilioWhatsAppNumber}
-                  onChange={e => setTwilioWhatsAppNumber(e.target.value)}
-                  placeholder="+15558847361"
+                  value={celNumber}
+                  onChange={e => setCelNumber(e.target.value)}
+                  required
+                  placeholder="+598..."
                 />
-                <span className="text-xs text-muted-foreground">
-                  Usar el sender registrado en Twilio (formato E.164).
-                </span>
+              </label>
+              <label>
+                API key (legacy)
+                <input
+                  className="block w-full mt-1 p-2 border rounded"
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                  placeholder="API key del proveedor"
+                />
               </label>
             </>
           )}
