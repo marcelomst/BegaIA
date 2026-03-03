@@ -67,3 +67,10 @@ docs/debug_paper.html
 docs/debug_paper.md
 docs/aux.ts
 registro_hotel_config_hotel999.json
+# Local/dev artifacts
+.cloudflared/
+tsconfig.tsbuildinfo
+AGENTS.md
+deprecated/
+docs/Capsula_contexto.md
+docs/Arquitectura_canal_whatsapp.md
