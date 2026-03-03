@@ -38,6 +38,18 @@ export default function WhatsAppConfigForm({ hotelId, initial, onClose, onSaved 
         setError("Twilio WhatsApp Number debe estar en formato E.164 (ej: +15558847361).");
         return;
       }
+      if (provider === "twilio" && !twilioWhatsAppNumber.trim()) {
+        setError("Twilio WhatsApp Sender (FROM) es obligatorio.");
+        return;
+      }
+      if (provider === "twilio" && !twilioAccountSid.trim()) {
+        setError("Twilio Account SID es obligatorio.");
+        return;
+      }
+      if (provider === "twilio" && !twilioAuthToken.trim()) {
+        setError("Twilio Auth Token es obligatorio.");
+        return;
+      }
       const res = await fetch("/api/config/whatsapp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

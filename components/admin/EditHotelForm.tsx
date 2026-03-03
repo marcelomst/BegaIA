@@ -312,6 +312,18 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     const waCfg: any = hotel.channelConfigs?.whatsapp;
     if (waCfg?.provider === "twilio") {
       const twilioNum = String(waCfg?.twilioWhatsAppNumber ?? waCfg?.twilioFrom ?? "").trim();
+      if (!twilioNum) {
+        setError("WhatsApp Twilio Sender (FROM) es obligatorio.");
+        return;
+      }
+      if (!String(waCfg?.twilioAccountSid ?? "").trim()) {
+        setError("Twilio Account SID es obligatorio.");
+        return;
+      }
+      if (!String(waCfg?.twilioAuthToken ?? "").trim()) {
+        setError("Twilio Auth Token es obligatorio.");
+        return;
+      }
       if (twilioNum && !/^\+\d{8,15}$/.test(twilioNum)) {
         setError("WhatsApp Twilio Number inválido. Debe estar en formato E.164 (ej: +15558847361).");
         return;
