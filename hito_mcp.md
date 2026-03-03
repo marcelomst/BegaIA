@@ -25,15 +25,17 @@ MCP se considera congelado salvo hito explícito HCM-\*.
 ### HCM-1 — InMemory CM Adapter (aislamiento por hotelId)
 
 Estado: CERRADO  
-Commit: 1bcb3be  
+Commit: 1bcb3be
 
 Descripción:
+
 - Se reemplazó store global por Map<hotelId, Map<reservationId, Reservation>>.
 - Se agregó getStore(hotelId) con normalización.
 - Todas las operaciones ahora resuelven store por hotelId.
 - No afecta CM real; aplica solo al simulador inMemory (dev/test).
 
 Tests ejecutados (PASS):
+
 - test/unit/channelManagerAdapter.registry.spec.ts
 - test/integration/reservations.mcp.channel-manager.spec.ts
 - test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
@@ -41,9 +43,10 @@ Tests ejecutados (PASS):
 ### HCM-2 — Estabilización del puerto ChannelManagerAdapter (factory inMemory única)
 
 Estado: CERRADO  
-Commit: f06a1f7  
+Commit: f06a1f7
 
 Descripción:
+
 - Se eliminó la selección de provider por CM_PROVIDER.
 - Se removieron stubs no implementados (`redis`, `real`) del factory.
 - Se mantuvo el puerto `ChannelManagerAdapter` intacto.
@@ -51,11 +54,13 @@ Descripción:
 - `getCMAdapter(hotelId)` ahora retorna directamente el adapter inMemory.
 
 Resultado arquitectónico:
+
 - El sistema queda estabilizado en una única implementación concreta (Quickstart).
 - Se elimina abstracción prematura.
 - El puerto queda listo para futura implementación de un adapter real en un hito independiente.
 
 Tests ejecutados (PASS):
+
 - test/unit/channelManagerAdapter.registry.spec.ts
 - test/integration/reservations.mcp.channel-manager.spec.ts
 - test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
@@ -65,25 +70,28 @@ Tests ejecutados (PASS):
 Estado: COMPLETADO
 Fecha: 2026-02-25
 Evidencia:
+
 - Archivos clave inspeccionados: `lib/mcp/channelManagerAdapter.ts`, `lib/mcp/reservationsService.ts`, `app/api/mcp/route.ts`, `app/api/mcp/availability/route.ts`, `app/api/mcp/reservations/{create,update,cancel}/route.ts`, `lib/adapters/beds24.ts`, `lib/adapters/beds24_v2.ts`.
 - Provider detectado: `inmemory` por default via `CM_PROVIDER`; `redis` y `real` existen solo como stubs con `throw`.
-Resultado:
+  Resultado:
 - Operaciones reales confirmadas (CM/PMS real): ninguna en MCP de reservas (`availability/create/update/cancel/get/list` usan `getCMAdapter(...)` y hoy caen en `InMemoryCMAdapter` salvo que `CM_PROVIDER` se cambie, pero `real/redis` no están implementados).
 - Bloqueantes: `CM_PROVIDER=real`/`redis` no implementados en factory; no existe adapter real que implemente `ChannelManagerAdapter`; no hay wiring MCP↔Beds24 adapters; config real CM (`CM_API_BASE`/`CM_API_KEY`) solo aparece en comentarios.
-Recomendación:
+  Recomendación:
 - Próximo hito: HPM-1 / HCM-real-1 (implementar adapter real `ChannelManagerAdapter` + wiring en `getCMAdapter` + configuración/env + tests de integración).
 
 ### PIPE-WEB-1 — Validación E2E Web + MCP (Quickstart inMemory)
 
 Estado: CERRADO  
-Fecha: 2026-02-25  
+Fecha: 2026-02-25
 
 Evidencia (tests PASS):
+
 - test/integration/reservations.mcp.channel-manager.spec.ts
 - test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
 - test/e2e.reservation.flow.spec.ts
 
 Cobertura validada:
+
 - MCP reservas inMemory: availability → create → update → get → cancel → get
 - Aislamiento por hotelId (multihotel)
 - Contrato WEB `/api/chat`: conversationId + messageId + status + response/suggestedReply
@@ -91,33 +99,39 @@ Cobertura validada:
 - MCP unificado `/api/mcp` (action=call) incluye get/list; legacy routes presentes (availability/create/update/cancel)
 
 Fuera de alcance:
+
 - Integración CM/PMS real (se valida Quickstart inMemory)
 
 ### PIPE-UI-RES-1 — Estabilización UX reservas WEB sobre MCP (Quickstart inMemory)
 
 Estado: CERRADO  
-Fecha: 2026-02-26  
+Fecha: 2026-02-26
 
 Resumen técnico:
+
 - Se corrigió la mezcla semántica “error availability + CTA CONFIRMAR” (no anexar confirmación cuando `needsHandoff=true`).
 - Se habilitó `/api/mcp` (sin slash) en middleware para que `checkAvailabilityTool()` llegue al MCP unificado y no redirija a `/auth/login`.
 - Se mejoró la UX de nombre parcial: si el usuario da solo nombre, se personaliza la respuesta y se pide solo apellido.
 
 Referencias a commits:
+
 - FIX-RES-AVAIL-ERROR-1
 - PIPE-UI-RES-1
 
 Tests PASS:
+
 - test/e2e.reservation.flow.spec.ts
 - test/e2e.reservation.golden-transcripts.spec.ts
 - test/integration/reservations.mcp.channel-manager.spec.ts
 
 Estado final:
+
 - OK en WEB (MCP inMemory)
 
 ## WhatsApp Oficial (Twilio)
 
 **Nota sobre subjects no estándar (HITO-DOC-AUDIT-STD-1):**
+
 - Algunos commits asociados a hitos existen, pero su subject no comienza con `HITO- / FEAT- / FIX- / DOC-` (ej: `docs(wa): register ...`).
 - Por eso no aparecen en auditorías basadas en `git log --grep="HITO-" --grep="FEAT-" --grep="FIX-" --grep="DOC-"`.
 - No se reescribe historia: se documenta la excepción y se retoma disciplina estándar para los próximos hitos.
@@ -125,9 +139,10 @@ Estado final:
 ### FEAT-WA-TWILIO-1 — Webhook inbound Twilio (MVP hotel999)
 
 Estado: IMPLEMENTADO (commit mezclado)  
-Commit: bedcbe8  
+Commit: bedcbe8
 
 Descripción:
+
 - Se agregó endpoint `POST /api/webhooks/whatsapp/twilio` (inbound Twilio).
 - Se parsea `application/x-www-form-urlencoded` con campos `From`, `To`, `Body`, `MessageSid`.
 - Routing MVP por env:
@@ -141,44 +156,50 @@ Descripción:
 - Responde `200 OK` siempre; si `To` no mapea, registra `[WA_TWILIO_UNMAPPED_TO]`.
 
 Tests ejecutados (PASS):
+
 - test/api.webhooks.whatsapp.twilio.route.spec.ts ✅
 - test/integration/recotizacion.planner_only.test.ts ✅
 - pnpm test ✅ (91 passed files, 267 passed tests)
 
 Fuera de alcance:
+
 - No conecta aún con handler `/api/chat` (solo inbound + normalización).
 - No outbound (sendText) ni credenciales Twilio.
 - No validación firma Twilio.
 - No routing SaaS real vía `hotel_config` (solo env MVP).
 
 Nota de disciplina:
+
 - Desviación detectada: `bedcbe8` mezcló `FIX-TEST-RECOTIZACION-1` + `FEAT-WA-TWILIO-1` en el mismo commit.
 - Decisión: NO reescribir historia (ya pusheado). Se registra aquí y se retoma disciplina 1 commit = 1 hito a partir del próximo cambio.
 
 ### DOC-WA-TWILIO-1 — Registro documental de FEAT-WA-TWILIO-1
 
 Estado: COMPLETADO  
-Commit: d5c8c98  
+Commit: d5c8c98
 
 Descripción:
+
 - Se registró formalmente en `hito_mcp.md` la implementación inicial de inbound Twilio.
 - Se dejó explícita la desviación de disciplina (commit mezclado) y su decisión de no reescribir historia.
 
 ### FIX-WA-TWILIO-MW-1 — Allowlist webhook Twilio en middleware
 
 Estado: COMPLETADO  
-Commit: a4f3a96  
+Commit: a4f3a96
 
 Descripción:
+
 - Se habilitó `/api/webhooks/whatsapp/twilio` como ruta pública en middleware.
 - Se evitó redirección a `/auth/login` para webhook machine-to-machine.
 
 ### HITO-ADMIN-WA-CONFIG-1 — UI Admin WhatsApp Twilio creds (hotel_config)
 
 Estado: COMPLETADO  
-Commits: 0d6847f, 606ac1e  
+Commits: 0d6847f, 606ac1e
 
 Descripción:
+
 - Se extendió UI Admin para editar `channelConfigs.whatsapp` con campos Twilio (DB-first).
 - Persistencia de `provider`, `twilioAccountSid`, `twilioAuthToken`, `twilioWhatsAppNumber`.
 - `606ac1e` agrega follow-up de validaciones obligatorias (sender/SID/token).
@@ -186,9 +207,10 @@ Descripción:
 ### WA-TUNNEL-DEV-1 — Cloudflare Tunnel DEV (nativo)
 
 Estado: ACTIVO (DEV)  
-Fecha: 2026-02-28  
+Fecha: 2026-02-28
 
 Descripción:
+
 - Se creó túnel `begasist-dev` (UUID: c3d5dea7-fc68-4374-9211-cf7fa8c20da2).
 - Se creó hostname `wa-dev.begam.uy` apuntando al túnel.
 - Se utiliza config nativa:
@@ -200,15 +222,18 @@ Descripción:
   cloudflared tunnel --config /home/marcelo/begasist/.cloudflared/config.dev.native.yml run begasist-dev
 
 Validación:
+
 - `curl` público devuelve `200 {"ok":true}`.
 - Endpoint funcional:
   https://wa-dev.begam.uy/api/webhooks/whatsapp/twilio
 
 Decisión arquitectónica:
+
 - En entorno DEV se utiliza cloudflared nativo para evitar problemas de networking Docker/WSL.
 - Docker tunnel queda reservado para futuros entornos server o producción.
 
 Fuera de alcance:
+
 - No es túnel de producción.
 - No hay validación de firma Twilio.
 - No hay outbound Twilio aún.
@@ -216,18 +241,20 @@ Fuera de alcance:
 ### DOC-WA-TWILIO-DEV-TUNNEL-1 — Registro documental túnel Cloudflare DEV
 
 Estado: COMPLETADO  
-Commit: a455ac7  
+Commit: a455ac7
 
 Descripción:
+
 - Se documentó el estado del túnel DEV operativo para webhook Twilio.
 - Alias/continuidad: esta entrada corresponde al mismo frente documental que `WA-TUNNEL-DEV-1`.
 
 ### FEAT-WA-TWILIO-2 — Inbound conectado al pipeline central
 
 Estado: COMPLETADO  
-Commit: 10cf47e  
+Commit: 10cf47e
 
 Descripción:
+
 - Se extrajo `handleChannelMessage` como handler central.
 - `/api/chat` delega en el pipeline.
 - Webhook Twilio ahora invoca el mismo handler central.
@@ -236,11 +263,13 @@ Descripción:
 - FAST_ROUTE_MODE limitado exclusivamente a entorno test.
 
 Impacto arquitectónico:
+
 - Eliminación de lógica paralela entre Web y WhatsApp.
 - Canal desacoplado del motor conversacional.
 - Pipeline único real.
 
 Fuera de alcance:
+
 - No outbound.
 - No validación de firma.
 - No dedupe persistente.
@@ -248,9 +277,10 @@ Fuera de alcance:
 ### FEAT-WA-TWILIO-3 — Outbound automático vía API Twilio
 
 Estado: COMPLETADO  
-Commit: 9b366bf  
+Commit: 9b366bf
 
 Descripción:
+
 - Se implementó helper `twilioSendWhatsAppMessage`.
 - Si el pipeline retorna `status="sent"` → se envía reply automático.
 - Si `status="pending"` → no se envía outbound.
@@ -258,17 +288,20 @@ Descripción:
 - Tests con mocks para sent vs pending.
 
 Variables de entorno requeridas:
+
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_WHATSAPP_FROM`
 - opcional: `TWILIO_STATUS_CALLBACK_URL`
 
 Impacto arquitectónico:
+
 - Canal WhatsApp oficial funcional end-to-end.
 - Primer canal productivo completo.
 - Transporte sigue desacoplado de lógica de negocio.
 
 Fuera de alcance:
+
 - No validación de firma Twilio.
 - No deduplicación persistente por `MessageSid`.
 - No binding automático de conversación por número.
@@ -277,9 +310,10 @@ Fuera de alcance:
 ### FEAT-WA-TWILIO-6 — Binding conversación por número WhatsApp
 
 Estado: COMPLETADO  
-Commit: 0bc79da  
+Commit: 0bc79da
 
 Descripción:
+
 - Reutiliza `conversationId` por `(hotelId + guestPhone)`.
 - Busca último mensaje en `messages` para el canal "whatsapp".
 - Compatibilidad con documentos antiguos usando fallback a `guestId`.
@@ -287,17 +321,20 @@ Descripción:
 - No modifica esquema base.
 
 Impacto arquitectónico:
+
 - Conversación persistente real por huésped.
 - Historial consistente en modo supervisado.
 - Multi-tenant garantizado por `hotelId`.
 - Base para CRM futuro.
 
 Fallback:
+
 - Si falla Astra DB → log `[WA_TWILIO_BINDING_FAILED]`
 - No bloquea webhook.
 - Pipeline continúa normalmente.
 
 Fuera de alcance:
+
 - No normalización avanzada de número (Twilio ya envía E.164).
 - No binding cross-channel.
 - No routing dinámico multi-hotel desde `hotel_config`.
@@ -305,38 +342,44 @@ Fuera de alcance:
 ### FEAT-WA-TWILIO-7 — Routing multi-hotel dinámico desde hotel_config
 
 Estado: COMPLETADO  
-Commit: 82afda1  
+Commit: 82afda1
 
 Descripción:
+
 - Resuelve `hotelId` dinámicamente a partir del campo `To` (Twilio WhatsApp).
 - Consulta colección `hotel_config` como fuente de verdad.
 - Lookup tolerante en `channelConfigs.whatsapp`.
 - Normalización E.164 con prefijo `whatsapp:`.
 
 Impacto arquitectónico:
+
 - Elimina dependencia principal de mapping estático por `.env`.
 - Soporte real multi-hotel en canal WhatsApp Oficial.
 - Routing gobernado por configuración en DB.
 - Compatible con arquitectura SaaS multi-tenant.
 
 Optimización:
+
 - Cache TTL in-memory (60s).
 
 Fallback:
+
 - Si DB no encuentra match → fallback a env.
 - Si DB falla → log y continúa.
 - Si no hay mapping → UNMAPPED_TO (200 OK).
 
 Fuera de alcance:
+
 - No routing cross-channel.
 - No invalidación activa de cache (solo TTL).
 
 ### SUP-WA-1 — Supervisión avanzada v1 (WhatsApp Twilio)
 
 Estado: COMPLETADO  
-Commit: 40ad5ec  
+Commit: 40ad5ec
 
 Descripción:
+
 - Soporte de aprobación manual con envío real por Twilio.
 - Persistencia de outboundSid en meta.
 - Endpoint de pendientes con cálculo de ageMinutes.
@@ -344,6 +387,7 @@ Descripción:
 - UI en ChannelInbox con badge de breach y acción “Aprobar y enviar”.
 
 Impacto:
+
 - Convierte el panel admin en flujo de supervisión real.
 - Permite control humano con SLA por hotel.
 - Base para alertas y métricas futuras.
@@ -351,14 +395,16 @@ Impacto:
 ### FIX-SUP-WA-1A — Ajuste TypeScript en endpoint de pendientes
 
 Estado: COMPLETADO  
-Commit: a184514  
+Commit: a184514
 
 Descripción:
+
 - Se corrigió el acceso tipado a `createdAt` en `app/api/messages/pending/route.ts`.
 - El endpoint recibía una unión `ChannelMessage | MessageDoc` y TypeScript no garantizaba `createdAt` en ambos tipos.
 - Se aplicó narrowing seguro (`"createdAt" in m`) y se reutilizó ese valor en `baseTs` y en la respuesta.
 
 Validación:
+
 - `pnpm run ts-check` ✅
 
 ### Estado Actual del Canal WhatsApp Oficial
@@ -377,17 +423,21 @@ Pendientes estratégicos:
 
 1. SEC-WA-TWILIO-4 — Validación firma `X-Twilio-Signature`.
 2. FEAT-WA-TWILIO-5 — Dedupe persistente por `sourceMsgId`.
+   Estado:COMPLETADO
+   COMMIT:ed9d109
 
 Nota de auditoría (HITO-DOC-AUDIT-1):
+
 - `FEAT-WA-TWILIO-2`, `FEAT-WA-TWILIO-3` y `SUP-WA-1` figuran en este documento, pero no se detectaron por subject en el log filtrado (`HITO/FEAT/FIX/DOC`).
 - Se mantienen como estado actual y queda pendiente verificación explícita de commit/hash en próxima pasada documental.
 
 ### HITO-ADMIN-WA-UX-1 — Claridad UX WhatsApp config (Twilio vs legacy)
 
 Estado: COMPLETADO  
-Commit: 9febf0d  
+Commit: 9febf0d
 
 Descripción:
+
 - Se clarificaron labels y ayudas de campo para configuración WhatsApp Twilio.
 - Se ocultaron campos legacy por defecto en modo Twilio, manteniéndolos en bloque opcional.
 - Se reforzó validación visual para evitar confusión entre número personal y sender oficial Twilio.
