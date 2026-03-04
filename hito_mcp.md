@@ -407,6 +407,25 @@ Validación:
 
 - `pnpm run ts-check` ✅
 
+### REF-WA-TWILIO-1 — Eliminación de fallback env en routing Twilio
+
+Estado: COMPLETADO  
+Commit: bb8747a  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se eliminó fallback basado en variables de entorno en el webhook de WhatsApp Twilio.
+- La resolución de hotel ahora se realiza exclusivamente mediante:
+  `resolveHotelIdByTwilioTo({ to })`.
+- Si el número Twilio no está mapeado a un hotel, el sistema registra:
+  `WA_TWILIO_UNMAPPED_TO`
+  y retorna `200 OK` sin procesar el mensaje.
+
+Objetivo:
+
+Garantizar comportamiento correcto en arquitectura SaaS multihotel evitando dependencias en configuración local `.env`.
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
