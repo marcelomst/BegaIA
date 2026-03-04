@@ -66,12 +66,7 @@ export async function POST(req: Request) {
   const body = String(form.get("Body") || "");
   const messageSid = String(form.get("MessageSid") || "");
 
-  const dbResolvedHotelId = await resolveHotelIdByTwilioTo({ to });
-  const hotelId = dbResolvedHotelId ?? (
-    to && process.env.TWILIO_WA_TO_HOTEL999 && to === process.env.TWILIO_WA_TO_HOTEL999
-      ? "hotel999"
-      : null
-  );
+  const hotelId = await resolveHotelIdByTwilioTo({ to });
 
   if (!hotelId) {
     console.warn("[WA_TWILIO_UNMAPPED_TO]", { to, from, messageSid });
