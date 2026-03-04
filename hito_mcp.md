@@ -442,6 +442,26 @@ Descripción:
 - Se ocultaron campos legacy por defecto en modo Twilio, manteniéndolos en bloque opcional.
 - Se reforzó validación visual para evitar confusión entre número personal y sender oficial Twilio.
 
+### DOC-DOCS-LEGACY-1 — Reorganización estructural de documentación
+
+Estado: COMPLETADO  
+Commit: dc13bea  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se movieron documentos históricos a `docs/_legacy/`.
+- Se creó una jerarquía clara de documentación:
+  - `docs/architecture/`
+  - `docs/product/`
+  - `docs/development/`
+- Se agregó documentación conceptual del modelo **Concierge Digital**.
+- Se eliminaron artefactos Windows `:Zone.Identifier`.
+
+Objetivo:
+
+Mejorar la navegabilidad de la documentación y separar claramente documentación activa vs documentación histórica.
+
 ---
 
 ## Admin QA (WEB-3) — CERRADO
