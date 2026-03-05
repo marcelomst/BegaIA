@@ -68,18 +68,19 @@ export async function handleChannelMessage(input: {
   hotelId?: string;
   channel?: Channel;
 }> {
-  const [{ handleIncomingMessage }, { getAdapter }, { getHotelConfig }, { getMessagesByConversationService }, { detectLanguage }] =
+  const [{ handleIncomingMessage }, { getAdapter }, { getHotelConfig }, { getMessagesByConversationService }, { detectLanguage }, { resolveGuestIdentity }] =
     await Promise.all([
       import("@/lib/handlers/messageHandler"),
       import("@/lib/adapters/registry"),
       import("@/lib/config/hotelConfig.server"),
       import("@/lib/services/messages"),
       import("@/lib/utils/language"),
+      import("@/lib/pipeline/resolveGuestIdentity"),
     ]);
   const hotelId = normText(input.hotelId, 120);
   const channel = (normText(input.channel, 30) || "web") as Channel;
   const conversationId = normText(input.conversationId, 120) || `conv-${crypto.randomUUID()}`;
-  const guestId = normText(input.guestId, 120) || "web-guest";
+  const rawGuestId = normText(input.guestId, 120) || "web-guest";
   const sender = normText(input.sender, 60) || "guest";
   const content = normText(input.query);
   const explicitLang = normText(input.lang, 12);
@@ -89,6 +90,13 @@ export async function handleChannelMessage(input: {
 
   if (!hotelId) throw new ChannelMessageInputError("hotelId is required");
   if (!content) throw new ChannelMessageInputError("message is required");
+
+  const resolvedIdentity = await resolveGuestIdentity({
+    hotelId,
+    channel,
+    rawGuestId,
+  });
+  const guestId = normText(resolvedIdentity.guestId, 120) || rawGuestId;
 
   let langResolved = explicitLang || "es";
 
