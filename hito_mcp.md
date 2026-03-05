@@ -151,6 +151,21 @@ Objetivo:
 
 Mantener trazabilidad documental completa sin perder disciplina de auditoría; hacia adelante se retoman subjects con prefijo estricto.
 
+### AUDIT-DOC-RECURSION-1 — Política: commits editoriales no se registran como hitos
+
+Estado: COMPLETADO  
+Fecha: 2026-03-05
+
+Descripción:
+
+- Los commits `DOC-HITO-MCP-UPDATE-*` corresponden a mantenimiento editorial de este documento (`hito_mcp.md`).
+- Para evitar recursión (“documentar que se documentó”), NO se registran como entradas/hitos dentro de la misma bitácora.
+- En auditorías automáticas (grep por `^DOC-`), estos commits pueden aparecer como presentes en Git pero ausentes en headings del documento.
+
+Objetivo:
+
+Mantener la bitácora enfocada en hitos funcionales del sistema, preservando trazabilidad sin ruido editorial.
+
 ### FEAT-WA-TWILIO-1 — Webhook inbound Twilio (MVP hotel999)
 
 Estado: IMPLEMENTADO (commit mezclado)  
