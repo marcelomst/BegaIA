@@ -4,10 +4,17 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/lib/db/guestAliases", () => {
   return {
+    getGuestIdByAlias: async () => null,
     ensureGuestAlias: async () => ({
       guestId: "guest-test",
       created: true,
     }),
+  };
+});
+
+vi.mock("@/lib/db/guests", () => {
+  return {
+    getGuest: async () => null,
   };
 });
 
