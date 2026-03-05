@@ -489,6 +489,71 @@ Objetivo:
 
 Mejorar el flujo operativo de desarrollo al levantar tunnel de forma consistente.
 
+### FEAT-GUEST-ALIASES-1 — Colección guest_aliases + helpers
+
+Estado: COMPLETADO  
+Commit: 4470a8a  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Nueva colección `guest_aliases`.
+- Helpers DB: `getGuestIdByAlias`, `ensureGuestAlias`.
+- Base para identidad transversal cross-channel (persona/guestId canónico).
+
+Objetivo:
+
+Unificar identidad del huésped entre canales (WhatsApp/Web/Email/CM) mediante aliases.
+
+### REF-PIPELINE-GUEST-RESOLUTION-1 — Resolución canónica de guestId en pipeline
+
+Estado: COMPLETADO  
+Commit: 2bda5c7  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se agregó `resolveGuestIdentity` e integración en `handleChannelMessage`.
+- El pipeline resuelve `guestId` canónico vía `guest_aliases`.
+
+Objetivo:
+
+Asegurar que cada mensaje se asocie a una persona/guestId transversal independientemente del canal.
+
+### FIX-GUEST-IDENTITY-NORMALIZATION-1 — Hardening de normalización de aliases
+
+Estado: COMPLETADO  
+Commit: 2bda5c7  
+Fecha: 2026-03-04
+
+Nota:
+Este hito quedó incluido en el mismo commit que `REF-PIPELINE-GUEST-RESOLUTION-1` (2bda5c7).
+
+Descripción:
+
+- Hardening de normalización de alias (ej: WhatsApp variantes, email lowercase).
+- Golden test: `guestIdentity.golden.spec.ts`.
+
+Objetivo:
+
+Evitar duplicación de identidad por variantes de alias y mantener invariantes estables.
+
+### FIX-GUEST-ALIASES-COMPAT-1 — Compat lazy con guests legacy (backfill)
+
+Estado: COMPLETADO  
+Commit: 757ba9d  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Compatibilidad lazy con guests legacy.
+- Backfill alias → guestId legacy al vuelo.
+- Golden test: `guestAliasesCompat.golden.spec.ts`.
+
+Objetivo:
+
+Mantener compatibilidad con datos legacy sin romper identidad transversal.
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
