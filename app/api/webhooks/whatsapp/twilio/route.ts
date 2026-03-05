@@ -6,6 +6,7 @@ import { validateTwilioSignature } from "@/lib/channels/whatsapp/twilioValidateS
 import { hasInboundMessageBySourceMsgId } from "@/lib/db/messagesDedupe";
 import { getConversationIdByGuestPhone } from "@/lib/db/conversationBinding";
 import { resolveHotelIdByTwilioTo } from "@/lib/db/whatsappTwilioRouting";
+import { decideDeliveryPolicy } from "@/lib/pipeline/deliveryPolicy";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -110,6 +111,12 @@ export async function POST(req: Request) {
     }
 
     const result = await handleChannelMessage(handlerInput);
+    const delivery = decideDeliveryPolicy({
+      status: result.status,
+      response: result.response,
+      lang: result.lang,
+      pendingAckEnabled: process.env.WA_PENDING_ACK_ENABLED !== "0",
+    });
     console.log("[WA_TWILIO_INBOUND]", {
       hotelId,
       to,
@@ -126,13 +133,35 @@ export async function POST(req: Request) {
       });
     }
 
-    const shouldSendOutbound = result.status === "sent" && typeof result.response === "string" && result.response.trim().length > 0;
-    if (shouldSendOutbound) {
+    if (delivery.shouldSendPendingAck && delivery.pendingAckText) {
+      try {
+        const ackOutbound = await twilioSendWhatsAppMessage({
+          hotelId,
+          to: from,
+          body: delivery.pendingAckText,
+        });
+        console.log("[WA_TWILIO_PENDING_ACK]", {
+          hotelId,
+          to: from,
+          messageSid,
+          outboundSid: ackOutbound.sid,
+        });
+      } catch (error) {
+        console.warn("[WA_TWILIO_PENDING_ACK_ERROR]", {
+          hotelId,
+          to: from,
+          messageSid,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    if (delivery.shouldSendFinalReply && delivery.finalReplyText) {
       try {
         const outbound = await twilioSendWhatsAppMessage({
           hotelId,
           to: from,
-          body: result.response,
+          body: delivery.finalReplyText,
         });
         console.log("[WA_TWILIO_OUTBOUND]", {
           hotelId,

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import "@/lib/utils/debugLog";
 import crypto from "crypto";
 import { ChannelMessageInputError, handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
+import { decideDeliveryPolicy } from "@/lib/pipeline/deliveryPolicy";
 import type { Channel, ChannelMode } from "@/types/channel";
 
 const BUILD_TAG = "2026-01-30-ARQSYS";
@@ -75,6 +76,12 @@ export async function POST(req: Request) {
       mode: modeIn || undefined,
       sender,
     });
+    const delivery = decideDeliveryPolicy({
+      status: result.status,
+      response: result.response,
+      lang: result.lang,
+      pendingAckEnabled: true,
+    });
 
     const responsePayload = {
       conversationId: result.conversationId,
@@ -85,10 +92,10 @@ export async function POST(req: Request) {
         channel: result.channel || channel,
         messageId: result.messageId,
         status: result.status,
-        suggestion: result.status === "pending" ? "Un recepcionista revisará y responderá en breve." : undefined,
+        suggestion: delivery.shouldSendPendingAck ? delivery.pendingAckText : undefined,
       },
-      response: result.status === "pending" ? undefined : result.response,
-      suggestedReply: result.status === "pending" ? result.suggestedReply : undefined,
+      response: delivery.shouldSendFinalReply ? delivery.finalReplyText : undefined,
+      suggestedReply: delivery.shouldSendPendingAck ? result.suggestedReply : undefined,
       rich: result.rich,
       lang: result.lang,
       deduped: result.deduped || undefined,
