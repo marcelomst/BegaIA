@@ -68,10 +68,39 @@ function unique<T>(arr: T[]) {
   return Array.from(new Set(arr.filter(Boolean))) as T[];
 }
 
+function guestIdVariants(raw: string): string[] {
+  const v = norm(raw);
+  if (!v) return [];
+
+  const out: string[] = [v];
+  const hasWhatsappPrefix = v.startsWith("whatsapp:");
+
+  if (hasWhatsappPrefix) {
+    out.push(v.slice("whatsapp:".length));
+  } else {
+    out.push(`whatsapp:${v}`);
+  }
+
+  return unique(out);
+}
+
 /** Búsqueda directa por (hotelId, guestId) */
 export async function getGuest(hotelId: string, guestId: string): Promise<Guest | null> {
   const col = getGuestsCollection();
-  return await col.findOne({ hotelId, guestId });
+  const normalizedGuestId = norm(guestId);
+
+  // 1) Mantener comportamiento actual: match exacto primero
+  const exact = await col.findOne({ hotelId, guestId: normalizedGuestId });
+  if (exact) return exact;
+
+  // 2) Compatibilidad WhatsApp: whatsapp:+598... <-> +598...
+  for (const candidate of guestIdVariants(normalizedGuestId)) {
+    if (candidate === normalizedGuestId) continue;
+    const match = await col.findOne({ hotelId, guestId: candidate });
+    if (match) return match;
+  }
+
+  return null;
 }
 
 export async function createGuest(guest: Guest): Promise<Guest> {
