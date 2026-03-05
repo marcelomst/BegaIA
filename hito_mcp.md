@@ -136,6 +136,21 @@ Estado final:
 - Por eso no aparecen en auditorías basadas en `git log --grep="HITO-" --grep="FEAT-" --grep="FIX-" --grep="DOC-"`.
 - No se reescribe historia: se documenta la excepción y se retoma disciplina estándar para los próximos hitos.
 
+### AUDIT-SUBJECT-STD-2 — Nota permanente sobre subjects no estándar
+
+Estado: COMPLETADO  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Existen commits históricos relevantes con subject convencional (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`) y variantes legacy (`feat(wa): ...`, `HCM-1: ...`).
+- Esos commits pueden no aparecer en auditorías por grep basadas en prefijos estrictos (`HITO-`, `FEAT-`, `FIX-`, `REF-`, `DOC-`, `CHORE-`).
+- Esta bitácora usa `Commit: <hash>` como fuente de verdad y no reescribe historia.
+
+Objetivo:
+
+Mantener trazabilidad documental completa sin perder disciplina de auditoría; hacia adelante se retoman subjects con prefijo estricto.
+
 ### FEAT-WA-TWILIO-1 — Webhook inbound Twilio (MVP hotel999)
 
 Estado: IMPLEMENTADO (commit mezclado)  
@@ -406,6 +421,51 @@ Descripción:
 Validación:
 
 - `pnpm run ts-check` ✅
+
+### FEAT-WA-TWILIO-5 — Dedupe inbound Twilio por sourceMsgId
+
+Estado: COMPLETADO  
+Commit: ed9d109  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se implementó deduplicación de inbound Twilio por `sourceMsgId`.
+- Se evita reprocesar mensajes repetidos del proveedor en el webhook oficial.
+
+Objetivo:
+
+Reducir duplicados operativos en WhatsApp Twilio y mantener consistencia del flujo inbound.
+
+### FIX-TEST-RECOTIZACION-1 — Estabilización de tests de integración
+
+Estado: COMPLETADO  
+Commit: bedcbe8  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se estabilizaron tests de integración asociados a recotización.
+- Se corrigieron condiciones que generaban fallas intermitentes en la suite.
+
+Objetivo:
+
+Mejorar confiabilidad de validación automática y reducir falsos negativos en CI/local.
+
+### FIX-RES-AVAIL-ERROR-1 — Evitar CTA CONFIRMAR cuando availability requiere handoff
+
+Estado: COMPLETADO  
+Commit: 5763291  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se evitó sugerir CTA `CONFIRMAR` en escenarios donde disponibilidad requiere handoff.
+- Se alinea la salida de reservas con el estado operativo real del flujo.
+
+Objetivo:
+
+Evitar respuestas engañosas en disponibilidad y reforzar control operativo en reservas.
 
 ### REF-WA-TWILIO-1 — Eliminación de fallback env en routing Twilio
 
