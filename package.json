@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:tunnel": "cloudflared tunnel --config /home/marcelo/begasist/.cloudflared/config.dev.native.yml run begasist-dev",
     "start:email": "pnpm exec tsx lib/entrypoints/email.ts",
     "start:whatsapp": "pnpm exec tsx lib/entrypoints/whatsapp.ts",
     "validate:knowledge": "node scripts/validate-knowledge.cjs",
