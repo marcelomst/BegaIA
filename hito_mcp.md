@@ -550,6 +550,24 @@ Objetivo:
 
 Centralizar la decisión de entrega y evitar lógica duplicada/inconsistente entre canales.
 
+### FEAT-PIPELINE-RISK-POLICY-1 — Risk policy D1 (LOW autosend en supervised)
+
+Estado: COMPLETADO  
+Commit: f1eff71  
+Fecha: 2026-03-05
+
+Descripción:
+
+- Se agregó `lib/pipeline/riskPolicy.ts` (LOW/HIGH).
+- Integración en `lib/handlers/messageHandler.ts` para definir `finalStatus`.
+- En supervised: LOW → autosend; HIGH → pending.
+- Log de auditoría: `[PIPELINE_AUTO_APPROVED_BY_POLICY]` con hotelId/channel/guestId/category/salesStage/riskLevel/reason/finalStatus.
+- Golden test: `test/golden/riskPolicy.golden.spec.ts`.
+
+Objetivo:
+
+Aplicar política operativa de riesgo para habilitar autosend seguro en modo supervisado sin tocar endpoints.
+
 ### CHORE-DEV-TUNNEL-1 — Script dev:tunnel
 
 Estado: COMPLETADO  
