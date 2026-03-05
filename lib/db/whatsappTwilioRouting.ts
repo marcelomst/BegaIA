@@ -16,6 +16,9 @@ function collectCandidateNumbers(whatsappCfg: Record<string, any> | null | undef
     whatsappCfg.twilioTo,
     whatsappCfg.twilioNumber,
     whatsappCfg.twilioWhatsAppTo,
+    whatsappCfg.twilioWhatsAppNumber,
+    whatsappCfg.twilioFrom,
+    whatsappCfg.celNumber,
   ];
   const arrayFields = [
     ...(Array.isArray(whatsappCfg.numbers) ? whatsappCfg.numbers : []),
