@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/messages";
 import { agentGraph } from "@/lib/agents";
 import { decideSupervisorStatus } from "@/lib/agents/supervisorAgent";
+import { decideRiskLevel, applyRiskPolicyToSupervisorDecision } from "@/lib/pipeline/riskPolicy";
 import { buildPendingNotice } from "@/lib/agents/outputFormatterAgent";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
@@ -2921,7 +2922,32 @@ export async function handleIncomingMessage(
       needsSupervision,
       isSafeCategory: safeCat,
     });
+    const riskLevel = decideRiskLevel({
+      category: respCategory,
+      salesStage: respSalesStage,
+      needsSupervision,
+      isSafeCategory: safeCat,
+    });
+    const riskPolicyDecision = applyRiskPolicyToSupervisorDecision({
+      combinedMode,
+      supervisorStatus: decision.status,
+      riskLevel,
+    });
+    const finalStatus = riskPolicyDecision.finalStatus;
     debugLog("[autosend]", { category: respCategory, salesStage: respSalesStage, mode: combinedMode, autosendReason: decision.autosendReason });
+    if (riskPolicyDecision.autoApproved) {
+      console.log("[PIPELINE_AUTO_APPROVED_BY_POLICY]", {
+        hotelId: pre.msg.hotelId,
+        channel: pre.msg.channel,
+        guestId: pre.msg.guestId,
+        category: respCategory ?? null,
+        salesStage: respSalesStage ?? null,
+        riskLevel,
+        autosendReason: decision.autosendReason,
+        reason: riskPolicyDecision.reason,
+        finalStatus,
+      });
+    }
 
     // Construir el mensaje AI sin heredar direction/content del mensaje del huésped
     const aiMsg: ChannelMessage = {
@@ -2934,7 +2960,7 @@ export async function handleIncomingMessage(
       role: "ai",
       content: suggestion,
       suggestion,
-      status: decision.status,
+      status: finalStatus,
       timestamp: safeNowISO(),
       direction: 'out',
       detectedLanguage: pre.lang,
@@ -2952,7 +2978,8 @@ export async function handleIncomingMessage(
 
     // Telemetry: count autosend decision
     try {
-      incAutosend(decision.autosendReason, respCategory ?? "unknown", aiMsg.status === "sent");
+      const autosendReason = riskPolicyDecision.autoApproved ? "safe_category" : decision.autosendReason;
+      incAutosend(autosendReason, respCategory ?? "unknown", aiMsg.status === "sent");
     } catch { /* metrics are best-effort */ }
     if ((pre.msg as any).sourceProvider) {
       (aiMsg as any).sourceProvider = (pre.msg as any).sourceProvider;
