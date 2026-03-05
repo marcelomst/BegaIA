@@ -426,6 +426,69 @@ Objetivo:
 
 Garantizar comportamiento correcto en arquitectura SaaS multihotel evitando dependencias en configuración local `.env`.
 
+### FIX-WA-TWILIO-ROUTING-2 — Mapping robusto To → hotelId (Twilio WhatsApp)
+
+Estado: COMPLETADO  
+Commit: f2c1a4a  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se corrigió la resolución de hotelId en routing Twilio contemplando campos reales:
+  `twilioWhatsAppNumber`, `twilioFrom`, `celNumber`.
+
+Objetivo:
+
+Evitar fallos de mapeo y asegurar enrutamiento correcto multihotel para números Twilio.
+
+### FIX-PIPELINE-STATUS-1 — Status real persistido en handleChannelMessage
+
+Estado: COMPLETADO  
+Commit: 8d0652c  
+Fecha: 2026-03-04
+
+Descripción:
+
+- `handleChannelMessage` ahora devuelve el status real persistido (`outputStatus`), evitando desalineación UI vs canal.
+
+Objetivo:
+
+Alinear la experiencia del usuario y la lógica de entrega con el estado real persistido del mensaje.
+
+### REF-PIPELINE-DELIVERY-1 — Capa de policy centralizada para entrega de respuestas
+
+Estado: COMPLETADO  
+Commit: 984a9fa  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se introdujo `lib/pipeline/deliveryPolicy.ts` como función/política central.
+- Se aplicó en entrypoints:
+  - `app/api/chat/route.ts`
+  - `app/api/webhooks/whatsapp/twilio/route.ts`
+- La policy decide consistentemente si:
+  - enviar respuesta final
+  - o devolver acuse de pendiente (pending ack), según `status/response/lang`.
+
+Objetivo:
+
+Centralizar la decisión de entrega y evitar lógica duplicada/inconsistente entre canales.
+
+### CHORE-DEV-TUNNEL-1 — Script dev:tunnel
+
+Estado: COMPLETADO  
+Commit: 3a174ea  
+Fecha: 2026-03-04
+
+Descripción:
+
+- Se agregó script `dev:tunnel` en `package.json`.
+
+Objetivo:
+
+Mejorar el flujo operativo de desarrollo al levantar tunnel de forma consistente.
+
 ### Estado Actual del Canal WhatsApp Oficial
 
 Actualmente:
