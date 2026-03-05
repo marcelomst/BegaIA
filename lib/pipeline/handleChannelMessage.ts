@@ -101,6 +101,7 @@ export async function handleChannelMessage(input: {
     "automatic";
 
   const resolvedStatus: MessageStatus = cfgMode === "supervised" ? "pending" : "sent";
+  let outputStatus: MessageStatus = resolvedStatus;
   const messageId = preMessageId;
   const time = new Date().toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit" });
 
@@ -172,6 +173,10 @@ export async function handleChannelMessage(input: {
       if (lastAi) {
         responseText = (lastAi.content || lastAi.suggestion || "").trim() || undefined;
         responseRich = (lastAi as Record<string, unknown>).rich;
+        const lastStatus = (lastAi as Record<string, unknown>).status;
+        if (typeof lastStatus === "string") {
+          outputStatus = lastStatus as MessageStatus;
+        }
         const lastAiRec = lastAi as Record<string, unknown>;
         responseLang =
           normalizeApiLang(lastAiRec.detectedLanguage) ||
@@ -189,10 +194,10 @@ export async function handleChannelMessage(input: {
   }
 
   return {
-    response: resolvedStatus === "pending" ? "" : (responseText || ""),
-    suggestedReply: resolvedStatus === "pending" ? responseText : undefined,
+    response: outputStatus === "pending" ? "" : (responseText || ""),
+    suggestedReply: outputStatus === "pending" ? responseText : undefined,
     rich: responseRich,
-    status: resolvedStatus,
+    status: outputStatus,
     messageId,
     conversationId,
     lang: responseLang,
