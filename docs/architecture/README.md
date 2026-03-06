@@ -21,3 +21,12 @@ Reglas:
 - Si existe mapping `To -> hotelId`, el webhook procesa normalmente.
 - Si no existe mapping, responde `ok/unmapped`.
 - No existe fallback por variables de entorno.
+
+## Politica Astra (vigente)
+
+Begasist separa persistencia Astra en dos capas:
+
+- Capa operacional SaaS (global y multihotel, con particion logica por `hotelId`), con preferencia por **Tables (CQL)** para entidades estables.
+- Capa KB/retrieval (coleccion vectorial por hotel).
+
+Detalle completo: [Politica Astra Persistence](./astra_persistence_policy.md)

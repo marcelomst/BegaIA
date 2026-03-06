@@ -50,6 +50,29 @@ interfería con la cobertura buscada (`WA_PENDING_ACK_ENABLED=0` en esos casos).
 Este hito no modificó lógica productiva: solo restauró la baseline de testing y
 confirmó la arquitectura SaaS multihotel del canal Twilio.
 
+### DOC-ASTRA-PERSISTENCE-POLICY-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06
+
+Descripción:
+
+Se documentó la política técnica vigente de persistencia Astra en Begasist con
+separación explícita de dos capas:
+
+- Capa operacional SaaS (global, multihotel, aislada lógicamente por
+  `hotelId`), con preferencia por **Tables (CQL)** para entidades estables.
+- Capa KB/retrieval (colecciones vectoriales por hotel).
+
+También se dejó explícito que la partición física de KB (múltiples keyspaces o
+clusters) no queda fijada todavía y se posterga hasta presión real de escala.
+
+Caso `guest_aliases`:
+
+- Clasificado como entidad operacional SaaS.
+- Recomendación de implementación: **Table (CQL)** por estructura estable y
+  lookup natural `hotelId + alias`.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
