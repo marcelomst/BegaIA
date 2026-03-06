@@ -54,3 +54,13 @@ Prioridad de resolución:
 Detalle completo:
 
 [Conversation Binding by Guest Identity](./conversation_binding_guest_identity.md)
+
+## Admin Inbox Unified by Guest Identity
+
+Begasist permite que el panel admin consulte conversaciones unificadas por `guestId`, reutilizando la infraestructura de identidad transversal y binding de conversación.
+
+Esto habilita una lectura multicanal coherente por huésped sin modificar el pipeline conversacional.
+
+Detalle completo:
+
+[Admin Inbox Unified by Guest Identity](./admin_inbox_unified.md)

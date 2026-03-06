@@ -121,6 +121,31 @@ El pipeline ahora resuelve la conversación con la prioridad:
 Esto permite reutilizar conversaciones entre distintos canales del mismo huésped
 y prepara la arquitectura para un Inbox Unificado Multicanal.
 
+### DOC-FEAT-ADMIN-INBOX-UNIFIED-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06  
+Commit: 76dbaf9
+
+Descripción:
+
+Se documentó la incorporación del Inbox Admin Unificado por identidad de
+huésped (`guestId`).
+
+La capa admin ahora puede consultar conversaciones por:
+
+- `conversationId`
+- `guestId`
+- listados generales por hotel/canal
+
+Esto materializa en la interfaz administrativa la arquitectura transversal ya
+construida en backend:
+
+canal -> alias -> guest_aliases -> guestId -> conversación -> inbox admin
+
+El hito mantiene compatibilidad con consultas previas y prepara la base para un
+Inbox Multicanal más potente.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
