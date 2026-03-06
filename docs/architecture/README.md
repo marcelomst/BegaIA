@@ -30,3 +30,13 @@ Begasist separa persistencia Astra en dos capas:
 - Capa KB/retrieval (coleccion vectorial por hotel).
 
 Detalle completo: [Politica Astra Persistence](./astra_persistence_policy.md)
+
+## Guest Identity Persistence
+
+La entidad `guest_aliases` se implementa como **Cassandra CQL Table** y no como Collection.
+
+Esto alinea infraestructura física y acceso de código, evitando dependencia en índices automáticos de Astra Data API.
+
+Detalle completo:
+
+[Guest Aliases Table Adapter](./astra_guest_aliases_table_adapter.md)

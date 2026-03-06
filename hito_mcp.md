@@ -73,6 +73,33 @@ Caso `guest_aliases`:
 - Recomendación de implementación: **Table (CQL)** por estructura estable y
   lookup natural `hotelId + alias`.
 
+### DOC-ASTRA-GUEST-ALIASES-TABLE-ADAPTER-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06
+
+Descripción:
+
+Se documentó el cambio de persistencia de `guest_aliases` desde Astra Data API
+(Collection) hacia Cassandra CQL Table.
+
+La tabla:
+
+hotel_data.guest_aliases
+
+se define con:
+
+PRIMARY KEY ((hotelId), alias)
+
+El acceso a datos se refactorizó para usar el cliente Cassandra mediante
+`getCassandraClient()` en lugar de `getAstraDB().collection(...)`.
+
+El contrato público de las funciones `getGuestIdByAlias` y `ensureGuestAlias`
+se preserva.
+
+Este cambio alinea la arquitectura SaaS multihotel con la infraestructura
+física de Astra y evita dependencia en índices automáticos de Data API.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
