@@ -51,7 +51,7 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     resolveHotelIdByTwilioToMock.mockReset();
     hasInboundMessageBySourceMsgIdMock.mockResolvedValue(false);
     getConversationIdByGuestPhoneMock.mockResolvedValue(null);
-    resolveHotelIdByTwilioToMock.mockResolvedValue(null);
+    resolveHotelIdByTwilioToMock.mockResolvedValue("hotel999");
   });
 
   afterEach(() => {
@@ -61,7 +61,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("returns 200 and sends outbound when pipeline returns sent", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "respuesta bot",
       status: "sent",
@@ -96,7 +95,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
     vi.stubEnv("TWILIO_SIGNATURE_ENFORCE", "1");
     vi.stubEnv("TWILIO_AUTH_TOKEN", "token123");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
 
     const req = makeFormReq({
       From: "whatsapp:+59800000000",
@@ -119,7 +117,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
     vi.stubEnv("TWILIO_SIGNATURE_ENFORCE", "1");
     vi.stubEnv("TWILIO_AUTH_TOKEN", "token123");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     validateTwilioSignatureMock.mockReturnValueOnce(false);
 
     const req = new Request("http://localhost/api/webhooks/whatsapp/twilio", {
@@ -148,7 +145,7 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("returns 200 and does not send outbound when pipeline returns pending", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    vi.stubEnv("WA_PENDING_ACK_ENABLED", "0");
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
       status: "pending",
@@ -175,7 +172,7 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("returns 200 when To does not map", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
+    resolveHotelIdByTwilioToMock.mockResolvedValueOnce(null);
 
     const req = makeFormReq({
       From: "whatsapp:+59800000000",
@@ -224,8 +221,8 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("non-enforced: still returns 200 and processes", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     vi.stubEnv("TWILIO_AUTH_TOKEN", "token123");
+    vi.stubEnv("WA_PENDING_ACK_ENABLED", "0");
     validateTwilioSignatureMock.mockReturnValueOnce(false);
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
@@ -261,7 +258,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("dedupe: returns 200 and does not call pipeline/outbound when inbound already exists", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     hasInboundMessageBySourceMsgIdMock.mockResolvedValueOnce(true);
 
     const req = makeFormReq({
@@ -284,8 +280,8 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("dedupe: when check returns false, continues processing", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     hasInboundMessageBySourceMsgIdMock.mockResolvedValueOnce(false);
+    vi.stubEnv("WA_PENDING_ACK_ENABLED", "0");
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
       status: "pending",
@@ -312,7 +308,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("binding: reuses existing conversationId", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     getConversationIdByGuestPhoneMock.mockResolvedValueOnce("conv-existing");
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
@@ -342,7 +337,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("binding: when no previous conversation, pipeline generates new", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     getConversationIdByGuestPhoneMock.mockResolvedValueOnce(null);
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
@@ -370,7 +364,6 @@ describe("/api/webhooks/whatsapp/twilio", () => {
 
   it("binding: DB error does not block", async () => {
     const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
-    vi.stubEnv("TWILIO_WA_TO_HOTEL999", "whatsapp:+11111111111");
     getConversationIdByGuestPhoneMock.mockRejectedValueOnce(new Error("binding down"));
     handleChannelMessageMock.mockResolvedValueOnce({
       response: "",
