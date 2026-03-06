@@ -2,15 +2,17 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const insertOneMock = vi.fn(async () => ({}));
+const { ensureGuestAliasMock } = vi.hoisted(() => ({
+  ensureGuestAliasMock: vi.fn(async () => ({
+    guestId: "guest-new",
+    created: true,
+  })),
+}));
 
 vi.mock("@/lib/db/guestAliases", () => {
   return {
     getGuestIdByAlias: async () => null,
-    ensureGuestAlias: async () => ({
-      guestId: "guest-new",
-      created: true,
-    }),
+    ensureGuestAlias: ensureGuestAliasMock,
   };
 });
 
@@ -22,21 +24,11 @@ vi.mock("@/lib/db/guests", () => {
   };
 });
 
-vi.mock("@/lib/astra/connection", () => {
-  return {
-    getAstraDB: () => ({
-      collection: () => ({
-        insertOne: insertOneMock,
-      }),
-    }),
-  };
-});
-
 import { resolveGuestIdentity } from "@/lib/pipeline/resolveGuestIdentity";
 
 describe("golden • guest aliases legacy compat", () => {
   beforeEach(() => {
-    insertOneMock.mockClear();
+    ensureGuestAliasMock.mockClear();
   });
 
   it("returns legacy guestId and backfills alias", async () => {
@@ -48,6 +40,11 @@ describe("golden • guest aliases legacy compat", () => {
 
     expect(result.guestId).toBe("whatsapp:+59899123456");
     expect(result.guestAlias).toBe("whatsapp:+59899123456");
-    expect(insertOneMock).toHaveBeenCalledTimes(1);
+    expect(ensureGuestAliasMock).toHaveBeenCalledTimes(1);
+    expect(ensureGuestAliasMock).toHaveBeenCalledWith({
+      hotelId: "hotel-test",
+      alias: "whatsapp:+59899123456",
+      preferredGuestId: "whatsapp:+59899123456",
+    });
   });
 });

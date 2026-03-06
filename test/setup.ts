@@ -75,6 +75,7 @@ vi.mock("@/lib/astra/connection", async () => {
     getHotelAstraCollection: (hotelId: string, suffix = "_collection") =>
       m.getCollection(`${hotelId}${suffix}`),
     getHotelConfigCollection: () => m.getCollection("hotel_config"),
+    getCassandraClient: () => m.getMockCassandraClient(),
   };
 });
 vi.mock("/root/begasist/lib/astra/connection", async () => {
@@ -84,6 +85,7 @@ vi.mock("/root/begasist/lib/astra/connection", async () => {
     getHotelAstraCollection: (hotelId: string, suffix = "_collection") =>
       m.getCollection(`${hotelId}${suffix}`),
     getHotelConfigCollection: () => m.getCollection("hotel_config"),
+    getCassandraClient: () => m.getMockCassandraClient(),
   };
 });
 

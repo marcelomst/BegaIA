@@ -66,3 +66,47 @@ export function getCollection(name: string) {
 export async function getAstraCollection(name: string) {
   return getCollection(name);
 }
+
+function toCqlRow(doc: Doc | null) {
+  if (!doc) return null;
+  return {
+    get: (key: string) => (doc as any)[key],
+  };
+}
+
+export function getMockCassandraClient() {
+  return {
+    async execute(query: string, params: any[] = []) {
+      const q = String(query || "").toLowerCase();
+      if (q.includes("guest_aliases")) {
+        const col = getCollection("guest_aliases");
+        if (q.trim().startsWith("select")) {
+          const [hotelId, alias] = params;
+          const found = await col.findOne({ hotelid: hotelId, alias });
+          const row = toCqlRow(found);
+          return {
+            first: () => row,
+            rows: row ? [row] : [],
+          };
+        }
+        if (q.trim().startsWith("insert")) {
+          const [hotelId, alias, guestId, createdAt] = params;
+          await col.insertOne({
+            hotelid: hotelId,
+            alias,
+            guestid: guestId,
+            createdat: createdAt,
+          });
+          return {
+            first: () => null,
+            rows: [],
+          };
+        }
+      }
+      return {
+        first: () => null,
+        rows: [],
+      };
+    },
+  };
+}

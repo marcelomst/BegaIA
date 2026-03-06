@@ -1,7 +1,6 @@
 // Path: /root/begasist/lib/pipeline/resolveGuestIdentity.ts
 
 import type { Channel } from "@/types/channel";
-import { getAstraDB } from "@/lib/astra/connection";
 import { ensureGuestAlias, getGuestIdByAlias } from "@/lib/db/guestAliases";
 import { getGuest } from "@/lib/db/guests";
 
@@ -14,13 +13,6 @@ export type ResolveGuestIdentityInput = {
 export type ResolveGuestIdentityOutput = {
   guestId?: string;
   guestAlias?: string;
-};
-
-type GuestAliasInsertRecord = {
-  hotelId: string;
-  alias: string;
-  guestId: string;
-  createdAt: string;
 };
 
 function normalizeRawGuestId(rawGuestId?: string): string {
@@ -55,13 +47,11 @@ async function backfillAliasToLegacyGuest(params: {
   alias: string;
   legacyGuestId: string;
 }): Promise<void> {
-  const collection = getAstraDB().collection<GuestAliasInsertRecord>("guest_aliases");
   try {
-    await collection.insertOne({
+    await ensureGuestAlias({
       hotelId: params.hotelId,
       alias: params.alias,
-      guestId: params.legacyGuestId,
-      createdAt: new Date().toISOString(),
+      preferredGuestId: params.legacyGuestId,
     });
   } catch {
     // Idempotencia simple ante carreras de escritura.
