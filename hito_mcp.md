@@ -101,6 +101,26 @@ se preserva.
 Este cambio alinea la arquitectura SaaS multihotel con la infraestructura
 física de Astra y evita dependencia en índices automáticos de Data API.
 
+### DOC-CONVERSATION-BINDING-GUEST-IDENTITY-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06  
+Commit: be5803a
+
+Descripción:
+
+Se documentó la introducción del binding de conversaciones por identidad de
+huésped (`guestId`).
+
+El pipeline ahora resuelve la conversación con la prioridad:
+
+1. `conversationId` explícito
+2. conversación activa por `(hotelId + guestId)`
+3. nueva conversación
+
+Esto permite reutilizar conversaciones entre distintos canales del mismo huésped
+y prepara la arquitectura para un Inbox Unificado Multicanal.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando

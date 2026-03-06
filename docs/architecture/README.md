@@ -40,3 +40,17 @@ Esto alinea infraestructura física y acceso de código, evitando dependencia en
 Detalle completo:
 
 [Guest Aliases Table Adapter](./astra_guest_aliases_table_adapter.md)
+
+## Conversation Binding by Guest Identity
+
+Begasist resuelve conversaciones por identidad de huésped (`guestId`) en lugar de depender exclusivamente de `conversationId` generado por canal.
+
+Prioridad de resolución:
+
+1. `conversationId` explícito
+2. conversación activa por `(hotelId + guestId)`
+3. nueva conversación
+
+Detalle completo:
+
+[Conversation Binding by Guest Identity](./conversation_binding_guest_identity.md)
