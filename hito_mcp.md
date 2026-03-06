@@ -7,6 +7,30 @@ Regla: 1 commit = 1 hito. No mezclar capas.
 
 # Estado Actual Consolidado
 
+### FIX-PIPELINE-RISK-POLICY-1A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06
+
+Descripción:
+
+Se corrigió la política de riesgo D1 para preservar decisiones previas válidas
+del supervisor.
+A partir de este ajuste, `riskPolicy` deja de comportarse como autoridad
+principal y pasa a actuar únicamente como capa de promoción para casos LOW en
+modo supervisado.
+
+Regla resultante:
+
+- pending + LOW -> sent
+- pending + HIGH -> pending
+- sent -> sent
+
+Nota:
+
+Los fallos observados en tests Twilio corresponden a deuda independiente del
+pipeline y no están relacionados con este fix.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
