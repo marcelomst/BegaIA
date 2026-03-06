@@ -6,8 +6,8 @@ import {
   decideRiskLevel,
 } from "@/lib/pipeline/riskPolicy";
 
-describe("golden • riskPolicy D1", () => {
-  it("supervised + greeting + no supervision => sent auto-approved", () => {
+describe("golden • riskPolicy D1 preserve supervisor decisions", () => {
+  it("supervised + pending + LOW => sent (autoApproved)", () => {
     const riskLevel = decideRiskLevel({
       category: "greeting",
       needsSupervision: false,
@@ -25,7 +25,25 @@ describe("golden • riskPolicy D1", () => {
     expect(out.autoApproved).toBe(true);
   });
 
-  it("supervised + reservation => pending", () => {
+  it("supervised + sent + HIGH => stays sent", () => {
+    const riskLevel = decideRiskLevel({
+      category: "reservation",
+      needsSupervision: false,
+      salesStage: "quote",
+      isSafeCategory: false,
+    });
+    const out = applyRiskPolicyToSupervisorDecision({
+      combinedMode: "supervised",
+      supervisorStatus: "sent",
+      riskLevel,
+    });
+
+    expect(riskLevel).toBe("HIGH");
+    expect(out.finalStatus).toBe("sent");
+    expect(out.autoApproved).toBe(false);
+  });
+
+  it("supervised + pending + HIGH => pending", () => {
     const riskLevel = decideRiskLevel({
       category: "reservation",
       needsSupervision: false,
@@ -60,4 +78,3 @@ describe("golden • riskPolicy D1", () => {
     expect(out.autoApproved).toBe(false);
   });
 });
-

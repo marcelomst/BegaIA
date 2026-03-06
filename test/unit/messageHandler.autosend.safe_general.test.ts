@@ -78,7 +78,7 @@ describe("messageHandler autosend for safe general intents", () => {
         expect(String(arg)).toMatch(/minutos|taxi|transfer/i);
     });
 
-    it("retrieval_based en modo supervised: status 'pending' y emite 'pendiente'", async () => {
+    it("retrieval_based en modo supervised: status 'sent' por policy LOW y no emite 'pendiente'", async () => {
         (globalThis as any).__TEST_CATEGORY__ = "retrieval_based";
         (globalThis as any).__TEST_TEXT__ = "Podés tomar un taxi o un transfer oficial.";
         const sendReply = vi.fn(async (_t: string) => { });
@@ -87,10 +87,11 @@ describe("messageHandler autosend for safe general intents", () => {
 
         const msgs = await getCollection("messages").findMany({ hotelId: BASE_MSG.hotelId, conversationId: "conv-auto-safe-3" });
         const ai = msgs.filter((m) => (m as any).sender === "assistant").at(-1)!;
-        expect(ai.status).toBe("pending");
+        expect(ai.status).toBe("sent");
 
         expect(sendReply).toHaveBeenCalledTimes(1);
         const [arg] = sendReply.mock.calls[0];
-        expect(String(arg)).toMatch(PENDING_REGEX);
+        expect(String(arg)).not.toMatch(PENDING_REGEX);
+        expect(String(arg)).toMatch(/taxi|transfer/i);
     });
 });

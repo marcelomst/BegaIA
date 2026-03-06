@@ -61,15 +61,16 @@ export function applyRiskPolicyToSupervisorDecision(
     };
   }
 
-  if (input.riskLevel === "HIGH") {
+  // Preserve an explicit supervisor "sent" decision; risk policy only promotes LOW pending.
+  if (input.supervisorStatus === "sent") {
     return {
-      finalStatus: "pending",
+      finalStatus: "sent",
       autoApproved: false,
-      reason: "high_risk_supervised",
+      reason: "supervisor_sent_preserved",
     };
   }
 
-  if (input.supervisorStatus === "pending") {
+  if (input.supervisorStatus === "pending" && input.riskLevel === "LOW") {
     return {
       finalStatus: "sent",
       autoApproved: true,
@@ -78,8 +79,8 @@ export function applyRiskPolicyToSupervisorDecision(
   }
 
   return {
-    finalStatus: input.supervisorStatus,
+    finalStatus: "pending",
     autoApproved: false,
-    reason: "no_override",
+    reason: "high_risk_or_pending_kept",
   };
 }
