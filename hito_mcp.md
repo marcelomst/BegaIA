@@ -31,6 +31,25 @@ Nota:
 Los fallos observados en tests Twilio corresponden a deuda independiente del
 pipeline y no están relacionados con este fix.
 
+### FIX-TEST-TWILIO-ROUTING-BASELINE-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-06
+
+Descripción:
+
+Se alineó el spec del webhook Twilio con el contrato actual de routing
+multihotel.
+Los tests dejaron de depender de fallback por variables de entorno y pasaron a
+modelar explícitamente la resolución `To -> hotelId` mediante
+`resolveHotelIdByTwilioTo`.
+
+También se documentó/controló el pending-ack en ciertos tests cuando
+interfería con la cobertura buscada (`WA_PENDING_ACK_ENABLED=0` en esos casos).
+
+Este hito no modificó lógica productiva: solo restauró la baseline de testing y
+confirmó la arquitectura SaaS multihotel del canal Twilio.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
