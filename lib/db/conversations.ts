@@ -75,6 +75,29 @@ export async function getConversationsByUser(
 }
 
 /**
+ * Busca la conversación activa más reciente para un huésped.
+ * Se usa para unificar mensajes cross-canal por identidad canónica (guestId).
+ */
+export async function findActiveConversationByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<Conversation | null> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !guestId) return null;
+
+  const collection = getConversationsCollection();
+  const candidates = await collection
+    .find({ hotelId, guestId }, { sort: { lastUpdatedAt: -1 }, limit: 20 })
+    .toArray();
+
+  return (
+    candidates.find((c) => (c.status ?? "active") === "active") ??
+    null
+  );
+}
+
+/**
  * Actualiza una conversación existente.
  */
 // Path: /root/begasist/lib/db/conversations.ts

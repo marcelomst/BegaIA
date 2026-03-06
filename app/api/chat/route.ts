@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const channel = (normText(body.channel, 30) || "web") as Channel;
   const incomingConversationId =
     normText(body.conversationId, 120) || normText(body.conversation_id, 120) || normText(body.convId, 120);
-  const conversationId = incomingConversationId || `conv-${crypto.randomUUID()}`;
+  const fallbackConversationId = incomingConversationId || `conv-${crypto.randomUUID()}`;
   const guestId = normText(body.guestId, 120) || "web-guest";
   const sender = normText(body.sender, 60) || "guest";
   const content =
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     build: BUILD_TAG,
     hotelId,
     channel,
-    conversationId,
+    conversationId: incomingConversationId || undefined,
     hasClientMessageId: Boolean(sourceMsgId),
     textLength: content.length,
   });
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       channel,
       hotelId,
       lang: explicitLang,
-      conversationId,
+      conversationId: incomingConversationId || undefined,
       guestId,
       sourceMsgId,
       mode: modeIn || undefined,
@@ -102,9 +102,9 @@ export async function POST(req: Request) {
     };
 
     logChat("request.completed", {
-      hotelId,
-      channel,
-      conversationId: result.conversationId,
+        hotelId,
+        channel,
+        conversationId: result.conversationId,
       status: result.status,
       durationMs: Date.now() - startedAt,
     });
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     if (err instanceof ChannelMessageInputError) {
       return jsonWithBuild(
-        { ok: false, error: err.message, status: "sent", conversationId },
+        { ok: false, error: err.message, status: "sent", conversationId: fallbackConversationId },
         { status: 400 }
       );
     }
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       {
         hotelId,
         channel,
-        conversationId,
+        conversationId: incomingConversationId || undefined,
         durationMs: Date.now() - startedAt,
         error: err instanceof Error ? err.message : String(err),
       },
@@ -137,6 +137,6 @@ export async function POST(req: Request) {
         ? "Desculpe, tive um problema ao processar sua solicitação. Pode tentar novamente?"
         : "Sorry, I had an issue processing your request. Could you try again?";
 
-    return jsonWithBuild({ ok: false, conversationId, status: "sent", error: fallback }, { status: 500 });
+    return jsonWithBuild({ ok: false, conversationId: fallbackConversationId, status: "sent", error: fallback }, { status: 500 });
   }
 }

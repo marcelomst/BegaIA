@@ -68,7 +68,15 @@ export async function handleChannelMessage(input: {
   hotelId?: string;
   channel?: Channel;
 }> {
-  const [{ handleIncomingMessage }, { getAdapter }, { getHotelConfig }, { getMessagesByConversationService }, { detectLanguage }, { resolveGuestIdentity }] =
+  const [
+    { handleIncomingMessage },
+    { getAdapter },
+    { getHotelConfig },
+    { getMessagesByConversationService },
+    { detectLanguage },
+    { resolveGuestIdentity },
+    { findActiveConversationByGuestId },
+  ] =
     await Promise.all([
       import("@/lib/handlers/messageHandler"),
       import("@/lib/adapters/registry"),
@@ -76,17 +84,17 @@ export async function handleChannelMessage(input: {
       import("@/lib/services/messages"),
       import("@/lib/utils/language"),
       import("@/lib/pipeline/resolveGuestIdentity"),
+      import("@/lib/db/conversations"),
     ]);
   const hotelId = normText(input.hotelId, 120);
   const channel = (normText(input.channel, 30) || "web") as Channel;
-  const conversationId = normText(input.conversationId, 120) || `conv-${crypto.randomUUID()}`;
+  const explicitConversationId = normText(input.conversationId, 120);
   const rawGuestId = normText(input.guestId, 120) || "web-guest";
   const sender = normText(input.sender, 60) || "guest";
   const content = normText(input.query);
   const explicitLang = normText(input.lang, 12);
   const modeIn = normText(input.mode, 30) as ChannelMode | "";
   const sourceMsgId = normText(input.sourceMsgId, 180) || undefined;
-  const preMessageId = sourceMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
 
   if (!hotelId) throw new ChannelMessageInputError("hotelId is required");
   if (!content) throw new ChannelMessageInputError("message is required");
@@ -97,6 +105,18 @@ export async function handleChannelMessage(input: {
     rawGuestId,
   });
   const guestId = normText(resolvedIdentity.guestId, 120) || rawGuestId;
+  let conversationId = explicitConversationId;
+  if (!conversationId && guestId) {
+    const existingConversation = await findActiveConversationByGuestId({
+      hotelId,
+      guestId,
+    });
+    conversationId = normText(existingConversation?.conversationId, 120);
+  }
+  if (!conversationId) {
+    conversationId = `conv-${crypto.randomUUID()}`;
+  }
+  const preMessageId = sourceMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
 
   let langResolved = explicitLang || "es";
 
