@@ -281,6 +281,7 @@ export type ConversationSummary = {
   subject?: string;
   guestId?: string;
   channel?: Channel;
+  lastMessage?: string;
 };
 
 export type GuestMode = "automatic" | "supervised";

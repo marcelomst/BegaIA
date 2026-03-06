@@ -82,10 +82,54 @@ export async function updateConversation(conversationId: string, changes: Partia
 export async function getConversation(conversationId: string) {
   return (await col().findOne({ conversationId })) as Conversation | null;
 }
+
+export async function getConversationById(conversationId: string) {
+  return getConversation(conversationId);
+}
+
+export async function getAllConversationsForHotel(hotelId: string): Promise<Conversation[]> {
+  const all = (await col().findMany({ hotelId })) as Conversation[];
+  return [...all].sort((a, b) => {
+    const aTs = Date.parse(a.lastUpdatedAt || a.startedAt || "");
+    const bTs = Date.parse(b.lastUpdatedAt || b.startedAt || "");
+    return bTs - aTs;
+  });
+}
+
 export async function listConversations(hotelId: string, channel?: Channel) {
   return (await col().findMany(
     channel ? { hotelId, channel } : { hotelId }
   )) as Conversation[];
+}
+
+export async function getConversationsByHotelAndChannel(
+  hotelId: string,
+  channel: Channel,
+): Promise<Conversation[]> {
+  return listConversations(hotelId, channel);
+}
+
+export async function getConversationsByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<Conversation[]> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !guestId) return [];
+  const all = (await col().findMany({ hotelId, guestId })) as Conversation[];
+  return [...all].sort((a, b) => {
+    const aTs = Date.parse(a.lastUpdatedAt || a.startedAt || "");
+    const bTs = Date.parse(b.lastUpdatedAt || b.startedAt || "");
+    return bTs - aTs;
+  });
+}
+
+export async function getConversationsByUser(hotelId: string, id: string): Promise<Conversation[]> {
+  const byGuest = (await col().findMany({ hotelId, guestId: id })) as Conversation[];
+  const byUser = (await col().findMany({ hotelId, userId: id })) as Conversation[];
+  const merged = [...byGuest, ...byUser];
+  const unique = Array.from(new Map(merged.map((c) => [c.conversationId, c])).values());
+  return unique;
 }
 
 export async function findActiveConversationByGuestId(input: {

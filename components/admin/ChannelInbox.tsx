@@ -43,6 +43,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   const [selectedGuest, setSelectedGuest] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedConv, setSelectedConv] = useState<string | null>(null);
+  const [selectedConvChannel, setSelectedConvChannel] = useState<string>(channel);
   const [subject, setSubject] = useState("");
   const [messages, setMessages] = useState<ChatTurnWithMeta[]>([]);
   const [snapshot, setSnapshot] = useState<{
@@ -93,20 +94,25 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
     }
     const convs = conversations.filter((c) => c.guestId === selectedGuest);
     setSelectedConv(convs[0]?.conversationId ?? null);
+    setSelectedConvChannel(convs[0]?.channel ?? channel);
     setSubject(convs[0]?.subject ?? "");
   }, [selectedGuest, conversations, hotelId, profiles]);
 
   useEffect(() => {
     if (!selectedConv) return;
+    const convChannel =
+      conversations.find((c) => c.conversationId === selectedConv)?.channel ||
+      selectedConvChannel ||
+      channel;
     setLoading(true);
-    fetchAndMapMessagesWithSubject(channel, selectedConv, hotelId)
+    fetchAndMapMessagesWithSubject(convChannel, selectedConv, hotelId)
       .then(({ messages, subject }) => {
         setMessages(messages);
         if (subject) setSubject(subject);
         setMsgCounts((prev) => ({ ...prev, [selectedConv]: messages.length }));
       })
       .finally(() => setLoading(false));
-  }, [selectedConv, hotelId, channel, reloadFlag]);
+  }, [selectedConv, selectedConvChannel, hotelId, channel, conversations, reloadFlag]);
 
   useEffect(() => {
     if (channel !== "whatsapp") {
@@ -330,13 +336,17 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
         </aside>
 
         <main className="flex-1 flex flex-col">
-          <ConversationsTabs
-            conversations={conversations}
-            selectedConv={selectedConv}
-            setSelectedConv={setSelectedConv}
-            subject={subject}
-            setSubject={setSubject}
-            selectedGuest={selectedGuest}
+      <ConversationsTabs
+        conversations={conversations}
+        selectedConv={selectedConv}
+        setSelectedConv={(id) => {
+          setSelectedConv(id);
+          const conv = conversations.find((c) => c.conversationId === id);
+          setSelectedConvChannel(conv?.channel ?? channel);
+        }}
+        subject={subject}
+        setSubject={setSubject}
+        selectedGuest={selectedGuest}
             channel={channel}
             msgCounts={msgCounts}
             t={t}

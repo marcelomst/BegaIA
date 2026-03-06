@@ -12,7 +12,7 @@ export async function fetchConversationsByChannelAndGuest(
   channel: string
   
 ): Promise<ConversationSummary[]> {
-  const url = `/api/conversations/list?hotelId=${hotelId}&channel=${channel}&guestId=${guestId}`;
+  const url = `/api/admin/conversations?hotelId=${hotelId}&channel=${channel}&guestId=${guestId}`;
   const res = await fetch(url);
   const data = await res.json();
   return (data.conversations ?? []).slice().sort(
@@ -24,7 +24,8 @@ export async function fetchAllConversationsByChannel(
   hotelId: string,
   channel: string
 ): Promise<ConversationSummary[]> {
-  const url = `/api/conversations/list?hotelId=${hotelId}&channel=${channel}`;
+  const _channel = channel; // se mantiene firma por compatibilidad con llamados existentes
+  const url = `/api/admin/conversations?hotelId=${hotelId}`;
   const res = await fetch(url);
   const data = await res.json();
   console.log(" 🎆fetchAllConversationsByChannel", data);

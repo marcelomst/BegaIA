@@ -74,6 +74,20 @@ export async function getConversationsByUser(
   return unique;
 }
 
+export async function getConversationsByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<Conversation[]> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !guestId) return [];
+
+  const collection = getConversationsCollection();
+  return await collection
+    .find({ hotelId, guestId }, { sort: { lastUpdatedAt: -1 }, limit: 200 })
+    .toArray();
+}
+
 /**
  * Busca la conversación activa más reciente para un huésped.
  * Se usa para unificar mensajes cross-canal por identidad canónica (guestId).

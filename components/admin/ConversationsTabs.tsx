@@ -57,7 +57,7 @@ const ConversationsTabs: React.FC<Props> = ({
           .map((c) => (
             <button
               key={c.conversationId}
-              className={`relative px-3 py-1 rounded-t transition border-b-2 text-xs font-medium flex items-center gap-1
+              className={`relative px-3 py-1 rounded-t transition border-b-2 text-xs font-medium flex flex-col items-start gap-1
                 ${
                   selectedConv === c.conversationId
                     ? "border-blue-500 bg-white dark:bg-zinc-900 text-blue-800 dark:text-primary"
@@ -70,8 +70,10 @@ const ConversationsTabs: React.FC<Props> = ({
               }}
               title={c.subject ?? (t.channelInbox?.noSubject || "Sin asunto")}
             >
-              {(c.subject && c.subject !== "") ? c.subject : (t.channelInbox?.noSubject || "Sin asunto")}
-              <span className="ml-2 flex items-center gap-1 text-xs rounded px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
+              <span className="font-semibold">
+                {(c.subject && c.subject !== "") ? c.subject : (t.channelInbox?.noSubject || "Sin asunto")}
+              </span>
+              <span className="flex items-center gap-1 text-xs rounded px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
                 <img
                   src={getChannelIconSrc(c.channel)}
                   alt={c.channel ?? "unknown"}
@@ -79,8 +81,20 @@ const ConversationsTabs: React.FC<Props> = ({
                 />
                 {t.sidebar?.[(c.channel ?? "unknown")] || t.sidebar?.unknown || c.channel || "unknown"}
               </span>
+              <span className="text-[11px] leading-4">
+                Guest ID: <b>{c.guestId || "-"}</b>
+              </span>
+              <span className="text-[11px] leading-4">
+                Conversation ID: <b>{c.conversationId}</b>
+              </span>
+              <span className="text-[11px] leading-4 truncate max-w-[420px]">
+                Last message: <b>{c.lastMessage || "-"}</b>
+              </span>
+              <span className="text-[11px] leading-4">
+                UpdatedAt: <b>{c.lastUpdatedAt || "-"}</b>
+              </span>
               <span className="ml-1">{STATUS_ICON[c.status || "active"]}</span>
-              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+              <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
                 {msgCounts[c.conversationId] ?? ""}
               </span>
             </button>

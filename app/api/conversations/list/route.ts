@@ -1,7 +1,11 @@
 // Path: /root/begasist/app/api/conversations/list/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { getConversationsByUser, getConversationsByHotelAndChannel } from "@/lib/db/conversations";
+import {
+  getConversationsByUser,
+  getConversationsByHotelAndChannel,
+  getConversationsByGuestId,
+} from "@/lib/db/conversations";
 import { ALL_CHANNELS, type Channel } from "@/types/channel";
 
 export async function GET(req: NextRequest) {
@@ -38,7 +42,9 @@ export async function GET(req: NextRequest) {
 
     // Si tenemos userId o guestId: trae solo las de ese usuario
     if (id) {
-      const conversations = await getConversationsByUser(hotelId, id);
+      const conversations = guestId
+        ? await getConversationsByGuestId({ hotelId, guestId })
+        : await getConversationsByUser(hotelId, id);
       return NextResponse.json({
         conversations: conversations.map((c) => ({
           conversationId: c.conversationId,
