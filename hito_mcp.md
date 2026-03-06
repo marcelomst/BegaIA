@@ -77,6 +77,7 @@ Caso `guest_aliases`:
 
 Estado: COMPLETADO  
 Fecha: 2026-03-06
+Commit: 5de9e9b
 
 Descripción:
 
