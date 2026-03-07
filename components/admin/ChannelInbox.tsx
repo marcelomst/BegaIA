@@ -31,6 +31,15 @@ type PendingItem = {
   breach: boolean;
 };
 
+type AdminGuestProfile = {
+  guestId: string;
+  guest: Guest | null;
+  aliases: string[];
+  channels: string[];
+  conversationCount: number;
+  lastActivityAt: string | null;
+};
+
 export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, curationModel }: ChannelInboxProps) {
   const { user } = useCurrentUser();
   if (!hotelId) {
@@ -63,6 +72,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editingText, setEditingText] = useState<string>("");
+  const [guestProfile, setGuestProfile] = useState<AdminGuestProfile | null>(null);
 
   // Cargar conversaciones y perfiles al iniciar
   useEffect(() => {
@@ -97,6 +107,42 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
     setSelectedConvChannel(convs[0]?.channel ?? channel);
     setSubject(convs[0]?.subject ?? "");
   }, [selectedGuest, conversations, hotelId, profiles]);
+
+  useEffect(() => {
+    if (!selectedGuest) {
+      setGuestProfile(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/admin/guest-profile?hotelId=${encodeURIComponent(hotelId)}&guestId=${encodeURIComponent(selectedGuest)}`,
+          { credentials: "same-origin" },
+        );
+        if (!res.ok) {
+          if (!cancelled) setGuestProfile(null);
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setGuestProfile({
+            guestId: String(data?.guestId ?? selectedGuest),
+            guest: (data?.guest ?? null) as Guest | null,
+            aliases: Array.isArray(data?.aliases) ? data.aliases : [],
+            channels: Array.isArray(data?.channels) ? data.channels : [],
+            conversationCount: Number.isFinite(data?.conversationCount) ? data.conversationCount : 0,
+            lastActivityAt: typeof data?.lastActivityAt === "string" ? data.lastActivityAt : null,
+          });
+        }
+      } catch {
+        if (!cancelled) setGuestProfile(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotelId, selectedGuest, reloadFlag]);
 
   useEffect(() => {
     if (!selectedConv) return;
@@ -358,6 +404,18 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
               {subject || (t.channelInbox?.noSubject || "Sin asunto")}
             </span>
           </div>
+          {selectedGuest && guestProfile && (
+            <div className="mx-4 mt-4 border border-border rounded-md p-3 bg-muted/30 text-sm">
+              <div><span className="font-semibold">Guest ID:</span> {guestProfile.guestId}</div>
+              <div><span className="font-semibold">Aliases:</span> {guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</div>
+              <div><span className="font-semibold">Channels:</span> {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}</div>
+              <div><span className="font-semibold">Conversations:</span> {guestProfile.conversationCount}</div>
+              <div><span className="font-semibold">Last activity:</span> {guestProfile.lastActivityAt ? new Date(guestProfile.lastActivityAt).toLocaleString() : "-"}</div>
+              <div><span className="font-semibold">Mode:</span> {guestProfile.guest?.mode || "-"}</div>
+              <div><span className="font-semibold">Created at:</span> {guestProfile.guest?.createdAt ? new Date(guestProfile.guest.createdAt).toLocaleString() : "-"}</div>
+              <div><span className="font-semibold">Updated at:</span> {guestProfile.guest?.updatedAt ? new Date(guestProfile.guest.updatedAt).toLocaleString() : "-"}</div>
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
             {channel === "whatsapp" && pendingList.length > 0 && (
               <div className="border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 rounded p-3 text-sm">

@@ -74,6 +74,39 @@ export async function getGuestIdByAlias(input: {
   return typeof doc?.guestId === "string" && doc.guestId.trim() ? doc.guestId : null;
 }
 
+export async function getGuestAliasesByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<GuestAliasRecord[]> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !guestId) return [];
+
+  const client = getCassandraClient();
+  const query = `SELECT hotelid, alias, guestid, createdat FROM ${tableRef()} WHERE hotelid = ? AND guestid = ? ALLOW FILTERING`;
+  const result = await client.execute(query, [hotelId, guestId], { prepare: true });
+  const rows = Array.isArray((result as any)?.rows) ? (result as any).rows : [];
+
+  const mapped: GuestAliasRecord[] = rows.map((row: any) => {
+    const createdAtRaw = row?.get?.("createdat") as Date | string | null;
+    const createdAt =
+      createdAtRaw instanceof Date
+        ? createdAtRaw.toISOString()
+        : typeof createdAtRaw === "string"
+          ? createdAtRaw
+          : new Date(0).toISOString();
+
+    return {
+      hotelId: String(row?.get?.("hotelid") ?? hotelId),
+      alias: String(row?.get?.("alias") ?? ""),
+      guestId: String(row?.get?.("guestid") ?? guestId),
+      createdAt,
+    };
+  });
+
+  return mapped.sort((a: GuestAliasRecord, b: GuestAliasRecord) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+}
+
 export async function ensureGuestAlias(input: {
   hotelId: string;
   alias: string;

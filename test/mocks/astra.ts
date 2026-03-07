@@ -81,12 +81,21 @@ export function getMockCassandraClient() {
       if (q.includes("guest_aliases")) {
         const col = getCollection("guest_aliases");
         if (q.trim().startsWith("select")) {
-          const [hotelId, alias] = params;
-          const found = await col.findOne({ hotelid: hotelId, alias });
-          const row = toCqlRow(found);
+          const [hotelId, secondParam] = params;
+          let rowsDocs: Doc[] = [];
+          if (q.includes("and alias = ?")) {
+            const found = await col.findOne({ hotelid: hotelId, alias: secondParam });
+            if (found) rowsDocs = [found];
+          } else if (q.includes("and guestid = ?")) {
+            rowsDocs = await col.findMany(
+              { hotelid: hotelId, guestid: secondParam },
+              { sort: ["createdat", 1] },
+            );
+          }
+          const row = toCqlRow(rowsDocs[0] ?? null);
           return {
             first: () => row,
-            rows: row ? [row] : [],
+            rows: rowsDocs.map((doc) => toCqlRow(doc)),
           };
         }
         if (q.trim().startsWith("insert")) {
