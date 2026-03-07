@@ -19,6 +19,7 @@ import {
   setLang,
   resetConversationSession,
 } from "@/utils/conversationSession";
+import { getOrCreateGuestId } from "@/utils/guestSession";
 
 // ===== Tipos de red (sin cambios de contrato) =====
 type APIMessagesResponse = {
@@ -284,6 +285,7 @@ export default function ChatPage() {
 
     const currentConversationId = getConversationId();
     const currentLang = getLang();
+    const guestId = getOrCreateGuestId();
 
     try {
       const res = await fetch("/api/chat", {
@@ -294,6 +296,7 @@ export default function ChatPage() {
           channel: "web",
           hotelId,
           conversationId: currentConversationId,
+          guestId,
           lang: currentLang,
         }),
         credentials: "same-origin",
@@ -450,6 +453,7 @@ export default function ChatPage() {
     setQuery("");
     // No bloqueamos con loading global (flujo rápido); llamamos backend igualmente
     try {
+      const guestId = getOrCreateGuestId();
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -458,6 +462,7 @@ export default function ChatPage() {
           channel: "web",
           hotelId,
           conversationId: getConversationId() ?? undefined,
+          guestId,
           lang: getLang(),
         }),
         credentials: "same-origin",

@@ -47,7 +47,8 @@ export async function POST(req: Request) {
   const incomingConversationId =
     normText(body.conversationId, 120) || normText(body.conversation_id, 120) || normText(body.convId, 120);
   const fallbackConversationId = incomingConversationId || `conv-${crypto.randomUUID()}`;
-  const guestId = normText(body.guestId, 120) || "web-guest";
+  const fallbackGuestId = channel === "web" ? `guest-${crypto.randomUUID()}` : "guest";
+  const guestId = normText(body.guestId, 120) || fallbackGuestId;
   const sender = normText(body.sender, 60) || "guest";
   const content =
     normText(body.query) || normText(body.message) || normText(body.text) || normText(body.content);
