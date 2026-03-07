@@ -146,6 +146,39 @@ canal -> alias -> guest_aliases -> guestId -> conversación -> inbox admin
 El hito mantiene compatibilidad con consultas previas y prepara la base para un
 Inbox Multicanal más potente.
 
+### FEAT-ADMIN-GUEST-PROFILE-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-07  
+Commit: 9365911
+
+Descripción:
+
+Se agregó soporte admin para perfil operativo de huésped centrado en `guestId`,
+reusando identidad transversal (`guest_aliases`) y conversaciones unificadas.
+
+Componentes implementados:
+
+- Endpoint: `GET /api/admin/guest-profile` en
+  `app/api/admin/guest-profile/route.ts`
+- Integración UI en `components/admin/ChannelInbox.tsx` para visualizar:
+  `aliases`, `channels`, `conversationCount`, `lastActivityAt`, `mode`
+- Helper DB `getGuestAliasesByGuestId(...)` en `lib/db/guestAliases.ts`
+- Test de integración: `test/integration/api_admin_guest_profile.test.ts`
+- Ajuste de mock para Cassandra: `test/mocks/astra.ts`
+
+Validación:
+
+- `pnpm run ts-check` -> PASS
+- `pnpm exec vitest run` -> PASS
+
+Deuda técnica registrada:
+
+El reverse lookup `guestId -> aliases` usa temporalmente `ALLOW FILTERING` en
+`guest_aliases`. No bloquea el hito; se sugiere tratar en un hito futuro
+`FIX-GUEST-ALIASES-REVERSE-LOOKUP-1` con tabla secundaria o índice
+materializado.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
