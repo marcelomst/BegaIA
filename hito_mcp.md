@@ -179,6 +179,40 @@ El reverse lookup `guestId -> aliases` usa temporalmente `ALLOW FILTERING` en
 `FIX-GUEST-ALIASES-REVERSE-LOOKUP-1` con tabla secundaria o índice
 materializado.
 
+### FIX-GUEST-ALIASES-REVERSE-LOOKUP-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-07  
+Commit: 897c8b6
+
+Descripción:
+
+Elimina el uso de `ALLOW FILTERING` para el reverse lookup de aliases por
+`guestId` introduciendo una tabla Cassandra optimizada
+`guest_aliases_by_guest`.
+
+Componentes implementados:
+
+- Proyección Cassandra `guest_aliases_by_guest`
+- Sincronización desde `ensureGuestAlias(...)`
+- Helper actualizado en `lib/db/guestAliases.ts`
+- Test de integración:
+  `test/integration/db_guest_aliases_reverse_lookup.test.ts`
+
+Validación:
+
+- `pnpm run ts-check` -> PASS
+- `pnpm exec vitest run` -> PASS
+
+Resultado arquitectónico:
+
+El sistema ahora soporta eficientemente:
+
+`alias -> guestId`
+`guestId -> aliases`
+
+sin usar `ALLOW FILTERING`.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
