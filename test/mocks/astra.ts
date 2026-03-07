@@ -78,6 +78,32 @@ export function getMockCassandraClient() {
   return {
     async execute(query: string, params: any[] = []) {
       const q = String(query || "").toLowerCase();
+      if (q.includes("guest_aliases_by_guest")) {
+        const col = getCollection("guest_aliases_by_guest");
+        if (q.trim().startsWith("select")) {
+          const [hotelId, guestId] = params;
+          const rowsDocs = await col.findMany(
+            { hotelid: hotelId, guestid: guestId },
+            { sort: ["createdat", 1] },
+          );
+          const row = toCqlRow(rowsDocs[0] ?? null);
+          return {
+            first: () => row,
+            rows: rowsDocs.map((doc) => toCqlRow(doc)),
+          };
+        }
+        if (q.trim().startsWith("insert")) {
+          const [hotelId, guestId, alias, createdAt] = params;
+          await col.upsert(
+            { hotelid: hotelId, guestid: guestId, alias },
+            { hotelid: hotelId, guestid: guestId, alias, createdat: createdAt },
+          );
+          return {
+            first: () => null,
+            rows: [],
+          };
+        }
+      }
       if (q.includes("guest_aliases")) {
         const col = getCollection("guest_aliases");
         if (q.trim().startsWith("select")) {
@@ -100,12 +126,15 @@ export function getMockCassandraClient() {
         }
         if (q.trim().startsWith("insert")) {
           const [hotelId, alias, guestId, createdAt] = params;
-          await col.insertOne({
+          await col.upsert(
+            { hotelid: hotelId, alias },
+            {
             hotelid: hotelId,
             alias,
             guestid: guestId,
             createdat: createdAt,
-          });
+            },
+          );
           return {
             first: () => null,
             rows: [],

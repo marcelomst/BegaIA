@@ -13,6 +13,7 @@ describe("/api/admin/guest-profile (integration)", () => {
   it("devuelve guest + aliases + métricas de conversaciones", async () => {
     const guestCol = getCollection("guests");
     const aliasCol = getCollection("guest_aliases");
+    const aliasByGuestCol = getCollection("guest_aliases_by_guest");
     const convCol = getCollection("conversations");
 
     await guestCol.insertOne({
@@ -29,10 +30,22 @@ describe("/api/admin/guest-profile (integration)", () => {
       guestid: "guest-123",
       createdat: "2026-03-06T09:01:00.000Z",
     });
+    await aliasByGuestCol.insertOne({
+      hotelid: "hotel999",
+      guestid: "guest-123",
+      alias: "whatsapp:+59811111111",
+      createdat: "2026-03-06T09:01:00.000Z",
+    });
     await aliasCol.insertOne({
       hotelid: "hotel999",
       alias: "email:john@example.com",
       guestid: "guest-123",
+      createdat: "2026-03-06T09:02:00.000Z",
+    });
+    await aliasByGuestCol.insertOne({
+      hotelid: "hotel999",
+      guestid: "guest-123",
+      alias: "email:john@example.com",
       createdat: "2026-03-06T09:02:00.000Z",
     });
 
@@ -72,6 +85,7 @@ describe("/api/admin/guest-profile (integration)", () => {
   it("deriva channels desde aliases aun sin conversaciones", async () => {
     const guestCol = getCollection("guests");
     const aliasCol = getCollection("guest_aliases");
+    const aliasByGuestCol = getCollection("guest_aliases_by_guest");
 
     await guestCol.insertOne({
       guestId: "guest-chan",
@@ -87,10 +101,22 @@ describe("/api/admin/guest-profile (integration)", () => {
       guestid: "guest-chan",
       createdat: "2026-03-06T08:01:00.000Z",
     });
+    await aliasByGuestCol.insertOne({
+      hotelid: "hotel999",
+      guestid: "guest-chan",
+      alias: "web:session_abc",
+      createdat: "2026-03-06T08:01:00.000Z",
+    });
     await aliasCol.insertOne({
       hotelid: "hotel999",
       alias: "email:chan@example.com",
       guestid: "guest-chan",
+      createdat: "2026-03-06T08:02:00.000Z",
+    });
+    await aliasByGuestCol.insertOne({
+      hotelid: "hotel999",
+      guestid: "guest-chan",
+      alias: "email:chan@example.com",
       createdat: "2026-03-06T08:02:00.000Z",
     });
 

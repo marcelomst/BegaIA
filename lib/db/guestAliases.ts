@@ -13,10 +13,15 @@ export type GuestAliasRecord = {
 };
 
 const GUEST_ALIASES_TABLE = "guest_aliases";
+const GUEST_ALIASES_BY_GUEST_TABLE = "guest_aliases_by_guest";
 
 function tableRef(): string {
   // The CQL client is already scoped to the configured keyspace.
   return GUEST_ALIASES_TABLE;
+}
+
+function tableRefByGuest(): string {
+  return GUEST_ALIASES_BY_GUEST_TABLE;
 }
 
 async function findGuestAlias(input: {
@@ -56,6 +61,35 @@ async function insertGuestAlias(input: {
   await client.execute(query, [input.hotelId, input.alias, input.guestId, input.createdAt], { prepare: true });
 }
 
+async function insertGuestAliasByGuest(input: {
+  hotelId: string;
+  guestId: string;
+  alias: string;
+  createdAt: Date;
+}): Promise<void> {
+  const client = getCassandraClient();
+  const query = `INSERT INTO ${tableRefByGuest()} (hotelid, guestid, alias, createdat) VALUES (?, ?, ?, ?)`;
+  await client.execute(query, [input.hotelId, input.guestId, input.alias, input.createdAt], { prepare: true });
+}
+
+async function syncGuestAliasReverseReadModel(input: {
+  hotelId: string;
+  guestId: string;
+  alias: string;
+  createdAt?: Date;
+}): Promise<void> {
+  try {
+    await insertGuestAliasByGuest({
+      hotelId: input.hotelId,
+      guestId: input.guestId,
+      alias: input.alias,
+      createdAt: input.createdAt ?? new Date(),
+    });
+  } catch {
+    // No romper el pipeline principal por una falla de la proyección admin.
+  }
+}
+
 export function normalizeGuestAlias(raw: string): string {
   const v = String(raw ?? "").trim();
   if (!v) return "";
@@ -83,7 +117,7 @@ export async function getGuestAliasesByGuestId(input: {
   if (!hotelId || !guestId) return [];
 
   const client = getCassandraClient();
-  const query = `SELECT hotelid, alias, guestid, createdat FROM ${tableRef()} WHERE hotelid = ? AND guestid = ? ALLOW FILTERING`;
+  const query = `SELECT hotelid, guestid, alias, createdat FROM ${tableRefByGuest()} WHERE hotelid = ? AND guestid = ?`;
   const result = await client.execute(query, [hotelId, guestId], { prepare: true });
   const rows = Array.isArray((result as any)?.rows) ? (result as any).rows : [];
 
@@ -119,6 +153,11 @@ export async function ensureGuestAlias(input: {
 
   const existing = await findGuestAlias({ hotelId, alias });
   if (existing?.guestId) {
+    await syncGuestAliasReverseReadModel({
+      hotelId,
+      guestId: existing.guestId,
+      alias,
+    });
     return { guestId: existing.guestId, created: false };
   }
 
@@ -138,16 +177,28 @@ export async function ensureGuestAlias(input: {
   }
 
   try {
+    const now = new Date();
     await insertGuestAlias({
       hotelId,
       alias,
       guestId,
-      createdAt: new Date(),
+      createdAt: now,
+    });
+    await syncGuestAliasReverseReadModel({
+      hotelId,
+      guestId,
+      alias,
+      createdAt: now,
     });
     return { guestId, created: true };
   } catch {
     const raced = await findGuestAlias({ hotelId, alias });
     if (raced?.guestId) {
+      await syncGuestAliasReverseReadModel({
+        hotelId,
+        guestId: raced.guestId,
+        alias,
+      });
       return { guestId: raced.guestId, created: false };
     }
     throw new Error("ensureGuestAlias failed");
