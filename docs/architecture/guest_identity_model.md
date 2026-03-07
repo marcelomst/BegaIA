@@ -122,3 +122,16 @@ Este modelo habilita:
 - admin inbox unificado
 - conversation binding por `guestId`
 - analytics por huésped
+
+## 7. Origen de guestId por canal
+
+### Canal Web
+
+En canal web, el `guestId` se genera en cliente con `crypto.randomUUID()`,
+se persiste en `localStorage` y se reutiliza en requests posteriores con
+formato:
+
+`guest-${uuid}`
+
+Objetivo: mantener identidad persistente por navegador aun sin autenticación
+previa y evitar colisiones de conversaciones bajo un placeholder compartido.

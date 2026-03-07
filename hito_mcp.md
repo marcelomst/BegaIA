@@ -213,6 +213,37 @@ El sistema ahora soporta eficientemente:
 
 sin usar `ALLOW FILTERING`.
 
+### FIX-WEB-GUEST-ID-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-07  
+Commit: 6fa9941
+
+Descripción:
+
+Persistencia de `guestId` único para canal web.
+
+Se elimina el uso del placeholder `web-guest` y se introduce
+`guest-${uuid}` persistente en `localStorage` para cada navegador.
+
+Componentes implementados:
+
+- `utils/guestSession.ts`
+- `components/admin/ChatPage.tsx`
+- `app/api/chat/route.ts`
+- `test/frontend/chatPage.lang.spec.tsx`
+
+Validación:
+
+- `pnpm run ts-check` -> PASS
+- `pnpm exec vitest run` -> PASS
+
+Resultado arquitectónico:
+
+Cada navegador web posee ahora identidad independiente,
+evitando colisión de conversaciones y habilitando identidad
+transversal consistente en el sistema.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
