@@ -72,6 +72,16 @@ async function insertGuestAliasByGuest(input: {
   await client.execute(query, [input.hotelId, input.guestId, input.alias, input.createdAt], { prepare: true });
 }
 
+async function deleteGuestAliasByGuest(input: {
+  hotelId: string;
+  guestId: string;
+  alias: string;
+}): Promise<void> {
+  const client = getCassandraClient();
+  const query = `DELETE FROM ${tableRefByGuest()} WHERE hotelid = ? AND guestid = ? AND alias = ?`;
+  await client.execute(query, [input.hotelId, input.guestId, input.alias], { prepare: true });
+}
+
 async function syncGuestAliasReverseReadModel(input: {
   hotelId: string;
   guestId: string;
@@ -203,4 +213,41 @@ export async function ensureGuestAlias(input: {
     }
     throw new Error("ensureGuestAlias failed");
   }
+}
+
+export async function reassignGuestAlias(input: {
+  hotelId: string;
+  alias: string;
+  guestId: string;
+}): Promise<void> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const alias = normalizeGuestAlias(input.alias);
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !alias || !guestId) return;
+
+  const now = new Date();
+  await insertGuestAlias({
+    hotelId,
+    alias,
+    guestId,
+    createdAt: now,
+  });
+  await syncGuestAliasReverseReadModel({
+    hotelId,
+    guestId,
+    alias,
+    createdAt: now,
+  });
+}
+
+export async function removeGuestAliasFromReverseLookup(input: {
+  hotelId: string;
+  guestId: string;
+  alias: string;
+}): Promise<void> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  const alias = normalizeGuestAlias(input.alias);
+  if (!hotelId || !guestId || !alias) return;
+  await deleteGuestAliasByGuest({ hotelId, guestId, alias });
 }

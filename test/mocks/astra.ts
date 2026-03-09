@@ -34,7 +34,9 @@ class InMemoryCollection {
       let ok = true;
       for (const [k, v] of Object.entries(filter)) if (d[k] !== v) { ok = false; break; }
       if (ok) {
-        const nd = { ...d, ...update };
+        const asAny = update as any;
+        const setPatch = asAny?.$set && typeof asAny.$set === "object" ? asAny.$set : null;
+        const nd = setPatch ? { ...d, ...setPatch } : { ...d, ...update };
         this.data.set(id, nd);
         return { acknowledged: true, matchedCount: 1, modifiedCount: 1, upsertedId: null };
       }
@@ -45,6 +47,17 @@ class InMemoryCollection {
     const found = await this.findOne(filter);
     if (found) return this.updateOne({ _id: found._id }, update);
     return this.insertOne({ ...filter, ...update });
+  }
+  async deleteOne(filter: Partial<Doc>) {
+    for (const [id, d] of this.data.entries()) {
+      let ok = true;
+      for (const [k, v] of Object.entries(filter)) if (d[k] !== v) { ok = false; break; }
+      if (ok) {
+        this.data.delete(id);
+        return { acknowledged: true, deletedCount: 1 };
+      }
+    }
+    return { acknowledged: true, deletedCount: 0 };
   }
   async count(filter: Partial<Doc> = {}) {
     const arr = await this.findMany(filter);
@@ -98,6 +111,17 @@ export function getMockCassandraClient() {
             { hotelid: hotelId, guestid: guestId, alias },
             { hotelid: hotelId, guestid: guestId, alias, createdat: createdAt },
           );
+          return {
+            first: () => null,
+            rows: [],
+          };
+        }
+        if (q.trim().startsWith("delete")) {
+          const [hotelId, guestId, alias] = params;
+          const rows = await col.findMany({ hotelid: hotelId, guestid: guestId, alias });
+          for (const row of rows) {
+            await (col as any).deleteOne({ _id: row._id });
+          }
           return {
             first: () => null,
             rows: [],
