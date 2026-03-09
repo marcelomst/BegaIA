@@ -1,3 +1,33 @@
+# Begasist Architecture Evolution Log
+
+Este documento registra la evolución arquitectónica del sistema Begasist.
+
+Cada entrada documenta un **hito técnico significativo del proyecto**, incluyendo:
+
+- contexto del cambio
+- componentes afectados
+- resultado arquitectónico
+- commit asociado
+
+Su objetivo es mantener trazabilidad entre:
+
+- código
+- commits
+- documentación
+- decisiones arquitectónicas
+
+Este archivo no reemplaza la documentación estable ubicada en:
+
+`docs/architecture/`
+
+sino que cumple una función complementaria: registrar la **secuencia cronológica de evolución del sistema**.
+
+Las descripciones arquitectónicas consolidadas deben mantenerse en:
+
+`docs/architecture/`
+
+mientras que este archivo conserva el **historial narrado de cómo evolucionó la arquitectura**.
+
 # HITO_MCP — Control Arquitectónico MCP & Widget
 
 Este archivo define el estado real del sistema y evita mezclar hitos.
