@@ -189,3 +189,54 @@ posteriormente hacia:
 - métricas operativas reales
 
 sin contradicciones en la navegación.
+
+## UI-GUESTS-01 — Dominio Guests funcional
+
+Tras la normalización inicial del Admin Panel (`UI-ADMIN-01` y
+`FIX-UI-ADMIN-01A`), el módulo `Guests` dejó de ser una vista placeholder
+basada en el inbox y pasó a convertirse en un dominio funcional real del panel
+administrativo.
+
+### Capacidades incorporadas
+
+La ruta:
+
+`/admin/guests`
+
+permite ahora:
+
+- listar huéspedes reales persistidos en AstraDB
+- visualizar aliases multicanal asociados
+- identificar canales detectados por alias o conversación
+- visualizar conversaciones asociadas
+- ejecutar merge manual entre dos guests
+
+### Cambio conceptual
+
+El panel pasa a reflejar el modelo:
+
+`Guest = entidad central`
+`Channel = alias / transporte`
+`Conversation = interacción`
+
+Esto fortalece el enfoque guest-centric del sistema.
+
+### Alcance de la V1
+
+La implementación actual de `Guests` es una V1 operativa-administrativa, no un
+CRM completo.
+
+Incluye:
+
+- listado real
+- perfil básico
+- aliases
+- actividad
+- merge manual
+
+No incluye todavía:
+
+- scoring de duplicidad
+- sugerencias por IA
+- perfil CRM enriquecido
+- timeline CRM avanzado

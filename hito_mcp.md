@@ -1214,3 +1214,47 @@ Referencias existentes:
 - `docs/architecture/astra_persistence_policy.md`
 
 Este pendiente se implementará cuando la arquitectura del sistema esté suficientemente estabilizada.
+
+### UI-GUESTS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-09  
+Commit: 3f5fa52fa837964e7d0918293953c2d302c43fdd
+
+Descripción:
+
+Se implementa el dominio **Guests** como módulo funcional real del Admin Panel.
+
+La vista `/admin/guests` deja de ser una variación del inbox y pasa a ofrecer:
+
+- listado real de huéspedes
+- aliases multicanal
+- canales detectados
+- conversaciones asociadas
+- perfil básico
+- merge manual de identidad
+
+Impacto arquitectónico:
+
+Begasist avanza desde un panel centrado en conversaciones/canales hacia un
+modelo **guest-centric explícito**.
+
+### Detalles técnicos relevantes
+
+Se agregan endpoints admin para:
+
+- listado guest-centric
+- merge manual de guests
+
+Se incorpora helper de backend que actualiza:
+
+- `guest_aliases`
+- `guest_aliases_by_guest`
+- `conversations`
+- `messages`
+- `guests`
+
+Validación:
+
+`pnpm run ts-check -> PASS`
+`test/integration/api_admin_guests_merge.test.ts -> PASS`

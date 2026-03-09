@@ -143,3 +143,49 @@ operacional del sistema (identidad y conversación), no de configuración ni KB.
 
 En entornos de prueba E2E, pueden limpiarse junto con `messages`,
 `conversations`, `guests` y `conv_state` durante el reset operativo.
+
+## 9. Consolidación manual de identidad (UI-GUESTS-01)
+
+En Begasist, la creación inicial de guests es deliberadamente conservadora.
+
+Cada alias multicanal puede originar inicialmente un guest nuevo cuando no
+existe evidencia suficiente para asumir identidad compartida.
+
+Ejemplo válido:
+
+`Guest A -> whatsapp:+598...`
+`Guest B -> web:session_123`
+
+aunque ambos correspondan a la misma persona real.
+
+Esto no se considera un bug, sino una decisión de seguridad funcional.
+
+### Resolución de identidad en V1
+
+La resolución de identidad se implementa mediante merge manual asistido por UI.
+
+El operador puede decidir que dos guests representan la misma persona
+indicando:
+
+`primaryGuestId`
+`secondaryGuestId`
+
+### Efectos del merge manual
+
+La operación de merge manual:
+
+- reasigna aliases del guest secundario al principal
+- actualiza referencias de `guestId` en conversaciones
+- actualiza referencias de `guestId` en mensajes
+- registra el guest secundario como absorbido mediante tags:
+
+`merged`
+`merged-into:<primaryGuestId>`
+
+### Motivación del enfoque manual
+
+La consolidación no se automatiza inicialmente para evitar falsos positivos de
+identidad.
+
+Esto es particularmente importante en entornos hoteleros multicanal donde
+diferentes canales pueden presentar identificadores incompletos o ambiguos.
