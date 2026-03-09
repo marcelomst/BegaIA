@@ -244,6 +244,41 @@ Cada navegador web posee ahora identidad independiente,
 evitando colisión de conversaciones y habilitando identidad
 transversal consistente en el sistema.
 
+### MAINT-RESET-OPERATIVE-DATA-1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-09  
+Commit: a98d746
+
+Descripción:
+
+Extensión del script de reset operativo para incluir
+las tablas de identidad transversal:
+
+- guest_aliases
+- guest_aliases_by_guest
+
+Componentes modificados:
+
+- `scripts/wipe-conversations-and-messages.ts`
+
+Resultado operacional:
+
+El reset ahora limpia completamente el estado de pruebas del sistema:
+
+`messages`
+`conversations`
+`guests`
+`conv_state`
+`guest_aliases`
+`guest_aliases_by_guest`
+
+permitiendo reiniciar pruebas E2E limpias del flujo:
+
+`Web -> guestId persistente`
+`WhatsApp -> alias telefónico`
+`Admin -> inbox / guests / conversaciones`
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando

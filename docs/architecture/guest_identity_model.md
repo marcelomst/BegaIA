@@ -135,3 +135,11 @@ formato:
 
 Objetivo: mantener identidad persistente por navegador aun sin autenticación
 previa y evitar colisiones de conversaciones bajo un placeholder compartido.
+
+## 8. Estado operacional y reset de pruebas
+
+Las tablas `guest_aliases` y `guest_aliases_by_guest` forman parte del estado
+operacional del sistema (identidad y conversación), no de configuración ni KB.
+
+En entornos de prueba E2E, pueden limpiarse junto con `messages`,
+`conversations`, `guests` y `conv_state` durante el reset operativo.
