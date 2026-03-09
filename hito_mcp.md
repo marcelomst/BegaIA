@@ -1258,3 +1258,27 @@ Validación:
 
 `pnpm run ts-check -> PASS`
 `test/integration/api_admin_guests_merge.test.ts -> PASS`
+
+### FIX-UI-GUESTS-01A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-09  
+Commit: 81e18fb7dab30febddaac3fba0ca4f5bce4f0c06
+
+Descripción:
+
+Se estabiliza el comportamiento de guests absorbidos tras merge manual.
+
+Correcciones:
+
+- detección robusta de guests absorbidos (`merged` o `merged-into:*`)
+- exclusión del listado operativo normal
+- exclusión de candidatos de merge
+
+El endpoint `/api/admin/guests` permite opcionalmente incluir absorbidos mediante:
+
+`includeAbsorbed=1`
+
+Impacto:
+
+Se elimina el riesgo de re-merge y se alinea la UI con la política operativa del sistema.

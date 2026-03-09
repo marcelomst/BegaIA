@@ -189,3 +189,21 @@ identidad.
 
 Esto es particularmente importante en entornos hoteleros multicanal donde
 diferentes canales pueden presentar identificadores incompletos o ambiguos.
+
+### Política de guests absorbidos (FIX-UI-GUESTS-01A)
+
+Cuando un merge manual ocurre:
+
+`primaryGuestId`
+`secondaryGuestId`
+
+el guest secundario pasa a estado absorbido.
+
+Un guest absorbido:
+
+- queda marcado con `merged` y `merged-into:*`
+- no participa del flujo operativo normal
+- permanece como registro histórico
+
+Esto permite mantener trazabilidad sin generar duplicidad en la operación
+diaria.

@@ -240,3 +240,42 @@ No incluye todavía:
 - sugerencias por IA
 - perfil CRM enriquecido
 - timeline CRM avanzado
+
+### FIX-UI-GUESTS-01A — Política de guests absorbidos
+
+Se estabiliza la política operativa para guests absorbidos tras un merge
+manual.
+
+Cuando dos guests se consolidan:
+
+`Primary guest`
+`Secondary guest -> absorbido`
+
+El guest secundario queda marcado mediante tags:
+
+`merged`
+`merged-into:<primaryGuestId>`
+
+#### Comportamiento operativo
+
+Los guests absorbidos:
+
+- no aparecen en el listado operativo normal
+- no aparecen como candidatos de merge
+- permanecen como registro histórico
+
+El endpoint:
+
+`/api/admin/guests`
+
+excluye por defecto guests absorbidos.
+
+Opcionalmente pueden incluirse usando:
+
+`includeAbsorbed=1`
+
+Esto evita:
+
+- merges duplicados
+- confusión operativa en recepción
+- inconsistencias visuales en el panel.
