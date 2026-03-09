@@ -1175,3 +1175,42 @@ Impacto:
 3. Siempre correr batería obligatoria antes de push.
 4. No tocar grafo salvo hito explícito.
 5. Si aparece desviación, se registra aquí antes de implementar.
+
+### PEND-ARCH-SYSTEM-OVERVIEW-01
+
+Estado: PENDIENTE
+
+Descripción:
+
+Crear documento de visión global de arquitectura del sistema Begasist.
+
+Archivo objetivo:
+
+`docs/architecture/system_overview.md`
+
+Objetivo del documento:
+
+Proveer una vista unificada del sistema que integre los principales dominios ya documentados en `docs/architecture`.
+
+Componentes a representar:
+
+- Channels (Web, WhatsApp, Email, Channel Manager)
+- Channel adapters
+- Message Pipeline
+- Guest Identity
+- Conversation Binding
+- Persistence (Astra / Cassandra)
+- Decision Layer
+- Admin Panel
+
+El documento debe funcionar como **vista arquitectónica global del sistema**, complementando la documentación por dominios ya existente.
+
+Referencias existentes:
+
+- `docs/architecture/channel_architecture.md`
+- `docs/architecture/message_pipeline.md`
+- `docs/architecture/guest_identity_model.md`
+- `docs/architecture/admin_panel.md`
+- `docs/architecture/astra_persistence_policy.md`
+
+Este pendiente se implementará cuando la arquitectura del sistema esté suficientemente estabilizada.
