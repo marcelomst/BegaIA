@@ -29,6 +29,11 @@ class InMemoryCollection {
     }
     return structuredClone(arr);
   }
+  find(filter: Partial<Doc> = {}) {
+    return {
+      toArray: async () => this.findMany(filter),
+    };
+  }
   async updateOne(filter: Partial<Doc>, update: Partial<Doc>) {
     for (const [id, d] of this.data.entries()) {
       let ok = true;

@@ -33,7 +33,10 @@ function channelFromAlias(alias: string): string | null {
 
 function isAbsorbedGuest(g: Guest): boolean {
   const tags = Array.isArray(g.tags) ? g.tags : [];
-  return tags.some((t) => String(t).startsWith("merged-into:"));
+  return tags.some((t) => {
+    const v = String(t);
+    return v === "merged" || v.startsWith("merged-into:");
+  });
 }
 
 export async function GET(req: NextRequest) {

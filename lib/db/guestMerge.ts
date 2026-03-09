@@ -50,7 +50,10 @@ async function findAllByFilter(col: any, filter: Record<string, unknown>): Promi
 function isMergedGuest(guest: Guest | null): boolean {
   if (!guest) return false;
   const tags = Array.isArray(guest.tags) ? guest.tags : [];
-  return tags.some((t) => String(t).startsWith("merged-into:"));
+  return tags.some((t) => {
+    const v = String(t);
+    return v === "merged" || v.startsWith("merged-into:");
+  });
 }
 
 export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeGuestsResult> {
