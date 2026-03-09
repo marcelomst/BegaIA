@@ -279,6 +279,54 @@ permitiendo reiniciar pruebas E2E limpias del flujo:
 `WhatsApp -> alias telefónico`
 `Admin -> inbox / guests / conversaciones`
 
+### UI-ADMIN-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-09  
+Commit: 7eb7bd0
+
+Descripción:
+
+Normalización inicial de navegación del Admin Panel.
+
+Se reorganiza el panel administrativo por dominios funcionales:
+Inbox, Guests, Channels, Knowledge, Hotels, Users y Tools.
+
+Se introduce dominio explícito Guests y separación conceptual entre
+operación conversacional (Inbox) y modelo guest-centric (Guests).
+
+Componentes implementados:
+
+- `app/admin/layout.tsx`
+- `app/admin/inbox/page.tsx`
+- `app/admin/guests/page.tsx`
+- `components/admin/ChannelInbox.tsx`
+- `lib/auth/roles.ts`
+
+Resultado arquitectónico:
+
+La navegación administrativa pasa a reflejar dominios funcionales
+alineados con la arquitectura SaaS multicanal y multihotel del sistema.
+
+### FIX-UI-ADMIN-01A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-09  
+Commit: 7eb7bd0
+
+Descripción:
+
+Corrección semántica de Inbox/Guests.
+
+Se elimina el hardcode a WhatsApp y se introduce diferenciación mínima
+de vistas mediante `viewMode` en `ChannelInbox`.
+
+Resultado arquitectónico:
+
+Las vistas `/admin/inbox` y `/admin/guests` dejan de estar acopladas
+a un canal específico y pasan a expresar semánticas distintas dentro
+del modelo guest-centric del sistema.
+
 ## MCP Core (estable)
 
 - ChannelManagerAdapter funcionando
