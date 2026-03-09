@@ -1,66 +1,139 @@
-# Arquitectura
+# Begasist Architecture Overview
 
-![Arquitectura Begasist](./architecture_diagram.png)
+Este directorio contiene la documentación arquitectónica estable del sistema
+Begasist.
 
-Este diagrama resume la arquitectura general de Begasist (SaaS multihotel):
+El objetivo de esta documentación es describir cómo está diseñado el sistema,
+independientemente de la secuencia histórica de cambios.
 
-- Inbound por canales (Web / WhatsApp / Email / Channel Manager)
-- Normalización a `ChannelMessage`
-- Persistencia (AstraDB)
-- Orquestación (LangGraph)
-- Respuesta (automática o supervisada)
+Para comprender la evolución del sistema debe consultarse también:
 
-## Contrato Twilio Inbound (vigente)
+`hito_mcp.md`
 
-Routing inbound WhatsApp Twilio:
+que funciona como Architecture Evolution Log del proyecto.
+
+## Organización de la documentación
+
+La arquitectura del sistema se documenta por dominios funcionales.
+
+Cada archivo describe un subsistema específico.
+
+Ejemplo de dominios documentados:
+
+- Admin Panel
+- Channels
+- Guest Identity
+- Knowledge Base
+- MCP / Channel Manager
+- Message Pipeline
+- Multi-hotel SaaS architecture
+
+## Documentos disponibles
+
+### Admin Panel
+
+`admin_panel.md`
+
+Describe la arquitectura del panel administrativo del sistema, incluyendo:
+
+- organización por dominios funcionales
+- modelo guest-centric
+- separación Inbox / Guests
+- herramientas administrativas
+- evolución inicial documentada en `UI-ADMIN-01`
+
+### Arquitectura general
+
+`architecture_diagram.png`
+
+Resume la arquitectura general de Begasist (SaaS multihotel):
+
+- inbound por canales (Web / WhatsApp / Email / Channel Manager)
+- normalización a `ChannelMessage`
+- persistencia (AstraDB)
+- orquestación (LangGraph)
+- respuesta (automática o supervisada)
+
+### Twilio inbound routing
+
+`twilio_inbound_contract.md`
+
+Documenta el contrato de routing inbound de WhatsApp Twilio:
 
 `Twilio inbound -> resolveHotelIdByTwilioTo(to) -> hotelId | unmapped`
 
-Reglas:
+### Persistencia Astra
 
-- Si existe mapping `To -> hotelId`, el webhook procesa normalmente.
-- Si no existe mapping, responde `ok/unmapped`.
-- No existe fallback por variables de entorno.
+`astra_persistence_policy.md`
 
-## Politica Astra (vigente)
+Describe la separación entre capa operacional SaaS y capa KB/retrieval.
 
-Begasist separa persistencia Astra en dos capas:
+### Guest aliases en CQL
 
-- Capa operacional SaaS (global y multihotel, con particion logica por `hotelId`), con preferencia por **Tables (CQL)** para entidades estables.
-- Capa KB/retrieval (coleccion vectorial por hotel).
+`astra_guest_aliases_table_adapter.md`
 
-Detalle completo: [Politica Astra Persistence](./astra_persistence_policy.md)
+Documenta la implementación de `guest_aliases` como tabla Cassandra CQL.
 
-## Guest Identity Persistence
+### Binding de conversación por huésped
 
-La entidad `guest_aliases` se implementa como **Cassandra CQL Table** y no como Collection.
+`conversation_binding_guest_identity.md`
 
-Esto alinea infraestructura física y acceso de código, evitando dependencia en índices automáticos de Astra Data API.
-
-Detalle completo:
-
-[Guest Aliases Table Adapter](./astra_guest_aliases_table_adapter.md)
-
-## Conversation Binding by Guest Identity
-
-Begasist resuelve conversaciones por identidad de huésped (`guestId`) en lugar de depender exclusivamente de `conversationId` generado por canal.
-
-Prioridad de resolución:
+Documenta la resolución de conversación por identidad (`guestId`) con prioridad:
 
 1. `conversationId` explícito
 2. conversación activa por `(hotelId + guestId)`
 3. nueva conversación
 
-Detalle completo:
+### Inbox admin unificado
 
-[Conversation Binding by Guest Identity](./conversation_binding_guest_identity.md)
+`admin_inbox_unified.md`
 
-## Admin Inbox Unified by Guest Identity
+Documenta la consulta admin unificada por `guestId` sobre infraestructura
+multicanal.
 
-Begasist permite que el panel admin consulte conversaciones unificadas por `guestId`, reutilizando la infraestructura de identidad transversal y binding de conversación.
+### Modelo de identidad de huéspedes
 
-Esto habilita una lectura multicanal coherente por huésped sin modificar el pipeline conversacional.
+`guest_identity_model.md`
 
-Detalle completo:
+Describe el modelo transversal de identidad (`guests`, `guest_aliases`,
+`guest_aliases_by_guest`) y su impacto operativo.
 
-[Admin Inbox Unified by Guest Identity](./admin_inbox_unified.md)
+## Relación con el Architecture Evolution Log
+
+La documentación en este directorio describe el estado estructural del sistema.
+
+La evolución histórica del sistema se documenta en:
+
+`hito_mcp.md`
+
+donde cada entrada corresponde a un hito técnico significativo asociado a uno o
+más commits del repositorio.
+
+Esto permite mantener trazabilidad entre:
+
+- decisiones arquitectónicas
+- implementación en código
+- documentación técnica
+
+## Filosofía de documentación
+
+Begasist mantiene dos niveles complementarios de documentación.
+
+### Arquitectura estable
+
+Ubicada en:
+
+`docs/architecture/`
+
+Describe cómo está diseñado el sistema.
+
+### Evolución arquitectónica
+
+Ubicada en:
+
+`hito_mcp.md`
+
+Describe cómo evolucionó el sistema a lo largo del tiempo.
+
+Este enfoque permite mantener una arquitectura clara incluso cuando el sistema
+evoluciona mediante múltiples hitos técnicos.
