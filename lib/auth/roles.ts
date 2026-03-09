@@ -136,6 +136,8 @@ export function canAccessAdminRoute(roleLevel: number, pathname: string) {
   // Recepción puede ver canales, cambiar password y home
   if (
     pathname.startsWith("/admin/channels") ||
+    pathname.startsWith("/admin/inbox") ||
+    pathname.startsWith("/admin/guests") ||
     pathname.startsWith("/auth/change-password") ||
     pathname === "/admin"
   ) {

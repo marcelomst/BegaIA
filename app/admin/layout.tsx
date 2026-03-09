@@ -11,9 +11,9 @@ import { SidebarLink } from "@/components/ui/SidebarLink";
 import { SidebarGroup } from "@/components/ui/SidebarGroup";
 import {
   Users,
+  User,
   KeyRound,
   Hotel,
-  Upload,
   Brain,
   BookOpen,
   Server,
@@ -132,6 +132,51 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         />
                       }
                     />
+                    {canAccessChannelsSection(user.roleLevel) && (
+                      <SidebarLink
+                        href="/admin/guests"
+                        label={sidebarOpen ? "Guests" : ""}
+                        icon={<User className="w-5 h-5" />}
+                      />
+                    )}
+                    {canAccessChannelsSection(user.roleLevel) && (
+                      <SidebarLink
+                        href="/admin/inbox"
+                        label={sidebarOpen ? "Inbox" : ""}
+                        icon={<MessageSquare className="w-5 h-5" />}
+                      />
+                    )}
+                    {canAccessUploadSection(user.roleLevel) && (
+                      <SidebarGroup
+                        label={sidebarOpen ? "Knowledge" : ""}
+                        icon={<BookOpen className="w-5 h-5" />}
+                      >
+                        <SidebarLink
+                          href="/admin/kb/templates"
+                          label={sidebarOpen ? "Templates" : ""}
+                          icon={<BookOpen className="w-4 h-4" />}
+                        />
+                        <SidebarLink
+                          href="/admin/upload"
+                          label={sidebarOpen ? "Ingesta manual" : ""}
+                          icon={<FileText className="w-4 h-4" />}
+                        />
+                      </SidebarGroup>
+                    )}
+                    {canAccessChannelsSection(user.roleLevel) && (
+                      <SidebarLink
+                        href="/admin/channels"
+                        label={sidebarOpen ? t.layout.channels : ""}
+                        icon={<Server className="w-5 h-5" />}
+                      />
+                    )}
+                    {(canAccessHotelSection(user.roleLevel) || user.hotelId === "system") && (
+                      <SidebarLink
+                        href="/admin/events"
+                        label={sidebarOpen ? "Events" : ""}
+                        icon={<FileText className="w-5 h-5" />}
+                      />
+                    )}
                     {canAccessHotelsSection(user.roleLevel) && (
                       <SidebarLink
                         href="/admin/hotels"
@@ -147,74 +192,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         icon={<Hotel className="w-5 h-5" />}
                       />
                     )}
-                    {/* Acceso rápido al generador de Snippet para el hotel del usuario */}
-                    {canAccessHotelSection(user.roleLevel) && (
-                      <SidebarLink
-                        href={`/admin/hotels/${user.hotelId}/widget`}
-                        label="Widget"
-                        icon={<MessageSquare className="w-5 h-5" />}
-                      />
-                    )}
-                    {canAccessUploadSection(user.roleLevel) && (
-                      <SidebarLink
-                        href="/admin/upload"
-                        // Modo avanzado: ingesta manual de documentos sueltos
-                        label={sidebarOpen ? (t.layout.uploadAdvanced || "Ingesta Manual") : ""}
-                        icon={<Upload className="w-5 h-5" />}
-                      />
-                    )}
-                    {canAccessUploadSection(user.roleLevel) && (
-                      <SidebarLink
-                        href="/admin/kb/templates"
-                        // Punto único de generación/preview de KB
-                        label={sidebarOpen ? (t.layout?.kbGenerate || "Generar KB") : ""}
-                        icon={<BookOpen className="w-5 h-5" />}
-                      />
-                    )}
-                    {canAccessChannelsSection(user.roleLevel) && (
-                      <SidebarLink
-                        href="/admin/channels"
-                        label={sidebarOpen ? t.layout.channels : ""}
-                        icon={<Server className="w-5 h-5" />}
-                      />
-                    )}
-                    {(canAccessHotelSection(user.roleLevel) || user.hotelId === "system") && (
-                      <SidebarGroup
-                        label={sidebarOpen ? "Eventos" : ""}
-                        icon={<FileText className="w-5 h-5" />}
-                      >
-                        {user.hotelId === "system" ? (
-                          <SidebarLink
-                            href="/admin/poi"
-                            label={sidebarOpen ? "Eventos (POI - system)" : ""}
-                            icon={<FileText className="w-4 h-4" />}
-                          />
-                        ) : (
-                          <SidebarLink
-                            href="/admin/events"
-                            label={sidebarOpen ? "Eventos del hotel" : ""}
-                            icon={<FileText className="w-4 h-4" />}
-                          />
-                        )}
-                      </SidebarGroup>
-                    )}
                     {canAccessUsersSection(user.roleLevel) && (
-                      <SidebarGroup
-                        label={sidebarOpen ? t.layout.users : ""}
+                      <SidebarLink
+                        href="/admin/users/manage"
+                        label={sidebarOpen ? "Users" : ""}
                         icon={<Users className="w-5 h-5" />}
-                      >
-                        <SidebarLink
-                          href="/admin/users/manage"
-                          label={sidebarOpen ? t.layout.usersManage : ""}
-                          icon={<Users className="w-4 h-4" />}
-                        />
-                      </SidebarGroup>
+                      />
                     )}
                     {(canAccessPromptsSection(user.roleLevel) ||
                       canAccessEmbeddingsSection(user.roleLevel) ||
                       canAccessLogsSection(user.roleLevel)) && (
                       <SidebarGroup
-                        label={sidebarOpen ? t.layout.development : ""}
+                        label={sidebarOpen ? "Tools" : ""}
                         icon={<Settings className="w-5 h-5" />}
                       >
                         {canAccessPromptsSection(user.roleLevel) && (

@@ -18,6 +18,7 @@ interface ChannelInboxProps {
   t: any;
   reloadFlag?: number;
   curationModel?: CurationModel;
+  viewMode?: "inbox" | "guests";
 }
 
 type PendingItem = {
@@ -40,7 +41,14 @@ type AdminGuestProfile = {
   lastActivityAt: string | null;
 };
 
-export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, curationModel }: ChannelInboxProps) {
+export default function ChannelInbox({
+  hotelId,
+  channel,
+  t,
+  reloadFlag = 0,
+  curationModel,
+  viewMode = "inbox",
+}: ChannelInboxProps) {
   const { user } = useCurrentUser();
   if (!hotelId) {
     console.warn("⚠️ [ChannelInbox] hotelId no disponible aún. Esperando...");
@@ -238,13 +246,14 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
 
   async function handleNewConversation() {
     if (!selectedGuest) return;
+    const activeChannel = selectedConvChannel || "web";
     const res = await fetch("/api/conversations/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         hotelId,
         guestId: selectedGuest,
-        channel,
+        channel: activeChannel,
         subject: t.channelInbox?.newConv || "Nueva conversación",
         lang: t.lang || "es",
       }),
@@ -260,12 +269,16 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
   }
 
   async function handleSendEdit(msg: ChatTurnWithMeta, idx: number) {
-    const payload = channel === "whatsapp"
+    const activeChannel =
+      conversations.find((c) => c.conversationId === selectedConv)?.channel ||
+      selectedConvChannel ||
+      channel;
+    const payload = activeChannel === "whatsapp"
       ? {
           action: "approve_and_send",
           messageId: msg.messageId,
           approvedResponse: editingText,
-          channel,
+          channel: activeChannel,
           respondedBy: user?.email,
           to: msg.guestId,
         }
@@ -273,7 +286,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
           messageId: msg.messageId,
           approvedResponse: editingText,
           status: "sent",
-          channel,
+          channel: activeChannel,
           respondedBy: user?.email,
         };
 
@@ -287,7 +300,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
       alert(err?.error || "No se pudo enviar el mensaje");
       return;
     }
-    fetchAndMapMessagesWithSubject(channel, selectedConv!, hotelId).then(({ messages }) => {
+    fetchAndMapMessagesWithSubject(activeChannel, selectedConv!, hotelId).then(({ messages }) => {
       setMessages(messages);
       setEditingIdx(null);
       setEditingText("");
@@ -334,7 +347,9 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
       <div className="flex h-[80vh] bg-background rounded-lg border border-border overflow-hidden">
         <aside className="w-56 bg-muted border-r p-2 flex flex-col">
           <div className="flex items-center mb-2 font-semibold text-base px-2">
-            <span className="flex-1">{t.channelInbox?.guestsLabel || "Guests"}</span>
+            <span className="flex-1">
+              {viewMode === "guests" ? "Guests" : (t.channelInbox?.guestsLabel || "Guests")}
+            </span>
           </div>
           <div className="flex-1 overflow-y-auto">
             {guests.map((guest) => {
@@ -417,7 +432,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
             </div>
           )}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
-            {channel === "whatsapp" && pendingList.length > 0 && (
+            {viewMode === "inbox" && channel === "whatsapp" && pendingList.length > 0 && (
               <div className="border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 rounded p-3 text-sm">
                 <div className="font-semibold mb-2">Pendientes WhatsApp: {pendingList.length}</div>
                 <div className="space-y-2">
@@ -475,7 +490,7 @@ export default function ChannelInbox({ hotelId, channel, t, reloadFlag = 0, cura
                 key={idx}
                 msg={msg}
                 idx={idx}
-                isEmail={channel === "email"}
+                isEmail={selectedConvChannel === "email"}
                 subject={subject}
                 editingIdx={editingIdx}
                 editingText={editingText}
