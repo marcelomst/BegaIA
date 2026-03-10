@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useCurrentUser } from "@/lib/context/UserContext";
 
 type GuestRow = {
@@ -266,7 +267,15 @@ export default function AdminGuestsPage() {
                   <div className="max-h-40 overflow-auto space-y-1">
                     {conversations.map((c) => (
                       <div key={c.conversationId} className="text-xs rounded bg-muted px-2 py-1">
-                        <div><span className="font-mono">{c.conversationId}</span></div>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-mono">{c.conversationId}</span>
+                          <Link
+                            href={`/admin/inbox?guestId=${encodeURIComponent(selectedGuestId)}&conversationId=${encodeURIComponent(c.conversationId)}`}
+                            className="shrink-0 rounded border border-border bg-background px-2 py-0.5 text-[11px] font-medium hover:bg-background/80"
+                          >
+                            Abrir en Inbox
+                          </Link>
+                        </div>
                         <div>{c.channel || "-"} · {c.status || "-"} · {fmtDate(c.lastUpdatedAt || null)}</div>
                         <div className="text-muted-foreground">{c.subject || "Sin asunto"}</div>
                       </div>

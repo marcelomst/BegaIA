@@ -2,13 +2,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ChannelInbox from "@/components/admin/ChannelInbox";
 import { useCurrentUser } from "@/lib/context/UserContext";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export default function AdminInboxPage() {
   const { user, loading } = useCurrentUser();
+  const searchParams = useSearchParams();
   const [t, setT] = useState<any>(null);
+  const initialGuestId = searchParams?.get("guestId") ?? "";
+  const initialConversationId = searchParams?.get("conversationId") ?? "";
 
   useEffect(() => {
     if (!user?.defaultLanguage) {
@@ -38,7 +42,14 @@ export default function AdminInboxPage() {
           Vista operativa multicanal por conversaciones activas.
         </p>
       </header>
-      <ChannelInbox hotelId={user.hotelId} channel="all" t={t} viewMode="inbox" />
+      <ChannelInbox
+        hotelId={user.hotelId}
+        channel="all"
+        t={t}
+        viewMode="inbox"
+        initialGuestId={initialGuestId || undefined}
+        initialConversationId={initialConversationId || undefined}
+      />
     </section>
   );
 }

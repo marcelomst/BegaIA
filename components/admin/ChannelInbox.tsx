@@ -19,6 +19,8 @@ interface ChannelInboxProps {
   reloadFlag?: number;
   curationModel?: CurationModel;
   viewMode?: "inbox" | "guests";
+  initialGuestId?: string;
+  initialConversationId?: string;
 }
 
 type PendingItem = {
@@ -48,6 +50,8 @@ export default function ChannelInbox({
   reloadFlag = 0,
   curationModel,
   viewMode = "inbox",
+  initialGuestId,
+  initialConversationId,
 }: ChannelInboxProps) {
   const { user } = useCurrentUser();
   if (!hotelId) {
@@ -102,6 +106,32 @@ export default function ChannelInbox({
       if (convs.length > 0) setSelectedGuest(convs[0].guestId ?? null);
     });
   }, [hotelId, channel, reloadFlag]);
+
+  useEffect(() => {
+    if (conversations.length === 0) return;
+
+    if (initialConversationId) {
+      const targetConv = conversations.find((c) => c.conversationId === initialConversationId);
+      if (targetConv) {
+        setSelectedGuest(targetConv.guestId ?? null);
+        setSelectedConv(targetConv.conversationId);
+        setSelectedConvChannel(targetConv.channel ?? channel);
+        setSubject(targetConv.subject ?? "");
+        return;
+      }
+    }
+
+    if (initialGuestId) {
+      const targetGuestConvs = conversations.filter((c) => c.guestId === initialGuestId);
+      if (targetGuestConvs.length > 0) {
+        const firstConv = targetGuestConvs[0];
+        setSelectedGuest(initialGuestId);
+        setSelectedConv(firstConv.conversationId);
+        setSelectedConvChannel(firstConv.channel ?? channel);
+        setSubject(firstConv.subject ?? "");
+      }
+    }
+  }, [conversations, initialConversationId, initialGuestId, channel]);
 
   useEffect(() => {
     if (!selectedGuest) return;
