@@ -1282,3 +1282,42 @@ El endpoint `/api/admin/guests` permite opcionalmente incluir absorbidos mediant
 Impacto:
 
 Se elimina el riesgo de re-merge y se alinea la UI con la política operativa del sistema.
+
+### DOC-ARCH-SYSTEM-DIAGRAMS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-10  
+Commit: 70627c3233d907c0a082886d4d2d5201dce20bef
+
+Descripción:
+
+Se reorganiza la visualización arquitectónica de Begasist en un esquema por
+capas, separando un diagrama L1 de overview del sistema y subdiagramas por
+dominio.
+
+Componentes incorporados:
+
+- `docs/architecture/system_overview.mmd`
+- `docs/architecture/channel_flow_overview.mmd`
+- `docs/architecture/message_pipeline_detail.mmd`
+- `docs/architecture/guest_identity_detail.mmd`
+- `docs/architecture/admin_panel_relation.mmd`
+- assets renderizados en `svg`
+- assets fallback en `png`
+- navegación visual desde `docs/architecture/README.md`
+- script reutilizable `scripts/render-mermaid.sh`
+- scripts de render en `package.json`
+
+Resultado arquitectónico:
+
+La documentación visual deja de concentrarse en un único diagrama saturado y
+pasa a organizarse como:
+
+- L1: visión global del sistema
+- L2: detalle por canales
+- L2: detalle del message pipeline
+- L2: detalle de guest identity
+- L2: relación del Admin Panel con los dominios operativos
+
+Esto mejora legibilidad, mantenibilidad y navegación de la arquitectura
+documentada.
