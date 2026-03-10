@@ -1349,3 +1349,57 @@ conversacional.
 
 Guests permanece como dominio de identidad mientras Inbox continúa siendo el
 espacio operativo para gestionar conversaciones.
+
+### UI-GUESTS-03A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-10  
+Commit: 028a1342904d85a26c5ebf9cb30df480ab405d87
+
+Descripción:
+
+Se incorpora una política compartida de identidad visible legible para
+huéspedes en el Admin Panel.
+
+La representación visual del guest pasa a priorizar:
+
+- guest.name
+- alias humanizado
+- fallback "Guest <id corto>"
+
+El guestId se mantiene como dato secundario.
+
+Impacto:
+
+Mejora la operación humana en Guests e Inbox y prepara el terreno para la
+detección de posibles duplicados.
+
+### UI-GUESTS-03B
+
+Estado: COMPLETADO  
+Fecha: 2026-03-10  
+Commit: 028a1342904d85a26c5ebf9cb30df480ab405d87
+
+Descripción:
+
+Se agrega una capa de sugerencias heurísticas de posibles merges en el módulo
+Guests.
+
+La UI muestra candidatos sugeridos junto con:
+
+- score
+- severidad
+- señales explicables
+
+Acciones disponibles:
+
+- Revisar
+- Preparar merge
+- Ignorar por ahora
+
+El merge continúa siendo manual y explícito.
+
+Impacto:
+
+Begasist pasa de permitir merges manuales a ayudar activamente a descubrir qué
+guests podrían representar a la misma persona.

@@ -329,3 +329,114 @@ Permite que el operador:
 `abra directamente la interacción`
 
 sin tener que cambiar manualmente de módulo ni volver a buscar el thread.
+
+### UI-GUESTS-03A — Identidad visible legible
+
+Se incorpora una política compartida de representación visual del huésped para
+la UI administrativa.
+
+#### Problema previo
+
+En varias vistas del Admin, el huésped podía aparecer representado por:
+
+- `guestId`
+- alias técnico
+- identificadores poco legibles para recepción
+
+Esto dificultaba la operación humana y volvía demasiado técnica la revisión de
+guests.
+
+#### Solución implementada
+
+Se define una política única de `displayName` para Guests e Inbox, con
+prioridad:
+
+`1. guest.name`
+`2. alias legible humanizado`
+`3. fallback "Guest <id corto>"`
+
+#### Ejemplos de representación visible
+
+`Marcelo Martínez`
+`WhatsApp +598...`
+`Email mar...@dominio.com`
+`Web guest`
+`Guest 6f03a100`
+
+#### Regla importante
+
+El `guestId` sigue existiendo y continúa visible como dato secundario o
+diagnóstico, pero deja de ser la referencia principal para operación humana.
+
+#### Impacto
+
+Con este cambio, recepción puede operar sobre una identidad visual coherente y
+usable, condición necesaria para revisar duplicados potenciales y consolidar
+guests.
+
+### UI-GUESTS-03B — Sugerencias operativas de merge
+
+Se agrega una primera capa de detección asistida de posibles duplicados en el
+módulo Guests.
+
+#### Principio de diseño
+
+Begasist no ejecuta merge automático.
+
+El sistema solo:
+
+`sugiere posibles merges`
+
+y el operador humano sigue siendo quien decide y ejecuta la consolidación
+manual.
+
+#### Implementación
+
+Las sugerencias se calculan mediante heurísticas simples, explicables y no
+persistidas.
+
+Se exponen en una nueva sección del módulo Guests:
+
+`Posibles merges sugeridos`
+
+Cada sugerencia muestra:
+
+- guest candidato principal
+- guest candidato secundario
+- score simple
+- severidad (`high`, `medium`, `low`)
+- señales que justifican la sugerencia
+
+#### Heurísticas utilizadas
+
+Ejemplos de señales activas en esta V1:
+
+- actividad muy cercana o cercana
+- canales distintos
+- nombre igual
+- uno sin nombre
+- aliases complementarios
+- contacto coincidente (`email`, `whatsapp`, `phone`) si existe
+
+#### Acciones disponibles
+
+Cada sugerencia permite:
+
+- `Revisar`
+- `Preparar merge`
+- `Ignorar por ahora`
+
+La acción **Preparar merge** no ejecuta el merge automáticamente; solo
+precarga el flujo manual existente.
+
+#### Limitaciones de la V1
+
+- las sugerencias no se persisten
+- `Ignorar por ahora` vive solo en estado local de UI
+- no hay scoring probabilístico avanzado ni IA
+- no existe auto-merge
+
+#### Impacto UX
+
+El dominio Guests deja de limitarse a mostrar identidades y pasa a ayudar
+activamente a descubrir qué guests podrían representar a la misma persona.

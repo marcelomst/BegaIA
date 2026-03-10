@@ -207,3 +207,72 @@ Un guest absorbido:
 
 Esto permite mantener trazabilidad sin generar duplicidad en la operación
 diaria.
+
+### Identidad visible en operación humana
+
+Aunque `guestId` sigue siendo la identidad técnica persistente del sistema, la
+operación humana requiere una representación visible legible.
+
+Begasist incorpora una política de display basada en:
+
+`guest.name`
+`-> alias humanizado`
+`-> Guest <id corto>`
+
+Esto separa claramente:
+
+`guestId = identidad técnica`
+`displayName = identidad operativa visible`
+
+La misma política se utiliza en múltiples vistas administrativas para mantener
+consistencia entre módulos.
+
+### Detección asistida de posibles duplicados
+
+La resolución de identidad en Begasist continúa siendo manual y explícita, pero
+ahora el sistema ayuda a descubrir posibles duplicados mediante heurísticas
+simples.
+
+Esta capa no modifica el modelo de datos de fondo, sino que agrega una ayuda
+operativa sobre la información ya disponible de:
+
+- aliases
+- canales
+- timestamps
+- nombre visible
+- actividad reciente
+
+La sugerencia de merge se considera:
+
+`asistencia operativa`
+
+y no decisión automática del sistema.
+
+### Heurísticas de sugerencia
+
+La V1 contempla señales como:
+
+- actividad temporal cercana
+- distintos canales
+- coincidencia fuerte de nombre
+- presencia de un guest sin nombre
+- aliases complementarios
+- coincidencia de contacto si existe
+
+Estas heurísticas buscan reducir el esfuerzo del recepcionista para encontrar
+posibles duplicados, manteniendo siempre confirmación humana.
+
+### Nota importante
+
+El sistema puede sugerir:
+
+`possible merge`
+
+pero no debe ejecutar:
+
+`merge automático`
+
+sin intervención humana.
+
+Esta restricción sigue siendo parte central del modelo de identidad de
+Begasist.
