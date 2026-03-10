@@ -6,6 +6,7 @@ import { fetchAllConversationsByChannel } from "@/utils/fetchAndOrderConversatio
 import { fetchAndMapMessagesWithSubject } from "@/utils/fetchAndMapMessagesWithSubject";
 import { fetchGuest } from "@/utils/fetchGuest";
 import { shortGuestId } from "@/lib/utils/shortGuestId";
+import { getGuestDisplayName } from "@/lib/utils/guestDisplay";
 import { useCurrentUser } from "@/lib/context/UserContext";
 import GuestProfileModal from "./GuestProfileModal";
 import MessageBubble from "./MessageBubble";
@@ -385,9 +386,12 @@ export default function ChannelInbox({
             {guests.map((guest) => {
               const isActive = guest === selectedGuest;
               const profile = profiles[guest];
-              const displayName = profile?.name?.trim()?.length
-                ? (profile.name.length > 16 ? profile.name.slice(0, 15) + "…" : profile.name)
-                : shortGuestId(guest, channel);
+              const displayName = getGuestDisplayName({
+                guestId: guest,
+                name: profile?.name,
+                aliases: Array.isArray(profile?.aliases) ? profile.aliases : [],
+                channel,
+              });
               const mode = profile?.mode || "automatic";
               const modeIcon = mode === "supervised"
                 ? <span title="Sup." className="text-yellow-700 dark:text-yellow-200 mr-1">🖍</span>
@@ -406,7 +410,12 @@ export default function ChannelInbox({
                 >
                   {modeIcon}
                   <User2 className="w-4 h-4 shrink-0" />
-                  <span className="font-semibold truncate max-w-[90px] block">{displayName}</span>
+                  <div className="min-w-0">
+                    <span className="font-semibold truncate max-w-[90px] block">{displayName}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground block">
+                      {shortGuestId(guest, channel)}
+                    </span>
+                  </div>
                   <button
                     className="ml-auto text-blue-500 hover:text-blue-700 p-1 rounded"
                     title={t.channelInbox?.editGuest || "Editar perfil del guest"}
@@ -451,6 +460,19 @@ export default function ChannelInbox({
           </div>
           {selectedGuest && guestProfile && (
             <div className="mx-4 mt-4 border border-border rounded-md p-3 bg-muted/30 text-sm">
+              <div className="mb-2">
+                <div className="text-base font-semibold">
+                  {getGuestDisplayName({
+                    guestId: guestProfile.guestId,
+                    name: guestProfile.guest?.name,
+                    aliases: guestProfile.aliases,
+                    channel: selectedConvChannel || channel,
+                  })}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {shortGuestId(guestProfile.guestId, channel)}
+                </div>
+              </div>
               <div><span className="font-semibold">Guest ID:</span> {guestProfile.guestId}</div>
               <div><span className="font-semibold">Aliases:</span> {guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</div>
               <div><span className="font-semibold">Channels:</span> {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}</div>

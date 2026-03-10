@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCurrentUser } from "@/lib/context/UserContext";
+import { getGuestDisplayName } from "@/lib/utils/guestDisplay";
+import { buildGuestMergeSuggestions } from "@/lib/utils/guestMergeSuggestions";
 
 type GuestRow = {
   guestId: string;
@@ -48,6 +50,7 @@ export default function AdminGuestsPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [search, setSearch] = useState("");
   const [mergeSecondaryGuestId, setMergeSecondaryGuestId] = useState("");
+  const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<string[]>([]);
 
   async function loadGuests() {
     if (!user?.hotelId) return;
@@ -121,6 +124,34 @@ export default function AdminGuestsPage() {
     [guests, selectedGuestId],
   );
 
+  const guestsById = useMemo(
+    () => new Map(guests.map((guest) => [guest.guestId, guest])),
+    [guests],
+  );
+
+  const mergeSuggestions = useMemo(
+    () =>
+      buildGuestMergeSuggestions(guests).filter(
+        (suggestion) => !dismissedSuggestionKeys.includes(suggestion.key),
+      ),
+    [guests, dismissedSuggestionKeys],
+  );
+
+  function dismissSuggestion(key: string) {
+    setDismissedSuggestionKeys((current) => (current.includes(key) ? current : [...current, key]));
+  }
+
+  function prepareMergeFromSuggestion(primaryGuestId: string, secondaryGuestId: string) {
+    setSelectedGuestId(primaryGuestId);
+    setMergeSecondaryGuestId(secondaryGuestId);
+    window.setTimeout(() => {
+      document.getElementById("guest-merge-panel")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 60);
+  }
+
   async function handleMerge() {
     if (!user?.hotelId || !selectedGuestId || !mergeSecondaryGuestId) return;
     const secondary = guests.find((g) => g.guestId === mergeSecondaryGuestId);
@@ -180,6 +211,129 @@ export default function AdminGuestsPage() {
         </div>
       )}
 
+      <div className="rounded border border-border bg-background p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="font-semibold">Posibles merges sugeridos</h2>
+            <p className="text-xs text-muted-foreground">
+              Sugerencias heurísticas para detectar posibles duplicados. El merge sigue siendo manual.
+            </p>
+          </div>
+          <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
+            {mergeSuggestions.length} sugerencia{mergeSuggestions.length === 1 ? "" : "s"}
+          </span>
+        </div>
+        {mergeSuggestions.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            No hay sugerencias útiles con las heurísticas actuales.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {mergeSuggestions.map((suggestion) => {
+              const primary = guestsById.get(suggestion.primaryGuestId);
+              const secondary = guestsById.get(suggestion.secondaryGuestId);
+              if (!primary || !secondary) return null;
+
+              const severityClass =
+                suggestion.severity === "high"
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200"
+                  : suggestion.severity === "medium"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+                    : "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-200";
+
+              return (
+                <div
+                  key={suggestion.key}
+                  className="rounded border border-border bg-muted/20 p-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${severityClass}`}>
+                        {suggestion.severity}
+                      </span>
+                      <span className="text-xs text-muted-foreground">score {suggestion.score}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                        onClick={() => setSelectedGuestId(primary.guestId)}
+                      >
+                        Revisar
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded bg-amber-700 px-2 py-1 text-xs text-white hover:bg-amber-800"
+                        onClick={() => prepareMergeFromSuggestion(primary.guestId, secondary.guestId)}
+                      >
+                        Preparar merge
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                        onClick={() => dismissSuggestion(suggestion.key)}
+                      >
+                        Ignorar por ahora
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded border border-border bg-background p-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Primary candidate
+                      </div>
+                      <div className="font-medium">
+                        {getGuestDisplayName({
+                          guestId: primary.guestId,
+                          name: primary.name,
+                          aliases: primary.aliases,
+                          channel: primary.channels[0] || null,
+                        })}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        guestId: {compactGuestId(primary.guestId)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {primary.channels.length ? primary.channels.join(", ") : "-"} · {fmtDate(primary.lastActivityAt)}
+                      </div>
+                    </div>
+                    <div className="rounded border border-border bg-background p-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Secondary candidate
+                      </div>
+                      <div className="font-medium">
+                        {getGuestDisplayName({
+                          guestId: secondary.guestId,
+                          name: secondary.name,
+                          aliases: secondary.aliases,
+                          channel: secondary.channels[0] || null,
+                        })}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        guestId: {compactGuestId(secondary.guestId)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {secondary.channels.length ? secondary.channels.join(", ") : "-"} · {fmtDate(secondary.lastActivityAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestion.signals.map((signal) => (
+                      <span
+                        key={signal}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-foreground"
+                      >
+                        {signal}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded border border-border bg-background p-3">
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -220,8 +374,17 @@ export default function AdminGuestsPage() {
                     onClick={() => setSelectedGuestId(g.guestId)}
                   >
                     <td className="px-2 py-1">
-                      <div className="font-mono text-xs" title={g.guestId}>{compactGuestId(g.guestId)}</div>
-                      <div className="text-xs text-muted-foreground">{g.name || "-"}</div>
+                      <div className="font-medium">
+                        {getGuestDisplayName({
+                          guestId: g.guestId,
+                          name: g.name,
+                          aliases: g.aliases,
+                          channel: g.channels[0] || null,
+                        })}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground" title={g.guestId}>
+                        guestId: {compactGuestId(g.guestId)}
+                      </div>
                     </td>
                     <td className="px-2 py-1">{g.aliases.length}</td>
                     <td className="px-2 py-1">{g.channels.length ? g.channels.join(", ") : "-"}</td>
@@ -247,6 +410,19 @@ export default function AdminGuestsPage() {
             <div className="text-sm text-muted-foreground">Seleccioná un guest para ver detalle.</div>
           ) : (
             <>
+              <div>
+                <div className="text-base font-semibold">
+                  {getGuestDisplayName({
+                    guestId: selectedGuest.guestId,
+                    name: selectedGuest.name,
+                    aliases: selectedGuest.aliases,
+                    channel: selectedGuest.channels[0] || null,
+                  })}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  guestId: {compactGuestId(selectedGuest.guestId)}
+                </div>
+              </div>
               <div className="text-sm">
                 <div><span className="font-semibold">Guest ID:</span> <span className="font-mono">{selectedGuest.guestId}</span></div>
                 <div><span className="font-semibold">Nombre:</span> {selectedGuest.name || "-"}</div>
@@ -284,7 +460,10 @@ export default function AdminGuestsPage() {
                 )}
               </div>
 
-              <div className="rounded border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-2">
+              <div
+                id="guest-merge-panel"
+                className="rounded border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-2"
+              >
                 <h3 className="text-sm font-semibold mb-2">Merge manual de identidad</h3>
                 <p className="text-xs mb-2">
                   Seleccioná un guest secundario para consolidar aliases y actividad en el guest principal actual.
@@ -298,7 +477,12 @@ export default function AdminGuestsPage() {
                     <option value="">Seleccionar secondary guest...</option>
                     {mergeCandidates.map((g) => (
                       <option key={g.guestId} value={g.guestId}>
-                        {g.name || compactGuestId(g.guestId)} ({compactGuestId(g.guestId)})
+                        {getGuestDisplayName({
+                          guestId: g.guestId,
+                          name: g.name,
+                          aliases: g.aliases,
+                          channel: g.channels[0] || null,
+                        })} ({compactGuestId(g.guestId)})
                       </option>
                     ))}
                   </select>
