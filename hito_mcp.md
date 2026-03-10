@@ -1321,3 +1321,31 @@ pasa a organizarse como:
 
 Esto mejora legibilidad, mantenibilidad y navegación de la arquitectura
 documentada.
+
+### UI-GUESTS-02
+
+Estado: COMPLETADO  
+Fecha: 2026-03-10  
+Commit: c3e85ea34154bd20f9c99182a73f484d5471de58
+
+Descripción:
+
+Se implementa navegación cruzada desde el dominio Guests hacia Inbox.
+
+Dentro del perfil de huésped, las conversaciones asociadas permiten abrir el
+thread operativo mediante la acción **"Abrir en Inbox"**.
+
+La navegación utiliza deep-link hacia:
+
+`/admin/inbox?guestId=<guestId>&conversationId=<conversationId>`
+
+Inbox acepta estos parámetros y realiza selección inicial automática de la
+conversación correspondiente.
+
+Impacto UX:
+
+Se completa la continuidad entre identidad de huésped y operación
+conversacional.
+
+Guests permanece como dominio de identidad mientras Inbox continúa siendo el
+espacio operativo para gestionar conversaciones.

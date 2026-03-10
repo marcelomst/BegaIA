@@ -279,3 +279,53 @@ Esto evita:
 - merges duplicados
 - confusión operativa en recepción
 - inconsistencias visuales en el panel.
+
+### UI-GUESTS-02 — Navegación Guests -> Inbox
+
+Se incorpora navegación cruzada entre el dominio Guests y el dominio Inbox.
+
+Dentro del perfil de un huésped, en la sección de Conversations asociadas,
+cada conversación expone la acción:
+
+`Abrir en Inbox`
+
+La navegación utiliza deep-link hacia:
+
+`/admin/inbox?guestId=<guestId>&conversationId=<conversationId>`
+
+#### Comportamiento en Inbox
+
+La vista `/admin/inbox` acepta deep-link mediante parámetros de query:
+
+`guestId`
+`conversationId`
+
+Con esos parámetros, Inbox realiza selección inicial automática siguiendo este
+flujo:
+
+1. cargar lista de conversaciones
+2. localizar `conversationId`
+3. seleccionar la conversación correspondiente
+4. enfocar el thread de mensajes
+
+Si el `conversationId` no existe o no se encuentra:
+
+- Inbox continúa funcionando normalmente
+- no se rompe la navegación existente
+
+#### Impacto UX
+
+Este cambio completa la continuidad entre dominios:
+
+`Guests -> identidad`
+`Inbox -> operación`
+
+Permite que el operador:
+
+`vea huésped`
+`↓`
+`revise conversaciones asociadas`
+`↓`
+`abra directamente la interacción`
+
+sin tener que cambiar manualmente de módulo ni volver a buscar el thread.
