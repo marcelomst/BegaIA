@@ -1,0 +1,69 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#0b1220',
+    'primaryColor': '#162033',
+    'primaryTextColor': '#e5eefc',
+    'primaryBorderColor': '#6ea8fe',
+    'lineColor': '#c7d8f8',
+    'clusterBkg': '#0f172a',
+    'clusterBorder': '#3b82f6',
+    'edgeLabelBackground': '#0b1220',
+    'mainBkg': '#162033',
+    'nodeBkg': '#162033',
+    'textColor': '#e5eefc'
+  }
+}}%%
+
+flowchart TD
+
+subgraph CHANNELS["Channels"]
+direction LR
+WEB["Web"]
+WA["WhatsApp"]
+EMAIL["Email"]
+CM["Channel Manager"]
+end
+
+subgraph ADAPTERS["Entry / Adapters"]
+direction LR
+CHAT_API["/api/chat"]
+WA_WEBHOOK["WhatsApp webhook / adapter"]
+EMAIL_ADAPTER["Email parser / adapter"]
+CM_ADAPTER["Channel Manager adapter"]
+end
+
+NORMALIZE["Normalize to ChannelMessage"]
+PIPELINE["Central Message Pipeline"]
+DELIVERY["Response / supervision / outbound delivery"]
+
+WEB --> CHAT_API
+WA --> WA_WEBHOOK
+EMAIL --> EMAIL_ADAPTER
+CM --> CM_ADAPTER
+
+CHAT_API --> NORMALIZE
+WA_WEBHOOK --> NORMALIZE
+EMAIL_ADAPTER --> NORMALIZE
+CM_ADAPTER --> NORMALIZE
+
+NORMALIZE --> PIPELINE
+PIPELINE --> DELIVERY
+
+DELIVERY --> WEB
+DELIVERY --> WA
+DELIVERY --> EMAIL
+DELIVERY --> CM
+
+classDef channel fill:#12263f,stroke:#7dd3fc,stroke-width:2px;
+classDef adapter fill:#1d2440,stroke:#c084fc,stroke-width:2px;
+classDef core fill:#132437,stroke:#60a5fa,stroke-width:2px;
+
+class WEB,WA,EMAIL,CM channel;
+class CHAT_API,WA_WEBHOOK,EMAIL_ADAPTER,CM_ADAPTER adapter;
+class NORMALIZE,PIPELINE,DELIVERY core;
+
+style CHANNELS fill:#0f1e33,stroke:#38bdf8,stroke-width:2px
+style ADAPTERS fill:#181e35,stroke:#c084fc,stroke-width:2px
+
+linkStyle default stroke:#d7e5ff,stroke-width:2px;

@@ -6,6 +6,12 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:tunnel": "cloudflared tunnel --config /home/marcelo/begasist/.cloudflared/config.dev.native.yml run begasist-dev",
+    "arch:render": "bash scripts/render-mermaid.sh",
+    "arch:render:system": "bash scripts/render-mermaid.sh docs/architecture/system_overview.mmd docs/architecture/system_overview.svg",
+    "arch:render:channels": "bash scripts/render-mermaid.sh docs/architecture/channel_flow_overview.mmd docs/architecture/channel_flow_overview.svg",
+    "arch:render:pipeline": "bash scripts/render-mermaid.sh docs/architecture/message_pipeline_detail.mmd docs/architecture/message_pipeline_detail.svg",
+    "arch:render:identity": "bash scripts/render-mermaid.sh docs/architecture/guest_identity_detail.mmd docs/architecture/guest_identity_detail.svg",
+    "arch:render:admin": "bash scripts/render-mermaid.sh docs/architecture/admin_panel_relation.mmd docs/architecture/admin_panel_relation.svg",
     "start:email": "pnpm exec tsx lib/entrypoints/email.ts",
     "start:whatsapp": "pnpm exec tsx lib/entrypoints/whatsapp.ts",
     "validate:knowledge": "node scripts/validate-knowledge.cjs",

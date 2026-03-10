@@ -1,0 +1,55 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#0b1220',
+    'primaryColor': '#162033',
+    'primaryTextColor': '#e5eefc',
+    'primaryBorderColor': '#6ea8fe',
+    'lineColor': '#c7d8f8',
+    'edgeLabelBackground': '#0b1220',
+    'mainBkg': '#162033',
+    'nodeBkg': '#162033',
+    'textColor': '#e5eefc'
+  }
+}}%%
+
+flowchart TD
+
+subgraph ADMIN["Admin Panel"]
+direction LR
+INBOX["Inbox"]
+GUESTS["Guests"]
+KNOWLEDGE["Knowledge"]
+HOTELS["Hotels"]
+USERS["Users"]
+end
+
+CONV["conversations / messages"]
+IDENTITY["guests / aliases / merge"]
+KB["KB / traces / templates"]
+CFG["hotel_config / hotel settings"]
+
+INBOX --> CONV
+GUESTS --> IDENTITY
+KNOWLEDGE --> KB
+HOTELS --> CFG
+USERS --> CFG
+
+INBOX -. guest context .-> IDENTITY
+GUESTS -. conversation context .-> CONV
+KNOWLEDGE -. hotel scope .-> CFG
+
+classDef admin fill:#2b2815,stroke:#facc15,stroke-width:2px;
+classDef backend fill:#132437,stroke:#60a5fa,stroke-width:2px;
+classDef identity fill:#2a1d10,stroke:#f59e0b,stroke-width:2px;
+classDef data fill:#271734,stroke:#f472b6,stroke-width:2px;
+
+class INBOX,GUESTS,KNOWLEDGE,HOTELS,USERS admin;
+class CONV backend;
+class IDENTITY identity;
+class KB,CFG data;
+
+style ADMIN fill:#2b2815,stroke:#facc15,stroke-width:2px
+
+linkStyle default stroke:#d7e5ff,stroke-width:2px;
+linkStyle 5,6,7 stroke:#94a3b8,stroke-width:2px,stroke-dasharray:6 4;

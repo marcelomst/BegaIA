@@ -1,0 +1,69 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#0b1220',
+    'primaryColor': '#162033',
+    'primaryTextColor': '#e5eefc',
+    'primaryBorderColor': '#6ea8fe',
+    'lineColor': '#c7d8f8',
+    'clusterBkg': '#0f172a',
+    'clusterBorder': '#3b82f6',
+    'edgeLabelBackground': '#0b1220',
+    'mainBkg': '#162033',
+    'nodeBkg': '#162033',
+    'textColor': '#e5eefc'
+  }
+}}%%
+
+flowchart TD
+
+subgraph EDGE["External Channels"]
+direction LR
+CHANNELS["Channels<br/>Web / WhatsApp / Email / Channel Manager"]
+end
+
+subgraph ENTRY["Ingress Layer"]
+direction LR
+ADAPTERS["Entry / Adapters<br/>/api/chat, webhooks, parsers, adapters"]
+end
+
+subgraph CORE["Core Runtime"]
+direction LR
+PIPELINE["Message Pipeline<br/>normalize → identity → binding → handle → delivery"]
+IDENTITY["Guest Identity<br/>guestId, aliases, merge policy"]
+DECISION["Decision / Knowledge<br/>LangGraph, prompts, retrieval, MCP"]
+PERSISTENCE["Persistence<br/>Astra / Cassandra operational + KB"]
+end
+
+subgraph ADMIN["Operations"]
+direction LR
+PANEL["Admin Panel<br/>Inbox, Guests, Knowledge, Hotels, Users"]
+end
+
+CHANNELS --> ADAPTERS
+ADAPTERS --> PIPELINE
+PIPELINE --> IDENTITY
+PIPELINE --> DECISION
+PIPELINE --> PERSISTENCE
+IDENTITY --> PERSISTENCE
+DECISION --> PERSISTENCE
+PANEL -. reads .-> PIPELINE
+PANEL -. reads .-> IDENTITY
+PANEL -. reads .-> PERSISTENCE
+PIPELINE --> CHANNELS
+
+style CHANNELS fill:#12263f,stroke:#7dd3fc,stroke-width:2px
+style ADAPTERS fill:#1d2440,stroke:#c084fc,stroke-width:2px
+style PIPELINE fill:#1d2d3f,stroke:#60a5fa,stroke-width:2px
+style IDENTITY fill:#2a1d10,stroke:#f59e0b,stroke-width:2px
+style DECISION fill:#271734,stroke:#f472b6,stroke-width:2px
+style PERSISTENCE fill:#221a31,stroke:#a78bfa,stroke-width:2px
+style PANEL fill:#2b2815,stroke:#facc15,stroke-width:2px
+
+style EDGE fill:#0f1e33,stroke:#38bdf8,stroke-width:2px
+style ENTRY fill:#181e35,stroke:#c084fc,stroke-width:2px
+style CORE fill:#132437,stroke:#60a5fa,stroke-width:2px
+style ADMIN fill:#2b2815,stroke:#facc15,stroke-width:2px
+
+linkStyle default stroke:#d7e5ff,stroke-width:2px;
+linkStyle 7,8,9 stroke:#94a3b8,stroke-width:2px,stroke-dasharray:6 4;

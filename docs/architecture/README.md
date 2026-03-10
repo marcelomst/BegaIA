@@ -44,15 +44,95 @@ Describe la arquitectura del panel administrativo del sistema, incluyendo:
 
 ### Arquitectura general
 
-`architecture_diagram.png`
+`system_overview.mmd`
+`system_overview.svg`
 
-Resume la arquitectura general de Begasist (SaaS multihotel):
+Resume la arquitectura general de Begasist en nivel L1:
 
-- inbound por canales (Web / WhatsApp / Email / Channel Manager)
-- normalización a `ChannelMessage`
-- persistencia (AstraDB)
-- orquestación (LangGraph)
-- respuesta (automática o supervisada)
+- Channels
+- Entry / Adapters
+- Message Pipeline
+- Guest Identity
+- Decision / Knowledge
+- Persistence
+- Admin Panel
+
+[Ver diagrama](./system_overview.svg)
+[PNG fallback](./system_overview.png)
+[Editar fuente](./system_overview.mmd)
+
+[![System Overview](./system_overview.png)](./system_overview.png)
+
+### Subdiagramas arquitectónicos
+
+Los detalles operativos del sistema se separan en diagramas de nivel L2 para
+evitar sobrecargar el overview principal.
+
+#### Channels
+
+`channel_flow_overview.mmd`
+`channel_flow_overview.svg`
+
+Describe cómo Web, WhatsApp, Email y Channel Manager convergen hacia el
+pipeline conversacional central.
+
+[Ver diagrama](./channel_flow_overview.svg)
+[PNG fallback](./channel_flow_overview.png)
+[Editar fuente](./channel_flow_overview.mmd)
+
+[![Channel Flow Overview](./channel_flow_overview.png)](./channel_flow_overview.png)
+
+#### Message Pipeline
+
+`message_pipeline_detail.mmd`
+`message_pipeline_detail.svg`
+
+Describe el flujo interno del pipeline:
+
+- normalización
+- resolución de identidad
+- binding conversacional
+- manejo de mensajes
+- política de entrega
+
+[Ver diagrama](./message_pipeline_detail.svg)
+[PNG fallback](./message_pipeline_detail.png)
+[Editar fuente](./message_pipeline_detail.mmd)
+
+[![Message Pipeline Detail](./message_pipeline_detail.png)](./message_pipeline_detail.png)
+
+#### Guest Identity
+
+`guest_identity_detail.mmd`
+`guest_identity_detail.svg`
+
+Describe la capa de identidad transversal:
+
+- `guests`
+- `guest_aliases`
+- `guest_aliases_by_guest`
+- merge manual
+- política de guests absorbidos
+
+[Ver diagrama](./guest_identity_detail.svg)
+[PNG fallback](./guest_identity_detail.png)
+[Editar fuente](./guest_identity_detail.mmd)
+
+[![Guest Identity Detail](./guest_identity_detail.png)](./guest_identity_detail.png)
+
+#### Admin Panel
+
+`admin_panel_relation.mmd`
+`admin_panel_relation.svg`
+
+Describe cómo las vistas administrativas consultan los dominios operativos del
+sistema.
+
+[Ver diagrama](./admin_panel_relation.svg)
+[PNG fallback](./admin_panel_relation.png)
+[Editar fuente](./admin_panel_relation.mmd)
+
+[![Admin Panel Relation](./admin_panel_relation.png)](./admin_panel_relation.png)
 
 ### Twilio inbound routing
 

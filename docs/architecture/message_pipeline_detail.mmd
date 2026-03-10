@@ -1,0 +1,50 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#0b1220',
+    'primaryColor': '#162033',
+    'primaryTextColor': '#e5eefc',
+    'primaryBorderColor': '#6ea8fe',
+    'lineColor': '#c7d8f8',
+    'edgeLabelBackground': '#0b1220',
+    'mainBkg': '#162033',
+    'nodeBkg': '#162033',
+    'textColor': '#e5eefc'
+  }
+}}%%
+
+flowchart TD
+
+INPUT["ChannelMessage"]
+NORMALIZE["Normalize input"]
+RESOLVE_ID["resolveGuestIdentity"]
+BIND["Conversation binding"]
+HANDLE["handleChannelMessage / handleIncomingMessage"]
+RISK["riskPolicy / deliveryPolicy"]
+OUTPUT["Channel response / supervised state"]
+
+INPUT --> NORMALIZE
+NORMALIZE --> RESOLVE_ID
+RESOLVE_ID --> BIND
+BIND --> HANDLE
+HANDLE --> RISK
+RISK --> OUTPUT
+
+HANDLE --> GRAPH["LangGraph / prompts / retrieval / MCP"]
+RESOLVE_ID --> ALIAS["guest_aliases"]
+RESOLVE_ID --> GUEST["guests"]
+BIND --> CONV["conversations"]
+HANDLE --> MSG["messages"]
+HANDLE --> STATE["conv_state"]
+
+classDef flow fill:#132437,stroke:#60a5fa,stroke-width:2px;
+classDef identity fill:#2a1d10,stroke:#f59e0b,stroke-width:2px;
+classDef storage fill:#221a31,stroke:#a78bfa,stroke-width:2px;
+classDef decision fill:#271734,stroke:#f472b6,stroke-width:2px;
+
+class INPUT,NORMALIZE,RESOLVE_ID,BIND,HANDLE,RISK,OUTPUT flow;
+class ALIAS,GUEST identity;
+class CONV,MSG,STATE storage;
+class GRAPH decision;
+
+linkStyle default stroke:#d7e5ff,stroke-width:2px;

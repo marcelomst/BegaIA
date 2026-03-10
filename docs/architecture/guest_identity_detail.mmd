@@ -1,0 +1,41 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#0b1220',
+    'primaryColor': '#162033',
+    'primaryTextColor': '#e5eefc',
+    'primaryBorderColor': '#6ea8fe',
+    'lineColor': '#c7d8f8',
+    'edgeLabelBackground': '#0b1220',
+    'mainBkg': '#162033',
+    'nodeBkg': '#162033',
+    'textColor': '#e5eefc'
+  }
+}}%%
+
+flowchart TD
+
+ALIAS_IN["Alias by channel<br/>web / phone / email / external id"]
+RESOLVE["resolveGuestIdentity"]
+GUEST["guests"]
+ALIAS["guest_aliases<br/>hotelId + alias -> guestId"]
+ALIAS_REV["guest_aliases_by_guest<br/>hotelId + guestId -> aliases"]
+MERGE["Manual merge<br/>primaryGuestId / secondaryGuestId"]
+ABSORBED["Absorbed guest policy<br/>merged / merged-into:*"]
+
+ALIAS_IN --> RESOLVE
+RESOLVE --> ALIAS
+RESOLVE --> GUEST
+GUEST --> ALIAS_REV
+MERGE --> GUEST
+MERGE --> ALIAS
+MERGE --> ALIAS_REV
+MERGE --> ABSORBED
+
+classDef identity fill:#2a1d10,stroke:#f59e0b,stroke-width:2px;
+classDef policy fill:#2b2815,stroke:#facc15,stroke-width:2px;
+
+class ALIAS_IN,RESOLVE,GUEST,ALIAS,ALIAS_REV,MERGE identity;
+class ABSORBED policy;
+
+linkStyle default stroke:#d7e5ff,stroke-width:2px;
