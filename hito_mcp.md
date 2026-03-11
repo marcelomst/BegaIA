@@ -1442,3 +1442,37 @@ La identidad web del widget queda alineada con el modelo guest-centric
 multicanal ya existente en WhatsApp y en el ChatPage interno, mejorando
 continuidad conversacional, calidad de Guests y base para CRM/timeline
 multicanal futuro.
+
+### UI-INBOX-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-11  
+Commit: 3847642
+
+Descripción:
+
+Se refina la experiencia operativa del módulo Inbox para recepción hotelera.
+
+Antes de este cambio el Inbox mostraba demasiada telemetría técnica y la
+jerarquía visual entre huésped, conversación activa, canal y pendientes no era
+lo suficientemente clara para operación diaria.
+
+La corrección reorganiza el Inbox para destacar:
+
+- conversación activa
+- canal activo
+- estado del thread
+- última actividad
+- número de threads del huésped
+- resumen compacto del huésped actual
+- visibilidad de pendientes
+
+Archivos modificados:
+
+- `components/admin/ChannelInbox.tsx`
+- `components/admin/ConversationsTabs.tsx`
+
+Impacto:
+
+Inbox pasa a comportarse más claramente como bandeja operativa multicanal para
+recepción, sin modificar backend, contratos API ni modelo de datos.

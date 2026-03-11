@@ -440,3 +440,77 @@ precarga el flujo manual existente.
 
 El dominio Guests deja de limitarse a mostrar identidades y pasa a ayudar
 activamente a descubrir qué guests podrían representar a la misma persona.
+
+## UI-INBOX-01 — Bandeja operativa multicanal para recepción
+
+Se refina el módulo `Inbox` para que funcione de forma más clara como bandeja
+operativa de recepción y no como una simple agregación técnica de threads.
+
+### Objetivo
+
+Mejorar la lectura operativa de:
+
+- conversación activa
+- canal activo
+- estado del thread
+- pendientes de atención
+- contexto resumido del huésped actual
+
+sin modificar backend ni modelo de datos.
+
+### Cambios incorporados
+
+#### 1. Jerarquía visual más clara
+
+La vista de Inbox pasa a separar mejor:
+
+- sidebar de huéspedes
+- conversaciones del huésped seleccionado
+- encabezado operativo del thread activo
+- resumen contextual del huésped
+- panel de mensajes
+
+#### 2. Conversaciones como tarjetas operativas
+
+Las conversaciones asociadas al huésped dejan de mostrarse con foco en
+telemetría cruda y pasan a presentarse como tarjetas compactas con:
+
+- asunto
+- canal
+- estado
+- recencia de actividad
+- contador de mensajes
+- indicador de pendiente
+
+#### 3. Header operativo del thread activo
+
+El Inbox ahora muestra explícitamente:
+
+- asunto de la conversación
+- canal activo
+- estado del thread
+- cantidad de threads del huésped
+- última actividad
+- pendientes asociados
+
+#### 4. Resumen compacto del huésped actual
+
+Sin convertir Inbox en CRM, se incorpora un bloque contextual con:
+
+- displayName
+- guestId corto
+- aliases
+- canales
+- número de conversaciones
+- última actividad
+
+### Resultado operativo
+
+Con este refinamiento, `Inbox` se consolida como espacio de operación
+conversacional diaria, manteniendo la separación de dominios:
+
+`Guests -> identidad`
+`Inbox -> operación`
+
+El cambio no introduce timeline multicanal completa ni modifica contratos API,
+pero mejora significativamente la legibilidad operativa para recepción.
