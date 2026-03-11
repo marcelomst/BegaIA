@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/lib/context/UserContext";
 import GuestProfileModal from "./GuestProfileModal";
 import MessageBubble from "./MessageBubble";
 import ConversationsTabs from "./ConversationsTabs";
-import { User2, Edit2 } from "lucide-react";
+import { User2, Edit2, MessageSquareText, CircleAlert, Clock3 } from "lucide-react";
 
 interface ChannelInboxProps {
   hotelId: string;
@@ -43,6 +43,18 @@ type AdminGuestProfile = {
   conversationCount: number;
   lastActivityAt: string | null;
 };
+
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "-";
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return value;
+  return new Date(parsed).toLocaleString();
+}
+
+function formatChannelLabel(value: string | null | undefined, t: any): string {
+  if (!value) return "unknown";
+  return t?.sidebar?.[value] || value;
+}
 
 export default function ChannelInbox({
   hotelId,
@@ -86,6 +98,14 @@ export default function ChannelInbox({
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editingText, setEditingText] = useState<string>("");
   const [guestProfile, setGuestProfile] = useState<AdminGuestProfile | null>(null);
+  const selectedConversation = conversations.find((c) => c.conversationId === selectedConv) ?? null;
+  const selectedGuestConversations = conversations.filter((c) => c.guestId === selectedGuest);
+  const selectedGuestPending = pendingList.filter((item) => item.guestId === selectedGuest);
+  const pendingConversationIds = new Set(
+    pendingList
+      .map((item) => item.conversationId)
+      .filter((value): value is string => typeof value === "string" && value.length > 0),
+  );
 
   // Cargar conversaciones y perfiles al iniciar
   useEffect(() => {
@@ -376,10 +396,28 @@ export default function ChannelInbox({
   return (
     <main className="flex-1 flex flex-col">
       <div className="flex h-[80vh] bg-background rounded-lg border border-border overflow-hidden">
-        <aside className="w-56 bg-muted border-r p-2 flex flex-col">
+        <aside className="w-64 bg-muted/60 border-r p-3 flex flex-col">
+          <div className="mb-3 px-2">
+            <div className="font-semibold text-base">
+              {viewMode === "guests" ? "Guests" : (t.channelInbox?.guestsLabel || "Guests")}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {guests.length} huéspedes con actividad visible.
+            </div>
+          </div>
+          <div className="mb-3 grid grid-cols-2 gap-2 px-2">
+            <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Threads</div>
+              <div className="text-sm font-semibold">{conversations.length}</div>
+            </div>
+            <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Pendientes</div>
+              <div className="text-sm font-semibold">{pendingList.length}</div>
+            </div>
+          </div>
           <div className="flex items-center mb-2 font-semibold text-base px-2">
             <span className="flex-1">
-              {viewMode === "guests" ? "Guests" : (t.channelInbox?.guestsLabel || "Guests")}
+              {viewMode === "guests" ? "Guests" : "Bandeja"}
             </span>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -402,18 +440,21 @@ export default function ChannelInbox({
                   key={guest}
                   role="button"
                   tabIndex={0}
-                  className={`w-full flex items-center gap-2 px-2 py-2 mb-1 rounded ${isActive
-                    ? "bg-blue-200 dark:bg-primary/20 font-semibold"
-                    : "hover:bg-blue-50 dark:hover:bg-primary/10"}`}
+                  className={`w-full flex items-center gap-2 px-2 py-2 mb-1 rounded-lg border ${isActive
+                    ? "border-blue-300 bg-blue-50 dark:border-blue-900/50 dark:bg-primary/20 font-semibold"
+                    : "border-transparent hover:bg-blue-50 dark:hover:bg-primary/10"}`}
                   onClick={() => setSelectedGuest(guest)}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") setSelectedGuest(guest); }}
                 >
                   {modeIcon}
                   <User2 className="w-4 h-4 shrink-0" />
                   <div className="min-w-0">
-                    <span className="font-semibold truncate max-w-[90px] block">{displayName}</span>
+                    <span className="font-semibold truncate max-w-[130px] block">{displayName}</span>
                     <span className="font-mono text-[10px] text-muted-foreground block">
                       {shortGuestId(guest, channel)}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      {conversations.filter((c) => c.guestId === guest).length} conv.
                     </span>
                   </div>
                   <button
@@ -435,7 +476,7 @@ export default function ChannelInbox({
           </div>
         </aside>
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-w-0">
       <ConversationsTabs
         conversations={conversations}
         selectedConv={selectedConv}
@@ -444,49 +485,91 @@ export default function ChannelInbox({
           const conv = conversations.find((c) => c.conversationId === id);
           setSelectedConvChannel(conv?.channel ?? channel);
         }}
-        subject={subject}
         setSubject={setSubject}
         selectedGuest={selectedGuest}
-            channel={channel}
-            msgCounts={msgCounts}
-            t={t}
-            onNewConversation={handleNewConversation}
-          />
-          <div className="p-4 border-b">
-            <span className="font-bold text-base">{t.channelInbox?.subjectLabel || "Asunto:"}</span>{" "}
-            <span className="px-2 py-1 rounded-full bg-muted text-primary font-semibold shadow-sm border border-border">
-              {subject || (t.channelInbox?.noSubject || "Sin asunto")}
-            </span>
-          </div>
-          {selectedGuest && guestProfile && (
-            <div className="mx-4 mt-4 border border-border rounded-md p-3 bg-muted/30 text-sm">
-              <div className="mb-2">
-                <div className="text-base font-semibold">
-                  {getGuestDisplayName({
-                    guestId: guestProfile.guestId,
-                    name: guestProfile.guest?.name,
-                    aliases: guestProfile.aliases,
-                    channel: selectedConvChannel || channel,
-                  })}
+        msgCounts={msgCounts}
+        t={t}
+        onNewConversation={handleNewConversation}
+        pendingConversationIds={pendingConversationIds}
+      />
+          <div className="border-b bg-background px-4 py-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Conversación activa
                 </div>
-                <div className="font-mono text-xs text-muted-foreground">
-                  {shortGuestId(guestProfile.guestId, channel)}
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="text-base font-semibold">
+                    {subject || (t.channelInbox?.noSubject || "Sin asunto")}
+                  </span>
+                  {selectedConversation?.channel && (
+                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium">
+                      {formatChannelLabel(selectedConversation.channel, t)}
+                    </span>
+                  )}
+                  {selectedConversation?.status && (
+                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                      {selectedConversation.status}
+                    </span>
+                  )}
+                  {selectedGuestPending.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                      <CircleAlert className="h-3.5 w-3.5" />
+                      {selectedGuestPending.length} pendiente{selectedGuestPending.length === 1 ? "" : "s"}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <MessageSquareText className="h-3.5 w-3.5" />
+                    {selectedGuestConversations.length} thread{selectedGuestConversations.length === 1 ? "" : "s"} del huésped
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    Última actividad: {formatDateTime(selectedConversation?.lastUpdatedAt || guestProfile?.lastActivityAt)}
+                  </span>
                 </div>
               </div>
-              <div><span className="font-semibold">Guest ID:</span> {guestProfile.guestId}</div>
-              <div><span className="font-semibold">Aliases:</span> {guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</div>
-              <div><span className="font-semibold">Channels:</span> {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}</div>
-              <div><span className="font-semibold">Conversations:</span> {guestProfile.conversationCount}</div>
-              <div><span className="font-semibold">Last activity:</span> {guestProfile.lastActivityAt ? new Date(guestProfile.lastActivityAt).toLocaleString() : "-"}</div>
-              <div><span className="font-semibold">Mode:</span> {guestProfile.guest?.mode || "-"}</div>
-              <div><span className="font-semibold">Created at:</span> {guestProfile.guest?.createdAt ? new Date(guestProfile.guest.createdAt).toLocaleString() : "-"}</div>
-              <div><span className="font-semibold">Updated at:</span> {guestProfile.guest?.updatedAt ? new Date(guestProfile.guest.updatedAt).toLocaleString() : "-"}</div>
+              {selectedGuest && guestProfile && (
+                <div className="min-w-[260px] max-w-[360px] rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                  <div className="mb-2">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Huésped actual
+                    </div>
+                    <div className="text-base font-semibold">
+                      {getGuestDisplayName({
+                        guestId: guestProfile.guestId,
+                        name: guestProfile.guest?.name,
+                        aliases: guestProfile.aliases,
+                        channel: selectedConvChannel || channel,
+                      })}
+                    </div>
+                    <div className="font-mono text-xs text-muted-foreground">
+                      {shortGuestId(guestProfile.guestId, channel)}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1 text-xs">
+                    <div><span className="font-semibold">Canales:</span> {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}</div>
+                    <div><span className="font-semibold">Aliases:</span> {guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</div>
+                    <div><span className="font-semibold">Conversaciones:</span> {guestProfile.conversationCount}</div>
+                    <div><span className="font-semibold">Modo:</span> {guestProfile.guest?.mode || "-"}</div>
+                    <div><span className="font-semibold">Última actividad:</span> {formatDateTime(guestProfile.lastActivityAt)}</div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
             {viewMode === "inbox" && channel === "whatsapp" && pendingList.length > 0 && (
               <div className="border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 rounded p-3 text-sm">
-                <div className="font-semibold mb-2">Pendientes WhatsApp: {pendingList.length}</div>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="font-semibold">Pendientes WhatsApp: {pendingList.length}</div>
+                  {selectedGuestPending.length > 0 && (
+                    <div className="text-xs text-amber-700 dark:text-amber-200">
+                      {selectedGuestPending.length} corresponde{selectedGuestPending.length === 1 ? "" : "n"} al huésped actual
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-2">
                   {pendingList.slice(0, 8).map((p) => (
                     <div key={p.messageId} className="flex items-center gap-2">
@@ -494,6 +577,9 @@ export default function ChannelInbox({
                       <span className={`text-xs px-2 py-0.5 rounded ${p.breach ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
                         {p.ageMinutes} min
                       </span>
+                      {p.conversationId === selectedConv && (
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-200">thread activo</span>
+                      )}
                       {p.breach && <span className="text-xs text-red-600 font-semibold">SLA breach</span>}
                       <button
                         className="ml-auto px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs"
