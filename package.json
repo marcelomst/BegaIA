@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:tunnel": "cloudflared tunnel --config /home/marcelo/begasist/.cloudflared/config.dev.native.yml run begasist-dev",
+    "demo:hotel": "pnpm dlx http-server /home/marcelo/begasist/examples/hotel-demo -p 8081 -a 127.0.0.1 -c-1 --cors",
     "arch:render": "bash scripts/render-mermaid.sh",
     "arch:render:system": "bash scripts/render-mermaid.sh docs/architecture/system_overview.mmd docs/architecture/system_overview.svg",
     "arch:render:channels": "bash scripts/render-mermaid.sh docs/architecture/channel_flow_overview.mmd docs/architecture/channel_flow_overview.svg",
@@ -58,6 +59,9 @@
     "kb:reseed:apply": "tsx scripts/reseed-hotel-kb.ts --apply",
     "api:smoke": "bash scripts/api-smoke.sh",
     "mcp:smoke": "tsx scripts/mcp_smoke_reservations.ts --hotelId=hotel123"
+    ,"runtime:wipe": "pnpm exec tsx scripts/wipe-conversations-and-messages.ts"
+    ,"runtime:wipe:hotel999": "pnpm run runtime:wipe -- --hotel=hotel999"
+    ,"runtime:wipe:hotel999:force": "pnpm run runtime:wipe -- --hotel=hotel999 --force"
   },
   "dependencies": {
     "@datastax/astra-db-ts": "github:datastax/astra-db-ts",
