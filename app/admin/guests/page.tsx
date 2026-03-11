@@ -60,7 +60,7 @@ export default function AdminGuestsPage() {
       const res = await fetch(`/api/admin/guests?hotelId=${encodeURIComponent(user.hotelId)}`, {
         credentials: "same-origin",
       });
-      if (!res.ok) throw new Error("No se pudo cargar guests");
+      if (!res.ok) throw new Error("No se pudo cargar huéspedes");
       const data = await res.json();
       const rows: GuestRow[] = Array.isArray(data?.guests) ? data.guests : [];
       setGuests(rows);
@@ -70,7 +70,7 @@ export default function AdminGuestsPage() {
         setSelectedGuestId(rows[0]?.guestId || "");
       }
     } catch (e) {
-      setError((e as Error).message || "Error cargando guests");
+      setError((e as Error).message || "Error cargando huéspedes");
     } finally {
       setBusy(false);
     }
@@ -156,7 +156,7 @@ export default function AdminGuestsPage() {
     if (!user?.hotelId || !selectedGuestId || !mergeSecondaryGuestId) return;
     const secondary = guests.find((g) => g.guestId === mergeSecondaryGuestId);
     const ok = window.confirm(
-      `Vas a mergear identidad.\n\nPrimary: ${selectedGuestId}\nSecondary: ${mergeSecondaryGuestId}\n\nEsta acción mueve aliases y referencias conversacionales al guest principal.`,
+      `Vas a unificar huéspedes.\n\nHuésped principal: ${selectedGuestId}\nHuésped secundario: ${mergeSecondaryGuestId}\n\nEsta acción mueve identidades y referencias conversacionales al huésped principal.`,
     );
     if (!ok) return;
 
@@ -175,7 +175,7 @@ export default function AdminGuestsPage() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String(data?.error || "No se pudo mergear guests"));
+      if (!res.ok) throw new Error(String(data?.error || "No se pudo unificar huéspedes"));
       setMergeSecondaryGuestId("");
       await loadGuests();
       setSelectedGuestId(selectedGuestId);
@@ -183,7 +183,7 @@ export default function AdminGuestsPage() {
         await new Promise((r) => setTimeout(r, 80));
       }
     } catch (e) {
-      setError((e as Error).message || "Error en merge manual");
+      setError((e as Error).message || "Error al unificar huéspedes");
     } finally {
       setBusy(false);
     }
@@ -199,9 +199,9 @@ export default function AdminGuestsPage() {
   return (
     <section className="space-y-4">
       <header>
-        <h1 className="text-2xl font-semibold">Guests</h1>
+        <h1 className="text-2xl font-semibold">Huéspedes</h1>
         <p className="text-xs text-muted-foreground">
-          Registro de identidades del hotel, aliases multicanal y consolidación manual.
+          Registro de huéspedes del hotel, identidades multicanal y unificación manual.
         </p>
       </header>
 
@@ -214,9 +214,9 @@ export default function AdminGuestsPage() {
       <div className="rounded border border-border bg-background p-3 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="font-semibold">Posibles merges sugeridos</h2>
+            <h2 className="font-semibold">Posibles unificaciones sugeridas</h2>
             <p className="text-xs text-muted-foreground">
-              Sugerencias heurísticas para detectar posibles duplicados. El merge sigue siendo manual.
+              Sugerencias heurísticas para detectar posibles duplicados. La unificación sigue siendo manual.
             </p>
           </div>
           <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
@@ -266,7 +266,7 @@ export default function AdminGuestsPage() {
                         className="rounded bg-amber-700 px-2 py-1 text-xs text-white hover:bg-amber-800"
                         onClick={() => prepareMergeFromSuggestion(primary.guestId, secondary.guestId)}
                       >
-                        Preparar merge
+                        Preparar unificación
                       </button>
                       <button
                         type="button"
@@ -280,7 +280,7 @@ export default function AdminGuestsPage() {
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="rounded border border-border bg-background p-2">
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Primary candidate
+                        Huésped principal sugerido
                       </div>
                       <div className="font-medium">
                         {getGuestDisplayName({
@@ -299,7 +299,7 @@ export default function AdminGuestsPage() {
                     </div>
                     <div className="rounded border border-border bg-background p-2">
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Secondary candidate
+                        Huésped secundario sugerido
                       </div>
                       <div className="font-medium">
                         {getGuestDisplayName({
@@ -337,7 +337,7 @@ export default function AdminGuestsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded border border-border bg-background p-3">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <h2 className="font-semibold">Listado real de huéspedes</h2>
+            <h2 className="font-semibold">Listado de huéspedes</h2>
             <button
               className="px-2 py-1 text-xs rounded border border-border hover:bg-muted"
               onClick={loadGuests}
@@ -350,17 +350,17 @@ export default function AdminGuestsPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por guestId, nombre o alias"
+            placeholder="Buscar por guestId, nombre o identidad"
             className="w-full mb-3 rounded border border-border px-2 py-1 text-sm bg-background"
           />
           <div className="max-h-[56vh] overflow-auto rounded border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted sticky top-0">
                 <tr>
-                  <th className="text-left px-2 py-1">Guest</th>
-                  <th className="text-left px-2 py-1">Aliases</th>
-                  <th className="text-left px-2 py-1">Canales</th>
-                  <th className="text-left px-2 py-1">Convs</th>
+                  <th className="text-left px-2 py-1">Huésped</th>
+                  <th className="text-left px-2 py-1">Identidades del huésped</th>
+                  <th className="text-left px-2 py-1">Canales de contacto</th>
+                  <th className="text-left px-2 py-1">Conversaciones</th>
                   <th className="text-left px-2 py-1">Última actividad</th>
                 </tr>
               </thead>
@@ -405,9 +405,9 @@ export default function AdminGuestsPage() {
         </div>
 
         <div className="rounded border border-border bg-background p-3 space-y-3">
-          <h2 className="font-semibold">Perfil básico del huésped</h2>
+          <h2 className="font-semibold">Perfil del huésped</h2>
           {!selectedGuest ? (
-            <div className="text-sm text-muted-foreground">Seleccioná un guest para ver detalle.</div>
+            <div className="text-sm text-muted-foreground">Seleccioná un huésped para ver detalle.</div>
           ) : (
             <>
               <div>
@@ -426,17 +426,17 @@ export default function AdminGuestsPage() {
               <div className="text-sm">
                 <div><span className="font-semibold">Guest ID:</span> <span className="font-mono">{selectedGuest.guestId}</span></div>
                 <div><span className="font-semibold">Nombre:</span> {selectedGuest.name || "-"}</div>
-                <div><span className="font-semibold">Mode:</span> {selectedGuest.mode || "-"}</div>
-                <div><span className="font-semibold">Aliases:</span> {selectedGuest.aliases.length ? selectedGuest.aliases.join(", ") : "-"}</div>
-                <div><span className="font-semibold">Canales:</span> {selectedGuest.channels.length ? selectedGuest.channels.join(", ") : "-"}</div>
-                <div><span className="font-semibold">Conversations:</span> {selectedGuest.conversationCount}</div>
-                <div><span className="font-semibold">Last activity:</span> {fmtDate(selectedGuest.lastActivityAt)}</div>
-                <div><span className="font-semibold">Created at:</span> {fmtDate(selectedGuest.createdAt)}</div>
-                <div><span className="font-semibold">Updated at:</span> {fmtDate(selectedGuest.updatedAt)}</div>
+                <div><span className="font-semibold">Modo:</span> {selectedGuest.mode || "-"}</div>
+                <div><span className="font-semibold">Identidades del huésped:</span> {selectedGuest.aliases.length ? selectedGuest.aliases.join(", ") : "-"}</div>
+                <div><span className="font-semibold">Canales de contacto:</span> {selectedGuest.channels.length ? selectedGuest.channels.join(", ") : "-"}</div>
+                <div><span className="font-semibold">Conversaciones:</span> {selectedGuest.conversationCount}</div>
+                <div><span className="font-semibold">Última actividad:</span> {fmtDate(selectedGuest.lastActivityAt)}</div>
+                <div><span className="font-semibold">Creado:</span> {fmtDate(selectedGuest.createdAt)}</div>
+                <div><span className="font-semibold">Actualizado:</span> {fmtDate(selectedGuest.updatedAt)}</div>
               </div>
 
               <div className="rounded border border-border p-2">
-                <h3 className="text-sm font-semibold mb-2">Conversations asociadas</h3>
+                <h3 className="text-sm font-semibold mb-2">Conversaciones asociadas</h3>
                 {conversations.length === 0 ? (
                   <div className="text-xs text-muted-foreground">Sin conversaciones asociadas.</div>
                 ) : (
@@ -464,9 +464,9 @@ export default function AdminGuestsPage() {
                 id="guest-merge-panel"
                 className="rounded border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-2"
               >
-                <h3 className="text-sm font-semibold mb-2">Merge manual de identidad</h3>
+                <h3 className="text-sm font-semibold mb-2">Unificar huéspedes</h3>
                 <p className="text-xs mb-2">
-                  Seleccioná un guest secundario para consolidar aliases y actividad en el guest principal actual.
+                  Seleccioná el huésped secundario para unificar sus identidades y actividad con el huésped principal actual.
                 </p>
                 <div className="flex items-center gap-2">
                   <select
@@ -474,7 +474,7 @@ export default function AdminGuestsPage() {
                     onChange={(e) => setMergeSecondaryGuestId(e.target.value)}
                     className="flex-1 rounded border border-border px-2 py-1 text-sm bg-background"
                   >
-                    <option value="">Seleccionar secondary guest...</option>
+                    <option value="">Seleccionar huésped secundario...</option>
                     {mergeCandidates.map((g) => (
                       <option key={g.guestId} value={g.guestId}>
                         {getGuestDisplayName({
@@ -492,7 +492,7 @@ export default function AdminGuestsPage() {
                     type="button"
                     className="rounded bg-amber-700 text-white px-3 py-1 text-sm disabled:opacity-50"
                   >
-                    Merge
+                    Unificar huéspedes
                   </button>
                 </div>
               </div>
