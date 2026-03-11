@@ -1403,3 +1403,42 @@ Impacto:
 
 Begasist pasa de permitir merges manuales a ayudar activamente a descubrir qué
 guests podrían representar a la misma persona.
+
+### FIX-WEB-IDENTITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-11  
+Commit: 6270ccfa59baf156ac73f08b0424957705e6006e
+
+Descripción:
+
+Se estabiliza la identidad web del widget embebible mediante persistencia de
+`guestId` en `localStorage`.
+
+Antes de este cambio el widget solo persistía `conversationId`, por lo que una
+misma sesión web podía generar múltiples aliases `web:guest-*` y fragmentar la
+identidad del huésped.
+
+La corrección incorpora persistencia namespaced por hotel con la clave:
+
+`begai:guestId:<hotelId>`
+
+El widget ahora:
+
+- genera `guest-${uuid}` si no existe
+- reutiliza el `guestId` si ya está persistido
+- lo envía en cada `POST /api/chat`
+- permite que backend resuelva el alias `web:<guestId>`
+
+Validación técnica:
+
+- reset backend con `scripts/wipe-conversations-and-messages.ts`
+- limpieza manual de `localStorage`
+- prueba manual del widget con persistencia confirmada entre mensajes y recarga
+
+Impacto arquitectónico:
+
+La identidad web del widget queda alineada con el modelo guest-centric
+multicanal ya existente en WhatsApp y en el ChatPage interno, mejorando
+continuidad conversacional, calidad de Guests y base para CRM/timeline
+multicanal futuro.

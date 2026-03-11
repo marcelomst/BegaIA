@@ -136,6 +136,16 @@ formato:
 Objetivo: mantener identidad persistente por navegador aun sin autenticación
 previa y evitar colisiones de conversaciones bajo un placeholder compartido.
 
+Esta política aplica tanto al `ChatPage` interno como al widget web
+embebible. En el caso del widget, la persistencia queda namespaced por hotel en
+`localStorage` con clave:
+
+`begai:guestId:<hotelId>`
+
+El backend resuelve esa identidad como alias:
+
+`web:<guestId>`
+
 ## 8. Estado operacional y reset de pruebas
 
 Las tablas `guest_aliases` y `guest_aliases_by_guest` forman parte del estado
