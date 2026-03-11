@@ -44,6 +44,7 @@
   }
   migrateKey(`lang:${hotelId}`);
   migrateKey(`conversationId:${hotelId}`);
+  migrateKey(`guestId:${hotelId}`);
 
   // Idioma inicial: localStorage > config.lang > navegador > "es"
   const langKeyNew = `${NEW_PREFIX}:lang:${hotelId}`;
@@ -78,6 +79,28 @@
   const clearConv = () => {
     localStorage.removeItem(convKeyNew);
     localStorage.removeItem(convKeyOld);
+  };
+
+  const guestKeyNew = `${NEW_PREFIX}:guestId:${hotelId}`;
+  const guestKeyOld = `${OLD_PREFIX}:guestId:${hotelId}`;
+  const guestKeyLegacy = "guestId";
+  const buildGuestId = () =>
+    (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? `guest-${crypto.randomUUID()}`
+      : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const getGuest = () =>
+    localStorage.getItem(guestKeyNew) ||
+    localStorage.getItem(guestKeyOld) ||
+    localStorage.getItem(guestKeyLegacy);
+  const setGuest = (id) => {
+    localStorage.setItem(guestKeyNew, id);
+  };
+  const getOrCreateGuest = () => {
+    const existing = String(getGuest() || "").trim();
+    if (existing && existing !== "web-guest") return existing;
+    const guestId = buildGuestId();
+    setGuest(guestId);
+    return guestId;
   };
 
   if (!api) console.warn("[BegAIChat] Falta apiBase en window.BegAIChat");
@@ -318,6 +341,8 @@
       channel: "web",
       hotelId,
       conversationId: conv,
+      guestId: getOrCreateGuest(),
+      lang: currentLang,
     };
 
     try {
