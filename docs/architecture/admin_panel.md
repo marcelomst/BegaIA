@@ -441,6 +441,31 @@ precarga el flujo manual existente.
 El dominio Guests deja de limitarse a mostrar identidades y pasa a ayudar
 activamente a descubrir qué guests podrían representar a la misma persona.
 
+### UX-GUESTS-01 — Lenguaje operativo para recepción
+
+Se ajusta el lenguaje visible del módulo `Guests` para reemplazar terminología
+técnica o de desarrollo por lenguaje operativo más natural para recepción
+hotelera.
+
+El cambio mantiene intacto el naming interno del código y se limita a:
+
+- títulos
+- labels
+- placeholders
+- confirmaciones
+- botones
+- textos explicativos
+
+Ejemplos del criterio aplicado:
+
+- `Guests` -> `Huéspedes`
+- `Merge` -> `Unificar huéspedes`
+- `Aliases` -> `Identidades del huésped`
+- `Channels` -> `Canales de contacto`
+
+Este refinamiento no altera backend, modelo de datos ni lógica de unificación,
+pero mejora legibilidad y comprensión operativa del dominio `Guests`.
+
 ## UI-INBOX-01 — Bandeja operativa multicanal para recepción
 
 Se refina el módulo `Inbox` para que funcione de forma más clara como bandeja

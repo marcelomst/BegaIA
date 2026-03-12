@@ -1476,3 +1476,35 @@ Impacto:
 
 Inbox pasa a comportarse más claramente como bandeja operativa multicanal para
 recepción, sin modificar backend, contratos API ni modelo de datos.
+
+### UX-GUESTS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-11  
+Commit: 84691ad
+
+Descripción:
+
+Se ajusta el lenguaje visible del módulo Guests para reemplazar terminología
+técnica por lenguaje operativo orientado a recepción hotelera.
+
+La UI pasa a usar expresiones como:
+
+- `Huéspedes`
+- `Unificar huéspedes`
+- `Identidades del huésped`
+- `Canales de contacto`
+- `Conversaciones`
+- `Huésped principal` / `Huésped secundario`
+
+El cambio afecta títulos, labels, placeholders, confirmaciones, botones y
+textos explicativos del módulo.
+
+Archivo modificado:
+
+- `app/admin/guests/page.tsx`
+
+Impacto:
+
+Mejora la comprensión y usabilidad del dominio Guests para recepción sin
+modificar backend, modelo de datos ni lógica de unificación.
