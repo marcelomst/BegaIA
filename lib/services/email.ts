@@ -13,9 +13,19 @@ import { disableEmailPolling } from "@/lib/services/emailPollControl";
 import { getEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
 import { getMessageByOriginalIdScoped } from "@/lib/db/messages"; // Idempotencia
 import { debugLog } from "@/lib/utils/debugLog";
+import { redis } from "@/lib/services/redis";
 
 const MAX_UID_ERRORS = 3;
+const EMAIL_LOOP_INTERVAL_MS = 15000;
+const EMAIL_BOT_LOCK_TTL_SEC = 120;
 const failedUids: Record<number, number> = {};
+const emailBotRuntimes = new Map<string, {
+  hotelId: string;
+  lockToken: string;
+  intervalId: ReturnType<typeof setInterval> | null;
+  connection: any;
+  stopping: boolean;
+}>();
 
 /**
  * Determina si un email es irrelevante para el RAGbot (spam, promo, newsletter, etc.)
@@ -41,6 +51,83 @@ function isIrrelevantEmail({
     spamWords.some(word => allFields.some(field => field.includes(word))) ||
     spamFrom.some(mask => (from || "").toLowerCase().includes(mask))
   );
+}
+
+function buildEmailBotLockKey(hotelId: string): string {
+  return `email_bot_lock:${hotelId}`;
+}
+
+function newEmailBotLockToken(hotelId: string): string {
+  return `${hotelId}:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export async function acquireEmailBotLock(hotelId: string, lockToken: string): Promise<boolean> {
+  const key = buildEmailBotLockKey(hotelId);
+  const result = await redis.set(key, lockToken, "NX", "EX", EMAIL_BOT_LOCK_TTL_SEC);
+  return result === "OK";
+}
+
+export async function refreshEmailBotLock(hotelId: string, lockToken: string): Promise<boolean> {
+  const key = buildEmailBotLockKey(hotelId);
+  const current = await redis.get(key);
+  if (current !== lockToken) return false;
+  await redis.set(key, lockToken, "EX", EMAIL_BOT_LOCK_TTL_SEC);
+  return true;
+}
+
+export async function releaseEmailBotLock(hotelId: string, lockToken: string): Promise<void> {
+  const key = buildEmailBotLockKey(hotelId);
+  const current = await redis.get(key);
+  if (current === lockToken) {
+    await redis.del(key);
+  }
+}
+
+export async function markEmailProcessed(connection: any, uid: number): Promise<void> {
+  try {
+    await connection.addFlags(uid, ["\\Seen", "RAGBOT_PROCESSED"]);
+    return;
+  } catch {
+    await connection.addFlags(uid, "\\Seen");
+    await connection.addFlags(uid, "RAGBOT_PROCESSED");
+  }
+}
+
+async function stopEmailBotRuntime(hotelId: string, reason: string, lockToken: string) {
+  const runtime = emailBotRuntimes.get(hotelId);
+  if (!runtime || runtime.lockToken !== lockToken) return;
+
+  runtime.stopping = true;
+  if (runtime.intervalId) {
+    clearInterval(runtime.intervalId);
+    runtime.intervalId = null;
+  }
+
+  try {
+    await runtime.connection?.end?.();
+  } catch {
+    try {
+      runtime.connection?.imap?.end?.();
+    } catch {
+      // best effort
+    }
+  }
+
+  emailBotRuntimes.delete(hotelId);
+  await releaseEmailBotLock(hotelId, lockToken).catch((err) => {
+    console.warn(`[email] No se pudo liberar lock (${hotelId}) tras ${reason}:`, err);
+  });
+  console.log(`[email] Runtime detenido para hotel ${hotelId}. reason=${reason}`);
+}
+
+async function shouldContinueEmailProcessing(hotelId: string, lockToken: string): Promise<boolean> {
+  const runtime = emailBotRuntimes.get(hotelId);
+  if (!runtime || runtime.lockToken !== lockToken || runtime.stopping) return false;
+
+  const enabled = await getEmailPollingState(hotelId);
+  if (!enabled) return false;
+
+  return refreshEmailBotLock(hotelId, lockToken);
 }
 
 export async function processInboundEmailMessage(args: {
@@ -142,6 +229,12 @@ export async function startEmailBot({
   emailConf: EmailConfig;
 }) {
   console.log("📥 [email] Iniciando bot de correo...");
+  const existingRuntime = emailBotRuntimes.get(hotelId);
+  if (existingRuntime && !existingRuntime.stopping) {
+    console.warn(`[email] Ya existe un runtime activo para hotelId=${hotelId}. No se inicia otro.`);
+    return;
+  }
+  let lockToken: string | null = null;
 
   try {
     const {
@@ -211,6 +304,13 @@ export async function startEmailBot({
       auth: EMAIL_SENDING_ENABLED ? { user: EMAIL_USER, pass: EMAIL_PASS } : undefined,
     });
 
+    lockToken = newEmailBotLockToken(hotelId);
+    const acquired = await acquireEmailBotLock(hotelId, lockToken);
+    if (!acquired) {
+      console.warn(`[email] Ya existe otro proceso email activo para hotelId=${hotelId}. Abortando init.`);
+      return;
+    }
+
     let connection;
     try {
       connection = await imaps.connect(imapConfig);
@@ -246,11 +346,21 @@ export async function startEmailBot({
     }
     await connection.openBox("INBOX");
     console.log("📨 Conectado a IMAP como:", EMAIL_USER);
+    emailBotRuntimes.set(hotelId, {
+      hotelId,
+      lockToken,
+      intervalId: null,
+      connection,
+      stopping: false,
+    });
 
-    setInterval(async () => {
-      const enabled = await getEmailPollingState(hotelId);
-      console.log(`🔄 [email] Polling de correos habilitado para hotel ${hotelId}:`, enabled);
-      if (!enabled) return;
+    const intervalId = setInterval(async () => {
+      const canRun = await shouldContinueEmailProcessing(hotelId, lockToken);
+      console.log(`🔄 [email] Polling de correos habilitado para hotel ${hotelId}:`, canRun);
+      if (!canRun) {
+        await stopEmailBotRuntime(hotelId, "polling_disabled_or_lock_lost", lockToken);
+        return;
+      }
 
       try {
         const messages = await connection.search(
@@ -261,6 +371,7 @@ export async function startEmailBot({
         if (!messages.length) {
           console.log("📭 [email] No hay mensajes no leídos.");
           disableEmailPolling(hotelId);
+          await stopEmailBotRuntime(hotelId, "empty_inbox", lockToken);
           return;
         }
 
@@ -271,6 +382,13 @@ export async function startEmailBot({
           hotelConfig?.channelConfigs?.email?.mode ?? "automatic";
 
         for (const message of messages) {
+          const continueBetweenMessages = await shouldContinueEmailProcessing(hotelId, lockToken);
+          if (!continueBetweenMessages) {
+            console.log(`[email] Corte solicitado para hotel ${hotelId}. Se detiene antes del siguiente mensaje.`);
+            await stopEmailBotRuntime(hotelId, "stopped_between_messages", lockToken);
+            return;
+          }
+
           const uid = message.attributes.uid;
           try {
             const allRaw = message.parts.find((p: any) => p.which === "");
@@ -334,13 +452,13 @@ export async function startEmailBot({
             });
 
             if (processed.deduped) {
-              await connection.addFlags(uid, "\\Seen");
+              await markEmailProcessed(connection, uid);
               if (failedUids[uid]) delete failedUids[uid];
               continue;
             }
 
-            // Marcar como leído solo los válidos procesados
-            await connection.addFlags(uid, "\\Seen");
+            // Marca durable alineada con el search IMAP actual.
+            await markEmailProcessed(connection, uid);
             if (failedUids[uid]) delete failedUids[uid];
           } catch (err) {
             console.error(`[email] Error en UID ${uid}:`, err);
@@ -354,12 +472,22 @@ export async function startEmailBot({
         }
 
         disableEmailPolling(hotelId);
+        await stopEmailBotRuntime(hotelId, "batch_completed", lockToken);
         console.log("🛑 [email] Polling desactivado después de procesar mensajes.");
       } catch (err) {
         console.error("⛔ [email] Error durante polling:", err);
       }
-    }, 15000);
+    }, EMAIL_LOOP_INTERVAL_MS);
+    const runtime = emailBotRuntimes.get(hotelId);
+    if (runtime && runtime.lockToken === lockToken) {
+      runtime.intervalId = intervalId;
+    }
   } catch (err) {
+    if (lockToken) {
+      await stopEmailBotRuntime(hotelId, "startup_error", lockToken).catch(() => {
+        // best effort cleanup
+      });
+    }
     console.error("💥 [email] Error  crítico al iniciar el bot:", err);
     throw err;
   }
