@@ -407,7 +407,7 @@ export default function ChannelInbox({
           </div>
           <div className="mb-3 grid grid-cols-2 gap-2 px-2">
             <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Threads</div>
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Conversaciones</div>
               <div className="text-sm font-semibold">{conversations.length}</div>
             </div>
             <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
@@ -454,7 +454,7 @@ export default function ChannelInbox({
                       {shortGuestId(guest, channel)}
                     </span>
                     <span className="text-[10px] text-muted-foreground block">
-                      {conversations.filter((c) => c.guestId === guest).length} conv.
+                      {conversations.filter((c) => c.guestId === guest).length} conversaciones
                     </span>
                   </div>
                   <button
@@ -522,7 +522,7 @@ export default function ChannelInbox({
                 <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <MessageSquareText className="h-3.5 w-3.5" />
-                    {selectedGuestConversations.length} thread{selectedGuestConversations.length === 1 ? "" : "s"} del huésped
+                    {selectedGuestConversations.length} conversacion{selectedGuestConversations.length === 1 ? "" : "es"} del huésped
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Clock3 className="h-3.5 w-3.5" />
