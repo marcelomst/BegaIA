@@ -1536,3 +1536,34 @@ Se formaliza la coordinación multiagente del proyecto sin cargar esa lógica
 dentro de `config.toml`, manteniendo separadas:
 - definición de agentes
 - flujo operativo entre agentes
+
+### DOC-ARCH-DEBT-THREAD-DOMAIN-VNEXT-LOG-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12  
+Commit: d271a43a17236753eb545eab446be7f7600f0217
+
+Descripción:
+
+Se registra en la bitácora arquitectónica la deuda aprobada para `VNEXT` que
+introduce `Thread` como entidad de dominio superior a `Conversation`.
+
+La decisión deja explícito que el modelo actual se mantiene en:
+
+`Guest -> Conversation -> Channel`
+
+y que el modelo objetivo para una gran versión sería:
+
+`Guest -> Thread -> Conversation -> Channel`
+
+Archivos documentales afectados:
+
+- `docs/architecture/thread_domain_vnext_debt.md`
+- `docs/architecture/README.md`
+- `docs/README.md`
+
+Impacto:
+
+Queda trazada en la secuencia histórica del proyecto la decisión de postergar
+este cambio de dominio y se evita introducir `thread` como contrato backend
+antes de una revisión arquitectónica mayor.
