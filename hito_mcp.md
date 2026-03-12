@@ -1508,3 +1508,31 @@ Impacto:
 
 Mejora la comprensión y usabilidad del dominio Guests para recepción sin
 modificar backend, modelo de datos ni lógica de unificación.
+
+### DOC-AGENTS-WORKFLOW-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12
+
+Descripción:
+
+Se incorpora un documento operativo para definir el flujo de trabajo entre los
+agentes usados en Begasist.
+
+Archivo incorporado:
+
+- `docs/agents_workflow.md`
+
+Contenido principal:
+
+- chats fijos por agente
+- orden recomendado entre Arquitectura, Repo Guardian, Técnico, Marcelo y HDOC
+- reglas de disciplina (`1 commit = 1 hito`, `CODE -> COMMIT -> HASH -> DOC`)
+- plantilla de handoff entre agentes
+
+Impacto:
+
+Se formaliza la coordinación multiagente del proyecto sin cargar esa lógica
+dentro de `config.toml`, manteniendo separadas:
+- definición de agentes
+- flujo operativo entre agentes
