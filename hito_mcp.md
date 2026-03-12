@@ -1596,3 +1596,31 @@ Impacto:
 
 Se evita presentar `Thread` como entidad activa en la UI actual y queda
 alineada la documentación con la deuda arquitectónica `VNEXT` ya registrada.
+
+### DOC-UI-INBOX-LABELS-01A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12  
+Commit: d8230cc434208e6706bfc7f2425eadf03f6ff9ef
+
+Descripción:
+
+Se documenta un ajuste textual adicional del módulo `Inbox` para mantener la
+UI alineada con el modelo actual basado en conversaciones, sin introducir
+semántica de `thread` como entidad activa.
+
+El cambio aplica una abreviación visual y corrige labels operativos, incluyendo:
+
+- `Conversaciones` -> `Conv.` por restricción visual
+- `thread activo` -> `conversacion activa`
+- `thread(s) activos` -> `conversaciones activas`
+
+Archivos afectados:
+
+- `components/admin/ChannelInbox.tsx`
+- `components/admin/ConversationsTabs.tsx`
+
+Impacto:
+
+Se preserva consistencia semántica entre la UI actual, el modelo persistido por
+`Conversation` y la deuda arquitectónica `Thread` reservada para `VNEXT`.
