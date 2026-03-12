@@ -171,6 +171,13 @@ Documenta la resolución de conversación por identidad (`guestId`) con priorida
 Documenta la consulta admin unificada por `guestId` sobre infraestructura
 multicanal.
 
+### Deuda VNEXT: Thread como caso operativo
+
+`thread_domain_vnext_debt.md`
+
+Documenta la deuda arquitectónica aprobada para una gran versión donde
+`Thread` pasa a ser una entidad de dominio superior a `Conversation`.
+
 ### Modelo de identidad de huéspedes
 
 `guest_identity_model.md`
