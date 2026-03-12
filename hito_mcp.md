@@ -1624,3 +1624,39 @@ Impacto:
 
 Se preserva consistencia semántica entre la UI actual, el modelo persistido por
 `Conversation` y la deuda arquitectónica `Thread` reservada para `VNEXT`.
+
+### DOC-FIX-EMAIL-PIPELINE-IDENTITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12  
+Commit: 72f999d97607360db90605adf88296eeb1ef6c30
+
+Descripción:
+
+Se registra el fix del canal Email para que la entrada converja por el camino
+canónico `handleChannelMessage(...)`, preserve el remitente real como identidad
+operativa y no trate el `conversationId` derivado por el parser como verdad de
+dominio.
+
+Cambios funcionales documentados:
+
+- Email entra por `handleChannelMessage(...)`
+- se preserva el remitente real como alias/identidad operativa
+- el binding conversacional vuelve a quedar gobernado por el pipeline
+- la idempotencia pasa a resolverse con scope `hotelId + originalMessageId`
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `lib/pipeline/handleChannelMessage.ts`
+- `test/unit/email.pipelineIdentity.spec.ts`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/email.pipelineIdentity.spec.ts test/golden/guestIdentity.golden.spec.ts test/integration/guestConversationBinding.spec.ts test/integration/api_admin_conversations.test.ts test/integration/api_admin_guest_profile.test.ts test/integration/api_messages_by-conversation.test.ts test/unit/email.resolveCredentials.spec.ts`
+
+Impacto:
+
+Se alinea el canal Email con la arquitectura multicanal vigente: transporte
+separado del dominio, identidad canónica por `guestId` y binding de
+conversaciones resuelto por el pipeline central.
