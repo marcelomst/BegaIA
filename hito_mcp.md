@@ -1660,3 +1660,38 @@ Impacto:
 Se alinea el canal Email con la arquitectura multicanal vigente: transporte
 separado del dominio, identidad canónica por `guestId` y binding de
 conversaciones resuelto por el pipeline central.
+
+### DOC-FIX-EMAIL-POLLING-SHUTDOWN-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12  
+Commit: 1b6a0621f5996b05f11e8f8146215a0f119fb72c
+
+Descripción:
+
+Se registra el hardening operativo del canal Email para evitar múltiples
+runtimes por `hotelId`, detener efectivamente el proceso cuando el polling se
+apaga y consolidar un marcado durable de correos ya procesados.
+
+Alcance documentado:
+
+- guard de unicidad por `hotelId`
+- lock Redis para evitar runtimes duplicados
+- stop efectivo del runtime cuando polling pasa a `false`
+- corte entre mensajes si el polling se apaga durante el batch
+- marcado IMAP durable con `\\Seen` y `RAGBOT_PROCESSED`
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/email.pollingShutdown.spec.ts test/unit/email.pipelineIdentity.spec.ts test/golden/guestIdentity.golden.spec.ts test/unit/email.resolveCredentials.spec.ts`
+
+Impacto:
+
+Se reduce el riesgo de duplicación de procesamiento y se refuerza la operación
+single-runtime por hotel en el canal Email, sin alterar UI, Inbox/Admin ni
+supervisión manual.
