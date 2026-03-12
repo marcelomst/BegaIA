@@ -56,6 +56,17 @@ export async function handleChannelMessage(input: {
   sourceMsgId?: string;
   mode?: ChannelMode;
   sender?: string;
+  subject?: string;
+  recipient?: string;
+  cc?: string[];
+  bcc?: string[];
+  attachments?: any[];
+  references?: string[];
+  inReplyTo?: string;
+  originalMessageId?: string;
+  isForwarded?: boolean;
+  meta?: Record<string, any>;
+  sourceProvider?: string;
 }): Promise<{
   response: string;
   status: import("@/types/channel").MessageStatus;
@@ -90,7 +101,7 @@ export async function handleChannelMessage(input: {
   const channel = (normText(input.channel, 30) || "web") as Channel;
   const explicitConversationId = normText(input.conversationId, 120);
   const rawGuestId = normText(input.guestId, 120) || "web-guest";
-  const sender = normText(input.sender, 60) || "guest";
+  const sender = normText(input.sender, 180) || "guest";
   const content = normText(input.query);
   const explicitLang = normText(input.lang, 12);
   const modeIn = normText(input.mode, 30) as ChannelMode | "";
@@ -148,8 +159,18 @@ export async function handleChannelMessage(input: {
     status: resolvedStatus,
     detectedLanguage: langResolved,
     direction: "in",
-    sourceProvider: channel,
+    sourceProvider: normText(input.sourceProvider, 60) || channel,
     sourceMsgId,
+    subject: normText(input.subject, 240) || undefined,
+    recipient: normText(input.recipient, 240) || undefined,
+    cc: Array.isArray(input.cc) ? input.cc : undefined,
+    bcc: Array.isArray(input.bcc) ? input.bcc : undefined,
+    attachments: Array.isArray(input.attachments) ? input.attachments : undefined,
+    references: Array.isArray(input.references) ? input.references : undefined,
+    inReplyTo: normText(input.inReplyTo, 240) || undefined,
+    originalMessageId: normText(input.originalMessageId, 240) || undefined,
+    isForwarded: typeof input.isForwarded === "boolean" ? input.isForwarded : undefined,
+    meta: input.meta,
   };
 
   const adapter = getAdapter(channel);

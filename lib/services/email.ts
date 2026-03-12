@@ -4,14 +4,14 @@ import imaps from "imap-simple";
 import nodemailer from "nodemailer";
 import { flattenParts } from "@/lib/utils/emailParts";
 import { parseEmailToChannelMessage } from "@/lib/parsers/emailParser";
-import { universalChannelEventHandler } from "@/lib/handlers/universalChannelEventHandler";
+import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import type { EmailConfig } from "@/types/channel";
 import { resolveEmailCredentials, EMAIL_SENDING_ENABLED, emailSecretEnvVarName } from "@/lib/email/resolveEmailCredentials";
 import { standardCleanup } from "@/lib/utils/emailCleanup";
 import { disableEmailPolling } from "@/lib/services/emailPollControl";
 import { getEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
-import { getMessageByOriginalId } from "@/lib/db/messages"; // Idempotencia
+import { getMessageByOriginalIdScoped } from "@/lib/db/messages"; // Idempotencia
 import { debugLog } from "@/lib/utils/debugLog";
 
 const MAX_UID_ERRORS = 3;
@@ -41,6 +41,97 @@ function isIrrelevantEmail({
     spamWords.some(word => allFields.some(field => field.includes(word))) ||
     spamFrom.some(mask => (from || "").toLowerCase().includes(mask))
   );
+}
+
+export async function processInboundEmailMessage(args: {
+  hotelId: string;
+  parsed: any;
+  raw?: Buffer | string;
+  mode: "automatic" | "supervised";
+  emailUser: string;
+  sendReply: (input: { to: string; subject: string; text: string }) => Promise<void>;
+}) {
+  const { hotelId, parsed, raw, mode, emailUser, sendReply } = args;
+
+  const channelMsg = await parseEmailToChannelMessage({
+    parsed,
+    hotelId,
+    raw,
+  });
+
+  let originalMessageId =
+    parsed.messageId || channelMsg.originalMessageId || channelMsg.messageId;
+  if (!originalMessageId) {
+    debugLog(`⚠️ [email] No se encontró messageId en el email, generando uno por hash...`);
+    let hashVal = "";
+    try {
+      const base = [
+        parsed.from?.text, parsed.subject, parsed.date, parsed.text, parsed.html
+      ].filter(Boolean).join("|");
+      // @ts-ignore
+      const crypto = typeof require !== "undefined" ? require("crypto") : null;
+      hashVal = crypto
+        ? crypto.createHash("sha256").update(base).digest("hex")
+        : base;
+    } catch {
+      hashVal = Math.random().toString(36).slice(2, 12);
+    }
+    originalMessageId = hashVal;
+  }
+  channelMsg.originalMessageId = originalMessageId;
+
+  const IGNORE_IDEMPOTENCY = process.env.EMAIL_BOT_IGNORE_IDEMPOTENCY === "true";
+  if (!IGNORE_IDEMPOTENCY) {
+    const alreadyExists = await getMessageByOriginalIdScoped(hotelId, channelMsg.originalMessageId!);
+    if (alreadyExists) {
+      console.log(`[email] Mensaje duplicado detectado, no se guarda:`, channelMsg.originalMessageId);
+      return { deduped: true as const, channelMsg };
+    }
+  }
+
+  const rawText = channelMsg.content || "";
+  const cleaned = standardCleanup(rawText);
+  channelMsg.content = cleaned;
+  channelMsg.suggestion = channelMsg.suggestion ?? "";
+  console.log(`🧹 [email] Texto limpiado:`, cleaned);
+
+  const senderEmail = String(channelMsg.sender || "").trim().toLowerCase();
+
+  const result = await handleChannelMessage({
+    query: cleaned,
+    hotelId,
+    channel: "email",
+    guestId: senderEmail,
+    sender: senderEmail || "guest",
+    sourceMsgId: channelMsg.originalMessageId ?? channelMsg.messageId,
+    mode,
+    subject: channelMsg.subject,
+    recipient: channelMsg.recipient,
+    cc: channelMsg.cc,
+    bcc: channelMsg.bcc,
+    attachments: channelMsg.attachments,
+    references: channelMsg.references,
+    inReplyTo: channelMsg.inReplyTo,
+    originalMessageId: channelMsg.originalMessageId,
+    isForwarded: channelMsg.isForwarded,
+    sourceProvider: "email",
+    meta: {
+      ...(channelMsg.meta || {}),
+      emailFrom: senderEmail || undefined,
+      emailTo: channelMsg.recipient || undefined,
+    },
+  });
+
+  if (result.status === "sent" && result.response.trim()) {
+    await sendReply({
+      to: senderEmail || parsed.from?.text || emailUser,
+      subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
+      text: result.response,
+    });
+    console.log(`📤 [email] Respuesta enviada a ${senderEmail || parsed.from?.text}`);
+  }
+
+  return { deduped: false as const, channelMsg, result };
 }
 
 export async function startEmailBot({
@@ -226,84 +317,27 @@ export async function startEmailBot({
             }
             // --- FIN FILTRO ---
 
-            // Parseo a ChannelMessage base
-            const channelMsg = await parseEmailToChannelMessage({
-              parsed,
+            const processed = await processInboundEmailMessage({
               hotelId,
+              parsed,
               raw,
+              mode,
+              emailUser: EMAIL_USER,
+              sendReply: async ({ to, subject, text }) => {
+                await transporter.sendMail({
+                  from: EMAIL_USER,
+                  to,
+                  subject,
+                  text,
+                });
+              },
             });
 
-            // Idempotencia por messageId
-            const IGNORE_IDEMPOTENCY = process.env.EMAIL_BOT_IGNORE_IDEMPOTENCY === "true";
-            let originalMessageId =
-              parsed.messageId || channelMsg.originalMessageId || channelMsg.messageId;
-            if (!originalMessageId) {
-              debugLog(`⚠️ [email] No se encontró messageId en el email, generando uno por hash...`);
-              let hashVal = "";
-              try {
-                const base = [
-                  parsed.from?.text, parsed.subject, parsed.date, parsed.text, parsed.html
-                ].filter(Boolean).join("|");
-                // @ts-ignore
-                const crypto = typeof require !== "undefined" ? require("crypto") : null;
-                hashVal = crypto
-                  ? crypto.createHash("sha256").update(base).digest("hex")
-                  : base;
-              } catch {
-                hashVal = Math.random().toString(36).slice(2, 12);
-              }
-              channelMsg.originalMessageId = hashVal;
-            } else {
-              channelMsg.originalMessageId = originalMessageId;
+            if (processed.deduped) {
+              await connection.addFlags(uid, "\\Seen");
+              if (failedUids[uid]) delete failedUids[uid];
+              continue;
             }
-
-            if (!IGNORE_IDEMPOTENCY) {
-              const alreadyExists = await getMessageByOriginalId(channelMsg.originalMessageId!);
-              if (alreadyExists) {
-                console.log(`[email] Mensaje duplicado detectado, no se guarda:`, channelMsg.originalMessageId);
-                await connection.addFlags(uid, "\\Seen");
-                if (failedUids[uid]) delete failedUids[uid];
-                continue;
-              }
-            }
-
-            // Limpieza estándar y defaults que exige el tipo
-            const rawText = channelMsg.content || "";
-            const cleaned = standardCleanup(rawText);
-            channelMsg.content = cleaned;
-            channelMsg.suggestion = channelMsg.suggestion ?? ""; // ✅ evitar TS error con tipo estricto
-            console.log(`🧹 [email] Texto limpiado para UID ${uid}:`, cleaned);
-
-            // ✅ Llamada correcta (3 parámetros): msg + hotelId + opts
-            await universalChannelEventHandler(
-              {
-                hotelId,
-                conversationId: channelMsg.conversationId!,         // viene del parser
-                channel: channelMsg.channel,                         // "email"
-                from: "guest",                                       // entrante
-                content: cleaned,
-                // para idempotencia en email conviene usar el Message-ID del RFC:
-                sourceMsgId: channelMsg.originalMessageId ?? channelMsg.messageId,
-                timestamp: parsed.date ? parsed.date.getTime() : Date.now(),
-                // (opcional) subject/meta si tu UniversalEvent los define:
-                // subject: channelMsg.subject,
-                // meta: channelMsg.meta,
-              },
-              {
-                mode,
-                sendReply: async (reply: string) => {
-                  await transporter.sendMail({
-                    from: EMAIL_USER,
-                    to: channelMsg.sender || parsed.from?.text || EMAIL_USER,
-                    subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
-                    text: reply,
-                  });
-                  console.log(
-                    `📤 [email] Respuesta enviada a ${channelMsg.sender || parsed.from?.text}`
-                  );
-                },
-              }
-            );
 
             // Marcar como leído solo los válidos procesados
             await connection.addFlags(uid, "\\Seen");
