@@ -407,7 +407,7 @@ export default function ChannelInbox({
           </div>
           <div className="mb-3 grid grid-cols-2 gap-2 px-2">
             <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Conversaciones</div>
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Conv.</div>
               <div className="text-sm font-semibold">{conversations.length}</div>
             </div>
             <div className="rounded-lg border border-border bg-background/70 px-2 py-2">
@@ -578,7 +578,7 @@ export default function ChannelInbox({
                         {p.ageMinutes} min
                       </span>
                       {p.conversationId === selectedConv && (
-                        <span className="text-xs font-medium text-blue-700 dark:text-blue-200">thread activo</span>
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-200">conversacion activa</span>
                       )}
                       {p.breach && <span className="text-xs text-red-600 font-semibold">SLA breach</span>}
                       <button

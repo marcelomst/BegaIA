@@ -67,7 +67,7 @@ const ConversationsTabs: React.FC<Props> = ({
         <div>
           <div className="font-semibold">{t.channelInbox?.convsWithGuest || "Conversaciones con guest"}</div>
           <div className="text-xs text-muted-foreground">
-            {guestConversations.length} thread{guestConversations.length === 1 ? "" : "s"} activos para este huésped.
+            {guestConversations.length} conversaciones activas para este huésped.
           </div>
         </div>
         <button
