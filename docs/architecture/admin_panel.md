@@ -469,7 +469,8 @@ pero mejora legibilidad y comprensión operativa del dominio `Guests`.
 ## UI-INBOX-01 — Bandeja operativa multicanal para recepción
 
 Se refina el módulo `Inbox` para que funcione de forma más clara como bandeja
-operativa de recepción y no como una simple agregación técnica de threads.
+operativa de recepción y no como una simple agregación técnica de
+conversaciones.
 
 ### Objetivo
 
@@ -477,7 +478,7 @@ Mejorar la lectura operativa de:
 
 - conversación activa
 - canal activo
-- estado del thread
+- estado de la conversación
 - pendientes de atención
 - contexto resumido del huésped actual
 
@@ -491,7 +492,7 @@ La vista de Inbox pasa a separar mejor:
 
 - sidebar de huéspedes
 - conversaciones del huésped seleccionado
-- encabezado operativo del thread activo
+- encabezado operativo de la conversación activa
 - resumen contextual del huésped
 - panel de mensajes
 
@@ -507,14 +508,14 @@ telemetría cruda y pasan a presentarse como tarjetas compactas con:
 - contador de mensajes
 - indicador de pendiente
 
-#### 3. Header operativo del thread activo
+#### 3. Header operativo de la conversación activa
 
 El Inbox ahora muestra explícitamente:
 
 - asunto de la conversación
 - canal activo
-- estado del thread
-- cantidad de threads del huésped
+- estado de la conversación
+- cantidad de conversaciones del huésped
 - última actividad
 - pendientes asociados
 

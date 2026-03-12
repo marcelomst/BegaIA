@@ -1567,3 +1567,32 @@ Impacto:
 Queda trazada en la secuencia histórica del proyecto la decisión de postergar
 este cambio de dominio y se evita introducir `thread` como contrato backend
 antes de una revisión arquitectónica mayor.
+
+### DOC-UI-INBOX-LABELS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-12  
+Commit: 6a9ae0b
+
+Descripción:
+
+Se documenta el ajuste textual del módulo `Inbox` para alinear la UI visible
+con el modelo actual del sistema, donde la unidad persistida y contada sigue
+siendo `Conversation`.
+
+El cambio reemplaza labels ambiguos vinculados a `thread` por lenguaje
+operativo basado en conversaciones, incluyendo:
+
+- `Threads` -> `Conversaciones`
+- `conv.` -> `conversaciones`
+- `thread(s) del huésped` -> `conversacion(es) del huésped`
+
+Archivos afectados:
+
+- `components/admin/ChannelInbox.tsx`
+- `docs/architecture/admin_panel.md`
+
+Impacto:
+
+Se evita presentar `Thread` como entidad activa en la UI actual y queda
+alineada la documentación con la deuda arquitectónica `VNEXT` ya registrada.
