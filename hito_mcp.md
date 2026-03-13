@@ -1772,6 +1772,22 @@ Se mejora la contención operativa del canal Email legacy como mecanismo de
 transición/fallback. La autenticación SMTP fallida (`EAUTH 535`) queda
 explícitamente fuera del objetivo principal de este hito.
 
+Política operativa del legacy email:
+
+- uso permitido:
+  - pruebas controladas
+  - pilotos con remitentes seleccionados
+  - onboarding inicial de hotel
+  - operación de bajo volumen bajo monitoreo activo
+- uso no permitido:
+  - asumirlo como arquitectura objetivo del canal email
+  - escalarlo como base estructural definitiva
+  - agregarle capacidades estratégicas de largo plazo fuera de contención táctica
+
+Condición:
+
+- su uso debe mantenerse acotado, observable y reversible
+
 ### DOC-FIX-EMAIL-SMTP-CREDS-01
 
 Estado: COMPLETADO  

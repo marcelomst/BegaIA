@@ -222,6 +222,25 @@ Decisión:
 
 - aceptable solo como transición/fallback
 
+#### Uso transicional del legacy email
+
+Mientras se define e implementa la arquitectura objetivo del transporte email,
+el runtime legacy puede mantenerse como mecanismo transitorio de onboarding y
+quickstart operativo.
+
+Este uso transicional es válido para:
+
+- adopción inicial del primer hotel
+- pruebas con remitentes o huéspedes de confianza
+- pilotos controlados
+- operación acotada de bajo volumen
+- aprendizaje operativo del canal
+
+Regla:
+
+- el valor del runtime legacy en esta etapa es facilitar adopción y transición,
+  no definir la arquitectura final del canal email
+
 ### 3. Adapter event-driven / cloud-based
 
 Ventajas:
