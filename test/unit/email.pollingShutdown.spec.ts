@@ -28,6 +28,8 @@ vi.mock("@/lib/services/redis", () => ({
 
 import {
   acquireEmailBotLock,
+  buildEmailLegacySearchCriteria,
+  limitLegacyMessages,
   refreshEmailBotLock,
   releaseEmailBotLock,
   markEmailProcessed,
@@ -63,5 +65,32 @@ describe("email polling shutdown helpers", () => {
     expect(connection.addFlags).toHaveBeenNthCalledWith(1, 42, ["\\Seen", "RAGBOT_PROCESSED"]);
     expect(connection.addFlags).toHaveBeenNthCalledWith(2, 42, "\\Seen");
     expect(connection.addFlags).toHaveBeenNthCalledWith(3, 42, "RAGBOT_PROCESSED");
+  });
+
+  it("acota la query legacy con SINCE en safe mode", () => {
+    const criteria = buildEmailLegacySearchCriteria(
+      new Date("2026-03-13T12:00:00.000Z"),
+      { safeMode: true, lookbackDays: 2, maxMessages: 10, allowedSenders: [] },
+    );
+
+    expect(criteria).toContain("UNSEEN");
+    expect(criteria).toContainEqual(["UNKEYWORD", "RAGBOT_PROCESSED"]);
+    expect(criteria).toContainEqual(["SINCE", "11-Mar-2026"]);
+  });
+
+  it("limita mensajes legacy al subconjunto mas reciente", () => {
+    const messages = [
+      { attributes: { uid: 10 } },
+      { attributes: { uid: 50 } },
+      { attributes: { uid: 20 } },
+      { attributes: { uid: 40 } },
+    ];
+
+    const result = limitLegacyMessages(
+      messages as any[],
+      { safeMode: true, lookbackDays: 1, maxMessages: 2, allowedSenders: [] },
+    );
+
+    expect(result.map((msg) => msg.attributes.uid)).toEqual([40, 50]);
   });
 });

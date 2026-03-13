@@ -18,6 +18,9 @@ import { redis } from "@/lib/services/redis";
 const MAX_UID_ERRORS = 3;
 const EMAIL_LOOP_INTERVAL_MS = 15000;
 const EMAIL_BOT_LOCK_TTL_SEC = 120;
+const EMAIL_LEGACY_SAFE_MODE_DEFAULT = process.env.EMAIL_LEGACY_SAFE_MODE !== "0";
+const EMAIL_LEGACY_LOOKBACK_DAYS_DEFAULT = Math.max(0, Number(process.env.EMAIL_LEGACY_LOOKBACK_DAYS ?? 1) || 1);
+const EMAIL_LEGACY_MAX_MESSAGES_DEFAULT = Math.max(1, Number(process.env.EMAIL_LEGACY_MAX_MESSAGES ?? 10) || 10);
 const failedUids: Record<number, number> = {};
 const emailBotRuntimes = new Map<string, {
   hotelId: string;
@@ -53,6 +56,61 @@ function isIrrelevantEmail({
   );
 }
 
+type EmailLegacyContainmentConfig = {
+  safeMode: boolean;
+  lookbackDays: number;
+  maxMessages: number;
+  allowedSenders: string[];
+};
+
+function normalizeEmailAddress(value: unknown): string {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function formatImapDate(date: Date): string {
+  const day = date.getUTCDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+export function getEmailLegacyContainmentConfig(): EmailLegacyContainmentConfig {
+  const allowedSenders = String(process.env.EMAIL_LEGACY_ALLOWED_SENDERS ?? "")
+    .split(",")
+    .map((item) => normalizeEmailAddress(item))
+    .filter(Boolean);
+
+  return {
+    safeMode: EMAIL_LEGACY_SAFE_MODE_DEFAULT,
+    lookbackDays: EMAIL_LEGACY_LOOKBACK_DAYS_DEFAULT,
+    maxMessages: EMAIL_LEGACY_MAX_MESSAGES_DEFAULT,
+    allowedSenders,
+  };
+}
+
+export function buildEmailLegacySearchCriteria(now = new Date(), cfg = getEmailLegacyContainmentConfig()): any[] {
+  const criteria: any[] = ["UNSEEN", ["UNKEYWORD", "RAGBOT_PROCESSED"]];
+  if (cfg.safeMode && cfg.lookbackDays > 0) {
+    const since = new Date(now.getTime() - cfg.lookbackDays * 24 * 60 * 60 * 1000);
+    criteria.push(["SINCE", formatImapDate(since)]);
+  }
+  return criteria;
+}
+
+export function limitLegacyMessages(messages: any[], cfg: EmailLegacyContainmentConfig): any[] {
+  if (!cfg.safeMode || messages.length <= cfg.maxMessages) return messages;
+  return [...messages]
+    .sort((a, b) => Number(b?.attributes?.uid || 0) - Number(a?.attributes?.uid || 0))
+    .slice(0, cfg.maxMessages)
+    .sort((a, b) => Number(a?.attributes?.uid || 0) - Number(b?.attributes?.uid || 0));
+}
+
+function shouldProcessLegacySender(senderEmail: string, cfg: EmailLegacyContainmentConfig): boolean {
+  if (!cfg.allowedSenders.length) return true;
+  return cfg.allowedSenders.includes(normalizeEmailAddress(senderEmail));
+}
+
 function buildEmailBotLockKey(hotelId: string): string {
   return `email_bot_lock:${hotelId}`;
 }
@@ -63,7 +121,7 @@ function newEmailBotLockToken(hotelId: string): string {
 
 export async function acquireEmailBotLock(hotelId: string, lockToken: string): Promise<boolean> {
   const key = buildEmailBotLockKey(hotelId);
-  const result = await redis.set(key, lockToken, "NX", "EX", EMAIL_BOT_LOCK_TTL_SEC);
+  const result = await redis.set(key, lockToken, "EX", EMAIL_BOT_LOCK_TTL_SEC, "NX");
   return result === "OK";
 }
 
@@ -310,6 +368,7 @@ export async function startEmailBot({
       console.warn(`[email] Ya existe otro proceso email activo para hotelId=${hotelId}. Abortando init.`);
       return;
     }
+    const runtimeLockToken = lockToken;
 
     let connection;
     try {
@@ -353,39 +412,54 @@ export async function startEmailBot({
       connection,
       stopping: false,
     });
+    const legacyContainment = getEmailLegacyContainmentConfig();
+    console.log("[email][legacy] containment", {
+      hotelId,
+      safeMode: legacyContainment.safeMode,
+      lookbackDays: legacyContainment.lookbackDays,
+      maxMessages: legacyContainment.maxMessages,
+      allowedSenders: legacyContainment.allowedSenders,
+    });
 
     const intervalId = setInterval(async () => {
-      const canRun = await shouldContinueEmailProcessing(hotelId, lockToken);
+      const canRun = await shouldContinueEmailProcessing(hotelId, runtimeLockToken);
       console.log(`🔄 [email] Polling de correos habilitado para hotel ${hotelId}:`, canRun);
       if (!canRun) {
-        await stopEmailBotRuntime(hotelId, "polling_disabled_or_lock_lost", lockToken);
+        await stopEmailBotRuntime(hotelId, "polling_disabled_or_lock_lost", runtimeLockToken);
         return;
       }
 
       try {
+        const searchCriteria = buildEmailLegacySearchCriteria(new Date(), legacyContainment);
+        console.log("[email][legacy] search", {
+          hotelId,
+          criteria: searchCriteria,
+        });
+
         const messages = await connection.search(
-          ["UNSEEN", ["UNKEYWORD", "RAGBOT_PROCESSED"]],
+          searchCriteria,
           { bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT", ""], struct: true }
         );
+        const selectedMessages = limitLegacyMessages(messages, legacyContainment);
 
-        if (!messages.length) {
+        if (!selectedMessages.length) {
           console.log("📭 [email] No hay mensajes no leídos.");
           disableEmailPolling(hotelId);
-          await stopEmailBotRuntime(hotelId, "empty_inbox", lockToken);
+          await stopEmailBotRuntime(hotelId, "empty_inbox", runtimeLockToken);
           return;
         }
 
-        console.log(`📬 [email] Correos no leídos: ${messages.length}`);
+        console.log(`📬 [email] Correos candidatos: ${messages.length} | seleccionados: ${selectedMessages.length}`);
 
         const hotelConfig = await getHotelConfig(hotelId);
         const mode: "automatic" | "supervised" =
           hotelConfig?.channelConfigs?.email?.mode ?? "automatic";
 
-        for (const message of messages) {
-          const continueBetweenMessages = await shouldContinueEmailProcessing(hotelId, lockToken);
+        for (const message of selectedMessages) {
+          const continueBetweenMessages = await shouldContinueEmailProcessing(hotelId, runtimeLockToken);
           if (!continueBetweenMessages) {
             console.log(`[email] Corte solicitado para hotel ${hotelId}. Se detiene antes del siguiente mensaje.`);
-            await stopEmailBotRuntime(hotelId, "stopped_between_messages", lockToken);
+            await stopEmailBotRuntime(hotelId, "stopped_between_messages", runtimeLockToken);
             return;
           }
 
@@ -394,6 +468,29 @@ export async function startEmailBot({
             const allRaw = message.parts.find((p: any) => p.which === "");
             const raw = allRaw?.body;
             const parsed = await simpleParser(raw);
+            const flags = Array.isArray(message?.attributes?.flags) ? message.attributes.flags : [];
+            const sender = normalizeEmailAddress(parsed.from?.value?.[0]?.address || parsed.from?.text || "");
+            const parsedDateIso = parsed.date instanceof Date ? parsed.date.toISOString() : null;
+
+            console.log("[email][legacy][candidate]", {
+              hotelId,
+              uid,
+              flags,
+              from: sender,
+              subject: parsed.subject || "",
+              rfcMessageId: parsed.messageId || "",
+              date: parsedDateIso,
+            });
+
+            if (!shouldProcessLegacySender(sender, legacyContainment)) {
+              console.log("[email][legacy][skip]", {
+                hotelId,
+                uid,
+                reason: "sender_not_allowed",
+                from: sender,
+              });
+              continue;
+            }
 
             // 🟦 DEBUG
             debugLog("\n[DEBUG] EMAIL RECIBIDO UID", uid, {
@@ -472,7 +569,7 @@ export async function startEmailBot({
         }
 
         disableEmailPolling(hotelId);
-        await stopEmailBotRuntime(hotelId, "batch_completed", lockToken);
+        await stopEmailBotRuntime(hotelId, "batch_completed", runtimeLockToken);
         console.log("🛑 [email] Polling desactivado después de procesar mensajes.");
       } catch (err) {
         console.error("⛔ [email] Error durante polling:", err);
