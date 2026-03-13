@@ -340,27 +340,30 @@ export async function startEmailBot({
       console.warn('[email] EMAIL_SENDING_ENABLED=false: se inicia polling IMAP pero no se enviarán respuestas automáticas.');
     }
 
-    // Para IMAP usamos (por ahora) la misma password; si difiere en el futuro se puede extender EmailConfig
-    const EMAIL_PASS = creds.pass || inlinePassword;
+    // Para IMAP y SMTP usamos la misma credencial efectiva del runtime legacy.
+    let effectiveEmailPass = creds.pass || inlinePassword;
 
-    const imapConfig = {
+    const buildImapConfig = (password: string) => ({
       imap: {
         user: EMAIL_USER,
-        password: EMAIL_PASS,
+        password,
         host: IMAP_HOST,
         port: Number(IMAP_PORT) || 993,
         tls: true,
         tlsOptions: { rejectUnauthorized: false },
         authTimeout: 10000,
       },
-    };
+    });
 
-    const transporter = nodemailer.createTransport({
+    const buildTransporter = (password: string) => nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT) || 587,
       secure: EMAIL_SECURE,
-      auth: EMAIL_SENDING_ENABLED ? { user: EMAIL_USER, pass: EMAIL_PASS } : undefined,
+      auth: EMAIL_SENDING_ENABLED ? { user: EMAIL_USER, pass: password } : undefined,
     });
+
+    let imapConfig = buildImapConfig(effectiveEmailPass);
+    let transporter = buildTransporter(effectiveEmailPass);
 
     lockToken = newEmailBotLockToken(hotelId);
     const acquired = await acquireEmailBotLock(hotelId, lockToken);
@@ -389,8 +392,11 @@ export async function startEmailBot({
         if (alt && alt !== creds.pass) {
           console.warn('[email] Intentando fallback con EMAIL_PASS del entorno (difiere del inline).');
           try {
-            const altImapConfig = { imap: { ...imapConfig.imap, password: alt } } as any;
+            effectiveEmailPass = alt;
+            const altImapConfig = buildImapConfig(effectiveEmailPass);
             connection = await imaps.connect(altImapConfig);
+            imapConfig = altImapConfig;
+            transporter = buildTransporter(effectiveEmailPass);
             console.log('[email] ✅ Fallback IMAP exitoso con EMAIL_PASS. Recomiendo migrar a secretRef y remover password inline.');
           } catch (secondErr: any) {
             console.error('[email] ❌ Fallback IMAP también falló', { message: secondErr?.message, textCode: secondErr?.textCode });
