@@ -1833,3 +1833,39 @@ Impacto:
 Se corrige una desalineación táctica SMTP/IMAP del runtime Email legacy sin
 rediseñar el transporte Email ni alterar la dirección arquitectónica ya fijada
 en el ADR correspondiente.
+
+### DOC-FIX-WIDGET-FIRST-RESPONSE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-13  
+Commit: 1323293
+
+Descripción:
+
+Se registra el ajuste de routing/clasificación que corrige la primera respuesta
+del widget para que consultas hoteleras básicas de disponibilidad no caigan
+erróneamente en contexto de eventos.
+
+Caso reportado:
+
+- entrada: `Quiero consultar disponibilidad para este fin de semana`
+- resultado post-fix: `¿Cuál es tu nombre y cuántos huéspedes se alojarán?`
+
+Archivos afectados:
+
+- `lib/agents/classifyNode.ts`
+- `lib/agents/graph.ts`
+- `lib/agents/helpers.ts`
+- `test/unit/graph.routingDebug.test.ts`
+- `test/unit/classifyNode.reservationPriority.spec.ts`
+
+Validación:
+
+- `pnpm exec vitest run test/api.chat.route.spec.ts test/integration/api_chat.test.ts test/frontend/chatPage.lang.spec.tsx test/frontend/chatPage.faq.spec.tsx test/frontend/chatPage.quickActions.spec.tsx test/availability.unified.flow.spec.ts test/unit/retrieval.intentGuards.test.ts test/unit/graph.routingDebug.test.ts test/unit/events.followupRouting.test.ts test/unit/classifyNode.reservationPriority.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Impacto:
+
+Se reduce una clasificación inicial incorrecta en el widget y se refuerza la
+prioridad del flujo de disponibilidad/reserva por encima del contexto de
+eventos en consultas hoteleras básicas.
