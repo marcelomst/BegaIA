@@ -171,6 +171,14 @@ Documenta la resolución de conversación por identidad (`guestId`) con priorida
 Documenta la consulta admin unificada por `guestId` sobre infraestructura
 multicanal.
 
+### ADR: Transporte Email Objetivo
+
+`adr_email_transport_target.md`
+
+Define la arquitectura objetivo del transporte email en producción,
+preservando el pipeline conversacional central y separando transporte,
+normalización, control técnico y dominio.
+
 ### Deuda VNEXT: Thread como caso operativo
 
 `thread_domain_vnext_debt.md`
