@@ -438,6 +438,11 @@ export function heuristicClassify(text: string): IntentResult {
     return { category: "reservation", desiredAction: "create", intentConfidence: 0.75, intentSource: "heuristic" };
   }
 
+  const isAvailability = /\b(disponibil\w*|availability)\b/.test(t);
+  if (isAvailability) {
+    return { category: "reservation", desiredAction: "create", intentConfidence: 0.76, intentSource: "heuristic" };
+  }
+
   const isAmenities = /\b(piscina|pool|spa|gym|gimnasio|estacionamiento|parking|amenities|desayuno|breakfast)\b/.test(t);
   if (isAmenities) {
     return { category: "amenities", desiredAction: undefined, intentConfidence: 0.7, intentSource: "heuristic" };

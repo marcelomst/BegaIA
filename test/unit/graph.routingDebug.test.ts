@@ -118,4 +118,22 @@ describe("classifyNode routing debug", () => {
     expect(String(res.promptKey || "")).toBe("tourist_events");
     expect(res.meta?.debug?.route_source).toBe("heuristic_events");
   });
+
+  it("prioritizes reservation availability over weekend events phrasing", async () => {
+    const res = await classifyNode({
+      normalizedMessage: "quiero consultar disponibilidad para este fin de semana",
+      originalLang: "es",
+      detectedLanguage: "es",
+      category: "other",
+      promptKey: undefined,
+      reservationSlots: {},
+      meta: {},
+      messages: [],
+      hotelId: "hotel999",
+      conversationId: "c1",
+    } as any);
+
+    expect(res.category).toBe("reservation");
+    expect(String(res.promptKey || "")).toBe("reservation_flow");
+  });
 });

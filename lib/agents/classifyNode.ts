@@ -11,8 +11,13 @@ function isGreeting(s: string) {
     const t = (s || "").trim().toLowerCase();
     return /^(hola|hello|hi|hey|buenas|buenos dias|buenos días|buenas tardes|buenas noches|olá|ola|oi)$/.test(t);
 }
+function hasReservationAvailabilitySignal(s: string) {
+    const t = (s || "").toLowerCase();
+    return /\b(reserv\w*|booking|book|disponibil\w*|availability|habitaci[oó]n|room|quarto|check[ -]?in|check[ -]?out|hu[eé]sped(?:es)?|guest(?:s)?|adulto(?:s)?|adult)\b/.test(t);
+}
 function wantsEvents(s: string) {
     const t = (s || "").toLowerCase();
+    if (hasReservationAvailabilitySignal(t)) return false;
     const keys = [
         // ES
         "evento", "eventos", "agenda", "que hay", "que hacer", "hoy", "mañana", "manana",

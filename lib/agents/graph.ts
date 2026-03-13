@@ -19,6 +19,9 @@ import type { IntentCategory, DesiredAction } from "@/types/audit";
 
 function wantsEvents(s: string) {
   const t = (s || "").toLowerCase();
+  if (/\b(reserv\w*|booking|book|disponibil\w*|availability|habitaci[oó]n|room|quarto|check[ -]?in|check[ -]?out|hu[eé]sped(?:es)?|guest(?:s)?|adulto(?:s)?|adult)\b/.test(t)) {
+    return false;
+  }
   const keys = [
     // ES
     "evento", "eventos", "agenda", "hoy", "mañana", "manana",
