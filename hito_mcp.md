@@ -1727,3 +1727,47 @@ Impacto:
 
 Queda trazada en la bitácora la dirección arquitectónica del canal Email para
 producción sin modificar aún la implementación técnica del transporte.
+
+### DOC-FIX-EMAIL-LEGACY-CONTAINMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-13  
+Commit: cbe94bfc5ca2689819648fe7ec971278eb60a632
+
+Descripción:
+
+Se registra la contención táctica del runtime Email legacy para transición y
+fallback, agregando guardas operativas para reducir riesgo de procesamiento no
+controlado sobre inbox real sin alterar el modelo conversacional central.
+
+Alcance documentado:
+
+- `safe mode`
+- lookback temporal
+- máximo de mensajes por batch
+- `allowed senders`
+- observabilidad por UID, flags, remitente y `messageId`
+- guard de proceso único
+- shutdown efectivo
+- marcado durable `\\Seen` + `RAGBOT_PROCESSED`
+
+Validación:
+
+- `pnpm run ts-check` PASS
+- `pnpm exec vitest run test/unit/email.pollingShutdown.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/email.resolveCredentials.spec.ts` PASS
+- prueba real inbound controlada PASS parcial:
+  - arranque PASS
+  - contención legacy PASS
+  - procesamiento inbound PASS
+  - salida SMTP FAIL por `EAUTH 535`
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+
+Impacto:
+
+Se mejora la contención operativa del canal Email legacy como mecanismo de
+transición/fallback. La autenticación SMTP fallida (`EAUTH 535`) queda
+explícitamente fuera del objetivo principal de este hito.
