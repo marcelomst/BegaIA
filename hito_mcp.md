@@ -1771,3 +1771,49 @@ Impacto:
 Se mejora la contención operativa del canal Email legacy como mecanismo de
 transición/fallback. La autenticación SMTP fallida (`EAUTH 535`) queda
 explícitamente fuera del objetivo principal de este hito.
+
+### DOC-FIX-EMAIL-SMTP-CREDS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-13  
+Commit: 751995c43a4b854148ea2f091f803a8242a514ac
+
+Descripción:
+
+Se registra el fix mínimo que alinea SMTP con la credencial efectiva usada por
+IMAP cuando el runtime Email legacy entra por fallback con `EMAIL_PASS`.
+
+Contexto documentado:
+
+- IMAP podía autenticar por fallback con `EMAIL_PASS`
+- SMTP seguía usando la credencial inline original
+- eso generaba `EAUTH 535` en outbound aunque el inbound funcionara
+
+Alcance del fix:
+
+- se introduce credencial efectiva de runtime para Email legacy
+- si IMAP entra con fallback, SMTP se reconstruye con la misma password efectiva
+- se agrega prueba unitaria específica del caso
+
+Validación:
+
+- `pnpm run ts-check` PASS
+- `pnpm exec vitest run test/unit/email.smtpAuthFallback.spec.ts test/unit/email.pollingShutdown.spec.ts test/unit/email.resolveCredentials.spec.ts` PASS
+- prueba real controlada PASS:
+  - inbound email OK
+  - no generó guest nuevo
+  - reutilizó guest existente
+  - reutilizó conversación existente
+  - reply outbound enviado correctamente
+  - desapareció `EAUTH 535`
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `test/unit/email.smtpAuthFallback.spec.ts`
+
+Impacto:
+
+Se corrige una desalineación táctica SMTP/IMAP del runtime Email legacy sin
+rediseñar el transporte Email ni alterar la dirección arquitectónica ya fijada
+en el ADR correspondiente.
