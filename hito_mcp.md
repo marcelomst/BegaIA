@@ -1695,3 +1695,35 @@ Impacto:
 Se reduce el riesgo de duplicación de procesamiento y se refuerza la operación
 single-runtime por hotel en el canal Email, sin alterar UI, Inbox/Admin ni
 supervisión manual.
+
+### DOC-ADR-EMAIL-TRANSPORT-TARGET-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-13  
+Commit: d3765ad
+
+Descripción:
+
+Se registra el ADR que define la arquitectura objetivo del transporte Email en
+producción, preservando el pipeline conversacional central y separando
+explícitamente transporte, normalización, control técnico y dominio.
+
+Puntos centrales documentados:
+
+- `email` unificado en dominio
+- transporte Email especializado
+- polling IMAP relegado a transición o fallback
+- separación de identidades técnicas
+- entidad técnica intermedia `EmailInboundRecord`
+- consideración de convivencia con infraestructura legacy y primer hotel
+
+Archivos afectados:
+
+- `docs/architecture/adr_email_transport_target.md`
+- `docs/architecture/README.md`
+- `docs/README.md`
+
+Impacto:
+
+Queda trazada en la bitácora la dirección arquitectónica del canal Email para
+producción sin modificar aún la implementación técnica del transporte.
