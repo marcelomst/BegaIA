@@ -51,8 +51,8 @@ describe("reservation handler - persistencia en conv_state", () => {
       reservationSlots: {}, // sin datos
     });
 
-    // El grafo aplica ONE_QUESTION_PER_TURN y prioriza el primer slot faltante (guestName)
-    expect(String(res.messages?.[0]?.content)).toMatch(/nombre completo|check-in/);
+    // En etapa de cotización prioriza slots transaccionales antes que guestName.
+    expect(String(res.messages?.[0]?.content)).toMatch(/tipo de habitación|check-in/);
     expect(upsertConvState).toHaveBeenCalledTimes(1);
     expect(upsertConvState).toHaveBeenCalledWith(
       hotelId,
@@ -66,6 +66,51 @@ describe("reservation handler - persistencia en conv_state", () => {
         updatedBy: "ai",
       })
     );
+  });
+
+  it("pricing web con roomType conocido no pide guestName primero; pide fecha de check-in", async () => {
+    (fillSlotsWithLLM as any).mockResolvedValue({
+      need: "question",
+      question: "¿Cuál es tu nombre?",
+      partial: {
+        roomType: "double",
+        locale: "es",
+      },
+    });
+
+    const res = await agentGraph.invoke({
+      normalizedMessage: "Quisiera saber tarifas para una habitación doble",
+      detectedLanguage: "es",
+      hotelId,
+      conversationId,
+      reservationSlots: {},
+    });
+
+    expect(String(res.messages?.[0]?.content)).toContain("check-in");
+    expect(String(res.messages?.[0]?.content)).not.toMatch(/nombre|huésped/i);
+  });
+
+  it("availability web con fechas conocidas difiere guestName y prioriza roomType antes que nombre", async () => {
+    (fillSlotsWithLLM as any).mockResolvedValue({
+      need: "question",
+      question: "¿Cuál es tu nombre y cuántos huéspedes se alojarán?",
+      partial: {
+        checkIn: "2026-03-14",
+        checkOut: "2026-03-16",
+        locale: "es",
+      },
+    });
+
+    const res = await agentGraph.invoke({
+      normalizedMessage: "Quiero consultar disponibilidad para este fin de semana",
+      detectedLanguage: "es",
+      hotelId,
+      conversationId,
+      reservationSlots: {},
+    });
+
+    expect(String(res.messages?.[0]?.content)).toContain("tipo de habitación");
+    expect(String(res.messages?.[0]?.content)).not.toMatch(/nombre|huésped/i);
   });
 
   it("slots completos → persiste slots y lastProposal; responde con confirmación (quote)", async () => {

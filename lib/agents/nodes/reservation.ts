@@ -7,12 +7,18 @@ import { fillSlotsWithLLM, confirmAndCreate } from "@/lib/agents/reservations";
 import type { FillSlotsResult } from "@/lib/agents/reservations";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { debugLog } from "@/lib/utils/debugLog";
-import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, questionMentionsSlot, firstNameOf, extractDateRangeFromText, isConfirmIntentLight } from "../helpers";
+import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
 import type { GraphState } from "../graphState";
 
 const REQUIRED_SLOTS: RequiredSlot[] = [
     "guestName",
+    "roomType",
+    "checkIn",
+    "checkOut",
+    "numGuests",
+];
+const QUOTE_REQUIRED_SLOTS: RequiredSlot[] = [
     "roomType",
     "checkIn",
     "checkOut",
@@ -167,7 +173,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         });
     } catch {
         console.timeLog("fillSlotsWithLLM");
-        const missing = REQUIRED_SLOTS.filter((k) => !merged[k]);
+        const missing = QUOTE_REQUIRED_SLOTS.filter((k) => !merged[k]);
         const q = ONE_QUESTION_PER_TURN && missing.length
             ? buildSingleSlotQuestion(missing[0], lang2)
             : buildAggregatedQuestion(missing, lang2);
@@ -255,7 +261,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         // Si no hay todos los datos, seguir el flujo normal (repreguntar)
     }
     // Si ya está todo, saltamos disponibilidad
-    const haveAllNow = REQUIRED_SLOTS.every((k) => !!merged[k]);
+    const haveAllNow = QUOTE_REQUIRED_SLOTS.every((k) => !!merged[k]);
     if (haveAllNow) {
         const ci = new Date(merged.checkIn!);
         const co = new Date(merged.checkOut!);
@@ -359,13 +365,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                 if (typeof cl === "number") nextSnapshot.numGuests = cl;
             }
         }
-        const missingOrder: RequiredSlot[] = [
-            "guestName",
-            "roomType",
-            "checkIn",
-            "checkOut",
-            "numGuests",
-        ];
+        const missingOrder: RequiredSlot[] = QUOTE_REQUIRED_SLOTS;
         const missing = missingOrder.filter((k) => !nextSnapshot[k]);
         const rawQ = (filled.question || "").trim();
         let questionText = stripLocaleRequests(rawQ);
@@ -425,13 +425,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         } else {
             const k = missing[0];
             if (ONE_QUESTION_PER_TURN) {
-                // Preferir la pregunta del LLM solo si apunta al slot esperado; si no, usar la canónica
                 const single = buildSingleSlotQuestion(k, lang2);
-                if (FORCE_CANONICAL_QUESTION || !questionMentionsSlot(rawQ, k, lang2)) {
-                    questionText = single;
-                } else if (!questionText) {
-                    questionText = single;
-                }
+                // En etapa de cotización priorizamos una sola pregunta canónica por slot transaccional.
+                // Esto evita asks combinados pobres del LLM antes de consultar disponibilidad.
+                questionText = single;
             } else if (missing.length === 1) {
                 const single = buildSingleSlotQuestion(k, lang2);
                 if (FORCE_CANONICAL_QUESTION || !questionText) questionText = single;
