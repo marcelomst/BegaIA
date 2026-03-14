@@ -1869,3 +1869,127 @@ Impacto:
 Se reduce una clasificación inicial incorrecta en el widget y se refuerza la
 prioridad del flujo de disponibilidad/reserva por encima del contexto de
 eventos en consultas hoteleras básicas.
+
+### DOC-FIX-RESERVATION-FIRST-TURN-ASK-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-14  
+Commit: 8814a49e5d326efc1b2e555f1a632c525d988a96
+
+Descripción:
+
+Se registra el ajuste de `reservation_flow` para que pricing y disponibilidad
+no queden bloqueados por `guestName` en el primer turno.
+
+El gating previo a cotización/disponibilidad pasa a usar solo slots
+transaccionales:
+
+- `roomType`
+- `checkIn`
+- `checkOut`
+- `numGuests`
+
+Además, el flujo evita asks combinados pobres y fuerza la pregunta canónica del
+slot transaccional faltante.
+
+Validación:
+
+- `pnpm exec vitest run test/graph.reservation.persist.spec.ts test/availability.unified.flow.spec.ts test/freezer/e2e.reservation.flow.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Validación manual:
+
+- `Quisiera saber tarifas para una habitación doble` -> `¿Cuál es la fecha de check-in?`
+- `Quiero consultar disponibilidad para este fin de semana` -> `¿Cuál es el tipo de habitación?`
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `test/graph.reservation.persist.spec.ts`
+
+Impacto:
+
+Se mejora el primer ask del flujo de reservas para consultas de pricing y
+disponibilidad, priorizando datos transaccionales antes de pedir identidad del
+huésped.
+
+### DOC-FIX-PRICING-ROUTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-14  
+Commit: ef2cb0e
+
+Descripción:
+
+Se registra el ajuste de routing para que intents transaccionales de pricing no
+caigan en `pricing_info` ni en bypass de KB, sino que entren al flujo de
+reserva.
+
+Cambios documentados:
+
+- `pricing_request` pasa a mapearse a `reservation`
+- se detecta pricing transaccional con señales de tarifa + habitación/reserva
+- se evita el fast-path de KB en esos casos
+
+Archivos afectados:
+
+- `lib/agents/orchestratorAgent.ts`
+- `lib/handlers/messageHandler.ts`
+
+Impacto:
+
+Las consultas de tarifas orientadas a cotización/reserva quedan alineadas con
+el flujo transaccional correcto en lugar de tratarse como información general.
+
+### DOC-DEBUG-FORCED-LLM-CLASSIFIER-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-14  
+Commit: c02ba5a
+
+Descripción:
+
+Se registra la incorporación de una rama forzada de clasificación por LLM
+controlada mediante `FORCE_LLM_CLASSIFIER`, con trazas específicas para auditar
+attempt, result, fallback y guardrails preemptados.
+
+Archivos afectados:
+
+- `lib/agents/graph.ts`
+- `test/unit/graph.routingDebug.test.ts`
+
+Impacto:
+
+Se mejora la capacidad de diagnóstico del routing conversacional al permitir
+forzar la clasificación LLM y observar con mayor detalle su interacción con las
+guardrails heurísticas.
+
+### DOC-DEBUG-RUNTIME-LOG-MIRROR-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-14  
+Commit: 9f53908
+
+Descripción:
+
+Se registra el ajuste de observabilidad runtime que centraliza escritura en
+`log.txt` y espeja salida de consola en los entrypoints operativos.
+
+Cambios documentados:
+
+- serialización más robusta de objetos y errores
+- mirror de `console.log/info/warn/error` a archivo
+- activación del writer en entrypoints principales
+
+Archivos afectados:
+
+- `lib/utils/debugLog.ts`
+- `lib/entrypoints/all.ts`
+- `lib/entrypoints/channelBot.ts`
+- `lib/entrypoints/email.ts`
+- `lib/entrypoints/whatsapp.ts`
+
+Impacto:
+
+Se refuerza la trazabilidad operativa del runtime sin alterar contratos
+funcionales del sistema.
