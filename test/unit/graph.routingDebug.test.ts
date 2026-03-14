@@ -18,10 +18,14 @@ vi.mock("@/lib/classifier", () => ({ classifyQuery: vi.fn() }));
 vi.mock("@/lib/utils/debugLog", () => ({ debugLog: vi.fn() }));
 
 import { classifyNode } from "@/lib/agents/graph";
+import { classifyQuery } from "@/lib/classifier";
+import { debugLog } from "@/lib/utils/debugLog";
 
 describe("classifyNode routing debug", () => {
   beforeEach(() => {
     process.env.DEBUG_ROUTING = "1";
+    delete process.env.FORCE_LLM_CLASSIFIER;
+    vi.clearAllMocks();
   });
 
   it("routes EN things_to_do with images and emits heuristic_things_to_do debug", async () => {
@@ -135,5 +139,115 @@ describe("classifyNode routing debug", () => {
 
     expect(res.category).toBe("reservation");
     expect(String(res.promptKey || "")).toBe("reservation_flow");
+  });
+
+  it("uses forced LLM classifier branch when flag is enabled", async () => {
+    process.env.FORCE_LLM_CLASSIFIER = "1";
+    vi.mocked(classifyQuery).mockResolvedValue({
+      category: "support",
+      promptKey: "contact_support",
+    });
+
+    const res = await classifyNode({
+      normalizedMessage: "necesito ayuda con un problema",
+      originalLang: "es",
+      detectedLanguage: "es",
+      category: "other",
+      promptKey: undefined,
+      reservationSlots: {},
+      meta: {},
+      messages: [],
+      hotelId: "hotel999",
+      conversationId: "c1",
+    } as any);
+
+    expect(classifyQuery).toHaveBeenCalled();
+    expect(res.category).toBe("support");
+    expect(String(res.promptKey || "")).toBe("contact_support");
+    expect(res.meta?.debug?.route_source).toBe("forced_llm_classifier");
+    expect(res.meta?.debug?.route_match).toBe("FORCE_LLM_CLASSIFIER");
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][forced_llm_classifier]",
+      expect.objectContaining({
+        event: "attempt",
+        route_source: "forced_llm_classifier",
+        route_match: "FORCE_LLM_CLASSIFIER",
+      })
+    );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][forced_llm_classifier]",
+      expect.objectContaining({
+        event: "result",
+        route_source: "forced_llm_classifier",
+        route_match: "FORCE_LLM_CLASSIFIER",
+        category: "support",
+        promptKey: "contact_support",
+      })
+    );
+  });
+
+  it("falls back to heuristic when forced LLM classifier fails", async () => {
+    process.env.FORCE_LLM_CLASSIFIER = "true";
+    vi.mocked(classifyQuery).mockRejectedValue(new Error("llm-down"));
+
+    const res = await classifyNode({
+      normalizedMessage: "quiero reservar una habitación doble",
+      originalLang: "es",
+      detectedLanguage: "es",
+      category: "other",
+      promptKey: undefined,
+      reservationSlots: {},
+      meta: {},
+      messages: [],
+      hotelId: "hotel999",
+      conversationId: "c1",
+    } as any);
+
+    expect(classifyQuery).toHaveBeenCalled();
+    expect(res.category).toBe("reservation");
+    expect(String(res.promptKey || "")).toBe("reservation_flow");
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][forced_llm_classifier]",
+      expect.objectContaining({
+        event: "fallback",
+        route_source: "forced_llm_classifier_fallback",
+        route_match: "FORCE_LLM_CLASSIFIER",
+        error: "llm-down",
+      })
+    );
+  });
+
+  it("logs guardrail preemption when force flag is enabled but a prior route resolves first", async () => {
+    process.env.FORCE_LLM_CLASSIFIER = "1";
+
+    const res = await classifyNode({
+      normalizedMessage: "agenda de eventos hoy en punta del este",
+      originalLang: "es",
+      detectedLanguage: "es",
+      category: "other",
+      promptKey: undefined,
+      reservationSlots: {},
+      meta: {},
+      messages: [],
+      hotelId: "hotel999",
+      conversationId: "c1",
+    } as any);
+
+    expect(classifyQuery).not.toHaveBeenCalled();
+    expect(res.category).toBe("retrieval_based");
+    expect(String(res.promptKey || "")).toBe("tourist_events");
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][forced_llm_classifier]",
+      expect.objectContaining({
+        event: "guardrail_preempted",
+        route_source: "forced_llm_classifier_guardrail",
+        route_match: "FORCE_LLM_CLASSIFIER",
+        route_guardrail_preempted: true,
+        guardrail_route_source: "heuristic_events",
+        guardrail_route_match: "wantsEvents",
+        category: "retrieval_based",
+        promptKey: "tourist_events",
+      })
+    );
   });
 });

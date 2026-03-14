@@ -123,7 +123,6 @@ export async function classifyNode(state: typeof GraphState.State) {
       normalizedMessage: state.normalizedMessage,
     });
   }
-  debugger;
   const conversationId = state.conversationId || "";
   let st: any = null;
   if (conversationId) {
@@ -142,6 +141,9 @@ export async function classifyNode(state: typeof GraphState.State) {
   const seasonal = isSeasonalQuery(state.normalizedMessage || "");
   const explicitAgenda = hasExplicitAgendaSignal(state.normalizedMessage || "");
   const debugRouting = process.env.DEBUG_ROUTING === "1";
+  const forceLlmClassifier =
+    process.env.FORCE_LLM_CLASSIFIER === "1" ||
+    process.env.FORCE_LLM_CLASSIFIER === "true";
   const withRoutingDebug = (
     payload: Record<string, any>,
     route_source: string,
@@ -164,6 +166,40 @@ export async function classifyNode(state: typeof GraphState.State) {
       },
     };
   };
+  const logForcedClassifier = (
+    event: "attempt" | "result" | "fallback" | "guardrail_preempted",
+    extra: Record<string, any> = {}
+  ) => {
+    if (!forceLlmClassifier) return;
+    debugLog("[routing][forced_llm_classifier]", {
+      conversationId,
+      normalizedMessage: state.normalizedMessage,
+      event,
+      route_match: "FORCE_LLM_CLASSIFIER",
+      route_source:
+        event === "fallback"
+          ? "forced_llm_classifier_fallback"
+          : event === "guardrail_preempted"
+            ? "forced_llm_classifier_guardrail"
+            : "forced_llm_classifier",
+      ...extra,
+    });
+  };
+  const withForcedGuardrailLog = (
+    payload: Record<string, any>,
+    routeSource: string,
+    routeMatch: string,
+    confidence: number
+  ) => {
+    logForcedClassifier("guardrail_preempted", {
+      route_guardrail_preempted: true,
+      guardrail_route_source: routeSource,
+      guardrail_route_match: routeMatch,
+      category: payload.category,
+      promptKey: payload.promptKey,
+    });
+    return withRoutingDebug(payload, routeSource, routeMatch, confidence);
+  };
   if (
     st?.lastIntentGroup === "events" &&
     (
@@ -182,7 +218,7 @@ export async function classifyNode(state: typeof GraphState.State) {
         promptKey: pk,
       });
     }
-    return withRoutingDebug({
+    return withForcedGuardrailLog({
       category: "retrieval_based",
       desiredAction: undefined,
       intentConfidence: 0.92,
@@ -193,7 +229,7 @@ export async function classifyNode(state: typeof GraphState.State) {
   }
   if (wantsEvents(state.normalizedMessage || "") && !(seasonal && !explicitAgenda)) {
     const pk = wantsImages(state.normalizedMessage || "") ? "tourist_events_img" : "tourist_events";
-    return withRoutingDebug({
+    return withForcedGuardrailLog({
       category: "retrieval_based",
       desiredAction: undefined,
       intentConfidence: 0.96,
@@ -204,7 +240,7 @@ export async function classifyNode(state: typeof GraphState.State) {
   }
   const nearbyPK = pickNearbyPromptKey(state.normalizedMessage || "");
   if (nearbyPK) {
-    return withRoutingDebug({
+    return withForcedGuardrailLog({
       category: "retrieval_based",
       desiredAction: undefined,
       intentConfidence: 0.96,
@@ -220,7 +256,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     const isPt = langRaw.startsWith("pt") || langRaw === "por";
     const basePk = isEn ? "things_to_do_en" : isPt ? "things_to_do_pt" : "things_to_do";
     const pk = wantsImages(state.normalizedMessage || "") ? `${basePk}_img` : basePk;
-    return withRoutingDebug({
+    return withForcedGuardrailLog({
       category: "retrieval_based",
       desiredAction: undefined,
       intentConfidence: 0.95,
@@ -234,7 +270,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     const t = (state.normalizedMessage || "").toLowerCase();
     // Si pregunta por horario de check-in/out, derivar a RAG
     if (detectCheckinCheckoutTimeQuery(t)) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.98,
@@ -356,13 +392,19 @@ export async function classifyNode(state: typeof GraphState.State) {
     // ignorar errores de lectura
   }
   const { normalizedMessage, reservationSlots, meta } = state;
+  const mapClassifierCategoryToDesiredAction = (category: IntentCategory): DesiredAction =>
+    category === "reservation"
+      ? "create"
+      : category === "cancel_reservation"
+        ? "cancel"
+        : undefined;
   // Reglas tempranas: desvíos determinísticos por palabra clave
   try {
     const t = (normalizedMessage || "").toLowerCase();
     // Transporte / aeropuertos: ruta específica a arrivals_transport
     const looksTransport = RE_TRANSPORT.test(t);
     if (looksTransport) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
@@ -374,7 +416,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Billing / pagos: ruta específica a payments_and_billing
     const looksBilling = RE_BILLING.test(t);
     if (looksBilling) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "billing",
         desiredAction: undefined,
         intentConfidence: 0.98,
@@ -386,7 +428,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Soporte / canales: ruta específica a contact_channel_selector
     const looksChannelManager = wantsChannelManager(t);
     if (looksChannelManager) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "support",
         desiredAction: undefined,
         intentConfidence: 0.98,
@@ -398,7 +440,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Soporte / contacto: ruta específica a contact_support
     const looksSupport = RE_SUPPORT.test(t);
     if (looksSupport) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "support",
         desiredAction: undefined,
         intentConfidence: 0.98,
@@ -410,7 +452,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Desayuno / breakfast: ruta específica a breakfast_bar
     const looksBreakfast = RE_BREAKFAST.test(t);
     if (looksBreakfast) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "amenities",
         desiredAction: undefined,
         intentConfidence: 0.97,
@@ -422,7 +464,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     // Amenities generales: ruta específica a amenities_list
     const looksAmenities = RE_AMENITIES.test(t);
     if (looksAmenities) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "amenities",
         desiredAction: undefined,
         intentConfidence: 0.97,
@@ -437,7 +479,7 @@ export async function classifyNode(state: typeof GraphState.State) {
     const t = (normalizedMessage || "").toLowerCase();
     // Detección de keywords de info general
     if (looksGeneralInfo(t)) {
-      return withRoutingDebug({
+      return withForcedGuardrailLog({
         category: "retrieval_based",
         desiredAction: undefined,
         intentConfidence: 0.97,
@@ -547,6 +589,41 @@ export async function classifyNode(state: typeof GraphState.State) {
       }, "heuristic_reservation_refuerzo", "hasAnySlot", 0.95);
       debugLog('[Graph] Exit classifyNode (reservation/hasAnySlot refuerzo)', { result });
       return result;
+    }
+  }
+  if (forceLlmClassifier) {
+    try {
+      logForcedClassifier("attempt");
+      const llmC = await classifyQuery(normalizedMessage, state.hotelId);
+      const forcedCategory = llmC.category as IntentCategory;
+      const forcedDesiredAction = mapClassifierCategoryToDesiredAction(forcedCategory);
+      const forcedPromptKey = llmC.promptKey ?? (
+        forcedCategory === "reservation"
+          ? (forcedDesiredAction === "modify" ? "modify_reservation" : "reservation_flow")
+          : forcedCategory === "cancel_reservation"
+            ? "cancellation_policy"
+            : looksRoomInfo(normalizedMessage)
+              ? "room_info"
+              : "ambiguity_policy"
+      );
+      logForcedClassifier("result", {
+        category: forcedCategory,
+        promptKey: forcedPromptKey,
+        intentSource: "llm",
+      });
+      return withRoutingDebug({
+        category: forcedCategory,
+        desiredAction: forcedDesiredAction,
+        intentConfidence: 0.9,
+        intentSource: "llm",
+        promptKey: forcedPromptKey,
+        messages: [],
+      }, "forced_llm_classifier", "FORCE_LLM_CLASSIFIER", 0.9);
+    } catch (err) {
+      logForcedClassifier("fallback", {
+        error: (err as any)?.message || String(err),
+      });
+      console.warn("[classifyNode] FORCE_LLM_CLASSIFIER fallback to heuristic:", (err as any)?.message || err);
     }
   }
   let h = heuristicClassify(normalizedMessage);
