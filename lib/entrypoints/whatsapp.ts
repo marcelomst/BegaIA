@@ -1,4 +1,5 @@
 // Path: /root/begasist/lib/entrypoints/whatsapp.ts
+import "@/lib/utils/debugLog";
 import dotenv from "dotenv";
 dotenv.config();
 

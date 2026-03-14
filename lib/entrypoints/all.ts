@@ -1,4 +1,5 @@
 // Path: /root/begasist/lib/entrypoints/all.ts
+import "@/lib/utils/debugLog";
 
 import { getAllHotelConfigs } from "@/lib/config/hotelConfig.server";
 import { startHotelBot } from "@/lib/entrypoints/channelBot";

@@ -1,4 +1,5 @@
 // Path: /root/begasist/lib/entrypoints/email.ts
+import "@/lib/utils/debugLog";
 
 console.log("🟢 Entrando a email.ts");
 

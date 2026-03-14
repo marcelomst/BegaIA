@@ -1,4 +1,5 @@
 // Path: /root/begasist/lib/entrypoints/channelBot.ts
+import "@/lib/utils/debugLog";
 console.log("ENTRYPOINT START");
 
 import { startWhatsAppBot } from "../services/whatsapp";
