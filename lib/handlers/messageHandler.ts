@@ -368,7 +368,7 @@ function detectIntent(
 }
 
 // === NEW: mapping structured intent → category (coherencia interna)
-function mapStructuredIntentToCategory(
+export function mapStructuredIntentToCategory(
   intent:
     | "general_question"
     | "reservation_inquiry"
@@ -383,7 +383,7 @@ function mapStructuredIntentToCategory(
   switch (intent) {
     case "reservation_inquiry": return "reservation";
     case "cancellation_policy": return "cancel_reservation";
-    case "pricing_request": return "pricing_info";
+    case "pricing_request": return "reservation";
     case "checkin_info": return "checkin_info";
     case "checkout_info": return "checkout_info";
     case "amenities_info": return "amenities_info";
@@ -392,6 +392,16 @@ function mapStructuredIntentToCategory(
     case "out_of_scope": return "out_of_scope";
     default: return "retrieval_based";
   }
+}
+
+function looksTransactionalPricingIntent(text: string): boolean {
+  const t = String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const hasPriceSignal = /\b(precio|precios|tarifa|tarifas|rate|rates|price|prices|cotiz(?:acion|acion|ar)?|quote|quotes)\b/.test(t);
+  const hasReservationSignal = /\b(habitacion|room|rooms|single|individual|double|doble|matrimonial|twin|queen|king|triple|suite|familiar|reserva|reservar|booking)\b/.test(t);
+  return hasPriceSignal && hasReservationSignal;
 }
 
 // === NEW: intentar structured prompt (enriquecedor/fallback)
@@ -1692,6 +1702,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const skipKbFastpath = hasEventMemory && (isShortFollowup || startsWithFollowup || hasPhotoSignal);
         const looksBillingByRule = RE_BILLING.test(kbLower);
         const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
+        const looksTransactionalPricing = looksTransactionalPricingIntent(kbUserText);
         console.warn("[KB] fastpath check", { hasReservationContext, wantsNearby });
         if (wantsNearby) {
           debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
@@ -1746,7 +1757,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
           }
         }
-        if (!hasReservationContext && !wantsNearby && !looksEventIntent) {
+        if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {
           if (skipKbFastpath) {
             debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
           } else {

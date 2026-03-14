@@ -309,11 +309,11 @@ export async function runOrchestratorProxy<T extends OrchestratorOutput>(
 }
 
 // === Helpers replicados (evitar dependencia circular con messageHandler) ===
-function mapStructuredIntentToCategory(intent: string): string {
+export function mapStructuredIntentToCategory(intent: string): string {
     switch (intent) {
         case "reservation_inquiry": return "reservation";
         case "cancellation_policy": return "cancel_reservation";
-        case "pricing_request": return "pricing_info";
+        case "pricing_request": return "reservation";
         case "checkin_info": return "checkin_info";
         case "checkout_info": return "checkout_info";
         case "amenities_info": return "amenities_info";
