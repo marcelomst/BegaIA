@@ -30,6 +30,13 @@ type HeuristicRoutingDecision = {
   intentSource: string;
 };
 
+type RoutingDecision = {
+  category: IntentCategory;
+  desiredAction: DesiredAction;
+  intentConfidence: number;
+  intentSource: string;
+};
+
 type LlmEscalationDecision = {
   shouldEscalate: boolean;
   classifierSource: "forced_llm" | "llm" | "heuristic";
@@ -343,16 +350,61 @@ export async function evaluateGraphRoutingPolicy({
   const { normalizedMessage, reservationSlots, meta } = state;
   const mapClassifierCategoryToDesiredAction = (category: IntentCategory): DesiredAction =>
     category === "reservation" ? "create" : category === "cancel_reservation" ? "cancel" : undefined;
-  const pickPromptKey = (cat: IntentCategory, desired: DesiredAction, message: string) =>
-    cat === "reservation"
-      ? desired === "modify"
-        ? "modify_reservation"
-        : "reservation_flow"
-      : cat === "cancel_reservation"
-        ? "cancellation_policy"
-        : looksRoomInfo(message)
-          ? "room_info"
-          : "ambiguity_policy";
+  const resolvePromptKey = ({
+    decision,
+    message,
+    explicitPromptKey,
+  }: {
+    decision: RoutingDecision;
+    message: string;
+    explicitPromptKey?: string;
+  }) => {
+    const promptKey = explicitPromptKey ?? (
+      decision.category === "reservation"
+        ? decision.desiredAction === "modify"
+          ? "modify_reservation"
+          : "reservation_flow"
+        : decision.category === "cancel_reservation"
+          ? "cancellation_policy"
+          : looksRoomInfo(message)
+            ? "room_info"
+            : "ambiguity_policy"
+    );
+    debugLog("[routing][prompt_resolution]", {
+      conversationId,
+      normalizedMessage: message,
+      category: decision.category,
+      desiredAction: decision.desiredAction,
+      intentSource: decision.intentSource,
+      resolution_source: explicitPromptKey ? "explicit_prompt_key" : "policy_prompt_resolver",
+      explicit_prompt_key: explicitPromptKey,
+      resolved_prompt_key: promptKey,
+    });
+    return promptKey;
+  };
+  const buildRoutingPayload = ({
+    decision,
+    message,
+    explicitPromptKey,
+    meta: payloadMeta,
+  }: {
+    decision: RoutingDecision;
+    message: string;
+    explicitPromptKey?: string;
+    meta?: Record<string, any>;
+  }) => ({
+    category: decision.category,
+    desiredAction: decision.desiredAction,
+    intentConfidence: decision.intentConfidence,
+    intentSource: decision.intentSource,
+    promptKey: resolvePromptKey({
+      decision,
+      message,
+      explicitPromptKey,
+    }),
+    messages: [],
+    ...(payloadMeta ? { meta: payloadMeta } : {}),
+  });
   const logLlmEscalationPolicy = (
     event: "decision" | "attempt" | "result" | "fallback",
     decision: LlmEscalationDecision,
@@ -550,7 +602,10 @@ export async function evaluateGraphRoutingPolicy({
   }
 
   let h = heuristicClassify(normalizedMessage);
-  const heuristicPromptKey = pickPromptKey(h.category, h.desiredAction, normalizedMessage);
+  const heuristicPromptKey = resolvePromptKey({
+    decision: h,
+    message: normalizedMessage,
+  });
   const escalationDecision = decideLlmEscalationPolicy({
     forceLlmClassifier,
     heuristicDecision: h,
@@ -589,12 +644,16 @@ export async function evaluateGraphRoutingPolicy({
         intentSource: "llm",
       });
       return withRoutingDebug({
-        category: forcedCategory,
-        desiredAction: forcedDesiredAction,
-        intentConfidence: 0.9,
-        intentSource: "llm",
-        promptKey: forcedPromptKey,
-        messages: [],
+        ...buildRoutingPayload({
+          decision: {
+            category: forcedCategory,
+            desiredAction: forcedDesiredAction,
+            intentConfidence: 0.9,
+            intentSource: "llm",
+          },
+          message: normalizedMessage,
+          explicitPromptKey: forcedPromptKey,
+        }),
       }, "forced_llm_classifier", "FORCE_LLM_CLASSIFIER", 0.9);
     } catch (err) {
       logForcedClassifier("fallback", {
@@ -625,12 +684,16 @@ export async function evaluateGraphRoutingPolicy({
           intentSource: "llm",
         });
         return withRoutingDebug({
-          category: "retrieval_based",
-          desiredAction: h.desiredAction,
-          intentConfidence: h.intentConfidence,
-          intentSource: "llm",
-          promptKey: forcedPK,
-          messages: [],
+          ...buildRoutingPayload({
+            decision: {
+              category: "retrieval_based",
+              desiredAction: h.desiredAction,
+              intentConfidence: h.intentConfidence,
+              intentSource: "llm",
+            },
+            message: normalizedMessage,
+            explicitPromptKey: forcedPK,
+          }),
         }, "llm_classifier", "classifyQuery", h.intentConfidence);
       }
     } catch (err) {
@@ -641,13 +704,10 @@ export async function evaluateGraphRoutingPolicy({
     }
   }
 
-  const promptKey = pickPromptKey(h.category, h.desiredAction, normalizedMessage);
   return withRoutingDebug({
-    category: h.category,
-    desiredAction: h.desiredAction,
-    intentConfidence: h.intentConfidence,
-    intentSource: h.intentSource,
-    promptKey,
-    messages: [],
+    ...buildRoutingPayload({
+      decision: h,
+      message: normalizedMessage,
+    }),
   }, h.intentSource === "llm" ? "llm_classifier" : "fallback_other", "heuristicClassify", h.intentConfidence);
 }

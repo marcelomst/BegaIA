@@ -81,6 +81,25 @@ describe("policy llm escalation", () => {
         intentSource: "llm",
       })
     );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][prompt_resolution]",
+      expect.objectContaining({
+        category: "support",
+        desiredAction: undefined,
+        resolution_source: "policy_prompt_resolver",
+        resolved_prompt_key: "ambiguity_policy",
+      })
+    );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][prompt_resolution]",
+      expect.objectContaining({
+        category: "retrieval_based",
+        desiredAction: undefined,
+        resolution_source: "explicit_prompt_key",
+        explicit_prompt_key: "contact_support",
+        resolved_prompt_key: "contact_support",
+      })
+    );
   });
 
   it("deja evidencia explicita cuando no escala y conserva la heuristica", async () => {
@@ -121,6 +140,15 @@ describe("policy llm escalation", () => {
         heuristic_confidence: 0.99,
         heuristic_category: "reservation",
         heuristic_promptKey: "reservation_flow",
+      })
+    );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][prompt_resolution]",
+      expect.objectContaining({
+        category: "reservation",
+        desiredAction: "create",
+        resolution_source: "policy_prompt_resolver",
+        resolved_prompt_key: "reservation_flow",
       })
     );
   });
