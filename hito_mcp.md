@@ -2245,3 +2245,45 @@ Impacto:
 Queda explícito el contrato entre heurística y classifier como cambio
 controlado de policy interna, sin rediseñar el router ni alterar contratos
 públicos.
+
+### DOC-HITO-PIPELINE-07-PROMPT-SELECTION-DECOUPLING
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: e6eb3b4f2bc53b62e868e2201611fd75373c6e9b
+
+Descripción:
+
+Se registra el desacople parcial entre clasificación/intención y resolución de
+`promptKey` dentro de la policy de routing.
+
+La resolución se extrae a `resolvePromptKey(...)` y se incorpora
+`buildRoutingPayload(...)` para ensamblar el resultado final sin mezclar tanto
+la clasificación con la selección de `promptKey`.
+
+Alcance interno documentado:
+
+- heurística genérica
+- classifier forzado
+- classifier por escalado normal
+
+Se mantienen intactos:
+
+- contratos públicos
+- forma final del payload
+- guardrails duros con `promptKey` explícito
+
+Validación:
+
+- `pnpm exec vitest run test/unit/policy.llmEscalation.spec.ts test/unit/graph.routingDebug.test.ts test/unit/classifyNode.reservationPriority.spec.ts test/availability.unified.flow.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `test/unit/policy.llmEscalation.spec.ts`
+
+Impacto:
+
+Se desacopla internamente la resolución de `promptKey` de la policy sin cambiar
+contratos públicos, payload final ni comportamiento funcional observable.
