@@ -145,6 +145,37 @@ function isSafeAutosendCategory(cat?: string | null): boolean {
   return CONFIG.SAFE_AUTOSEND_CATEGORIES.has(cat as any);
 }
 
+type RoutingDecisionLog = {
+  decision_layer: string;
+  route_source: string;
+  route_match: string;
+  early_return: boolean;
+  used_llm_classifier: boolean;
+  classifier_source: "heuristic" | "llm" | "forced_llm" | "fallback";
+  final_category?: string | null;
+  final_promptKey?: string | null;
+};
+
+function deriveClassifierSource(graphResult: any): RoutingDecisionLog["classifier_source"] {
+  const routeSource = String(graphResult?.meta?.debug?.route_source || "");
+  if (routeSource.startsWith("forced_llm_classifier")) return "forced_llm";
+  if (routeSource === "llm_classifier" || graphResult?.intentSource === "llm") return "llm";
+  if (routeSource.includes("fallback")) return "fallback";
+  return "heuristic";
+}
+
+function emitRoutingDecision(
+  msg: Pick<ChannelMessage, "conversationId" | "hotelId" | "channel">,
+  decision: RoutingDecisionLog
+) {
+  debugLog("[routing][decision]", {
+    conversationId: msg.conversationId,
+    hotelId: msg.hotelId,
+    channel: msg.channel,
+    ...decision,
+  });
+}
+
 
 // ---------- helpers locales ----------
 
@@ -1665,6 +1696,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // Camino ultra liviano para tests / saludos
         finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
         nextCategory = "retrieval_based";
+        emitRoutingDecision(pre.msg, {
+          decision_layer: "bodyLLM",
+          route_source: "test_greeting_fastpath",
+          route_match: "ENABLE_TEST_FASTPATH:greeting",
+          early_return: true,
+          used_llm_classifier: false,
+          classifier_source: "heuristic",
+          final_category: nextCategory,
+          final_promptKey: null,
+        });
       } else {
         // ============================
         // NEW: Fast-path KnowledgeBase
@@ -1740,6 +1781,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 retrieved: kbForced.retrieved,
               };
               forcedBillingResolved = true;
+              emitRoutingDecision(pre.msg, {
+                decision_layer: "bodyLLM",
+                route_source: "knowledgeBaseAgent_forced_billing",
+                route_match: forcedPromptKey,
+                early_return: true,
+                used_llm_classifier: false,
+                classifier_source: "heuristic",
+                final_category: nextCategory,
+                final_promptKey: forcedPromptKey,
+              });
               return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
             }
           } catch (e) {
@@ -1752,8 +1803,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             graphResult = {
               ...(graphResult || {}),
               category: "billing",
+              promptKey: "payments_and_billing",
               source: "deterministic_billing_fallback",
             };
+            emitRoutingDecision(pre.msg, {
+              decision_layer: "bodyLLM",
+              route_source: "deterministic_billing_fallback",
+              route_match: "RE_BILLING",
+              early_return: true,
+              used_llm_classifier: false,
+              classifier_source: "fallback",
+              final_category: nextCategory,
+              final_promptKey: "payments_and_billing",
+            });
             return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
           }
         }
@@ -1785,6 +1847,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               graphResult = {
                 ...(kb.debug || {}),
                 category: cat,
+                promptKey: kb.promptKey || null,
                 source: "knowledgeBaseAgent",
                 contentTitle: kb.contentTitle,
                 contentBody: kb.contentBody,
@@ -1792,6 +1855,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               };
 
               // Atajo: no llamamos agentGraph si el KB ya resolvió bien
+              emitRoutingDecision(pre.msg, {
+                decision_layer: "bodyLLM",
+                route_source: "knowledgeBaseAgent",
+                route_match: "safe_kb_fastpath",
+                early_return: true,
+                used_llm_classifier: false,
+                classifier_source: "heuristic",
+                final_category: nextCategory,
+                final_promptKey: kb.promptKey || null,
+              });
               return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
             }
           } catch (e) {
@@ -1837,6 +1910,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           promptKey: (graphResult as any)?.classified?.promptKey,
           category: (graphResult as any)?.category,
           userQuery: String(pre.msg.content || ""),
+        });
+        emitRoutingDecision(pre.msg, {
+          decision_layer: "graph",
+          route_source: String((graphResult as any)?.meta?.debug?.route_source || "graph_path"),
+          route_match: String((graphResult as any)?.meta?.debug?.route_match || "agentGraph.invoke"),
+          early_return: false,
+          used_llm_classifier:
+            String((graphResult as any)?.meta?.debug?.route_source || "").includes("llm_classifier") ||
+            String((graphResult as any)?.meta?.debug?.route_source || "").includes("forced_llm_classifier") ||
+            (graphResult as any)?.intentSource === "llm",
+          classifier_source: deriveClassifierSource(graphResult),
+          final_category: nextCategory,
+          final_promptKey:
+            (graphResult as any)?.promptKey ||
+            (graphResult as any)?.classified?.promptKey ||
+            null,
         });
 
         const merged: ReservationSlotsStrict = {
@@ -2290,6 +2379,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   finalText = stripGlobalTailNoise(String(finalText || ""));
   const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
+  if (!(graphResult as any)?.meta?.debug?.route_source && finalText) {
+    emitRoutingDecision(pre.msg, {
+      decision_layer: "bodyLLM",
+      route_source: "bodyLLM_postprocess",
+      route_match: "final_text_emitted",
+      early_return: false,
+      used_llm_classifier: false,
+      classifier_source: "fallback",
+      final_category: nextCategory,
+      final_promptKey:
+        (graphResult as any)?.promptKey ||
+        (graphResult as any)?.classified?.promptKey ||
+        null,
+    });
+  }
   debugLog("[bodyLLM] OUT", { finalText, nextCategory, nextSlots, needsSupervision, graphResult });
   return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich };
 }
