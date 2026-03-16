@@ -820,15 +820,397 @@ function buildStateSummary(slots: ReservationSlotsStrict, st: any) {
 
 // runAvailabilityCheck moved to ./pipeline/availability
 
+type BodyLLMState = {
+  finalText: string;
+  nextCategory: string | null;
+  nextSlots: ReservationSlotsStrict;
+  needsSupervision: boolean;
+  graphResult: any;
+  explicitRich?: RichPayload;
+};
+
+function initBodyLLMState(pre: PreLLMResult): BodyLLMState {
+  return {
+    finalText: "",
+    nextCategory: pre.prevCategory,
+    nextSlots: pre.currSlots,
+    needsSupervision: false,
+    graphResult: null,
+    explicitRich: undefined,
+  };
+}
+
+function toBodyLLMResult(state: BodyLLMState) {
+  return {
+    finalText: state.finalText,
+    nextCategory: state.nextCategory,
+    nextSlots: state.nextSlots,
+    needsSupervision: state.needsSupervision,
+    graphResult: state.graphResult,
+    rich: state.explicitRich,
+  };
+}
+
+function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState): boolean {
+  const tLowerBody = String(pre.msg.content || "").toLowerCase();
+  const looksGreetingBody = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/.test(tLowerBody);
+  if (!(ENABLE_TEST_FASTPATH && looksGreetingBody && !pre.inModifyMode)) return false;
+  state.finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
+  state.nextCategory = "retrieval_based";
+  emitRoutingDecision(pre.msg, {
+    decision_layer: "bodyLLM",
+    route_source: "test_greeting_fastpath",
+    route_match: "ENABLE_TEST_FASTPATH:greeting",
+    early_return: true,
+    used_llm_classifier: false,
+    classifier_source: "heuristic",
+    final_category: state.nextCategory,
+    final_promptKey: null,
+  });
+  return true;
+}
+
+async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {
+  const kbUserText = String(pre.msg.content || "");
+  const kbLower = kbUserText.toLowerCase();
+  const hasReservationContext =
+    pre.inModifyMode ||
+    !!pre.stateForPlaybook?.draft ||
+    !!pre.stateForPlaybook?.confirmedBooking;
+  const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
+  const looksEventIntent = (() => {
+    const hay = kbUserText.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+    const keys = [
+      "evento", "eventos", "agenda", "que hay", "que hacer", "hoy", "manana", "esta noche",
+      "fin de semana", "este fin de semana", "este mes", "mes", "mensual",
+      "evento turistico", "eventos turisticos",
+      "event", "events", "tourist event", "tourist events", "today", "tomorrow", "tonight",
+      "weekend", "this weekend", "this month", "month", "monthly",
+      "hoje", "amanha", "esta noite", "fim de semana", "este fim de semana", "este mes", "mes", "mensal",
+    ];
+    return keys.some((k) => hay.includes(k));
+  })();
+  const hasEventMemory = pre.st?.lastIntentGroup === "events";
+  const isShortFollowup = kbUserText.trim().length <= 40;
+  const startsWithFollowup = /^\s*(¿?\s+y\b|and\b|e\b)\b/i.test(kbUserText);
+  const hasPhotoSignal = /\b(foto|fotos|imagen|imagenes|imágenes|photos|pics)\b/i.test(kbUserText);
+  const skipKbFastpath = hasEventMemory && (isShortFollowup || startsWithFollowup || hasPhotoSignal);
+  const looksBillingByRule = RE_BILLING.test(kbLower);
+  const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
+  const looksTransactionalPricing = looksTransactionalPricingIntent(kbUserText);
+
+  console.warn("[KB] fastpath check", { hasReservationContext, wantsNearby });
+  if (wantsNearby) debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
+
+  if (looksBillingByRule) {
+    let forcedBillingResolved = false;
+    try {
+      const forcedPromptKey = looksInvoiceDetail ? "invoice_receipts" : "payments_and_billing";
+      const kbForced = await answerWithKnowledge({
+        question: kbUserText,
+        hotelId: pre.msg.hotelId,
+        desiredLang: pre.lang,
+        override: { category: "billing", promptKey: forcedPromptKey },
+      });
+      const forcedText = kbForced.answer?.trim();
+      if (kbForced.ok && forcedText) {
+        state.finalText = forcedText;
+        state.finalText = await harmonizeBillingCurrencyAnswer(state.finalText, kbUserText, pre.msg.hotelId, pre.lang);
+        state.finalText = stripOffTopicBillingTail(state.finalText, pre.lang);
+        state.finalText = ensureBillingContextualFollowup(state.finalText, pre.lang);
+        state.finalText = stripGlobalTailNoise(state.finalText);
+        if (/(actividad|actividades|zona|lugares para visitar|restaurants? cercanos|atracciones)/i.test(state.finalText)) {
+          state.finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);
+        }
+        state.nextCategory = "billing";
+        state.nextSlots = pre.currSlots;
+        state.graphResult = {
+          ...(kbForced.debug || {}),
+          category: "billing",
+          promptKey: forcedPromptKey,
+          source: "knowledgeBaseAgent_forced_billing",
+          contentTitle: kbForced.contentTitle,
+          contentBody: kbForced.contentBody,
+          retrieved: kbForced.retrieved,
+        };
+        forcedBillingResolved = true;
+        emitRoutingDecision(pre.msg, {
+          decision_layer: "bodyLLM",
+          route_source: "knowledgeBaseAgent_forced_billing",
+          route_match: forcedPromptKey,
+          early_return: true,
+          used_llm_classifier: false,
+          classifier_source: "heuristic",
+          final_category: state.nextCategory,
+          final_promptKey: forcedPromptKey,
+        });
+        return true;
+      }
+    } catch (e) {
+      console.warn("[KB] forced billing fastpath error, sigo flujo normal:", (e as any)?.message || e);
+    }
+    if (!forcedBillingResolved) {
+      state.finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);
+      state.nextCategory = "billing";
+      state.nextSlots = pre.currSlots;
+      state.graphResult = {
+        ...(state.graphResult || {}),
+        category: "billing",
+        promptKey: "payments_and_billing",
+        source: "deterministic_billing_fallback",
+      };
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "bodyLLM",
+        route_source: "deterministic_billing_fallback",
+        route_match: "RE_BILLING",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "fallback",
+        final_category: state.nextCategory,
+        final_promptKey: "payments_and_billing",
+      });
+      return true;
+    }
+  }
+
+  if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {
+    if (skipKbFastpath) {
+      debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
+    } else {
+      try {
+        const kb = await answerWithKnowledge({
+          question: kbUserText,
+          hotelId: pre.msg.hotelId,
+          desiredLang: pre.lang,
+        });
+        const cat = kb.category;
+        const safeCat = isSafeAutosendCategory(cat);
+        const text = kb.answer?.trim();
+        if (kb.ok && safeCat && text) {
+          console.warn("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
+          state.finalText = text;
+          state.nextCategory = cat || "retrieval_based";
+          state.nextSlots = pre.currSlots;
+          state.graphResult = {
+            ...(kb.debug || {}),
+            category: cat,
+            promptKey: kb.promptKey || null,
+            source: "knowledgeBaseAgent",
+            contentTitle: kb.contentTitle,
+            contentBody: kb.contentBody,
+            retrieved: kb.retrieved,
+          };
+          emitRoutingDecision(pre.msg, {
+            decision_layer: "bodyLLM",
+            route_source: "knowledgeBaseAgent",
+            route_match: "safe_kb_fastpath",
+            early_return: true,
+            used_llm_classifier: false,
+            classifier_source: "heuristic",
+            final_category: state.nextCategory,
+            final_promptKey: kb.promptKey || null,
+          });
+          return true;
+        }
+      } catch (e) {
+        console.warn("[KB] answerWithKnowledge error, sigo con agentGraph:", (e as any)?.message || e);
+      }
+    }
+  }
+
+  return false;
+}
+
+async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Promise<any[]> {
+  const systemInstruction = pre.systemInstruction + "\n" + buildStateSummary(pre.currSlots, pre.st);
+  debugLog("[bodyLLM] systemInstruction", systemInstruction);
+
+  const lcMessages = [
+    new SystemMessage(systemInstruction),
+    ...pre.lcHistory,
+    new HumanMessage(String(pre.msg.content || "")),
+  ];
+
+  state.graphResult = await withTimeout(
+    agentGraph.invoke({
+      hotelId: pre.msg.hotelId,
+      conversationId: pre.conversationId,
+      detectedLanguage: pre.msg.detectedLanguage,
+      normalizedMessage: String(pre.msg.content || ""),
+      messages: lcMessages,
+      reservationSlots: pre.currSlots,
+      meta: { channel: pre.msg.channel, prevCategory: pre.prevCategory },
+      salesStage: pre.st?.salesStage ?? undefined,
+      desiredAction: pre.st?.desiredAction ?? undefined,
+    }),
+    CONFIG.GRAPH_TIMEOUT_MS,
+    "agentGraph.invoke"
+  );
+
+  debugLog("[bodyLLM] graphResult", state.graphResult);
+  const last = (state.graphResult as any)?.messages?.at?.(-1);
+  const lastText = extractTextFromLCContent(last?.content);
+  const lastAiText = extractLastAIText((state.graphResult as any)?.messages);
+  state.finalText = ((lastAiText || lastText) || "").trim();
+  state.nextCategory = (state.graphResult as any).category ?? pre.prevCategory ?? null;
+  debugLog("[messageHandler] resolved category", {
+    nextCategory: state.nextCategory,
+    promptKey: (state.graphResult as any)?.classified?.promptKey,
+    category: (state.graphResult as any)?.category,
+    userQuery: String(pre.msg.content || ""),
+  });
+  emitRoutingDecision(pre.msg, {
+    decision_layer: "graph",
+    route_source: String((state.graphResult as any)?.meta?.debug?.route_source || "graph_path"),
+    route_match: String((state.graphResult as any)?.meta?.debug?.route_match || "agentGraph.invoke"),
+    early_return: false,
+    used_llm_classifier:
+      String((state.graphResult as any)?.meta?.debug?.route_source || "").includes("llm_classifier") ||
+      String((state.graphResult as any)?.meta?.debug?.route_source || "").includes("forced_llm_classifier") ||
+      (state.graphResult as any)?.intentSource === "llm",
+    classifier_source: deriveClassifierSource(state.graphResult),
+    final_category: state.nextCategory,
+    final_promptKey:
+      (state.graphResult as any)?.promptKey ||
+      (state.graphResult as any)?.classified?.promptKey ||
+      null,
+  });
+
+  const merged: ReservationSlotsStrict = {
+    ...(pre.currSlots || {}),
+    ...((state.graphResult as any).reservationSlots || {}),
+  };
+  if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {
+    merged.numGuests = String((merged as any).numGuests);
+  }
+  state.nextSlots = merged;
+
+  try {
+    const resolved = (state.graphResult as any)?.resolved;
+    const classified = (state.graphResult as any)?.classified;
+    const noContent = resolved?.debug?.reason === "no-content";
+    const pk = classified?.promptKey;
+    const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
+    console.warn("[nearby_points] fallback check", {
+      reason: resolved?.debug?.reason,
+      promptKey: pk,
+      noContent,
+      isNearby,
+    });
+    if (noContent && isNearby) {
+      console.warn("[nearby_points] fallback enter", { promptKey: pk });
+      debugLog("[nearby_points] forcing retrievalBased fallback", { promptKey: pk });
+      const rbState = await retrievalBased({
+        hotelId: pre.msg.hotelId,
+        conversationId: pre.conversationId,
+        normalizedMessage: String(pre.msg.content || ""),
+        retrievalLang: pre.lang,
+        originalLang: pre.lang,
+        messages: lcMessages,
+        promptKey: pk,
+        category: classified?.category || "retrieval_based",
+      });
+      const rbLast = (rbState as any)?.messages?.at?.(-1);
+      const rbText = extractTextFromLCContent(rbLast?.content);
+      const rbRich = (rbState as any)?.meta?.rich as RichPayload | undefined;
+      if (rbRich) state.explicitRich = rbRich;
+      if (rbText) {
+        state.finalText = rbText.trim();
+        state.graphResult = {
+          ...(state.graphResult || {}),
+          meta: { ...(state.graphResult as any)?.meta, ...(rbState?.meta || {}) },
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("[nearby_points] retrievalBased fallback error:", (e as any)?.message || e);
+  }
+
+  return lcMessages;
+}
+
+async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMState): Promise<void> {
+  if (!CONFIG.STRUCTURED_ENABLED) return;
+  const structured = await tryStructuredAnalyze({
+    hotelId: pre.msg.hotelId,
+    lang: pre.lang,
+    channel: pre.msg.channel,
+    userQuery: String(pre.msg.content || ""),
+  });
+  debugLog("[bodyLLM] structured", structured);
+  if (!structured) return;
+  const s = structured.entities || {};
+  state.nextSlots = {
+    ...state.nextSlots,
+    checkIn: state.nextSlots.checkIn || s.checkin_date || undefined,
+    checkOut: state.nextSlots.checkOut || s.checkout_date || undefined,
+    roomType: state.nextSlots.roomType || s.room_type || undefined,
+    numGuests: state.nextSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
+  };
+  const structuredCat = structured.intent ? mapStructuredIntentToCategory(structured.intent) : undefined;
+  const candidateCat = state.graphResult?.category || structuredCat;
+  const safeCat = isSafeAutosendCategory(candidateCat);
+  const hasRichPayload = Boolean(state.explicitRich ?? (state.graphResult as any)?.meta?.rich);
+  if (structured.handoff === true && !safeCat) {
+    state.needsSupervision = true;
+  }
+  if (!state.finalText && structured.answer && !hasRichPayload) {
+    if ((pre as any).__orchestratorActive) {
+      state.graphResult = state.graphResult || {};
+      (state.graphResult as any).structuredFallback = structured;
+    } else if (structured.handoff === true && pre.inModifyMode) {
+      state.finalText = buildModifyGuidance(pre.lang, state.nextSlots);
+    } else {
+      state.finalText = structured.answer;
+    }
+  }
+  if (!state.nextCategory && structured.intent) {
+    state.nextCategory = mapStructuredIntentToCategory(structured.intent);
+  }
+}
+
+async function tryBodyLLMStructuredFallback(pre: PreLLMResult, state: BodyLLMState): Promise<void> {
+  if (!CONFIG.STRUCTURED_ENABLED) return;
+  const structured = await tryStructuredAnalyze({
+    hotelId: pre.msg.hotelId,
+    lang: pre.lang,
+    channel: pre.msg.channel,
+    userQuery: String(pre.msg.content || ""),
+  });
+  debugLog("[bodyLLM] structured fallback", structured);
+  if (!structured?.answer) return;
+  if ((pre as any).__orchestratorActive) {
+    state.graphResult = state.graphResult || {};
+    (state.graphResult as any).structuredFallback = structured;
+    return;
+  }
+  if (structured.handoff === true && pre.inModifyMode) {
+    state.finalText = buildModifyGuidance(pre.lang, pre.currSlots);
+  } else {
+    state.finalText = structured.answer;
+  }
+  state.nextCategory = mapStructuredIntentToCategory(structured.intent || "general_question");
+  const s = structured.entities || {};
+  state.nextSlots = {
+    ...pre.currSlots,
+    checkIn: pre.currSlots.checkIn || s.checkin_date || undefined,
+    checkOut: pre.currSlots.checkOut || s.checkout_date || undefined,
+    roomType: pre.currSlots.roomType || s.room_type || undefined,
+    numGuests: pre.currSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
+  };
+  if (structured.handoff === true) state.needsSupervision = true;
+}
+
 // ===== Agent: Orchestrator/Planner (bodyLLM + agentGraph) =====
 async function bodyLLM(pre: PreLLMResult): Promise<any> {
   debugLog("[bodyLLM] IN", { pre });
-  let finalText = "";
-  let nextCategory: string | null = pre.prevCategory;
-  let nextSlots: ReservationSlotsStrict = pre.currSlots;
-  let needsSupervision = false;
-  let graphResult: any = null;
-  let explicitRich: RichPayload | undefined;
+  const state = initBodyLLMState(pre);
+  let finalText = state.finalText;
+  let nextCategory = state.nextCategory;
+  let nextSlots = state.nextSlots;
+  let needsSupervision = state.needsSupervision;
+  let graphResult = state.graphResult;
+  let explicitRich = state.explicitRich;
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
@@ -1686,27 +2068,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
   {
     const started = Date.now();
+    void started;
+    Object.assign(state, { finalText, nextCategory, nextSlots, needsSupervision, graphResult, explicitRich });
     try {
-      // En entorno de test, evitamos invocar el grafo pesado solo para saludos triviales
-      const isTestEnvBody = process.env.NODE_ENV === 'test' || Boolean((globalThis as any).vitest) || Boolean(process.env.VITEST);
-      const tLowerBody = String(pre.msg.content || "").toLowerCase();
-      const looksGreetingBody = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/.test(tLowerBody);
-
-      if (ENABLE_TEST_FASTPATH && looksGreetingBody && !pre.inModifyMode) {
-        // Camino ultra liviano para tests / saludos
-        finalText = ruleBasedFallback(pre.lang, String(pre.msg.content || ""));
-        nextCategory = "retrieval_based";
-        emitRoutingDecision(pre.msg, {
-          decision_layer: "bodyLLM",
-          route_source: "test_greeting_fastpath",
-          route_match: "ENABLE_TEST_FASTPATH:greeting",
-          early_return: true,
-          used_llm_classifier: false,
-          classifier_source: "heuristic",
-          final_category: nextCategory,
-          final_promptKey: null,
-        });
-      } else {
+      // Frontera 1: shortcut de test aislado del razonamiento semántico
+      if (!tryBodyLLMTestGreetingFastpath(pre, state)) {
+        finalText = state.finalText;
+        nextCategory = state.nextCategory;
+        nextSlots = state.nextSlots;
+        needsSupervision = state.needsSupervision;
+        graphResult = state.graphResult;
+        explicitRich = state.explicitRich;
+        // Frontera 2: shortcuts KB / billing determinista
         // ============================
         // NEW: Fast-path KnowledgeBase
         // ============================
@@ -1873,6 +2246,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
         }
 
+        // Frontera 3: graph path / razonamiento semántico principal
         // Enriquecer el SystemMessage con el estado de slots y reserva
         const systemInstruction = pre.systemInstruction + "\n" + buildStateSummary(pre.currSlots, pre.st);
         debugLog("[bodyLLM] systemInstruction", systemInstruction);
@@ -1980,53 +2354,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
       }
 
+      // Frontera 4: fallback / enrich estructurado post-graph
       // === NEW: enriquecer con structured si aporta algo útil (no bloqueante)
       try {
-        if (CONFIG.STRUCTURED_ENABLED) {
-          const structured = await tryStructuredAnalyze({
-            hotelId: pre.msg.hotelId,
-            lang: pre.lang,
-            channel: pre.msg.channel,
-            userQuery: String(pre.msg.content || ""),
-          });
-          debugLog("[bodyLLM] structured", structured);
-          if (structured) {
-            const s = structured.entities || {};
-            const merged2: ReservationSlotsStrict = {
-              ...nextSlots,
-              checkIn: nextSlots.checkIn || s.checkin_date || undefined,
-              checkOut: nextSlots.checkOut || s.checkout_date || undefined,
-              roomType: nextSlots.roomType || s.room_type || undefined,
-              numGuests: nextSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
-            };
-            nextSlots = merged2;
-            // No marcar supervisión si la intención es "segura"
-            const structuredCat = structured.intent ? mapStructuredIntentToCategory(structured.intent) : undefined;
-            const candidateCat = graphResult?.category || structuredCat;
-            const safeCat = isSafeAutosendCategory(candidateCat);
-            const hasRichPayload = Boolean(explicitRich ?? (graphResult as any)?.meta?.rich);
-            if (structured.handoff === true && !safeCat) {
-              needsSupervision = true;
-            }
-            if (!finalText && structured.answer && !hasRichPayload) {
-              if ((pre as any).__orchestratorActive) {
-                // Delega construcción del structured fallback al planner
-                graphResult = graphResult || {};
-                (graphResult as any).structuredFallback = structured;
-              } else {
-                // Evita derivar al hotel cuando estamos en flujo de modificación: guía al usuario
-                if (structured.handoff === true && pre.inModifyMode) {
-                  finalText = buildModifyGuidance(pre.lang, nextSlots);
-                } else {
-                  finalText = structured.answer;
-                }
-              }
-            }
-            if (!nextCategory && structured.intent) {
-              nextCategory = mapStructuredIntentToCategory(structured.intent);
-            }
-          }
-        }
+        Object.assign(state, { finalText, nextCategory, nextSlots, needsSupervision, graphResult, explicitRich });
+        await tryBodyLLMStructuredEnrichment(pre, state);
+        finalText = state.finalText;
+        nextCategory = state.nextCategory;
+        nextSlots = state.nextSlots;
+        needsSupervision = state.needsSupervision;
+        graphResult = state.graphResult;
+        explicitRich = state.explicitRich;
       } catch (e) {
         console.warn("[structured] enrich warn:", (e as any)?.message || e);
       }
@@ -2035,38 +2373,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       // === NEW: structured fallback si el grafo falla
       debugLog("[bodyLLM] agentGraph error", err);
       try {
-        if (CONFIG.STRUCTURED_ENABLED) {
-          const structured = await tryStructuredAnalyze({
-            hotelId: pre.msg.hotelId,
-            lang: pre.lang,
-            channel: pre.msg.channel,
-            userQuery: String(pre.msg.content || ""),
-          });
-          debugLog("[bodyLLM] structured fallback", structured);
-          if (structured?.answer) {
-            if ((pre as any).__orchestratorActive) {
-              graphResult = graphResult || {};
-              (graphResult as any).structuredFallback = structured;
-            } else {
-              // En fallback structured, también evitar derivar en modo modificación
-              if (structured.handoff === true && pre.inModifyMode) {
-                finalText = buildModifyGuidance(pre.lang, pre.currSlots);
-              } else {
-                finalText = structured.answer;
-              }
-              nextCategory = mapStructuredIntentToCategory(structured.intent || "general_question");
-              const s = structured.entities || {};
-              nextSlots = {
-                ...pre.currSlots,
-                checkIn: pre.currSlots.checkIn || s.checkin_date || undefined,
-                checkOut: pre.currSlots.checkOut || s.checkout_date || undefined,
-                roomType: pre.currSlots.roomType || s.room_type || undefined,
-                numGuests: pre.currSlots.numGuests || (typeof s.guests === "number" ? String(s.guests) : undefined),
-              };
-              if (structured.handoff === true) needsSupervision = true;
-            }
-          }
-        }
+        Object.assign(state, { finalText, nextCategory, nextSlots, needsSupervision, graphResult, explicitRich });
+        await tryBodyLLMStructuredFallback(pre, state);
+        finalText = state.finalText;
+        nextCategory = state.nextCategory;
+        nextSlots = state.nextSlots;
+        needsSupervision = state.needsSupervision;
+        graphResult = state.graphResult;
+        explicitRich = state.explicitRich;
       } catch (e) {
         console.warn("[structured] fallback error:", (e as any)?.message || e);
       }
