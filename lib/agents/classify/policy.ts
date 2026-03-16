@@ -23,6 +23,51 @@ type PolicyInput = {
   forceLlmClassifier: boolean;
 };
 
+type HeuristicRoutingDecision = {
+  category: IntentCategory;
+  desiredAction: DesiredAction;
+  intentConfidence: number;
+  intentSource: string;
+};
+
+type LlmEscalationDecision = {
+  shouldEscalate: boolean;
+  classifierSource: "forced_llm" | "llm" | "heuristic";
+  escalationSignal: "FORCE_LLM_CLASSIFIER" | "LOW_HEURISTIC_CONFIDENCE" | "NONE";
+  escalationReason: string;
+};
+
+function decideLlmEscalationPolicy({
+  forceLlmClassifier,
+  heuristicDecision,
+}: {
+  forceLlmClassifier: boolean;
+  heuristicDecision: HeuristicRoutingDecision;
+}): LlmEscalationDecision {
+  if (forceLlmClassifier) {
+    return {
+      shouldEscalate: true,
+      classifierSource: "forced_llm",
+      escalationSignal: "FORCE_LLM_CLASSIFIER",
+      escalationReason: "force_llm_classifier_flag",
+    };
+  }
+  if (heuristicDecision.intentConfidence < 0.75) {
+    return {
+      shouldEscalate: true,
+      classifierSource: "llm",
+      escalationSignal: "LOW_HEURISTIC_CONFIDENCE",
+      escalationReason: "heuristic_confidence_below_threshold",
+    };
+  }
+  return {
+    shouldEscalate: false,
+    classifierSource: "heuristic",
+    escalationSignal: "NONE",
+    escalationReason: "heuristic_confidence_sufficient",
+  };
+}
+
 export async function evaluateGraphRoutingPolicy({
   state,
   persistedConvState,
@@ -274,6 +319,23 @@ export async function evaluateGraphRoutingPolicy({
   const { normalizedMessage, reservationSlots, meta } = state;
   const mapClassifierCategoryToDesiredAction = (category: IntentCategory): DesiredAction =>
     category === "reservation" ? "create" : category === "cancel_reservation" ? "cancel" : undefined;
+  const logLlmEscalationPolicy = (
+    event: "decision" | "attempt" | "result" | "fallback",
+    decision: LlmEscalationDecision,
+    extra: Record<string, any> = {}
+  ) => {
+    debugLog("[routing][llm_escalation_policy]", {
+      conversationId,
+      normalizedMessage,
+      event,
+      should_escalate: decision.shouldEscalate,
+      classifier_source: decision.classifierSource,
+      escalation_signal: decision.escalationSignal,
+      escalation_reason: decision.escalationReason,
+      force_llm_classifier: forceLlmClassifier,
+      ...extra,
+    });
+  };
 
   try {
     const t = (normalizedMessage || "").toLowerCase();
@@ -451,9 +513,30 @@ export async function evaluateGraphRoutingPolicy({
     }
   }
 
-  if (forceLlmClassifier) {
+  let h = heuristicClassify(normalizedMessage);
+  const escalationDecision = decideLlmEscalationPolicy({
+    forceLlmClassifier,
+    heuristicDecision: h,
+  });
+  logLlmEscalationPolicy("decision", escalationDecision, {
+    heuristic_confidence: h.intentConfidence,
+    heuristic_category: h.category,
+    heuristic_promptKey:
+      h.category === "reservation"
+        ? h.desiredAction === "modify"
+          ? "modify_reservation"
+          : "reservation_flow"
+        : h.category === "cancel_reservation"
+          ? "cancellation_policy"
+          : looksRoomInfo(normalizedMessage)
+            ? "room_info"
+            : "ambiguity_policy",
+  });
+
+  if (escalationDecision.classifierSource === "forced_llm") {
     try {
       logForcedClassifier("attempt");
+      logLlmEscalationPolicy("attempt", escalationDecision);
       const llmC = await classifyQuery(normalizedMessage, state.hotelId);
       const forcedCategory = llmC.category as IntentCategory;
       const forcedDesiredAction = mapClassifierCategoryToDesiredAction(forcedCategory);
@@ -471,6 +554,11 @@ export async function evaluateGraphRoutingPolicy({
         promptKey: forcedPromptKey,
         intentSource: "llm",
       });
+      logLlmEscalationPolicy("result", escalationDecision, {
+        category: forcedCategory,
+        promptKey: forcedPromptKey,
+        intentSource: "llm",
+      });
       return withRoutingDebug({
         category: forcedCategory,
         desiredAction: forcedDesiredAction,
@@ -483,13 +571,16 @@ export async function evaluateGraphRoutingPolicy({
       logForcedClassifier("fallback", {
         error: (err as any)?.message || String(err),
       });
+      logLlmEscalationPolicy("fallback", escalationDecision, {
+        error: (err as any)?.message || String(err),
+      });
       console.warn("[classifyNode] FORCE_LLM_CLASSIFIER fallback to heuristic:", (err as any)?.message || err);
     }
   }
 
-  let h = heuristicClassify(normalizedMessage);
-  if (h.intentConfidence < 0.75) {
+  if (escalationDecision.classifierSource === "llm") {
     try {
+      logLlmEscalationPolicy("attempt", escalationDecision);
       const llmC = await classifyQuery(normalizedMessage, state.hotelId);
       h = {
         category: llmC.category as IntentCategory,
@@ -499,6 +590,11 @@ export async function evaluateGraphRoutingPolicy({
       };
       const forcedPK = llmC.promptKey ?? (looksRoomInfo(normalizedMessage) ? "room_info" : undefined);
       if (forcedPK) {
+        logLlmEscalationPolicy("result", escalationDecision, {
+          category: "retrieval_based",
+          promptKey: forcedPK,
+          intentSource: "llm",
+        });
         return withRoutingDebug({
           category: "retrieval_based",
           desiredAction: h.desiredAction,
@@ -508,7 +604,10 @@ export async function evaluateGraphRoutingPolicy({
           messages: [],
         }, "llm_classifier", "classifyQuery", h.intentConfidence);
       }
-    } catch {
+    } catch (err) {
+      logLlmEscalationPolicy("fallback", escalationDecision, {
+        error: (err as any)?.message || String(err),
+      });
       console.log("Error classifying with LLM, falling back to heuristic");
     }
   }
