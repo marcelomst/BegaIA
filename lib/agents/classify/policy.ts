@@ -33,21 +33,27 @@ type HeuristicRoutingDecision = {
 type LlmEscalationDecision = {
   shouldEscalate: boolean;
   classifierSource: "forced_llm" | "llm" | "heuristic";
-  escalationSignal: "FORCE_LLM_CLASSIFIER" | "LOW_HEURISTIC_CONFIDENCE" | "NONE";
+  heuristicRole: "strong_signal" | "proposal";
+  classifierRole: "forced" | "correction_or_confirmation" | "not_used";
+  escalationSignal: "FORCE_LLM_CLASSIFIER" | "LOW_HEURISTIC_CONFIDENCE" | "AMBIGUOUS_HEURISTIC_PROPOSAL" | "NONE";
   escalationReason: string;
 };
 
 function decideLlmEscalationPolicy({
   forceLlmClassifier,
   heuristicDecision,
+  heuristicPromptKey,
 }: {
   forceLlmClassifier: boolean;
   heuristicDecision: HeuristicRoutingDecision;
+  heuristicPromptKey: string | undefined;
 }): LlmEscalationDecision {
   if (forceLlmClassifier) {
     return {
       shouldEscalate: true,
       classifierSource: "forced_llm",
+      heuristicRole: "proposal",
+      classifierRole: "forced",
       escalationSignal: "FORCE_LLM_CLASSIFIER",
       escalationReason: "force_llm_classifier_flag",
     };
@@ -56,13 +62,31 @@ function decideLlmEscalationPolicy({
     return {
       shouldEscalate: true,
       classifierSource: "llm",
+      heuristicRole: "proposal",
+      classifierRole: "correction_or_confirmation",
       escalationSignal: "LOW_HEURISTIC_CONFIDENCE",
       escalationReason: "heuristic_confidence_below_threshold",
+    };
+  }
+  if (
+    heuristicDecision.intentConfidence < 0.9 &&
+    heuristicDecision.category === "retrieval_based" &&
+    heuristicPromptKey === "ambiguity_policy"
+  ) {
+    return {
+      shouldEscalate: true,
+      classifierSource: "llm",
+      heuristicRole: "proposal",
+      classifierRole: "correction_or_confirmation",
+      escalationSignal: "AMBIGUOUS_HEURISTIC_PROPOSAL",
+      escalationReason: "heuristic_generic_retrieval_requires_confirmation",
     };
   }
   return {
     shouldEscalate: false,
     classifierSource: "heuristic",
+    heuristicRole: "strong_signal",
+    classifierRole: "not_used",
     escalationSignal: "NONE",
     escalationReason: "heuristic_confidence_sufficient",
   };
@@ -319,6 +343,16 @@ export async function evaluateGraphRoutingPolicy({
   const { normalizedMessage, reservationSlots, meta } = state;
   const mapClassifierCategoryToDesiredAction = (category: IntentCategory): DesiredAction =>
     category === "reservation" ? "create" : category === "cancel_reservation" ? "cancel" : undefined;
+  const pickPromptKey = (cat: IntentCategory, desired: DesiredAction, message: string) =>
+    cat === "reservation"
+      ? desired === "modify"
+        ? "modify_reservation"
+        : "reservation_flow"
+      : cat === "cancel_reservation"
+        ? "cancellation_policy"
+        : looksRoomInfo(message)
+          ? "room_info"
+          : "ambiguity_policy";
   const logLlmEscalationPolicy = (
     event: "decision" | "attempt" | "result" | "fallback",
     decision: LlmEscalationDecision,
@@ -329,6 +363,8 @@ export async function evaluateGraphRoutingPolicy({
       normalizedMessage,
       event,
       should_escalate: decision.shouldEscalate,
+      heuristic_role: decision.heuristicRole,
+      classifier_role: decision.classifierRole,
       classifier_source: decision.classifierSource,
       escalation_signal: decision.escalationSignal,
       escalation_reason: decision.escalationReason,
@@ -514,23 +550,16 @@ export async function evaluateGraphRoutingPolicy({
   }
 
   let h = heuristicClassify(normalizedMessage);
+  const heuristicPromptKey = pickPromptKey(h.category, h.desiredAction, normalizedMessage);
   const escalationDecision = decideLlmEscalationPolicy({
     forceLlmClassifier,
     heuristicDecision: h,
+    heuristicPromptKey,
   });
   logLlmEscalationPolicy("decision", escalationDecision, {
     heuristic_confidence: h.intentConfidence,
     heuristic_category: h.category,
-    heuristic_promptKey:
-      h.category === "reservation"
-        ? h.desiredAction === "modify"
-          ? "modify_reservation"
-          : "reservation_flow"
-        : h.category === "cancel_reservation"
-          ? "cancellation_policy"
-          : looksRoomInfo(normalizedMessage)
-            ? "room_info"
-            : "ambiguity_policy",
+    heuristic_promptKey: heuristicPromptKey,
   });
 
   if (escalationDecision.classifierSource === "forced_llm") {
@@ -612,17 +641,7 @@ export async function evaluateGraphRoutingPolicy({
     }
   }
 
-  const pickPK = (cat: IntentCategory, desired: DesiredAction) =>
-    cat === "reservation"
-      ? desired === "modify"
-        ? "modify_reservation"
-        : "reservation_flow"
-      : cat === "cancel_reservation"
-        ? "cancellation_policy"
-        : looksRoomInfo(normalizedMessage)
-          ? "room_info"
-          : "ambiguity_policy";
-  const promptKey = pickPK(h.category, h.desiredAction);
+  const promptKey = pickPromptKey(h.category, h.desiredAction, normalizedMessage);
   return withRoutingDebug({
     category: h.category,
     desiredAction: h.desiredAction,
