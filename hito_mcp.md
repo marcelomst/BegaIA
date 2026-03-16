@@ -2200,3 +2200,48 @@ Impacto:
 
 Se vuelve explícita la policy de escalado a classifier/LLM como cambio
 controlado de routing interno, sin alterar contratos públicos.
+
+### DOC-HITO-PIPELINE-06-CLASSIFIER-VS-HEURISTIC-RATIONALIZATION
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: b475f2c34a5a1b1eb3ff01213c5c1f0a46529dc8
+
+Descripción:
+
+Se registra la racionalización del contrato entre heurística y classifier
+dentro del routing.
+
+La policy pasa a distinguir explícitamente:
+
+- `heuristicRole = strong_signal | proposal`
+- `classifierRole = forced | correction_or_confirmation | not_used`
+
+Se mantienen intactos los guardrails duros previos.
+
+Cambio controlado documentado:
+
+- se agrega un caso mínimo adicional de escalado cuando la heurística queda en
+  `retrieval_based` + `ambiguity_policy` con confianza media (`< 0.9`)
+
+Contrato explícito resultante:
+
+- heurística fuerte cierra
+- heurística ambigua propone
+- classifier confirma o corrige
+
+Validación:
+
+- `pnpm exec vitest run test/unit/policy.llmEscalation.spec.ts test/unit/graph.routingDebug.test.ts test/unit/classifyNode.reservationPriority.spec.ts test/availability.unified.flow.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `test/unit/policy.llmEscalation.spec.ts`
+
+Impacto:
+
+Queda explícito el contrato entre heurística y classifier como cambio
+controlado de policy interna, sin rediseñar el router ni alterar contratos
+públicos.
