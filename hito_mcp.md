@@ -2109,3 +2109,45 @@ Impacto:
 
 Se explicitan fronteras internas y baseline de organización dentro de
 `bodyLLM` sin introducir cambio funcional de policy ni de routing externo.
+
+### DOC-HITO-PIPELINE-04-DECISION-POLICY-EXTRACTION
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: 875be4879b40803306f3dd4c0eea7e9b0fa44c0a
+
+Descripción:
+
+Se registra la extracción de la policy real de decisión desde `classifyNode(...)`
+en `graph.ts` hacia un módulo dedicado.
+
+Estado resultante:
+
+- `graph.ts` queda como capa de orquestación/ejecución
+- lectura de `convState`
+- llamada a `evaluateGraphRoutingPolicy(...)`
+
+La policy extraída conserva:
+
+- guardrails por estado
+- heurísticas tempranas
+- snapshot/verify
+- refuerzos por slots
+- `FORCE_LLM_CLASSIFIER`
+- fallback a `heuristicClassify(...)`
+- selección de `category`, `desiredAction` y `promptKey`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/graph.routingDebug.test.ts test/unit/classifyNode.reservationPriority.spec.ts test/availability.unified.flow.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `lib/agents/graph.ts`
+
+Impacto:
+
+Se desacopla la policy de decisión del nodo del grafo para mejorar legibilidad y
+evolución interna, sin introducir cambio funcional de comportamiento.
