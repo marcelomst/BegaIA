@@ -2076,3 +2076,36 @@ Impacto:
 
 Se mejora mantenibilidad del routing heurístico al converger lógica textual
 duplicada en una única fuente compartida, sin introducir cambio funcional.
+
+### DOC-HITO-PIPELINE-03-BODYLLM-FASTPATH-BOUNDARIES
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: 5baf491f0ec2172450cb8633b4b50186c47e1b48
+
+Descripción:
+
+Se registra la delimitación interna de `bodyLLM` para hacer explícitas las
+fronteras entre fast-paths transaccionales previos, shortcut de test, KB /
+billing determinista, graph path y fallback/enrichment estructurado post-graph.
+
+Cambios internos documentados:
+
+- `BodyLLMState` explícito para aislar estado mutable
+- helper `tryBodyLLMTestGreetingFastpath`
+- helper `tryBodyLLMStructuredEnrichment`
+- helper `tryBodyLLMStructuredFallback`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.routing_observability.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts test/availability.unified.flow.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Impacto:
+
+Se explicitan fronteras internas y baseline de organización dentro de
+`bodyLLM` sin introducir cambio funcional de policy ni de routing externo.
