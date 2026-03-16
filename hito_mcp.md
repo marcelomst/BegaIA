@@ -2287,3 +2287,45 @@ Impacto:
 
 Se desacopla internamente la resolución de `promptKey` de la policy sin cambiar
 contratos públicos, payload final ni comportamiento funcional observable.
+
+### DOC-HITO-PIPELINE-08-ADR-PIPELINE-RUNTIME-TARGET
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit técnico asociado: no aplica
+
+Descripción:
+
+Se registra el ADR de cierre de la serie `PIPELINE-SIGNAL-ARCH`, preservando
+como contenido central la decisión arquitectónica validada sobre el runtime
+principal del pipeline conversacional.
+
+Decisión documentada:
+
+- `messageHandler` permanece como runtime principal vigente
+- `mhFlowGraph` no se adopta todavía como runtime operativo principal
+- `mhFlowGraph` queda como candidato condicionado para una migración gradual
+  futura
+
+Serie cerrada por este ADR:
+
+- `HITO-PIPELINE-01 / ROUTING-OBSERVABILITY-BASELINE`
+- `HITO-PIPELINE-02 / HEURISTIC-INVENTORY-CONVERGENCE`
+- `HITO-PIPELINE-03 / BODYLLM-FASTPATH-BOUNDARIES`
+- `HITO-PIPELINE-04 / DECISION-POLICY-EXTRACTION`
+- `HITO-PIPELINE-05 / LLM-ESCALATION-POLICY`
+- `HITO-PIPELINE-06 / CLASSIFIER-VS-HEURISTIC-RATIONALIZATION`
+- `HITO-PIPELINE-07 / PROMPT-SELECTION-DECOUPLING`
+
+Archivos afectados:
+
+- `docs/architecture/adr_pipeline_runtime_target.md`
+- `docs/architecture/README.md`
+- `docs/README.md`
+
+Impacto:
+
+Queda formalmente cerrada la serie `PIPELINE-SIGNAL-ARCH` mediante un ADR que
+fija a `messageHandler` como runtime principal vigente y deja a
+`mhFlowGraph` como candidato condicionado, sin asociar este hito a un commit
+técnico nuevo.

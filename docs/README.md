@@ -11,5 +11,6 @@ Deuda arquitectónica destacada:
 ADR destacado:
 
 - `./architecture/adr_email_transport_target.md`
+- `./architecture/adr_pipeline_runtime_target.md`
 
 Disciplina: ./development/ (por ahora vacío)

@@ -179,6 +179,14 @@ Define la arquitectura objetivo del transporte email en producción,
 preservando el pipeline conversacional central y separando transporte,
 normalización, control técnico y dominio.
 
+### ADR: Pipeline Runtime Target
+
+`adr_pipeline_runtime_target.md`
+
+Define el cierre arquitectónico de la serie `PIPELINE-SIGNAL-ARCH`,
+manteniendo `messageHandler` como runtime principal vigente y dejando
+`mhFlowGraph` como candidato condicionado para una migración gradual futura.
+
 ### Deuda VNEXT: Thread como caso operativo
 
 `thread_domain_vnext_debt.md`
