@@ -1993,3 +1993,49 @@ Impacto:
 
 Se refuerza la trazabilidad operativa del runtime sin alterar contratos
 funcionales del sistema.
+
+### DOC-HITO-PIPELINE-01-ROUTING-OBSERVABILITY-BASELINE
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: 903f87ea29e351bcca1254f5c60efe9987b3b55d
+
+Descripción:
+
+Se registra el baseline de observabilidad del routing del pipeline mediante una
+línea homogénea `[routing][decision]` en `messageHandler.ts`.
+
+Campos normalizados:
+
+- `decision_layer`
+- `route_source`
+- `route_match`
+- `early_return`
+- `used_llm_classifier`
+- `classifier_source`
+- `final_category`
+- `final_promptKey`
+
+Cobertura documentada del baseline:
+
+- fast-path de saludo de test
+- fast-path KB seguro
+- billing forzado
+- billing deterministic fallback
+- salida del `agentGraph`
+- postprocess fallback cuando hay `finalText` sin `route_source` del grafo
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.routing_observability.spec.ts test/unit/graph.routingDebug.test.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+
+Impacto:
+
+Queda trazabilidad consistente del routing del pipeline sin introducir un
+cambio funcional de negocio; este hito establece baseline de observabilidad.
