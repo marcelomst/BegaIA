@@ -12,106 +12,21 @@ import { GraphState } from "./graphState";
 import { getConvState } from "@/lib/db/convState";
 import { classifyQuery, isPureGreeting } from "@/lib/classifier";
 import { looksLikeName, heuristicClassify, looksRoomInfo, pickNearbyPromptKey } from "./helpers";
+import {
+  hasEventFollowupCue,
+  hasExplicitAgendaSignal,
+  hasReservationAvailabilitySignal,
+  hasStrongNonEventIntent,
+  isSeasonalQuery,
+  wantsChannelManager,
+  wantsEvents,
+  wantsImages,
+  wantsThingsToDo,
+} from "@/lib/agents/classify/routingText";
 import { askModifyFieldNode, askNewValueNode, confirmModificationNode } from "./nodes/reservationModify";
 import { handleReservationNode } from "./nodes";
 import { handleCancelReservationNode } from "./nodes/cancelReservation";
 import type { IntentCategory, DesiredAction } from "@/types/audit";
-
-function wantsEvents(s: string) {
-  const t = (s || "").toLowerCase();
-  if (/\b(reserv\w*|booking|book|disponibil\w*|availability|habitaci[oó]n|room|quarto|check[ -]?in|check[ -]?out|hu[eé]sped(?:es)?|guest(?:s)?|adulto(?:s)?|adult)\b/.test(t)) {
-    return false;
-  }
-  const keys = [
-    // ES
-    "evento", "eventos", "agenda", "hoy", "mañana", "manana",
-    "esta noche", "fin de semana", "este fin de semana",
-    "evento turistico", "evento turístico", "eventos turisticos", "eventos turísticos",
-    // EN
-    "event", "events", "tourist event", "tourist events", "today", "tomorrow", "tonight",
-    "weekend", "this weekend",
-    // PT
-    "evento", "eventos", "agenda", "hoje", "amanhã", "amanha", "esta noite",
-    "fim de semana", "este fim de semana",
-    "evento turistico", "eventos turisticos",
-  ];
-  return keys.some((k) => t.includes(k));
-}
-
-function hasEventFollowupCue(s: string) {
-  const t = (s || "").toLowerCase();
-  if (!t) return false;
-  if (/\b(evento|eventos|agenda|concierto|recital|festival|feria|show|teatro|exposicion|exposición)\b/.test(t)) return true;
-  if (/\b(foto|fotos|imagen|imagenes|imágenes|photos|pics)\b/.test(t)) return true;
-  if (/\b(hoy|mañana|manana|esta noche|fin de semana|este fin de semana|proxima semana|próxima semana|weekend|this weekend|next week)\b/.test(t)) return true;
-  return false;
-}
-
-function hasStrongNonEventIntent(s: string) {
-  const t = (s || "").toLowerCase();
-  if (!t) return false;
-  if (RE_SUPPORT.test(t) || RE_BILLING.test(t) || RE_TRANSPORT.test(t) || RE_BREAKFAST.test(t) || RE_AMENITIES.test(t)) {
-    return true;
-  }
-  // Refuerzo para consultas de contacto/soporte que no siempre matchean regex amplias
-  if (/\b(contacto|contactar|telefono|teléfono|whatsapp|email|correo|soporte|ayuda|recepcion|recepción|guardia|guardia nocturna|horario|atencion|atención)\b/.test(t)) {
-    return true;
-  }
-  return false;
-}
-
-function isSeasonalQuery(s: string) {
-  const t = (s || "").toLowerCase();
-  return /\b(este mes|temporada|verano|invierno|otoño|oton(o)?|primavera|this month|season|summer|winter|fall|spring|este mês|neste mês|estação|verao|verão|inverno|outono|primavera)\b/.test(t);
-}
-
-function hasExplicitAgendaSignal(s: string) {
-  const t = (s || "").toLowerCase();
-  return /\b(evento(s)?|agenda|calendario|calendar|event calendar|concierto(s)?|recital(es)?|festival(es)?|feria(s)?|show(s)?|teatro|exposici[oó]n(es)?|carnaval|muestra(s)?)\b/.test(t);
-}
-
-function wantsThingsToDo(s: string) {
-  const t = (s || "").toLowerCase();
-  const keys = [
-    // ES
-    "que hacer",
-    "qué hacer",
-    "que se puede hacer",
-    "planes",
-    "plan",
-    "diversion",
-    "diversión",
-    "actividades",
-    "recomendas",
-    "recomendás",
-    "lugares para ir",
-    "salir de noche",
-    "que hay",
-    // EN
-    "what to do",
-    "things to do",
-    "plans",
-    "activities",
-    "nightlife",
-    // PT
-    "o que fazer",
-    "planos",
-    "atividades",
-    "vida noturna",
-  ];
-  return keys.some((k) => t.includes(k));
-}
-
-function wantsImages(s: string) {
-  const t = (s || "").toLowerCase();
-  return /\b(imagenes|imágenes|fotos|con\s+imagenes|con\s+imágenes|con\s+fotos|images|photos|pictures|pics|with\s+images|with\s+photos|with\s+pictures|with\s+pics|imagens|com\s+imagens|com\s+fotos)\b/.test(t);
-}
-
-function wantsChannelManager(s: string) {
-  const t = (s || "").toLowerCase();
-  if (!t) return false;
-  return /\b(canal|canales|channel|channels|por que canal|por qué canal|v[ií]a de contacto|contactar por|escribir por|fuera de horario|out of hours|canal recomendado)\b/.test(t);
-}
 
 // Nodo de clasificación principal
 export async function classifyNode(state: typeof GraphState.State) {
@@ -206,7 +121,13 @@ export async function classifyNode(state: typeof GraphState.State) {
       startsWithFollowup(state.normalizedMessage || "") ||
       (isShortFollowup(state.normalizedMessage || "") && hasEventFollowupCue(state.normalizedMessage || ""))
     ) &&
-    !hasStrongNonEventIntent(state.normalizedMessage || "")
+    !hasStrongNonEventIntent(state.normalizedMessage || "", {
+      support: RE_SUPPORT,
+      billing: RE_BILLING,
+      transport: RE_TRANSPORT,
+      breakfast: RE_BREAKFAST,
+      amenities: RE_AMENITIES,
+    })
   ) {
     const pk = hasPhotoSignal(state.normalizedMessage || "") ? "tourist_events_img" : "tourist_events";
     if (process.env.DEBUG_ROUTING === "1") {

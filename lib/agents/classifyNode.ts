@@ -2,6 +2,7 @@ import type { IntentCategory, DesiredAction } from "@/types/audit";
 import { heuristicClassify, looksRoomInfo, pickNearbyPromptKey } from "./helpers";
 import { classifyQuery } from "@/lib/classifier";
 import { debugLog } from "@/lib/utils/debugLog";
+import { hasReservationAvailabilitySignal, wantsEvents, wantsImages } from "@/lib/agents/classify/routingText";
 
 function isConfirmIntentLight(s: string) {
     const t = (s || "").toLowerCase().trim();
@@ -11,33 +12,6 @@ function isGreeting(s: string) {
     const t = (s || "").trim().toLowerCase();
     return /^(hola|hello|hi|hey|buenas|buenos dias|buenos días|buenas tardes|buenas noches|olá|ola|oi)$/.test(t);
 }
-function hasReservationAvailabilitySignal(s: string) {
-    const t = (s || "").toLowerCase();
-    return /\b(reserv\w*|booking|book|disponibil\w*|availability|habitaci[oó]n|room|quarto|check[ -]?in|check[ -]?out|hu[eé]sped(?:es)?|guest(?:s)?|adulto(?:s)?|adult)\b/.test(t);
-}
-function wantsEvents(s: string) {
-    const t = (s || "").toLowerCase();
-    if (hasReservationAvailabilitySignal(t)) return false;
-    const keys = [
-        // ES
-        "evento", "eventos", "agenda", "que hay", "que hacer", "hoy", "mañana", "manana",
-        "esta noche", "fin de semana", "este fin de semana", "este mes", "mes", "mensual",
-        "evento turistico", "evento turístico", "eventos turisticos", "eventos turísticos",
-        // EN
-        "event", "events", "tourist event", "tourist events", "today", "tomorrow", "tonight",
-        "weekend", "this weekend", "this month", "month", "monthly",
-        // PT
-        "evento", "eventos", "agenda", "hoje", "amanhã", "amanha", "esta noite",
-        "fim de semana", "este fim de semana", "este mês", "este mes", "mês", "mes", "mensal",
-        "evento turistico", "eventos turisticos",
-    ];
-    return keys.some((k) => t.includes(k));
-}
-function wantsImages(s: string) {
-    const t = (s || "").toLowerCase();
-    return /\b(imagenes|imágenes|fotos|con\s+imagenes|con\s+imágenes|con\s+fotos|images|photos|pictures|pics|with\s+images|with\s+photos|with\s+pictures|with\s+pics|imagens|com\s+imagens|com\s+fotos)\b/.test(t);
-}
-
 export async function classifyNode(state: any) {
     const { normalizedMessage, reservationSlots, meta } = state;
     const withLog = (result: any) => {
