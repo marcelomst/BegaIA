@@ -2039,3 +2039,40 @@ Impacto:
 
 Queda trazabilidad consistente del routing del pipeline sin introducir un
 cambio funcional de negocio; este hito establece baseline de observabilidad.
+
+### DOC-HITO-PIPELINE-02-HEURISTIC-INVENTORY-CONVERGENCE
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: 7be2e2f0eb0411f1f0a2c1970f60595f2b4a91ec
+
+Descripción:
+
+Se registra la convergencia interna del inventario heurístico textual del
+routing conversacional mediante un módulo compartido reutilizado por
+`graph.ts` y `classifyNode.ts`.
+
+Alcance documentado:
+
+- se crea `lib/agents/classify/routingText.ts` como fuente compartida
+- `graph.ts` y `classifyNode.ts` consumen esa fuente común
+- se reduce duplicación textual sin cambiar policy ni orden de decisión
+- no se alteran umbrales ni escalado a LLM
+- `helpers.ts` queda intacto para no ampliar alcance
+- `keywords.ts` se mantiene como fuente explícita de regex rápidas por dominio
+
+Validación:
+
+- `pnpm exec vitest run test/unit/graph.routingDebug.test.ts test/unit/classifyNode.reservationPriority.spec.ts test/availability.unified.flow.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/classify/routingText.ts`
+- `lib/agents/classifyNode.ts`
+- `lib/agents/graph.ts`
+
+Impacto:
+
+Se mejora mantenibilidad del routing heurístico al converger lógica textual
+duplicada en una única fuente compartida, sin introducir cambio funcional.
