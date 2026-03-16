@@ -2151,3 +2151,52 @@ Impacto:
 
 Se desacopla la policy de decisión del nodo del grafo para mejorar legibilidad y
 evolución interna, sin introducir cambio funcional de comportamiento.
+
+### DOC-HITO-PIPELINE-05-LLM-ESCALATION-POLICY
+
+Estado: COMPLETADO  
+Fecha: 2026-03-16  
+Commit: eb61c68f5f8ee016e1e9b405b3a5df3d9a0a0fc0
+
+Descripción:
+
+Se registra la explicitación de la policy de escalado a classifier/LLM dentro
+del routing, extrayendo la decisión a `decideLlmEscalationPolicy(...)` y
+agregando trazabilidad homogénea del ciclo de escalado.
+
+Señales explicitadas:
+
+- `FORCE_LLM_CLASSIFIER`
+- `LOW_HEURISTIC_CONFIDENCE`
+- `NONE`
+
+Campos explicitados:
+
+- `should_escalate`
+- `classifier_source`
+- `escalation_signal`
+- `escalation_reason`
+- `heuristic_confidence`
+- `heuristic_category`
+
+Cobertura documentada:
+
+- decisión
+- attempt
+- result
+- fallback
+
+Validación:
+
+- `pnpm exec vitest run test/unit/policy.llmEscalation.spec.ts test/unit/graph.routingDebug.test.ts test/unit/classifyNode.reservationPriority.spec.ts test/availability.unified.flow.spec.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `test/unit/policy.llmEscalation.spec.ts`
+
+Impacto:
+
+Se vuelve explícita la policy de escalado a classifier/LLM como cambio
+controlado de routing interno, sin alterar contratos públicos.
