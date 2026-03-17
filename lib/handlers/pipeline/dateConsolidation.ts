@@ -46,6 +46,26 @@ function isoToDDMMYYYY(iso?: string) {
     return `${m[3]}/${m[2]}/${m[1]}`;
 }
 
+function isConfirmedBookingState(st: any) {
+    return !!(st?.reservationSlots && st?.salesStage === 'close');
+}
+
+function isPastCheckIn(iso?: string) {
+    if (!iso) return false;
+    const inDate = new Date(iso);
+    if (Number.isNaN(inDate.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return inDate.getTime() < today.getTime();
+}
+
+function buildPastCheckInPrompt(lang: string, iso?: string) {
+    const ciTxt = isoToDDMMYYYY(iso) || iso || "";
+    if (lang === "pt") return `A data de check-in ${ciTxt} já passou. Qual seria a nova data de check-in? (dd/mm/aaaa)`;
+    if (lang !== "es") return `The check-in date ${ciTxt} is in the past. What would be the new check-in date? (dd/mm/yyyy)`;
+    return `La fecha de check-in ${ciTxt} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
+}
+
 // Detect if previous AI asked explicitly for missing check-in or check-out.
 function lastAIMissingSide(history: (HumanMessage | AIMessage)[], lang: string): 'checkIn' | 'checkOut' | null {
     const ai = [...history].reverse().find(m => m instanceof AIMessage) as AIMessage | undefined;
@@ -64,6 +84,7 @@ export function consolidateDates(p: DateConsolidationParams): DateConsolidationR
     let finalText: string | undefined;
     const msg = p.msgText;
     let slotsChanged = false;
+    const shouldGuardPastCheckIn = !isConfirmedBookingState(p.st);
 
     // 0) Detección temprana de rango completo (ambas fechas en un solo mensaje) usando extractSlotsFromText.
     // Si el mensaje provee checkIn y checkOut (aunque el estado previo tuviera otro rango), podemos generar confirmación inmediata.
@@ -132,6 +153,10 @@ export function consolidateDates(p: DateConsolidationParams): DateConsolidationR
             const mentionsInOnly = IN_VERBS.test(lower) && !OUT_VERBS.test(lower);
             const mentionsOutOnly = OUT_VERBS.test(lower) && !IN_VERBS.test(lower);
             if (mentionsInOnly) {
+                if (shouldGuardPastCheckIn && isPastCheckIn(iso)) {
+                    finalText = buildPastCheckInPrompt(p.lang, iso);
+                    return { finalText, nextSlots, changed: true, preservedPrompt: p.preserveAskCheckInPrompt || null };
+                }
                 if (nextSlots.checkIn !== iso) { nextSlots = { ...nextSlots, checkIn: iso }; slotsChanged = true; }
                 finalText = buildAskMissing(p.lang, 'checkOut');
             } else if (mentionsOutOnly) {
@@ -235,8 +260,16 @@ export function consolidateDates(p: DateConsolidationParams): DateConsolidationR
                                 ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
                                 : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
                     }
-                } else if (sideNeeded === 'checkIn' && !nextSlots.checkIn) {
-                    nextSlots = { ...nextSlots, checkIn: iso }; slotsChanged = true;
+                } else if (sideNeeded === 'checkIn') {
+                    const effectiveCheckIn = nextSlots.checkIn || iso;
+                    if (shouldGuardPastCheckIn && isPastCheckIn(effectiveCheckIn)) {
+                        finalText = buildPastCheckInPrompt(p.lang, effectiveCheckIn);
+                        const { checkIn: _discardedCheckIn, ...rest } = nextSlots;
+                        return { finalText, nextSlots: rest, changed: true, preservedPrompt: p.preserveAskCheckInPrompt || null };
+                    }
+                    if (!nextSlots.checkIn) {
+                        nextSlots = { ...nextSlots, checkIn: iso }; slotsChanged = true;
+                    }
                     if (nextSlots.checkIn && nextSlots.checkOut && (nextSlots.checkIn !== p.prevSlots.checkIn || nextSlots.checkOut !== p.prevSlots.checkOut)) {
                         const ciTxt = isoToDDMMYYYY(nextSlots.checkIn) || nextSlots.checkIn;
                         const coTxt = isoToDDMMYYYY(nextSlots.checkOut) || nextSlots.checkOut;

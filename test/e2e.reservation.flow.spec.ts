@@ -30,12 +30,12 @@ describe("e2e reservation flow (single-slot Q, guests and checkout mapping)", ()
                 partial.roomType = "double";
                 return { need: "question", partial, question: "¿Cuál es la fecha de check-in?" };
             }
-            if (input === "02/10/2025") {
-                partial.checkIn = "2025-10-02";
+            if (input === "02/10/2026") {
+                partial.checkIn = "2026-10-02";
                 return { need: "question", partial, question: "¿Cuál es la fecha de check-out?" };
             }
-            if (input === "04/10/2025") {
-                partial.checkOut = "2025-10-04";
+            if (input === "04/10/2026") {
+                partial.checkOut = "2026-10-04";
                 return { need: "question", partial, question: "¿Cuántos huéspedes se alojarán?" };
             }
             if (input === "2") {
@@ -64,23 +64,23 @@ describe("e2e reservation flow (single-slot Q, guests and checkout mapping)", ()
         expect(String(res.messages?.[0]?.content)).toMatch(/check-in/);
 
         // 3) single date: check-in
-        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "question", partial: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2025-10-02", locale: "es" }, question: "¿Cuál es la fecha de check-out?" });
-        res = await agentGraph.invoke({ normalizedMessage: "02/10/2025", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble" } });
+        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "question", partial: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2026-10-02", locale: "es" }, question: "¿Cuál es la fecha de check-out?" });
+        res = await agentGraph.invoke({ normalizedMessage: "02/10/2026", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble" } });
         expect(String(res.messages?.[0]?.content)).toMatch(/check-out/);
 
         // 4) single date reply mapped to checkOut by graph signals
-        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "question", partial: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2025-10-02", checkOut: "2025-10-04", locale: "es" }, question: "¿Cuántos huéspedes se alojarán?" });
-        res = await agentGraph.invoke({ normalizedMessage: "04/10/2025", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble", checkIn: "2025-10-02" } });
+        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "question", partial: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2026-10-02", checkOut: "2026-10-04", locale: "es" }, question: "¿Cuántos huéspedes se alojarán?" });
+        res = await agentGraph.invoke({ normalizedMessage: "04/10/2026", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble", checkIn: "2026-10-02" } });
         expect(String(res.messages?.[0]?.content)).toMatch(/huéspedes/);
 
         // 5) numeric guests reply consolidated by graph
-        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "none", slots: { guestName: "Marcelo Martinez", roomType: "double", numGuests: 2, checkIn: "2025-10-02", checkOut: "2025-10-04", locale: "es" } });
+        (fillSlotsWithLLM as any).mockResolvedValueOnce({ need: "none", slots: { guestName: "Marcelo Martinez", roomType: "double", numGuests: 2, checkIn: "2026-10-02", checkOut: "2026-10-04", locale: "es" } });
         (askAvailability as any).mockResolvedValueOnce({ ok: true, available: true, proposal: "Tengo double disponible. Tarifa por noche: 100 USD.", options: [{ roomType: "double", pricePerNight: 100, currency: "USD" }] });
-        res = await agentGraph.invoke({ normalizedMessage: "2", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble", checkIn: "2025-10-02", checkOut: "2025-10-04" } });
+        res = await agentGraph.invoke({ normalizedMessage: "2", detectedLanguage: "es", hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "doble", checkIn: "2026-10-02", checkOut: "2026-10-04" } });
         expect(String(res.messages?.[0]?.content)).toMatch(/CONFIRMAR/);
 
         // 6) confirm
-        (getConvState as any).mockResolvedValue({ _id: `${hotelId}:${conversationId}`, hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2025-10-02", checkOut: "2025-10-04", numGuests: "2", locale: "es" } });
+        (getConvState as any).mockResolvedValue({ _id: `${hotelId}:${conversationId}`, hotelId, conversationId, reservationSlots: { guestName: "Marcelo Martinez", roomType: "double", checkIn: "2026-10-02", checkOut: "2026-10-04", numGuests: "2", locale: "es" } });
         (confirmAndCreate as any).mockResolvedValueOnce({ ok: true, reservationId: "mock-211075", message: "✅ Reserva creada. ID: mock-211075" });
         res = await agentGraph.invoke({ normalizedMessage: "CONFIRMAR", detectedLanguage: "es", hotelId, conversationId, reservationSlots: {} });
         const text = String(res.messages?.[0]?.content);

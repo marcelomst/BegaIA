@@ -98,6 +98,9 @@ export type ConversationFlowState = {
   lastEventPromptKey?: string | null;
   lastIntentGroup?: string | null;
 
+  // Guardias conversacionales puntuales
+  dateCoherencePending?: { checkIn: string; checkOut: string } | null;
+
 
   // Auditoría
   updatedAt: string;
@@ -173,6 +176,7 @@ export async function upsertConvState(
   if ("lastEventRange" in patch) $set.lastEventRange = (patch as any).lastEventRange ?? null;
   if ("lastEventPromptKey" in patch) $set.lastEventPromptKey = (patch as any).lastEventPromptKey ?? null;
   if ("lastIntentGroup" in patch) $set.lastIntentGroup = (patch as any).lastIntentGroup ?? null;
+  if ("dateCoherencePending" in patch) $set.dateCoherencePending = (patch as any).dateCoherencePending ?? null;
 
   const $unset: Record<string, any> = {};
 

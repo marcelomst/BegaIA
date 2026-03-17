@@ -351,7 +351,8 @@ export function looksLikeName(s: string) {
     "hola", "buenas", "hello", "hi", "hey", "olá", "ola", "oi",
     "que", "qué", "cuando", "cuándo", "donde", "dónde", "como", "cómo",
     "hora", "precio", "policy", "política", "check", "in", "out",
-    "reserva", "reservo", "quiero", "quero", "tiene", "hay"
+    "reserva", "reservo", "quiero", "quero", "tiene", "hay",
+    "si", "sí", "sim", "yes", "ok", "okay", "dale", "claro"
   ]);
   if (tokens.some(w => STOP.has(w.toLowerCase()))) return false;
   if (!tokens.every(w => /^[\p{L}.'-]+$/u.test(w))) return false;

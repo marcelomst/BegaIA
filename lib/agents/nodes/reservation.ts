@@ -39,6 +39,99 @@ function shouldAppendReservationConfirm(snapshot: { guestName?: unknown }) {
     return isSafeGuestName(String(snapshot.guestName || ""));
 }
 
+function isoToEsDate(iso?: string) {
+    if (!iso) return "";
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return String(iso);
+    return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+function getStayNights(checkIn?: string, checkOut?: string) {
+    if (!checkIn || !checkOut) return 0;
+    const ci = new Date(checkIn);
+    const co = new Date(checkOut);
+    const diff = co.getTime() - ci.getTime();
+    if (!Number.isFinite(diff) || diff <= 0) return 0;
+    return Math.round(diff / (24 * 60 * 60 * 1000));
+}
+
+function isPastCheckInDate(checkIn: string, hotelTz: string) {
+    const inDate = new Date(checkIn).getTime();
+    const nowTz = new Date(new Date().toLocaleString("en-US", { timeZone: hotelTz }));
+    const todayLocal = new Date(
+        nowTz.getFullYear(),
+        nowTz.getMonth(),
+        nowTz.getDate()
+    ).getTime();
+    return inDate < todayLocal;
+}
+
+function buildPastCheckInQuestion(lang2: "es" | "en" | "pt", checkIn?: string) {
+    const ci = isoToEsDate(checkIn);
+    if (lang2 === "pt") {
+        return `A data de check-in ${ci} já passou. Qual seria a nova data de check-in? (dd/mm/aaaa)`;
+    }
+    if (lang2 === "en") {
+        return `The check-in date ${ci} is in the past. What would be the new check-in date? (dd/mm/yyyy)`;
+    }
+    return `La fecha de check-in ${ci} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
+}
+
+function hasShortStayContext(messages: unknown[]) {
+    const shortStayCue =
+        /\b(fin de semana|este fin de semana|finde|weekend|this weekend|una noche|two nights|dos noches|one night|overnight)\b/i;
+    return messages.some((m: any) => typeof m?.content === "string" && shortStayCue.test(String(m.content)));
+}
+
+function lastAiAskedDateCoherenceConfirmation(messages: unknown[]) {
+    return [...messages]
+        .reverse()
+        .some((m: any) => {
+            const txt = String((m as any)?.content || "");
+            return /cotice igualmente ese rango|quote that range anyway|cote esse período assim mesmo/i.test(txt);
+        });
+}
+
+function buildDateCoherenceQuestion(
+    lang2: "es" | "en" | "pt",
+    snapshot: { checkIn?: string; checkOut?: string },
+    reasons: string[]
+) {
+    const ci = isoToEsDate(snapshot.checkIn);
+    const co = isoToEsDate(snapshot.checkOut);
+    const reasonsEs = reasons.join(", ");
+    if (lang2 === "pt") {
+        return `As datas informadas ficaram ${ci} → ${co} e parecem diferentes do contexto anterior (${reasonsEs}). Quer que eu cote esse período assim mesmo? Responda “sí” para continuar ou envie novas datas.`;
+    }
+    if (lang2 === "en") {
+        return `The dates you provided are ${ci} → ${co} and they seem different from the earlier context (${reasonsEs}). Do you want me to quote that range anyway? Reply “yes” to continue or send new dates.`;
+    }
+    return `Las fechas que indicaste quedaron ${ci} → ${co} y parecen distintas del contexto anterior (${reasonsEs}). ¿Querés que cotice igualmente ese rango? Respondé “sí” para continuar o enviame nuevas fechas.`;
+}
+
+function getDateCoherenceInterruption(
+    lang2: "es" | "en" | "pt",
+    normalizedMessage: string,
+    convState: any,
+    messages: unknown[],
+    snapshot: { checkIn?: string; checkOut?: string }
+) {
+    const hasPendingCoherence = !!convState?.dateCoherencePending;
+    if (isConfirmIntentLight(normalizedMessage) && (hasPendingCoherence || lastAiAskedDateCoherenceConfirmation(messages))) {
+        return null;
+    }
+    if (!hasShortStayContext(messages)) return null;
+    const nights = getStayNights(snapshot.checkIn, snapshot.checkOut);
+    const ci = snapshot.checkIn ? new Date(snapshot.checkIn) : null;
+    const co = snapshot.checkOut ? new Date(snapshot.checkOut) : null;
+    const crossedMonth = !!(ci && co && (ci.getUTCMonth() !== co.getUTCMonth() || ci.getUTCFullYear() !== co.getUTCFullYear()));
+    const reasons: string[] = [];
+    if (nights > 7) reasons.push(lang2 === "pt" ? `${nights} noites` : lang2 === "en" ? `${nights} nights` : `${nights} noches`);
+    if (crossedMonth) reasons.push(lang2 === "pt" ? "mudança de mês" : lang2 === "en" ? "month change" : "cambio de mes");
+    if (reasons.length === 0) return null;
+    return buildDateCoherenceQuestion(lang2, snapshot, reasons);
+}
+
 export async function handleReservationNode(state: typeof GraphState.State) {
     debugLog('[Graph] Enter handleReservationNode', { state });
     const {
@@ -145,6 +238,24 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                 signals.checkOut = simpleRange.checkIn;
             }
         }
+    }
+    if (expectedSlot === "checkIn" && signals.checkIn && isPastCheckInDate(signals.checkIn, hotelTz)) {
+        const cleanedSnapshot = { ...merged };
+        delete (cleanedSnapshot as Record<string, unknown>).checkIn;
+        await upsertConvState(hotelId, conversationId || "", {
+            reservationSlots: {
+                ...cleanedSnapshot,
+                numGuests: toInt((cleanedSnapshot as any).numGuests),
+            },
+            salesStage: "qualify",
+            updatedBy: "ai",
+        });
+        return {
+            messages: [new AIMessage(buildPastCheckInQuestion(lang2, signals.checkIn))],
+            reservationSlots: cleanedSnapshot,
+            category: "reservation",
+            salesStage: "qualify",
+        };
     }
     // Si se preguntó por huéspedes y el usuario respondió con un número suelto, inyectarlo como señal de numGuests
     if (expectedSlot === "numGuests" && !signals.numGuests) {
@@ -308,13 +419,35 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             };
         }
         const completeSnapshot = { ...merged, locale };
+        const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
+        if (coherenceQuestion) {
+            await upsertConvState(hotelId, conversationId || "", {
+                reservationSlots: {
+                    ...completeSnapshot,
+                    numGuests: toInt((completeSnapshot as any).numGuests),
+                },
+                dateCoherencePending: {
+                    checkIn: completeSnapshot.checkIn!,
+                    checkOut: completeSnapshot.checkOut!,
+                },
+                salesStage: "qualify",
+                updatedBy: "ai",
+            });
+            return {
+                messages: [new AIMessage(coherenceQuestion)],
+                reservationSlots: completeSnapshot,
+                category: "reservation",
+                salesStage: "qualify",
+            };
+        }
         await upsertConvState(hotelId, conversationId || "", {
-            reservationSlots: {
-                ...completeSnapshot,
-                numGuests: toInt((completeSnapshot as any).numGuests),
-            },
-            updatedBy: "ai",
-        });
+                reservationSlots: {
+                    ...completeSnapshot,
+                    numGuests: toInt((completeSnapshot as any).numGuests),
+                },
+                dateCoherencePending: null,
+                updatedBy: "ai",
+            });
         console.log("[DEBUG] Complete snapshot:", completeSnapshot);
         try {
             const res = await runAvailabilityCheck(
@@ -372,6 +505,24 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             ...(partial.checkOut ? { checkOut: partial.checkOut } : {}),
             locale,
         };
+        if (partial.checkIn && isPastCheckInDate(String(partial.checkIn), hotelTz)) {
+            const correctedSnapshot = { ...nextSnapshot };
+            delete correctedSnapshot.checkIn;
+            await upsertConvState(hotelId, conversationId || "", {
+                reservationSlots: {
+                    ...correctedSnapshot,
+                    numGuests: toInt((correctedSnapshot as any).numGuests),
+                },
+                salesStage: "qualify",
+                updatedBy: "ai",
+            });
+            return {
+                messages: [new AIMessage(buildPastCheckInQuestion(lang2, String(partial.checkIn)))],
+                reservationSlots: correctedSnapshot,
+                category: "reservation",
+                salesStage: "qualify",
+            };
+        }
         // Si el bot acaba de preguntar huéspedes y el usuario mandó solo "2", inferir y fijar numGuests aquí
         if (!nextSnapshot.numGuests && expectedSlot === "numGuests") {
             const g = extractGuests(normalizedMessage);
@@ -392,8 +543,30 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         if (missing.length === 0) {
             // Todos los datos presentes: persistir y consultar disponibilidad como en el camino de slots completos
             const completeSnapshot = { ...nextSnapshot };
+            const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
+            if (coherenceQuestion) {
+                await upsertConvState(hotelId, conversationId || "", {
+                    reservationSlots: {
+                        ...completeSnapshot,
+                        numGuests: toInt((completeSnapshot as any).numGuests),
+                    },
+                    dateCoherencePending: {
+                        checkIn: completeSnapshot.checkIn!,
+                        checkOut: completeSnapshot.checkOut!,
+                    },
+                    salesStage: "qualify",
+                    updatedBy: "ai",
+                });
+                return {
+                    messages: [new AIMessage(coherenceQuestion)],
+                    reservationSlots: completeSnapshot,
+                    category: "reservation",
+                    salesStage: "qualify",
+                };
+            }
             await upsertConvState(hotelId, conversationId || "", {
                 reservationSlots: completeSnapshot,
+                dateCoherencePending: null,
                 updatedBy: "ai",
             });
             try {
@@ -469,6 +642,24 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     const completed = filled.slots;
     const ci = new Date(completed.checkIn);
     const co = new Date(completed.checkOut);
+    if (isPastCheckInDate(completed.checkIn, hotelTz)) {
+        const correctedMerged = { ...merged };
+        delete (correctedMerged as Record<string, unknown>).checkIn;
+        await upsertConvState(hotelId, conversationId || "", {
+            reservationSlots: {
+                ...correctedMerged,
+                numGuests: toInt((correctedMerged as any).numGuests),
+            },
+            salesStage: "qualify",
+            updatedBy: "ai",
+        });
+        return {
+            messages: [new AIMessage(buildPastCheckInQuestion(lang2, completed.checkIn))],
+            reservationSlots: correctedMerged,
+            category: "reservation",
+            salesStage: "qualify",
+        };
+    }
     if (
         !(ci instanceof Date && !isNaN(ci.valueOf())) ||
         !(co instanceof Date && !isNaN(co.valueOf())) ||
@@ -503,8 +694,30 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         numGuests: toInt((completed as any).guests ?? (completed as any).numGuests),
         locale: completed.locale || locale,
     };
+    const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
+    if (coherenceQuestion) {
+        await upsertConvState(hotelId, conversationId || "", {
+            reservationSlots: {
+                ...completeSnapshot,
+                numGuests: toInt((completeSnapshot as any).numGuests),
+            },
+            dateCoherencePending: {
+                checkIn: completeSnapshot.checkIn!,
+                checkOut: completeSnapshot.checkOut!,
+            },
+            salesStage: "qualify",
+            updatedBy: "ai",
+        });
+        return {
+            messages: [new AIMessage(coherenceQuestion)],
+            reservationSlots: completeSnapshot,
+            category: "reservation",
+            salesStage: "qualify",
+        };
+    }
     await upsertConvState(hotelId, conversationId || "", {
         reservationSlots: completeSnapshot,
+        dateCoherencePending: null,
         updatedBy: "ai",
     });
     try {

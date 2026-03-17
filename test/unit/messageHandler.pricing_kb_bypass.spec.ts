@@ -68,6 +68,7 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { agentGraph } from "@/lib/agents";
+import { getMessagesByConversation } from "@/lib/db/messages";
 
 describe("messageHandler pricing KB bypass", () => {
   beforeEach(() => {
@@ -94,6 +95,106 @@ describe("messageHandler pricing KB bypass", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toContain("check-in");
+    expect(replyText).not.toContain("Amenities descriptivos");
+  });
+
+  it("omite KB descriptivo cuando el usuario responde solo el roomType en follow-up transaccional", async () => {
+    vi.mocked(getMessagesByConversation as any).mockResolvedValue([
+      {
+        messageId: "m1",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "¿Cuál es el tipo de habitación?",
+        timestamp: new Date(Date.now() - 1000).toISOString(),
+        conversationId: "conv-pricing-2",
+      },
+    ]);
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "pricing-2",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "doble",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-pricing-2",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toContain("check-in");
+    expect(replyText).not.toContain("Amenities descriptivos");
+  });
+
+  it("omite KB descriptivo cuando el usuario responde solo la cantidad de huéspedes en follow-up transaccional", async () => {
+    vi.mocked(getMessagesByConversation as any).mockResolvedValue([
+      {
+        messageId: "m1",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "¿Cuántos huéspedes se alojarán?",
+        timestamp: new Date(Date.now() - 1000).toISOString(),
+        conversationId: "conv-pricing-3",
+      },
+    ]);
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "pricing-3",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "2",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-pricing-3",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toContain("Amenities descriptivos");
+  });
+
+  it("omite KB descriptivo cuando el usuario responde nombre completo en follow-up transaccional", async () => {
+    vi.mocked(getMessagesByConversation as any).mockResolvedValue([
+      {
+        messageId: "m1",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "¿A nombre de quién sería la reserva? (nombre y apellido)",
+        timestamp: new Date(Date.now() - 1000).toISOString(),
+        conversationId: "conv-pricing-4",
+      },
+    ]);
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "pricing-4",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "Marcelo Martinez",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-pricing-4",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toContain("Amenities descriptivos");
   });
 });

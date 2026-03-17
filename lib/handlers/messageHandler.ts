@@ -36,7 +36,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -79,6 +79,28 @@ function normalizeWA(raw: string): { normalized?: string; reason?: string } {
   if (digits.length < 7) { waPhoneMetrics.invalidAttempts++; return { reason: 'too_short' }; }
   waPhoneMetrics.accepted++;
   return { normalized: (plus ? '+' : '') + digits };
+}
+
+function isPastReservationCheckInISO(iso?: string) {
+  if (!iso) return false;
+  const inDate = new Date(iso);
+  if (Number.isNaN(inDate.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return inDate.getTime() < today.getTime();
+}
+
+function askedToConfirmReservation(lcHistory: (HumanMessage | AIMessage)[]): boolean {
+  const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
+  const lastText = String(lastAi?.content || "").toLowerCase();
+  return /confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar[”"]?|do you confirm the booking|confirma a reserva/.test(lastText);
+}
+
+function buildPastReservationCheckInPrompt(lang: string, iso?: string) {
+  const ciTxt = iso ? (isoToDDMMYYYY(iso) || iso) : "";
+  if (lang === "pt") return `A data de check-in ${ciTxt} já passou. Qual seria a nova data de check-in? (dd/mm/aaaa)`;
+  if (lang !== "es") return `The check-in date ${ciTxt} is in the past. What would be the new check-in date? (dd/mm/yyyy)`;
+  return `La fecha de check-in ${ciTxt} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
 }
 
 export type ReservationSlotsStrict = SlotMap;
@@ -433,6 +455,53 @@ function looksTransactionalPricingIntent(text: string): boolean {
   const hasPriceSignal = /\b(precio|precios|tarifa|tarifas|rate|rates|price|prices|cotiz(?:acion|acion|ar)?|quote|quotes)\b/.test(t);
   const hasReservationSignal = /\b(habitacion|room|rooms|single|individual|double|doble|matrimonial|twin|queen|king|triple|suite|familiar|reserva|reservar|booking)\b/.test(t);
   return hasPriceSignal && hasReservationSignal;
+}
+
+function isRoomTypeFollowupInReservation(
+  lcHistory: (HumanMessage | AIMessage)[],
+  text: string,
+  lang: "es" | "en" | "pt"
+): boolean {
+  const trimmed = String(text || "").trim();
+  if (!trimmed || trimmed.length > 24) return false;
+  const slots = extractSlotsFromText(trimmed, lang);
+  if (!slots.roomType || slots.checkIn || slots.checkOut || slots.numGuests || slots.guestName) return false;
+  const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
+  const lastText = String(lastAi?.content || "").toLowerCase();
+  return /\b(tipo de habitaci[oó]n|tipo de quarto|room type)\b/.test(lastText);
+}
+
+function isGuestsFollowupInReservation(
+  lcHistory: (HumanMessage | AIMessage)[],
+  text: string,
+  lang: "es" | "en" | "pt"
+): boolean {
+  const trimmed = String(text || "").trim();
+  if (!trimmed || trimmed.length > 24) return false;
+  const slots = extractSlotsFromText(trimmed, lang);
+  const normalized = trimmed
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const isPureGuestCount =
+    /^\d{1,2}$/.test(trimmed) ||
+    /^(un|uno|una|dos|tres|cuatro|cinco|seis|sete|siete|ocho|nueve|diez|one|two|three|four|five|six|seven|eight|nine|ten|um|uma)$/i.test(normalized);
+  if ((!slots.numGuests && !isPureGuestCount) || slots.checkIn || slots.checkOut || slots.roomType || slots.guestName) return false;
+  const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
+  const lastText = String(lastAi?.content || "").toLowerCase();
+  return /\b(cu[aá]ntos hu[eé]spedes|quantos h[oó]spedes|how many guests)\b/.test(lastText);
+}
+
+function isGuestNameFollowupInReservation(
+  lcHistory: (HumanMessage | AIMessage)[],
+  text: string
+): boolean {
+  const trimmed = String(text || "").trim();
+  if (!trimmed || trimmed.length < 3 || trimmed.length > 60) return false;
+  if (!looksLikeName(trimmed)) return false;
+  const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
+  const lastText = String(lastAi?.content || "").toLowerCase();
+  return /\b(a nombre de qui[eé]n ser[ií]a la reserva|nombre y apellido|what name should i use for the reservation|full name|nome e sobrenome|em nome de quem seria a reserva)\b/.test(lastText);
 }
 
 // === NEW: intentar structured prompt (enriquecedor/fallback)
@@ -873,8 +942,18 @@ function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState):
 async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {
   const kbUserText = String(pre.msg.content || "");
   const kbLower = kbUserText.toLowerCase();
+  const isRoomTypeFollowup = isRoomTypeFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
+  const isGuestsFollowup = isGuestsFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
+  const isGuestNameFollowup = isGuestNameFollowupInReservation(pre.lcHistory, kbUserText);
+  const isAvailabilityVerifyAffirmative =
+    askedToVerifyAvailability(pre.lcHistory, pre.lang) &&
+    isPureAffirmative(kbUserText, pre.lang);
   const hasReservationContext =
     pre.inModifyMode ||
+    isRoomTypeFollowup ||
+    isGuestsFollowup ||
+    isGuestNameFollowup ||
+    isAvailabilityVerifyAffirmative ||
     !!pre.stateForPlaybook?.draft ||
     !!pre.stateForPlaybook?.confirmedBooking;
   const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
@@ -899,7 +978,13 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
   const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
   const looksTransactionalPricing = looksTransactionalPricingIntent(kbUserText);
 
-  console.warn("[KB] fastpath check", { hasReservationContext, wantsNearby });
+  console.warn("[KB] fastpath check", {
+    hasReservationContext,
+    wantsNearby,
+    isRoomTypeFollowup,
+    isGuestsFollowup,
+    isAvailabilityVerifyAffirmative,
+  });
   if (wantsNearby) debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
 
   if (looksBillingByRule) {
@@ -1236,6 +1321,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasOneDateOnly = (drFast.checkIn && !drFast.checkOut) || (!drFast.checkIn && drFast.checkOut);
     const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
     if (hasOneDateOnly && hasContext) {
+      const isConfirmedBooking = pre.st?.salesStage === "close";
+      if (drFast.checkIn && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {
+        finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);
+        const { checkIn: _dropInvalidCheckIn, ...restNextSlots } = nextSlots;
+        nextSlots = restNextSlots as ReservationSlotsStrict;
+        return { finalText, nextCategory: pre.inModifyMode ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
+      }
       // Si existe una fecha única previa en el historial del usuario (excluyendo el mensaje actual), emparejar y confirmar rango
       const hist = [...pre.lcHistory];
       const last = hist.at(-1);
@@ -2064,6 +2156,53 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
     }
+    if (askedToConfirmReservation(pre.lcHistory)) {
+      const snapshot = {
+        guestName: pre.st?.reservationSlots?.guestName || nextSlots.guestName,
+        roomType: pre.st?.reservationSlots?.roomType || nextSlots.roomType,
+        checkIn: pre.st?.reservationSlots?.checkIn || nextSlots.checkIn,
+        checkOut: pre.st?.reservationSlots?.checkOut || nextSlots.checkOut,
+        numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
+        locale: pre.lang,
+      };
+      if (!snapshot.roomType || !snapshot.checkIn || !snapshot.checkOut) {
+        finalText = buildAskMissingDate(pre.lang, !snapshot.checkIn ? "checkIn" : "checkOut");
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+      try {
+        const { confirmAndCreate } = await import("@/lib/agents/reservations");
+        const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
+        if (result.ok) {
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            reservationSlots: {},
+            lastReservation: {
+              reservationId: result.reservationId || "",
+              status: "created",
+              createdAt: new Date().toISOString(),
+              channel: (pre.msg.channel as any) || "web",
+            },
+            salesStage: "close",
+            updatedBy: "ai",
+          } as any);
+        }
+        finalText = result.ok
+          ? (pre.lang === "es"
+            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(snapshot.roomType, pre.lang)}**, Fechas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
+            : pre.lang === "pt"
+              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(snapshot.roomType, pre.lang)}**, Datas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
+              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(snapshot.roomType, pre.lang)}**, Dates **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`)
+          : result.message;
+        return { finalText, nextCategory: "reservation", nextSlots: {}, needsSupervision, graphResult };
+      } catch (e) {
+        needsSupervision = true;
+        finalText = pre.lang === "es"
+          ? "No pude confirmar la reserva ahora. Un recepcionista te contactará."
+          : pre.lang === "pt"
+            ? "Não consegui confirmar a reserva agora. Um recepcionista entrará em contato."
+            : "I couldn't confirm the booking right now. A receptionist will contact you.";
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+    }
   }
 
   {
@@ -2086,13 +2225,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const kbUserText = String(pre.msg.content || "");
         const kbLower = kbUserText.toLowerCase();
 
-        // Consideramos "contexto de reserva" cuando hay borrador/confirmación o modo modificación activo
-        const hasReservationContext =
-          pre.inModifyMode ||
-          !!pre.stateForPlaybook?.draft ||
-          !!pre.stateForPlaybook?.confirmedBooking;
-
-        // Sólo usamos KB para consultas informativas (sin contexto de reserva)
+        // Sólo usamos KB para consultas informativas (sin contexto transaccional de reserva)
         const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
         const looksEventIntent = (() => {
           const hay = kbUserText
@@ -2117,7 +2250,28 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const looksBillingByRule = RE_BILLING.test(kbLower);
         const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
         const looksTransactionalPricing = looksTransactionalPricingIntent(kbUserText);
-        console.warn("[KB] fastpath check", { hasReservationContext, wantsNearby });
+        const isRoomTypeFollowup = isRoomTypeFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
+        const isGuestsFollowup = isGuestsFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
+        const isGuestNameFollowup = isGuestNameFollowupInReservation(pre.lcHistory, kbUserText);
+        const isAvailabilityVerifyAffirmative =
+          askedToVerifyAvailability(pre.lcHistory, pre.lang) &&
+          isPureAffirmative(kbUserText, pre.lang);
+        const hasReservationContext =
+          pre.inModifyMode ||
+          isRoomTypeFollowup ||
+          isGuestsFollowup ||
+          isGuestNameFollowup ||
+          isAvailabilityVerifyAffirmative ||
+          !!pre.stateForPlaybook?.draft ||
+          !!pre.stateForPlaybook?.confirmedBooking;
+        console.warn("[KB] fastpath check", {
+          hasReservationContext,
+          wantsNearby,
+          isRoomTypeFollowup,
+          isGuestsFollowup,
+          isGuestNameFollowup,
+          isAvailabilityVerifyAffirmative,
+        });
         if (wantsNearby) {
           debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
         }

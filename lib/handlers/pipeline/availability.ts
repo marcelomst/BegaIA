@@ -128,6 +128,15 @@ export function getProposedAvailabilityRange(
     return userLast;
 }
 
+function extractRejectedPastCheckInFromAI(text: string): string | undefined {
+    const raw = String(text || "");
+    const rejected =
+        /(ya pas[oó]|is in the past|j[aá] passou)/i.test(raw) &&
+        /(check\s*-?in|ingreso|entrada|arrival)/i.test(raw);
+    if (!rejected) return undefined;
+    return extractDateRangeFromTextLight(raw).checkIn;
+}
+
 // Parser ligero de fechas dd/mm(/yyyy) → ISO (YYYY-MM-DD) usando año actual si falta
 function extractDateRangeFromTextLight(text: string): { checkIn?: string; checkOut?: string } {
     const re = /(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/g;
@@ -202,7 +211,15 @@ export function getLastUserDatesFromHistory(lcHistory: (HumanMessage | AIMessage
         if (m instanceof HumanMessage) {
             const txt = String((m as any).content || "");
             const range = extractDateRangeFromTextLight(txt);
-            if (range.checkIn || range.checkOut) return range;
+            if (!(range.checkIn || range.checkOut)) continue;
+            const next = lcHistory[i + 1];
+            if (next instanceof AIMessage) {
+                const rejectedCheckIn = extractRejectedPastCheckInFromAI(String((next as any).content || ""));
+                if (rejectedCheckIn && range.checkIn === rejectedCheckIn && !range.checkOut) {
+                    continue;
+                }
+            }
+            return range;
         }
     }
     return {};
@@ -224,12 +241,8 @@ export function isAskAvailabilityStatusQuery(text: string, lang: "es" | "en" | "
 }
 
 export function askedToVerifyAvailability(lcHistory: (HumanMessage | AIMessage)[], lang: "es" | "en" | "pt"): boolean {
-    const patterns = lang === "es"
-        ? /(verifi(?:car|que) disponibilidad|¿dese[aá]s que verifique disponibilidad)/i
-        : lang === "pt"
-            ? /(verificar a disponibilidade|deseja que eu verifique a disponibilidade)/i
-            : /(check availability|do you want me to check availability)/i;
-    for (let i = lcHistory.length - 1; i >= 0 && i >= lcHistory.length - 4; i--) {
+    const patterns = /(verifi(?:car|que) disponibilidad|¿dese[aá]s que verifique disponibilidad|verificar a disponibilidade|deseja que eu verifique a disponibilidade|check availability|do you want me to check availability)/i;
+    for (let i = lcHistory.length - 1; i >= 0 && i >= lcHistory.length - 12; i--) {
         const m = lcHistory[i];
         if (m instanceof AIMessage) {
             const txt = String((m as any).content || "");
@@ -247,14 +260,10 @@ export function isPureAffirmative(text: string, lang: "es" | "en" | "pt"): boole
     if (/(pero|but|porém|porem|however)/i.test(raw)) return false;
     const words = cleaned.split(/\s+/).filter(Boolean);
     if (words.length === 0 || words.length > 4) return false;
-    const sets = {
-        es: new Set(["si", "sí", "dale", "ok", "okay", "perfecto", "claro", "por", "favor", "porfa", "de", "acuerdo"]),
-        pt: new Set(["sim", "ok", "okay", "claro", "por", "favor", "manda", "ver", "pode"]),
-        en: new Set(["yes", "ok", "okay", "sure", "please", "yup", "yep"]),
-    } as const;
-    const baseSets = sets[lang];
-    const hasBase = words.some(w => baseSets.has(w.replace(/á|à|ã/g, "a").replace(/é/g, "e")) || baseSets.has(w));
-    return hasBase && words.every(w => baseSets.has(w) || ["de", "acuerdo", "por", "favor"].includes(w));
+    const normalizedWords = words.map((w) => w.replace(/á|à|ã/g, "a").replace(/é/g, "e"));
+    const affirmative = new Set(["si", "sim", "yes", "dale", "ok", "okay", "perfecto", "claro", "por", "favor", "porfa", "de", "acuerdo", "manda", "ver", "pode", "sure", "please", "yup", "yep"]);
+    const hasBase = normalizedWords.some((w) => affirmative.has(w));
+    return hasBase && normalizedWords.every((w) => affirmative.has(w));
 }
 
 export async function runAvailabilityCheck(
