@@ -2457,3 +2457,42 @@ Impacto:
 
 Queda cerrado el residual de timeouts por test hygiene sin introducir cambios
 funcionales en el producto.
+
+### DOC-FIX-CM-INMEMORY-DEMO-CREDIBILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-17  
+Commit: da341789d94f96d62f6bd84bd314352c72f22165
+
+Descripción:
+
+Se registra una mejora de credibilidad demo del Channel Manager in-memory en
+disponibilidad y cotización, sin modificar la arquitectura MCP ni convertir el
+adapter en un PMS real.
+
+Cambios documentados:
+
+- catálogo demo explícito con `basePrice`, `stock` y `maxGuests`
+- `searchAvailability(...)` filtra por capacidad según `guests`
+- `searchAvailability(...)` descuenta stock por reservas superpuestas del mismo
+  `roomType`
+- `searchAvailability(...)` aplica una regla simple de presión por estadías
+  largas
+- `searchAvailability(...)` ajusta tarifa por temporada alta y fin de semana
+- `createReservation(...)` alinea `pricePerNight` con la misma regla simple del
+  quote
+
+Validación:
+
+- `pnpm exec vitest run test/unit/channelManagerAdapter.registry.spec.ts test/integration/reservations.mcp.channel-manager.spec.ts test/availability.unified.flow.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/mcp/channelManagerAdapter.ts`
+- `test/unit/channelManagerAdapter.registry.spec.ts`
+
+Impacto:
+
+Se mejora la credibilidad del modo demo in-memory para disponibilidad y quote
+sin cambiar la arquitectura MCP ni presentar el adapter como PMS real.
