@@ -1,5 +1,6 @@
 // Path: /root/begasist/test/api.chat.route.spec.ts
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { POST } from "@/app/api/chat/route";
 
 function makeReq(body: unknown): Request {
   return new Request("http://localhost/api/chat", {
@@ -13,11 +14,9 @@ describe("/api/chat hardening", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
-    vi.resetModules();
   });
 
   it("returns 400 when hotelId is missing", async () => {
-    const { POST } = await import("@/app/api/chat/route");
     const res = await POST(
       makeReq({
         query: "Hola",
@@ -32,7 +31,6 @@ describe("/api/chat hardening", () => {
   });
 
   it("returns 400 when message input is empty", async () => {
-    const { POST } = await import("@/app/api/chat/route");
     const res = await POST(
       makeReq({
         hotelId: "hotel999",
@@ -52,12 +50,13 @@ describe("/api/chat hardening", () => {
     vi.stubEnv("ENABLE_TEST_FASTPATH", "0");
     vi.stubEnv("DEBUG_FASTPATH", "0");
     vi.stubEnv("OPENAI_API_KEY", "fake-key");
+    vi.resetModules();
 
     const mh = await import("@/lib/handlers/messageHandler");
     vi.spyOn(mh, "handleIncomingMessage").mockRejectedValue(new Error("boom-raw-internal"));
 
-    const { POST } = await import("@/app/api/chat/route");
-    const res = await POST(
+    const { POST: freshPOST } = await import("@/app/api/chat/route");
+    const res = await freshPOST(
       makeReq({
         hotelId: "hotel999",
         query: "Necesito ayuda",

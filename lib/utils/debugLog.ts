@@ -5,13 +5,40 @@ import path from "path";
 
 const ALLOWED_TAGS: string[] = [];
 const logPath = path.join(process.cwd(), "log.txt");
+const DEBUGLOG_CONSOLE_STATE_KEY = "__begasistDebugLogConsoleState__";
 
 type LogType = "log" | "info" | "warn" | "error" | "debug";
 
-const originalLog = console.log.bind(console);
-const originalInfo = (console.info || console.log).bind(console);
-const originalWarn = console.warn.bind(console);
-const originalError = console.error.bind(console);
+type ConsoleFn = (...args: any[]) => void;
+type DebugLogConsoleState = {
+  installed: boolean;
+  traceLogged: boolean;
+  originalLog: ConsoleFn;
+  originalInfo: ConsoleFn;
+  originalWarn: ConsoleFn;
+  originalError: ConsoleFn;
+};
+
+function getConsoleState(): DebugLogConsoleState {
+  const g = globalThis as typeof globalThis & {
+    [DEBUGLOG_CONSOLE_STATE_KEY]?: DebugLogConsoleState;
+  };
+
+  if (!g[DEBUGLOG_CONSOLE_STATE_KEY]) {
+    g[DEBUGLOG_CONSOLE_STATE_KEY] = {
+      installed: false,
+      traceLogged: false,
+      originalLog: console.log.bind(console),
+      originalInfo: (console.info || console.log).bind(console),
+      originalWarn: console.warn.bind(console),
+      originalError: console.error.bind(console),
+    };
+  }
+
+  return g[DEBUGLOG_CONSOLE_STATE_KEY]!;
+}
+
+const consoleState = getConsoleState();
 
 function serializeArg(arg: any): string {
   if (typeof arg === "string") return arg;
@@ -36,7 +63,7 @@ function writeLog(type: LogType, ...args: any[]) {
   try {
     fs.appendFileSync(logPath, full);
   } catch (err) {
-    originalError("❌ Error writing to log file:", err);
+    consoleState.originalError("❌ Error writing to log file:", err);
   }
 }
 
@@ -47,14 +74,21 @@ function mirrorConsole(type: Exclude<LogType, "debug">, originalFn: (...args: an
   };
 }
 
-console.log = mirrorConsole("log", originalLog);
-console.info = mirrorConsole("info", originalInfo);
-console.warn = mirrorConsole("warn", originalWarn);
-console.error = mirrorConsole("error", originalError);
+if (!consoleState.installed) {
+  console.log = mirrorConsole("log", consoleState.originalLog);
+  console.info = mirrorConsole("info", consoleState.originalInfo);
+  console.warn = mirrorConsole("warn", consoleState.originalWarn);
+  console.error = mirrorConsole("error", consoleState.originalError);
+  consoleState.installed = true;
+}
 
-try {
-  console.warn("[debugLog] TRACE module loaded (log.txt writer active)");
-} catch {}
+if (!consoleState.traceLogged) {
+  try {
+    writeLog("warn", "[debugLog] TRACE module loaded (log.txt writer active)");
+    consoleState.originalWarn("[debugLog] TRACE module loaded (log.txt writer active)");
+    consoleState.traceLogged = true;
+  } catch {}
+}
 
 export function debugLog(...args: any[]) {
   if (
@@ -64,7 +98,7 @@ export function debugLog(...args: any[]) {
   ) {
     const msg = args.map(String).join(" ");
     if (ALLOWED_TAGS.length === 0 || ALLOWED_TAGS.some(tag => msg.includes(tag))) {
-      originalLog("🐞 DEBUG:", ...args);
+      consoleState.originalLog("🐞 DEBUG:", ...args);
       writeLog("debug", "🐞 DEBUG:", ...args);
     }
   }
