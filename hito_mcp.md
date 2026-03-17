@@ -2414,3 +2414,46 @@ Impacto:
 Queda documentado como hygiene fix acotado con mejora verificada y causa
 parcial corregida, sin narrarlo como resolución total del incidente global de
 timeouts.
+
+### DOC-FIX-TEST-DEBUGLOG-CONSOLE-WRAP-ONCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-17  
+Commit: 21d8644c47e8bb7126ad3032bc61c49433446233
+
+Descripción:
+
+Se registra el fix de test hygiene que corrige el rewrap múltiple de
+`console.log/info/warn/error` desde `lib/utils/debugLog.ts` durante corridas
+amplias con reimports y `vi.resetModules()`.
+
+Fix aplicado:
+
+- `lib/utils/debugLog.ts` instala hooks de `console.*` una sola vez por proceso
+- se evita rewrap en reimports y `resetModules`
+- se evita repetir `TRACE module loaded` como instalación múltiple
+- se agrega cobertura mínima del comportamiento `wrap once`
+- `test/api.chat.route.spec.ts` usa `POST` estático en casos 400 rápidos y deja
+  import fresco solo para el caso 500 que relee env
+
+Validación:
+
+- `pnpm exec vitest run test/api.chat.route.spec.ts test/integration/api_chat.test.ts test/integration/guestConversationBinding.spec.ts test/unit/debugLog.wrapOnce.spec.ts` PASS
+- `pnpm run ts-check` PASS
+- `pnpm run test:run` PASS
+
+Resultado global final:
+
+- `117/117` archivos en PASS
+- `339/339` tests en PASS
+
+Archivos afectados:
+
+- `lib/utils/debugLog.ts`
+- `test/api.chat.route.spec.ts`
+- `test/unit/debugLog.wrapOnce.spec.ts`
+
+Impacto:
+
+Queda cerrado el residual de timeouts por test hygiene sin introducir cambios
+funcionales en el producto.
