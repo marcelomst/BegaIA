@@ -63,7 +63,7 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
 
   async createReservation(input: CreateReservationInput): Promise<Reservation> {
     const store = this.getStore(input.hotelId);
-    const reservationId = crypto.randomUUID();
+    const reservationId = buildHumanReservationId(store);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
@@ -196,6 +196,15 @@ function getSeasonalMultiplier(startDate: Date | null, endDate: Date | null): nu
     return month === 12 || month <= 2;
   });
   return hasHighSeasonMonth ? 1.2 : 1;
+}
+
+function buildHumanReservationId(store: Map<string, Reservation>): string {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const suffix = crypto.randomBytes(3).toString("hex").toUpperCase();
+    const candidate = `RES-${suffix}`;
+    if (!store.has(candidate)) return candidate;
+  }
+  return `RES-${Date.now().toString(36).toUpperCase()}`;
 }
 
 const registry = new Map<string, ChannelManagerAdapter>();

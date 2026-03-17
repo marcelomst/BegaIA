@@ -25,6 +25,7 @@ describe("getCMAdapter registry by hotelId", () => {
     const inA = await cmA2.getReservation(hotelA, created.reservationId);
     const inB = await cmB.getReservation(hotelA, created.reservationId);
 
+    expect(created.reservationId).toMatch(/^RES-[A-Z0-9]{6,}$/);
     expect(inA?.reservationId).toBe(created.reservationId);
     expect(inB).toBeNull();
   });
