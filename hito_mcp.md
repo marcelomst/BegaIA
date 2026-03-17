@@ -2329,3 +2329,44 @@ Queda formalmente cerrada la serie `PIPELINE-SIGNAL-ARCH` mediante un ADR que
 fija a `messageHandler` como runtime principal vigente y deja a
 `mhFlowGraph` como candidato condicionado, sin asociar este hito a un commit
 técnico nuevo.
+
+### DOC-FIX-RESERVATION-CONFIRM-BEFORE-NAME-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-17  
+Commit: f3e79cbf91cbd3003e6d3bfa4403078716cc9a61
+
+Descripción:
+
+Se registra el fix del flujo de reserva para impedir que agregue la CTA de
+confirmación `CONFIRMAR` antes de completar `guestName`, preservando la
+posibilidad de cotizar o consultar disponibilidad antes de capturar el nombre.
+
+Reglas corregidas:
+
+- `CONFIRMAR` solo se agrega si el snapshot ya tiene `guestName` válido
+- si falta `guestName`, el flujo puede cotizar y pedir nombre, pero no ofrecer
+  confirmación
+- cuando el usuario responde el nombre en el turno siguiente, ese `guestName`
+  se incorpora antes del branch de quote
+
+Drift observado:
+
+- `test/e2e.reservation.golden-transcripts.spec.ts`
+- caso `T2: missing name -> follow-up -> confirm`
+
+Validación:
+
+- `pnpm exec vitest run test/e2e.reservation.golden-transcripts.spec.ts test/graph.reservation.persist.spec.ts test/e2e.reservation.flow.spec.ts test/availability.unified.flow.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `test/e2e.reservation.golden-transcripts.spec.ts`
+- `test/graph.reservation.persist.spec.ts`
+
+Impacto:
+
+Se evita ofrecer confirmación prematura antes de completar `guestName` sin
+mezclar este fix con la hipótesis separada de contaminación global de tests.
