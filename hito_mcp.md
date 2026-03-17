@@ -2496,3 +2496,59 @@ Impacto:
 
 Se mejora la credibilidad del modo demo in-memory para disponibilidad y quote
 sin cambiar la arquitectura MCP ni presentar el adapter como PMS real.
+
+### DOC-RESERVATION-WIDGET-DEMO-FLOW-STABILIZATION-01-A
+
+Estado: COMPLETADO  
+Fecha: 2026-03-17  
+Commit: f8f2ecd3183c270ce9a777206840ce7fe6ca8d15
+
+Descripción:
+
+Se registra el bloque A de estabilización del flujo demo de reserva en
+widget/web chat, centrado en continuidad conversacional y cierre real de la
+reserva desde una intención natural hasta la confirmación efectiva.
+
+Cobertura consolidada:
+
+- coherencia mínima de fechas
+- bypass de KB para `roomType`, huéspedes y `guestName` en follow-ups
+  transaccionales
+- guard de check-in pasado en el path real
+- limpieza de contaminación por fecha inválida previa
+- continuidad de afirmativos (`si`, `sí`, `ok`, `dale`) para verificación
+- prevención de falso positivo de `guestName = "Si"`
+- continuidad del follow-up de nombre completo
+- cierre real al responder `CONFIRMAR`
+
+Validación:
+
+- múltiples suites unitarias focalizadas por hito
+- `pnpm run ts-check` PASS
+- validación manual real del widget con cierre completo de reserva PASS
+
+Resultado funcional final validado:
+
+- el flujo llega hasta `✅ ¡Reserva confirmada! ...` en widget/web chat
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/agents/nodes/reservation.ts`
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `lib/handlers/pipeline/dateConsolidation.ts`
+- `test/e2e.reservation.flow.spec.ts`
+- `test/graph.reservation.persist.spec.ts`
+- `test/unit/helpers.looksLikeName.spec.ts`
+- `test/unit/messageHandler.availability_affirm_ack.test.ts`
+- `test/unit/messageHandler.past_checkin_guard.test.ts`
+- `test/unit/messageHandler.pricing_kb_bypass.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Impacto:
+
+Queda estabilizada la continuidad conversacional necesaria para llegar al cierre
+real de reserva en widget/web chat, sin incluir el ajuste separado del código
+humano del Channel Manager demo.
