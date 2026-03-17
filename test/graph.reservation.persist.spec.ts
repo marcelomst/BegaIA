@@ -187,6 +187,40 @@ describe("reservation handler - persistencia en conv_state", () => {
     );
   });
 
+  it("cotiza antes del nombre pero no ofrece confirmar mientras falta guestName", async () => {
+    (fillSlotsWithLLM as any).mockResolvedValue({
+      need: "question",
+      partial: {
+        roomType: "double",
+        checkIn: "2026-11-10",
+        checkOut: "2026-11-12",
+        numGuests: 2,
+        locale: "es",
+      },
+      question: "¿Cuál es el nombre completo?",
+    });
+
+    (askAvailability as any).mockResolvedValue({
+      ok: true,
+      available: true,
+      proposal: "Tengo double disponible. Tarifa por noche: 100 USD.",
+      options: [{ roomType: "double", pricePerNight: 100, currency: "USD" }],
+    });
+
+    const res = await agentGraph.invoke({
+      normalizedMessage: "Quiero reservar doble del 10/11/2026 al 12/11/2026 para 2",
+      detectedLanguage: "es",
+      hotelId,
+      conversationId,
+      reservationSlots: {},
+    });
+
+    const text = String(res.messages?.[0]?.content || "");
+    expect(text).toMatch(/Tarifa por noche/i);
+    expect(text).toMatch(/A nombre de quién|nombre y apellido|nombre completo/i);
+    expect(text).not.toMatch(/CONFIRMAR/i);
+  });
+
   it("al confirmar con todo completo en snapshot → crea reserva y persiste lastReservation (close)", async () => {
     // snapshot ya tiene todo; el usuario solo dice “confirmar”
     (getConvState as any).mockResolvedValue({

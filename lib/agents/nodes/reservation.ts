@@ -7,7 +7,7 @@ import { fillSlotsWithLLM, confirmAndCreate } from "@/lib/agents/reservations";
 import type { FillSlotsResult } from "@/lib/agents/reservations";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { debugLog } from "@/lib/utils/debugLog";
-import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight } from "../helpers";
+import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
 import type { GraphState } from "../graphState";
 
@@ -26,6 +26,18 @@ const QUOTE_REQUIRED_SLOTS: RequiredSlot[] = [
 ];
 const FORCE_CANONICAL_QUESTION = (process.env.FORCE_CANONICAL_QUESTION || "0") === "1";
 const ONE_QUESTION_PER_TURN = (process.env.ONE_QUESTION_PER_TURN || "1") === "1";
+
+function buildReservationConfirmLine(lang2: "es" | "en" | "pt") {
+    return lang2 === "es"
+        ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
+        : lang2 === "pt"
+            ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
+            : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+}
+
+function shouldAppendReservationConfirm(snapshot: { guestName?: unknown }) {
+    return isSafeGuestName(String(snapshot.guestName || ""));
+}
 
 export async function handleReservationNode(state: typeof GraphState.State) {
     debugLog('[Graph] Enter handleReservationNode', { state });
@@ -98,7 +110,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     const persistedStr = normalizeSlotsToStrings(normalizeSlots(st?.reservationSlots || {}));
     const turnStr = normalizeSlotsToStrings(normalizeSlots(reservationSlots || {}));
     // Forzar uso de LLM para slot-filling, sin heurística local
-    const merged: SlotMap = { ...persistedStr, ...turnStr };
+    let merged: SlotMap = { ...persistedStr, ...turnStr };
     // Congelar heurística local: no asignar guestName, numGuests, ni fechas aquí
     // Siempre delegar a fillSlotsWithLLM
     // ===== MCP fill-slots (forzado) =====
@@ -190,6 +202,18 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             reservationSlots: merged,
             category: "reservation",
             salesStage: "qualify",
+        };
+    }
+    if (filled && filled.need === "question" && filled.partial?.guestName && !merged.guestName) {
+        merged = {
+            ...merged,
+            guestName: normalizeNameCase(String(filled.partial.guestName)),
+        };
+    }
+    if (filled && filled.need === "none" && (filled.slots as any)?.guestName && !merged.guestName) {
+        merged = {
+            ...merged,
+            guestName: normalizeNameCase(String((filled.slots as any).guestName)),
         };
     }
     // Si la reserva ya está confirmada (salesStage === 'close'), derivar cualquier consulta general al retrieval (RAG)
@@ -305,16 +329,11 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                 completeSnapshot.checkIn!,
                 completeSnapshot.checkOut!
             );
-            const confirmLine =
-                lang2 === "es"
-                    ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
-                    : lang2 === "pt"
-                        ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
-                        : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+            const confirmLine = buildReservationConfirmLine(lang2);
             return {
                 messages: [
                     new AIMessage(
-                        res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                        res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR") || !shouldAppendReservationConfirm(completeSnapshot)) ? "" : confirmLine)
                     ),
                 ],
                 reservationSlots: completeSnapshot,
@@ -390,16 +409,11 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                     completeSnapshot.checkIn!,
                     completeSnapshot.checkOut!
                 );
-                const confirmLine =
-                    lang2 === "es"
-                        ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
-                        : lang2 === "pt"
-                            ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
-                            : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+                const confirmLine = buildReservationConfirmLine(lang2);
                 return {
                     messages: [
                         new AIMessage(
-                            res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                            res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR") || !shouldAppendReservationConfirm(completeSnapshot)) ? "" : confirmLine)
                         ),
                     ],
                     reservationSlots: completeSnapshot,
@@ -506,16 +520,11 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             completeSnapshot.checkIn!,
             completeSnapshot.checkOut!
         );
-        const confirmLine =
-            lang2 === "es"
-                ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
-                : lang2 === "pt"
-                    ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
-                    : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
+        const confirmLine = buildReservationConfirmLine(lang2);
         return {
             messages: [
                 new AIMessage(
-                    res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR")) ? "" : confirmLine)
+                    res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR") || !shouldAppendReservationConfirm(completeSnapshot)) ? "" : confirmLine)
                 ),
             ],
             reservationSlots: completeSnapshot,

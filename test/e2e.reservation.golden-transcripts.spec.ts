@@ -155,7 +155,9 @@ describe("reservation golden transcripts", () => {
       conversationId,
       reservationSlots: {},
     });
-    expect(String(step1.messages?.[0]?.content)).toMatch(/nombre completo/i);
+    const step1Text = String(step1.messages?.[0]?.content);
+    expect(step1Text).toMatch(/A nombre de quién|nombre y apellido|nombre completo/i);
+    expect(step1Text).not.toMatch(/CONFIRMAR/i);
 
     const step2 = await agentGraph.invoke({
       normalizedMessage: "Carlos Ruiz",
