@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/agents/nodes/reservationSnapshot", () => ({ handleReservationSnapshotNode: vi.fn() }));
 vi.mock("@/lib/agents/nodes/reservationVerify", () => ({ handleReservationVerifyNode: vi.fn() }));
@@ -23,9 +23,16 @@ vi.mock("@/lib/utils/debugLog", () => ({ debugLog: vi.fn() }));
 import { classifyNode } from "@/lib/agents/graph";
 
 describe("events follow-up routing", () => {
+  const prevDebugRouting = process.env.DEBUG_ROUTING;
+
   beforeEach(() => {
     process.env.DEBUG_ROUTING = "1";
     lastIntentGroup = "events";
+  });
+
+  afterEach(() => {
+    if (prevDebugRouting === undefined) delete process.env.DEBUG_ROUTING;
+    else process.env.DEBUG_ROUTING = prevDebugRouting;
   });
 
   it("routes short follow-up with photos to tourist_events_img", async () => {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/agents/nodes/reservationSnapshot", () => ({ handleReservationSnapshotNode: vi.fn() }));
 vi.mock("@/lib/agents/nodes/reservationVerify", () => ({ handleReservationVerifyNode: vi.fn() }));
@@ -22,10 +22,21 @@ import { classifyQuery } from "@/lib/classifier";
 import { debugLog } from "@/lib/utils/debugLog";
 
 describe("classifyNode routing debug", () => {
+  const prevDebugRouting = process.env.DEBUG_ROUTING;
+  const prevForceLlmClassifier = process.env.FORCE_LLM_CLASSIFIER;
+
   beforeEach(() => {
     process.env.DEBUG_ROUTING = "1";
     delete process.env.FORCE_LLM_CLASSIFIER;
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    if (prevDebugRouting === undefined) delete process.env.DEBUG_ROUTING;
+    else process.env.DEBUG_ROUTING = prevDebugRouting;
+
+    if (prevForceLlmClassifier === undefined) delete process.env.FORCE_LLM_CLASSIFIER;
+    else process.env.FORCE_LLM_CLASSIFIER = prevForceLlmClassifier;
   });
 
   it("routes EN things_to_do with images and emits heuristic_things_to_do debug", async () => {
