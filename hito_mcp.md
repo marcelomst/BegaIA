@@ -2370,3 +2370,47 @@ Impacto:
 
 Se evita ofrecer confirmación prematura antes de completar `guestName` sin
 mezclar este fix con la hipótesis separada de contaminación global de tests.
+
+### DOC-FIX-TEST-ENV-LEAK-ROUTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-17  
+Commit: 6954e9d7d724ef11788b730ee93f8a09edec9132
+
+Descripción:
+
+Se registra un hygiene fix acotado para restaurar flags de entorno de routing
+que quedaban activados entre suites de tests.
+
+Causa parcial corregida:
+
+- suites de routing que seteaban `DEBUG_ROUTING`
+- suites de routing que seteaban `FORCE_LLM_CLASSIFIER`
+- ausencia de restauración explícita al terminar
+
+Qué corrigió:
+
+- eliminó leak real de env entre suites
+- mejoró el aislamiento del bloque afectado
+- el bloque de 3 tests antes fallido pasó aislado
+
+Qué no corrigió completamente:
+
+- la batería completa siguió mostrando 2 timeouts residuales
+- esa investigación queda separada en `FIX-TEST-DEBUGLOG-CONSOLE-WRAP-ONCE-01`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/graph.routingDebug.test.ts test/unit/events.followupRouting.test.ts test/api.chat.route.spec.ts test/integration/api_chat.test.ts test/integration/guestConversationBinding.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `test/unit/graph.routingDebug.test.ts`
+- `test/unit/events.followupRouting.test.ts`
+
+Impacto:
+
+Queda documentado como hygiene fix acotado con mejora verificada y causa
+parcial corregida, sin narrarlo como resolución total del incidente global de
+timeouts.
