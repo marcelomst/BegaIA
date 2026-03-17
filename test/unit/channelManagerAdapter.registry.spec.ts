@@ -36,4 +36,44 @@ describe("getCMAdapter registry by hotelId", () => {
     expect(cm1).toBe(cm2);
     expect(cm2).toBe(cm3);
   });
+
+  it("filters room types by guest capacity for demo availability", async () => {
+    const hotelId = `hotel-guests-${Date.now()}`;
+    const cm = getCMAdapter(hotelId);
+
+    const options = await cm.searchAvailability({
+      hotelId,
+      startDate: "2026-02-20",
+      endDate: "2026-02-22",
+      guests: 3,
+    });
+
+    expect(options.some((room) => room.roomType === "single")).toBe(false);
+    expect(options.some((room) => room.roomType === "double")).toBe(false);
+    expect(options.some((room) => room.roomType === "triple")).toBe(true);
+    expect(options.some((room) => room.roomType === "suite")).toBe(true);
+  });
+
+  it("reduces availability when overlapping reservations consume demo stock", async () => {
+    const hotelId = `hotel-stock-${Date.now()}`;
+    const cm = getCMAdapter(hotelId);
+
+    await cm.createReservation({
+      hotelId,
+      guestName: "Reserva 1",
+      roomType: "suite",
+      checkInDate: "2026-02-20",
+      checkOutDate: "2026-02-22",
+    });
+
+    const overlapping = await cm.searchAvailability({
+      hotelId,
+      startDate: "2026-02-21",
+      endDate: "2026-02-23",
+      roomType: "suite",
+      guests: 2,
+    });
+
+    expect(overlapping).toEqual([]);
+  });
 });

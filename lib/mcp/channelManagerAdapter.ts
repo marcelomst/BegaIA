@@ -25,15 +25,40 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 
   async searchAvailability(q: AvailabilityQuery): Promise<AvailabilityItem[]> {
-    this.getStore(q.hotelId);
-    // Catálogo alineado con roomType canónico usado por el pipeline de reservas.
-    const base: AvailabilityItem[] = [
-      { roomType: "single", description: "Hab. Single", pricePerNight: 70, currency: "USD", availability: 5 },
-      { roomType: "double", description: "Hab. Doble", pricePerNight: 100, currency: "USD", availability: 4 },
-      { roomType: "triple", description: "Hab. Triple", pricePerNight: 140, currency: "USD", availability: 2 },
-      { roomType: "suite", description: "Suite Ejecutiva", pricePerNight: 180, currency: "USD", availability: 1 },
-    ];
-    return q.roomType ? base.filter(b => b.roomType === q.roomType) : base;
+    const store = this.getStore(q.hotelId);
+    const startDate = parseIsoDate(q.startDate);
+    const endDate = parseIsoDate(q.endDate);
+    const nights = startDate && endDate ? getNights(startDate, endDate) : 1;
+    const seasonalMultiplier = getSeasonalMultiplier(startDate, endDate);
+    const weekendMultiplier = touchesWeekend(startDate, endDate) ? 1.15 : 1;
+    const guestCount = typeof q.guests === "number" && q.guests > 0 ? q.guests : undefined;
+
+    const items = ROOM_CATALOG
+      .filter((room) => !q.roomType || room.roomType === q.roomType)
+      .filter((room) => !guestCount || guestCount <= room.maxGuests)
+      .map((room) => {
+        const overlappingReservations = [...store.values()].filter(
+          (reservation) =>
+            reservation.status !== "cancelled" &&
+            reservation.roomType === room.roomType &&
+            overlaps(startDate, endDate, parseIsoDate(reservation.checkInDate), parseIsoDate(reservation.checkOutDate)),
+        ).length;
+
+        const stayPressure = nights >= 14 ? 1 : nights >= 7 ? 0.5 : 0;
+        const availability = Math.max(0, Math.floor(room.stock - overlappingReservations - stayPressure));
+        const pricePerNight = Math.round(room.basePrice * seasonalMultiplier * weekendMultiplier);
+
+        return {
+          roomType: room.roomType,
+          description: room.description,
+          pricePerNight,
+          currency: "USD",
+          availability,
+        } satisfies AvailabilityItem;
+      })
+      .filter((room) => room.availability > 0);
+
+    return items;
   }
 
   async createReservation(input: CreateReservationInput): Promise<Reservation> {
@@ -42,16 +67,14 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
-    const nights = Math.max(1, Math.ceil((Date.parse(input.checkOutDate) - Date.parse(input.checkInDate)) / 86400000));
+    const checkIn = parseIsoDate(input.checkInDate);
+    const checkOut = parseIsoDate(input.checkOutDate);
+    const nights = checkIn && checkOut ? getNights(checkIn, checkOut) : 1;
     const normalizedRoomType = String(input.roomType || "").toLowerCase();
-    const pricePerNight =
-      normalizedRoomType === "suite"
-        ? 180
-        : normalizedRoomType === "triple"
-          ? 140
-          : normalizedRoomType === "double"
-            ? 100
-            : 70;
+    const room = ROOM_CATALOG.find((entry) => entry.roomType === normalizedRoomType);
+    const pricePerNight = Math.round(
+      (room?.basePrice ?? 70) * getSeasonalMultiplier(checkIn, checkOut) * (touchesWeekend(checkIn, checkOut) ? 1.15 : 1),
+    );
     const currency = "USD";
     const priceTotal = pricePerNight * nights;
 
@@ -118,6 +141,61 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     store.set(input.reservationId, updated);
     return updated;
   }
+}
+
+type DemoRoom = {
+  roomType: string;
+  description: string;
+  basePrice: number;
+  stock: number;
+  maxGuests: number;
+};
+
+const ROOM_CATALOG: DemoRoom[] = [
+  { roomType: "single", description: "Hab. Single", basePrice: 70, stock: 5, maxGuests: 1 },
+  { roomType: "double", description: "Hab. Doble", basePrice: 100, stock: 4, maxGuests: 2 },
+  { roomType: "triple", description: "Hab. Triple", basePrice: 140, stock: 2, maxGuests: 3 },
+  { roomType: "suite", description: "Suite Ejecutiva", basePrice: 180, stock: 1, maxGuests: 4 },
+];
+
+function parseIsoDate(value?: string): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getNights(startDate: Date, endDate: Date): number {
+  const diff = endDate.getTime() - startDate.getTime();
+  return Math.max(1, Math.ceil(diff / 86400000));
+}
+
+function overlaps(
+  startA: Date | null,
+  endA: Date | null,
+  startB: Date | null,
+  endB: Date | null,
+): boolean {
+  if (!startA || !endA || !startB || !endB) return false;
+  return startA < endB && startB < endA;
+}
+
+function touchesWeekend(startDate: Date | null, endDate: Date | null): boolean {
+  if (!startDate || !endDate) return false;
+  for (const cursor = new Date(startDate); cursor < endDate; cursor.setDate(cursor.getDate() + 1)) {
+    const day = cursor.getDay();
+    if (day === 5 || day === 6) return true;
+  }
+  return false;
+}
+
+function getSeasonalMultiplier(startDate: Date | null, endDate: Date | null): number {
+  const range = [startDate, endDate].filter(Boolean) as Date[];
+  if (!range.length) return 1;
+  const hasHighSeasonMonth = range.some((date) => {
+    const month = date.getMonth() + 1;
+    return month === 12 || month <= 2;
+  });
+  return hasHighSeasonMonth ? 1.2 : 1;
 }
 
 const registry = new Map<string, ChannelManagerAdapter>();
