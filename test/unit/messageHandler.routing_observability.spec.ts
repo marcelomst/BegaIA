@@ -32,6 +32,7 @@ vi.mock("@/lib/handlers/pipeline/availability", () => ({
   isAskAvailabilityStatusQuery: () => false,
   askedToVerifyAvailability: () => false,
   isPureConfirm: () => false,
+  normalizeReservationIntent: () => ({ kind: "other", executable: false, normalizedText: "" }),
   detectCheckinOrCheckoutTimeQuestion: () => null,
   isPureAffirmative: () => false,
   askedToConfirmCheckTime: () => null,

@@ -266,6 +266,16 @@ export function normalizeReservationIntent(text: string): ReservationIntentNorma
         /\b(me recordas|recordas|recordame|recordar|reconfirmas|reconfirmas|price|precio)\b/i.test(normalizedText);
     if (isInquiry) return { kind: "other", executable: false, normalizedText };
 
+    const isCancelInquiry =
+        /\b(cancel(ar)?|anul(ar)?|dar de baja)\b.*\b(si|if|se)\b.*\b(cobran|cobrar|charge|penalty|penalidad|policy|politica)\b/i.test(normalizedText) ||
+        /\b(quiero saber si puedo cancelar|antes de cancelar|si cancelo)\b/i.test(normalizedText);
+    if (isCancelInquiry) return { kind: "other", executable: false, normalizedText };
+
+    const isModifyInquiry =
+        /\b(modific(ar)?|cambi(ar)?|edit|change|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
+        /\b(quiero modificar si hay lugar)\b/i.test(normalizedText);
+    if (isModifyInquiry) return { kind: "other", executable: false, normalizedText };
+
     const denyConfirm =
         /\b(no|not|nunca|todavia no|aun no|aun no|not yet|ainda nao)\b.*\b(confirm|confirmar|comfirmar|confimar|confirmes|confirmarla|book|reserv)/i.test(normalizedText) ||
         /\bno confirm(es|ar)?\b/i.test(normalizedText) ||

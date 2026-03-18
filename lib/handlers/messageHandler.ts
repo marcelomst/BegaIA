@@ -55,6 +55,7 @@ import {
   isAskAvailabilityStatusQuery,
   askedToVerifyAvailability,
   isPureConfirm,
+  normalizeReservationIntent,
   detectCheckinOrCheckoutTimeQuestion,
   isPureAffirmative,
   askedToConfirmCheckTime,
@@ -278,8 +279,9 @@ function computeInModifyMode(
   currSlots: ReservationSlotsStrict,
   userText: string
 ): boolean {
+  const normalizedIntent = normalizeReservationIntent(userText || "");
   const prevWasModify = st?.lastCategory === "modify_reservation" || st?.lastCategory === "modify";
-  const mentionsModify = /(modific|cambi|alter|mudar|change|update|editar|edit|corrig|fechas|fecha|dates|date)/i.test(userText || "");
+  const mentionsModify = normalizedIntent.kind === "modify";
   const hasDraft = Boolean(currSlots?.guestName || currSlots?.roomType || currSlots?.checkIn || currSlots?.checkOut || currSlots?.numGuests);
   const hasConfirmed = st?.salesStage === "close";
   const hasDraftOrConfirmed = hasDraft || hasConfirmed;
@@ -767,8 +769,9 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const hotelConfig = await getHotelConfig(msg.hotelId).catch(() => null);
 
   // --- NUEVO: modo modificación persistente reforzado ---
+  const normalizedReservationIntent = normalizeReservationIntent(String(msg.content || ""));
   const prevWasModify = st?.lastCategory === "modify_reservation" || st?.lastCategory === "modify";
-  const mentionsModify = /(modific|cambi|alter|mudar|change|update|editar|edit|corrig|fechas|fecha|dates|date)/i.test(String(msg.content || ""));
+  const mentionsModify = normalizedReservationIntent.kind === "modify";
   const hasDraftOrConfirmed = !!(stateForPlaybook.draft || stateForPlaybook.confirmedBooking);
   let inModifyMode = intent === "modify" || prevWasModify;
   if (!inModifyMode && hasDraftOrConfirmed && mentionsModify) {
@@ -2036,7 +2039,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const hasGuestName = isSafeGuestName(pre.currSlots?.guestName || pre.st?.reservationSlots?.guestName || "");
 
   // === Sprint 3: cancelar reserva ===
-  const wantsCancel = /\b(cancel(ar|la|o)|anular|dar de baja)\b/i.test(userTxtRaw);
+  const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
   if (wantsCancel) {
     const code = parseReservationCode(userTxtRaw);
     if (!code) {
