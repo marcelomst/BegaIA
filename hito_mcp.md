@@ -2884,3 +2884,63 @@ Impacto:
 
 Se agrega una intercepción temprana determinista para snapshot post-booking sin
 alterar el resto del flujo KB/LLM.
+
+### DOC-FIX-CANCEL-RESERVATION-MULTITURN-CONTINUITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 66f22aee6eb2c443ec736e0910e2ce73044f2c54
+
+Descripción:
+
+Se registra el soporte explícito para continuidad multi-turno del flujo de
+cancelación de reserva, preservando también el caso compacto donde el usuario
+manda código y confirmación en el mismo turno.
+
+Secuencia soportada:
+
+1. intención de cancelar
+2. pedido de código
+3. usuario manda código
+4. bot pide `CONFIRMAR`
+5. usuario confirma
+6. se ejecuta cancelación
+
+Cambios documentados:
+
+- `messageHandler.ts`
+  - se ajusta la branch de cancelación para soportar continuidad multi-turno
+  - se captura código
+  - se persiste estado pendiente
+  - se confirma en turno posterior
+  - se limpia estado luego de cancelar
+  - se preserva el caso compacto `cancelar RES123456 confirmar`
+- `convState.ts`
+  - se agrega `pendingCancellation`
+  - se habilita persistencia explícita de `desiredAction`
+- `test`
+  - cubre secuencia multi-turno completa
+  - cubre caso compacto
+  - cubre negativos básicos
+
+Compatibilidad:
+
+- no se tocaron `reservations.ts`, MCP ni adapter
+- no se abrió refactor grande del runtime
+- el cambio es incremental y acotado al lifecycle de cancelación
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.cancel_multiturn_continuity.spec.ts`
+
+Impacto:
+
+Se agrega continuidad multi-turno mínima al flujo de cancelación sin rediseñar
+el lifecycle general de reservas.
