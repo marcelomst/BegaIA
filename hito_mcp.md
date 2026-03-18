@@ -2828,3 +2828,59 @@ Impacto:
 El cambio queda limitado al `Fast-path 2` de modificación y al ajuste mínimo
 necesario de `wantsGenericModify(...)`, sin abrir un refactor mayor del
 runtime.
+
+### DOC-FIX-POSTBOOKING-RESERVATION-SNAPSHOT-QUERY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: af05297869346a80dc99555a4349e4139f6f323f
+
+Descripción:
+
+Se registra la incorporación de una ruta determinista y temprana para consultas
+de snapshot sobre una reserva ya creada, usando el estado persistido y evitando
+KB o LLM.
+
+Hueco funcional cubierto:
+
+- `cuál es mi reserva`
+- `me recordás la reserva`
+- `qué fechas reservé`
+- `cuántos huéspedes puse`
+
+Cambios documentados:
+
+- `messageHandler.ts`
+  - se agrega `detectReservationSnapshotQuery(...)`
+  - se agrega `buildReservationSnapshotAnswer(...)`
+  - en la misma frontera temprana donde ya se resuelve check-in/check-out
+    post-booking:
+    - se detectan consultas de snapshot
+    - se usa `reservationSlots + lastReservation`
+    - se responde sin pasar por KB/LLM
+    - se limpia `graphResult/rich`
+- `test`
+  - se agrega cobertura para snapshot completo, fechas y huéspedes
+  - se verifica que no caiga en respuesta de KB
+
+Compatibilidad:
+
+- no se tocaron otros branches del runtime
+- no se tocaron contratos externos
+- no se abrió refactor
+- el cambio queda acotado al path post-booking con reserva confirmada
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts`
+
+Impacto:
+
+Se agrega una intercepción temprana determinista para snapshot post-booking sin
+alterar el resto del flujo KB/LLM.
