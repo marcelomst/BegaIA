@@ -2126,14 +2126,78 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const hasGuestName = isSafeGuestName(pre.currSlots?.guestName || pre.st?.reservationSlots?.guestName || "");
 
   // === Sprint 3: cancelar reserva ===
+  const cancelCodeFromUser = parseReservationCode(userTxtRaw);
+  const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } | undefined;
+  const inCancelFlow = pre.prevCategory === "cancel_reservation" || pre.st?.activeFlow === "cancel_reservation";
   const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
+  const hasInlineCancelConfirmation = /\bconfirm(ar|alo|ala|ame)?\b/i.test(userTxtRaw);
+  if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
+      activeFlow: "cancel_reservation",
+      desiredAction: "cancel",
+      lastCategory: "cancel_reservation",
+      updatedBy: "ai",
+    } as any);
+    finalText = pre.lang === "es" ? "Para cancelar esa reserva, respondé **CONFIRMAR**."
+      : pre.lang === "pt" ? "Para cancelar essa reserva, responda **CONFIRMAR**."
+        : "To cancel that booking, reply **CONFIRMAR**.";
+    return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+  }
+  if (pendingCancellation?.reservationId && pendingCancellation.awaitingConfirmation && isPureConfirm(userTxtRaw)) {
+    try {
+      const { cancelReservation } = await import("@/lib/agents/reservations");
+      const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        lastReservation: {
+          reservationId: pendingCancellation.reservationId,
+          status: r.ok ? "cancelled" : "error",
+          createdAt: new Date().toISOString(),
+          channel: (pre.msg.channel as any) || "web",
+        },
+        pendingCancellation: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = r.message;
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    } catch (e) {
+      needsSupervision = true;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        supervised: true,
+        desiredAction: "notify_reception",
+        updatedBy: "ai",
+      } as any);
+      finalText = pre.lang === "es"
+        ? "No pude cancelar ahora. Un recepcionista te contactará."
+        : pre.lang === "pt"
+          ? "Não consegui cancelar agora. Um recepcionista vai te contatar."
+          : "I couldn’t cancel now. A receptionist will contact you.";
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+  }
   if (wantsCancel) {
-    const code = parseReservationCode(userTxtRaw);
-    if (!code) {
+    if (!cancelCodeFromUser) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: null,
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
       finalText = buildAskReservationCode(pre.lang);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     }
-    if (!isPureConfirm(userTxtRaw)) {
+    if (!(isPureConfirm(userTxtRaw) || hasInlineCancelConfirmation)) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
       finalText = pre.lang === "es" ? "Para cancelar, respondé **CONFIRMAR**."
         : pre.lang === "pt" ? "Para cancelar, responda **CONFIRMAR**."
           : "To cancel, reply **CONFIRMAR**.";
@@ -2141,14 +2205,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
-      const r = await cancelReservation(pre.msg.hotelId, code);
+      const r = await cancelReservation(pre.msg.hotelId, cancelCodeFromUser);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: {
-          reservationId: code,
+          reservationId: cancelCodeFromUser,
           status: r.ok ? "cancelled" : "error",
           createdAt: new Date().toISOString(),
           channel: (pre.msg.channel as any) || "web",
         },
+        pendingCancellation: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "cancel_reservation",
         updatedBy: "ai",
       } as any);
       finalText = r.message;

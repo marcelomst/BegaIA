@@ -64,6 +64,11 @@ export type LastReservation =
     channel: "web" | "email" | "whatsapp" | "channelManager";
   };
 
+export type PendingCancellation = {
+  reservationId?: string;
+  awaitingConfirmation?: boolean;
+};
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -88,6 +93,7 @@ export type ConversationFlowState = {
 
   // Última reserva creada (si corresponde)
   lastReservation?: LastReservation;
+  pendingCancellation?: PendingCancellation | null;
 
   // Meta/negocio
   salesStage?: "qualify" | "quote" | "close" | "followup";
@@ -213,6 +219,13 @@ export async function upsertConvState(
   if ("lastCategory" in patch) $set.lastCategory = patch.lastCategory ?? null;
   if ("activeFlow" in patch) $set.activeFlow = patch.activeFlow ?? null;
   if ("salesStage" in patch) $set.salesStage = patch.salesStage ?? null;
+  if ("desiredAction" in patch) {
+    if (patch.desiredAction == null) {
+      $unset["desiredAction"] = true;
+    } else {
+      $set.desiredAction = patch.desiredAction;
+    }
+  }
   const derivedConversationStage = deriveConversationStage(patch);
   if ("conversationStage" in patch) {
     if (patch.conversationStage == null) {
@@ -288,6 +301,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("pendingCancellation" in patch) {
+    if ((patch as any).pendingCancellation == null) {
+      $unset["pendingCancellation"] = true;
+    } else {
+      $set["pendingCancellation"] = (patch as any).pendingCancellation;
+    }
+  }
+
   const update: any = Object.keys($unset).length ? { $set, $unset } : { $set };
 
   console.log("[BP-CS2]", hotelId, conversationId, JSON.stringify(patch))
@@ -309,6 +330,7 @@ export async function upsertConvState(
       if ("lastCategory" in patch) doc.lastCategory = patch.lastCategory ?? null;
       if ("activeFlow" in patch) doc.activeFlow = patch.activeFlow ?? null;
       if ("salesStage" in patch) doc.salesStage = patch.salesStage ?? null;
+      if ("desiredAction" in patch) doc.desiredAction = patch.desiredAction ?? null;
       if (derivedConversationStage) doc.conversationStage = derivedConversationStage;
       if ("supervised" in patch) doc.supervised = !!(patch as any).supervised;
       if ("lastSupervision" in patch && (patch as any).lastSupervision != null) doc.lastSupervision = (patch as any).lastSupervision;
@@ -323,6 +345,7 @@ export async function upsertConvState(
       }
       if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
+      if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if (typeof collection.insertOne === "function") {
         await collection.insertOne(doc);
         console.log("BP-CS3 (fallback-insert)", { acknowledged: true, insertedId: _id });
