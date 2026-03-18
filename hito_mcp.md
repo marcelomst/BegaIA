@@ -2944,3 +2944,55 @@ Impacto:
 
 Se agrega continuidad multi-turno mínima al flujo de cancelación sin rediseñar
 el lifecycle general de reservas.
+
+### DOC-FIX-RESERVATION-AVAILABILITY-ENTRY-DETECTINTENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 9f541c451f451a3d796d2a4eb60264c85a6070d0
+
+Descripción:
+
+Se registra el endurecimiento de `detectIntent(...)` para que availability
+queries básicas entren al flujo de reserva desde el primer turno.
+
+Casos cubiertos:
+
+- `tienen disponibilidad`
+- `hay disponibilidad`
+- `tienen disponibilidad para este fin de semana`
+- `availability for this weekend`
+- `quiero saber si tienen disponibilidad`
+
+Cambios documentados:
+
+- `messageHandler.ts`
+  - `detectIntent(...)` reconoce availability queries básicas como
+    `reservation`
+  - se preservan los intents ya existentes de `reservar` y `book`
+  - no se tocan `availability.ts`, `reservation.ts`, `policy.ts` ni el resto
+    del routing
+- `test`
+  - cubre positivos de availability entry
+  - preserva positivos legacy de reserva
+  - cubre negativos para no sobreactivar `reservation`
+
+Compatibilidad:
+
+- el cambio es mínimo y acotado al entrypoint
+- no abre refactor grande
+- no toca contratos externos
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.availability_entry_detectIntent.spec.ts test/unit/messageHandler.routing_observability.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.availability_entry_detectIntent.spec.ts`
+
+Impacto:
+
+Se endurece el entrypoint de reserva sin reescribir el detector completo.
