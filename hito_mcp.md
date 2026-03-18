@@ -2552,3 +2552,67 @@ Impacto:
 Queda estabilizada la continuidad conversacional necesaria para llegar al cierre
 real de reserva en widget/web chat, sin incluir el ajuste separado del código
 humano del Channel Manager demo.
+
+### DOC-FIX-CONVSTATE-CONVERSATIONSTAGE-AND-RESERVATION-INTENT-NORMALIZATION-01-B1
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 4cbeda95dd1d145414d93d40d882beab61b09c55
+
+Descripción:
+
+Se registra el bloque 1 del fix que endurece el runtime actual introduciendo
+`conversationStage` en `conv_state` de forma compatible con `salesStage` y
+centralizando una capa determinista de normalización de intents de reserva.
+
+Cambios documentados:
+
+- `convState.ts`
+  - tipo `ConversationStage`
+  - campo `conversationStage`
+  - `deriveConversationStage(...)`
+  - `upsertConvState(...)` deriva y persiste `conversationStage` cuando
+    corresponde
+- `availability.ts`
+  - `normalizeReservationIntent(...)`
+  - tipos `ReservationIntentKind` y `ReservationIntentNormalization`
+  - `isPureConfirm(...)` pasa a usar normalización centralizada
+- `messageHandler.ts`
+  - guard de `isReservationConfirmFollowup`
+  - ampliación de `hasReservationContext` para evitar que follow-ups cortos de
+    confirmación caigan en KB fast-path
+
+Casos cubiertos:
+
+- `confirmar`
+- `comfirmar`
+- `confimar`
+- `dale`
+- `ok hacelo`
+- `sí, adelante`
+- `yes confirm`
+
+Falsos positivos evitados:
+
+- `no confirmes todavía`
+- `quiero confirmar si tienen lugar`
+- `antes de confirmar, ¿me recordás el precio?`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/convState.conversationStage.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/availability.reservationIntentNormalization.spec.ts`
+- `test/unit/convState.conversationStage.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Impacto:
+
+Se endurece el runtime actual de forma incremental y compatible, sin reemplazar
+`messageHandler` ni introducir una state machine nueva.
