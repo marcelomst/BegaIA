@@ -59,7 +59,10 @@ describe("messageHandler modify/cancel intent normalization", () => {
     vi.clearAllMocks();
   });
 
-  it("usa la normalización determinista para entrar en modo modificación con 'modify booking'", async () => {
+  it.each([
+    "modify booking",
+    "modificar reserva",
+  ])("usa la normalización determinista para entrar en modo modificación con %s", async (content) => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
@@ -67,15 +70,15 @@ describe("messageHandler modify/cancel intent normalization", () => {
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: "modify booking",
+      content,
       timestamp: new Date().toISOString(),
       conversationId: "conv-modify-1",
       guestId: "g1",
-      detectedLanguage: "en",
+      detectedLanguage: /modify/i.test(content) ? "en" : "es",
     } as any, { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/what would you like to change|modify your confirmed booking/i);
+    expect(replyText).toMatch(/what would you like to change|modify your confirmed booking|qué te gustaría cambiar|modificar tu reserva confirmada/i);
   });
 
   it("no entra en cancelación ejecutable con 'si cancelo, me cobran?'", async () => {

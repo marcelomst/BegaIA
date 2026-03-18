@@ -429,6 +429,8 @@ function detectIntent(
   state: Pick<ConversationState, "draft" | "confirmedBooking">
 ): "reservation" | "modify" | "ambiguous" {
   const t = (userText || "").toLowerCase();
+  const normalizedReservationIntent = normalizeReservationIntent(userText || "");
+  if (normalizedReservationIntent.kind === "modify") return "modify";
   const asksModify = /(modific|cambi|alter|mudar|change|update|editar|edit|corrig)/.test(t) || /(cancel|anul|dar de baja)/.test(t);
   const asksReserve = /(reserv|book|quero reservar|quiero reservar|hacer una reserva|fazer uma reserva)/.test(t);
   if (asksModify) return "modify";
