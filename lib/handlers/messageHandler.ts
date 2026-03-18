@@ -507,7 +507,7 @@ function ruleBasedFallback(lang: string, userText: string): string {
 }
 
 /** NLU mínima para elegir playbook */
-function detectIntent(
+export function detectIntent(
   userText: string,
   state: Pick<ConversationState, "draft" | "confirmedBooking">
 ): "reservation" | "modify" | "ambiguous" {
@@ -516,8 +516,12 @@ function detectIntent(
   if (normalizedReservationIntent.kind === "modify") return "modify";
   const asksModify = /(modific|cambi|alter|mudar|change|update|editar|edit|corrig)/.test(t) || /(cancel|anul|dar de baja)/.test(t);
   const asksReserve = /(reserv|book|quero reservar|quiero reservar|hacer una reserva|fazer uma reserva)/.test(t);
+  const asksAvailabilityReservation =
+    /\b(disponibil\w*|availability)\b/.test(t) &&
+    /\b(tienen?|hay|have|quiero saber si tienen|quiero consultar|consultar|for|para|este|this|weekend|fin de semana)\b/.test(t);
   if (asksModify) return "modify";
   if (asksReserve) return "reservation";
+  if (asksAvailabilityReservation) return "reservation";
   if (state?.draft && /(esa|mi|minha)\s+reserva|that booking/.test(t)) return "modify";
   return "ambiguous";
 }
