@@ -3244,6 +3244,12 @@ function isQuoteOrConfirmText(text: string, lang: "es" | "en" | "pt"): boolean {
 function wantsGenericModify(text: string, lang: "es" | "en" | "pt"): boolean {
   const t = (text || "").toLowerCase();
   if (!t) return false;
+  const normalizedReservationIntent = normalizeReservationIntent(text || "");
+  if (normalizedReservationIntent.kind === "modify") return true;
+  if (normalizedReservationIntent.kind !== "other") return false;
+  if (/\b(modificar|cambiar|alterar|mudar|change|edit|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedReservationIntent.normalizedText)) {
+    return false;
+  }
   if (lang === "es") return /(quiero|quisiera|deseo)\s+(modificar|cambiar)(la|lo|mi|\b)/i.test(t);
   if (lang === "pt") return /(quero|gostaria de|desejo)\s+(modificar|mudar|alterar)(\s|$)/i.test(t);
   return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+my\s+booking|\s+reservation|$)/i.test(t);

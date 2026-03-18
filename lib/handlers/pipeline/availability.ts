@@ -273,7 +273,11 @@ export function normalizeReservationIntent(text: string): ReservationIntentNorma
 
     const isModifyInquiry =
         /\b(modific(ar)?|cambi(ar)?|edit|change|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
-        /\b(quiero modificar si hay lugar)\b/i.test(normalizedText);
+        /\b(quiero modificar si hay lugar|quiero cambiar si hay lugar)\b/i.test(normalizedText) ||
+        /\b(quiero saber si puedo|puedo|se puede|can i|can we|posso|da pra)\s+(modificar|cambiar|editar|alterar|change|edit|update|mudar)\b/i.test(normalizedText) ||
+        /\bantes de\s+(modificar|cambiar|editar|alterar|change|edit|update|mudar)\b/i.test(normalizedText) ||
+        /\bsi\s+(modifico|modificar|cambio|cambiar|edito|editar|altero|alterar|change|edit|update|mudar)\b.*\b(cobran|cobrar|charge|price|precio|policy|politica|penalidad|penalty)\b/i.test(normalizedText) ||
+        /\b(modificar|cambiar|editar|alterar|change|edit|update|mudar)\b.*\b(me recordas|recordas|recordame|recordar|price|precio)\b/i.test(normalizedText);
     if (isModifyInquiry) return { kind: "other", executable: false, normalizedText };
 
     const denyConfirm =

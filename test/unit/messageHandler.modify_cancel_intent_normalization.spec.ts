@@ -99,4 +99,28 @@ describe("messageHandler modify/cancel intent normalization", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/c[oó]digo de reserva|respond[eé]\s+\*\*confirmar\*\*/i);
   });
+
+  it.each([
+    "quiero saber si puedo modificar",
+    "antes de modificar, ¿me recordás el precio?",
+    "si modifico, me cobran?",
+    "quiero cambiar si hay lugar",
+  ])("no activa menú genérico de modificación para %s", async (content) => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "modify-q-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-modify-q-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qué te gustaría cambiar|podemos modificar tu reserva confirmada/i);
+  });
 });
