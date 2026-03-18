@@ -2678,3 +2678,52 @@ Impacto:
 Se extiende el endurecimiento iniciado en `4cbeda9` con un cambio técnico nuevo
 y acotado, sin alterar contratos externos ni abrir un refactor mayor del
 runtime vigente.
+
+### DOC-FIX-RESERVATION-INTENT-NORMALIZATION-DETECTINTENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 6e6a9f3371e7706858e414cf7781fa0d6a52d1d2
+
+Descripción:
+
+Se registra la integración de `normalizeReservationIntent(...)` en un tercer
+punto controlado del runtime: `detectIntent(...)`.
+
+Cambio documentado:
+
+- `detectIntent(...)` ahora consulta `normalizeReservationIntent(userText || "")`
+- si el intent normalizado es `modify`, devuelve `modify` explícitamente antes
+  de caer en regex legacy
+
+Decisión de alcance:
+
+- no se integró `cancel` en `detectIntent(...)`
+- motivo: `detectIntent(...)` hoy devuelve solo `reservation | modify | ambiguous`
+- `cancel` sigue gobernado por su branch explícita endurecida en el hito
+  anterior
+
+Nota de trazabilidad:
+
+- este hito hace una integración incremental mínima
+- no reescribe `detectIntent(...)`
+- no toca `reservation.ts`, `dateConsolidation.ts`, `policy.ts` ni contratos
+  externos
+- persiste una semántica legacy previa donde `detectIntent(...)` todavía
+  contiene regex histórica que menciona cancelación dentro de `asksModify`,
+  pero este hito no la introduce ni la amplía
+
+Validación:
+
+- `pnpm exec vitest run test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.routing_observability.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts test/unit/messageHandler.rich.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+
+Impacto:
+
+Se integra `modify` por normalización determinista dentro de `detectIntent(...)`
+sin convertir este hito en una reescritura completa del detector.
