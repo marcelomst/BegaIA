@@ -119,6 +119,89 @@ function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: str
   };
 }
 
+type ReservationSnapshotQueryKind = "full" | "dates" | "guests";
+
+function detectReservationSnapshotQuery(
+  text: string,
+  _lang: "es" | "en" | "pt"
+): ReservationSnapshotQueryKind | null {
+  const normalized = String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[“”"'`]/g, "")
+    .replace(/[¡!¿?.,;:()]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return null;
+
+  if (
+    /\b(cual es mi reserva|me recordas la reserva|recordame la reserva|recorda mi reserva|recordame mi reserva|mi reserva|my booking|my reservation|booking details|reservation details)\b/i.test(normalized)
+  ) {
+    return "full";
+  }
+  if (
+    /\b(que fechas reserve|que fechas tengo reservadas|que fechas reserve yo|what dates did i book|booked dates|reservation dates)\b/i.test(normalized)
+  ) {
+    return "dates";
+  }
+  if (
+    /\b(cuantos huespedes puse|cuantos huespedes reserve|cuantos huespedes quedaron|how many guests did i book|how many guests are on my booking|quantos hospedes reservei)\b/i.test(normalized)
+  ) {
+    return "guests";
+  }
+  return null;
+}
+
+function buildReservationSnapshotAnswer(
+  kind: ReservationSnapshotQueryKind,
+  lang: "es" | "en" | "pt",
+  slots: ReservationSlotsStrict,
+  reservationId?: string
+): string {
+  const roomType = slots.roomType ? localizeRoomType(slots.roomType, lang) : undefined;
+  const checkIn = isoToDDMMYYYY(slots.checkIn) || slots.checkIn;
+  const checkOut = isoToDDMMYYYY(slots.checkOut) || slots.checkOut;
+  if (kind === "dates") {
+    if (lang === "pt") return `Sua reserva está para ${checkIn ?? "(sem data)"} → ${checkOut ?? "(sem data)"}.`;
+    if (lang === "en") return `Your booking is for ${checkIn ?? "(no date)"} → ${checkOut ?? "(no date)"}.`;
+    return `Tu reserva es para ${checkIn ?? "(sin fecha)"} → ${checkOut ?? "(sin fecha)"}.`;
+  }
+  if (kind === "guests") {
+    if (lang === "pt") return `Sua reserva está para ${slots.numGuests ?? "(sem dado)"} hóspede(s).`;
+    if (lang === "en") return `Your booking is for ${slots.numGuests ?? "(unknown)"} guest(s).`;
+    return `Tu reserva es para ${slots.numGuests ?? "(sin dato)"} huésped(es).`;
+  }
+  if (lang === "pt") {
+    return [
+      "Este é o resumo da sua reserva:",
+      reservationId ? `- Código: ${reservationId}` : "",
+      slots.guestName ? `- Nome: ${slots.guestName}` : "",
+      roomType ? `- Quarto: ${roomType}` : "",
+      checkIn && checkOut ? `- Datas: ${checkIn} → ${checkOut}` : "",
+      slots.numGuests ? `- Hóspedes: ${slots.numGuests}` : "",
+    ].filter(Boolean).join("\n");
+  }
+  if (lang === "en") {
+    return [
+      "This is your booking summary:",
+      reservationId ? `- Code: ${reservationId}` : "",
+      slots.guestName ? `- Name: ${slots.guestName}` : "",
+      roomType ? `- Room: ${roomType}` : "",
+      checkIn && checkOut ? `- Dates: ${checkIn} → ${checkOut}` : "",
+      slots.numGuests ? `- Guests: ${slots.numGuests}` : "",
+    ].filter(Boolean).join("\n");
+  }
+  return [
+    "Este es el resumen de tu reserva:",
+    reservationId ? `- Código: ${reservationId}` : "",
+    slots.guestName ? `- Nombre: ${slots.guestName}` : "",
+    roomType ? `- Habitación: ${roomType}` : "",
+    checkIn && checkOut ? `- Fechas: ${checkIn} → ${checkOut}` : "",
+    slots.numGuests ? `- Huéspedes: ${slots.numGuests}` : "",
+  ].filter(Boolean).join("\n");
+}
+
 export type ReservationSlotsStrict = SlotMap;
 
 // ----------------------
@@ -2250,10 +2333,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const kbUserText = String(pre.msg.content || "");
         const kbLower = kbUserText.toLowerCase();
         const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
+        const postBookingSnapshotQ = detectReservationSnapshotQuery(kbUserText, pre.lang);
         const hasConfirmedBookingContext = Boolean(
           pre.st?.lastReservation?.reservationId ||
           pre.st?.salesStage === "close"
         );
+        if (postBookingSnapshotQ && hasConfirmedBookingContext) {
+          const snapshotSlots = {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+          } as ReservationSlotsStrict;
+          finalText = buildReservationSnapshotAnswer(
+            postBookingSnapshotQ,
+            pre.lang,
+            snapshotSlots,
+            pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
+              ? pre.st.lastReservation.reservationId
+              : undefined
+          );
+          nextCategory = "reservation_snapshot";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+        }
         if (postBookingTimeQ && hasConfirmedBookingContext) {
           try {
             const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
