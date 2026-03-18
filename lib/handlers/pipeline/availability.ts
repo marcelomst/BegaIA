@@ -226,9 +226,72 @@ export function getLastUserDatesFromHistory(lcHistory: (HumanMessage | AIMessage
 }
 
 export function isPureConfirm(text: string): boolean {
-    if (!text) return false;
-    const cleaned = text.trim().toUpperCase().replace(/[“”"'`]/g, "");
-    return /^CONFIRMAR$/.test(cleaned);
+    const normalized = normalizeReservationIntent(text);
+    return normalized.executable && (normalized.kind === "confirm" || normalized.kind === "affirmative");
+}
+
+export type ReservationIntentKind =
+    | "confirm"
+    | "affirmative"
+    | "deny_confirm"
+    | "modify"
+    | "cancel"
+    | "other";
+
+export type ReservationIntentNormalization = {
+    kind: ReservationIntentKind;
+    executable: boolean;
+    normalizedText: string;
+};
+
+function normalizeReservationIntentText(text: string): string {
+    return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .replace(/[“”"'`]/g, "")
+        .replace(/[¡!¿?.,;:()]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+export function normalizeReservationIntent(text: string): ReservationIntentNormalization {
+    const normalizedText = normalizeReservationIntentText(text);
+    if (!normalizedText) return { kind: "other", executable: false, normalizedText };
+
+    const isInquiry =
+        /\b(confirm|confirmar|comfirmar|confimar)\b.*\b(si|if|se)\b.*\b(hay|have|tienen|tem|there is|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
+        /\bantes de confirmar\b/i.test(normalizedText) ||
+        /\b(before confirming|before i confirm)\b/i.test(normalizedText) ||
+        /\b(me recordas|recordas|recordame|recordar|reconfirmas|reconfirmas|price|precio)\b/i.test(normalizedText);
+    if (isInquiry) return { kind: "other", executable: false, normalizedText };
+
+    const denyConfirm =
+        /\b(no|not|nunca|todavia no|aun no|aun no|not yet|ainda nao)\b.*\b(confirm|confirmar|comfirmar|confimar|confirmes|confirmarla|book|reserv)/i.test(normalizedText) ||
+        /\bno confirm(es|ar)?\b/i.test(normalizedText) ||
+        /\bdont confirm\b/i.test(normalizedText) ||
+        /\bnao confirm(e|ar)\b/i.test(normalizedText);
+    if (denyConfirm) return { kind: "deny_confirm", executable: false, normalizedText };
+
+    if (/\b(cancel(ar|a|alo|ala)?|anul(ar|a)?|dar de baja|cancel booking|cancel reservation|cancela)\b/i.test(normalizedText)) {
+        return { kind: "cancel", executable: true, normalizedText };
+    }
+
+    if (/\b(modific(ar|a|alo|ala)?|cambi(ar|a|alo|ala)?|edit(ar|a)?|alter(ar|a)?|change|update)\b/i.test(normalizedText)) {
+        return { kind: "modify", executable: true, normalizedText };
+    }
+
+    const explicitConfirm =
+        /\b(confirmar|comfirmar|confimar|confirmame|confirma|confirmalo|confirmarla)\b/i.test(normalizedText) ||
+        /\b(confirm\b(?:\s+(?:book|booking|reservation))?|book it)\b/i.test(normalizedText) ||
+        /\b(reserva|reservar|reserva la|reservalo|reservala|hacelo|adelante)\b/i.test(normalizedText);
+    if (explicitConfirm) return { kind: "confirm", executable: true, normalizedText };
+
+    if (isPureAffirmative(text, "es")) {
+        return { kind: "affirmative", executable: true, normalizedText };
+    }
+
+    return { kind: "other", executable: false, normalizedText };
 }
 
 export function isAskAvailabilityStatusQuery(text: string, lang: "es" | "en" | "pt"): boolean {

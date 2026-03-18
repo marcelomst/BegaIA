@@ -103,6 +103,21 @@ function buildPastReservationCheckInPrompt(lang: string, iso?: string) {
   return `La fecha de check-in ${ciTxt} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
 }
 
+function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: string } {
+  return {
+    checkIn:
+      hotel?.schedules?.checkIn ||
+      hotel?.policies?.checkInTime ||
+      hotel?.checkInTime ||
+      undefined,
+    checkOut:
+      hotel?.schedules?.checkOut ||
+      hotel?.policies?.checkOutTime ||
+      hotel?.checkOutTime ||
+      undefined,
+  };
+}
+
 export type ReservationSlotsStrict = SlotMap;
 
 // ----------------------
@@ -948,12 +963,16 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
   const isAvailabilityVerifyAffirmative =
     askedToVerifyAvailability(pre.lcHistory, pre.lang) &&
     isPureAffirmative(kbUserText, pre.lang);
+  const isReservationConfirmFollowup =
+    askedToConfirmReservation(pre.lcHistory) &&
+    (isPureConfirm(kbUserText) || isPureAffirmative(kbUserText, pre.lang));
   const hasReservationContext =
     pre.inModifyMode ||
     isRoomTypeFollowup ||
     isGuestsFollowup ||
     isGuestNameFollowup ||
     isAvailabilityVerifyAffirmative ||
+    isReservationConfirmFollowup ||
     !!pre.stateForPlaybook?.draft ||
     !!pre.stateForPlaybook?.confirmedBooking;
   const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
@@ -2065,8 +2084,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     // Intentar leer horario exacto desde la configuración del hotel; si no existe, responder sin inventar
     try {
       const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
-      const confCheckIn = (hotel as any)?.policies?.checkInTime || (hotel as any)?.checkInTime || undefined;
-      const confCheckOut = (hotel as any)?.policies?.checkOutTime || (hotel as any)?.checkOutTime || undefined;
+      const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
       const time = offeredTimeSide === "checkin" ? confCheckIn : confCheckOut;
       if (time && typeof time === "string") {
         finalText = pre.lang === "es"
@@ -2224,6 +2242,40 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // ============================
         const kbUserText = String(pre.msg.content || "");
         const kbLower = kbUserText.toLowerCase();
+        const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
+        const hasConfirmedBookingContext = Boolean(
+          pre.st?.lastReservation?.reservationId ||
+          pre.st?.salesStage === "close"
+        );
+        if (postBookingTimeQ && hasConfirmedBookingContext) {
+          try {
+            const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+            const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
+            const asksCheckOut = detectDateSideFromText(kbUserText) === "checkOut" || /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(kbUserText);
+            const time = asksCheckOut ? confCheckOut : confCheckIn;
+            finalText = time && typeof time === "string"
+              ? (pre.lang === "es"
+                ? (asksCheckOut ? `El check-out es hasta las ${time}.` : `El check-in comienza a las ${time}.`)
+                : pre.lang === "pt"
+                  ? (asksCheckOut ? `O check-out vai até ${time}.` : `O check-in começa às ${time}.`)
+                  : (asksCheckOut ? `Check-out is until ${time}.` : `Check-in starts at ${time}.`))
+              : (pre.lang === "es"
+                ? "Puedo consultarlo con recepción y confirmarte el horario exacto de tu reserva."
+                : pre.lang === "pt"
+                  ? "Posso consultar a recepção e confirmar o horário exato da sua reserva."
+                  : "I can check with reception and confirm the exact time for your booking.");
+            nextCategory = asksCheckOut ? "checkout_info" : "checkin_info";
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+          } catch {
+            finalText = pre.lang === "es"
+              ? "Puedo consultarlo con recepción y confirmarte el horario exacto de tu reserva."
+              : pre.lang === "pt"
+                ? "Posso consultar a recepção e confirmar o horário exato da sua reserva."
+                : "I can check with reception and confirm the exact time for your booking.";
+            nextCategory = /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(kbUserText) ? "checkout_info" : "checkin_info";
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+          }
+        }
 
         // Sólo usamos KB para consultas informativas (sin contexto transaccional de reserva)
         const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
@@ -2256,12 +2308,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const isAvailabilityVerifyAffirmative =
           askedToVerifyAvailability(pre.lcHistory, pre.lang) &&
           isPureAffirmative(kbUserText, pre.lang);
+        const isReservationConfirmFollowup =
+          askedToConfirmReservation(pre.lcHistory) &&
+          (isPureConfirm(kbUserText) || isPureAffirmative(kbUserText, pre.lang));
         const hasReservationContext =
           pre.inModifyMode ||
           isRoomTypeFollowup ||
           isGuestsFollowup ||
           isGuestNameFollowup ||
           isAvailabilityVerifyAffirmative ||
+          isReservationConfirmFollowup ||
           !!pre.stateForPlaybook?.draft ||
           !!pre.stateForPlaybook?.confirmedBooking;
         console.warn("[KB] fastpath check", {
@@ -2271,6 +2327,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           isGuestsFollowup,
           isGuestNameFollowup,
           isAvailabilityVerifyAffirmative,
+          isReservationConfirmFollowup,
         });
         if (wantsNearby) {
           debugLog("[KB] skip fast-path for nearby_points_img", { text: kbUserText });
@@ -2623,6 +2680,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const triggerDateFlow = !timeQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
 
     if (timeQ) {
+      const hasConfirmedBookingContext = Boolean(
+        pre.st?.lastReservation?.reservationId ||
+        pre.st?.salesStage === "close"
+      );
+      if (hasConfirmedBookingContext) {
+        try {
+          const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+          const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
+          const asksCheckOut = detectDateSideFromText(String(pre.msg.content || "")) === "checkOut" || /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(String(pre.msg.content || ""));
+          const time = asksCheckOut ? confCheckOut : confCheckIn;
+          if (time && typeof time === "string") {
+            finalText = pre.lang === "es"
+              ? (asksCheckOut ? `El check-out es hasta las ${time}.` : `El check-in comienza a las ${time}.`)
+              : pre.lang === "pt"
+                ? (asksCheckOut ? `O check-out vai até ${time}.` : `O check-in começa às ${time}.`)
+                : (asksCheckOut ? `Check-out is until ${time}.` : `Check-in starts at ${time}.`);
+          } else {
+            finalText = pre.lang === "es"
+              ? "Puedo consultarlo con recepción y confirmarte el horario exacto de tu reserva."
+              : pre.lang === "pt"
+                ? "Posso consultar a recepção e confirmar o horário exato da sua reserva."
+                : "I can check with reception and confirm the exact time for your booking.";
+          }
+          nextCategory = asksCheckOut ? "checkout_info" : "checkin_info";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+        } catch {
+          finalText = pre.lang === "es"
+            ? "Puedo consultarlo con recepción y confirmarte el horario exacto de tu reserva."
+            : pre.lang === "pt"
+              ? "Posso consultar a recepção e confirmar o horário exato da sua reserva."
+              : "I can check with reception and confirm the exact time for your booking.";
+          nextCategory = /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(String(pre.msg.content || "")) ? "checkout_info" : "checkin_info";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+        }
+      }
       // No sobrescribimos la respuesta aquí: dejamos que el grafo clasifique a retrieval_based
       // y responda desde la base de conocimiento. Solo evitamos disparar el flujo de fechas.
       if (!nextCategory) nextCategory = "retrieval_based";

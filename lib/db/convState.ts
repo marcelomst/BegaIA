@@ -64,6 +64,14 @@ export type LastReservation =
     channel: "web" | "email" | "whatsapp" | "channelManager";
   };
 
+export type ConversationStage =
+  | "intake"
+  | "reservation_collecting"
+  | "reservation_quoted"
+  | "reservation_confirmed"
+  | "reservation_modifying"
+  | "reservation_cancelling";
+
 export type ConversationFlowState = {
   _id: string;              // hotelId:conversationId
   hotelId: string;
@@ -83,6 +91,7 @@ export type ConversationFlowState = {
 
   // Meta/negocio
   salesStage?: "qualify" | "quote" | "close" | "followup";
+  conversationStage?: ConversationStage;
   desiredAction?: "create" | "modify" | "cancel" | undefined;
 
   // Compat vieja
@@ -106,6 +115,37 @@ export type ConversationFlowState = {
   updatedAt: string;
   updatedBy?: "ai" | "agent" | "system" | "audit" | string;
 };
+
+function deriveConversationStage(
+  patch: Partial<ConversationFlowState>
+): ConversationStage | undefined {
+  if ("conversationStage" in patch) {
+    return patch.conversationStage ?? undefined;
+  }
+
+  if (patch.desiredAction === "cancel" || patch.activeFlow === "cancel_reservation") {
+    return "reservation_cancelling";
+  }
+  if (patch.desiredAction === "modify") {
+    return "reservation_modifying";
+  }
+  if (patch.lastReservation?.status === "created" || patch.salesStage === "close") {
+    return "reservation_confirmed";
+  }
+  if (patch.salesStage === "quote") {
+    return "reservation_quoted";
+  }
+  if (
+    patch.salesStage === "qualify" ||
+    patch.salesStage === "followup" ||
+    patch.activeFlow === "reservation" ||
+    patch.lastProposal ||
+    patch.reservationSlots
+  ) {
+    return "reservation_collecting";
+  }
+  return undefined;
+}
 
 /* =========================
  *      DB helpers
@@ -167,18 +207,27 @@ export async function upsertConvState(
     updatedAt: now,
     ...(patch.updatedBy ? { updatedBy: patch.updatedBy } : {}),
   };
+  const $unset: Record<string, any> = {};
 
   // Campos de nivel superior (compat + nuevos)
   if ("lastCategory" in patch) $set.lastCategory = patch.lastCategory ?? null;
   if ("activeFlow" in patch) $set.activeFlow = patch.activeFlow ?? null;
   if ("salesStage" in patch) $set.salesStage = patch.salesStage ?? null;
+  const derivedConversationStage = deriveConversationStage(patch);
+  if ("conversationStage" in patch) {
+    if (patch.conversationStage == null) {
+      $unset["conversationStage"] = true;
+    } else {
+      $set.conversationStage = patch.conversationStage;
+    }
+  } else if (derivedConversationStage) {
+    $set.conversationStage = derivedConversationStage;
+  }
   if ("lastEventCity" in patch) $set.lastEventCity = (patch as any).lastEventCity ?? null;
   if ("lastEventRange" in patch) $set.lastEventRange = (patch as any).lastEventRange ?? null;
   if ("lastEventPromptKey" in patch) $set.lastEventPromptKey = (patch as any).lastEventPromptKey ?? null;
   if ("lastIntentGroup" in patch) $set.lastIntentGroup = (patch as any).lastIntentGroup ?? null;
   if ("dateCoherencePending" in patch) $set.dateCoherencePending = (patch as any).dateCoherencePending ?? null;
-
-  const $unset: Record<string, any> = {};
 
   // ✅ NUEVO: flags de auditoría/supervisión
   if ("supervised" in patch) {
@@ -260,6 +309,7 @@ export async function upsertConvState(
       if ("lastCategory" in patch) doc.lastCategory = patch.lastCategory ?? null;
       if ("activeFlow" in patch) doc.activeFlow = patch.activeFlow ?? null;
       if ("salesStage" in patch) doc.salesStage = patch.salesStage ?? null;
+      if (derivedConversationStage) doc.conversationStage = derivedConversationStage;
       if ("supervised" in patch) doc.supervised = !!(patch as any).supervised;
       if ("lastSupervision" in patch && (patch as any).lastSupervision != null) doc.lastSupervision = (patch as any).lastSupervision;
       if ("reservationSlots" in patch) {

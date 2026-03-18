@@ -77,7 +77,13 @@ describe("messageHandler reservation confirm follow-up", () => {
     vi.clearAllMocks();
   });
 
-  it("cierra la reserva cuando el usuario responde CONFIRMAR después de la oferta explícita", async () => {
+  it.each([
+    "CONFIRMAR",
+    "comfirmar",
+    "confimar",
+    "dale",
+    "ok hacelo",
+  ])("cierra la reserva cuando el usuario responde %s después de la oferta explícita", async (userInput) => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
@@ -85,7 +91,7 @@ describe("messageHandler reservation confirm follow-up", () => {
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: "CONFIRMAR",
+      content: userInput,
       timestamp: new Date().toISOString(),
       conversationId: "conv-confirm-1",
       guestId: "g1",
@@ -96,5 +102,23 @@ describe("messageHandler reservation confirm follow-up", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/Reserva confirmada|R-0001/i);
     expect(replyText).not.toContain("contenido generico");
+  });
+
+  it("no confirma la reserva con un negativo explícito como 'no confirmes todavía'", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "confirm-neg-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "no confirmes todavía",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
   });
 });
