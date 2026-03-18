@@ -1388,15 +1388,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxt = String(pre.msg.content || "");
     const tLower = userTxt.toLowerCase();
     const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
+    const isModifyFollowupContext = pre.prevCategory === "modify_reservation" || pre.prevCategory === "modify";
     const mentionsReservation = /(reserva|booking)/i.test(tLower);
     const looksGreeting = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/i.test(tLower) || /creo que tengo una reserva|tengo una reserva|i think i have a booking|acho que tenho uma reserva/i.test(tLower);
     const genericModify = wantsGenericModify(userTxt, pre.lang);
+    const softModifyFollowup = hasConfirmed && isModifyFollowupContext && mentionsReservation && looksGreeting;
     // Evitar menú genérico si el usuario mencionó explícitamente check-in/check-out o fechas
     const sideIntentFast = detectDateSideFromText(userTxt);
     const hasAnyDateTokenFast = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(userTxt);
     const mentionsDatesFast = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
     const isDateTopicFast = Boolean(sideIntentFast || hasAnyDateTokenFast || mentionsDatesFast);
-    if (!isDateTopicFast && (genericModify || (hasConfirmed && mentionsReservation && (looksGreeting || !/precio|price|pol[ií]tica|policy|check\s*-?in|check\s*-?out|hora|horario/i.test(tLower))))) {
+    if (!isDateTopicFast && (genericModify || softModifyFollowup)) {
       const knownSlots = { ...(pre.st?.reservationSlots || {}), ...(nextSlots || {}) } as ReservationSlotsStrict;
       finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
       return { finalText, nextCategory: "modify_reservation", nextSlots: knownSlots, needsSupervision, graphResult: null };
@@ -3252,7 +3254,7 @@ function wantsGenericModify(text: string, lang: "es" | "en" | "pt"): boolean {
   }
   if (lang === "es") return /(quiero|quisiera|deseo)\s+(modificar|cambiar)(la|lo|mi|\b)/i.test(t);
   if (lang === "pt") return /(quero|gostaria de|desejo)\s+(modificar|mudar|alterar)(\s|$)/i.test(t);
-  return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+my\s+booking|\s+reservation|$)/i.test(t);
+  return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+(?:my\s+)?booking|\s+reservation|$)/i.test(t);
 }
 
 function buildModifyOptionsMenu(lang: "es" | "en" | "pt", slots: ReservationSlotsStrict): string {

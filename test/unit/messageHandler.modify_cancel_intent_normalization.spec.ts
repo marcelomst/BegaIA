@@ -62,6 +62,8 @@ describe("messageHandler modify/cancel intent normalization", () => {
   it.each([
     "modify booking",
     "modificar reserva",
+    "quiero cambiar mi reserva",
+    "edit booking",
   ])("usa la normalización determinista para entrar en modo modificación con %s", async (content) => {
     const sendReply = vi.fn(async () => {});
 
@@ -101,6 +103,9 @@ describe("messageHandler modify/cancel intent normalization", () => {
   });
 
   it.each([
+    "hola, tengo una reserva",
+    "reserva",
+    "buenas",
     "quiero saber si puedo modificar",
     "antes de modificar, ¿me recordás el precio?",
     "si modifico, me cobran?",
