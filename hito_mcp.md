@@ -2616,3 +2616,65 @@ Impacto:
 
 Se endurece el runtime actual de forma incremental y compatible, sin reemplazar
 `messageHandler` ni introducir una state machine nueva.
+
+### DOC-FIX-RESERVATION-INTENT-NORMALIZATION-MODIFY-CANCEL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: e3d4c71c33a0d8b3f0f61c3456d34e7131227308
+
+Descripción:
+
+Se registra la extensión del bloque previo `4cbeda9` para ampliar la
+normalización determinista de intents de reserva a `modify` y `cancel`,
+distinguiendo mejor entre intents ejecutables y consultas/no ejecutables
+relacionadas.
+
+Cambios documentados:
+
+- `availability.ts`
+  - `normalizeReservationIntent(...)` ahora clasifica `modify` y `cancel`
+  - evita falsos positivos como:
+    - `quiero saber si puedo cancelar`
+    - `antes de cancelar, ¿me recordás la política?`
+    - `si cancelo, me cobran?`
+    - `quiero modificar si hay lugar`
+- `messageHandler.ts`
+  - conecta esa normalización a puntos reales del runtime:
+    - `computeInModifyMode(...)`
+    - `mentionsModify`
+    - `wantsCancel`
+
+Compatibilidad:
+
+- no se tocaron `reservation.ts`, `dateConsolidation.ts` ni `policy.ts`
+- no se tocaron contratos externos
+- no se abrió refactor grande
+- el cambio es incremental y compatible sobre el runtime vigente
+
+Nota sobre tests:
+
+- además de los tests nucleares, entran ajustes incidentales en mocks de
+  suites de `messageHandler` porque `availability` incorpora el nuevo export
+  `normalizeReservationIntent(...)`
+
+Validación:
+
+- `pnpm exec vitest run test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.routing_observability.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts test/unit/messageHandler.rich.test.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/availability.reservationIntentNormalization.spec.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+- `test/unit/messageHandler.pricing_kb_bypass.spec.ts`
+- `test/unit/messageHandler.rich.test.ts`
+
+Impacto:
+
+Se extiende el endurecimiento iniciado en `4cbeda9` con un cambio técnico nuevo
+y acotado, sin alterar contratos externos ni abrir un refactor mayor del
+runtime vigente.
