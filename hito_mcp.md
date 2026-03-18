@@ -2727,3 +2727,56 @@ Impacto:
 
 Se integra `modify` por normalización determinista dentro de `detectIntent(...)`
 sin convertir este hito en una reescritura completa del detector.
+
+### DOC-FIX-RESERVATION-INTENT-NORMALIZATION-WANTSGENERICMODIFY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: a6bc7cc7ec022c76c9ad358c05f821cb8cd93806
+
+Descripción:
+
+Se registra la integración de la normalización determinista de intents de
+reserva en `wantsGenericModify(...)` para endurecer modificación genérica sin
+abrir un refactor grande.
+
+Cambios documentados:
+
+- `messageHandler.ts`
+  - `wantsGenericModify(...)` ahora usa `normalizeReservationIntent(...)`
+  - retorna positivo para `modify` ejecutable
+  - agrega guard negativa para bloquear consultas exploratorias o no
+    ejecutables antes del regex legacy
+- `availability.ts`
+  - se endurece `isModifyInquiry` para tratar como no ejecutables frases como:
+    - `quiero saber si puedo modificar`
+    - `antes de modificar...`
+    - `si modifico, me cobran?`
+    - `quiero cambiar si hay lugar`
+- `test`
+  - se agrega cobertura negativa para verificar que esos casos no activan menú
+    genérico de modificación
+
+Compatibilidad:
+
+- no se tocaron más branches
+- no se refactorizó el runtime
+- no se tocaron contratos externos
+- el cambio es incremental y compatible sobre la línea previa de normalización
+  determinista
+
+Validación:
+
+- `pnpm exec vitest run test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+
+Impacto:
+
+El cambio queda limitado a `wantsGenericModify(...)` y al endurecimiento mínimo
+necesario del normalizador, sin extenderse a un refactor mayor del runtime.
