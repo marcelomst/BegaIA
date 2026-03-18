@@ -1,31 +1,22 @@
 // /utils/conversationSession.ts
 export function getConversationId(): string | null {
   if (typeof window === "undefined") return null;
-  const localValue = localStorage.getItem("conversationId");
-  if (localValue !== null) {
-    const v = String(localValue).trim();
-    if (v && v !== "undefined" && v !== "null") return v;
-    return null;
-  }
-  const cookieValue = getCookie("conversationId");
-  if (cookieValue !== undefined) {
-    const v = String(cookieValue).trim();
+  const sessionValue = sessionStorage.getItem("conversationId");
+  if (sessionValue !== null) {
+    const v = String(sessionValue).trim();
     if (v && v !== "undefined" && v !== "null") return v;
   }
   return null;
 }
 export function hasConversationId(): boolean {
   if (typeof window === "undefined") return false;
-  const localValue = localStorage.getItem("conversationId");
-  if (localValue !== null) return true;
-  const cookieValue = getCookie("conversationId");
-  return cookieValue !== undefined;
+  const sessionValue = sessionStorage.getItem("conversationId");
+  return sessionValue !== null;
 }
 
 export function setConversationId(id: string) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("conversationId", id);
-    setCookie("conversationId", id, 365);
+    sessionStorage.setItem("conversationId", id);
   }
 }
 
@@ -59,10 +50,9 @@ function setCookie(name: string, value: string, days: number) {
 // por ejemplo, al cerrar sesión o al cambiar de usuario.
 export function resetConversationSession() {
   try {
-    localStorage.removeItem("conversationId");
+    sessionStorage.removeItem("conversationId");
+    sessionStorage.removeItem("guestId");
     localStorage.removeItem("lang");
-    // También borrá el cookie (lo setea con expiración pasada)
-    document.cookie = "conversationId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = "lang=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   } catch {}
 }

@@ -11,11 +11,11 @@ function buildGuestId(): string {
 
 export function getOrCreateGuestId(): string {
   if (typeof window === "undefined") return "";
-  const existing = String(localStorage.getItem(GUEST_ID_STORAGE_KEY) ?? "").trim();
+  const existing = String(sessionStorage.getItem(GUEST_ID_STORAGE_KEY) ?? "").trim();
   if (existing && existing !== "web-guest") {
     return existing;
   }
   const guestId = buildGuestId();
-  localStorage.setItem(GUEST_ID_STORAGE_KEY, guestId);
+  sessionStorage.setItem(GUEST_ID_STORAGE_KEY, guestId);
   return guestId;
 }
