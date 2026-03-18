@@ -69,6 +69,11 @@ export type PendingCancellation = {
   awaitingConfirmation?: boolean;
 };
 
+export type PendingAvailabilityVerification = {
+  checkIn: string;
+  checkOut: string;
+};
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -94,6 +99,7 @@ export type ConversationFlowState = {
   // Última reserva creada (si corresponde)
   lastReservation?: LastReservation;
   pendingCancellation?: PendingCancellation | null;
+  pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
 
   // Meta/negocio
   salesStage?: "qualify" | "quote" | "close" | "followup";
@@ -309,6 +315,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("pendingAvailabilityVerification" in patch) {
+    if ((patch as any).pendingAvailabilityVerification == null) {
+      $unset["pendingAvailabilityVerification"] = true;
+    } else {
+      $set["pendingAvailabilityVerification"] = (patch as any).pendingAvailabilityVerification;
+    }
+  }
+
   const update: any = Object.keys($unset).length ? { $set, $unset } : { $set };
 
   console.log("[BP-CS2]", hotelId, conversationId, JSON.stringify(patch))
@@ -346,6 +360,7 @@ export async function upsertConvState(
       if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
+      if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
       if (typeof collection.insertOne === "function") {
         await collection.insertOne(doc);
         console.log("BP-CS3 (fallback-insert)", { acknowledged: true, insertedId: _id });

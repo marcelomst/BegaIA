@@ -97,6 +97,12 @@ function askedToConfirmReservation(lcHistory: (HumanMessage | AIMessage)[]): boo
   return /confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar[”"]?|do you confirm the booking|confirma a reserva/.test(lastText);
 }
 
+function isVerifyAvailabilityPrompt(text: string): boolean {
+  return /anot[eé] nuevas fechas: .*¿dese[aá]s que verifique disponibilidad|anotei as novas datas: .*deseja que eu verifique a disponibilidade|noted the new dates: .*do you want me to check availability/i.test(
+    String(text || "")
+  );
+}
+
 function buildPastReservationCheckInPrompt(lang: string, iso?: string) {
   const ciTxt = iso ? (isoToDDMMYYYY(iso) || iso) : "";
   if (lang === "pt") return `A data de check-in ${ciTxt} já passou. Qual seria a nova data de check-in? (dd/mm/aaaa)`;
@@ -2128,6 +2134,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // Guarda temprana: si el usuario envía un "CONFIRMAR" puro sin haber indicado huéspedes o nombre, pedirlos primero
   const hasGuests = Boolean(pre.currSlots?.numGuests || pre.st?.reservationSlots?.numGuests);
   const hasGuestName = isSafeGuestName(pre.currSlots?.guestName || pre.st?.reservationSlots?.guestName || "");
+  const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } | undefined;
+  const isVerifyAvailabilityAffirmative =
+    (Boolean(pendingAvailabilityVerification) || askedToVerifyAvailability(pre.lcHistory, pre.lang)) &&
+    isPureAffirmative(String(pre.msg.content || ""), pre.lang);
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw);
@@ -2275,7 +2285,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
   }
-  if (isPureConfirm(userTxtRaw)) {
+  if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
     if (!hasGuests) {
       finalText = buildAskGuests(pre.lang);
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
@@ -3023,10 +3033,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   //    usando el rango de fechas más reciente propuesto (historial) antes que slots antiguos del estado.
   //    Importante: sobreescribimos cualquier salida previa para garantizar el ACK explícito
   //    con "verifico disponibilidad" y las fechas en formato dd/mm/aaaa (requisito de test).
-  if (askedToVerifyAvailability(pre.lcHistory, pre.lang) && isPureAffirmative(String(pre.msg.content || ""), pre.lang)) {
+  if (isVerifyAvailabilityAffirmative) {
     const proposed = getProposedAvailabilityRange(pre.lcHistory);
-    const ciISO = proposed.checkIn || nextSlots.checkIn;
-    const coISO = proposed.checkOut || nextSlots.checkOut;
+    const ciISO = pendingAvailabilityVerification?.checkIn || proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
+    const coISO = pendingAvailabilityVerification?.checkOut || proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
     const ci = ciISO ? (isoToDDMMYYYY(ciISO) || ciISO) : undefined;
     const co = coISO ? (isoToDDMMYYYY(coISO) || coISO) : undefined;
     if (ci && co) {
@@ -3041,6 +3051,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // Anteponemos el ACK para satisfacer expectativas de UX/tests y luego el resultado concreto
         finalText = `${ackLine}\n\n${res.finalText}`.trim();
         nextSlots = res.nextSlots;
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          pendingAvailabilityVerification: null,
+          lastCategory: "reservation",
+          updatedBy: "ai",
+        } as any);
         if (res.needsHandoff) {
           needsSupervision = true;
         }
@@ -3719,6 +3734,24 @@ export async function handleIncomingMessage(
         } as any);
       } catch (e) {
         console.warn("[handleIncomingMessage] updateConversationState warn:", (e as any)?.message || e);
+      }
+    }
+    const verifyPendingSnapshot = body?.nextSlots?.checkIn && body?.nextSlots?.checkOut && isVerifyAvailabilityPrompt(String(body?.finalText || ""))
+      ? {
+          checkIn: body.nextSlots.checkIn,
+          checkOut: body.nextSlots.checkOut,
+        }
+      : null;
+    if (verifyPendingSnapshot) {
+      try {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: body.nextSlots,
+          pendingAvailabilityVerification: verifyPendingSnapshot,
+          lastCategory: body?.nextCategory ?? pre.prevCategory ?? "reservation",
+          updatedBy: "ai",
+        } as any);
+      } catch (e) {
+        console.warn("[handleIncomingMessage] verify-pending persist warn:", (e as any)?.message || e);
       }
     }
     // --- Persistir y emitir respuesta (siempre, independientemente de posLLM) ---
