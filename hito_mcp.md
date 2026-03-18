@@ -2780,3 +2780,51 @@ Impacto:
 
 El cambio queda limitado a `wantsGenericModify(...)` y al endurecimiento mínimo
 necesario del normalizador, sin extenderse a un refactor mayor del runtime.
+
+### DOC-FIX-RESERVATION-INTENT-NORMALIZATION-MODIFY-FASTPATH2-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 4f88e099f4878c1e4ecae24468b1eb760c762ddb
+
+Descripción:
+
+Se registra el endurecimiento del `Fast-path 2` de modificación en
+`messageHandler.ts` para hacerlo depender más explícitamente de intent
+ejecutable de modificación y menos de señales blandas legacy.
+
+Cambios documentados:
+
+- se recorta la rama legacy del `Fast-path 2`
+- antes abría menú por una condición blanda:
+  - `hasConfirmed && mentionsReservation && (looksGreeting || ...)`
+- ahora ese acceso blando solo queda permitido como follow-up de modificación ya
+  abierto:
+  - `hasConfirmed && isModifyFollowupContext && mentionsReservation && looksGreeting`
+- el menú de modificación pasa a depender principalmente de `genericModify`,
+  que ya reutiliza `normalizeReservationIntent(...)`
+- además se endurece el fallback inglés de `wantsGenericModify(...)` para
+  aceptar mejor casos como `modify booking` y `edit booking`
+
+Compatibilidad:
+
+- no se tocaron `detectIntent(...)`, `reservation.ts`, `dateConsolidation.ts`,
+  `policy.ts`, MCP/CM ni canales
+- no se abrió refactor grande
+- el cambio es incremental y compatible sobre el runtime vigente
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.pricing_kb_bypass.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+
+Impacto:
+
+El cambio queda limitado al `Fast-path 2` de modificación y al ajuste mínimo
+necesario de `wantsGenericModify(...)`, sin abrir un refactor mayor del
+runtime.
