@@ -13,7 +13,7 @@ Principios:
 ## Template base
 
 ```text
-CHAT NAME: <DOMINIO-SUBDOMINIO-NN>
+CHAT NAME: <DOMINIO>-<SUBDOMINIO>-<NN>
 AGENT: <agente_principal>
 HITO: <HITO-XXXX | N/A>
 
