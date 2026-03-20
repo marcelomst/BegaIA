@@ -3324,3 +3324,34 @@ Impacto:
 - se explicitan nombres reales de chats/agentes
 - se documenta control de granularidad de commits
 - se refuerza la regla `1 hito = 1 commit`
+
+### LOGGING-RUNTIME-NORMALIZATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: b8af149f0b67a21fb5e56f8b3b6a41fac501a856
+
+Descripcion:
+
+Se normaliza la emision de logs del runtime principal para reducir bypasses
+semanticos y hacer mas consistente el uso de la capa central de logging en
+`/api/chat` y `messageHandler`.
+
+Archivos afectados:
+
+- `app/api/chat/route.ts`
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- no hubo suite nueva especifica informada para este commit
+- auditoria de repo: hito unico, granularidad correcta, commit aislado y
+  coherente
+
+Impacto:
+
+- mayor consistencia operativa de logging en runtime principal
+- menor bypass directo por `console.*` en trazas de `/api/chat` y
+  `messageHandler`
+- mejor alineacion con la capa central de observabilidad ya existente
+- sin cambios funcionales en contratos publicos ni logica de negocio
