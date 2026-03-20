@@ -2364,7 +2364,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
         if (result.ok) {
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-            reservationSlots: {},
+            reservationSlots: {
+              guestName: snapshot.guestName,
+              roomType: snapshot.roomType,
+              checkIn: snapshot.checkIn,
+              checkOut: snapshot.checkOut,
+              numGuests: snapshot.numGuests,
+              locale: snapshot.locale,
+            },
             lastReservation: {
               reservationId: result.reservationId || "",
               status: "created",
@@ -2382,7 +2389,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(snapshot.roomType, pre.lang)}**, Datas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
               : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(snapshot.roomType, pre.lang)}**, Dates **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`)
           : result.message;
-        return { finalText, nextCategory: "reservation", nextSlots: {}, needsSupervision, graphResult };
+        return {
+          finalText,
+          nextCategory: "reservation",
+          nextSlots: result.ok ? { ...nextSlots, ...snapshot } : nextSlots,
+          needsSupervision,
+          graphResult
+        };
       } catch (e) {
         needsSupervision = true;
         finalText = pre.lang === "es"

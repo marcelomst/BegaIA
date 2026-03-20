@@ -71,6 +71,7 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
+import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 
 describe("messageHandler reservation confirm follow-up", () => {
   beforeEach(() => {
@@ -99,6 +100,24 @@ describe("messageHandler reservation confirm follow-up", () => {
     } as any, { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-confirm-1",
+      expect.objectContaining({
+        reservationSlots: expect.objectContaining({
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-03-21",
+          checkOut: "2026-03-25",
+          numGuests: "2",
+        }),
+        salesStage: "close",
+        lastReservation: expect.objectContaining({
+          reservationId: "R-0001",
+          status: "created",
+        }),
+      })
+    );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/Reserva confirmada|R-0001/i);
     expect(replyText).not.toContain("contenido generico");
