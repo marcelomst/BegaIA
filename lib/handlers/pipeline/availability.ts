@@ -182,7 +182,8 @@ export function detectDateSideFromText(text: string): ("checkIn" | "checkOut" | 
 
 export function detectCheckinOrCheckoutTimeQuestion(text: string, _lang: "es" | "en" | "pt"): boolean {
     const t = (text || "").toLowerCase();
-    return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t);
+    return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t)
+        || /\b(late\s+check\s*-?out|late\s+checkout|check\s*-?out\s+tard[ií]o|salida\s+tard[ií]a)\b/i.test(t);
 }
 
 // Detecta si el asistente ofreció confirmar horario exacto de check-in/out en los últimos turnos
