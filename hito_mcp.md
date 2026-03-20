@@ -3272,3 +3272,55 @@ Impacto:
 
 Queda explicitado el modelo operativo documental y la convencion de chats para
 trabajo trazable entre arquitectura, ejecucion tecnica y disciplina Git.
+
+### LOGGING-RUNTIME-DEBUGLOG-CENTRAL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: f6e751d3746a5a6bcc17f244886d5c3c65ccc1be
+
+Descripcion:
+
+Se centraliza la instalacion temprana del hook de logging del runtime Node para
+que `debugLog` intercepte tambien `console.debug` y la auditoria use el canal
+centralizado.
+
+Archivos afectados:
+
+- `instrumentation.ts`
+- `lib/utils/debugLog.ts`
+- `lib/audit/log.ts`
+- `test/unit/debugLog.wrapOnce.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/debugLog.wrapOnce.spec.ts` PASS
+
+Impacto:
+
+- el hook central de logging queda instalado al iniciar runtime Node
+- `console.debug` queda espejado por `debugLog`
+- `dbg()` de auditoria usa el canal centralizado
+- no se abre refactor masivo de `console.*`
+
+### DOC-ARCH-CHAT-MAP-AND-COMMIT-GRANULARITY-RULES-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: c0bbfa5773ae548818374a4779d012fa9452a97f
+
+Descripcion:
+
+Se documenta el mapa operativo base de chats/agentes y se refuerza la regla de
+granularidad de commits dentro de la documentacion operativa de arquitectura.
+
+Archivos afectados:
+
+- `docs/architecture/channel_map.md`
+- `docs/architecture/system_operating_model.md`
+
+Impacto:
+
+- se explicitan nombres reales de chats/agentes
+- se documenta control de granularidad de commits
+- se refuerza la regla `1 hito = 1 commit`
