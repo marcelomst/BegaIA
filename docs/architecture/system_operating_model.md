@@ -1,366 +1,157 @@
-# SYSTEM OPERATING MODEL — BEGASIST
+# System Operating Model
 
-## 🎯 PROPÓSITO
+Este documento define el contrato operativo general para construir y mantener
+Begasist con trazabilidad, separacion de roles y cambios verificables.
 
-Definir el modelo operativo de desarrollo de Begasist, asegurando:
+## Objetivo
 
-- coherencia arquitectónica
-- disciplina Git estricta
-- trazabilidad completa de cambios
-- colaboración eficiente entre agentes (ChatGPT + Codex + Marcelo)
+- preservar coherencia arquitectonica
+- sostener disciplina Git estricta
+- asegurar trazabilidad entre codigo, commit y documentacion
+- coordinar el trabajo entre Marcelo, ChatGPT y agentes especializados
 
----
+## Principios
 
-## 🧠 PRINCIPIO FUNDAMENTAL
+- separar pensar, ejecutar y controlar
+- mantener cambios pequenos, auditables y reversibles
+- no mezclar dominios ni capas en un mismo hito
+- privilegiar evidencia sobre opinion
+- no cerrar hitos sin commit, hash y push reales
 
-El sistema se basa en separación de roles:
+## Roles
 
-- **Pensar (arquitectura y estrategia)**
-- **Ejecutar (código)**
-- **Controlar (repo y documentación)**
+### Marcelo
 
----
+Responsabilidad:
 
-## 👥 ROLES DEL SISTEMA
+- autoridad exclusiva para ejecutar comandos Git de escritura
+- decision final sobre avance de cambios
+- ejecucion manual de comandos uno por vez
+- devolucion de output real para trazabilidad
 
-El sistema se opera mediante:
+### ChatGPT
 
-- Marcelo (gatekeeper)
-- ChatGPT (arquitectura/orquestación)
-- agentes especializados definidos en `/home/marcelo/.codex/config.toml`
+Responsabilidad:
 
----
-
-### 👤 Marcelo (Gatekeeper del repositorio)
-
-Responsabilidad absoluta sobre el repositorio.
-
-- único autorizado a ejecutar comandos Git de escritura
-- valida decisiones finales
-- ejecuta comandos uno por uno
-- devuelve output real (copy/paste)
-
-🔐 Regla clave:
-
-> Marcelo tiene la llave de la caja fuerte del repositorio.
-
----
-
-### 🧠 ChatGPT (Arquitectura y Orquestación)
-
-Responsable de:
-
-- diseño de arquitectura
-- definición de hitos
-- generación de prompts estructurados
-- validación conceptual
-- coherencia global del sistema
-
-NO:
-
-- escribe código productivo
-- ejecuta Git
-- modifica el repo
-
----
-
-### 🔵 `agent.asistente_tecnico` (Ejecución técnica)
-
-Responsable de:
-
-- debugging de TypeScript, React, Next.js y API routes
-- implementación de fixes y lógica de negocio
-- cambios en pipeline, handlers, KB, AstraDB
-- entrega de archivos completos listos para usar
-
-Límites:
-
-- no inventar archivos inexistentes
-- no romper compatibilidad del pipeline
-- no cambiar contratos sin justificación
-
-Uso:
-
-- implementación concreta
-- corrección de bugs
-- ajustes del pipeline
-
----
-
-### 🧠 `agent.arquitecto_sistema` (Arquitectura)
-
-Responsable de:
-
-- análisis end-to-end del sistema
-- mapeo de flujos y componentes
-- detección de acoplamientos y riesgos
-- definición de evolución arquitectónica
-- generación de decisiones tipo ADR
-
-Límites:
-
-- no refactors masivos sin plan
-- no reemplazar runtime vigente sin evidencia
-- no inventar archivos
-
-Uso:
-
-- decisiones estructurales
-- análisis de deuda técnica
-- diseño evolutivo
-
----
-
-### ⚫ `agent.repo_guardian` (Disciplina Git)
-
-Responsable de:
-
-- auditar estado del repo
-- detectar mezcla de cambios
-- validar coherencia de hito
-- sugerir tipo y nombre de commit
+- arquitectura y orquestacion general
+- definicion de hitos
+- generacion de prompts y handoff
+- validacion conceptual
 
 No hace:
 
-- no modifica código
+- no escribe codigo productivo por fuera del flujo acordado
 - no ejecuta Git de escritura
 
-Gobernanza:
+### `agent.asistente_tecnico`
 
-- puede usar solo comandos Git readonly
-- entrega comandos de escritura a Marcelo uno por vez
+Responsabilidad:
+
+- implementacion tecnica
+- debugging
+- fixes incrementales
+- validacion con tests
+
+Limites:
+
+- no romper contratos existentes sin instruccion explicita
+- no abrir refactors grandes sin plan
+
+### `agent.arquitecto_sistema`
+
+Responsabilidad:
+
+- decisiones estructurales
+- analisis de limites, acoplamientos y riesgos
+- evolucion arquitectonica
+
+Limites:
+
+- no reemplazar runtime vigente sin evidencia
+- no inventar componentes ni archivos
+
+### `agent.repo_guardian`
+
+Responsabilidad:
+
+- auditar working tree
+- validar si el hito esta mezclado o limpio
+- sugerir tipo y nombre de commit
+
+Limites:
+
+- no modifica codigo
+- no ejecuta Git de escritura
 
 Regla:
 
 - 1 commit = 1 hito
 
----
+### `agent.hdoc`
 
-### ⚪ `agent.hdoc` (Disciplina Documental)
+Responsabilidad:
 
-Responsable de:
-
-- validar cierre de hitos
+- validar cierre documental de hitos
 - mantener `hito_mcp.md`
-- asegurar coherencia documental
+- asegurar consistencia entre codigo, commit y documentacion
 
 Regla central:
 
 ```text
-CODE → COMMIT → HASH → PUSH → DOC
+CODE -> COMMIT -> HASH -> PUSH -> DOC
 ```
 
-No hace:
+Limites:
 
-- no modifica código productivo
+- no modifica codigo productivo
 - no ejecuta Git de escritura
 - no documenta sin evidencia real
 - no inventa commits, hashes ni pushes
 
 Gobernanza:
 
-- si falta commit/hash/push → bloquea documentación
-- entrega comandos a Marcelo uno por uno si hace falta
-- puede actualizar `hito_mcp.md` y documentación operativa solo después de
+- si falta commit, hash o push, bloquea documentacion
+- entrega comandos Git a Marcelo uno por vez cuando hace falta
+- puede actualizar `hito_mcp.md` o documentacion operativa solo despues de
   validar evidencia real
 
----
+## Secuencia operativa
 
-## 🔁 SECUENCIA OPERATIVA ENTRE AGENTES
+1. ChatGPT define problema, hito o decision a evaluar.
+2. `agent.arquitecto_sistema` analiza si hace falta contexto estructural.
+3. `agent.asistente_tecnico` implementa el cambio y valida con tests.
+4. `agent.repo_guardian` revisa alcance y disciplina del hito.
+5. Marcelo ejecuta `git add`, `git commit` y `git push` manualmente.
+6. `agent.hdoc` valida evidencia y actualiza la documentacion si corresponde.
 
-Flujo estándar:
+## Reglas de hito
 
-1. ChatGPT define problema o hito
-2. `agent.arquitecto_sistema` analiza si es necesario
-3. `agent.asistente_tecnico` implementa cambios
-4. `agent.repo_guardian` audita el working tree
-5. Marcelo ejecuta comandos Git manualmente
-6. `agent.hdoc` valida evidencia y cierra documentación
+- un hito debe tener una sola intencion tecnica
+- un hito debe poder explicarse en una frase
+- un hito debe poder revertirse sin daño colateral innecesario
+- no mezclar `PIPELINE`, `KB`, `MCP`, `ADMIN` u otras capas en el mismo commit
+- si el working tree mezcla objetivos, dividir antes de commitear
 
----
+## Reglas Git
 
-## 🔁 FLUJO OPERATIVO
+- Marcelo es el unico autorizado a ejecutar Git de escritura
+- los agentes pueden usar Git readonly para analizar estado y evidencia
+- toda accion Git propuesta a Marcelo debe darse como un solo comando por vez
+- no asumir nunca que un comando fue ejecutado sin output real
 
-### 1. DISEÑO (ChatGPT)
+## Reglas documentales
 
-- define problema
-- propone solución
-- genera prompt para agentes
-
----
-
-### 2. IMPLEMENTACIÓN (asistente_tecnico)
-
-- aplica cambios
-- muestra código/diff
-- corre tests
-
----
-
-### 3. VALIDACIÓN (Marcelo)
-
-- revisa cambios
-- decide avanzar
-
----
-
-### 4. DISCIPLINA GIT (repo_guardian)
-
-Input:
-
-```bash
-git status --short --branch
-git diff --name-only
-git diff --stat
-```
-
-Output:
-
-- diagnóstico
-- dictamen (commit / dividir / esperar / volver a MVC)
-- nombre de commit
-
----
-
-### 5. EJECUCIÓN GIT (Marcelo)
-
-Siempre:
-
-- un comando por vez
-- ejecución manual
-- retorno de output
-
-Ejemplo:
-
-```bash
-git add <files>
-git commit -m "fix(pipeline-core): stabilize verify pending flow"
-git push
-git rev-parse --short HEAD
-```
-
----
-
-### 6. DOCUMENTACIÓN (hdoc)
-
-Valida:
-
-- código implementado
-- commit realizado
-- hash real
-- push confirmado
-
-Luego:
-
-- actualiza `hito_mcp.md` o docs operativos relacionados
-- deja trazabilidad explícita entre cambio, commit y documento
-
----
-
-## 📐 REGLAS DE ORO
-
-### 🔹 Git
-
-- 1 commit = 1 hito
-- no mezclar capas
-- usar `git add` selectivo
-- no commitear con dudas
-
----
-
-### 🔹 Hitos
-
-Un hito debe:
-
-- tener una intención clara
-- ser explicable en una frase
-- ser reversible
-- no mezclar dominios
-
----
-
-### 🔹 Documentación
-
+- no documentar sin commit real
 - no documentar sin hash real
-- no inventar commits
+- no documentar sin push real
 - no cerrar hitos incompletos
-- no confundir "no ejecutar Git de escritura" con "no editar documentación"
+- no duplicar hitos ya documentados
+- distinguir entre documentacion historica (`hito_mcp.md`) y documentacion
+  operativa estable (`docs/architecture/`)
 
----
+## Documentos relacionados
 
-### 🔹 Agentes
-
-- cada agente tiene un dominio claro
-- no mezclar responsabilidades
-- usar handoff por cápsulas de contexto
-
----
-
-## 🧩 DOMINIOS DE CHAT
-
-Convención:
-
-```text
-CHAT NAME: <DOMAIN>-<SUBDOMAIN>-<NN>
-```
-
-Ejemplos:
-
-- PIPELINE-CORE-01
-- ARCH-SYSTEM-01
-- GIT-DISCIPLINE-01
-- GIT-HITOS-01
-
----
-
-## 🔄 HANDOFF ENTRE CHATS
-
-Siempre usar cápsulas de contexto con:
-
-- estado actual
-- decisiones tomadas
-- problemas
-- siguiente paso
-
-Evitar:
-
-- copiar chats completos
-- arrastrar ruido
-
----
-
-## ⚠️ ANTIPATRONES
-
-Evitar:
-
-- commits con cambios mezclados
-- documentación sin código real
-- asumir ejecución de comandos
-- refactors grandes sin plan incremental
-- lógica crítica fuera del pipeline central
-
----
-
-## 🚀 PRINCIPIO FINAL
-
-```text
-Si no hay trazabilidad → no existe.
-Si no hay evidencia → no se documenta.
-Si no hay control → no se commitea.
-```
-
----
-
-## 🧭 FILOSOFÍA
-
-Begasist no es solo un sistema.
-
-Es un sistema que:
-
-- evoluciona de forma controlada
-- mantiene coherencia en el tiempo
-- puede escalar sin perder orden
-
----
-
-**Este documento define cómo se construye el sistema, no solo qué se construye.**
+- [channel_map.md](/home/marcelo/begasist/docs/architecture/channel_map.md)
+- [chat_naming_standard.md](/home/marcelo/begasist/docs/architecture/chat_naming_standard.md)
+- [prompts_new_chats.md](/home/marcelo/begasist/docs/architecture/prompts_new_chats.md)
+- [hito_mcp.md](/home/marcelo/begasist/hito_mcp.md)
