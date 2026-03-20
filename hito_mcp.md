@@ -3387,3 +3387,35 @@ Impacto:
 - mantiene compatibilidad con el flujo de confirmación existente
 - no cambia contratos públicos ni lógica transaccional fuera del
   reconocimiento de intent
+
+### PIPELINE-LATE-CHECKOUT-SEMANTICS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: bcc6cdaf920ad385651973e5f3a644138482debf
+
+Descripcion:
+
+Se separa semánticamente la consulta de `late check-out` respecto del
+`check-out` estándar para evitar que ambas converjan en la misma respuesta
+operativa dentro del runtime principal.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.postbooking_checkout_semantics.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.postbooking_checkout_semantics.spec.ts` PASS
+- `Test Files  1 passed (1)`
+- `Tests  4 passed (4)`
+
+Impacto:
+
+- checkout estándar y late checkout dejan de colapsar semánticamente
+- mejora la precisión de respuesta en contexto post-booking
+- evita respuestas engañosas de horario fijo para consultas sujetas a
+  disponibilidad
+- no altera contratos públicos ni abre refactor grande del pipeline
