@@ -60,6 +60,7 @@ import {
   isPureAffirmative,
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
+import { isConfirmableReservationState } from "./pipeline/reservationState";
 import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
 import { RE_BILLING } from "@/lib/agents/classify/keywords";
 
@@ -2138,6 +2139,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isVerifyAvailabilityAffirmative =
     (Boolean(pendingAvailabilityVerification) || askedToVerifyAvailability(pre.lcHistory, pre.lang)) &&
     isPureAffirmative(String(pre.msg.content || ""), pre.lang);
+  const { flow: reservationFlow, confirmable: isReservationConfirmable } = isConfirmableReservationState(pre.st, nextSlots);
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw);
@@ -2286,6 +2288,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
+    if (!isReservationConfirmable && !pre.inModifyMode) {
+      if (reservationFlow === "confirmed") {
+        finalText = pre.lang === "es"
+          ? "Ya tengo una reserva confirmada para esta conversación. Si querés modificar o cancelar, decímelo."
+          : pre.lang === "pt"
+            ? "Já tenho uma reserva confirmada nesta conversa. Se quiser modificar ou cancelar, me avise."
+            : "There is already a confirmed booking on this conversation. Tell me if you want to modify or cancel it.";
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+      finalText = pre.lang === "es"
+        ? "Todavía no tengo una propuesta lista para confirmar. Decime fechas (check-in y check-out) y tipo de habitación para avanzar."
+        : pre.lang === "pt"
+          ? "Ainda não tenho uma proposta pronta para confirmar. Me diga as datas (check-in e check-out) e o tipo de quarto para avançar."
+          : "I don’t have a proposal ready to confirm yet. Please share check-in/check-out dates and room type to continue.";
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
     if (!hasGuests) {
       finalText = buildAskGuests(pre.lang);
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };

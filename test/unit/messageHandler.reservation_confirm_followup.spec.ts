@@ -71,6 +71,8 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
+import { getConvState } from "@/lib/db/convState";
+import { getMessagesByConversation } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 
 describe("messageHandler reservation confirm follow-up", () => {
@@ -139,5 +141,32 @@ describe("messageHandler reservation confirm follow-up", () => {
     } as any, { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
+  it("no confirma si no hay estado de cotización y responde pidiendo datos", async () => {
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValueOnce({
+      reservationSlots: undefined,
+      salesStage: null,
+      lastProposal: null,
+    });
+    (getMessagesByConversation as any).mockResolvedValueOnce([]);
+
+    await handleIncomingMessage({
+      messageId: "confirm-missing-state-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "confirmar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-2",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText.toLowerCase()).toContain("propuesta");
+    expect(replyText.toLowerCase()).toContain("fecha");
   });
 });
