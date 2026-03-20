@@ -4,7 +4,8 @@ import fs from "fs";
 import path from "path";
 
 const ALLOWED_TAGS: string[] = [];
-const logPath = path.join(process.cwd(), "log.txt");
+const baseDir = process.env.BEGASIST_ROOT || process.env.INIT_CWD || process.cwd();
+const logPath = path.join(baseDir, "log.txt");
 const DEBUGLOG_CONSOLE_STATE_KEY = "__begasistDebugLogConsoleState__";
 
 type LogType = "log" | "info" | "warn" | "error" | "debug";
