@@ -3419,3 +3419,30 @@ Impacto:
 - evita respuestas engañosas de horario fijo para consultas sujetas a
   disponibilidad
 - no altera contratos públicos ni abre refactor grande del pipeline
+
+### LOGGING-RUNTIME-DEBUG-DIRECTORY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: 869c6e378e730651dbf48b0d5ba5a3be5c2a476b
+
+Descripcion:
+
+Se mueve la escritura del log runtime a `debug/log.txt` y se deja la carpeta
+`debug/` fuera de Git para mantener visibilidad operativa sin riesgo de commit
+accidental.
+
+Archivos afectados:
+
+- `.gitignore`
+- `lib/utils/debugLog.ts`
+
+Validacion:
+
+- `pnpm exec tsc --noEmit --pretty false` PASS
+
+Impacto:
+
+- el log runtime queda en una ruta mas visible y ordenada
+- `debug/` permanece ignorado por Git
+- se mantiene el comportamiento del logger sin cambiar contratos publicos
