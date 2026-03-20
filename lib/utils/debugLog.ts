@@ -5,7 +5,8 @@ import path from "path";
 
 const ALLOWED_TAGS: string[] = [];
 const baseDir = process.env.BEGASIST_ROOT || process.env.INIT_CWD || process.cwd();
-const logPath = path.join(baseDir, "log.txt");
+const logDir = path.join(baseDir, "debug");
+const logPath = path.join(logDir, "log.txt");
 const DEBUGLOG_CONSOLE_STATE_KEY = "__begasistDebugLogConsoleState__";
 
 type LogType = "log" | "info" | "warn" | "error" | "debug";
@@ -64,13 +65,14 @@ function writeLog(type: LogType, ...args: any[]) {
   const full = `[${time}] [${type.toUpperCase()}] ${msg.join(" ")}\n`;
 
   try {
+    fs.mkdirSync(logDir, { recursive: true });
     fs.appendFileSync(logPath, full);
   } catch (err) {
     consoleState.originalError("❌ Error writing to log file:", err);
   }
 }
 
-function mirrorConsole(type: Exclude<LogType, "debug">, originalFn: (...args: any[]) => void) {
+function mirrorConsole(type: LogType, originalFn: (...args: any[]) => void) {
   return (...args: any[]) => {
     writeLog(type, ...args);
     originalFn(...args);
@@ -88,8 +90,8 @@ if (!consoleState.installed) {
 
 if (!consoleState.traceLogged) {
   try {
-    writeLog("warn", "[debugLog] TRACE module loaded (log.txt writer active)");
-    consoleState.originalWarn("[debugLog] TRACE module loaded (log.txt writer active)");
+    writeLog("warn", "[debugLog] TRACE module loaded (debug/log.txt writer active)");
+    consoleState.originalWarn("[debugLog] TRACE module loaded (debug/log.txt writer active)");
     consoleState.traceLogged = true;
   } catch {}
 }

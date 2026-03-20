@@ -48,6 +48,7 @@ credenciales CQL/
 
 # local artifacts / debug
 log.txt
+debug/
 info.txt
 claves.txt
 exports/
