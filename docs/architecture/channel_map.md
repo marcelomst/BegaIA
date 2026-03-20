@@ -1,8 +1,44 @@
 # Channel Map
 
-| CHAT-NORM-NAME    | AGENT              | CHAT-NAME-REAL                       |
-| ----------------- | ------------------ | ------------------------------------ |
-| ARCH-SYSTEM-01    | arquitecto_sistema | Reportar hallazgos de arquitectura   |
-| GIT-DISCIPLINE-01 | repo_guardian      | Refuerza disciplina git              |
-| PIPELINE-CORE-01  | asistente_tecnico  | Documentar hallazgos PIPELINE-CORE-1 |
-| GIT-HITOS-01      | hdoc               | Emitir estado hito Begasist          |
+Este documento define el mapa operativo minimo entre dominios de chat,
+agentes responsables y uso esperado dentro de Begasist.
+
+Objetivo:
+
+- reducir ambiguedad al abrir chats nuevos
+- mantener separacion de dominios
+- facilitar handoff entre arquitectura, implementacion y disciplina
+
+## Reglas de uso
+
+- `CHAT-NORM-NAME` es el nombre normativo que debe seguir la convencion
+  `<DOMINIO>-<SUBDOMINIO>-<NN>`
+- `AGENT` identifica el agente principal esperado para ese chat
+- `USO-ESPERADO` describe el tipo de trabajo que corresponde a ese canal
+- este mapa define destinos base; no reemplaza el criterio de hito ni la
+  revision de alcance
+- si un trabajo mezcla dominios, se debe dividir antes de abrir o continuar el
+  chat
+
+## Mapa base
+
+| CHAT-NORM-NAME    | AGENT              | USO-ESPERADO                          |
+| ----------------- | ------------------ | ------------------------------------- |
+| ARCH-SYSTEM-01    | arquitecto_sistema | Hallazgos y decisiones de arquitectura |
+| PIPELINE-CORE-01  | asistente_tecnico  | Runtime central, handlers y reservas  |
+| GIT-DISCIPLINE-01 | repo_guardian      | Alcance de commit y disciplina Git    |
+| GIT-HITOS-01      | hdoc               | Cierre documental y trazabilidad      |
+
+## Criterio de alta
+
+Agregar una nueva fila solo si:
+
+- aparece un dominio recurrente no cubierto por el mapa actual
+- el chat requiere un agente principal distinto
+- el nuevo nombre puede mantenerse estable en el tiempo
+
+## Criterio de mantenimiento
+
+- actualizar este documento cuando cambie la convencion de naming
+- actualizarlo cuando cambie la asignacion principal de un agente
+- no usar este archivo para listar conversaciones temporales o ad hoc
