@@ -1,217 +1,81 @@
-Vamos a dejar un naming estándar operativo alineado con:
+# Chat Naming Standard
 
-- tu disciplina de hitos (HITO-\*)
-- tu forma de trabajar con agentes
-- tu arquitectura Begasist
-- y optimizado para no romper Codex
+Este documento define la convención normativa para nombrar chats de trabajo en
+Begasist.
 
----
+Objetivo:
 
-# 🧠 🎯 NAMING STANDARD — CHATS BEGASIST
+- mantener separación por dominio
+- facilitar handoff entre agentes
+- reducir ambigüedad al abrir nuevos chats
 
-Formato base:
+## Formato
 
-```text
-<DOMINIO>-<SUBDOMINIO>-<NÚMERO>
-```
-
-Ejemplo:
+Todo nombre de chat debe seguir este patrón:
 
 ```text
-PIPELINE-CORE-01
-KB-TOKENS-01
-MCP-RESERVATIONS-01
+<DOMINIO>-<SUBDOMINIO>-<NN>
 ```
 
----
+Reglas:
 
-# 🧩 1️⃣ DOMINIOS PRINCIPALES
+- `DOMINIO` va en mayúsculas
+- `SUBDOMINIO` va en mayúsculas
+- `NN` es numérico de dos dígitos
+- usar `-01` para el primer chat estable de un dominio/subdominio
+- incrementar a `-02`, `-03`, etc. cuando el chat se satura o cambia de fase
 
-Estos son fijos (no inventar nuevos salvo necesidad real):
+## Dominios permitidos
 
-| Código   | Dominio                    |
-| -------- | -------------------------- |
-| PIPELINE | lógica conversacional      |
-| KB       | knowledge base             |
-| MCP      | reservas / channel manager |
-| CHANNELS | entrada/salida mensajes    |
-| ADMIN    | panel                      |
-| DATA     | persistencia / Astra       |
-| AUTH     | usuarios / seguridad       |
-| GIT      | disciplina / hitos         |
-| ARCH     | arquitectura global        |
+| DOMINIO  | USO |
+| -------- | --- |
+| PIPELINE | runtime conversacional y lógica central |
+| KB | knowledge base |
+| MCP | reservas y channel manager |
+| CHANNELS | entradas y salidas por canal |
+| ADMIN | panel administrativo |
+| DATA | persistencia y esquema |
+| AUTH | usuarios y seguridad |
+| GIT | disciplina de repositorio e hitos |
+| ARCH | arquitectura global |
 
----
+## Subdominios base
 
-# 🔍 2️⃣ SUBDOMINIOS
+| DOMINIO | SUBDOMINIOS |
+| ------- | ----------- |
+| PIPELINE | CORE, CLASSIFICATION, FOLLOWUPS, STATE, HEURISTICS |
+| KB | TOKENS, TEMPLATES, HYDRATION, QA |
+| MCP | RESERVATIONS, ADAPTER, TESTS |
+| CHANNELS | WEB, EMAIL, WHATSAPP, PARSING |
+| ADMIN | UI, GUESTS, USERS, CHANNELS |
+| DATA | ASTRA, VECTOR, SCHEMA |
+| AUTH | LOGIN, TOKENS, VERIFICATION |
+| GIT | DISCIPLINE, HITOS, COMMITS |
+| ARCH | SYSTEM, ADR, ROADMAP |
 
-### PIPELINE
+## Reglas de uso
 
-- CORE
-- CLASSIFICATION
-- FOLLOWUPS
-- STATE
-- HEURISTICS
+- un chat debe corresponder a un solo dominio principal
+- no mezclar en el mismo chat trabajo de `PIPELINE`, `KB` y `MCP`
+- si cambia el objetivo técnico de forma material, abrir nueva numeración
+- si el nombre no puede explicarse en una sola frase, el alcance está mal
+- el nombre normativo debe ser consistente con [channel_map.md](/home/marcelo/begasist/docs/architecture/channel_map.md) cuando exista una entrada base
 
-Ej:
+## Ejemplos válidos
 
-```text
-PIPELINE-CORE-01
-PIPELINE-FOLLOWUPS-02
-```
+- `PIPELINE-CORE-01`
+- `MCP-RESERVATIONS-01`
+- `GIT-HITOS-01`
+- `ARCH-SYSTEM-01`
 
----
+## Ejemplos inválidos
 
-### KB
+- `CHAT-GENERAL`
+- `TESTING`
+- `COSAS-VARIAS`
+- `PIPELINE-KB-MCP-01`
 
-- TOKENS
-- TEMPLATES
-- HYDRATION
-- QA
-
-```text
-KB-TOKENS-01
-KB-QA-02
-```
-
----
-
-### MCP
-
-- RESERVATIONS
-- ADAPTER
-- TESTS
-
-```text
-MCP-RESERVATIONS-01
-MCP-ADAPTER-01
-```
-
----
-
-### CHANNELS
-
-- WEB
-- EMAIL
-- WHATSAPP
-- PARSING
-
-```text
-CHANNELS-WEB-01
-CHANNELS-WHATSAPP-01
-```
-
----
-
-### ADMIN
-
-- UI
-- GUESTS
-- USERS
-- CHANNELS
-
-```text
-ADMIN-GUESTS-01
-ADMIN-USERS-01
-```
-
----
-
-### DATA
-
-- ASTRA
-- VECTOR
-- SCHEMA
-
-```text
-DATA-ASTRA-01
-DATA-VECTOR-01
-```
-
----
-
-### AUTH
-
-- LOGIN
-- TOKENS
-- VERIFICATION
-
-```text
-AUTH-LOGIN-01
-AUTH-TOKENS-01
-```
-
----
-
-### GIT
-
-- DISCIPLINE
-- HITOS
-- COMMITS
-
-```text
-GIT-DISCIPLINE-01
-GIT-HITOS-01
-```
-
----
-
-### ARCH
-
-- SYSTEM
-- ADR
-- ROADMAP
-
-```text
-ARCH-SYSTEM-01
-ARCH-ADR-01
-```
-
----
-
-# 🔢 3️⃣ NUMERACIÓN
-
-Muy importante
-
-- `-01` → chat inicial del dominio
-- `-02`, `-03` → cuando el chat se satura o cambia de fase
-
-Ejemplo:
-
-```text
-PIPELINE-CORE-01  → diseño inicial
-PIPELINE-CORE-02  → refactor
-PIPELINE-CORE-03  → optimización
-```
-
----
-
-# 🧠 4️⃣ REGLAS DE USO
-
-## ✅ SIEMPRE
-
-- mantener un chat por dominio
-- continuar numeración si crece
-- no mezclar dominios
-
----
-
-## ❌ NUNCA
-
-NO hacer:
-
-```text
-CHAT GENERAL
-TESTING
-COSAS VARIAS
-PIPELINE + KB + MCP mezclado
-```
-
----
-
-# ⚙️ 5️⃣ TEMPLATE PARA INICIAR UN CHAT NUEVO
-
-Copiá esto SIEMPRE al crear uno:
+## Template mínimo de inicio
 
 ```text
 CONTEXTO — BEGASIST
@@ -237,47 +101,3 @@ Restricciones:
 Tarea:
 [lo que querés que haga el agente]
 ```
-
----
-
-# 🧩 6️⃣ EJEMPLO REAL TUYO
-
-Para lo que estás haciendo ahora:
-
-```text
-PIPELINE-FOLLOWUPS-01
-```
-
-Porque estás trabajando:
-
-- availability.ts
-- confirmaciones tipo “dale”
-- conversationStage
-
----
-
-# 🧠 7️⃣ BONUS — MAPEO CON AGENTES
-
-| Agente             | Chat                      |
-| ------------------ | ------------------------- |
-| asistente_tecnico  | PIPELINE / MCP / CHANNELS |
-| arquitecto_kb      | KB                        |
-| arquitecto_sistema | ARCH                      |
-| repo_guardian      | GIT                       |
-| hdoc               | GIT                       |
-
----
-
-# 🚀 CONCLUSIÓN
-
-Esto te permite:
-
-- escalar sin caos
-- reducir consumo Codex
-- mantener contexto útil
-- operar como equipo estructurado
-
----
-
-Si hace falta, el siguiente paso natural es armar un mapa de chats activos
-para decidir en qué conversación trabajar cada dominio.
