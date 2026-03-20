@@ -18,6 +18,7 @@ type DebugLogConsoleState = {
   originalInfo: ConsoleFn;
   originalWarn: ConsoleFn;
   originalError: ConsoleFn;
+  originalDebug: ConsoleFn;
 };
 
 function getConsoleState(): DebugLogConsoleState {
@@ -33,6 +34,7 @@ function getConsoleState(): DebugLogConsoleState {
       originalInfo: (console.info || console.log).bind(console),
       originalWarn: console.warn.bind(console),
       originalError: console.error.bind(console),
+      originalDebug: (console.debug || console.log).bind(console),
     };
   }
 
@@ -80,6 +82,7 @@ if (!consoleState.installed) {
   console.info = mirrorConsole("info", consoleState.originalInfo);
   console.warn = mirrorConsole("warn", consoleState.originalWarn);
   console.error = mirrorConsole("error", consoleState.originalError);
+  console.debug = mirrorConsole("debug", consoleState.originalDebug);
   consoleState.installed = true;
 }
 

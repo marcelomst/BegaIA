@@ -8,6 +8,7 @@ describe("debugLog console hook", () => {
     info: console.info,
     warn: console.warn,
     error: console.error,
+    debug: console.debug,
   };
 
   afterEach(() => {
@@ -15,6 +16,7 @@ describe("debugLog console hook", () => {
     console.info = baseline.info;
     console.warn = baseline.warn;
     console.error = baseline.error;
+    console.debug = baseline.debug;
     delete (globalThis as any)[DEBUGLOG_CONSOLE_STATE_KEY];
     vi.restoreAllMocks();
     vi.resetModules();
@@ -30,10 +32,12 @@ describe("debugLog console hook", () => {
       info: console.info,
       warn: console.warn,
       error: console.error,
+      debug: console.debug,
     };
 
     expect(firstWrapped.log).not.toBe(baseline.log);
     expect(firstWrapped.warn).not.toBe(baseline.warn);
+    expect(firstWrapped.debug).not.toBe(baseline.debug);
 
     vi.resetModules();
     await import("@/lib/utils/debugLog");
@@ -42,6 +46,7 @@ describe("debugLog console hook", () => {
     expect(console.info).toBe(firstWrapped.info);
     expect(console.warn).toBe(firstWrapped.warn);
     expect(console.error).toBe(firstWrapped.error);
+    expect(console.debug).toBe(firstWrapped.debug);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect((globalThis as any)[DEBUGLOG_CONSOLE_STATE_KEY]).toMatchObject({
       installed: true,
