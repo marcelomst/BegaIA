@@ -82,6 +82,7 @@ describe("messageHandler reservation confirm follow-up", () => {
 
   it.each([
     "CONFIRMAR",
+    "si, confirmo",
     "comfirmar",
     "confimar",
     "cofirmar",
