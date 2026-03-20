@@ -84,6 +84,7 @@ describe("messageHandler reservation confirm follow-up", () => {
     "CONFIRMAR",
     "comfirmar",
     "confimar",
+    "cofirmar",
     "dale",
     "ok hacelo",
   ])("cierra la reserva cuando el usuario responde %s después de la oferta explícita", async (userInput) => {
