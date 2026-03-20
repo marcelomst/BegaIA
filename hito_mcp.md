@@ -2996,3 +2996,62 @@ Archivos afectados:
 Impacto:
 
 Se endurece el entrypoint de reserva sin reescribir el detector completo.
+
+### DOC-FIX-RESERVATION-VERIFY-PENDING-SNAPSHOT-CONTINUITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-18  
+Commit: 6fb113006b713ce292c3b95ce91eeb9892767e74
+
+Descripción:
+
+Se registra la persistencia mínima y explícita del snapshot de fechas y del
+estado `verify pending` para que el ack afirmativo posterior no dependa solo de
+`lcHistory` y no se pierdan slots en turnos siguientes.
+
+Problema cubierto:
+
+- luego del mensaje `Anoté nuevas fechas: ... ¿Deseás que verifique disponibilidad...?`
+- el `si` posterior podía no cotizar claramente
+- y el turno siguiente de huéspedes podía volver a pedir fechas
+
+Cambios documentados:
+
+- `convState.ts`
+  - se agrega `pendingAvailabilityVerification`
+- `messageHandler.ts`
+  - cuando se emite el prompt de verify con fechas consolidadas, ahora
+    persiste:
+    - `reservationSlots.checkIn/checkOut`
+    - `pendingAvailabilityVerification`
+  - el `si` posterior puede apoyarse en ese estado y no solo en `lcHistory`
+  - se ajusta el guard temprano de `isPureConfirm(...)` para no interceptar ese
+    `si` antes de cotizar
+  - después de cotizar, el flag `pendingAvailabilityVerification` se limpia
+- `test`
+  - cubre persistencia del snapshot
+  - cubre cotización en el `si`
+  - cubre continuidad correcta en el turno de huéspedes sin volver a pedir
+    fechas
+
+Compatibilidad:
+
+- no se tocaron `reservation.ts`, `policy.ts`, MCP/CM ni otros canales
+- el cambio es incremental y acotado al runtime vigente
+- no abre refactor grande
+
+Validación:
+
+- `pnpm exec vitest run test/unit/messageHandler.verify_pending_snapshot_continuity.spec.ts` PASS
+- `pnpm run ts-check` PASS
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.verify_pending_snapshot_continuity.spec.ts`
+
+Impacto:
+
+Se persiste estado mínimo para continuidad transaccional sin rediseñar el flujo
+completo.
