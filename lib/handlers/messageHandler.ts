@@ -56,7 +56,9 @@ import {
   askedToVerifyAvailability,
   isPureConfirm,
   normalizeReservationIntent,
+  detectLateCheckoutQuestion,
   detectCheckinOrCheckoutTimeQuestion,
+  buildLateCheckoutResponse,
   isPureAffirmative,
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
@@ -2447,6 +2449,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // ============================
         const kbUserText = String(pre.msg.content || "");
         const kbLower = kbUserText.toLowerCase();
+        const postBookingLateCheckoutQ = detectLateCheckoutQuestion(kbUserText, pre.lang);
         const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
         const postBookingSnapshotQ = detectReservationSnapshotQuery(kbUserText, pre.lang);
         const hasConfirmedBookingContext = Boolean(
@@ -2467,6 +2470,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               : undefined
           );
           nextCategory = "reservation_snapshot";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+        }
+        if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {
+          finalText = buildLateCheckoutResponse(pre.lang);
+          nextCategory = "checkout_info";
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
         if (postBookingTimeQ && hasConfirmedBookingContext) {
@@ -2895,13 +2903,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       "data nova", "datas novas", "trocar as datas", "mudar as datas", "alterar as datas", "alterar data"
     ];
     const mentionsNewDates = datePhrases.some((p) => tLower.includes(p));
+    const lateCheckoutQ = detectLateCheckoutQuestion(String(pre.msg.content || ""), pre.lang);
     // Guard: si es una pregunta de horario de check-in/out, no dispares el flujo de cambio de fechas
     const timeQ = detectCheckinOrCheckoutTimeQuestion(String(pre.msg.content || ""), pre.lang);
     // Disparar flujo de fechas también si hay cualquier token de fecha corto o completo en el mensaje (dd/mm o dd/mm/yyyy)
     const hasAnyDateToken = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(String(pre.msg.content || ''));
-    const triggerDateFlow = !timeQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
+    const triggerDateFlow = !timeQ && !lateCheckoutQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
 
-    if (timeQ) {
+    if (lateCheckoutQ) {
+      finalText = buildLateCheckoutResponse(pre.lang);
+      nextCategory = "checkout_info";
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+    } else if (timeQ) {
       const hasConfirmedBookingContext = Boolean(
         pre.st?.lastReservation?.reservationId ||
         pre.st?.salesStage === "close"

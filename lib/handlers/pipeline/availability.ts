@@ -253,10 +253,24 @@ export function detectDateSideFromText(text: string): ("checkIn" | "checkOut" | 
     return undefined;
 }
 
+export function detectLateCheckoutQuestion(text: string, _lang: "es" | "en" | "pt"): boolean {
+    const t = (text || "").toLowerCase();
+    return /\b(late\s+check\s*-?out|late\s+checkout|check\s*-?out\s+tard[ií]o|salida\s+tard[ií]a|salir\s+m[aá]s\s+tarde|quedarme\s+m[aá]s\s+tarde|leave\s+later|check\s+out\s+later)\b/i.test(t);
+}
+
 export function detectCheckinOrCheckoutTimeQuestion(text: string, _lang: "es" | "en" | "pt"): boolean {
     const t = (text || "").toLowerCase();
-    return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t)
-        || /\b(late\s+check\s*-?out|late\s+checkout|check\s*-?out\s+tard[ií]o|salida\s+tard[ií]a)\b/i.test(t);
+    return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t);
+}
+
+export function buildLateCheckoutResponse(lang: "es" | "en" | "pt"): string {
+    if (lang === "pt") {
+        return "O late check-out está sujeito à disponibilidade. Você pode consultar a recepção durante a sua estadia.";
+    }
+    if (lang === "en") {
+        return "Late check-out is subject to availability. You can check with reception during your stay.";
+    }
+    return "El late check-out está sujeto a disponibilidad. Podés consultarlo con recepción durante tu estadía.";
 }
 
 // Detecta si el asistente ofreció confirmar horario exacto de check-in/out en los últimos turnos
