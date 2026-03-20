@@ -63,9 +63,8 @@ describe("messageHandler post-booking checkin context", () => {
     vi.clearAllMocks();
   });
 
-  it("con reserva confirmada, 'a que hora es el check in' responde horario contextual y no room_info", async () => {
-    const conversationId = "conv-postbooking-checkin-1";
-    (getConvState as any).mockResolvedValue({
+  function confirmedState(conversationId: string) {
+    return {
       hotelId,
       conversationId,
       reservationSlots: {
@@ -83,7 +82,12 @@ describe("messageHandler post-booking checkin context", () => {
       },
       salesStage: "close",
       updatedAt: new Date().toISOString(),
-    });
+    };
+  }
+
+  it("con reserva confirmada, 'a que hora es el check in' responde horario contextual y no room_info", async () => {
+    const conversationId = "conv-postbooking-checkin-1";
+    (getConvState as any).mockResolvedValue(confirmedState(conversationId));
 
     await handleIncomingMessage(msg("a que hora es el check in", conversationId), { mode: "automatic", sendReply });
 
@@ -92,6 +96,21 @@ describe("messageHandler post-booking checkin context", () => {
     const text = String(lastAi?.content || lastAi?.suggestion || "");
 
     expect(text).toMatch(/14:00/);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
+  });
+
+  it("con reserva confirmada, 'tienen late check out?' responde checkout contextual y no vuelve a pedir fecha", async () => {
+    const conversationId = "conv-postbooking-checkout-1";
+    (getConvState as any).mockResolvedValue(confirmedState(conversationId));
+
+    await handleIncomingMessage(msg("tienen late check out?", conversationId), { mode: "automatic", sendReply });
+
+    const all = await getCollection("messages").findMany({ hotelId, conversationId });
+    const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
+    const text = String(lastAi?.content || lastAi?.suggestion || "");
+
+    expect(text).toMatch(/11:00|recepci[oó]n/i);
+    expect(text).not.toMatch(/fecha de check-out|dd\/mm\/aaaa/i);
     expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
   });
 });
