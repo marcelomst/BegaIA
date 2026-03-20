@@ -602,7 +602,9 @@ function isGuestsFollowupInReservation(
   if ((!slots.numGuests && !isPureGuestCount) || slots.checkIn || slots.checkOut || slots.roomType || slots.guestName) return false;
   const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
   const lastText = String(lastAi?.content || "").toLowerCase();
-  return /\b(cu[aá]ntos hu[eé]spedes|quantos h[oó]spedes|how many guests)\b/.test(lastText);
+  return /\b(cu[aá]ntos hu[eé]spedes|n[uú]mero de hu[eé]spedes|numero de hu[eé]spedes|cantidad de hu[eé]spedes|quantos h[oó]spedes|n[uú]mero de h[oó]spedes|how many guests)\b/.test(
+    lastText
+  );
 }
 
 function isGuestNameFollowupInReservation(

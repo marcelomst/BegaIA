@@ -166,6 +166,39 @@ describe("messageHandler pricing KB bypass", () => {
     expect(replyText).not.toContain("Amenities descriptivos");
   });
 
+  it("omite KB descriptivo cuando el follow-up es numérico tras '¿Cuál es el número de huéspedes?'", async () => {
+    vi.mocked(getMessagesByConversation as any).mockResolvedValue([
+      {
+        messageId: "m1",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "¿Cuál es el número de huéspedes?",
+        timestamp: new Date(Date.now() - 1000).toISOString(),
+        conversationId: "conv-pricing-5",
+      },
+    ]);
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "pricing-5",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "2",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-pricing-5",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toContain("Amenities descriptivos");
+  });
+
   it("omite KB descriptivo cuando el usuario responde nombre completo en follow-up transaccional", async () => {
     vi.mocked(getMessagesByConversation as any).mockResolvedValue([
       {
