@@ -138,33 +138,106 @@ function extractRejectedPastCheckInFromAI(text: string): string | undefined {
 }
 
 // Parser ligero de fechas dd/mm(/yyyy) → ISO (YYYY-MM-DD) usando año actual si falta
-function extractDateRangeFromTextLight(text: string): { checkIn?: string; checkOut?: string } {
-    const re = /(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/g;
+export function extractDateRangeFromTextLight(text: string): { checkIn?: string; checkOut?: string } {
+    const MONTHS: Record<string, number> = {
+        enero: 1, ene: 1, january: 1, jan: 1,
+        febrero: 2, feb: 2, february: 2,
+        marzo: 3, mar: 3, march: 3,
+        abril: 4, apr: 4, april: 4,
+        mayo: 5, may: 5,
+        junio: 6, jun: 6, june: 6,
+        julio: 7, jul: 7, july: 7,
+        agosto: 8, aug: 8, august: 8,
+        septiembre: 9, setiembre: 9, sept: 9, sep: 9, september: 9,
+        octubre: 10, oct: 10, october: 10,
+        noviembre: 11, nov: 11, november: 11,
+        diciembre: 12, dic: 12, december: 12, dec: 12,
+    };
+
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const inferYear = (d: number, m: number, y?: number) => {
+        if (typeof y === "number") {
+            const full = y < 100 ? 2000 + y : y;
+            return full;
+        }
+        let candidateYear = today.getFullYear();
+        const candidate = new Date(Date.UTC(candidateYear, m - 1, d)).getTime();
+        if (candidate < todayStart) candidateYear += 1;
+        return candidateYear;
+    };
+    const toIso = (d: number, m: number, y?: number) => {
+        const year = inferYear(d, m, y);
+        return `${String(year).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    };
+
     const matches: Array<{ d: number; m: number; y?: number }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(text)) && matches.length < 2) {
-        const d = parseInt(m[1], 10);
-        const mm = parseInt(m[2], 10);
-        const y = m[3] ? parseInt(m[3], 10) : undefined;
+
+    // 1) numérico dd/mm(/yyyy)
+    const reNumeric = /(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/g;
+    let mn: RegExpExecArray | null;
+    while ((mn = reNumeric.exec(text)) && matches.length < 2) {
+        const d = parseInt(mn[1], 10);
+        const mm = parseInt(mn[2], 10);
+        const y = mn[3] ? parseInt(mn[3], 10) : undefined;
         if (d >= 1 && d <= 31 && mm >= 1 && mm <= 12) {
             matches.push({ d, m: mm, y });
         }
     }
-    const year = (d?: number) => {
-        if (!d) return new Date().getUTCFullYear();
-        return d < 100 ? 2000 + d : d;
-    };
-    const toIso = (x: { d: number; m: number; y?: number }) => `${String(year(x.y)).padStart(4, "0")}-${String(x.m).padStart(2, "0")}-${String(x.d).padStart(2, "0")}`;
-    if (matches.length === 2) {
-        const a = new Date(toIso(matches[0]));
-        const b = new Date(toIso(matches[1]));
-        const ci = a <= b ? toIso(matches[0]) : toIso(matches[1]);
-        const co = a <= b ? toIso(matches[1]) : toIso(matches[0]);
-        return { checkIn: ci, checkOut: co };
+
+    // 2) con nombre de mes (ej: "10 al 12 de abril", "10 de abril")
+    if (matches.length < 2) {
+        // patrón explícito de rango con mes nombrado al final: "10 al 12 de abril"
+        const monthRange = text.match(/(\d{1,2})\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñç]+)/i);
+        if (monthRange) {
+            const d1 = parseInt(monthRange[1], 10);
+            const d2 = parseInt(monthRange[2], 10);
+            const mnum = MONTHS[(monthRange[3] || "").toLowerCase()];
+            if (mnum && d1 >= 1 && d1 <= 31 && d2 >= 1 && d2 <= 31) {
+                matches.push({ d: d1, m: mnum }, { d: d2, m: mnum });
+            }
+        }
     }
-    // NUEVO: si solo hay una fecha, devolverla como un único extremo (checkIn) para permitir consolidación con follow-up
+
+    if (matches.length < 2) {
+        const reMonth = /(\d{1,2})\s*(?:de\s+)?([a-záéíóúñç]+)(?:\s*(?:de)?\s*(\d{4}))?/gi;
+        const monthHits: Array<{ d: number; m: number; y?: number }> = [];
+        let mmatch: RegExpExecArray | null;
+        while ((mmatch = reMonth.exec(text)) && monthHits.length < 2) {
+            const d = parseInt(mmatch[1], 10);
+            const monthKey = (mmatch[2] || "").toLowerCase();
+            const mnum = MONTHS[monthKey];
+            const y = mmatch[3] ? parseInt(mmatch[3], 10) : undefined;
+            if (mnum && d >= 1 && d <= 31) monthHits.push({ d, m: mnum, y });
+        }
+        if (monthHits.length === 1 && /(?:al|hasta|a)\s+\d{1,2}\b/i.test(text)) {
+            // patrón "10 al 12 de abril" (segundo día sin repetir mes)
+            const endDay = parseInt((text.match(/(?:al|hasta|a)\s+(\d{1,2})\b/i) || [])[1] || "", 10);
+            if (endDay >= 1 && endDay <= 31) {
+                const base = monthHits[0];
+                monthHits.push({ d: endDay, m: base.m, y: base.y });
+            }
+        }
+        matches.push(...monthHits);
+    }
+
+    if (matches.length === 2) {
+        const ciIso = toIso(matches[0].d, matches[0].m, matches[0].y);
+        let coIso = toIso(matches[1].d, matches[1].m, matches[1].y);
+        if (new Date(ciIso).getTime() > new Date(coIso).getTime()) {
+            // Si ambas sin año y quedaron invertidas, asumir mismo mes siguiente año para checkout
+            if (!matches[1].y && !matches[0].y) {
+                const coYear = inferYear(matches[1].d, matches[1].m, matches[1].y) + 1;
+                coIso = `${String(coYear).padStart(4, "0")}-${String(matches[1].m).padStart(2, "0")}-${String(matches[1].d).padStart(2, "0")}`;
+            } else {
+                return { checkIn: coIso, checkOut: ciIso };
+            }
+        }
+        return { checkIn: ciIso, checkOut: coIso };
+    }
     if (matches.length === 1) {
-        return { checkIn: toIso(matches[0]) };
+        const ciIso = toIso(matches[0].d, matches[0].m, matches[0].y);
+        return { checkIn: ciIso };
     }
     return {};
 }
