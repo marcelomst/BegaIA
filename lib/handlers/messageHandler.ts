@@ -1098,7 +1098,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
   const looksInvoiceDetail = /\b(comprobante|comprobantes|factura|facturas|recibo|recibos|invoice|invoices|billing)\b/i.test(kbLower);
   const looksTransactionalPricing = looksTransactionalPricingIntent(kbUserText);
 
-  console.warn("[KB] fastpath check", {
+  debugLog("[KB] fastpath check", {
     hasReservationContext,
     wantsNearby,
     isRoomTypeFollowup,
@@ -1192,7 +1192,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
         const safeCat = isSafeAutosendCategory(cat);
         const text = kb.answer?.trim();
         if (kb.ok && safeCat && text) {
-          console.warn("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
+          debugLog("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
           state.finalText = text;
           state.nextCategory = cat || "retrieval_based";
           state.nextSlots = pre.currSlots;
@@ -1296,14 +1296,14 @@ async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Prom
     const noContent = resolved?.debug?.reason === "no-content";
     const pk = classified?.promptKey;
     const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
-    console.warn("[nearby_points] fallback check", {
+    debugLog("[nearby_points] fallback check", {
       reason: resolved?.debug?.reason,
       promptKey: pk,
       noContent,
       isNearby,
     });
     if (noContent && isNearby) {
-      console.warn("[nearby_points] fallback enter", { promptKey: pk });
+      debugLog("[nearby_points] fallback enter", { promptKey: pk });
       debugLog("[nearby_points] forcing retrievalBased fallback", { promptKey: pk });
       const rbState = await retrievalBased({
         hotelId: pre.msg.hotelId,
@@ -2542,7 +2542,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           isReservationConfirmFollowup ||
           !!pre.stateForPlaybook?.draft ||
           !!pre.stateForPlaybook?.confirmedBooking;
-        console.warn("[KB] fastpath check", {
+        debugLog("[KB] fastpath check", {
           hasReservationContext,
           wantsNearby,
           isRoomTypeFollowup,
@@ -2645,7 +2645,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             // - respuesta de texto no vacía
             // - categoría "segura" (retrieval / info hotel)
             if (kb.ok && safeCat && text) {
-              console.warn("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
+              debugLog("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
               finalText = text;
               nextCategory = cat || "retrieval_based";
               nextSlots = pre.currSlots; // KB no toca slots de reserva
@@ -2751,14 +2751,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           const noContent = resolved?.debug?.reason === "no-content";
           const pk = classified?.promptKey;
           const isNearby = pk === "nearby_points" || pk === "nearby_points_img";
-          console.warn("[nearby_points] fallback check", {
+          debugLog("[nearby_points] fallback check", {
             reason: resolved?.debug?.reason,
             promptKey: pk,
             noContent,
             isNearby,
           });
           if (noContent && isNearby) {
-            console.warn("[nearby_points] fallback enter", { promptKey: pk });
+            debugLog("[nearby_points] fallback enter", { promptKey: pk });
             debugLog("[nearby_points] forcing retrievalBased fallback", { promptKey: pk });
             const rbState = await retrievalBased({
               hotelId: pre.msg.hotelId,
@@ -3662,11 +3662,11 @@ export async function handleIncomingMessage(
     if (!skipPrePos) {
       if (!(globalThis as any).__loggedPrePosOnce) {
         (globalThis as any).__loggedPrePosOnce = true;
-        console.log('[pipeline] Activado preLLM/posLLM (USE_PRE_POS_PIPELINE=1)');
+        debugLog('[pipeline] Activado preLLM/posLLM (USE_PRE_POS_PIPELINE=1)');
       }
     } else if (!(globalThis as any).__loggedSkipOnce) {
       (globalThis as any).__loggedSkipOnce = true;
-      console.log('[pipeline] Modo compacto (solo bodyLLM). Set USE_PRE_POS_PIPELINE=1 para activar fases.');
+      debugLog('[pipeline] Modo compacto (solo bodyLLM). Set USE_PRE_POS_PIPELINE=1 para activar fases.');
     }
     let pre: PreLLMResult;
     if (skipPrePos) {
@@ -3712,7 +3712,7 @@ export async function handleIncomingMessage(
       debugLog("[mh][branch]", { GRAPH_ENABLED, ORCH_ENABLED, skipPrePos });
     }
     if (GRAPH_ENABLED) {
-      try { if (IS_TEST) console.log('[mh][branch] GRAPH_ENABLED=true → invoking orchestratorProxy'); } catch { }
+      try { if (IS_TEST) debugLog('[mh][branch] GRAPH_ENABLED=true → invoking orchestratorProxy'); } catch { }
       // Camino nuevo: delegamos a grafo que incluye orquestación.
       const { runOrchestratorProxy } = await import("@/lib/agents/orchestratorAgent");
       const orch = await runOrchestratorProxy(pre, async () => await bodyLLM(pre));
@@ -3746,7 +3746,7 @@ export async function handleIncomingMessage(
         // Intencional: mantenemos posibilidad de posLLM si pre-pos pipeline activo y orquestador ON.
       }
     } else {
-      try { if (IS_TEST) console.log('[mh][branch] GRAPH_ENABLED=false → legacy path'); } catch { }
+      try { if (IS_TEST) debugLog('[mh][branch] GRAPH_ENABLED=false → legacy path'); } catch { }
       if (ORCH_ENABLED) {
         const { runOrchestratorProxy } = await import("@/lib/agents/orchestratorAgent");
         body = await runOrchestratorProxy(pre, async () => await bodyLLM(pre));
@@ -3813,7 +3813,7 @@ export async function handleIncomingMessage(
     // Esto evita el estado "pendiente" y permite validar el flujo E2E en UI.
     if (process.env.FORCE_GENERATION === "1" || process.env.FORCE_GENERATION === "true") {
       if (needsSupervision) {
-        console.warn("[autosend] FORCE_GENERATION activo → override needsSupervision=false (dev)");
+      debugLog("[autosend] FORCE_GENERATION activo → override needsSupervision=false (dev)");
       }
       needsSupervision = false;
     }
@@ -3862,7 +3862,7 @@ export async function handleIncomingMessage(
     const finalStatus = riskPolicyDecision.finalStatus;
     debugLog("[autosend]", { category: respCategory, salesStage: respSalesStage, mode: combinedMode, autosendReason: decision.autosendReason });
     if (riskPolicyDecision.autoApproved) {
-      console.log("[PIPELINE_AUTO_APPROVED_BY_POLICY]", {
+      debugLog("[PIPELINE_AUTO_APPROVED_BY_POLICY]", {
         hotelId: pre.msg.hotelId,
         channel: pre.msg.channel,
         guestId: pre.msg.guestId,
@@ -3928,7 +3928,7 @@ export async function handleIncomingMessage(
     channelMemory.addMessage(aiMsg);
     try {
       if (aiMsg.status === "sent") {
-        console.log("📤 [reply] via adapter?", !!pre.options?.sendReply, { len: suggestion.length });
+        debugLog("📤 [reply] via adapter?", !!pre.options?.sendReply, { len: suggestion.length });
         await emitReply(pre.conversationId, suggestion, pre.options?.sendReply, richPayload);
         debugLog("[handleIncomingMessage] emitReply sent", { conversationId: pre.conversationId, suggestion });
       } else {

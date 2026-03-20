@@ -1,13 +1,13 @@
 // Path: /root/begasist/app/api/chat/route.ts
 import { NextResponse } from "next/server";
 // Ensure console.warn/error are captured to log.txt via debugLog hooks
-import "@/lib/utils/debugLog";
+import { logToFile } from "@/lib/utils/debugLog";
 import crypto from "crypto";
 import { ChannelMessageInputError, handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { decideDeliveryPolicy } from "@/lib/pipeline/deliveryPolicy";
 import type { Channel, ChannelMode } from "@/types/channel";
 
-const BUILD_TAG = "2026-01-30-ARQSYS";
+const BUILD_TAG = "2026-03-20-ARQSYS";
 const DEBUG_CHAT = process.env.DEBUG === "1" || process.env.MCP_DEBUG === "1";
 const SAFE_INPUT_MAX = 3000;
 
@@ -29,12 +29,13 @@ function logChat(event: string, data: Record<string, unknown>, level: "log" | "w
     event,
     ...data,
   };
+  const line = JSON.stringify(payload);
   if (level === "error") {
-    console.error(JSON.stringify(payload));
+    void logToFile("error", line);
     return;
   }
   if (DEBUG_CHAT) {
-    (level === "warn" ? console.warn : console.log)(JSON.stringify(payload));
+    void logToFile(level, line);
   }
 }
 
@@ -103,9 +104,9 @@ export async function POST(req: Request) {
     };
 
     logChat("request.completed", {
-        hotelId,
-        channel,
-        conversationId: result.conversationId,
+      hotelId,
+      channel,
+      conversationId: result.conversationId,
       status: result.status,
       durationMs: Date.now() - startedAt,
     });
