@@ -3355,3 +3355,35 @@ Impacto:
   `messageHandler`
 - mejor alineacion con la capa central de observabilidad ya existente
 - sin cambios funcionales en contratos publicos ni logica de negocio
+
+### FIX-RESERVATION-CONFIRMO-INTENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: 8c2638ae7db0c00b45ec0747eb497a0dfc946b77
+
+Descripcion:
+
+Se amplía la normalización de intención de confirmación en reservas para
+aceptar también la variante textual `confirmo`, incluyendo el caso
+conversacional `si, confirmo`, sin alterar contratos públicos ni flujos de
+negocio fuera del reconocimiento de intent.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts` PASS
+- `Test Files  1 passed (1)`
+- `Tests  9 passed (9)`
+
+Impacto:
+
+- mejora tolerancia del runtime frente a variantes naturales de confirmación
+- reduce falsos negativos en follow-up de cierre de reserva
+- mantiene compatibilidad con el flujo de confirmación existente
+- no cambia contratos públicos ni lógica transaccional fuera del
+  reconocimiento de intent
