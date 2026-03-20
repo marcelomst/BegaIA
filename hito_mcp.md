@@ -3055,3 +3055,220 @@ Impacto:
 
 Se persiste estado mínimo para continuidad transaccional sin rediseñar el flujo
 completo.
+
+### FIX-RESERVATION-CONFIRMED-SNAPSHOT-PERSISTENCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: b93633066d3dd79eb0392457f8bd3adfdc277fd6
+
+Descripcion:
+
+Se deja de limpiar `reservationSlots` al confirmar una reserva para preservar
+el snapshot confirmado y sostener continuidad transaccional post-booking.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts` PASS
+
+Impacto:
+
+La reserva confirmada conserva su contexto operativo inmediato despues del
+confirm.
+
+### FIX-AVAILABILITY-LATE-CHECKOUT-POST-BOOKING-INQUIRY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: edc134fb19b6748a8222d79b4c21b7a646489827
+
+Descripcion:
+
+Se endurece la deteccion de consultas de horario post-booking para reconocer
+variantes de `late checkout`, `late check out`, `check-out tardio` y
+`salida tardia` como inquiry contextual y no como nuevo flujo transaccional.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+
+Validacion:
+
+- cobertura especifica agregada luego en `4fcaf52`
+- `pnpm exec vitest run test/unit/messageHandler.postbooking_checkin_context.spec.ts` PASS
+
+Impacto:
+
+El runtime interpreta mejor consultas operativas posteriores a una reserva ya
+confirmada.
+
+### FIX-RESERVATION-BLOCK-CONFIRM-OUTSIDE-QUOTED-FLOW-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: d05048579dc04fd3c4cba32ea98d10c1bc047647
+
+Descripcion:
+
+Se bloquea la confirmacion ejecutable fuera de un flujo efectivamente cotizado
+introduciendo estado minimo explicito en `reservationState.ts`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/reservationState.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts` PASS
+
+Impacto:
+
+Se reduce el riesgo de ejecutar confirmaciones fuera de contexto.
+
+### FIX-AVAILABILITY-PARTIAL-DATE-YEAR-INFERENCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: b8a969258c3a0ed53f88cb451444a192a962f7be
+
+Descripcion:
+
+El parser liviano de availability pasa a inferir anio en fechas parciales y
+mejora soporte para nombres de mes y rangos simples.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/availability.date_year_inference.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/availability.date_year_inference.spec.ts` PASS
+
+Impacto:
+
+Se mejora la interpretacion determinista de fechas incompletas sin abrir un
+refactor mayor del parser.
+
+### FIX-RESERVATION-ACCEPT-COFIRMAR-TYPO-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: fd8aa5a72355e007d67a381e84cb2f0f94524b96
+
+Descripcion:
+
+Se acepta `cofirmar` como variante valida de confirmacion ejecutable dentro del
+flujo de reserva.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts` PASS
+
+Impacto:
+
+Se absorbe un typo frecuente sin ampliar el contrato semantico del flujo.
+
+### FIX-RESERVATION-GUEST-COUNT-FOLLOWUP-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: dec2429a9490ceef8753fd36ed46566eb40fb1c0
+
+Descripcion:
+
+Se reconocen follow-ups numericos de cantidad de huespedes despues de prompts
+del tipo `numero de huespedes`, evitando desvio a KB o fallback no transaccional.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.pricing_kb_bypass.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.pricing_kb_bypass.spec.ts` PASS
+
+Impacto:
+
+El flujo de reserva sostiene mejor continuidad cuando el usuario responde solo
+con un numero.
+
+### TEST-RESERVATION-POST-BOOKING-LATE-CHECKOUT-COVERAGE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: 4fcaf52da2f1e322fe34413db76a98b62b3ed585
+
+Descripcion:
+
+Se agrega cobertura puntual para consultas de `late checkout` en contexto
+post-booking.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.postbooking_checkin_context.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.postbooking_checkin_context.spec.ts` PASS
+
+Impacto:
+
+Queda fijada una regression guard para el routing contextual de horarios
+posteriores a la reserva.
+
+### FIX-DEBUG-LOG-PATH-PROJECT-ROOT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: c4825fb43506c4785dd3b87fcc0f01880f6d69b1
+
+Descripcion:
+
+`debugLog` pasa a resolver `log.txt` desde `BEGASIST_ROOT` o `INIT_CWD` antes
+de usar `process.cwd()`.
+
+Archivos afectados:
+
+- `lib/utils/debugLog.ts`
+
+Impacto:
+
+Se estabiliza la ubicacion del log al ejecutar el proyecto desde shells o
+wrappers con cwd distinto.
+
+### DOC-ARCH-OPERATING-MODEL-AND-CHAT-CONVENTIONS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-20  
+Commit: 3d296c013ac66b6c4ec3b586b731efab65904766
+
+Descripcion:
+
+Se agrega documentacion operativa para alinear modelo de trabajo, convenciones
+de chats y mapeo base entre agentes y dominios del proyecto.
+
+Archivos afectados:
+
+- `docs/architecture/channel_map.md`
+- `docs/architecture/chat_naming_standard.md`
+- `docs/architecture/prompts_new_chats.md`
+- `docs/architecture/system_operating_model.md`
+
+Impacto:
+
+Queda explicitado el modelo operativo documental y la convencion de chats para
+trabajo trazable entre arquitectura, ejecucion tecnica y disciplina Git.
