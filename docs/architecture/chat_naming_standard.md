@@ -1,11 +1,9 @@
-Perfecto. Vamos a dejarte un **naming estándar operativo**, alineado con:
+Vamos a dejar un naming estándar operativo alineado con:
 
 - tu disciplina de hitos (HITO-\*)
 - tu forma de trabajar con agentes
 - tu arquitectura Begasist
 - y optimizado para no romper Codex
-
-👉 Esto es clave para escalar como si fueras un equipo.
 
 ---
 
@@ -55,7 +53,7 @@ Estos son fijos (no inventar nuevos salvo necesidad real):
 - STATE
 - HEURISTICS
 
-👉 Ej:
+Ej:
 
 ```text
 PIPELINE-CORE-01
@@ -173,7 +171,7 @@ ARCH-ADR-01
 
 # 🔢 3️⃣ NUMERACIÓN
 
-👉 MUY IMPORTANTE
+Muy importante
 
 - `-01` → chat inicial del dominio
 - `-02`, `-03` → cuando el chat se satura o cambia de fase
@@ -281,7 +279,5 @@ Esto te permite:
 
 ---
 
-Si querés, el siguiente paso (muy potente para vos):
-
-👉 te armo un **tablero de control tipo “mapa de chats activos”**
-para que sepas siempre en qué chat trabajar cada cosa (nivel CTO 😄).
+Si hace falta, el siguiente paso natural es armar un mapa de chats activos
+para decidir en qué conversación trabajar cada dominio.

@@ -155,11 +155,14 @@ No hace:
 - no modifica código productivo
 - no ejecuta Git de escritura
 - no documenta sin evidencia real
+- no inventa commits, hashes ni pushes
 
 Gobernanza:
 
 - si falta commit/hash/push → bloquea documentación
 - entrega comandos a Marcelo uno por uno si hace falta
+- puede actualizar `hito_mcp.md` y documentación operativa solo después de
+  validar evidencia real
 
 ---
 
@@ -249,7 +252,8 @@ Valida:
 
 Luego:
 
-- actualiza `hito_mcp.md`
+- actualiza `hito_mcp.md` o docs operativos relacionados
+- deja trazabilidad explícita entre cambio, commit y documento
 
 ---
 
@@ -280,6 +284,7 @@ Un hito debe:
 - no documentar sin hash real
 - no inventar commits
 - no cerrar hitos incompletos
+- no confundir "no ejecutar Git de escritura" con "no editar documentación"
 
 ---
 

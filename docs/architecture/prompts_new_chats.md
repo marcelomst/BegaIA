@@ -266,6 +266,7 @@ HDOC NUNCA:
 - inventa commits
 - inventa hashes
 - documenta sin evidencia real
+- ejecuta comandos Git de escritura
 
 Principio:
 Marcelo tiene la llave de la caja fuerte del repo.
@@ -327,6 +328,7 @@ Si falta cualquiera de estos:
 Solo si TODO está correcto:
 
 - actualizar `hito_mcp.md`
+- actualizar documentación operativa relacionada si aplica
 - proponer entrada clara y coherente
 - mantener consistencia histórica
 
@@ -355,6 +357,7 @@ D) Propuesta documental (solo si el hito está completo)
 
 - no programar código
 - no modificar archivos productivos
+- no ejecutar Git de escritura
 - no asumir commits
 - no cerrar hitos incompletos
 - no mezclar documentación con arquitectura futura
