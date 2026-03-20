@@ -22,12 +22,23 @@ Objetivo:
 
 ## Mapa base
 
-| CHAT-NORM-NAME    | AGENT              | USO-ESPERADO                          |
-| ----------------- | ------------------ | ------------------------------------- |
-| ARCH-SYSTEM-01    | arquitecto_sistema | Hallazgos y decisiones de arquitectura |
-| PIPELINE-CORE-01  | asistente_tecnico  | Runtime central, handlers y reservas  |
-| GIT-DISCIPLINE-01 | repo_guardian      | Alcance de commit y disciplina Git    |
-| GIT-HITOS-01      | hdoc               | Cierre documental y trazabilidad      |
+| CHAT-NORM-NAME      | AGENT                | USO-ESPERADO                             | CHAT-REAL-NAME                        |
+| ------------------- | -------------------- | ---------------------------------------- | ------------------------------------- |
+| ARCH-SYSTEM-01      | arquitecto_sistema   | Hallazgos y decisiones de arquitectura   | Reportar hallazgos de arquitectura    |
+| PIPELINE-CORE-01    | asistente_tecnico    | Runtime central, handlers y reservas     | Documentar hallazgos PIPELINE-CORE-1  |
+| GIT-DISCIPLINE-01   | repo_guardian        | Alcance de commit y disciplina Git       | Refuerza disciplina Git               |
+| GIT-HITOS-01        | hdoc                 | Cierre documental y trazabilidad         | Emitir estado hito Begasist           |
+| ------------------- | -------------------- | ---------------------------------------- | ------------------------------------- |
+
+### Sintesis Mapa con nombres reales de chats asignados por Codex para visualizacion
+
+| AGENT                | CHAT-REAL-NAME                        |
+| -------------------- | ------------------------------------- |
+| arquitecto_sistema   | Reportar hallazgos de arquitectura    |
+| asistente_tecnico    | Documentar hallazgos PIPELINE-CORE-1  |
+| repo_guardian        | Refuerza disciplina Git               |
+| hdoc                 | Emitir estado hito Begasist           |
+| -------------------- | ------------------------------------- |
 
 ## Criterio de alta
 

@@ -155,3 +155,34 @@ Gobernanza:
 - [chat_naming_standard.md](/home/marcelo/begasist/docs/architecture/chat_naming_standard.md)
 - [prompts_new_chats.md](/home/marcelo/begasist/docs/architecture/prompts_new_chats.md)
 - [hito_mcp.md](/home/marcelo/begasist/hito_mcp.md)
+
+### Control de granularidad de commits
+
+Contexto:
+
+Se observó fragmentación de commits en un mismo hito (especialmente en documentación),
+lo que dificulta la trazabilidad histórica del repositorio.
+
+Decisión:
+
+- mantener el principio: 1 hito = 1 commit
+- evitar múltiples commits para un mismo bloque conceptual
+
+Reglas:
+
+- si múltiples cambios pertenecen al mismo hito, deben consolidarse en un solo commit
+- priorizar claridad histórica sobre granularidad técnica
+- detectar y advertir fragmentación innecesaria antes del commit
+- no fragmentar documentación o cambios estructurales sin justificación real
+
+Alcance:
+
+- código
+- documentación
+- arquitectura
+- prompts
+
+Nota:
+
+- no requiere reescritura de historial existente
+- aplica hacia adelante
