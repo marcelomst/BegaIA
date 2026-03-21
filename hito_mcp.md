@@ -3554,3 +3554,47 @@ Impacto:
 - reduce ambigüedad para futuros cambios del pipeline
 - mejora gobernanza técnica del dominio semántico
 - sirve como base de referencia para auditoría y cierre de hitos relacionados
+
+### REF-PIPELINE-STABLE-INTENTS-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: b3b67168927eb1af107d09e5d0bf7c7d82fe0bf3
+
+Descripcion:
+
+Se introduce gobernanza por hotel para `stable_intents_guard`, moviendo la
+activación/configuración operativa a
+`hotelConfig.semanticPolicy.stableIntents` sin alterar la precedencia actual
+del guard ni reabrir la arquitectura base del patrón determinista.
+
+Archivos afectados:
+
+- `lib/config/hotelConfig.server.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `types/channel.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts` PASS
+- `Test Files  2 passed (2)`
+- `Tests  18 passed (18)`
+
+Impacto:
+
+- los stable intents pasan a tener gobernanza operativa por hotel
+- se mantiene el patrón determinista ya introducido en hitos anteriores
+- no se altera la precedencia del guard
+- no se reabre graph, transporte ni telemetría
+- se preserva compatibilidad hacia atrás cuando no existe configuración
+  específica
+
+Observaciones menores:
+
+- `responseSource` queda modelado como metadata de gobernanza, pero no se usa
+  todavía para resolver dinámicamente la respuesta
+- `stableIntents` queda tipado como `Record<string, ...>` y no como conjunto
+  cerrado de keys
+- estas observaciones no bloquean el hito
