@@ -9,14 +9,8 @@ const { agentInvoke } = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
-vi.mock("@/lib/redis", async () => await import("../mocks/redis"));
-vi.mock("@/lib/db/messages", async () => await import("../mocks/db_messages"));
-vi.mock("@/lib/db_messages", async () => await import("../mocks/db_messages"));
-vi.mock("@/lib/db/conversations", async () => await import("../mocks/db_conversations"));
-vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversations"));
-vi.mock("@/lib/config/hotelConfig.server", () => ({
-  getHotelConfig: vi.fn(async () => ({
+const { getHotelConfigMock } = vi.hoisted(() => ({
+  getHotelConfigMock: vi.fn(async () => ({
     hotelName: "Hotel Demo",
     schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
     amenities: {
@@ -24,6 +18,16 @@ vi.mock("@/lib/config/hotelConfig.server", () => ({
       parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
     },
   })),
+}));
+
+vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
+vi.mock("@/lib/redis", async () => await import("../mocks/redis"));
+vi.mock("@/lib/db/messages", async () => await import("../mocks/db_messages"));
+vi.mock("@/lib/db_messages", async () => await import("../mocks/db_messages"));
+vi.mock("@/lib/db/conversations", async () => await import("../mocks/db_conversations"));
+vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversations"));
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: getHotelConfigMock,
 }));
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
@@ -76,6 +80,15 @@ describe("messageHandler stable intents guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getConvState as any).mockResolvedValue(null);
+    getHotelConfigMock.mockReset();
+    getHotelConfigMock.mockResolvedValue({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+      amenities: {
+        wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
+        parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
+      },
+    });
   });
 
   it("sin contexto, 'a que hora es el check in' responde FAQ estable y no reserva", async () => {
@@ -220,5 +233,42 @@ describe("messageHandler stable intents guard", () => {
 
     const text = await lastAssistantText(conversationId);
     expect(text).not.toMatch(/clave se entrega al hacer check-in|estacionamiento sujeto a disponibilidad|07:00 - 10:30/i);
+  });
+
+  it("si el hotel deshabilita wifi, el guard no responde y sigue el pipeline", async () => {
+    const conversationId = "conv-stable-wifi-disabled-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "quote",
+      reservationSlots: {
+        roomType: "doble",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+        numGuests: 2,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+      amenities: {
+        wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
+      },
+      semanticPolicy: {
+        stableIntents: {
+          faq_wifi: {
+            enabled: false,
+            responseSource: "amenities.wifiNotes",
+          },
+        },
+      },
+    });
+
+    await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).not.toMatch(/clave se entrega al hacer check-in/i);
+    expect(text).toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
   });
 });

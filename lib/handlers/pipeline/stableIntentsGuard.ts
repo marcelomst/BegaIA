@@ -21,6 +21,54 @@ export interface StableIntentGuardResult {
   response?: string;
 }
 
+type StableIntentCatalogEntry = {
+  intentKey: StableIntentKey;
+  enabled: boolean;
+  responseSource: string;
+  examples?: string[];
+  notes?: string;
+};
+
+type StableIntentCatalog = Record<StableIntentKey, StableIntentCatalogEntry>;
+
+const DEFAULT_STABLE_INTENTS_CATALOG: StableIntentCatalog = {
+  faq_check_in_time: {
+    intentKey: "faq_check_in_time",
+    enabled: true,
+    responseSource: "schedules.checkIn",
+    examples: ["a que hora es el check in", "check-in?", "check iin"],
+    notes: "Horario de check-in estable del hotel",
+  },
+  faq_check_out_time: {
+    intentKey: "faq_check_out_time",
+    enabled: true,
+    responseSource: "schedules.checkOut",
+    examples: ["a que hora es el check-out", "checkout?", "hora checkout"],
+    notes: "Horario de check-out estable del hotel",
+  },
+  faq_breakfast_hours: {
+    intentKey: "faq_breakfast_hours",
+    enabled: true,
+    responseSource: "schedules.breakfast",
+    examples: ["desayuno?", "incluye desayuno?", "breakfast"],
+    notes: "Horario de desayuno estable del hotel",
+  },
+  faq_wifi: {
+    intentKey: "faq_wifi",
+    enabled: true,
+    responseSource: "amenities.wifiNotes",
+    examples: ["wifi?", "wifi password?", "internet"],
+    notes: "Disponibilidad y notas de Wi-Fi",
+  },
+  faq_parking: {
+    intentKey: "faq_parking",
+    enabled: true,
+    responseSource: "amenities.parkingNotes",
+    examples: ["hay parking?", "parking", "estacionamiento"],
+    notes: "Disponibilidad y notas de parking",
+  },
+};
+
 function normalizeStableIntentInput(raw: string): string {
   return String(raw || "")
     .toLowerCase()
@@ -153,6 +201,46 @@ function buildStableIntentResponse(
   return "Puedo confirmar ese detalle con recepción.";
 }
 
+function resolveStableIntentCatalog(hotel: any): StableIntentCatalog {
+  const configured = hotel?.semanticPolicy?.stableIntents;
+  const catalog = { ...DEFAULT_STABLE_INTENTS_CATALOG } as StableIntentCatalog;
+
+  if (!configured || typeof configured !== "object") {
+    return catalog;
+  }
+
+  for (const key of Object.keys(catalog) as StableIntentKey[]) {
+    const override = configured[key];
+    if (override == null) continue;
+
+    if (typeof override === "boolean") {
+      catalog[key] = {
+        ...catalog[key],
+        enabled: override,
+      };
+      continue;
+    }
+
+    if (typeof override === "object") {
+      catalog[key] = {
+        ...catalog[key],
+        enabled: typeof override.enabled === "boolean" ? override.enabled : catalog[key].enabled,
+        responseSource:
+          typeof override.responseSource === "string" && override.responseSource.trim()
+            ? override.responseSource.trim()
+            : catalog[key].responseSource,
+        examples: Array.isArray(override.examples) ? [...override.examples] : catalog[key].examples,
+        notes:
+          typeof override.notes === "string" && override.notes.trim()
+            ? override.notes.trim()
+            : catalog[key].notes,
+      };
+    }
+  }
+
+  return catalog;
+}
+
 export async function runStableIntentsGuard(
   input: StableIntentGuardInput
 ): Promise<StableIntentGuardResult> {
@@ -161,6 +249,10 @@ export async function runStableIntentsGuard(
   if (!intentKey) return { matched: false, normalizedQuery };
 
   const hotel = await getHotelConfig(input.hotelId).catch(() => null);
+  const catalog = resolveStableIntentCatalog(hotel);
+  if (!catalog[intentKey]?.enabled) {
+    return { matched: false, normalizedQuery };
+  }
   const response = buildStableIntentResponse(
     input.preferredLanguage,
     intentKey,
@@ -178,4 +270,6 @@ export async function runStableIntentsGuard(
 export const __stableIntentsForTest = {
   normalizeStableIntentInput,
   detectStableIntent,
+  resolveStableIntentCatalog,
+  DEFAULT_STABLE_INTENTS_CATALOG,
 };

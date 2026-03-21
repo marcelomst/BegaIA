@@ -47,6 +47,17 @@ export type ReservationsFlags = {
   forceCanonicalQuestion?: boolean;
 };
 
+export type StableIntentPolicyEntry = {
+  enabled?: boolean;
+  responseSource?: string;
+  examples?: string[];
+  notes?: string;
+};
+
+export type SemanticPolicyConfig = {
+  stableIntents?: Record<string, StableIntentPolicyEntry | boolean>;
+};
+
 // --- CONFIGS DE CANAL ---
 export type BaseChannelConfig = {
   enabled: boolean;
@@ -166,6 +177,8 @@ export type HotelConfig = {
   retrievalSettings?: { useAstra: boolean; fallbackUrl?: string };
   /** Banderas globales del flujo de reservas del hotel */
   reservations?: ReservationsFlags;
+  /** Gobernanza semántica incremental por hotel */
+  semanticPolicy?: SemanticPolicyConfig;
   lastUpdated?: string;
   // 🆕 Canon (1–6) + rooms
   contacts?: {

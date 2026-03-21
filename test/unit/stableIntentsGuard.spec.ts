@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/config/hotelConfig.server", () => ({
-  getHotelConfig: vi.fn(async () => ({
+const { getHotelConfigMock } = vi.hoisted(() => ({
+  getHotelConfigMock: vi.fn(async () => ({
     hotelName: "Hotel Demo",
     schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
     amenities: {
@@ -11,12 +11,28 @@ vi.mock("@/lib/config/hotelConfig.server", () => ({
   })),
 }));
 
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: getHotelConfigMock,
+}));
+
 import {
   __stableIntentsForTest,
   runStableIntentsGuard,
 } from "@/lib/handlers/pipeline/stableIntentsGuard";
 
 describe("stableIntentsGuard", () => {
+  beforeEach(() => {
+    getHotelConfigMock.mockReset();
+    getHotelConfigMock.mockResolvedValue({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+      amenities: {
+        wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
+        parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
+      },
+    });
+  });
+
   it("normaliza variantes simples de check-in con typo liviano", () => {
     expect(__stableIntentsForTest.normalizeStableIntentInput("a que hora es el check iin")).toContain("checkin");
     expect(__stableIntentsForTest.normalizeStableIntentInput("check-in?")).toBe("checkin");
@@ -84,5 +100,73 @@ describe("stableIntentsGuard", () => {
     });
 
     expect(result.matched).toBe(false);
+  });
+
+  it("respeta un intent habilitado por hotel con metadata mínima", async () => {
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "16:00", checkOut: "11:00" },
+      semanticPolicy: {
+        stableIntents: {
+          faq_check_in_time: {
+            enabled: true,
+            responseSource: "schedules.checkIn",
+            notes: "Horario operativo del hotel",
+            examples: ["check-in?"],
+          },
+        },
+      },
+    });
+
+    const result = await runStableIntentsGuard({
+      rawQuery: "check in?",
+      hotelId: "hotel-enabled",
+      preferredLanguage: "es",
+    });
+
+    expect(result.matched).toBe(true);
+    expect(result.intentKey).toBe("faq_check_in_time");
+    expect(String(result.response || "")).toMatch(/16:00/);
+  });
+
+  it("no responde como stable intent cuando el hotel lo deshabilita", async () => {
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00" },
+      semanticPolicy: {
+        stableIntents: {
+          faq_check_in_time: {
+            enabled: false,
+            responseSource: "schedules.checkIn",
+          },
+        },
+      },
+    });
+
+    const result = await runStableIntentsGuard({
+      rawQuery: "a que hora es el check in",
+      hotelId: "hotel-disabled",
+      preferredLanguage: "es",
+    });
+
+    expect(result.matched).toBe(false);
+    expect(result.response).toBeUndefined();
+  });
+
+  it("usa fallback backward compatible cuando el hotel no define semanticPolicy", async () => {
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "14:00", checkOut: "10:00", breakfast: "06:30 - 10:00" },
+    });
+
+    const result = await runStableIntentsGuard({
+      rawQuery: "desayuno?",
+      hotelId: "hotel-fallback",
+      preferredLanguage: "es",
+    });
+
+    expect(result.matched).toBe(true);
+    expect(result.intentKey).toBe("faq_breakfast_hours");
+    expect(String(result.response || "")).toMatch(/06:30 - 10:00|desayuno/i);
   });
 });

@@ -70,6 +70,7 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
     postalCode: doc.postalCode,
     phone: doc.phone,
     reservations: doc.reservations ?? {},
+    semanticPolicy: doc.semanticPolicy ?? undefined,
     // Campos extendidos
     amenities: doc.amenities ?? undefined,
     billing: doc.billing ?? undefined,
