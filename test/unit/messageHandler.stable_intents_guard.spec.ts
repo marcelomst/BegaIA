@@ -1,0 +1,142 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+process.env.STRUCTURED_ENABLED = "false";
+
+const { agentInvoke } = vi.hoisted(() => ({
+  agentInvoke: vi.fn(async () => ({
+    messages: [{ role: "assistant", content: "**🏨 Habitación Doble**\n¿Deseás que continúe con la reserva desde aquí?" }],
+    category: "retrieval_based",
+  })),
+}));
+
+vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
+vi.mock("@/lib/redis", async () => await import("../mocks/redis"));
+vi.mock("@/lib/db/messages", async () => await import("../mocks/db_messages"));
+vi.mock("@/lib/db_messages", async () => await import("../mocks/db_messages"));
+vi.mock("@/lib/db/conversations", async () => await import("../mocks/db_conversations"));
+vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversations"));
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: vi.fn(async () => ({
+    hotelName: "Hotel Demo",
+    schedules: { checkIn: "15:00", checkOut: "11:00" },
+  })),
+}));
+vi.mock("@/lib/agents", () => ({
+  agentGraph: {
+    invoke: agentInvoke,
+  },
+}));
+vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
+  answerWithKnowledge: vi.fn(async () => ({
+    ok: true,
+    category: "retrieval_based",
+    answer: "**🏨 Habitación Doble**\n¿Deseás que continúe con la reserva desde aquí?",
+    retrieved: [],
+  })),
+}));
+vi.mock("@/lib/db/convState", () => ({
+  getConvState: vi.fn(),
+  upsertConvState: vi.fn(),
+  CONVSTATE_VERSION: "convstate-test",
+}));
+
+import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+import { getCollection } from "../mocks/astra";
+import { getConvState } from "@/lib/db/convState";
+
+const hotelId = "hotel999";
+const channel = "web" as const;
+const sendReply = vi.fn(async (_t: string) => {});
+
+function msg(content: string, conversationId: string) {
+  return {
+    hotelId,
+    channel,
+    conversationId,
+    messageId: `m-${Math.random().toString(36).slice(2, 9)}`,
+    sender: "guest" as const,
+    role: "user" as const,
+    content,
+    detectedLanguage: "es",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async function lastAssistantText(conversationId: string) {
+  const all = await getCollection("messages").findMany({ hotelId, conversationId });
+  const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
+  return String(lastAi?.content || lastAi?.suggestion || "");
+}
+
+describe("messageHandler stable intents guard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (getConvState as any).mockResolvedValue(null);
+  });
+
+  it("sin contexto, 'a que hora es el check in' responde FAQ estable y no reserva", async () => {
+    const conversationId = "conv-stable-checkin-1";
+
+    await handleIncomingMessage(msg("a que hora es el check in", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/15:00/);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("tolera typo simple en 'check iin' y mantiene respuesta determinista", async () => {
+    const conversationId = "conv-stable-checkin-2";
+
+    await handleIncomingMessage(msg("a que hora es el check iin", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/15:00/);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con contexto transaccional activo, el stable intent gana precedencia", async () => {
+    const conversationId = "conv-stable-checkin-3";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "quote",
+      reservationSlots: {
+        roomType: "doble",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+        numGuests: 2,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("check-in?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/15:00/);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva|reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("mantiene checkout estándar como FAQ estable", async () => {
+    const conversationId = "conv-stable-checkout-1";
+
+    await handleIncomingMessage(msg("a qué hora es el check-out", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/11:00/);
+    expect(text).not.toMatch(/late check-out|recepci[oó]n/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("no secuestra intents transaccionales reales de reserva", async () => {
+    const conversationId = "conv-stable-negative-1";
+
+    await handleIncomingMessage(msg("quiero reservar una habitación para mañana", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).not.toMatch(/15:00|11:00/);
+    expect(text).toMatch(/fecha|habitaci[oó]n|reserva|booking/i);
+  });
+});

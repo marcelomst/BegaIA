@@ -62,6 +62,7 @@ import {
   isPureAffirmative,
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
+import { runStableIntentsGuard } from "./pipeline/stableIntentsGuard";
 import { isConfirmableReservationState } from "./pipeline/reservationState";
 import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
 import { RE_BILLING } from "@/lib/agents/classify/keywords";
@@ -1419,6 +1420,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let graphResult = state.graphResult;
   let explicitRich = state.explicitRich;
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
+  const stableIntent = await runStableIntentsGuard({
+    rawQuery: String(pre.msg.content || ""),
+    hotelId: pre.msg.hotelId,
+    preferredLanguage: pre.lang,
+    conversationId: pre.conversationId,
+  });
+  if (stableIntent.matched && stableIntent.response) {
+    finalText = stableIntent.response;
+    nextCategory = stableIntent.intentKey === "faq_check_out_time" ? "checkout_info" : "checkin_info";
+    debugLog("[stable-intents-guard] matched", {
+      conversationId: pre.conversationId,
+      intentKey: stableIntent.intentKey,
+      normalizedQuery: stableIntent.normalizedQuery,
+    });
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+  }
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
