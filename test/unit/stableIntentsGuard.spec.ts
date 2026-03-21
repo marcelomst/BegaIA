@@ -47,6 +47,8 @@ describe("stableIntentsGuard", () => {
 
     expect(result.matched).toBe(true);
     expect(result.intentKey).toBe("faq_check_in_time");
+    expect(result.routingDecision).toBe("served");
+    expect(result.policySource).toBe("default_catalog");
     expect(String(result.response || "")).toMatch(/15:00/);
   });
 
@@ -151,6 +153,9 @@ describe("stableIntentsGuard", () => {
 
     expect(result.matched).toBe(false);
     expect(result.response).toBeUndefined();
+    expect(result.detectedIntentKey).toBe("faq_check_in_time");
+    expect(result.routingDecision).toBe("blocked_by_policy");
+    expect(result.policySource).toBe("hotel_config.semanticPolicy.stableIntents");
   });
 
   it("usa fallback backward compatible cuando el hotel no define semanticPolicy", async () => {
@@ -167,6 +172,7 @@ describe("stableIntentsGuard", () => {
 
     expect(result.matched).toBe(true);
     expect(result.intentKey).toBe("faq_breakfast_hours");
+    expect(result.routingDecision).toBe("served");
     expect(String(result.response || "")).toMatch(/06:30 - 10:00|desayuno/i);
   });
 });

@@ -1,5 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { runStableIntentsGuardMock } = vi.hoisted(() => ({
+  runStableIntentsGuardMock: vi.fn(async () => ({
+    matched: false,
+    normalizedQuery: "",
+    routingDecision: "no_match",
+    hotelPolicyApplied: false,
+  })),
+}));
+
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
   getMessagesByConversation: vi.fn(async () => []),
@@ -33,7 +42,9 @@ vi.mock("@/lib/handlers/pipeline/availability", () => ({
   askedToVerifyAvailability: () => false,
   isPureConfirm: () => false,
   normalizeReservationIntent: () => ({ kind: "other", executable: false, normalizedText: "" }),
+  detectLateCheckoutQuestion: () => false,
   detectCheckinOrCheckoutTimeQuestion: () => null,
+  buildLateCheckoutResponse: () => "Late checkout sujeto a disponibilidad.",
   isPureAffirmative: () => false,
   askedToConfirmCheckTime: () => null,
 }));
@@ -51,6 +62,9 @@ vi.mock("@/lib/prompts", () => ({
 }));
 vi.mock("@/lib/web/eventBus", () => ({ emitToConversation: vi.fn(() => {}) }));
 vi.mock("@/lib/utils/debugLog", () => ({ debugLog: vi.fn() }));
+vi.mock("@/lib/handlers/pipeline/stableIntentsGuard", () => ({
+  runStableIntentsGuard: runStableIntentsGuardMock,
+}));
 vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class { constructor(_c: any) {} async invoke() { return { content: "Respuesta base" }; } },
 }));
@@ -63,6 +77,121 @@ import { debugLog } from "@/lib/utils/debugLog";
 describe("messageHandler routing observability baseline", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    runStableIntentsGuardMock.mockResolvedValue({
+      matched: false,
+      normalizedQuery: "",
+      routingDecision: "no_match",
+      hotelPolicyApplied: false,
+    });
+  });
+
+  it("loggea telemetría compacta cuando stable intent es servido", async () => {
+    runStableIntentsGuardMock.mockResolvedValueOnce({
+      matched: true,
+      intentKey: "faq_wifi",
+      detectedIntentKey: "faq_wifi",
+      normalizedQuery: "wifi",
+      response: "Wi-Fi gratis en todo el hotel.",
+      routingDecision: "served",
+      hotelPolicyApplied: true,
+      policyEnabled: true,
+      policySource: "hotel_config.semanticPolicy.stableIntents",
+      responseSource: "amenities.wifiNotes",
+    });
+
+    await handleIncomingMessage({
+      messageId: "obs-stable-served-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "wifi?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-stable-served-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][stable_intents_guard]",
+      expect.objectContaining({
+        routing_stage: "stable_intents_guard",
+        routing_decision: "served",
+        matched: true,
+        matched_intent: "faq_wifi",
+        hotel_policy_applied: true,
+        policy_enabled: true,
+        policy_source: "hotel_config.semanticPolicy.stableIntents",
+        response_source: "amenities.wifiNotes",
+      })
+    );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][decision]",
+      expect.objectContaining({
+        decision_layer: "stable_intents_guard",
+        route_source: "stable_intents_guard",
+        route_match: "faq_wifi",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: "amenities_info",
+      })
+    );
+  });
+
+  it("loggea stable intent bloqueado por policy y luego fallback al pipeline normal", async () => {
+    runStableIntentsGuardMock.mockResolvedValueOnce({
+      matched: false,
+      detectedIntentKey: "faq_wifi",
+      normalizedQuery: "wifi",
+      routingDecision: "blocked_by_policy",
+      hotelPolicyApplied: true,
+      policyEnabled: false,
+      policySource: "hotel_config.semanticPolicy.stableIntents",
+      responseSource: "amenities.wifiNotes",
+    });
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "kb_general",
+      answer: "Contenido KB general",
+      contentTitle: "KB",
+      contentBody: "Body",
+      retrieved: [],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-stable-blocked-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "wifi?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-stable-blocked-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][stable_intents_guard]",
+      expect.objectContaining({
+        routing_stage: "stable_intents_guard",
+        routing_decision: "blocked_by_policy",
+        matched: false,
+        matched_intent: "faq_wifi",
+        hotel_policy_applied: true,
+        policy_enabled: false,
+      })
+    );
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][decision]",
+      expect.objectContaining({
+        decision_layer: "bodyLLM",
+        route_source: "knowledgeBaseAgent",
+        route_match: "safe_kb_fastpath",
+        early_return: true,
+      })
+    );
   });
 
   it("loggea decisión homogénea para fast-path de KB", async () => {
@@ -100,6 +229,42 @@ describe("messageHandler routing observability baseline", () => {
         classifier_source: "heuristic",
         final_category: "retrieval_based",
         final_promptKey: "amenities_list",
+      })
+    );
+  });
+
+  it("loggea no-match del stable guard antes de caer al flujo normal", async () => {
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "amenities_list",
+      answer: "Tenemos piscina y desayuno.",
+      contentTitle: "Amenities",
+      contentBody: "Body",
+      retrieved: [],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-stable-no-match-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "¿Tienen piscina?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-stable-no-match-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][stable_intents_guard]",
+      expect.objectContaining({
+        routing_stage: "stable_intents_guard",
+        routing_decision: "no_match",
+        matched: false,
+        matched_intent: null,
+        hotel_policy_applied: false,
       })
     );
   });

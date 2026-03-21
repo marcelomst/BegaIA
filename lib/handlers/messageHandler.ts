@@ -287,6 +287,17 @@ type RoutingDecisionLog = {
   final_promptKey?: string | null;
 };
 
+type StableIntentRoutingLog = {
+  routing_stage: "stable_intents_guard";
+  routing_decision: "served" | "blocked_by_policy" | "no_match";
+  matched: boolean;
+  matched_intent: string | null;
+  hotel_policy_applied: boolean;
+  policy_enabled: boolean | null;
+  policy_source: string | null;
+  response_source: string | null;
+};
+
 function deriveClassifierSource(graphResult: any): RoutingDecisionLog["classifier_source"] {
   const routeSource = String(graphResult?.meta?.debug?.route_source || "");
   if (routeSource.startsWith("forced_llm_classifier")) return "forced_llm";
@@ -304,6 +315,18 @@ function emitRoutingDecision(
     hotelId: msg.hotelId,
     channel: msg.channel,
     ...decision,
+  });
+}
+
+function emitStableIntentRouting(
+  msg: Pick<ChannelMessage, "conversationId" | "hotelId" | "channel">,
+  detail: StableIntentRoutingLog
+) {
+  debugLog("[routing][stable_intents_guard]", {
+    conversationId: msg.conversationId,
+    hotelId: msg.hotelId,
+    channel: msg.channel,
+    ...detail,
   });
 }
 
@@ -1426,6 +1449,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     preferredLanguage: pre.lang,
     conversationId: pre.conversationId,
   });
+  emitStableIntentRouting(pre.msg, {
+    routing_stage: "stable_intents_guard",
+    routing_decision: stableIntent.routingDecision,
+    matched: stableIntent.matched,
+    matched_intent: stableIntent.detectedIntentKey ?? null,
+    hotel_policy_applied: stableIntent.hotelPolicyApplied,
+    policy_enabled: typeof stableIntent.policyEnabled === "boolean" ? stableIntent.policyEnabled : null,
+    policy_source: stableIntent.policySource ?? null,
+    response_source: stableIntent.responseSource ?? null,
+  });
   if (stableIntent.matched && stableIntent.response) {
     finalText = stableIntent.response;
     nextCategory =
@@ -1438,6 +1471,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       conversationId: pre.conversationId,
       intentKey: stableIntent.intentKey,
       normalizedQuery: stableIntent.normalizedQuery,
+    });
+    emitRoutingDecision(pre.msg, {
+      decision_layer: "stable_intents_guard",
+      route_source: "stable_intents_guard",
+      route_match: stableIntent.intentKey,
+      early_return: true,
+      used_llm_classifier: false,
+      classifier_source: "heuristic",
+      final_category: nextCategory,
+      final_promptKey: null,
     });
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
   }

@@ -17,8 +17,14 @@ export interface StableIntentGuardInput {
 export interface StableIntentGuardResult {
   matched: boolean;
   intentKey?: StableIntentKey;
+  detectedIntentKey?: StableIntentKey;
   normalizedQuery?: string;
   response?: string;
+  routingDecision: "served" | "blocked_by_policy" | "no_match";
+  hotelPolicyApplied: boolean;
+  policyEnabled?: boolean;
+  policySource?: "hotel_config.semanticPolicy.stableIntents" | "default_catalog";
+  responseSource?: string;
 }
 
 type StableIntentCatalogEntry = {
@@ -246,12 +252,39 @@ export async function runStableIntentsGuard(
 ): Promise<StableIntentGuardResult> {
   const normalizedQuery = normalizeStableIntentInput(input.rawQuery);
   const intentKey = detectStableIntent(normalizedQuery);
-  if (!intentKey) return { matched: false, normalizedQuery };
+  if (!intentKey) {
+    return {
+      matched: false,
+      normalizedQuery,
+      routingDecision: "no_match",
+      hotelPolicyApplied: false,
+    };
+  }
 
   const hotel = await getHotelConfig(input.hotelId).catch(() => null);
   const catalog = resolveStableIntentCatalog(hotel);
-  if (!catalog[intentKey]?.enabled) {
-    return { matched: false, normalizedQuery };
+  const configured = hotel?.semanticPolicy?.stableIntents;
+  const hasHotelOverride = Boolean(
+    configured &&
+    typeof configured === "object" &&
+    Object.prototype.hasOwnProperty.call(configured, intentKey)
+  );
+  const policySource = hasHotelOverride
+    ? "hotel_config.semanticPolicy.stableIntents"
+    : "default_catalog";
+  const policy = catalog[intentKey];
+
+  if (!policy?.enabled) {
+    return {
+      matched: false,
+      detectedIntentKey: intentKey,
+      normalizedQuery,
+      routingDecision: "blocked_by_policy",
+      hotelPolicyApplied: true,
+      policyEnabled: false,
+      policySource,
+      responseSource: policy?.responseSource,
+    };
   }
   const response = buildStableIntentResponse(
     input.preferredLanguage,
@@ -262,8 +295,14 @@ export async function runStableIntentsGuard(
   return {
     matched: true,
     intentKey,
+    detectedIntentKey: intentKey,
     normalizedQuery,
     response,
+    routingDecision: "served",
+    hotelPolicyApplied: true,
+    policyEnabled: true,
+    policySource,
+    responseSource: policy.responseSource,
   };
 }
 
