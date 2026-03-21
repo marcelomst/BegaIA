@@ -3446,3 +3446,43 @@ Impacto:
 - el log runtime queda en una ruta mas visible y ordenada
 - `debug/` permanece ignorado por Git
 - se mantiene el comportamiento del logger sin cambiar contratos publicos
+
+### HITO-PIPELINE-STABLE-INTENTS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: 17be472d9dbe35d3de7869f1280d4167a8cbbaf8
+
+Descripcion:
+
+Se introduce una guardia determinista para FAQ estables de check-in/check-out
+por encima del flujo semántico principal, evitando que contexto transaccional,
+`conv_state` o dependencia innecesaria del LLM/graph secuestren consultas
+simples y deterministas.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts` PASS
+- `Test Files  2 passed (2)`
+- `Tests  8 passed (8)`
+
+Impacto:
+
+- FAQ estables de check-in/check-out dejan de depender innecesariamente del
+  graph/LLM
+- el contexto transaccional deja de secuestrar esas consultas simples
+- mejora robustez frente a typo liviano como `check iin`
+- se mantiene un alcance conservador sin refactor grande del pipeline
+
+Observaciones menores:
+
+- `conversationId` se pasa al guard pero hoy no participa del matching
+- la guardia quedó insertada en `bodyLLM` y no en `preLLM`
+- estas observaciones no bloquean el hito
