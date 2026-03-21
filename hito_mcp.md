@@ -3598,3 +3598,44 @@ Observaciones menores:
 - `stableIntents` queda tipado como `Record<string, ...>` y no como conjunto
   cerrado de keys
 - estas observaciones no bloquean el hito
+
+### FEAT-PIPELINE-ROUTING-TELEMETRY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: a3875d53203836123b15a6b21ccedced51113560
+
+Descripcion:
+
+Se introduce telemetría compacta de routing para el pipeline conversacional,
+especialmente alrededor de `stable_intents_guard`, reutilizando la
+infraestructura existente de `debugLog` sin crear un sistema paralelo de
+logging ni modificar contratos del pipeline.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.routing_observability.spec.ts` PASS
+- `Test Files  2 passed (2)`
+- `Tests  13 passed (13)`
+
+Impacto:
+
+- mejora observabilidad del routing sin abrir infraestructura nueva
+- hace visible cuándo `stable_intents_guard` sirve, bloquea por policy o no
+  matchea
+- mantiene coherencia con el sistema actual de logging basado en `debugLog`
+- no modifica transporte, persistencia ni arquitectura del pipeline
+
+Observaciones menores:
+
+- `stableIntentsGuard` queda algo más acoplado a observabilidad porque devuelve
+  metadata adicional
+- el cambio sigue siendo razonable y contenido dentro del objetivo del hito
+- no bloquea el cierre
