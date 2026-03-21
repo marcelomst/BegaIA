@@ -3639,3 +3639,35 @@ Observaciones menores:
   metadata adicional
 - el cambio sigue siendo razonable y contenido dentro del objetivo del hito
 - no bloquea el cierre
+
+### FIX-PIPELINE-ROUTING-NAMING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: 26ac6e56479cb4c6d4c7877b9824823b05f93234
+
+Descripcion:
+
+Se corrige una inconsistencia puntual de naming en la telemetría de routing del
+pipeline renombrando `final_promptKey` a `final_prompt_key`, sin alterar lógica
+funcional, contratos ni eventos emitidos.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.routing_observability.spec.ts` PASS
+- `Test Files  1 passed (1)`
+- `Tests  5 passed (5)`
+- `pnpm tsc --noEmit` PASS
+
+Impacto:
+
+- unifica naming del payload de observabilidad de routing
+- reduce inconsistencia entre convenciones de claves
+- no altera decisiones del pipeline
+- no toca `debugLog.ts`
+- no introduce infraestructura nueva ni persistencia
