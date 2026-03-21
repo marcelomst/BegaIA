@@ -1428,7 +1428,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   });
   if (stableIntent.matched && stableIntent.response) {
     finalText = stableIntent.response;
-    nextCategory = stableIntent.intentKey === "faq_check_out_time" ? "checkout_info" : "checkin_info";
+    nextCategory =
+      stableIntent.intentKey === "faq_check_out_time"
+        ? "checkout_info"
+        : stableIntent.intentKey === "faq_check_in_time"
+          ? "checkin_info"
+          : "amenities_info";
     debugLog("[stable-intents-guard] matched", {
       conversationId: pre.conversationId,
       intentKey: stableIntent.intentKey,

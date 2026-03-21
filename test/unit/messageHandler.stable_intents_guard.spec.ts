@@ -18,7 +18,11 @@ vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversa
 vi.mock("@/lib/config/hotelConfig.server", () => ({
   getHotelConfig: vi.fn(async () => ({
     hotelName: "Hotel Demo",
-    schedules: { checkIn: "15:00", checkOut: "11:00" },
+    schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+    amenities: {
+      wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
+      parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
+    },
   })),
 }));
 vi.mock("@/lib/agents", () => ({
@@ -130,6 +134,75 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("con contexto transaccional activo, 'wifi?' gana precedencia y no deriva a reserva", async () => {
+    const conversationId = "conv-stable-wifi-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "quote",
+      reservationSlots: {
+        roomType: "doble",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+        numGuests: 2,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/wifi|wi-fi|clave/i);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva|reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con contexto transaccional activo, 'hay parking?' gana precedencia y no deriva a reserva", async () => {
+    const conversationId = "conv-stable-parking-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "quote",
+      reservationSlots: {
+        roomType: "doble",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+        numGuests: 2,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("hay parking?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/parking|estacionamiento/i);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva|reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con contexto transaccional activo, 'desayuno?' gana precedencia y no deriva a reserva", async () => {
+    const conversationId = "conv-stable-breakfast-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "quote",
+      reservationSlots: {
+        roomType: "doble",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+        numGuests: 2,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("desayuno?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/desayuno|07:00 - 10:30/i);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva|reserva/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
   it("no secuestra intents transaccionales reales de reserva", async () => {
     const conversationId = "conv-stable-negative-1";
 
@@ -138,5 +211,14 @@ describe("messageHandler stable intents guard", () => {
     const text = await lastAssistantText(conversationId);
     expect(text).not.toMatch(/15:00|11:00/);
     expect(text).toMatch(/fecha|habitaci[oó]n|reserva|booking/i);
+  });
+
+  it("no captura frases enriquecidas como 'necesito wifi para trabajar durante mi estadía'", async () => {
+    const conversationId = "conv-stable-negative-2";
+
+    await handleIncomingMessage(msg("necesito wifi para trabajar durante mi estadía", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).not.toMatch(/clave se entrega al hacer check-in|estacionamiento sujeto a disponibilidad|07:00 - 10:30/i);
   });
 });
