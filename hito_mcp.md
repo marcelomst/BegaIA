@@ -3486,3 +3486,41 @@ Observaciones menores:
 - `conversationId` se pasa al guard pero hoy no participa del matching
 - la guardia quedó insertada en `bodyLLM` y no en `preLLM`
 - estas observaciones no bloquean el hito
+
+### HITO-PIPELINE-STABLE-INTENTS-02
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: 58a4468e980ddc252cfb6ccb45adf7972c1e0266
+
+Descripcion:
+
+Se extiende `stable_intents_guard` para cubrir FAQ estables de amenities
+(`faq_breakfast_hours`, `faq_wifi`, `faq_parking`) manteniendo precedencia por
+encima de `conv_state` y separación respecto al flujo semántico principal.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts` PASS
+- `Test Files  2 passed (2)`
+- `Tests  14 passed (14)`
+
+Impacto:
+
+- nuevas FAQ estables dejan de depender del graph/LLM
+- se mantiene precedencia sobre contexto transaccional activo
+- se reduce fragilidad de routing en preguntas frecuentes de amenities
+- se conserva un alcance conservador y auditable sin refactor de arquitectura
+
+Observaciones menores:
+
+- los nuevos intents colapsan en la categoría `amenities_info`
+- el filtro conservador sigue basado en regex manuales
+- estas observaciones no bloquean el hito
