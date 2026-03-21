@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { StableIntentGuardResult } from "@/lib/handlers/pipeline/stableIntentsGuard";
 
 const { runStableIntentsGuardMock } = vi.hoisted(() => ({
-  runStableIntentsGuardMock: vi.fn(async () => ({
+  runStableIntentsGuardMock: vi.fn<() => Promise<StableIntentGuardResult>>(async () => ({
     matched: false,
     normalizedQuery: "",
     routingDecision: "no_match",
@@ -228,7 +229,7 @@ describe("messageHandler routing observability baseline", () => {
         used_llm_classifier: false,
         classifier_source: "heuristic",
         final_category: "retrieval_based",
-        final_promptKey: "amenities_list",
+        final_prompt_key: "amenities_list",
       })
     );
   });
@@ -311,7 +312,7 @@ describe("messageHandler routing observability baseline", () => {
         used_llm_classifier: true,
         classifier_source: "forced_llm",
         final_category: "reservation",
-        final_promptKey: "reservation_flow",
+        final_prompt_key: "reservation_flow",
       })
     );
   });

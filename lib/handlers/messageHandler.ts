@@ -279,12 +279,12 @@ function isSafeAutosendCategory(cat?: string | null): boolean {
 type RoutingDecisionLog = {
   decision_layer: string;
   route_source: string;
-  route_match: string;
+  route_match: string | null;
   early_return: boolean;
   used_llm_classifier: boolean;
   classifier_source: "heuristic" | "llm" | "forced_llm" | "fallback";
   final_category?: string | null;
-  final_promptKey?: string | null;
+  final_prompt_key?: string | null;
 };
 
 type StableIntentRoutingLog = {
@@ -1076,7 +1076,7 @@ function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState):
     used_llm_classifier: false,
     classifier_source: "heuristic",
     final_category: state.nextCategory,
-    final_promptKey: null,
+    final_prompt_key: null,
   });
   return true;
 }
@@ -1173,7 +1173,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
           used_llm_classifier: false,
           classifier_source: "heuristic",
           final_category: state.nextCategory,
-          final_promptKey: forcedPromptKey,
+          final_prompt_key: forcedPromptKey,
         });
         return true;
       }
@@ -1198,7 +1198,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
         used_llm_classifier: false,
         classifier_source: "fallback",
         final_category: state.nextCategory,
-        final_promptKey: "payments_and_billing",
+        final_prompt_key: "payments_and_billing",
       });
       return true;
     }
@@ -1239,7 +1239,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
             used_llm_classifier: false,
             classifier_source: "heuristic",
             final_category: state.nextCategory,
-            final_promptKey: kb.promptKey || null,
+            final_prompt_key: kb.promptKey || null,
           });
           return true;
         }
@@ -1301,7 +1301,7 @@ async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Prom
       (state.graphResult as any)?.intentSource === "llm",
     classifier_source: deriveClassifierSource(state.graphResult),
     final_category: state.nextCategory,
-    final_promptKey:
+    final_prompt_key:
       (state.graphResult as any)?.promptKey ||
       (state.graphResult as any)?.classified?.promptKey ||
       null,
@@ -1475,12 +1475,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     emitRoutingDecision(pre.msg, {
       decision_layer: "stable_intents_guard",
       route_source: "stable_intents_guard",
-      route_match: stableIntent.intentKey,
+      route_match: stableIntent.intentKey ?? null,
       early_return: true,
       used_llm_classifier: false,
       classifier_source: "heuristic",
       final_category: nextCategory,
-      final_promptKey: null,
+      final_prompt_key: null,
     });
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
   }
@@ -2668,7 +2668,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 used_llm_classifier: false,
                 classifier_source: "heuristic",
                 final_category: nextCategory,
-                final_promptKey: forcedPromptKey,
+                final_prompt_key: forcedPromptKey,
               });
               return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
             }
@@ -2693,7 +2693,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               used_llm_classifier: false,
               classifier_source: "fallback",
               final_category: nextCategory,
-              final_promptKey: "payments_and_billing",
+              final_prompt_key: "payments_and_billing",
             });
             return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
           }
@@ -2742,7 +2742,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 used_llm_classifier: false,
                 classifier_source: "heuristic",
                 final_category: nextCategory,
-                final_promptKey: kb.promptKey || null,
+                final_prompt_key: kb.promptKey || null,
               });
               return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
             }
@@ -2802,7 +2802,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             (graphResult as any)?.intentSource === "llm",
           classifier_source: deriveClassifierSource(graphResult),
           final_category: nextCategory,
-          final_promptKey:
+          final_prompt_key:
             (graphResult as any)?.promptKey ||
             (graphResult as any)?.classified?.promptKey ||
             null,
@@ -3253,7 +3253,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       used_llm_classifier: false,
       classifier_source: "fallback",
       final_category: nextCategory,
-      final_promptKey:
+      final_prompt_key:
         (graphResult as any)?.promptKey ||
         (graphResult as any)?.classified?.promptKey ||
         null,
