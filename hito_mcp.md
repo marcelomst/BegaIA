@@ -3524,3 +3524,33 @@ Observaciones menores:
 - los nuevos intents colapsan en la categoría `amenities_info`
 - el filtro conservador sigue basado en regex manuales
 - estas observaciones no bloquean el hito
+
+### DOC-ADR-PIPELINE-SEMANTIC-CONTROL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-21  
+Commit: f601ce8d9f0497af84d8b630a5a0a068e52f1e8c
+
+Descripcion:
+
+Se documenta formalmente la decisión arquitectónica para el control semántico
+del pipeline, separando FAQ estables deterministas de intents transaccionales
+dependientes de `conv_state`, contexto conversacional y LLM/graph.
+
+Archivo afectado:
+
+- `docs/architecture/ADR-PIPELINE-SEMANTIC-CONTROL-01.md`
+
+Validacion:
+
+- no corresponde validación automática de tests por tratarse de documentación
+  arquitectónica pura
+- auditoría de repo: working tree aislado, un único hito documental, sin
+  mezcla con código ni otros concerns
+
+Impacto:
+
+- deja trazabilidad explícita de la decisión arquitectónica
+- reduce ambigüedad para futuros cambios del pipeline
+- mejora gobernanza técnica del dominio semántico
+- sirve como base de referencia para auditoría y cierre de hitos relacionados
