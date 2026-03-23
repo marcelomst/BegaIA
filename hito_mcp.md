@@ -3945,3 +3945,37 @@ Impacto:
 - prepara mejor el sistema para futuras referencias a reservas múltiples
 - reduce ambigüedad del motor de estado sin rediseñar el dominio completo
 - preserva compatibilidad con el pipeline actual
+
+### FEAT-PIPELINE-REFERENCE-RESOLUTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 967be9a8a9151155aaf6e5dfaf4c584ba2c92747
+
+Descripcion:
+
+Se introduce una capa mínima, conservadora y trazable de resolución de
+referencias conversacionales sobre reservas múltiples, aprovechando contexto
+activo e historial para evitar pedir código innecesariamente cuando la
+referencia ya es resoluble.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/convState.conversationStage.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/messageHandler.postbooking_checkout_semantics.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  11 passed (11)`
+- `Tests  94 passed (94)`
+- `0 FAIL`
+
+Impacto:
+
+- mejora resolución conversacional sobre reservas múltiples
+- reduce pedidos innecesarios de código de reserva
+- aprovecha correctamente contexto activo, historial mínimo y última reserva
+- mantiene trazabilidad y conservadurismo
+- no abre NLP general ni refactor estructural
