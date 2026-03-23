@@ -3979,3 +3979,33 @@ Impacto:
 - aprovecha correctamente contexto activo, historial mínimo y última reserva
 - mantiene trazabilidad y conservadurismo
 - no abre NLP general ni refactor estructural
+
+### DOC-PIPELINE-ARCHITECTURE-CONSOLIDATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 53bc0bc0808dd5f70e772eb8a2dd612f5b821ed4
+
+Descripcion:
+
+Se consolida la documentación viva del pipeline conversacional y
+`message_pipeline.md` pasa a ser la fuente principal del runtime actual,
+alineando `docs/architecture` con el sistema real.
+
+Archivos afectados:
+
+- `docs/architecture/message_pipeline.md`
+- `docs/architecture/README.md`
+
+Validacion:
+
+- no corresponde validación automática por tratarse de documentación de arquitectura
+
+Impacto:
+
+- se consolida documentación viva del pipeline conversacional
+- `message_pipeline.md` pasa a ser la fuente principal del runtime actual
+- se documenta explícitamente `messageHandler` como runtime central
+- se documentan `stableIntentsGuard`, `guestState`, `reservationHistory` y `activeReservationContext`
+- se documenta soporte de múltiples reservas y resolución de referencias
+- se alinea la documentación con el sistema real y se eliminan desfasajes con la implementación
