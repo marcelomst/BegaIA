@@ -2,18 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
-  getMessagesByConversation: vi.fn(async () => [
-    {
-      messageId: "m1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "assistant",
-      role: "ai",
-      content: "¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-      timestamp: new Date(Date.now() - 1000).toISOString(),
-      conversationId: "conv-confirm-1",
-    },
-  ]),
+  getMessagesByConversation: vi.fn(async () => []),
 }));
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
@@ -24,19 +13,29 @@ vi.mock("@/lib/db/guests", () => ({
   createGuest: vi.fn(async () => {}),
   updateGuest: vi.fn(async () => {}),
 }));
+
+const confirmedState = {
+  reservationSlots: {
+    guestName: "Marcelo Martinez",
+    roomType: "double",
+    checkIn: "2026-04-10",
+    checkOut: "2026-04-12",
+    numGuests: "2",
+  },
+  salesStage: "close",
+  conversationStage: "reservation_confirmed",
+  lastReservation: {
+    reservationId: "RES-BASE-01",
+    status: "created",
+    createdAt: "2026-03-20T10:00:00.000Z",
+    channel: "web",
+  },
+};
+
 vi.mock("@/lib/db/convState", () => ({
-  getConvState: vi.fn(async () => ({
-    reservationSlots: {
-      guestName: "Marcelo Martinez",
-      roomType: "double",
-      checkIn: "2026-03-21",
-      checkOut: "2026-03-25",
-      numGuests: "2",
-    },
-    salesStage: "quote",
-  })),
+  getConvState: vi.fn(async () => confirmedState),
   upsertConvState: vi.fn(async () => {}),
-  CONVSTATE_VERSION: "test",
+  CONVSTATE_VERSION: "convstate-test",
   resolveGuestState: (st: any) => {
     if (!st) return undefined;
     if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
@@ -53,13 +52,6 @@ vi.mock("@/lib/db/convState", () => ({
     }
     return undefined;
   },
-}));
-vi.mock("@/lib/agents/reservations", () => ({
-  confirmAndCreate: vi.fn(async () => ({
-    ok: true,
-    reservationId: "R-0001",
-    message: "✅ Reserva creada. ID: R-0001",
-  })),
 }));
 vi.mock("@/lib/agents", () => ({
   agentGraph: { invoke: vi.fn(async () => ({ messages: [], category: "reservation", meta: {} })) },
@@ -81,110 +73,130 @@ vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
     retrieved: [],
   })),
 }));
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: vi.fn(async () => ({
+    hotelName: "Hotel Demo",
+    schedules: { checkIn: "15:00", checkOut: "11:00" },
+  })),
+}));
 vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class { constructor(_c: any) {} async invoke() { return { content: "Respuesta base" }; } },
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
-import { confirmAndCreate } from "@/lib/agents/reservations";
+import { agentGraph } from "@/lib/agents";
 import { getConvState } from "@/lib/db/convState";
-import { getMessagesByConversation } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 
-describe("messageHandler reservation confirm follow-up", () => {
+describe("messageHandler multi reservation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+    });
   });
 
-  it.each([
-    "CONFIRMAR",
-    "si, confirmo",
-    "comfirmar",
-    "confimar",
-    "cofirmar",
-    "dale",
-    "ok hacelo",
-  ])("cierra la reserva cuando el usuario responde %s después de la oferta explícita", async (userInput) => {
+  it("con reserva confirmada, 'quiero hacer otra reserva' abre un draft nuevo sin pisar la anterior", async () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
-      messageId: "confirm-1",
+      messageId: "multi-1",
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: userInput,
+      content: "quiero hacer otra reserva",
       timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-1",
+      conversationId: "conv-multi-1",
       guestId: "g1",
       detectedLanguage: "es",
     } as any, { mode: "automatic", sendReply });
 
-    expect(confirmAndCreate).toHaveBeenCalled();
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
     expect(updateConversationState).toHaveBeenCalledWith(
       "hotel999",
-      "conv-confirm-1",
+      "conv-multi-1",
       expect.objectContaining({
-        reservationSlots: expect.objectContaining({
-          guestName: "Marcelo Martinez",
-          roomType: "double",
-          checkIn: "2026-03-21",
-          checkOut: "2026-03-25",
-          numGuests: "2",
-        }),
-        salesStage: "close",
-        lastReservation: expect.objectContaining({
-          reservationId: "R-0001",
-          status: "created",
-        }),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "qualify",
+        lastCategory: "reservation",
+        reservationHistory: [
+          expect.objectContaining({
+            reservationId: "RES-BASE-01",
+            status: "created",
+          }),
+        ],
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/Reserva confirmada|R-0001/i);
-    expect(replyText).not.toContain("contenido generico");
+    expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
+    expect(replyText).toMatch(/check-in y check-out|fechas/i);
   });
 
-  it("no confirma la reserva con un negativo explícito como 'no confirmes todavía'", async () => {
+  it("con reserva confirmada, 'quiero reservar otra habitación' abre un draft nuevo y preserva la reserva previa", async () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
-      messageId: "confirm-neg-1",
+      messageId: "multi-2",
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: "no confirmes todavía",
+      content: "quiero reservar otra habitación",
       timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-1",
+      conversationId: "conv-multi-2",
       guestId: "g1",
       detectedLanguage: "es",
     } as any, { mode: "automatic", sendReply });
 
-    expect(confirmAndCreate).not.toHaveBeenCalled();
-  });
-
-  it("no confirma si no hay estado de cotización y responde pidiendo datos", async () => {
-    const sendReply = vi.fn(async () => {});
-    (getConvState as any).mockResolvedValueOnce({
-      reservationSlots: undefined,
-      salesStage: null,
-      lastProposal: null,
-    });
-    (getMessagesByConversation as any).mockResolvedValueOnce([]);
-
-    await handleIncomingMessage({
-      messageId: "confirm-missing-state-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "confirmar",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-2",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
-
-    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-2",
+      expect.objectContaining({
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "qualify",
+        reservationHistory: [
+          expect.objectContaining({
+            reservationId: "RES-BASE-01",
+            status: "created",
+          }),
+        ],
+      })
+    );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText.toLowerCase()).toContain("propuesta");
-    expect(replyText.toLowerCase()).toContain("fecha");
+    expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
+    expect(replyText).toMatch(/check-in y check-out|fechas/i);
+  });
+
+  it("con aclaración explícita de nueva reserva mantiene la anterior y abre otra", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "multi-3",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "es una nueva reserva, aquella está vigente, dejala que la voy a usar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-3",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-3",
+      expect.objectContaining({
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "qualify",
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
   });
 });

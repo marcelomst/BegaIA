@@ -100,6 +100,7 @@ export type ConversationFlowState = {
 
   // Última reserva creada (si corresponde)
   lastReservation?: LastReservation;
+  reservationHistory?: LastReservation[] | null;
   pendingCancellation?: PendingCancellation | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
   guestState?: GuestState | null;
@@ -310,6 +311,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("reservationHistory" in patch) {
+    if ((patch as any).reservationHistory == null) {
+      $unset["reservationHistory"] = true;
+    } else {
+      $set["reservationHistory"] = (patch as any).reservationHistory;
+    }
+  }
+
   if ("pendingCancellation" in patch) {
     if ((patch as any).pendingCancellation == null) {
       $unset["pendingCancellation"] = true;
@@ -370,6 +379,7 @@ export async function upsertConvState(
       }
       if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
+      if ("reservationHistory" in patch && (patch as any).reservationHistory != null) doc.reservationHistory = (patch as any).reservationHistory;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
       if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;

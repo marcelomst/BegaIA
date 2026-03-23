@@ -30,6 +30,14 @@ export function deriveReservationFlow(state?: ReservationStateSnapshot): Reserva
   if (st.desiredAction === "modify" || st.activeFlow === "modify_reservation") {
     return "modifying";
   }
+  if (st.desiredAction === "create" || st.activeFlow === "reservation") {
+    if (st.salesStage === "quote" || st.conversationStage === "reservation_quoted" || st.lastProposal) {
+      return "quoted";
+    }
+    if (st.reservationSlots || st.salesStage === "qualify" || st.salesStage === "followup") {
+      return "collecting";
+    }
+  }
   if (st.salesStage === "close" || st.lastReservation?.status === "created") {
     return "confirmed";
   }

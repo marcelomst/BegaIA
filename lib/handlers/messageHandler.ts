@@ -17,7 +17,7 @@ import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import { getConvState, CONVSTATE_VERSION, resolveGuestState } from "@/lib/db/convState";
-import type { ReservationSlots as DbReservationSlots } from "@/lib/db/convState";
+import type { ReservationSlots as DbReservationSlots, LastReservation } from "@/lib/db/convState";
 import crypto from "crypto";
 
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
@@ -404,6 +404,42 @@ function computeInModifyMode(
   const hasConfirmed = st?.salesStage === "close";
   const hasDraftOrConfirmed = hasDraft || hasConfirmed;
   return Boolean(prevWasModify || (hasDraftOrConfirmed && mentionsModify));
+}
+
+function wantsAdditionalReservation(
+  userText: string,
+  state?: {
+    lastReservation?: { reservationId?: string; status?: string | null } | null;
+    salesStage?: string | null;
+  } | null
+): boolean {
+  const normalizedIntent = normalizeReservationIntent(userText || "");
+  if (normalizedIntent.kind === "modify" || normalizedIntent.kind === "cancel") return false;
+  const hasConfirmedContext = Boolean(state?.lastReservation?.reservationId || state?.salesStage === "close");
+  if (!hasConfirmedContext) return false;
+  const t = String(userText || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  if (/\b(nueva reserva|otra reserva|otra habitacion|another booking|new booking|another room)\b/.test(t)) {
+    return true;
+  }
+  const looksReserveCommand = /\b(reserva(r|la|lo)?|book(?:ing)?(?:\s+it)?)\b/i.test(
+    normalizedIntent.normalizedText
+  );
+  return normalizedIntent.kind === "confirm" && looksReserveCommand;
+}
+
+function mergeReservationHistory(
+  history: LastReservation[] | null | undefined,
+  reservation: LastReservation | null | undefined
+): LastReservation[] {
+  const base = Array.isArray(history) ? [...history] : [];
+  if (!reservation || !reservation.reservationId) return base;
+  if (base.some((item) => item.reservationId === reservation.reservationId && item.status === reservation.status)) {
+    return base;
+  }
+  return [...base, reservation];
 }
 // Historial seguro con fallback silencioso
 async function getRecentHistorySafe(
@@ -2381,6 +2417,51 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
   }
+  if (wantsAdditionalReservation(userTxtRaw, pre.st)) {
+    const freshTurnSlots = toStrictSlots(extractSlotsFromText(String(pre.msg.content || ""), pre.lang));
+    nextSlots = { ...freshTurnSlots };
+    const preservedHistory = mergeReservationHistory(
+      (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+      (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+    );
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationHistory: preservedHistory,
+      reservationSlots: freshTurnSlots as any,
+      lastProposal: null,
+      pendingAvailabilityVerification: null,
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+
+    const hasCheckIn = Boolean(freshTurnSlots.checkIn);
+    const hasCheckOut = Boolean(freshTurnSlots.checkOut);
+    if (hasCheckIn && !hasCheckOut) {
+      finalText = pre.lang === "es"
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut")}`
+        : pre.lang === "pt"
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut")}`;
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (!hasCheckIn && hasCheckOut) {
+      finalText = pre.lang === "es"
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn")}`
+        : pre.lang === "pt"
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn")}`;
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    finalText = pre.lang === "es"
+      ? "Perfecto, mantenemos la reserva actual y abrimos una nueva. Decime las fechas de check-in y check-out para esta otra reserva."
+      : pre.lang === "pt"
+        ? "Perfeito, mantemos a reserva atual e abrimos uma nova. Me diga as datas de check-in e check-out desta outra reserva."
+        : "Perfect, we will keep the current booking and open a new one. Please share the check-in and check-out dates for this additional booking.";
+    return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+  }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
     if (!isReservationConfirmable && !pre.inModifyMode) {
       if (reservationFlow === "confirmed") {
@@ -2475,6 +2556,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const { confirmAndCreate } = await import("@/lib/agents/reservations");
         const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
         if (result.ok) {
+          const createdReservation: LastReservation = {
+            reservationId: result.reservationId || "",
+            status: "created",
+            createdAt: new Date().toISOString(),
+            channel: (pre.msg.channel as any) || "web",
+          };
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             reservationSlots: {
               guestName: snapshot.guestName,
@@ -2484,13 +2571,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               numGuests: snapshot.numGuests,
               locale: snapshot.locale,
             },
-            lastReservation: {
-              reservationId: result.reservationId || "",
-              status: "created",
-              createdAt: new Date().toISOString(),
-              channel: (pre.msg.channel as any) || "web",
-            },
+            reservationHistory: mergeReservationHistory(
+              mergeReservationHistory(
+                (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+                (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+              ),
+              createdReservation
+            ),
+            lastReservation: createdReservation,
             salesStage: "close",
+            activeFlow: null,
+            desiredAction: undefined,
             updatedBy: "ai",
           } as any);
         }

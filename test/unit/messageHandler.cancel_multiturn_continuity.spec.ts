@@ -33,6 +33,22 @@ vi.mock("@/lib/db/convState", () => ({
   }),
   upsertConvState: vi.fn(async () => {}),
   CONVSTATE_VERSION: "test",
+  resolveGuestState: (st: any) => {
+    if (!st) return undefined;
+    if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
+      return st.guestState;
+    }
+    if (st.lastReservation?.status === "created" || st.lastReservation?.status === "updated") {
+      return "booked";
+    }
+    if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+      return "booked";
+    }
+    if (st.reservationSlots || st.salesStage || st.conversationStage) {
+      return "prospect";
+    }
+    return undefined;
+  },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
