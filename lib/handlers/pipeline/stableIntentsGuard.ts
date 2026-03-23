@@ -322,7 +322,29 @@ function buildStableIntentResponse(
     return "Contamos con Wi-Fi en el hotel. Si lo necesitás para trabajar, puedo confirmar estabilidad, velocidad y cobertura con recepción.";
   }
   if (intentKey === "faq_parking") {
-    if (details?.parkingNotes) return details.parkingNotes;
+    if (details?.parkingNotes) {
+      if (guestState === "in_house") {
+        if (lang === "pt") return `${details.parkingNotes} Como você já está hospedado, a recepção pode orientar o acesso ou a dinâmica de uso no momento.`;
+        if (lang === "en") return `${details.parkingNotes} Since you are already staying with us, the front desk can guide you on access or current parking operations right away.`;
+        return `${details.parkingNotes} Como ya estás alojado, recepción puede indicarte en el momento el acceso o la operativa de uso.`;
+      }
+      if (guestState === "booked") {
+        if (lang === "pt") return `${details.parkingNotes} Como você já tem reserva, vale confirmar antes da chegada se precisa deixar o carro no hotel.`;
+        if (lang === "en") return `${details.parkingNotes} Since you already have a booking, it is worth confirming before arrival if you need to leave your car at the hotel.`;
+        return `${details.parkingNotes} Como ya tenés una reserva, conviene confirmarlo antes de llegar si necesitás dejar el auto en el hotel.`;
+      }
+      return details.parkingNotes;
+    }
+    if (guestState === "in_house") {
+      if (lang === "pt") return "O estacionamento está sujeito à disponibilidade. Como você já está hospedado, a recepção pode indicar agora mesmo o acesso ou a dinâmica de uso.";
+      if (lang === "en") return "Parking is subject to availability. Since you are already staying with us, the front desk can point you to the access or current parking process right away.";
+      return "El estacionamiento está sujeto a disponibilidad. Como ya estás alojado, recepción puede indicarte ahora mismo el acceso o la operativa de uso.";
+    }
+    if (guestState === "booked") {
+      if (lang === "pt") return "O estacionamento está sujeito à disponibilidade. Como você já tem reserva, vale confirmá-lo antes da chegada se for um requisito da sua estadia.";
+      if (lang === "en") return "Parking is subject to availability. Since you already have a booking, it is best to confirm it before arrival if it is important for your stay.";
+      return "El estacionamiento está sujeto a disponibilidad. Como ya tenés una reserva, conviene confirmarlo antes de llegar si es importante para tu estadía.";
+    }
     if (lang === "pt") return "Temos estacionamento, sujeito à disponibilidade. Se quiser, confirmo as condições com a recepção.";
     if (lang === "en") return "We have parking, subject to availability. If you want, I can confirm the conditions with reception.";
     return "Contamos con estacionamiento, sujeto a disponibilidad. Si querés, confirmo las condiciones con recepción.";

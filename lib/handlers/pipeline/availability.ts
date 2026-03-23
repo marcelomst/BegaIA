@@ -263,7 +263,28 @@ export function detectCheckinOrCheckoutTimeQuestion(text: string, _lang: "es" | 
     return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t);
 }
 
-export function buildLateCheckoutResponse(lang: "es" | "en" | "pt"): string {
+export function buildLateCheckoutResponse(
+    lang: "es" | "en" | "pt",
+    guestState?: "prospect" | "booked" | "in_house"
+): string {
+    if (guestState === "in_house") {
+        if (lang === "pt") {
+            return "O late check-out está sujeito à disponibilidade. Como você já está hospedado, a recepção pode validar no momento até que horário seria possível estender a saída.";
+        }
+        if (lang === "en") {
+            return "Late check-out is subject to availability. Since you are already staying with us, the front desk can validate right away how long your departure could be extended.";
+        }
+        return "El late check-out está sujeto a disponibilidad. Como ya estás alojado, recepción puede validar en el momento hasta qué hora sería posible extender la salida.";
+    }
+    if (guestState === "booked") {
+        if (lang === "pt") {
+            return "O late check-out está sujeito à disponibilidade. Como você já tem reserva, vale consultá-lo perto da saída para confirmar até que horário seria possível estender.";
+        }
+        if (lang === "en") {
+            return "Late check-out is subject to availability. Since you already have a booking, it is best to check closer to departure to confirm how long it could be extended.";
+        }
+        return "El late check-out está sujeto a disponibilidad. Como ya tenés una reserva, conviene consultarlo cerca de la salida para confirmar hasta qué hora sería posible extender.";
+    }
     if (lang === "pt") {
         return "O late check-out está sujeito à disponibilidade. Você pode consultar a recepção durante a sua estadia.";
     }

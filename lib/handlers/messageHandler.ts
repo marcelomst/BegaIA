@@ -1443,12 +1443,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let graphResult = state.graphResult;
   let explicitRich = state.explicitRich;
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
+  const guestState = resolveGuestState(pre.st);
   const stableIntent = await runStableIntentsGuard({
     rawQuery: String(pre.msg.content || ""),
     hotelId: pre.msg.hotelId,
     preferredLanguage: pre.lang,
     conversationId: pre.conversationId,
-    guestState: resolveGuestState(pre.st),
+    guestState,
   });
   emitStableIntentRouting(pre.msg, {
     routing_stage: "stable_intents_guard",
@@ -2515,6 +2516,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // ============================
         const kbUserText = String(pre.msg.content || "");
         const kbLower = kbUserText.toLowerCase();
+        const kbGuestState = resolveGuestState(pre.st);
         const postBookingLateCheckoutQ = detectLateCheckoutQuestion(kbUserText, pre.lang);
         const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
         const postBookingSnapshotQ = detectReservationSnapshotQuery(kbUserText, pre.lang);
@@ -2539,7 +2541,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
         if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {
-          finalText = buildLateCheckoutResponse(pre.lang);
+          finalText = buildLateCheckoutResponse(pre.lang, kbGuestState);
           nextCategory = "checkout_info";
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
@@ -2977,7 +2979,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const triggerDateFlow = !timeQ && !lateCheckoutQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
 
     if (lateCheckoutQ) {
-      finalText = buildLateCheckoutResponse(pre.lang);
+      finalText = buildLateCheckoutResponse(pre.lang, guestState);
       nextCategory = "checkout_info";
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     } else if (timeQ) {

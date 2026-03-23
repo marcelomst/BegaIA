@@ -34,6 +34,22 @@ vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(),
   upsertConvState: vi.fn(),
   CONVSTATE_VERSION: "convstate-test",
+  resolveGuestState: (st: any) => {
+    if (!st) return undefined;
+    if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
+      return st.guestState;
+    }
+    if (st.lastReservation?.status === "created" || st.lastReservation?.status === "updated") {
+      return "booked";
+    }
+    if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+      return "booked";
+    }
+    if (st.reservationSlots || st.salesStage || st.conversationStage) {
+      return "prospect";
+    }
+    return undefined;
+  },
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
@@ -111,6 +127,7 @@ describe("messageHandler post-booking checkout semantics", () => {
 
     expect(text).not.toMatch(/^El check-out es hasta las 11:00\.?$/i);
     expect(text).toMatch(/late check-?out|sujeto a disponibilidad|recepci[oó]n/i);
+    expect(text).toMatch(/ya ten[eé]s una reserva|cerca de la salida|extender/i);
   });
 
   it("trata 'puedo salir más tarde?' como late checkout y no como checkout estándar", async () => {
@@ -139,5 +156,22 @@ describe("messageHandler post-booking checkout semantics", () => {
 
     expect(text).not.toMatch(/fecha de check-out|dd\/mm\/aaaa|contin[uú]e con la reserva/i);
     expect(text).toMatch(/late check-?out|sujeto a disponibilidad|recepci[oó]n/i);
+  });
+
+  it("con guest_state=in_house, late checkout usa framing más operativo", async () => {
+    const conversationId = "conv-postbooking-late-checkout-inhouse-1";
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState(conversationId),
+      guestState: "in_house",
+    });
+
+    await handleIncomingMessage(msg("puedo hacer late check out?", conversationId), { mode: "automatic", sendReply });
+
+    const all = await getCollection("messages").findMany({ hotelId, conversationId });
+    const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
+    const text = String(lastAi?.content || lastAi?.suggestion || "");
+
+    expect(text).toMatch(/late check-?out|sujeto a disponibilidad/i);
+    expect(text).toMatch(/ya est[aá]s alojado|en el momento|extender la salida/i);
   });
 });

@@ -135,6 +135,32 @@ describe("stableIntentsGuard", () => {
     }
   });
 
+  it("matiza parking con guest_state sin romper fallback actual", async () => {
+    const noState = await runStableIntentsGuard({
+      rawQuery: "hay parking?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+    });
+    const booked = await runStableIntentsGuard({
+      rawQuery: "hay parking?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+      guestState: "booked",
+    });
+    const inHouse = await runStableIntentsGuard({
+      rawQuery: "hay parking?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+      guestState: "in_house",
+    });
+
+    expect(String(noState.response || "")).toBe("Estacionamiento sujeto a disponibilidad en el predio.");
+    expect(String(booked.response || "")).toMatch(/estacionamiento sujeto a disponibilidad en el predio/i);
+    expect(String(booked.response || "")).toMatch(/ya ten[eé]s una reserva|antes de llegar|auto/i);
+    expect(String(inHouse.response || "")).toMatch(/estacionamiento sujeto a disponibilidad en el predio/i);
+    expect(String(inHouse.response || "")).toMatch(/ya est[aá]s alojado|recepci[oó]n|acceso|operativa/i);
+  });
+
   it("mantiene matching conservador para parking transaccional y captura wifi contextual", async () => {
     const parking = await runStableIntentsGuard({
       rawQuery: "quiero reservar con parking",

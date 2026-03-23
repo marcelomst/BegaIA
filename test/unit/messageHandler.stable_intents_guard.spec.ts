@@ -246,6 +246,56 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("sin guest_state, parking mantiene el framing actual", async () => {
+    const conversationId = "conv-stable-parking-no-state-1";
+
+    await handleIncomingMessage(msg("hay parking?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toBe("Estacionamiento sujeto a disponibilidad en el predio.");
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con guest_state=booked, parking responde con framing más contextual", async () => {
+    const conversationId = "conv-stable-parking-booked-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "close",
+      lastReservation: {
+        reservationId: "RES-PARK-BOOKED-01",
+        status: "created",
+        createdAt: new Date().toISOString(),
+        channel: "web",
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("hay parking?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/estacionamiento sujeto a disponibilidad en el predio/i);
+    expect(text).toMatch(/ya ten[eé]s una reserva|antes de llegar|auto/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con guest_state=in_house, parking responde con framing más operativo", async () => {
+    const conversationId = "conv-stable-parking-inhouse-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      guestState: "in_house",
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("hay parking?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/estacionamiento sujeto a disponibilidad en el predio/i);
+    expect(text).toMatch(/ya est[aá]s alojado|recepci[oó]n|acceso|operativa/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
   it("con temporalidad suave, parking sigue en dominio hotelero y no deriva a eventos", async () => {
     const cases = [
       "quiero parking para mañana",

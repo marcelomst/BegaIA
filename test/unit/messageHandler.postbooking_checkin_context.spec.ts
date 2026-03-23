@@ -34,6 +34,22 @@ vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(),
   upsertConvState: vi.fn(),
   CONVSTATE_VERSION: "convstate-test",
+  resolveGuestState: (st: any) => {
+    if (!st) return undefined;
+    if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
+      return st.guestState;
+    }
+    if (st.lastReservation?.status === "created" || st.lastReservation?.status === "updated") {
+      return "booked";
+    }
+    if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+      return "booked";
+    }
+    if (st.reservationSlots || st.salesStage || st.conversationStage) {
+      return "prospect";
+    }
+    return undefined;
+  },
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
@@ -109,7 +125,7 @@ describe("messageHandler post-booking checkin context", () => {
     const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
     const text = String(lastAi?.content || lastAi?.suggestion || "");
 
-    expect(text).toMatch(/11:00|recepci[oó]n/i);
+    expect(text).toMatch(/late check-?out|ya ten[eé]s una reserva|cerca de la salida|extender/i);
     expect(text).not.toMatch(/fecha de check-out|dd\/mm\/aaaa/i);
     expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
   });
