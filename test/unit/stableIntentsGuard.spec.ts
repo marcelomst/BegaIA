@@ -77,6 +77,26 @@ describe("stableIntentsGuard", () => {
     expect(String(parking.response || "")).toMatch(/estacionamiento|parking/i);
   });
 
+  it("captura parking con temporalidad suave sin tratarlo como agenda", async () => {
+    const queries = [
+      "quiero parking para mañana",
+      "necesito parking mañana",
+      "hay parking mañana?",
+    ];
+
+    for (const rawQuery of queries) {
+      const result = await runStableIntentsGuard({
+        rawQuery,
+        hotelId: "hotel999",
+        preferredLanguage: "es",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.intentKey).toBe("faq_parking");
+      expect(String(result.response || "")).toMatch(/estacionamiento|parking/i);
+    }
+  });
+
   it("mantiene matching conservador para frases transaccionales enriquecidas", async () => {
     const parking = await runStableIntentsGuard({
       rawQuery: "quiero reservar con parking",

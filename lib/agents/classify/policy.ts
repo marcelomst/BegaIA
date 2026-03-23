@@ -205,7 +205,17 @@ export async function evaluateGraphRoutingPolicy({
       messages: [],
     }, "heuristic_events_followup", "followup_events", 0.92);
   }
-  if (wantsEvents(state.normalizedMessage || "") && !(seasonal && !explicitAgenda)) {
+  if (
+    wantsEvents(state.normalizedMessage || "") &&
+    !(seasonal && !explicitAgenda) &&
+    !hasStrongNonEventIntent(state.normalizedMessage || "", {
+      support: RE_SUPPORT,
+      billing: RE_BILLING,
+      transport: RE_TRANSPORT,
+      breakfast: RE_BREAKFAST,
+      amenities: RE_AMENITIES,
+    })
+  ) {
     const pk = wantsImages(state.normalizedMessage || "") ? "tourist_events_img" : "tourist_events";
     return withForcedGuardrailLog({
       category: "retrieval_based",

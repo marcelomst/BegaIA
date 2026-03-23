@@ -111,7 +111,9 @@ function detectStableIntent(normalized: string): StableIntentKey | null {
   const isWifiFaq = /^(wifi|internet)$/.test(normalized)
     || /\b(tienen wifi|hay wifi|wifi gratis|wifi free|wifi password|clave wifi|password wifi|internet disponible)\b/i.test(normalized);
   const isParkingFaq = /^(parking|estacionamiento|aparcamiento)$/.test(normalized)
-    || /\b(hay parking|tienen parking|parking incluido|donde estaciono|donde aparco|estacionamiento disponible|tienen estacionamiento)\b/i.test(normalized);
+    || /\b(hay parking|tienen parking|parking incluido|donde estaciono|donde aparco|estacionamiento disponible|tienen estacionamiento)\b/i.test(normalized)
+    || /^(quiero|necesito)\s+(parking|estacionamiento|aparcamiento)(?:\s+(?:para|por)\s+.+)?$/i.test(normalized)
+    || /\b(quiero|necesito)\s+(?:saber\s+si\s+)?(?:hay\s+)?(parking|estacionamiento|aparcamiento)\b/i.test(normalized);
 
   if (mentionsCheckIn && (asksTime || isBareCheckIn)) return "faq_check_in_time";
   if (mentionsCheckOut && (asksTime || isBareCheckOut)) return "faq_check_out_time";

@@ -193,6 +193,25 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("con temporalidad suave, parking sigue en dominio hotelero y no deriva a eventos", async () => {
+    const cases = [
+      "quiero parking para mañana",
+      "necesito parking mañana",
+      "hay parking mañana?",
+    ];
+
+    for (const [index, content] of cases.entries()) {
+      const conversationId = `conv-stable-parking-tomorrow-${index + 1}`;
+
+      await handleIncomingMessage(msg(content, conversationId), { mode: "automatic", sendReply });
+
+      const text = await lastAssistantText(conversationId);
+      expect(text).toMatch(/parking|estacionamiento/i);
+      expect(text).not.toMatch(/evento|agenda|punta del este/i);
+      expect(agentInvoke).not.toHaveBeenCalled();
+    }
+  });
+
   it("con contexto transaccional activo, 'desayuno?' gana precedencia y no deriva a reserva", async () => {
     const conversationId = "conv-stable-breakfast-1";
     (getConvState as any).mockResolvedValue({

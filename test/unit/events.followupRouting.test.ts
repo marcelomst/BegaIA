@@ -111,6 +111,26 @@ describe("events follow-up routing", () => {
     expect(res.meta?.debug?.route_source).toBe("heuristic_amenities");
   });
 
+  it("does not hijack parking with temporal wording into events", async () => {
+    lastIntentGroup = "support";
+    const res = await classifyNode({
+      normalizedMessage: "quiero parking para mañana",
+      originalLang: "es",
+      detectedLanguage: "es",
+      category: "other",
+      promptKey: undefined,
+      reservationSlots: {},
+      meta: {},
+      messages: [],
+      hotelId: "hotel999",
+      conversationId: "c1",
+    } as any);
+
+    expect(res.category).toBe("amenities");
+    expect(res.promptKey).toBe("amenities_list");
+    expect(res.meta?.debug?.route_source).toBe("heuristic_amenities");
+  });
+
   it("routes to events from non-events memory when user asks explicit events", async () => {
     lastIntentGroup = "support";
     const res = await classifyNode({
