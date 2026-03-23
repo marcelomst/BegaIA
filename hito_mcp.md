@@ -3808,3 +3808,43 @@ Impacto:
   huésped
 - corrige inconsistencia interna entre ramas reales de `late check-out`
 - preserva backward compatibility y arquitectura general
+
+### FEAT-PIPELINE-EARLY-CHECKIN-SEMANTICS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: cabb9ca8f41f134114c839df159891c951f69b6d
+
+Descripcion:
+
+Se agrega resolución semántica y contextual para consultas de early check-in,
+entrada anticipada y equipaje, sin prometer disponibilidad real, sin colapsar
+a horario normal de check-in y sin abrir refactor grande del pipeline.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+- `test/unit/messageHandler.postbooking_checkin_context.spec.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/messageHandler.postbooking_checkout_semantics.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  5 passed (5)`
+- `Tests  54 passed (54)`
+
+Impacto:
+
+- agrega dominio semántico útil para early check-in sin crear un stable intent
+  inapropiado
+- mejora framing contextual de llegada anticipada y equipaje
+- evita colapso con horario normal de check-in
+- preserva arquitectura actual del pipeline y contratos públicos
+- mantiene compatibilidad con el patrón ya validado para `late check-out`
+
+Nota:
+
+- el ajuste en fixtures/mocks de tests no tuvo impacto funcional sobre runtime
+  ni contratos del producto
