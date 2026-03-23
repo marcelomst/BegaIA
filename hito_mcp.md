@@ -3772,3 +3772,39 @@ Impacto:
 - mejora framing/respuesta en intents estables según estado conversacional
 - preserva compatibilidad hacia atrás cuando no existe señal suficiente
 - no altera contratos públicos, UI, multi-reservation ni arquitectura general
+
+### REF-PIPELINE-GUEST-STATE-EXPANSION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 93313c52a9609fb3b27f3a838475cdee003916ee
+
+Descripcion:
+
+Se expande el uso de `guestState` como señal contextual secundaria para
+matizar respuestas de `parking` y `late check-out`, sin alterar routing, sin
+convertirlo en controlador principal y sin refactor estructural.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+- `test/unit/messageHandler.postbooking_checkout_semantics.spec.ts`
+- `test/unit/messageHandler.postbooking_checkin_context.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/convState.conversationStage.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.postbooking_checkout_semantics.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  6 passed (6)`
+- `Tests  53 passed (53)`
+
+Impacto:
+
+- `guest_state` gana utilidad real sin volverse controlador del pipeline
+- mejora framing de respuestas en parking y late check-out según contexto del
+  huésped
+- corrige inconsistencia interna entre ramas reales de `late check-out`
+- preserva backward compatibility y arquitectura general
