@@ -30,6 +30,22 @@ Ejemplo de dominios documentados:
 
 ## Documentos disponibles
 
+### Pipeline conversacional vigente
+
+`message_pipeline.md`
+
+Es el documento vivo principal para entender el runtime conversacional actual.
+
+Explica:
+
+- que `messageHandler` sigue siendo el runtime principal
+- cómo conviven guards deterministas, heurísticas y graph
+- cómo se usa el contexto conversacional
+- cómo funcionan reservas múltiples, foco activo y reference resolution
+- cuáles son los límites actuales del sistema
+
+Debe tomarse como referencia arquitectónica del pipeline actual.
+
 ### Admin Panel
 
 `admin_panel.md`
@@ -87,13 +103,17 @@ pipeline conversacional central.
 `message_pipeline_detail.mmd`
 `message_pipeline_detail.svg`
 
-Describe el flujo interno del pipeline:
+Describe una vista diagramática simplificada del pipeline:
 
 - normalización
 - resolución de identidad
 - binding conversacional
 - manejo de mensajes
 - política de entrega
+
+Para la arquitectura viva y el runtime real del pipeline, ver primero:
+
+`message_pipeline.md`
 
 [Ver diagrama](./message_pipeline_detail.svg)
 [PNG fallback](./message_pipeline_detail.png)

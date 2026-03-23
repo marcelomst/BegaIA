@@ -2,148 +2,370 @@
 
 ## 1. Propósito
 
-El message pipeline de Begasist centraliza el procesamiento conversacional
-multicanal en una única ruta de dominio.
+Este documento describe la arquitectura viva del pipeline conversacional
+vigente de Begasist.
 
-Objetivos principales:
+No resume hitos. Describe cómo funciona hoy el runtime real y qué límites
+arquitectónicos tiene.
 
-- desacoplar transporte (Web, WhatsApp, Email, Channel Manager) de lógica de negocio
-- unificar identidad de huésped por `guestId`
-- mantener continuidad conversacional por `conversationId`
-- aplicar política operativa de envío (`automatic` / `supervised`)
+## 2. Runtime actual
 
-Implementación principal:
+El runtime principal sigue siendo:
 
-- `/root/begasist/lib/pipeline/handleChannelMessage.ts`
+- `messageHandler`
 
-## 2. Punto de entrada canónico
+El graph no fue reemplazado. El pipeline actual es híbrido:
 
-Para canal Web y clientes HTTP, la entrada canónica es:
+- capas deterministas
+- heurísticas operativas
+- contexto conversacional persistido
+- classifier / policy / graph
+- ejecutores de dominio
 
-- `/root/begasist/app/api/chat/route.ts`
+La relación actual es:
 
-Este endpoint:
+```text
+Channel / API
+-> handleChannelMessage
+-> handleIncomingMessage (messageHandler)
+-> stableIntentsGuard / guards operativas / contexto
+-> classifier + policy + graph
+-> acciones de dominio / respuesta
+```
 
-- normaliza input externo (`hotelId`, `channel`, `guestId`, `conversationId`, `query`)
-- aplica defaults de seguridad
-- delega a `handleChannelMessage(...)`
-- aplica política de entrega con `decideDeliveryPolicy(...)`
-- devuelve un contrato uniforme para frontend/admin
+## 3. Flujo de alto nivel
 
-## 3. Flujo lógico del pipeline
+Orden conceptual vigente:
 
-Flujo de alto nivel:
+1. entrada canónica por canal o API
+2. normalización a `ChannelMessage`
+3. continuidad conversacional (`guestId`, `conversationId`, historial)
+4. carga de `conv_state`
+5. runtime central en `messageHandler`
+6. resolución temprana determinista cuando aplica
+7. evaluación semántica / classifier / policy / graph cuando no hubo shortcut
+8. persistencia del nuevo estado conversacional
+9. composición de respuesta y política de entrega
 
-`Inbound canal -> normalización -> resolveGuestIdentity -> bind conversación -> handleIncomingMessage -> delivery policy -> response API`
+Importante:
 
-Secuencia principal en `handleChannelMessage(...)`:
+- `messageHandler` coordina el flujo
+- el graph interpreta y enruta
+- los nodos ejecutan dominio
+- la persistencia conversacional no es un detalle secundario; es parte del
+  runtime
 
-1. validación mínima de input (`hotelId`, `query`)
-2. resolución de identidad por `resolveGuestIdentity(...)`
-3. binding conversacional por prioridad:
-   1. `conversationId` explícito
-   2. conversación activa por `(hotelId, guestId)`
-   3. nueva conversación `conv-${uuid}`
-4. determinación de modo operativo (`automatic` / `supervised`)
-5. creación del mensaje inbound normalizado (`ChannelMessage`)
-6. ejecución de handler central (`handleIncomingMessage`)
-7. lectura del último mensaje AI para construir salida API
+## 4. Capas del pipeline
 
-## 4. Identidad de huésped
-
-La identidad se resuelve en:
-
-- `/root/begasist/lib/pipeline/resolveGuestIdentity.ts`
-
-Reglas:
-
-- construye alias por canal (`web:*`, `whatsapp:*`, `email:*`)
-- busca alias existente en `guest_aliases`
-- si encuentra huésped legacy, realiza backfill idempotente de alias
-- si no existe, crea asociación nueva mediante `ensureGuestAlias(...)`
-
-Resultado:
-
-- el pipeline opera con `guestId` canónico, no con identificadores de transporte
-
-## 5. Continuidad conversacional
-
-El pipeline privilegia continuidad por huésped:
-
-- si llega `conversationId`, lo respeta
-- si no llega, intenta reusar conversación activa por `guestId`
-- si no existe, crea una nueva
-
-Este comportamiento alinea operación multicanal con modelo guest-centric.
-
-## 6. Política de supervisión y estado
-
-El modo operativo final puede venir de:
-
-- `mode` explícito en input
-- configuración de canal en `hotel_config`
-- fallback `automatic`
-
-Estado inicial:
-
-- `supervised` -> `pending`
-- `automatic` -> `sent`
-
-La política de riesgo se modela en:
-
-- `/root/begasist/lib/pipeline/riskPolicy.ts`
-
-donde `riskPolicy` preserva decisiones explícitas del supervisor y solo promueve
-casos LOW en supervisado cuando aplica.
-
-## 7. Política de entrega API
-
-Luego del pipeline, `/api/chat` aplica:
-
-- `decideDeliveryPolicy(...)` en `/root/begasist/lib/pipeline/deliveryPolicy`
+### 4.1 Entry / transporte
 
 Responsabilidad:
 
-- decidir si se entrega respuesta final al cliente
-- o acuse de pendiente cuando la conversación queda supervisada
+- adaptar Web, WhatsApp, Email y otros canales al contrato interno
+- preservar `hotelId`, `channel`, `guestId`, `conversationId`
+- no duplicar lógica de negocio por canal
 
-Contrato de salida típico:
+Punto de entrada operativo:
 
-- `conversationId`
-- `status`
-- `response` (si corresponde)
-- `suggestedReply` (si queda pendiente)
-- `message` (metadata operativa)
+- `handleChannelMessage(...)`
 
-## 8. Persistencia operativa
+### 4.2 Runtime conversacional
 
-El pipeline persiste estado en la capa operacional SaaS (Astra/Cassandra):
+Responsabilidad principal:
 
-- `messages`
-- `conversations`
+- `messageHandler`
+
+Tareas:
+
+- cargar historial reciente
+- cargar `conv_state`
+- decidir shortcuts deterministas
+- aplicar reglas operativas y follow-ups
+- consultar `hotelConfig`
+- invocar classifier / policy / graph cuando corresponde
+- persistir cambios de estado
+- componer la respuesta final
+
+Invariante:
+
+- el centro de gravedad del pipeline está en `messageHandler`, no en el graph
+
+### 4.3 Control semántico determinista
+
+Responsabilidad principal:
+
+- `stableIntentsGuard`
+
+Función:
+
+- capturar intents estables, frecuentes y de baja ambigüedad antes del routing
+  general
+
+Cobertura actual:
+
+- horarios básicos
+- amenities frecuentes
+- extensiones semánticas acotadas de desayuno / wifi / parking
+
+Gobernanza:
+
+- depende de configuración hotelera cuando corresponde
+- no debe absorber intents transaccionales reales
+- no reemplaza classifier ni graph
+
+### 4.4 Contexto conversacional
+
+Responsabilidad:
+
+- dar memoria operativa mínima al runtime
+
+Persistencia:
+
 - `conv_state`
-- `guests`
-- `guest_aliases`
-- `guest_aliases_by_guest`
 
-La separación entre capa operacional y KB se documenta en:
+Señales relevantes actuales:
 
-- `docs/architecture/astra_persistence_policy.md`
+- `guestState`
+- `reservationSlots`
+- `lastProposal`
+- `lastReservation`
+- `reservationHistory`
+- `activeReservationContext`
+- `pendingCancellation`
+- `pendingAvailabilityVerification`
+- `salesStage`
+- `conversationStage`
+- `desiredAction`
+- `activeFlow`
 
-## 9. Reglas e invariantes
+### 4.5 Intent engine
 
-Invariantes del pipeline:
+Responsabilidad:
 
-- `hotelId` y `query` son obligatorios en entrada canónica
-- el transporte no define identidad final: la define `guestId` resuelto
-- `conversationId` explícito tiene prioridad sobre binding implícito
-- la respuesta API se emite con formato consistente independientemente del canal
+- classifier
+- policy
+- graph
 
-## 10. Relación con otros documentos
+Función:
 
-Este documento se complementa con:
+- resolver intents que no pueden cerrarse determinísticamente
+- aplicar priorización semántica
+- enrutar a nodos y salidas de dominio
 
-- `docs/architecture/guest_identity_model.md`
-- `docs/architecture/conversation_binding_guest_identity.md`
-- `docs/architecture/pipeline_decision.md`
-- `docs/architecture/admin_inbox_unified.md`
+El graph hoy es:
+
+- motor de interpretación y routing
+- no runtime autónomo completo
+
+### 4.6 Ejecutores de dominio
+
+Ejemplos:
+
+- reserva
+- modificación
+- cancelación
+- retrieval / KB
+- respuestas operativas
+
+Estas capas ejecutan acciones específicas, pero no gobiernan por sí solas el
+flujo de conversación completo.
+
+## 5. Modelo de contexto conversacional
+
+### 5.1 `guestState`
+
+Modelo mínimo vigente:
+
+- `prospect`
+- `booked`
+- `in_house`
+
+Uso:
+
+- matizar respuestas
+- mejorar framing de amenities y operaciones hoteleras
+
+No hace:
+
+- PMS real
+- pricing real por tarifa
+- control principal del pipeline
+
+### 5.2 `lastReservation`
+
+Responsabilidad:
+
+- compatibilidad
+- última reserva operativa conocida
+
+Límite:
+
+- ya no debe interpretarse como única fuente de foco conversacional
+
+### 5.3 `reservationHistory`
+
+Responsabilidad:
+
+- historial mínimo de reservas dentro de la conversación
+
+Uso:
+
+- soportar más de una reserva por conversación
+- permitir referencias a reservas alternativas
+
+Límite:
+
+- no modela todavía gestión multi-booking completa
+
+### 5.4 `activeReservationContext`
+
+Responsabilidad:
+
+- indicar qué reserva o draft está en foco
+
+Modelo actual:
+
+- `draft`
+- `reservation`
+
+Con fases mínimas:
+
+- `collecting`
+- `quoted`
+- `confirmed`
+- `cancelled`
+
+Uso:
+
+- desacoplar foco actual de `lastReservation`
+- mejorar multi-reservation
+- habilitar reference resolution conservadora
+
+### 5.5 `reservationSlots`
+
+Responsabilidad:
+
+- snapshot vivo del draft actual o del contexto de reserva activo que el
+  runtime sigue usando
+
+Uso:
+
+- capturar fechas, room type, huéspedes, nombre
+- sostener follow-ups y cambios incrementales
+
+## 6. Reservas múltiples
+
+El sistema ya no asume rígidamente:
+
+`1 conversación = 1 reserva`
+
+Modelo mínimo vigente:
+
+- una conversación puede conservar una reserva confirmada previa
+- puede abrir un draft nuevo
+- puede confirmar una nueva reserva sin perder la anterior
+- mantiene historial mínimo en `reservationHistory`
+- mantiene foco actual en `activeReservationContext`
+
+Esto no convierte al sistema en un PMS ni en un gestor completo de múltiples
+reservas. Solo rompe la suposición rígida previa y deja una base operativa
+mínima.
+
+## 7. Reference resolution
+
+Existe una primera capa conservadora de resolución de referencias
+conversacionales sobre reservas múltiples.
+
+Señales usadas por orden:
+
+1. `activeReservationContext`
+2. `reservationHistory`
+3. `lastReservation`
+4. `reservationSlots` para draft activo
+
+Referencias actualmente soportadas cuando la señal es suficiente:
+
+- `la nueva`
+- `la otra`
+- `la anterior`
+- `esa`
+- `la de mañana`
+
+Regla operativa:
+
+- si la referencia es clara, se resuelve
+- si la referencia es ambigua, el sistema pide aclaración
+- no se inventa un target
+
+Alcance actual:
+
+- integración mínima con `modify/cancel`
+- no hay coreferencia completa
+- no hay ordinales robustos (`la primera`, `la segunda`)
+
+## 8. Casos donde el pipeline ya combina capas
+
+Ejemplos representativos:
+
+- FAQ estable -> `stableIntentsGuard`
+- hotel semantics contextual -> guard + guest state
+- early check-in / late check-out -> heurística contextual en runtime
+- modify / cancel -> runtime + conv_state + ejecutor de dominio
+- multi-reservation -> runtime + conv_state
+- reference resolution -> runtime + foco activo + historial
+
+Esto confirma que el pipeline actual no es puramente determinista ni puramente
+LLM-driven. Es un runtime híbrido controlado.
+
+## 9. Invariantes vigentes
+
+- `messageHandler` sigue siendo el runtime principal
+- el graph se preserva, pero no gobierna solo todo el flujo
+- los canales convergen al mismo pipeline central
+- `hotelId` debe permanecer explícito
+- el transporte no debe duplicar lógica de dominio
+- `stableIntentsGuard` debe seguir siendo conservador
+- `guestState` es señal contextual, no controlador principal
+- `activeReservationContext` es la señal preferida de foco actual
+- ante ambigüedad fuerte en referencias, se pide aclaración
+
+## 10. Límites actuales
+
+El sistema todavía no hace, o no hace completamente:
+
+- PMS real
+- pricing real por tarifa
+- validación definitiva de inclusión por tarifa
+- coreferencia compleja completa
+- referencias ordinales robustas
+- UI para selección de reserva
+- grupos complejos
+- multi-reservation con identidad de draft completa
+- resolución semántica abierta para cualquier referencia arbitraria
+
+## 11. Qué no tocar sin cuidado
+
+- no mover el runtime fuera de `messageHandler` sin reabrir ADR
+- no expandir `stableIntentsGuard` sin gobernanza explícita
+- no volver a cargar `lastReservation` con todo el peso de foco + historial +
+  contexto activo
+- no duplicar lógica de routing por canal
+- no introducir heurísticas de referencias que inventen target bajo ambigüedad
+
+## 12. Relación con otros documentos
+
+Decisiones relacionadas:
+
+- [`ADR-PIPELINE-SEMANTIC-CONTROL-01.md`](./ADR-PIPELINE-SEMANTIC-CONTROL-01.md)
+- [`adr_pipeline_runtime_target.md`](./adr_pipeline_runtime_target.md)
+- [`pipeline-runtime-evolution.md`](./pipeline-runtime-evolution.md)
+
+Documentos complementarios:
+
+- [`channel_architecture.md`](./channel_architecture.md)
+- [`conversation_binding_guest_identity.md`](./conversation_binding_guest_identity.md)
+- [`guest_identity_model.md`](./guest_identity_model.md)
+
+Historial de evolución:
+
+- [`/home/marcelo/begasist/hito_mcp.md`](/home/marcelo/begasist/hito_mcp.md)
