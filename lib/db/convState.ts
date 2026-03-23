@@ -76,6 +76,13 @@ export type PendingAvailabilityVerification = {
 
 export type GuestState = "prospect" | "booked" | "in_house";
 
+export type ActiveReservationContext = {
+  kind: "draft" | "reservation";
+  reservationId?: string | null;
+  phase?: "collecting" | "quoted" | "confirmed" | "cancelled";
+  updatedAt: string;
+};
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -101,6 +108,7 @@ export type ConversationFlowState = {
   // Última reserva creada (si corresponde)
   lastReservation?: LastReservation;
   reservationHistory?: LastReservation[] | null;
+  activeReservationContext?: ActiveReservationContext | null;
   pendingCancellation?: PendingCancellation | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
   guestState?: GuestState | null;
@@ -319,6 +327,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("activeReservationContext" in patch) {
+    if ((patch as any).activeReservationContext == null) {
+      $unset["activeReservationContext"] = true;
+    } else {
+      $set["activeReservationContext"] = (patch as any).activeReservationContext;
+    }
+  }
+
   if ("pendingCancellation" in patch) {
     if ((patch as any).pendingCancellation == null) {
       $unset["pendingCancellation"] = true;
@@ -380,6 +396,7 @@ export async function upsertConvState(
       if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
       if ("reservationHistory" in patch && (patch as any).reservationHistory != null) doc.reservationHistory = (patch as any).reservationHistory;
+      if ("activeReservationContext" in patch && (patch as any).activeReservationContext != null) doc.activeReservationContext = (patch as any).activeReservationContext;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
       if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;
@@ -440,5 +457,58 @@ export function resolveGuestState(
   if (st.reservationSlots || st.salesStage || st.conversationStage) {
     return "prospect";
   }
+  return undefined;
+}
+
+export function resolveActiveReservationContext(
+  st?: Partial<ConversationFlowState> | null
+): ActiveReservationContext | undefined {
+  if (!st) return undefined;
+  const explicit = st.activeReservationContext;
+  if (
+    explicit &&
+    (explicit.kind === "draft" || explicit.kind === "reservation") &&
+    typeof explicit.updatedAt === "string" &&
+    explicit.updatedAt
+  ) {
+    return explicit;
+  }
+
+  if (st.desiredAction === "create" || st.activeFlow === "reservation") {
+    return {
+      kind: "draft",
+      phase:
+        st.salesStage === "quote" || st.conversationStage === "reservation_quoted" || st.lastProposal
+          ? "quoted"
+          : "collecting",
+      updatedAt: st.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  if (st.salesStage === "quote" || st.conversationStage === "reservation_quoted" || st.lastProposal) {
+    return {
+      kind: "draft",
+      phase: "quoted",
+      updatedAt: st.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  if (st.reservationSlots && st.salesStage !== "close") {
+    return {
+      kind: "draft",
+      phase: "collecting",
+      updatedAt: st.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  if (st.lastReservation?.reservationId || st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+    return {
+      kind: "reservation",
+      reservationId: st.lastReservation?.reservationId,
+      phase: st.lastReservation?.status === "cancelled" ? "cancelled" : "confirmed",
+      updatedAt: st.updatedAt || new Date().toISOString(),
+    };
+  }
+
   return undefined;
 }

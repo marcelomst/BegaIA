@@ -187,4 +187,66 @@ describe("messageHandler reservation confirm follow-up", () => {
     expect(replyText.toLowerCase()).toContain("propuesta");
     expect(replyText.toLowerCase()).toContain("fecha");
   });
+
+  it("al confirmar un segundo booking deja el foco activo en la nueva reserva sin perder el historial", async () => {
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValueOnce({
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "suite",
+        checkIn: "2026-04-01",
+        checkOut: "2026-04-04",
+        numGuests: "2",
+      },
+      salesStage: "quote",
+      activeFlow: "reservation",
+      desiredAction: "create",
+      reservationHistory: [
+        {
+          reservationId: "RES-BASE-01",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-BASE-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+      },
+    });
+
+    await handleIncomingMessage({
+      messageId: "confirm-2",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "confirmar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-3",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-confirm-3",
+      expect.objectContaining({
+        reservationHistory: expect.arrayContaining([
+          expect.objectContaining({ reservationId: "RES-BASE-01" }),
+          expect.objectContaining({ reservationId: "R-0001" }),
+        ]),
+        lastReservation: expect.objectContaining({
+          reservationId: "R-0001",
+          status: "created",
+        }),
+        activeReservationContext: expect.objectContaining({
+          kind: "reservation",
+          reservationId: "R-0001",
+          phase: "confirmed",
+        }),
+      })
+    );
+  });
 });

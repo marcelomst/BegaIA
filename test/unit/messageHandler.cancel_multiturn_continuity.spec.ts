@@ -142,6 +142,11 @@ describe("messageHandler cancel reservation multiturn continuity", () => {
       reservationId: "RES123456",
       status: "cancelled",
     });
+    expect(stateByConversation.get(conversationId)?.activeReservationContext).toMatchObject({
+      kind: "reservation",
+      reservationId: "RES123456",
+      phase: "cancelled",
+    });
   });
 
   it("mantiene el flujo compacto cuando llega código + confirmación en el mismo turno", async () => {

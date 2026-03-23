@@ -9,7 +9,12 @@ vi.mock("@/lib/astra/connection", async () => {
   };
 });
 
-import { getConvState, resolveGuestState, upsertConvState } from "@/lib/db/convState";
+import {
+  getConvState,
+  resolveActiveReservationContext,
+  resolveGuestState,
+  upsertConvState,
+} from "@/lib/db/convState";
 
 describe("convState conversationStage", () => {
   it("deriva reservation_quoted cuando el runtime persiste salesStage=quote", async () => {
@@ -83,5 +88,70 @@ describe("convState conversationStage", () => {
     });
 
     expect(guestState).toBe("booked");
+  });
+
+  it("persiste activeReservationContext explícito para un draft nuevo", async () => {
+    const hotelId = "hotel999";
+    const conversationId = `conv-active-draft-${Date.now()}`;
+
+    await upsertConvState(hotelId, conversationId, {
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      activeReservationContext: {
+        kind: "draft",
+        phase: "collecting",
+        updatedAt: new Date().toISOString(),
+      },
+      updatedBy: "ai",
+    });
+
+    const st = await getConvState(hotelId, conversationId);
+    expect(st?.activeReservationContext).toMatchObject({
+      kind: "draft",
+      phase: "collecting",
+    });
+    expect(resolveActiveReservationContext(st)?.kind).toBe("draft");
+  });
+
+  it("prioriza activeReservationContext explícito cuando hay dos reservas confirmadas", () => {
+    const active = resolveActiveReservationContext({
+      hotelId: "hotel999",
+      conversationId: "conv-active-confirmed",
+      reservationHistory: [
+        {
+          reservationId: "RES-001",
+          status: "created",
+          createdAt: new Date().toISOString(),
+          channel: "web",
+        },
+        {
+          reservationId: "RES-002",
+          status: "created",
+          createdAt: new Date().toISOString(),
+          channel: "web",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-002",
+        status: "created",
+        createdAt: new Date().toISOString(),
+        channel: "web",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-001",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+      updatedAt: new Date().toISOString(),
+      _id: "hotel999:conv-active-confirmed",
+    });
+
+    expect(active).toMatchObject({
+      kind: "reservation",
+      reservationId: "RES-001",
+      phase: "confirmed",
+    });
   });
 });

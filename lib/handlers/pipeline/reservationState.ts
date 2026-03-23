@@ -17,6 +17,10 @@ export type ReservationStateSnapshot = {
   conversationStage?: string | null;
   desiredAction?: string | null;
   activeFlow?: string | null;
+  activeReservationContext?: {
+    kind?: "draft" | "reservation" | null;
+    phase?: "collecting" | "quoted" | "confirmed" | "cancelled" | null;
+  } | null;
   pendingCancellation?: { awaitingConfirmation?: boolean } | null;
   pendingAvailabilityVerification?: { checkIn?: string; checkOut?: string } | null;
   lastReservation?: { status?: string | null } | null;
@@ -29,6 +33,12 @@ export function deriveReservationFlow(state?: ReservationStateSnapshot): Reserva
   }
   if (st.desiredAction === "modify" || st.activeFlow === "modify_reservation") {
     return "modifying";
+  }
+  if (st.activeReservationContext?.kind === "draft") {
+    return st.activeReservationContext.phase === "quoted" ? "quoted" : "collecting";
+  }
+  if (st.activeReservationContext?.kind === "reservation" && st.activeReservationContext.phase === "confirmed") {
+    return "confirmed";
   }
   if (st.desiredAction === "create" || st.activeFlow === "reservation") {
     if (st.salesStage === "quote" || st.conversationStage === "reservation_quoted" || st.lastProposal) {

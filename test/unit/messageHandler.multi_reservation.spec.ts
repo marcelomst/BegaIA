@@ -119,6 +119,10 @@ describe("messageHandler multi reservation", () => {
       "conv-multi-1",
       expect.objectContaining({
         activeFlow: "reservation",
+        activeReservationContext: expect.objectContaining({
+          kind: "draft",
+          phase: "collecting",
+        }),
         desiredAction: "create",
         salesStage: "qualify",
         lastCategory: "reservation",
@@ -156,6 +160,10 @@ describe("messageHandler multi reservation", () => {
       "conv-multi-2",
       expect.objectContaining({
         activeFlow: "reservation",
+        activeReservationContext: expect.objectContaining({
+          kind: "draft",
+          phase: "collecting",
+        }),
         desiredAction: "create",
         salesStage: "qualify",
         reservationHistory: [
@@ -192,6 +200,10 @@ describe("messageHandler multi reservation", () => {
       "conv-multi-3",
       expect.objectContaining({
         activeFlow: "reservation",
+        activeReservationContext: expect.objectContaining({
+          kind: "draft",
+          phase: "collecting",
+        }),
         desiredAction: "create",
         salesStage: "qualify",
       })

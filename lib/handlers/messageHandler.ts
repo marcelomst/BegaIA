@@ -17,7 +17,11 @@ import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import { getConvState, CONVSTATE_VERSION, resolveGuestState } from "@/lib/db/convState";
-import type { ReservationSlots as DbReservationSlots, LastReservation } from "@/lib/db/convState";
+import type {
+  ReservationSlots as DbReservationSlots,
+  LastReservation,
+  ActiveReservationContext,
+} from "@/lib/db/convState";
 import crypto from "crypto";
 
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
@@ -440,6 +444,28 @@ function mergeReservationHistory(
     return base;
   }
   return [...base, reservation];
+}
+
+function buildDraftReservationContext(
+  phase: "collecting" | "quoted" = "collecting"
+): ActiveReservationContext {
+  return {
+    kind: "draft",
+    phase,
+    updatedAt: safeNowISO(),
+  };
+}
+
+function buildFocusedReservationContext(
+  reservationId: string | undefined,
+  phase: "confirmed" | "cancelled" = "confirmed"
+): ActiveReservationContext {
+  return {
+    kind: "reservation",
+    reservationId: reservationId || undefined,
+    phase,
+    updatedAt: safeNowISO(),
+  };
 }
 // Historial seguro con fallback silencioso
 async function getRecentHistorySafe(
@@ -2281,6 +2307,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
       activeFlow: "cancel_reservation",
+      activeReservationContext: buildFocusedReservationContext(cancelCodeFromUser, "confirmed"),
       desiredAction: "cancel",
       lastCategory: "cancel_reservation",
       updatedBy: "ai",
@@ -2302,6 +2329,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           channel: (pre.msg.channel as any) || "web",
         },
         pendingCancellation: null,
+        activeReservationContext: buildFocusedReservationContext(
+          pendingCancellation.reservationId,
+          r.ok ? "cancelled" : "confirmed"
+        ),
         activeFlow: null,
         desiredAction: undefined,
         lastCategory: "cancel_reservation",
@@ -2340,6 +2371,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
         activeFlow: "cancel_reservation",
+        activeReservationContext: buildFocusedReservationContext(cancelCodeFromUser, "confirmed"),
         desiredAction: "cancel",
         lastCategory: "cancel_reservation",
         updatedBy: "ai",
@@ -2360,6 +2392,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           channel: (pre.msg.channel as any) || "web",
         },
         pendingCancellation: null,
+        activeReservationContext: buildFocusedReservationContext(
+          cancelCodeFromUser,
+          r.ok ? "cancelled" : "confirmed"
+        ),
         activeFlow: null,
         desiredAction: undefined,
         lastCategory: "cancel_reservation",
@@ -2429,6 +2465,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       reservationSlots: freshTurnSlots as any,
       lastProposal: null,
       pendingAvailabilityVerification: null,
+      activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
       salesStage: "qualify",
@@ -2520,6 +2557,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             createdAt: new Date().toISOString(),
             channel: (pre.msg.channel as any) || "web",
           },
+          activeReservationContext: buildFocusedReservationContext(codeFromUser, "confirmed"),
           updatedBy: "ai",
         } as any);
         finalText = mod.message;
@@ -2578,6 +2616,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               ),
               createdReservation
             ),
+            activeReservationContext: buildFocusedReservationContext(createdReservation.reservationId, "confirmed"),
             lastReservation: createdReservation,
             salesStage: "close",
             activeFlow: null,
