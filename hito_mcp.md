@@ -3671,3 +3671,38 @@ Impacto:
 - no altera decisiones del pipeline
 - no toca `debugLog.ts`
 - no introduce infraestructura nueva ni persistencia
+
+### FIX-PIPELINE-FALLBACK-ROUTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 30156437a73d28e955f34f295346fdb41d955869
+
+Descripcion:
+
+Se corrige un bug de routing donde consultas hoteleras de parking con
+temporalidad suave podían caer incorrectamente en `tourist_events`, manteniendo
+el dominio hotelero cuando la intención real es amenity/parking y no agenda de
+eventos.
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+- `test/unit/events.followupRouting.test.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  3 passed (3)`
+- `Tests  31 passed (31)`
+
+Impacto:
+
+- corrige secuestro semántico de parking hacia `tourist_events`
+- mantiene el dominio hotelero cuando el usuario consulta amenities con
+  temporalidad suave
+- evita falsos positivos de routing por heurística temporal
+- no altera contratos públicos ni introduce infraestructura nueva
