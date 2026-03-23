@@ -235,6 +235,28 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("resuelve 'el desayuno está incluido?' sin colapsarlo a horario puro", async () => {
+    const conversationId = "conv-stable-breakfast-included-1";
+
+    await handleIncomingMessage(msg("el desayuno está incluido?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/incluido|tarifa|recepci/i);
+    expect(text).not.toMatch(/^El desayuno se sirve de 07:00 - 10:30\.?$/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("resuelve 'el desayuno es buffet?' sin tratarlo como horario simple", async () => {
+    const conversationId = "conv-stable-breakfast-type-1";
+
+    await handleIncomingMessage(msg("el desayuno es buffet?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/buffet|modalidad|recepci/i);
+    expect(text).not.toMatch(/^El desayuno se sirve de 07:00 - 10:30\.?$/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
   it("no secuestra intents transaccionales reales de reserva", async () => {
     const conversationId = "conv-stable-negative-1";
 
@@ -245,13 +267,15 @@ describe("messageHandler stable intents guard", () => {
     expect(text).toMatch(/fecha|habitaci[oó]n|reserva|booking/i);
   });
 
-  it("no captura frases enriquecidas como 'necesito wifi para trabajar durante mi estadía'", async () => {
+  it("resuelve wifi contextual con respuesta hotelera razonable", async () => {
     const conversationId = "conv-stable-negative-2";
 
     await handleIncomingMessage(msg("necesito wifi para trabajar durante mi estadía", conversationId), { mode: "automatic", sendReply });
 
     const text = await lastAssistantText(conversationId);
-    expect(text).not.toMatch(/clave se entrega al hacer check-in|estacionamiento sujeto a disponibilidad|07:00 - 10:30/i);
+    expect(text).toMatch(/wifi|trabaj|estabilidad|cobertura/i);
+    expect(text).not.toMatch(/estacionamiento sujeto a disponibilidad|07:00 - 10:30/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
   });
 
   it("si el hotel deshabilita wifi, el guard no responde y sigue el pipeline", async () => {

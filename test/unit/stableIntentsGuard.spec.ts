@@ -52,9 +52,9 @@ describe("stableIntentsGuard", () => {
     expect(String(result.response || "")).toMatch(/15:00/);
   });
 
-  it("reconoce breakfast/wifi/parking con respuestas deterministas", async () => {
+  it("reconoce breakfast horario, wifi básico y parking con respuestas deterministas", async () => {
     const breakfast = await runStableIntentsGuard({
-      rawQuery: "incluye desayuno?",
+      rawQuery: "desayuno?",
       hotelId: "hotel999",
       preferredLanguage: "es",
     });
@@ -77,6 +77,44 @@ describe("stableIntentsGuard", () => {
     expect(String(parking.response || "")).toMatch(/estacionamiento|parking/i);
   });
 
+  it("distingue desayuno incluido y modalidad sin colapsarlos a horario puro", async () => {
+    const included = await runStableIntentsGuard({
+      rawQuery: "el desayuno está incluido?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+    });
+    const buffet = await runStableIntentsGuard({
+      rawQuery: "el desayuno es buffet?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+    });
+
+    expect(included.intentKey).toBe("faq_breakfast_included");
+    expect(String(included.response || "")).toMatch(/incluido|tarifa|recepci/i);
+    expect(String(included.response || "")).not.toMatch(/^el desayuno se sirve de 07:00 - 10:30\.?$/i);
+    expect(buffet.intentKey).toBe("faq_breakfast_type");
+    expect(String(buffet.response || "")).toMatch(/buffet|modalidad|recepci/i);
+    expect(String(buffet.response || "")).not.toMatch(/^el desayuno se sirve de 07:00 - 10:30\.?$/i);
+  });
+
+  it("distingue wifi contextual de wifi básico", async () => {
+    const contextual = await runStableIntentsGuard({
+      rawQuery: "necesito wifi para trabajar",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+    });
+    const freeWifi = await runStableIntentsGuard({
+      rawQuery: "hay wifi gratis?",
+      hotelId: "hotel999",
+      preferredLanguage: "es",
+    });
+
+    expect(contextual.intentKey).toBe("faq_wifi_quality");
+    expect(String(contextual.response || "")).toMatch(/trabajar|estabilidad|cobertura|wifi/i);
+    expect(freeWifi.intentKey).toBe("faq_wifi");
+    expect(String(freeWifi.response || "")).toMatch(/wifi|wi-fi/i);
+  });
+
   it("captura parking con temporalidad suave sin tratarlo como agenda", async () => {
     const queries = [
       "quiero parking para mañana",
@@ -97,7 +135,7 @@ describe("stableIntentsGuard", () => {
     }
   });
 
-  it("mantiene matching conservador para frases transaccionales enriquecidas", async () => {
+  it("mantiene matching conservador para parking transaccional y captura wifi contextual", async () => {
     const parking = await runStableIntentsGuard({
       rawQuery: "quiero reservar con parking",
       hotelId: "hotel999",
@@ -110,7 +148,8 @@ describe("stableIntentsGuard", () => {
     });
 
     expect(parking.matched).toBe(false);
-    expect(wifi.matched).toBe(false);
+    expect(wifi.matched).toBe(true);
+    expect(wifi.intentKey).toBe("faq_wifi_quality");
   });
 
   it("no secuestra un intent transaccional de reserva", async () => {

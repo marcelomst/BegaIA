@@ -4,7 +4,10 @@ export type StableIntentKey =
   | "faq_check_in_time"
   | "faq_check_out_time"
   | "faq_breakfast_hours"
+  | "faq_breakfast_included"
+  | "faq_breakfast_type"
   | "faq_wifi"
+  | "faq_wifi_quality"
   | "faq_parking";
 
 export interface StableIntentGuardInput {
@@ -56,15 +59,36 @@ const DEFAULT_STABLE_INTENTS_CATALOG: StableIntentCatalog = {
     intentKey: "faq_breakfast_hours",
     enabled: true,
     responseSource: "schedules.breakfast",
-    examples: ["desayuno?", "incluye desayuno?", "breakfast"],
+    examples: ["desayuno?", "a que hora es el desayuno?", "breakfast hours"],
     notes: "Horario de desayuno estable del hotel",
+  },
+  faq_breakfast_included: {
+    intentKey: "faq_breakfast_included",
+    enabled: true,
+    responseSource: "meals.breakfast.included",
+    examples: ["el desayuno esta incluido?", "incluye desayuno?", "breakfast included"],
+    notes: "Inclusión del desayuno en la tarifa o servicio",
+  },
+  faq_breakfast_type: {
+    intentKey: "faq_breakfast_type",
+    enabled: true,
+    responseSource: "meals.breakfast.type",
+    examples: ["el desayuno es buffet?", "breakfast buffet?", "tipo de desayuno"],
+    notes: "Modalidad o tipo de desayuno",
   },
   faq_wifi: {
     intentKey: "faq_wifi",
     enabled: true,
     responseSource: "amenities.wifiNotes",
-    examples: ["wifi?", "wifi password?", "internet"],
+    examples: ["wifi?", "wifi password?", "hay wifi gratis?"],
     notes: "Disponibilidad y notas de Wi-Fi",
+  },
+  faq_wifi_quality: {
+    intentKey: "faq_wifi_quality",
+    enabled: true,
+    responseSource: "wifi.quality",
+    examples: ["necesito wifi para trabajar", "el wifi anda bien?", "wifi estable"],
+    notes: "Calidad, estabilidad o adecuación del Wi-Fi para uso intensivo",
   },
   faq_parking: {
     intentKey: "faq_parking",
@@ -89,7 +113,7 @@ function normalizeStableIntentInput(raw: string): string {
 }
 
 function looksTransactional(text: string): boolean {
-  return /\b(reserv(ar|a|o|as)?|booking|book|modify|modificar|cambiar|alterar|cancel(ar|arla)?|cancel|disponibilidad|availability|habitacion|habitacion|quarto|room|estadia|stay)\b/i.test(
+  return /\b(reserv(ar|a|o|as)?|booking|book|modify|modificar|cambiar|alterar|cancel(ar|arla)?|cancel|disponibilidad|availability|habitacion|habitacion|quarto|room)\b/i.test(
     text
   );
 }
@@ -106,10 +130,15 @@ function detectStableIntent(normalized: string): StableIntentKey | null {
   const isBareCheckIn = /^(checkin)$/.test(normalized);
   const isBareCheckOut = /^(checkout)$/.test(normalized);
   const mentionsBreakfast = /\b(desayuno|breakfast|cafe da manha)\b/i.test(normalized);
-  const asksBreakfast = /\b(incluye|include|included|incluido|incluida|hora|horario|time)\b/i.test(normalized);
+  const asksBreakfastTime = /\b(a que hora|que hora|hora|horario|schedule|time|when|starts|start|begins|begin|comienza|empieza|abre)\b/i.test(
+    normalized
+  );
+  const asksBreakfastIncluded = /\b(incluye|include|included|incluido|incluida|esta incluido|esta incluida|is included)\b/i.test(normalized);
+  const asksBreakfastType = /\b(buffet|bufet|continental|americano|tipo de desayuno|breakfast type)\b/i.test(normalized);
   const isBareBreakfast = /^(desayuno|breakfast|cafe da manha)$/.test(normalized);
   const isWifiFaq = /^(wifi|internet)$/.test(normalized)
     || /\b(tienen wifi|hay wifi|wifi gratis|wifi free|wifi password|clave wifi|password wifi|internet disponible)\b/i.test(normalized);
+  const isWifiQualityFaq = /\b(necesito wifi para trabajar|wifi para trabajar|el wifi anda bien|wifi anda bien|wifi estable|wifi rapido|wifi rápido|internet estable|internet rapido|internet rápido)\b/i.test(normalized);
   const isParkingFaq = /^(parking|estacionamiento|aparcamiento)$/.test(normalized)
     || /\b(hay parking|tienen parking|parking incluido|donde estaciono|donde aparco|estacionamiento disponible|tienen estacionamiento)\b/i.test(normalized)
     || /^(quiero|necesito)\s+(parking|estacionamiento|aparcamiento)(?:\s+(?:para|por)\s+.+)?$/i.test(normalized)
@@ -117,7 +146,10 @@ function detectStableIntent(normalized: string): StableIntentKey | null {
 
   if (mentionsCheckIn && (asksTime || isBareCheckIn)) return "faq_check_in_time";
   if (mentionsCheckOut && (asksTime || isBareCheckOut)) return "faq_check_out_time";
-  if (mentionsBreakfast && (asksBreakfast || isBareBreakfast)) return "faq_breakfast_hours";
+  if (mentionsBreakfast && asksBreakfastIncluded) return "faq_breakfast_included";
+  if (mentionsBreakfast && asksBreakfastType) return "faq_breakfast_type";
+  if (mentionsBreakfast && (asksBreakfastTime || isBareBreakfast)) return "faq_breakfast_hours";
+  if (isWifiQualityFaq) return "faq_wifi_quality";
   if (isWifiFaq) return "faq_wifi";
   if (isParkingFaq) return "faq_parking";
   return null;
@@ -144,10 +176,23 @@ function getStableFaqDetails(hotel: any) {
       hotel?.schedules?.breakfast ||
       hotel?.meals?.breakfast?.hours ||
       undefined,
+    breakfastIncluded:
+      hotel?.meals?.breakfast?.included ??
+      hotel?.breakfast?.included ??
+      undefined,
+    breakfastType:
+      hotel?.meals?.breakfast?.type ||
+      hotel?.breakfast?.type ||
+      undefined,
     wifiNotes:
       hotel?.amenities?.wifiNotes ||
       hotel?.wifi?.notes ||
       hotel?.wifi?.passwordNotes ||
+      undefined,
+    wifiQuality:
+      hotel?.wifi?.quality ||
+      hotel?.wifi?.speed ||
+      hotel?.amenities?.wifiQuality ||
       undefined,
     parkingNotes:
       hotel?.amenities?.parkingNotes ||
@@ -160,7 +205,14 @@ function buildStableIntentResponse(
   lang: "es" | "en" | "pt",
   intentKey: StableIntentKey,
   times: { checkIn?: string; checkOut?: string },
-  details?: { breakfast?: string; wifiNotes?: string; parkingNotes?: string }
+  details?: {
+    breakfast?: string;
+    breakfastIncluded?: boolean | string;
+    breakfastType?: string;
+    wifiNotes?: string;
+    wifiQuality?: string;
+    parkingNotes?: string;
+  }
 ): string {
   if (intentKey === "faq_check_in_time") {
     if (times.checkIn) {
@@ -192,11 +244,49 @@ function buildStableIntentResponse(
     if (lang === "en") return "I can confirm breakfast hours with reception.";
     return "Puedo confirmar el horario del desayuno con recepción.";
   }
+  if (intentKey === "faq_breakfast_included") {
+    const included = details?.breakfastIncluded;
+    if (typeof included === "boolean") {
+      if (included) {
+        if (lang === "pt") return details?.breakfast ? `O café da manhã está incluído. O horário atual é ${details.breakfast}.` : "O café da manhã está incluído.";
+        if (lang === "en") return details?.breakfast ? `Breakfast is included. Current hours are ${details.breakfast}.` : "Breakfast is included.";
+        return details?.breakfast ? `El desayuno está incluido. El horario actual es ${details.breakfast}.` : "El desayuno está incluido.";
+      }
+      if (lang === "pt") return "O hotel oferece café da manhã, mas ele não está incluído por padrão na tarifa.";
+      if (lang === "en") return "The hotel offers breakfast, but it is not included by default in the rate.";
+      return "El hotel ofrece desayuno, pero no está incluido por defecto en la tarifa.";
+    }
+    if (typeof included === "string" && included.trim()) return included.trim();
+    if (lang === "pt") return details?.breakfast ? `O hotel oferece café da manhã das ${details.breakfast}. Se quiser, confirmo se ele está incluído na sua tarifa.` : "Posso confirmar com a recepção se o café da manhã está incluído na sua tarifa.";
+    if (lang === "en") return details?.breakfast ? `The hotel serves breakfast from ${details.breakfast}. If you want, I can confirm whether it is included in your rate.` : "I can confirm with reception whether breakfast is included in your rate.";
+    return details?.breakfast ? `El hotel ofrece desayuno de ${details.breakfast}. Si querés, confirmo si está incluido en tu tarifa.` : "Puedo confirmar con recepción si el desayuno está incluido en tu tarifa.";
+  }
+  if (intentKey === "faq_breakfast_type") {
+    if (details?.breakfastType) {
+      if (lang === "pt") return details?.breakfast ? `O café da manhã é ${details.breakfastType}. O horário atual é ${details.breakfast}.` : `O café da manhã é ${details.breakfastType}.`;
+      if (lang === "en") return details?.breakfast ? `Breakfast is ${details.breakfastType}. Current hours are ${details.breakfast}.` : `Breakfast is ${details.breakfastType}.`;
+      return details?.breakfast ? `El desayuno es ${details.breakfastType}. El horario actual es ${details.breakfast}.` : `El desayuno es ${details.breakfastType}.`;
+    }
+    if (lang === "pt") return details?.breakfast ? `O hotel oferece café da manhã das ${details.breakfast}. Se quiser, confirmo se ele é buffet ou outro formato.` : "Posso confirmar com a recepção se o café da manhã é buffet ou qual é a modalidade.";
+    if (lang === "en") return details?.breakfast ? `The hotel serves breakfast from ${details.breakfast}. If you want, I can confirm whether it is buffet-style or another format.` : "I can confirm with reception whether breakfast is buffet-style or another format.";
+    return details?.breakfast ? `El hotel ofrece desayuno de ${details.breakfast}. Si querés, confirmo si es buffet u otra modalidad.` : "Puedo confirmar con recepción si el desayuno es buffet u otra modalidad.";
+  }
   if (intentKey === "faq_wifi") {
     if (details?.wifiNotes) return details.wifiNotes;
     if (lang === "pt") return "Sim, contamos com Wi-Fi no hotel. Se quiser, confirmo a rede e o acesso com a recepção.";
     if (lang === "en") return "Yes, we have Wi-Fi at the hotel. If you want, I can confirm the network and access details with reception.";
     return "Sí, contamos con Wi-Fi en el hotel. Si querés, confirmo la red y los datos de acceso con recepción.";
+  }
+  if (intentKey === "faq_wifi_quality") {
+    if (details?.wifiQuality) return String(details.wifiQuality);
+    if (details?.wifiNotes) {
+      if (lang === "pt") return `${details.wifiNotes} Se precisar usar para trabalho, posso confirmar estabilidade e cobertura com a recepção.`;
+      if (lang === "en") return `${details.wifiNotes} If you need it for work, I can confirm stability and coverage with reception.`;
+      return `${details.wifiNotes} Si lo necesitás para trabajar, puedo confirmar estabilidad y cobertura con recepción.`;
+    }
+    if (lang === "pt") return "Temos Wi-Fi no hotel. Se você precisar usar para trabalho, posso confirmar estabilidade, velocidade e cobertura com a recepção.";
+    if (lang === "en") return "We have Wi-Fi at the hotel. If you need it for work, I can confirm stability, speed, and coverage with reception.";
+    return "Contamos con Wi-Fi en el hotel. Si lo necesitás para trabajar, puedo confirmar estabilidad, velocidad y cobertura con recepción.";
   }
   if (intentKey === "faq_parking") {
     if (details?.parkingNotes) return details.parkingNotes;
