@@ -34,7 +34,7 @@ Objetivo:
 
 | AGENT                | CHAT-REAL-NAME                        |
 | -------------------- | ------------------------------------- |
-| arquitecto_sistema   | Reportar hallazgos de arquitectura    |
+| arquitecto_sistema   | Adopta rol arquitecto sistema         |
 | asistente_tecnico    | Documentar hallazgos PIPELINE-CORE-1  |
 | repo_guardian        | Refuerza disciplina Git               |
 | hdoc                 | Emitir estado hito Begasist           |
