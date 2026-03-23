@@ -3739,3 +3739,36 @@ Impacto:
 - separa wifi básico de wifi contextual para trabajo
 - mantiene el guard como capa determinista previa al flujo semántico principal
 - no altera guest state, multi-reservation, UI ni arquitectura general
+
+### FEAT-PIPELINE-GUEST-STATE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: fc800c5f16b74833c1a72c287b0cc541dc7350eb
+
+Descripcion:
+
+Se introduce una señal contextual mínima de `guestState` para matizar
+respuestas del `stableIntentsGuard`, preservando backward compatibility,
+precedencia actual del guard y routing principal sin cambios.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/convState.conversationStage.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/convState.conversationStage.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts` PASS
+- `Test Files  3 passed (3)`
+- `Tests  31 passed (31)`
+
+Impacto:
+
+- introduce contexto mínimo de huésped sin volverlo controlador principal
+- mejora framing/respuesta en intents estables según estado conversacional
+- preserva compatibilidad hacia atrás cuando no existe señal suficiente
+- no altera contratos públicos, UI, multi-reservation ni arquitectura general
