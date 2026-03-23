@@ -16,7 +16,7 @@ import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages
 import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
-import { getConvState, CONVSTATE_VERSION } from "@/lib/db/convState";
+import { getConvState, CONVSTATE_VERSION, resolveGuestState } from "@/lib/db/convState";
 import type { ReservationSlots as DbReservationSlots } from "@/lib/db/convState";
 import crypto from "crypto";
 
@@ -1448,6 +1448,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     hotelId: pre.msg.hotelId,
     preferredLanguage: pre.lang,
     conversationId: pre.conversationId,
+    guestState: resolveGuestState(pre.st),
   });
   emitStableIntentRouting(pre.msg, {
     routing_stage: "stable_intents_guard",

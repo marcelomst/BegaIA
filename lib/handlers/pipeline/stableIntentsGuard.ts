@@ -1,4 +1,5 @@
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import type { GuestState } from "@/lib/db/convState";
 
 export type StableIntentKey =
   | "faq_check_in_time"
@@ -15,6 +16,7 @@ export interface StableIntentGuardInput {
   hotelId: string;
   preferredLanguage: "es" | "en" | "pt";
   conversationId?: string;
+  guestState?: GuestState;
 }
 
 export interface StableIntentGuardResult {
@@ -205,6 +207,7 @@ function buildStableIntentResponse(
   lang: "es" | "en" | "pt",
   intentKey: StableIntentKey,
   times: { checkIn?: string; checkOut?: string },
+  guestState?: GuestState,
   details?: {
     breakfast?: string;
     breakfastIncluded?: boolean | string;
@@ -257,6 +260,16 @@ function buildStableIntentResponse(
       return "El hotel ofrece desayuno, pero no está incluido por defecto en la tarifa.";
     }
     if (typeof included === "string" && included.trim()) return included.trim();
+    if (guestState === "in_house") {
+      if (lang === "pt") return "Se você já está hospedado, a inclusão do café da manhã depende da tarifa registrada no seu check-in. Isso costuma constar na confirmação ou pode ser validado rapidamente na recepção.";
+      if (lang === "en") return "If you are already staying with us, breakfast inclusion depends on the rate attached to your check-in. It is usually listed on your booking confirmation and can be quickly verified at the front desk.";
+      return "Si ya estás alojado, la inclusión del desayuno depende de la tarifa registrada en tu check-in. Suele figurar en tu confirmación y puede validarse rápido en recepción.";
+    }
+    if (guestState === "booked") {
+      if (lang === "pt") return "Se você já tem uma reserva, a inclusão do café da manhã depende da tarifa confirmada. Vale revisar a confirmação da reserva para ver se ele já está contemplado.";
+      if (lang === "en") return "If you already have a booking, breakfast inclusion depends on the confirmed rate. It is best to check your booking confirmation to see whether it is already included.";
+      return "Si ya tenés una reserva, la inclusión del desayuno depende de la tarifa confirmada. Conviene revisar la confirmación para ver si ya está contemplado.";
+    }
     if (lang === "pt") return details?.breakfast ? `O hotel oferece café da manhã das ${details.breakfast}. Se quiser, confirmo se ele está incluído na sua tarifa.` : "Posso confirmar com a recepção se o café da manhã está incluído na sua tarifa.";
     if (lang === "en") return details?.breakfast ? `The hotel serves breakfast from ${details.breakfast}. If you want, I can confirm whether it is included in your rate.` : "I can confirm with reception whether breakfast is included in your rate.";
     return details?.breakfast ? `El hotel ofrece desayuno de ${details.breakfast}. Si querés, confirmo si está incluido en tu tarifa.` : "Puedo confirmar con recepción si el desayuno está incluido en tu tarifa.";
@@ -273,6 +286,11 @@ function buildStableIntentResponse(
   }
   if (intentKey === "faq_wifi") {
     if (details?.wifiNotes) return details.wifiNotes;
+    if (guestState === "in_house") {
+      if (lang === "pt") return "Se você já está hospedado, o Wi-Fi do hotel deveria estar disponível para uso. Se não recebeu os dados de acesso no check-in, a recepção pode validá-los no momento.";
+      if (lang === "en") return "If you are already staying with us, the hotel Wi-Fi should already be available for use. If you did not receive the access details at check-in, the front desk can validate them right away.";
+      return "Si ya estás alojado, el Wi-Fi del hotel debería estar disponible para uso. Si no te dieron los datos de acceso al hacer check-in, recepción puede validarlos en el momento.";
+    }
     if (lang === "pt") return "Sim, contamos com Wi-Fi no hotel. Se quiser, confirmo a rede e o acesso com a recepção.";
     if (lang === "en") return "Yes, we have Wi-Fi at the hotel. If you want, I can confirm the network and access details with reception.";
     return "Sí, contamos con Wi-Fi en el hotel. Si querés, confirmo la red y los datos de acceso con recepción.";
@@ -280,9 +298,24 @@ function buildStableIntentResponse(
   if (intentKey === "faq_wifi_quality") {
     if (details?.wifiQuality) return String(details.wifiQuality);
     if (details?.wifiNotes) {
+      if (guestState === "in_house") {
+        if (lang === "pt") return `${details.wifiNotes} Como você já está hospedado, se notar instabilidade no quarto ou em alguma área, a recepção pode revisar o acesso sem depender de nova confirmação.`;
+        if (lang === "en") return `${details.wifiNotes} Since you are already staying with us, if you notice instability in your room or a specific area, the front desk can review the access without needing a new confirmation.`;
+        return `${details.wifiNotes} Como ya estás alojado, si notás inestabilidad en la habitación o en algún sector, recepción puede revisar el acceso sin depender de una nueva confirmación.`;
+      }
       if (lang === "pt") return `${details.wifiNotes} Se precisar usar para trabalho, posso confirmar estabilidade e cobertura com a recepção.`;
       if (lang === "en") return `${details.wifiNotes} If you need it for work, I can confirm stability and coverage with reception.`;
       return `${details.wifiNotes} Si lo necesitás para trabajar, puedo confirmar estabilidad y cobertura con recepción.`;
+    }
+    if (guestState === "in_house") {
+      if (lang === "pt") return "Se você já está hospedado, o Wi-Fi do hotel deveria estar ativo. Se precisar trabalhar, a recepção pode ajudar a validar cobertura e estabilidade no seu quarto ou área comum.";
+      if (lang === "en") return "If you are already staying with us, the hotel Wi-Fi should already be active. If you need it for work, the front desk can help validate coverage and stability in your room or in common areas.";
+      return "Si ya estás alojado, el Wi-Fi del hotel debería estar activo. Si lo necesitás para trabajar, recepción puede ayudarte a validar cobertura y estabilidad en tu habitación o en áreas comunes.";
+    }
+    if (guestState === "booked") {
+      if (lang === "pt") return "O hotel conta com Wi-Fi. Como você já tem reserva, no check-in poderão indicar a melhor rede ou setor caso precise trabalhar durante a estadia.";
+      if (lang === "en") return "The hotel has Wi-Fi. Since you already have a booking, at check-in they can point you to the best network or area if you need to work during your stay.";
+      return "El hotel cuenta con Wi-Fi. Como ya tenés una reserva, al hacer check-in podrán indicarte la mejor red o sector si necesitás trabajar durante la estadía.";
     }
     if (lang === "pt") return "Temos Wi-Fi no hotel. Se você precisar usar para trabalho, posso confirmar estabilidade, velocidade e cobertura com a recepção.";
     if (lang === "en") return "We have Wi-Fi at the hotel. If you need it for work, I can confirm stability, speed, and coverage with reception.";
@@ -382,6 +415,7 @@ export async function runStableIntentsGuard(
     input.preferredLanguage,
     intentKey,
     getConfiguredCheckTimes(hotel),
+    input.guestState,
     getStableFaqDetails(hotel)
   );
   return {

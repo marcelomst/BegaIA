@@ -46,6 +46,22 @@ vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(),
   upsertConvState: vi.fn(),
   CONVSTATE_VERSION: "convstate-test",
+  resolveGuestState: (st: any) => {
+    if (!st) return undefined;
+    if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
+      return st.guestState;
+    }
+    if (st.lastReservation?.status === "created" || st.lastReservation?.status === "updated") {
+      return "booked";
+    }
+    if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+      return "booked";
+    }
+    if (st.reservationSlots || st.salesStage || st.conversationStage) {
+      return "prospect";
+    }
+    return undefined;
+  },
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
@@ -170,6 +186,43 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("sin guest_state explícito, wifi básico mantiene fallback actual si faltan notas directas", async () => {
+    const conversationId = "conv-stable-wifi-no-state-fallback-1";
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+      amenities: {},
+    });
+
+    await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/confirmo la red|datos de acceso|recepci/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con guest_state=in_house, wifi básico evita fallback genérico y responde más operativo", async () => {
+    const conversationId = "conv-stable-wifi-inhouse-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      guestState: "in_house",
+      updatedAt: new Date().toISOString(),
+    });
+    getHotelConfigMock.mockResolvedValueOnce({
+      hotelName: "Hotel Demo",
+      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+      amenities: {},
+    });
+
+    await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/ya est[aá]s alojado|check-in|deber[ií]a estar disponible/i);
+    expect(text).not.toMatch(/si quer[eé]s, confirmo la red/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
   it("con contexto transaccional activo, 'hay parking?' gana precedencia y no deriva a reserva", async () => {
     const conversationId = "conv-stable-parking-1";
     (getConvState as any).mockResolvedValue({
@@ -243,6 +296,29 @@ describe("messageHandler stable intents guard", () => {
     const text = await lastAssistantText(conversationId);
     expect(text).toMatch(/incluido|tarifa|recepci/i);
     expect(text).not.toMatch(/^El desayuno se sirve de 07:00 - 10:30\.?$/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("con guest_state=booked, desayuno incluido usa contexto de reserva y no fallback genérico", async () => {
+    const conversationId = "conv-stable-breakfast-booked-1";
+    (getConvState as any).mockResolvedValue({
+      hotelId,
+      conversationId,
+      salesStage: "close",
+      lastReservation: {
+        reservationId: "RES-BOOKED-01",
+        status: "created",
+        createdAt: new Date().toISOString(),
+        channel: "web",
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await handleIncomingMessage(msg("el desayuno está incluido?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/ya ten[eé]s una reserva|tarifa confirmada|confirmaci[oó]n/i);
+    expect(text).not.toMatch(/si quer[eé]s, confirmo si est[aá] incluido en tu tarifa/i);
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 

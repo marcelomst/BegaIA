@@ -74,6 +74,8 @@ export type PendingAvailabilityVerification = {
   checkOut: string;
 };
 
+export type GuestState = "prospect" | "booked" | "in_house";
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -100,6 +102,7 @@ export type ConversationFlowState = {
   lastReservation?: LastReservation;
   pendingCancellation?: PendingCancellation | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
+  guestState?: GuestState | null;
 
   // Meta/negocio
   salesStage?: "qualify" | "quote" | "close" | "followup";
@@ -323,6 +326,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("guestState" in patch) {
+    if ((patch as any).guestState == null) {
+      $unset["guestState"] = true;
+    } else {
+      $set["guestState"] = (patch as any).guestState;
+    }
+  }
+
   const update: any = Object.keys($unset).length ? { $set, $unset } : { $set };
 
   console.log("[BP-CS2]", hotelId, conversationId, JSON.stringify(patch))
@@ -361,6 +372,7 @@ export async function upsertConvState(
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
+      if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;
       if (typeof collection.insertOne === "function") {
         await collection.insertOne(doc);
         console.log("BP-CS3 (fallback-insert)", { acknowledged: true, insertedId: _id });
@@ -400,4 +412,23 @@ export async function patchSlots(
 ) {
   // Normalización defensiva: guests -> numGuests
   return upsertConvState(hotelId, conversationId, { reservationSlots: normalizeSlots(patchSlots) });
+}
+
+export function resolveGuestState(
+  st?: Partial<ConversationFlowState> | null
+): GuestState | undefined {
+  if (!st) return undefined;
+  if (st.guestState === "prospect" || st.guestState === "booked" || st.guestState === "in_house") {
+    return st.guestState;
+  }
+  if (st.lastReservation?.status === "created" || st.lastReservation?.status === "updated") {
+    return "booked";
+  }
+  if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") {
+    return "booked";
+  }
+  if (st.reservationSlots || st.salesStage || st.conversationStage) {
+    return "prospect";
+  }
+  return undefined;
 }

@@ -9,7 +9,7 @@ vi.mock("@/lib/astra/connection", async () => {
   };
 });
 
-import { getConvState, upsertConvState } from "@/lib/db/convState";
+import { getConvState, resolveGuestState, upsertConvState } from "@/lib/db/convState";
 
 describe("convState conversationStage", () => {
   it("deriva reservation_quoted cuando el runtime persiste salesStage=quote", async () => {
@@ -50,5 +50,38 @@ describe("convState conversationStage", () => {
     const st = await getConvState(hotelId, conversationId);
     expect(st?.conversationStage).toBe("reservation_confirmed");
     expect(st?.salesStage).toBe("close");
+  });
+
+  it("persiste guestState explícito y lo resuelve como fuente prioritaria", async () => {
+    const hotelId = "hotel999";
+    const conversationId = `conv-guest-state-inhouse-${Date.now()}`;
+
+    await upsertConvState(hotelId, conversationId, {
+      guestState: "in_house",
+      updatedBy: "ai",
+    });
+
+    const st = await getConvState(hotelId, conversationId);
+    expect(st?.guestState).toBe("in_house");
+    expect(resolveGuestState(st)).toBe("in_house");
+  });
+
+  it("deriva guestState=booked desde salesStage close + lastReservation sin campo explícito", async () => {
+    const guestState = resolveGuestState({
+      hotelId: "hotel999",
+      conversationId: "conv-booked-derived",
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastReservation: {
+        reservationId: "RES-TST002",
+        status: "created",
+        createdAt: new Date().toISOString(),
+        channel: "web",
+      },
+      updatedAt: new Date().toISOString(),
+      _id: "hotel999:conv-booked-derived",
+    });
+
+    expect(guestState).toBe("booked");
   });
 });
