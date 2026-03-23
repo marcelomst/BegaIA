@@ -3848,3 +3848,39 @@ Nota:
 
 - el ajuste en fixtures/mocks de tests no tuvo impacto funcional sobre runtime
   ni contratos del producto
+
+### FEAT-PIPELINE-MULTI-RESERVATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 46578063b5d210a6816a89c207910f641e37440f
+
+Descripcion:
+
+Se habilita soporte para múltiples reservas dentro de una misma conversación,
+preservando la reserva anterior en historial y abriendo un nuevo draft activo
+sin romper modify/cancel ni rediseñar el dominio completo.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/reservationState.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+- `test/unit/messageHandler.cancel_multiturn_continuity.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/messageHandler.postbooking_checkout_semantics.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  9 passed (9)`
+- `Tests  83 passed (83)`
+
+Impacto:
+
+- permite múltiples reservas en una misma conversación
+- preserva la reserva anterior explícitamente
+- no rompe flujos de modify/cancel
+- mantiene `messageHandler` como runtime principal
+- evita rediseño grande del dominio
