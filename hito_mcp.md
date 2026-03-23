@@ -3884,3 +3884,29 @@ Impacto:
 - no rompe flujos de modify/cancel
 - mantiene `messageHandler` como runtime principal
 - evita rediseño grande del dominio
+
+### DOC-ARCH-CHANNEL-MAP-RENAMING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 8e25ff4af7de2c5e5f96a08da151616133c599e3
+
+Descripcion:
+
+Se ajusta la etiqueta visible asociada a `arquitecto_sistema` en el mapa
+operativo de chats/agentes, pasando de `Reportar hallazgos de arquitectura` a
+`Adopta rol arquitecto sistema`.
+
+Archivo afectado:
+
+- `docs/architecture/channel_map.md`
+
+Validacion:
+
+- no corresponde validación automática por tratarse de documentación mínima
+
+Impacto:
+
+- mejora alineación del naming operativo del chat `arquitecto_sistema`
+- mantiene actualizado el mapa documental de agentes/chats
+- no tiene impacto en runtime
