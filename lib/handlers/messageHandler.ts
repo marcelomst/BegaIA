@@ -467,6 +467,200 @@ function buildFocusedReservationContext(
     updatedAt: safeNowISO(),
   };
 }
+
+type ReservationReferenceTarget = {
+  kind: "draft" | "reservation";
+  reservationId?: string;
+  checkIn?: string;
+  checkOut?: string;
+  source: "active" | "history" | "lastReservation";
+};
+
+type ReservationReferenceResolution =
+  | { status: "resolved"; target: ReservationReferenceTarget }
+  | { status: "ambiguous" }
+  | { status: "unresolved" };
+
+function normalizeReferenceText(text: string): string {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+function toISODateOffset(days: number): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function getEffectiveActiveReservationContext(state: any): ActiveReservationContext | undefined {
+  const explicit = state?.activeReservationContext;
+  if (explicit?.kind === "draft" || explicit?.kind === "reservation") return explicit;
+  if (state?.desiredAction === "create" || state?.activeFlow === "reservation") {
+    return buildDraftReservationContext(
+      state?.salesStage === "quote" || state?.conversationStage === "reservation_quoted" || state?.lastProposal
+        ? "quoted"
+        : "collecting"
+    );
+  }
+  if (state?.salesStage === "quote" || state?.conversationStage === "reservation_quoted" || state?.lastProposal) {
+    return buildDraftReservationContext("quoted");
+  }
+  if (state?.lastReservation?.reservationId || state?.salesStage === "close") {
+    return buildFocusedReservationContext(
+      state?.lastReservation?.reservationId,
+      state?.lastReservation?.status === "cancelled" ? "cancelled" : "confirmed"
+    );
+  }
+  if (state?.reservationSlots) return buildDraftReservationContext("collecting");
+  return undefined;
+}
+
+function buildReservationReferenceCandidates(state: any): ReservationReferenceTarget[] {
+  const candidates: ReservationReferenceTarget[] = [];
+  const active = getEffectiveActiveReservationContext(state);
+  if (active?.kind === "draft") {
+    candidates.push({
+      kind: "draft",
+      checkIn: state?.reservationSlots?.checkIn,
+      checkOut: state?.reservationSlots?.checkOut,
+      source: "active",
+    });
+  } else if (active?.kind === "reservation" && active.reservationId) {
+    candidates.push({
+      kind: "reservation",
+      reservationId: active.reservationId,
+      checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
+      checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
+      source: "active",
+    });
+  }
+
+  const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
+  for (const item of history) {
+    if (!item?.reservationId) continue;
+    if (candidates.some((candidate) => candidate.reservationId === item.reservationId && candidate.kind === "reservation")) {
+      continue;
+    }
+    candidates.push({
+      kind: "reservation",
+      reservationId: item.reservationId,
+      checkIn: item.checkIn,
+      checkOut: item.checkOut,
+      source: "history",
+    });
+  }
+
+  if (
+    state?.lastReservation?.reservationId &&
+    !candidates.some((candidate) => candidate.reservationId === state.lastReservation.reservationId)
+  ) {
+    candidates.push({
+      kind: "reservation",
+      reservationId: state.lastReservation.reservationId,
+      checkIn: state.lastReservation.checkIn || state?.reservationSlots?.checkIn,
+      checkOut: state.lastReservation.checkOut || state?.reservationSlots?.checkOut,
+      source: "lastReservation",
+    });
+  }
+
+  return candidates;
+}
+
+function resolveReservationReference(state: any, userText: string): ReservationReferenceResolution {
+  const text = normalizeReferenceText(userText);
+  const active = getEffectiveActiveReservationContext(state);
+  const candidates = buildReservationReferenceCandidates(state);
+  const reservationCandidates = candidates.filter((candidate) => candidate.kind === "reservation" && candidate.reservationId);
+  const activeReservationId = active?.kind === "reservation" ? active.reservationId : undefined;
+  const alternateReservations = reservationCandidates.filter((candidate) => candidate.reservationId !== activeReservationId);
+
+  const mentionsNew = /\bla nueva\b/.test(text);
+  const mentionsOther = /\bla otra\b/.test(text);
+  const mentionsPrevious = /\bla anterior\b/.test(text);
+  const mentionsThat = /\besa\b/.test(text);
+  const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
+
+  if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsTomorrow) {
+    return { status: "unresolved" };
+  }
+
+  if (mentionsNew) {
+    if (active?.kind === "draft") {
+      return {
+        status: "resolved",
+        target: {
+          kind: "draft",
+          checkIn: state?.reservationSlots?.checkIn,
+          checkOut: state?.reservationSlots?.checkOut,
+          source: "active",
+        },
+      };
+    }
+    const newestReservation = [...reservationCandidates].sort((a, b) =>
+      String(
+        (state?.reservationHistory || []).find((item: any) => item?.reservationId === b.reservationId)?.createdAt ||
+        (state?.lastReservation?.reservationId === b.reservationId ? state?.lastReservation?.createdAt : "")
+      ).localeCompare(
+        String(
+          (state?.reservationHistory || []).find((item: any) => item?.reservationId === a.reservationId)?.createdAt ||
+          (state?.lastReservation?.reservationId === a.reservationId ? state?.lastReservation?.createdAt : "")
+        )
+      )
+    )[0];
+    if (newestReservation?.reservationId) return { status: "resolved", target: newestReservation };
+  }
+
+  if (mentionsThat && active) {
+    return {
+      status: "resolved",
+      target:
+        active.kind === "draft"
+          ? {
+              kind: "draft",
+              checkIn: state?.reservationSlots?.checkIn,
+              checkOut: state?.reservationSlots?.checkOut,
+              source: "active",
+            }
+          : {
+              kind: "reservation",
+              reservationId: active.reservationId || undefined,
+              checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
+              checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
+              source: "active",
+            },
+    };
+  }
+
+  if (mentionsTomorrow) {
+    const tomorrow = toISODateOffset(1);
+    const tomorrowMatches = candidates.filter((candidate) => candidate.checkIn === tomorrow);
+    if (tomorrowMatches.length === 1) return { status: "resolved", target: tomorrowMatches[0] };
+    if (tomorrowMatches.length > 1) return { status: "ambiguous" };
+  }
+
+  if (mentionsOther || mentionsPrevious) {
+    if (alternateReservations.length === 1) {
+      return { status: "resolved", target: alternateReservations[0] };
+    }
+    if (mentionsPrevious && active?.kind === "draft" && reservationCandidates.length === 1) {
+      return { status: "resolved", target: reservationCandidates[0] };
+    }
+    if (alternateReservations.length > 1) return { status: "ambiguous" };
+  }
+
+  return { status: "unresolved" };
+}
+
+function buildReservationReferenceClarification(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "Necesito una precisión: ¿te referís a la reserva nueva, a la anterior o a la de una fecha específica? Si podés, pasame el código o la fecha."
+    : lang === "pt"
+      ? "Preciso de uma confirmação: você se refere à reserva nova, à anterior ou à de uma data específica? Se puder, me envie o código ou a data."
+      : "I need one clarification: do you mean the new booking, the previous one, or the one for a specific date? If possible, share the booking code or date.";
+}
 // Historial seguro con fallback silencioso
 async function getRecentHistorySafe(
   hotelId: string,
@@ -2299,10 +2493,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw);
+  const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
   const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } | undefined;
   const inCancelFlow = pre.prevCategory === "cancel_reservation" || pre.st?.activeFlow === "cancel_reservation";
   const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
   const hasInlineCancelConfirmation = /\bconfirm(ar|alo|ala|ame)?\b/i.test(userTxtRaw);
+  const resolvedCancelCode =
+    cancelCodeFromUser ||
+    (wantsCancel && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
+      ? reservationReference.target.reservationId
+      : undefined);
   if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
@@ -2356,7 +2556,39 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   if (wantsCancel) {
-    if (!cancelCodeFromUser) {
+    if (
+      reservationReference.status === "resolved" &&
+      reservationReference.target.kind === "draft" &&
+      !cancelCodeFromUser
+    ) {
+      const fallbackReservation =
+        reservationReference.target.source === "active" &&
+        pre.st?.lastReservation?.reservationId &&
+        pre.st?.lastReservation?.status !== "cancelled"
+          ? buildFocusedReservationContext(pre.st.lastReservation.reservationId, "confirmed")
+          : null;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: null,
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        activeReservationContext: fallbackReservation,
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = pre.lang === "es"
+        ? "Listo, descarté la nueva reserva en curso y mantuve la reserva anterior."
+        : pre.lang === "pt"
+          ? "Pronto, descartei a nova reserva em andamento e mantive a reserva anterior."
+          : "Done, I discarded the new booking draft and kept the previous reservation.";
+      return { finalText, nextCategory: "cancel_reservation", nextSlots: {}, needsSupervision, graphResult };
+    }
+    if (!resolvedCancelCode) {
+      if (reservationReference.status === "ambiguous") {
+        finalText = buildReservationReferenceClarification(pre.lang);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+      }
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: null,
         activeFlow: "cancel_reservation",
@@ -2369,9 +2601,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     if (!(isPureConfirm(userTxtRaw) || hasInlineCancelConfirmation)) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
+        pendingCancellation: { reservationId: resolvedCancelCode, awaitingConfirmation: true },
         activeFlow: "cancel_reservation",
-        activeReservationContext: buildFocusedReservationContext(cancelCodeFromUser, "confirmed"),
+        activeReservationContext: buildFocusedReservationContext(resolvedCancelCode, "confirmed"),
         desiredAction: "cancel",
         lastCategory: "cancel_reservation",
         updatedBy: "ai",
@@ -2383,17 +2615,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
-      const r = await cancelReservation(pre.msg.hotelId, cancelCodeFromUser);
+      const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: {
-          reservationId: cancelCodeFromUser,
+          reservationId: resolvedCancelCode,
           status: r.ok ? "cancelled" : "error",
           createdAt: new Date().toISOString(),
           channel: (pre.msg.channel as any) || "web",
         },
         pendingCancellation: null,
         activeReservationContext: buildFocusedReservationContext(
-          cancelCodeFromUser,
+          resolvedCancelCode,
           r.ok ? "cancelled" : "confirmed"
         ),
         activeFlow: null,
@@ -2526,13 +2758,57 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     // === Sprint 3: confirmar modificación de reserva ===
     if (pre.inModifyMode) {
-      const codeFromUser = parseReservationCode(userTxtRaw) || parseReservationCode(String(pre.msg.content || ""));
+      const codeFromUser =
+        parseReservationCode(userTxtRaw) ||
+        parseReservationCode(String(pre.msg.content || "")) ||
+        (reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
+          ? reservationReference.target.reservationId
+          : undefined);
       const ci = nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
       const co = nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
       const rt = nextSlots.roomType || pre.st?.reservationSlots?.roomType;
       const ng = nextSlots.numGuests || pre.st?.reservationSlots?.numGuests;
       const hasChanges = Boolean(ci || co || rt || ng);
+      if (
+        reservationReference.status === "resolved" &&
+        reservationReference.target.kind === "draft" &&
+        !parseReservationCode(userTxtRaw) &&
+        !parseReservationCode(String(pre.msg.content || ""))
+      ) {
+        if (!hasChanges) {
+          finalText = pre.lang === "es"
+            ? "Perfecto, trabajamos sobre la nueva reserva en curso. ¿Qué querés cambiar?"
+            : pre.lang === "pt"
+              ? "Perfeito, trabalhamos sobre a nova reserva em andamento. O que você quer mudar?"
+              : "Perfect, we will work on the new booking draft. What would you like to change?";
+          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+        }
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            guestName: pre.st?.reservationSlots?.guestName,
+            roomType: rt,
+            numGuests: ng,
+            checkIn: ci,
+            checkOut: co,
+            locale: pre.lang,
+          },
+          activeReservationContext: buildDraftReservationContext("collecting"),
+          activeFlow: "reservation",
+          desiredAction: "create",
+          updatedBy: "ai",
+        } as any);
+        finalText = pre.lang === "es"
+          ? "Perfecto, apliqué el cambio sobre la nueva reserva en curso."
+          : pre.lang === "pt"
+            ? "Perfeito, apliquei a alteração sobre a nova reserva em andamento."
+            : "Perfect, I applied the change to the new booking draft.";
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
       if (!codeFromUser) {
+        if (reservationReference.status === "ambiguous") {
+          finalText = buildReservationReferenceClarification(pre.lang);
+          return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+        }
         finalText = buildAskReservationCode(pre.lang);
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
@@ -2556,6 +2832,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             status: mod.ok ? "updated" : "error",
             createdAt: new Date().toISOString(),
             channel: (pre.msg.channel as any) || "web",
+            guestName: snapshot.guestName,
+            roomType: snapshot.roomType,
+            checkIn: snapshot.checkIn,
+            checkOut: snapshot.checkOut,
+            numGuests: snapshot.numGuests,
           },
           activeReservationContext: buildFocusedReservationContext(codeFromUser, "confirmed"),
           updatedBy: "ai",
@@ -2599,6 +2880,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             status: "created",
             createdAt: new Date().toISOString(),
             channel: (pre.msg.channel as any) || "web",
+            guestName: snapshot.guestName,
+            roomType: snapshot.roomType,
+            checkIn: snapshot.checkIn,
+            checkOut: snapshot.checkOut,
+            numGuests: snapshot.numGuests,
           };
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             reservationSlots: {

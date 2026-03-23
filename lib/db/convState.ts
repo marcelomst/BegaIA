@@ -56,12 +56,22 @@ export type LastReservation =
     status: "created" | "updated" | "cancelled";
     createdAt: string; // ISO
     channel: "web" | "email" | "whatsapp" | "channelManager";
+    guestName?: string;
+    roomType?: string;
+    checkIn?: string;
+    checkOut?: string;
+    numGuests?: number | string;
   }
   | {
     reservationId: string; // puede quedar vacío si hubo error
     status: "error";
     createdAt: string; // ISO
     channel: "web" | "email" | "whatsapp" | "channelManager";
+    guestName?: string;
+    roomType?: string;
+    checkIn?: string;
+    checkOut?: string;
+    numGuests?: number | string;
   };
 
 export type PendingCancellation = {
