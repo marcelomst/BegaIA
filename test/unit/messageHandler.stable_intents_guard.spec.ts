@@ -2,6 +2,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 process.env.STRUCTURED_ENABLED = "false";
 
+function makeHotelConfig(overrides: Partial<Record<string, any>> = {}) {
+  return {
+    hotelName: "Hotel Demo",
+    schedules: {
+      checkIn: "15:00",
+      checkOut: "11:00",
+      breakfast: "07:00 - 10:30",
+      ...(overrides.schedules || {}),
+    },
+    amenities: {
+      wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
+      parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
+      ...(overrides.amenities || {}),
+    },
+    ...overrides,
+  };
+}
+
 const { agentInvoke } = vi.hoisted(() => ({
   agentInvoke: vi.fn(async () => ({
     messages: [{ role: "assistant", content: "**🏨 Habitación Doble**\n¿Deseás que continúe con la reserva desde aquí?" }],
@@ -10,14 +28,7 @@ const { agentInvoke } = vi.hoisted(() => ({
 }));
 
 const { getHotelConfigMock } = vi.hoisted(() => ({
-  getHotelConfigMock: vi.fn(async () => ({
-    hotelName: "Hotel Demo",
-    schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
-    amenities: {
-      wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
-      parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
-    },
-  })),
+  getHotelConfigMock: vi.fn(async () => makeHotelConfig()),
 }));
 
 vi.mock("@/lib/astra_connection", async () => await import("../mocks/astra"));
@@ -97,14 +108,7 @@ describe("messageHandler stable intents guard", () => {
     vi.clearAllMocks();
     (getConvState as any).mockResolvedValue(null);
     getHotelConfigMock.mockReset();
-    getHotelConfigMock.mockResolvedValue({
-      hotelName: "Hotel Demo",
-      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
-      amenities: {
-        wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
-        parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
-      },
-    });
+    getHotelConfigMock.mockResolvedValue(makeHotelConfig());
   });
 
   it("sin contexto, 'a que hora es el check in' responde FAQ estable y no reserva", async () => {
@@ -163,6 +167,39 @@ describe("messageHandler stable intents guard", () => {
     expect(agentInvoke).not.toHaveBeenCalled();
   });
 
+  it("resuelve 'puedo hacer early check-in?' como dominio operativo y no como horario normal puro", async () => {
+    const conversationId = "conv-early-checkin-general-1";
+
+    await handleIncomingMessage(msg("puedo hacer early check-in?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/early check-?in|disponibilidad del d[ií]a|check-in habitual/i);
+    expect(text).not.toMatch(/^El check-in comienza a las 15:00\.?$/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("resuelve 'puedo entrar antes?' con framing hotelero razonable", async () => {
+    const conversationId = "conv-early-checkin-general-2";
+
+    await handleIncomingMessage(msg("puedo entrar antes?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/early check-?in|disponibilidad del d[ií]a|si lleg[aá]s antes/i);
+    expect(text).not.toMatch(/^El check-in comienza a las 15:00\.?$/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
+  it("si preguntan por valijas antes del check-in responde de forma coherente", async () => {
+    const conversationId = "conv-early-checkin-luggage-1";
+
+    await handleIncomingMessage(msg("si llego antes, puedo dejar las valijas?", conversationId), { mode: "automatic", sendReply });
+
+    const text = await lastAssistantText(conversationId);
+    expect(text).toMatch(/valijas|equipaje|recepci[oó]n/i);
+    expect(text).toMatch(/disponibilidad del d[ií]a|habitaci[oó]n/i);
+    expect(agentInvoke).not.toHaveBeenCalled();
+  });
+
   it("con contexto transaccional activo, 'wifi?' gana precedencia y no deriva a reserva", async () => {
     const conversationId = "conv-stable-wifi-1";
     (getConvState as any).mockResolvedValue({
@@ -188,11 +225,7 @@ describe("messageHandler stable intents guard", () => {
 
   it("sin guest_state explícito, wifi básico mantiene fallback actual si faltan notas directas", async () => {
     const conversationId = "conv-stable-wifi-no-state-fallback-1";
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
-      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
-      amenities: {},
-    });
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({ amenities: {} }));
 
     await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
 
@@ -209,11 +242,7 @@ describe("messageHandler stable intents guard", () => {
       guestState: "in_house",
       updatedAt: new Date().toISOString(),
     });
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
-      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
-      amenities: {},
-    });
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({ amenities: {} }));
 
     await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
 
@@ -418,9 +447,7 @@ describe("messageHandler stable intents guard", () => {
       },
       updatedAt: new Date().toISOString(),
     });
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
-      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
       amenities: {
         wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
       },
@@ -432,7 +459,7 @@ describe("messageHandler stable intents guard", () => {
           },
         },
       },
-    });
+    }));
 
     await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
 

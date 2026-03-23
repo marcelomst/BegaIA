@@ -258,6 +258,11 @@ export function detectLateCheckoutQuestion(text: string, _lang: "es" | "en" | "p
     return /\b(late\s+check\s*-?out|late\s+checkout|check\s*-?out\s+tard[ií]o|salida\s+tard[ií]a|salir\s+m[aá]s\s+tarde|quedarme\s+m[aá]s\s+tarde|leave\s+later|check\s+out\s+later)\b/i.test(t);
 }
 
+export function detectEarlyCheckinQuestion(text: string, _lang: "es" | "en" | "pt"): boolean {
+    const t = (text || "").toLowerCase();
+    return /\b(early\s+check\s*-?in|early\s+checkin|check\s*-?in\s+temprano|ingresar\s+antes|entrar\s+antes|puedo\s+entrar\s+antes|llego\s+antes|llegar\s+antes|instalarme\s+antes|me\s+puedo\s+instalar|dejar\s+(?:las\s+)?valijas|dejar\s+el\s+equipaje|guardar\s+equipaje|leave\s+(?:my\s+)?bags\s+before\s+check\s*-?in|leave\s+luggage\s+before\s+check\s*-?in)\b/i.test(t);
+}
+
 export function detectCheckinOrCheckoutTimeQuestion(text: string, _lang: "es" | "en" | "pt"): boolean {
     const t = (text || "").toLowerCase();
     return /(a\s+que\s+hora|qué\s+hora|que\s+hora|what\s+time|horario|hours?)\s+(es\s+el\s+|do\s+)?(check\s*-?in|check\s*-?out)/i.test(t);
@@ -292,6 +297,64 @@ export function buildLateCheckoutResponse(
         return "Late check-out is subject to availability. You can check with reception during your stay.";
     }
     return "El late check-out está sujeto a disponibilidad. Podés consultarlo con recepción durante tu estadía.";
+}
+
+export function buildEarlyCheckinResponse(
+    lang: "es" | "en" | "pt",
+    guestState?: "prospect" | "booked" | "in_house",
+    options?: {
+        checkInTime?: string;
+        asksLuggage?: boolean;
+    }
+): string {
+    const checkInRef = options?.checkInTime;
+    const asksLuggage = options?.asksLuggage === true;
+
+    if (guestState === "in_house") {
+        if (lang === "pt") {
+            return checkInRef
+                ? `O check-in habitual começa às ${checkInRef}. Se você chegar antes ou já estiver no hotel aguardando o quarto, o early check-in depende da disponibilidade real naquele momento. Se o quarto ainda não estiver pronto, a recepção normalmente pode orientar o guarda-volumes.`
+                : "Se você chegar antes ou já estiver no hotel aguardando o quarto, o early check-in depende da disponibilidade real naquele momento. Se o quarto ainda não estiver pronto, a recepção normalmente pode orientar o guarda-volumes.";
+        }
+        if (lang === "en") {
+            return checkInRef
+                ? `Standard check-in starts at ${checkInRef}. If you arrive earlier or are already at the hotel waiting for your room, early check-in depends on real-time availability. If the room is not ready yet, the front desk can usually guide you with luggage storage.`
+                : "If you arrive earlier or are already at the hotel waiting for your room, early check-in depends on real-time availability. If the room is not ready yet, the front desk can usually guide you with luggage storage.";
+        }
+        return checkInRef
+            ? `El check-in habitual comienza a las ${checkInRef}. Si llegás antes o ya estás en el hotel esperando la habitación, el early check-in depende de la disponibilidad real en ese momento. Si el cuarto todavía no está listo, recepción normalmente puede orientarte con el equipaje.`
+            : "Si llegás antes o ya estás en el hotel esperando la habitación, el early check-in depende de la disponibilidad real en ese momento. Si el cuarto todavía no está listo, recepción normalmente puede orientarte con el equipaje.";
+    }
+
+    if (guestState === "booked") {
+        if (lang === "pt") {
+            return checkInRef
+                ? `O check-in habitual começa às ${checkInRef}. Como você já tem reserva, o early check-in depende da disponibilidade do dia da chegada e não dá para prometer com antecedência. ${asksLuggage ? "Se você chegar antes, a recepção normalmente pode orientar o guarda-volumes enquanto valida o quarto." : "Se você chegar antes, vale consultar na chegada se o quarto já está pronto."}`
+                : `Como você já tem reserva, o early check-in depende da disponibilidade do dia da chegada e não dá para prometer com antecedência. ${asksLuggage ? "Se você chegar antes, a recepção normalmente pode orientar o guarda-volumes enquanto valida o quarto." : "Se você chegar antes, vale consultar na chegada se o quarto já está pronto."}`;
+        }
+        if (lang === "en") {
+            return checkInRef
+                ? `Standard check-in starts at ${checkInRef}. Since you already have a booking, early check-in depends on availability on the day of arrival and cannot be promised in advance. ${asksLuggage ? "If you arrive earlier, the front desk can usually guide you with luggage storage while they validate room readiness." : "If you arrive early, it is best to check on arrival whether the room is already ready."}`
+                : `Since you already have a booking, early check-in depends on availability on the day of arrival and cannot be promised in advance. ${asksLuggage ? "If you arrive earlier, the front desk can usually guide you with luggage storage while they validate room readiness." : "If you arrive early, it is best to check on arrival whether the room is already ready."}`;
+        }
+        return checkInRef
+            ? `El check-in habitual comienza a las ${checkInRef}. Como ya tenés una reserva, el early check-in depende de la disponibilidad del día de llegada y no se puede prometer de antemano. ${asksLuggage ? "Si llegás antes, recepción normalmente puede orientarte con las valijas mientras valida si la habitación ya está lista." : "Si llegás antes, conviene consultarlo al llegar para ver si la habitación ya está pronta."}`
+            : `Como ya tenés una reserva, el early check-in depende de la disponibilidad del día de llegada y no se puede prometer de antemano. ${asksLuggage ? "Si llegás antes, recepción normalmente puede orientarte con las valijas mientras valida si la habitación ya está lista." : "Si llegás antes, conviene consultarlo al llegar para ver si la habitación ya está pronta."}`;
+    }
+
+    if (lang === "pt") {
+        return checkInRef
+            ? `O check-in habitual começa às ${checkInRef}. O early check-in depende da disponibilidade do dia. ${asksLuggage ? "Se você chegar antes, a recepção normalmente pode orientar o guarda-volumes enquanto valida se o quarto já está pronto." : "Se chegar antes, vale consultar na recepção se o quarto já está disponível."}`
+            : `O early check-in depende da disponibilidade do dia. ${asksLuggage ? "Se você chegar antes, a recepção normalmente pode orientar o guarda-volumes enquanto valida se o quarto já está pronto." : "Se chegar antes, vale consultar na recepção se o quarto já está disponível."}`;
+    }
+    if (lang === "en") {
+        return checkInRef
+            ? `Standard check-in starts at ${checkInRef}. Early check-in depends on availability on the day. ${asksLuggage ? "If you arrive earlier, the front desk can usually guide you with luggage storage while they validate whether the room is ready." : "If you arrive early, it is worth checking with the front desk whether the room is already available."}`
+            : `Early check-in depends on availability on the day. ${asksLuggage ? "If you arrive earlier, the front desk can usually guide you with luggage storage while they validate whether the room is ready." : "If you arrive early, it is worth checking with the front desk whether the room is already available."}`;
+    }
+    return checkInRef
+        ? `El check-in habitual comienza a las ${checkInRef}. El early check-in depende de la disponibilidad del día. ${asksLuggage ? "Si llegás antes, recepción normalmente puede orientarte con las valijas mientras valida si la habitación ya está lista." : "Si llegás antes, conviene consultarlo en recepción para ver si la habitación ya está disponible."}`
+        : `El early check-in depende de la disponibilidad del día. ${asksLuggage ? "Si llegás antes, recepción normalmente puede orientarte con las valijas mientras valida si la habitación ya está lista." : "Si llegás antes, conviene consultarlo en recepción para ver si la habitación ya está disponible."}`;
 }
 
 // Detecta si el asistente ofreció confirmar horario exacto de check-in/out en los últimos turnos

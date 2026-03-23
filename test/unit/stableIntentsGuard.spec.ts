@@ -1,14 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getHotelConfigMock } = vi.hoisted(() => ({
-  getHotelConfigMock: vi.fn(async () => ({
+function makeHotelConfig(overrides: Partial<Record<string, any>> = {}) {
+  return {
     hotelName: "Hotel Demo",
-    schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
+    schedules: {
+      checkIn: "15:00",
+      checkOut: "11:00",
+      breakfast: "07:00 - 10:30",
+      ...(overrides.schedules || {}),
+    },
     amenities: {
       wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
       parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
+      ...(overrides.amenities || {}),
     },
-  })),
+    ...overrides,
+  };
+}
+
+const { getHotelConfigMock } = vi.hoisted(() => ({
+  getHotelConfigMock: vi.fn(async () => makeHotelConfig()),
 }));
 
 vi.mock("@/lib/config/hotelConfig.server", () => ({
@@ -23,14 +34,7 @@ import {
 describe("stableIntentsGuard", () => {
   beforeEach(() => {
     getHotelConfigMock.mockReset();
-    getHotelConfigMock.mockResolvedValue({
-      hotelName: "Hotel Demo",
-      schedules: { checkIn: "15:00", checkOut: "11:00", breakfast: "07:00 - 10:30" },
-      amenities: {
-        wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
-        parkingNotes: "Estacionamiento sujeto a disponibilidad en el predio.",
-      },
-    });
+    getHotelConfigMock.mockResolvedValue(makeHotelConfig());
   });
 
   it("normaliza variantes simples de check-in con typo liviano", () => {
@@ -190,8 +194,7 @@ describe("stableIntentsGuard", () => {
   });
 
   it("respeta un intent habilitado por hotel con metadata mínima", async () => {
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
       schedules: { checkIn: "16:00", checkOut: "11:00" },
       semanticPolicy: {
         stableIntents: {
@@ -203,7 +206,7 @@ describe("stableIntentsGuard", () => {
           },
         },
       },
-    });
+    }));
 
     const result = await runStableIntentsGuard({
       rawQuery: "check in?",
@@ -217,8 +220,7 @@ describe("stableIntentsGuard", () => {
   });
 
   it("no responde como stable intent cuando el hotel lo deshabilita", async () => {
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
       schedules: { checkIn: "15:00" },
       semanticPolicy: {
         stableIntents: {
@@ -228,7 +230,7 @@ describe("stableIntentsGuard", () => {
           },
         },
       },
-    });
+    }));
 
     const result = await runStableIntentsGuard({
       rawQuery: "a que hora es el check in",
@@ -244,10 +246,9 @@ describe("stableIntentsGuard", () => {
   });
 
   it("usa fallback backward compatible cuando el hotel no define semanticPolicy", async () => {
-    getHotelConfigMock.mockResolvedValueOnce({
-      hotelName: "Hotel Demo",
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
       schedules: { checkIn: "14:00", checkOut: "10:00", breakfast: "06:30 - 10:00" },
-    });
+    }));
 
     const result = await runStableIntentsGuard({
       rawQuery: "desayuno?",

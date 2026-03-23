@@ -57,8 +57,10 @@ import {
   isPureConfirm,
   normalizeReservationIntent,
   detectLateCheckoutQuestion,
+  detectEarlyCheckinQuestion,
   detectCheckinOrCheckoutTimeQuestion,
   buildLateCheckoutResponse,
+  buildEarlyCheckinResponse,
   isPureAffirmative,
   askedToConfirmCheckTime,
 } from "./pipeline/availability";
@@ -1486,6 +1488,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     });
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
   }
+  const earlyCheckinShortcutQ = detectEarlyCheckinQuestion(String(pre.msg.content || ""), pre.lang);
+  if (earlyCheckinShortcutQ) {
+    const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+    const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
+    finalText = buildEarlyCheckinResponse(pre.lang, guestState, {
+      checkInTime: confCheckIn,
+      asksLuggage: /\b(valijas?|equipaje|luggage|bags?|bagagem|malas?)\b/i.test(String(pre.msg.content || "")),
+    });
+    nextCategory = "checkin_info";
+    emitRoutingDecision(pre.msg, {
+      decision_layer: "early_checkin_heuristic",
+      route_source: "early_checkin_heuristic",
+      route_match: "early_checkin",
+      early_return: true,
+      used_llm_classifier: false,
+      classifier_source: "heuristic",
+      final_category: nextCategory,
+      final_prompt_key: null,
+    });
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+  }
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
@@ -2518,6 +2541,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const kbLower = kbUserText.toLowerCase();
         const kbGuestState = resolveGuestState(pre.st);
         const postBookingLateCheckoutQ = detectLateCheckoutQuestion(kbUserText, pre.lang);
+        const postBookingEarlyCheckinQ = detectEarlyCheckinQuestion(kbUserText, pre.lang);
         const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
         const postBookingSnapshotQ = detectReservationSnapshotQuery(kbUserText, pre.lang);
         const hasConfirmedBookingContext = Boolean(
@@ -2543,6 +2567,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {
           finalText = buildLateCheckoutResponse(pre.lang, kbGuestState);
           nextCategory = "checkout_info";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+        }
+        if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {
+          const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+          const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
+          finalText = buildEarlyCheckinResponse(pre.lang, kbGuestState, {
+            checkInTime: confCheckIn,
+            asksLuggage: /\b(valijas?|equipaje|luggage|bags?|bagagem|malas?)\b/i.test(kbUserText),
+          });
+          nextCategory = "checkin_info";
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
         if (postBookingTimeQ && hasConfirmedBookingContext) {
@@ -2972,15 +3006,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     ];
     const mentionsNewDates = datePhrases.some((p) => tLower.includes(p));
     const lateCheckoutQ = detectLateCheckoutQuestion(String(pre.msg.content || ""), pre.lang);
+    const earlyCheckinQ = detectEarlyCheckinQuestion(String(pre.msg.content || ""), pre.lang);
     // Guard: si es una pregunta de horario de check-in/out, no dispares el flujo de cambio de fechas
     const timeQ = detectCheckinOrCheckoutTimeQuestion(String(pre.msg.content || ""), pre.lang);
     // Disparar flujo de fechas también si hay cualquier token de fecha corto o completo en el mensaje (dd/mm o dd/mm/yyyy)
     const hasAnyDateToken = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(String(pre.msg.content || ''));
-    const triggerDateFlow = !timeQ && !lateCheckoutQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
+    const triggerDateFlow = !timeQ && !lateCheckoutQ && !earlyCheckinQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
 
     if (lateCheckoutQ) {
       finalText = buildLateCheckoutResponse(pre.lang, guestState);
       nextCategory = "checkout_info";
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+    } else if (earlyCheckinQ) {
+      const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+      const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
+      finalText = buildEarlyCheckinResponse(pre.lang, guestState, {
+        checkInTime: confCheckIn,
+        asksLuggage: /\b(valijas?|equipaje|luggage|bags?|bagagem|malas?)\b/i.test(String(pre.msg.content || "")),
+      });
+      nextCategory = "checkin_info";
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     } else if (timeQ) {
       const hasConfirmedBookingContext = Boolean(

@@ -115,6 +115,21 @@ describe("messageHandler post-booking checkin context", () => {
     expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
   });
 
+  it("con reserva confirmada, 'puedo hacer early check-in?' usa framing contextual y no colapsa a horario puro", async () => {
+    const conversationId = "conv-postbooking-early-checkin-1";
+    (getConvState as any).mockResolvedValue(confirmedState(conversationId));
+
+    await handleIncomingMessage(msg("puedo hacer early check-in?", conversationId), { mode: "automatic", sendReply });
+
+    const all = await getCollection("messages").findMany({ hotelId, conversationId });
+    const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
+    const text = String(lastAi?.content || lastAi?.suggestion || "");
+
+    expect(text).toMatch(/early check-?in|ya ten[eé]s una reserva|disponibilidad del d[ií]a/i);
+    expect(text).not.toMatch(/^El check-in comienza a las 14:00\.?$/i);
+    expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
+  });
+
   it("con reserva confirmada, 'tienen late check out?' responde checkout contextual y no vuelve a pedir fecha", async () => {
     const conversationId = "conv-postbooking-checkout-1";
     (getConvState as any).mockResolvedValue(confirmedState(conversationId));
@@ -128,5 +143,20 @@ describe("messageHandler post-booking checkin context", () => {
     expect(text).toMatch(/late check-?out|ya ten[eé]s una reserva|cerca de la salida|extender/i);
     expect(text).not.toMatch(/fecha de check-out|dd\/mm\/aaaa/i);
     expect(text).not.toMatch(/Habitaci[oó]n Doble|contin[uú]e con la reserva/i);
+  });
+
+  it("con reserva confirmada, 'si llego antes, puedo dejar las valijas?' usa el mismo dominio con detalle operativo", async () => {
+    const conversationId = "conv-postbooking-early-checkin-luggage-1";
+    (getConvState as any).mockResolvedValue(confirmedState(conversationId));
+
+    await handleIncomingMessage(msg("si llego antes, puedo dejar las valijas?", conversationId), { mode: "automatic", sendReply });
+
+    const all = await getCollection("messages").findMany({ hotelId, conversationId });
+    const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
+    const text = String(lastAi?.content || lastAi?.suggestion || "");
+
+    expect(text).toMatch(/valijas|equipaje|habitaci[oó]n|recepci[oó]n/i);
+    expect(text).toMatch(/ya ten[eé]s una reserva|disponibilidad del d[ií]a/i);
+    expect(text).not.toMatch(/^El check-in comienza a las 14:00\.?$/i);
   });
 });
