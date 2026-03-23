@@ -3910,3 +3910,38 @@ Impacto:
 - mejora alineación del naming operativo del chat `arquitecto_sistema`
 - mantiene actualizado el mapa documental de agentes/chats
 - no tiene impacto en runtime
+
+### REF-PIPELINE-ACTIVE-DRAFT-CONTEXT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 2de1a8dc5a57a8bec721a45a5f0c65ddc8dcc409
+
+Descripcion:
+
+Se introduce una noción explícita de `activeReservationContext` para separar
+historial, última reserva y foco conversacional activo, reduciendo ambigüedad
+del motor de estado sin rediseñar el dominio completo.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/reservationState.ts`
+- `test/unit/convState.conversationStage.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+- `test/unit/messageHandler.cancel_multiturn_continuity.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/convState.conversationStage.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.postbooking_checkin_context.spec.ts test/unit/messageHandler.postbooking_checkout_semantics.spec.ts test/unit/stableIntentsGuard.spec.ts test/unit/events.followupRouting.test.ts` PASS
+- `Test Files  10 passed (10)`
+- `Tests  90 passed (90)`
+
+Impacto:
+
+- separa explícitamente historial, última reserva y foco conversacional activo
+- prepara mejor el sistema para futuras referencias a reservas múltiples
+- reduce ambigüedad del motor de estado sin rediseñar el dominio completo
+- preserva compatibilidad con el pipeline actual
