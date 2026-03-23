@@ -3706,3 +3706,36 @@ Impacto:
   temporalidad suave
 - evita falsos positivos de routing por heurística temporal
 - no altera contratos públicos ni introduce infraestructura nueva
+
+### FEAT-PIPELINE-SEMANTIC-INTENTS-EXTENSION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-23  
+Commit: 03128e3949b5325b295247850dad6465bd0d7522
+
+Descripcion:
+
+Se extiende la resolución semántica de `stable_intents_guard` para cubrir gaps
+reales en FAQ estables del hotel, agregando intents mínimos para desayuno
+incluido, tipo de desayuno y wifi contextual para trabajo, sin abrir refactor
+grande ni delegar al graph.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.stable_intents_guard.spec.ts` PASS
+- `Test Files  2 passed (2)`
+- `Tests  24 passed (24)`
+
+Impacto:
+
+- mejora resolución semántica de FAQ estables del hotel
+- evita colapsos entre horario, inclusión y modalidad del desayuno
+- separa wifi básico de wifi contextual para trabajo
+- mantiene el guard como capa determinista previa al flujo semántico principal
+- no altera guest state, multi-reservation, UI ni arquitectura general
