@@ -4094,3 +4094,31 @@ Impacto:
 - reduce pedidos innecesarios de código en casos ordinales simples
 - mantiene trazabilidad y resolución conservadora
 - no abre NLP general ni refactor estructural
+
+### FIX-PIPELINE-MODIFY-INTENT-NORMALIZATION-EN-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-24  
+Commit: 7f91f42ce27324cdf2030af4a1f3b0f6ad786cb2
+
+Descripcion:
+
+Se corrige la normalización del intent `modify` para variantes en inglés dentro
+de `normalizeReservationIntent()`, mejorando cobertura semántica sin cambiar
+arquitectura ni contratos del pipeline.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts` PASS
+- `Test Files  1 passed (1)`
+- `Tests  12 passed (12)`
+
+Impacto:
+
+- mejora consistencia de clasificación del intent `modify`
+- reduce falsos negativos en wording inglés
+- mantiene el fix acotado a normalización semántica puntual
