@@ -472,6 +472,9 @@ function buildFocusedReservationContext(
 type ReservationReferenceTarget = {
   kind: "draft" | "reservation";
   reservationId?: string;
+  guestName?: string;
+  roomType?: string;
+  numGuests?: number | string;
   checkIn?: string;
   checkOut?: string;
   source: "active" | "history" | "lastReservation";
@@ -525,6 +528,9 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
   if (active?.kind === "draft") {
     candidates.push({
       kind: "draft",
+      guestName: state?.reservationSlots?.guestName,
+      roomType: state?.reservationSlots?.roomType,
+      numGuests: state?.reservationSlots?.numGuests,
       checkIn: state?.reservationSlots?.checkIn,
       checkOut: state?.reservationSlots?.checkOut,
       source: "active",
@@ -533,6 +539,9 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: active.reservationId,
+      guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : undefined,
+      roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : undefined,
+      numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : undefined,
       checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
       checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
       source: "active",
@@ -548,6 +557,9 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: item.reservationId,
+      guestName: item.guestName,
+      roomType: item.roomType,
+      numGuests: item.numGuests,
       checkIn: item.checkIn,
       checkOut: item.checkOut,
       source: "history",
@@ -561,6 +573,9 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: state.lastReservation.reservationId,
+      guestName: state.lastReservation.guestName || state?.reservationSlots?.guestName,
+      roomType: state.lastReservation.roomType || state?.reservationSlots?.roomType,
+      numGuests: state.lastReservation.numGuests || state?.reservationSlots?.numGuests,
       checkIn: state.lastReservation.checkIn || state?.reservationSlots?.checkIn,
       checkOut: state.lastReservation.checkOut || state?.reservationSlots?.checkOut,
       source: "lastReservation",
@@ -570,11 +585,44 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
   return candidates;
 }
 
+function buildOrderedReservationHistoryCandidates(state: any): ReservationReferenceTarget[] {
+  const candidates = buildReservationReferenceCandidates(state).filter(
+    (candidate) => candidate.kind === "reservation" && candidate.reservationId
+  );
+
+  return candidates
+    .map((candidate, index) => {
+      const historyEntry = (state?.reservationHistory || []).find((item: any) => item?.reservationId === candidate.reservationId);
+      const createdAt =
+        historyEntry?.createdAt ||
+        (state?.lastReservation?.reservationId === candidate.reservationId ? state?.lastReservation?.createdAt : undefined) ||
+        "";
+      return { candidate, createdAt, index };
+    })
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
+        return String(a.createdAt).localeCompare(String(b.createdAt));
+      }
+      if (a.createdAt && !b.createdAt) return -1;
+      if (!a.createdAt && b.createdAt) return 1;
+      return a.index - b.index;
+    })
+    .map((item) => item.candidate);
+}
+
+function extractReservationOrdinalReference(text: string): "first" | "second" | "last" | null {
+  if (/\b(?:la|esa)\s+primera\b|\bprimera\b/.test(text)) return "first";
+  if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return "second";
+  if (/\b(?:la|esa)\s+(?:ultima|última)\b|\b(?:ultima|última)\b/.test(text)) return "last";
+  return null;
+}
+
 function resolveReservationReference(state: any, userText: string): ReservationReferenceResolution {
   const text = normalizeReferenceText(userText);
   const active = getEffectiveActiveReservationContext(state);
   const candidates = buildReservationReferenceCandidates(state);
   const reservationCandidates = candidates.filter((candidate) => candidate.kind === "reservation" && candidate.reservationId);
+  const orderedReservationHistory = buildOrderedReservationHistoryCandidates(state);
   const activeReservationId = active?.kind === "reservation" ? active.reservationId : undefined;
   const alternateReservations = reservationCandidates.filter((candidate) => candidate.reservationId !== activeReservationId);
 
@@ -583,35 +631,40 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const mentionsPrevious = /\bla anterior\b/.test(text);
   const mentionsThat = /\besa\b/.test(text);
   const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
+  const ordinalReference = extractReservationOrdinalReference(text);
 
-  if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsTomorrow) {
+  if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsTomorrow && !ordinalReference) {
     return { status: "unresolved" };
   }
 
   if (mentionsNew) {
-    if (active?.kind === "draft") {
+    if (active?.kind === "draft" && !ordinalReference) {
       return {
         status: "resolved",
         target: {
           kind: "draft",
+          guestName: state?.reservationSlots?.guestName,
+          roomType: state?.reservationSlots?.roomType,
+          numGuests: state?.reservationSlots?.numGuests,
           checkIn: state?.reservationSlots?.checkIn,
           checkOut: state?.reservationSlots?.checkOut,
           source: "active",
         },
       };
     }
-    const newestReservation = [...reservationCandidates].sort((a, b) =>
-      String(
-        (state?.reservationHistory || []).find((item: any) => item?.reservationId === b.reservationId)?.createdAt ||
-        (state?.lastReservation?.reservationId === b.reservationId ? state?.lastReservation?.createdAt : "")
-      ).localeCompare(
-        String(
-          (state?.reservationHistory || []).find((item: any) => item?.reservationId === a.reservationId)?.createdAt ||
-          (state?.lastReservation?.reservationId === a.reservationId ? state?.lastReservation?.createdAt : "")
-        )
-      )
-    )[0];
+    const newestReservation = orderedReservationHistory.at(-1);
     if (newestReservation?.reservationId) return { status: "resolved", target: newestReservation };
+  }
+
+  if (ordinalReference) {
+    const ordinalTarget =
+      ordinalReference === "first"
+        ? orderedReservationHistory[0]
+        : ordinalReference === "second"
+          ? orderedReservationHistory[1]
+          : orderedReservationHistory.at(-1);
+    if (ordinalTarget?.reservationId) return { status: "resolved", target: ordinalTarget };
+    return { status: "ambiguous" };
   }
 
   if (mentionsThat && active) {
@@ -620,18 +673,24 @@ function resolveReservationReference(state: any, userText: string): ReservationR
       target:
         active.kind === "draft"
           ? {
-              kind: "draft",
-              checkIn: state?.reservationSlots?.checkIn,
-              checkOut: state?.reservationSlots?.checkOut,
-              source: "active",
-            }
+            kind: "draft",
+            guestName: state?.reservationSlots?.guestName,
+            roomType: state?.reservationSlots?.roomType,
+            numGuests: state?.reservationSlots?.numGuests,
+            checkIn: state?.reservationSlots?.checkIn,
+            checkOut: state?.reservationSlots?.checkOut,
+            source: "active",
+          }
           : {
-              kind: "reservation",
-              reservationId: active.reservationId || undefined,
-              checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
-              checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
-              source: "active",
-            },
+            kind: "reservation",
+            reservationId: active.reservationId || undefined,
+            guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : undefined,
+            roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : undefined,
+            numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : undefined,
+            checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
+            checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
+            source: "active",
+          },
     };
   }
 
@@ -1843,6 +1902,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasAnyDateTokenFast = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(userTxt);
     const mentionsDatesFast = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
     const isDateTopicFast = Boolean(sideIntentFast || hasAnyDateTokenFast || mentionsDatesFast);
+    if (genericModify && reservationReference.status === "ambiguous") {
+      finalText = buildReservationReferenceClarification(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };
+    }
     if (!isDateTopicFast && (genericModify || softModifyFollowup)) {
       const knownSlots = { ...(pre.st?.reservationSlots || {}), ...(nextSlots || {}) } as ReservationSlotsStrict;
       finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
@@ -2042,6 +2105,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   // Detección rápida: pedido de enviar copia por email
   const userTxtRaw = String(pre.msg.content || "");
+  const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
+  const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
+  if (
+    reservationReference.status === "ambiguous" &&
+    (normalizedReservationIntent.kind === "modify" || normalizedReservationIntent.kind === "cancel")
+  ) {
+    finalText = buildReservationReferenceClarification(pre.lang);
+    nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
   // Pedido de enviar copia por email (soporta 'enviá', 'enviame', 'mandame', etc.)
   const emailAskRE = /((envi|mand)(?:ar|a|á|ame|áme)?\b[^\n]*\b(copia|copy)[^\n]*\b(correo|e-?mail|email))|send\b[^\n]*copy[^\n]*email/i;
   const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
@@ -2494,7 +2567,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw);
-  const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
   const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } | undefined;
   const inCancelFlow = pre.prevCategory === "cancel_reservation" || pre.st?.activeFlow === "cancel_reservation";
   const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
@@ -2961,11 +3033,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const postBookingEarlyCheckinQ = detectEarlyCheckinQuestion(kbUserText, pre.lang);
         const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);
         const postBookingSnapshotQ = detectReservationSnapshotQuery(kbUserText, pre.lang);
+        const postBookingReservationIntent = normalizeReservationIntent(kbUserText);
         const hasConfirmedBookingContext = Boolean(
           pre.st?.lastReservation?.reservationId ||
           pre.st?.salesStage === "close"
         );
-        if (postBookingSnapshotQ && hasConfirmedBookingContext) {
+        if (
+          postBookingSnapshotQ &&
+          hasConfirmedBookingContext &&
+          postBookingReservationIntent.kind !== "modify" &&
+          postBookingReservationIntent.kind !== "cancel"
+        ) {
           const snapshotSlots = {
             ...(pre.st?.reservationSlots || {}),
             ...(nextSlots || {}),
@@ -4072,8 +4150,14 @@ function isGenericFallbackText(text: string, lang: "es" | "en" | "pt"): boolean 
 
 // === Sprint 3: helpers de código de reserva ===
 function parseReservationCode(text: string): string | undefined {
-  const m = (text || "").match(/\b([A-Z0-9]{5,10})\b/);
-  return m?.[1];
+  const candidates = String(text || "").match(/[A-Z0-9-]{5,24}/gi) || [];
+  for (const candidate of candidates) {
+    const normalized = candidate.toUpperCase();
+    if (!/^[A-Z][A-Z0-9-]{4,23}$/.test(normalized)) continue;
+    if (!/\d/.test(normalized)) continue;
+    return normalized;
+  }
+  return undefined;
 }
 function buildAskReservationCode(lang: "es" | "en" | "pt"): string {
   return lang === "es" ? "¿Me compartís el *código de reserva*?"
