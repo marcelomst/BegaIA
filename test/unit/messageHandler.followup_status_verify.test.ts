@@ -44,6 +44,7 @@ import { getConvState, upsertConvState } from "@/lib/db/convState";
 vi.mock("@/lib/db/convState", () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: "convstate-test",
 }));
 
@@ -73,19 +74,33 @@ describe("messageHandler: follow-up de estado ('pudiste confirmar?') ejecuta ver
     });
 
     it("cuando hay un rango propuesto en el historial, corre disponibilidad y devuelve propuesta + línea de confirmación", async () => {
-        (getConvState as any).mockResolvedValue({
-            hotelId,
-            conversationId,
-            reservationSlots: {
-                guestName: "Marcelo Martinez",
-                roomType: "double",
-                checkIn: "2025-10-02",
-                checkOut: "2025-10-04",
-                numGuests: "2",
-            },
-            salesStage: "close",
-            updatedAt: new Date().toISOString(),
-        });
+        (getConvState as any)
+            .mockResolvedValueOnce({
+                hotelId,
+                conversationId,
+                reservationSlots: {
+                    guestName: "Marcelo Martinez",
+                    roomType: "double",
+                    checkIn: "2025-10-02",
+                    checkOut: "2025-10-04",
+                    numGuests: "2",
+                },
+                salesStage: "close",
+                updatedAt: new Date().toISOString(),
+            })
+            .mockResolvedValueOnce({
+                hotelId,
+                conversationId,
+                reservationSlots: {
+                    guestName: "Marcelo Martinez",
+                    roomType: "double",
+                    checkIn: "2025-10-03",
+                    checkOut: "2025-10-05",
+                    numGuests: "2",
+                },
+                salesStage: "quote",
+                updatedAt: new Date().toISOString(),
+            });
 
         // Paso 1: usuario aporta ambas fechas → el bot anota y pregunta si verifica
         await handleIncomingMessage(msg("ingresamos el 03/10/2025 y salimos el 05/10/2025"), { mode: "automatic", sendReply });
@@ -123,7 +138,7 @@ describe("messageHandler: follow-up de estado ('pudiste confirmar?') ejecuta ver
                 checkOut: undefined,
                 numGuests: "2",
             },
-            salesStage: "close",
+            salesStage: "quote",
             updatedAt: new Date().toISOString(),
         });
 

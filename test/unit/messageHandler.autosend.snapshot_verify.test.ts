@@ -33,7 +33,8 @@ const BASE_MSG = {
     conversationId: "conv-auto-1",
     messageId: "m-1",
     sender: "guest",
-    content: "quiero verificar mi reserva",
+    // Input neutro para aislar la politica de autosend sin activar heuristicas transaccionales.
+    content: "consulta de prueba de autosend",
     timestamp: new Date().toISOString(),
 };
 

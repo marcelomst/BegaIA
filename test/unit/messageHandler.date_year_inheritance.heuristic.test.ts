@@ -24,6 +24,7 @@ import { getCollection } from '../mocks/astra';
 vi.mock('@/lib/db/convState', () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: 'convstate-test',
 }));
 

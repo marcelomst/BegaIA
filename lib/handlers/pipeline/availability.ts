@@ -431,11 +431,15 @@ export function normalizeReservationIntent(text: string): ReservationIntentNorma
     const normalizedText = normalizeReservationIntentText(text);
     if (!normalizedText) return { kind: "other", executable: false, normalizedText };
 
+    const isReservationSnapshotInquiry =
+        /^(cual es mi reserva|mi reserva|my booking|my reservation|booking details|reservation details)$/i.test(normalizedText);
+
     const isInquiry =
         /\b(confirm|confirmar|comfirmar|confimar)\b.*\b(si|if|se)\b.*\b(hay|have|tienen|tem|there is|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
         /\bantes de confirmar\b/i.test(normalizedText) ||
         /\b(before confirming|before i confirm)\b/i.test(normalizedText) ||
-        /\b(me recordas|recordas|recordame|recordar|reconfirmas|reconfirmas|price|precio)\b/i.test(normalizedText);
+        /\b(me recordas|recordas|recordame|recordar|reconfirmas|reconfirmas|price|precio)\b/i.test(normalizedText) ||
+        isReservationSnapshotInquiry;
     if (isInquiry) return { kind: "other", executable: false, normalizedText };
 
     const isCancelInquiry =
@@ -509,7 +513,11 @@ export function isPureAffirmative(text: string, lang: "es" | "en" | "pt"): boole
     if (/(pero|but|porém|porem|however)/i.test(raw)) return false;
     const words = cleaned.split(/\s+/).filter(Boolean);
     if (words.length === 0 || words.length > 4) return false;
-    const normalizedWords = words.map((w) => w.replace(/á|à|ã/g, "a").replace(/é/g, "e"));
+    const normalizedWords = words.map((w) =>
+        w
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+    );
     const affirmative = new Set(["si", "sim", "yes", "dale", "ok", "okay", "perfecto", "claro", "por", "favor", "porfa", "de", "acuerdo", "manda", "ver", "pode", "sure", "please", "yup", "yep"]);
     const hasBase = normalizedWords.some((w) => affirmative.has(w));
     return hasBase && normalizedWords.every((w) => affirmative.has(w));

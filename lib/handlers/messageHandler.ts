@@ -417,6 +417,7 @@ function wantsAdditionalReservation(
     salesStage?: string | null;
   } | null
 ): boolean {
+  if (detectReservationSnapshotQuery(userText || "", "es")) return false;
   const normalizedIntent = normalizeReservationIntent(userText || "");
   if (normalizedIntent.kind === "modify" || normalizedIntent.kind === "cancel") return false;
   const hasConfirmedContext = Boolean(state?.lastReservation?.reservationId || state?.salesStage === "close");

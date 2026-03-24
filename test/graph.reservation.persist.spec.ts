@@ -34,9 +34,15 @@ describe("reservation handler - persistencia en conv_state", () => {
   const conversationId = "conv-123";
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-01T12:00:00.000Z"));
     vi.clearAllMocks();
     // por defecto, no hay snapshot previo
     (getConvState as any).mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("cuando falta info → pregunta 1 cosa y persiste reservationSlots parcial (salesStage=qualify)", async () => {

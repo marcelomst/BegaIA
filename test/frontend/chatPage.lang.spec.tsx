@@ -11,6 +11,8 @@ vi.mock("next/navigation", () => ({
 
 describe("ChatPage • language changes affect API payload", () => {
   beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.startsWith("/api/conversations/list")) {
@@ -25,7 +27,7 @@ describe("ChatPage • language changes affect API payload", () => {
         if (body.lang !== "en") {
           return new Response("Lang not propagated", { status: 400 });
         }
-        const storedGuestId = localStorage.getItem("guestId");
+        const storedGuestId = sessionStorage.getItem("guestId");
         if (!body.guestId || typeof body.guestId !== "string") {
           return new Response("guestId missing", { status: 400 });
         }

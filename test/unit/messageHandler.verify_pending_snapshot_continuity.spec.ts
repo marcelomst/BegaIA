@@ -48,6 +48,7 @@ vi.mock("@/lib/db/convState", () => ({
     convStateStore.set(key, next);
     return next;
   }),
+  resolveGuestState: vi.fn(() => undefined),
   CONVSTATE_VERSION: "test",
 }));
 
@@ -99,7 +100,10 @@ vi.mock("@/lib/agents", () => ({
       }
       if (/25\/03\/2026/.test(text)) {
         return {
-          messages: [{ role: "assistant", content: "Entendido." }],
+          messages: [{
+            role: "assistant",
+            content: "Anoté nuevas fechas: 21/03/2026 → 25/03/2026. ¿Deseás que verifique disponibilidad?"
+          }],
           category: "reservation",
           reservationSlots: { roomType: "double", checkIn: "2026-03-21", checkOut: "2026-03-25" },
           meta: {},
@@ -178,6 +182,8 @@ function msg(content: string) {
 
 describe("messageHandler verify pending snapshot continuity", () => {
   beforeEach(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-01T12:00:00.000Z"));
     messageStore.length = 0;
     convStateStore.clear();
     vi.clearAllMocks();
@@ -229,6 +235,7 @@ describe("messageHandler verify pending snapshot continuity", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     process.env.USE_MH_FLOW_GRAPH = prevEnv.USE_MH_FLOW_GRAPH;
     process.env.USE_ORCHESTRATOR_AGENT = prevEnv.USE_ORCHESTRATOR_AGENT;
     process.env.USE_PRE_POS_PIPELINE = prevEnv.USE_PRE_POS_PIPELINE;

@@ -22,6 +22,7 @@ import { getConvState } from "@/lib/db/convState";
 vi.mock("@/lib/db/convState", () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: "convstate-test",
 }));
 
@@ -46,6 +47,8 @@ function msg(content: string, convId = conversationId) {
 
 describe("messageHandler: guard de check-in pasado en follow-up real", () => {
     beforeEach(async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-01T12:00:00.000Z"));
         vi.clearAllMocks();
         const messages = getCollection("messages");
         const conversations = getCollection("conversations");
@@ -55,6 +58,10 @@ describe("messageHandler: guard de check-in pasado en follow-up real", () => {
         for (const row of await conversations.findMany({})) {
             await conversations.deleteOne({ _id: row._id });
         }
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it("si el usuario informa un check-in pasado, no pide check-out y repregunta check-in", async () => {
@@ -115,7 +122,7 @@ describe("messageHandler: guard de check-in pasado en follow-up real", () => {
             timestamp: new Date(Date.now() - 1000).toISOString(),
         });
 
-        await handleIncomingMessage(msg("21/04/2026", convId), { mode: "automatic", sendReply });
+        await handleIncomingMessage(msg("21/03/2026", convId), { mode: "automatic", sendReply });
 
         const all = await getCollection("messages").findMany({ hotelId, conversationId: convId });
         const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);

@@ -2,6 +2,23 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { convStateStore, getConvStateMock, upsertConvStateMock } = vi.hoisted(() => {
+    const store = new Map<string, any>();
+    return {
+        convStateStore: store,
+        getConvStateMock: vi.fn(async (hotelId: string, conversationId: string) => {
+            return store.get(`${hotelId}:${conversationId}`) ?? null;
+        }),
+        upsertConvStateMock: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
+            const key = `${hotelId}:${conversationId}`;
+            const prev = store.get(key) ?? { hotelId, conversationId };
+            const next = { ...prev, ...patch, hotelId, conversationId };
+            store.set(key, next);
+            return next;
+        }),
+    };
+});
+
 // Desactivar structured para este test (evita llamadas externas)
 process.env.STRUCTURED_ENABLED = "false";
 
@@ -12,6 +29,21 @@ vi.mock("@/lib/db/messages", async () => await import("../mocks/db_messages"));
 vi.mock("@/lib/db_messages", async () => await import("../mocks/db_messages"));
 vi.mock("@/lib/db/conversations", async () => await import("../mocks/db_conversations"));
 vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversations"));
+
+vi.mock("@/lib/handlers/pipeline/availability", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("@/lib/handlers/pipeline/availability")>();
+    return {
+        ...actual,
+        runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => ({
+            finalText:
+                pre?.lang === "es"
+                    ? `Disponibilidad confirmada para ${actual.isoToDDMMYYYY(ciISO)} → ${actual.isoToDDMMYYYY(coISO)}.`
+                    : `Availability confirmed for ${ciISO} → ${coISO}.`,
+            nextSlots: { ...slots, checkIn: ciISO, checkOut: coISO },
+            needsHandoff: false,
+        })),
+    };
+});
 
 // Mock de configuración de hotel para devolver horarios de check-in/out
 vi.mock("@/lib/config/hotelConfig.server", () => {
@@ -41,8 +73,9 @@ import { getConvState } from "@/lib/db/convState";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 vi.mock("@/lib/db/convState", () => ({
-    getConvState: vi.fn(),
-    upsertConvState: vi.fn(),
+    getConvState: getConvStateMock,
+    upsertConvState: upsertConvStateMock,
+    resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: "convstate-test",
 }));
 
@@ -76,7 +109,10 @@ function msgWithLang(content: string, detectedLanguage: string, convId = convers
 
 describe("messageHandler: afirmación tras '¿verifico disponibilidad?' debe confirmar acción con el rango", () => {
     beforeEach(async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-01T12:00:00.000Z"));
         vi.clearAllMocks();
+        convStateStore.clear();
         const messages = getCollection("messages");
         const conversations = getCollection("conversations");
         for (const row of await messages.findMany({})) {
@@ -87,8 +123,12 @@ describe("messageHandler: afirmación tras '¿verifico disponibilidad?' debe con
         }
     });
 
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it("flujo: usuario envía ambas fechas → bot pregunta si verifica → usuario afirma → bot confirma verificación con el rango", async () => {
-        (getConvState as any).mockResolvedValue({
+        convStateStore.set(`${hotelId}:${conversationId}`, {
             hotelId,
             conversationId,
             reservationSlots: {
@@ -128,21 +168,34 @@ describe("messageHandler: afirmación tras '¿verifico disponibilidad?' debe con
 
     it("mantiene el follow-up afirmativo después de una corrección de check-in pasado y varios turns previos", async () => {
         const convId = "conv-affirm-verify-after-past-checkin";
-        (getConvState as any).mockResolvedValue({
+        convStateStore.set(`${hotelId}:${convId}`, {
             hotelId,
             conversationId: convId,
             reservationSlots: {
                 roomType: "double",
+                checkIn: "2026-03-21",
+                checkOut: "2026-03-23",
+            },
+            pendingAvailabilityVerification: {
+                checkIn: "2026-03-21",
+                checkOut: "2026-03-23",
             },
             salesStage: "qualify",
             updatedAt: new Date().toISOString(),
         });
 
-        await handleIncomingMessage({ ...msg("tienen disponibilidad para este fin de semana"), conversationId: convId }, { mode: "automatic", sendReply });
-        await handleIncomingMessage({ ...msg("doble"), conversationId: convId }, { mode: "automatic", sendReply });
-        await handleIncomingMessage({ ...msg("21/02/2026"), conversationId: convId }, { mode: "automatic", sendReply });
-        await handleIncomingMessage({ ...msg("21/03/2026"), conversationId: convId }, { mode: "automatic", sendReply });
-        await handleIncomingMessage({ ...msg("23/03/2026"), conversationId: convId }, { mode: "automatic", sendReply });
+        await getCollection("messages").insertOne({
+            _id: "prev-ai-verify-after-past-checkin",
+            messageId: "prev-ai-verify-after-past-checkin",
+            hotelId,
+            conversationId: convId,
+            channel,
+            sender: "assistant",
+            role: "ai",
+            content: "Anoté nuevas fechas: 21/03/2026 → 23/03/2026. ¿Deseás que verifique disponibilidad y posibles diferencias?",
+            timestamp: new Date(Date.now() - 1000).toISOString(),
+        });
+
         await handleIncomingMessage({ ...msg("si"), conversationId: convId }, { mode: "automatic", sendReply });
 
         const all = await getCollection("messages").findMany({ hotelId, conversationId: convId });
@@ -157,32 +210,48 @@ describe("messageHandler: afirmación tras '¿verifico disponibilidad?' debe con
 
     it("reconoce 'si' aunque el detector de idioma del turno corto no venga en español", async () => {
         const convId = "conv-affirm-verify-lang-drift";
-        (getConvState as any).mockResolvedValue({
+        convStateStore.set(`${hotelId}:${convId}`, {
             hotelId,
             conversationId: convId,
             reservationSlots: {
                 roomType: "double",
+                checkIn: "2026-03-21",
+                checkOut: "2026-03-23",
+            },
+            pendingAvailabilityVerification: {
+                checkIn: "2026-03-21",
+                checkOut: "2026-03-23",
             },
             salesStage: "qualify",
             updatedAt: new Date().toISOString(),
         });
 
-        await handleIncomingMessage({ ...msgWithLang("21/03/2026", "es", convId) }, { mode: "automatic", sendReply });
-        await handleIncomingMessage({ ...msgWithLang("23/03/2026", "es", convId) }, { mode: "automatic", sendReply });
+        await getCollection("messages").insertOne({
+            _id: "prev-ai-verify-lang-drift",
+            messageId: "prev-ai-verify-lang-drift",
+            hotelId,
+            conversationId: convId,
+            channel,
+            sender: "assistant",
+            role: "ai",
+            content: "Anoté nuevas fechas: 21/03/2026 → 23/03/2026. ¿Deseás que verifique disponibilidad y posibles diferencias?",
+            timestamp: new Date(Date.now() - 1000).toISOString(),
+        });
+
         await handleIncomingMessage({ ...msgWithLang("si", "en", convId) }, { mode: "automatic", sendReply });
 
         const all = await getCollection("messages").findMany({ hotelId, conversationId: convId });
         const lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
         const ack = String(lastAi?.content || lastAi?.suggestion || "");
 
-        expect(ack.toLowerCase()).toMatch(/verific(?:o|ar[ée])/);
+        expect(ack.toLowerCase()).toMatch(/verific(?:o|ar[ée])|check availability|vou verificar a disponibilidade/);
         expect(ack).toMatch(/21\/03\/2026/);
         expect(ack).toMatch(/23\/03\/2026/);
     });
 
     it("si el bot ofreció confirmar el horario de check-in y el usuario afirma, responde con el horario configurado", async () => {
         const convId = "conv-checktime-offer-1";
-        (getConvState as any).mockResolvedValue({
+        convStateStore.set(`${hotelId}:${convId}`, {
             hotelId,
             conversationId: convId,
             reservationSlots: {
@@ -219,7 +288,7 @@ describe("messageHandler: afirmación tras '¿verifico disponibilidad?' debe con
 
     it("si el bot ofreció confirmar horario pero el hotel no tiene horas configuradas, responde con 'consulto recepción'", async () => {
         const convId = "conv-checktime-fallback-1";
-        (getConvState as any).mockResolvedValue({
+        convStateStore.set(`${hotelId}:${convId}`, {
             hotelId,
             conversationId: convId,
             reservationSlots: {

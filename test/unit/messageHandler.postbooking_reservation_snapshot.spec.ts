@@ -33,6 +33,7 @@ vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(),
   upsertConvState: vi.fn(),
+  resolveGuestState: vi.fn(() => "booked"),
   CONVSTATE_VERSION: "convstate-test",
 }));
 

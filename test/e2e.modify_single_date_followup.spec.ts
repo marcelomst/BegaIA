@@ -3,7 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Evitar structured calls
 process.env.STRUCTURED_ENABLED = "false";
 
-vi.mock("@/lib/db/convState", () => ({ getConvState: vi.fn(), upsertConvState: vi.fn(), CONVSTATE_VERSION: "convstate-test" }));
+vi.mock("@/lib/db/convState", () => ({
+    getConvState: vi.fn(),
+    upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
+    CONVSTATE_VERSION: "convstate-test"
+}));
 
 import { agentGraph } from "@/lib/agents/graph";
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";

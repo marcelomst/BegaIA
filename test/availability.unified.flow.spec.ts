@@ -2,7 +2,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 // Mock modules early to ensure spies attach before imports
-vi.mock('@/lib/db/convState', () => ({ getConvState: vi.fn(), upsertConvState: vi.fn(), CONVSTATE_VERSION: 'convstate-test' }));
+vi.mock('@/lib/db/convState', () => ({
+    getConvState: vi.fn(),
+    upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
+    CONVSTATE_VERSION: 'convstate-test'
+}));
 vi.mock('@/lib/agents/reservations', () => ({ askAvailability: vi.fn(), fillSlotsWithLLM: vi.fn(), confirmAndCreate: vi.fn() }));
 vi.mock('@/lib/config/hotelConfig.server', () => ({ getHotelConfig: vi.fn().mockResolvedValue({ timezone: 'UTC' }) }));
 vi.mock('@/lib/classifier', async (importOriginal) => {

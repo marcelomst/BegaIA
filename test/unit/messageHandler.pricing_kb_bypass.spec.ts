@@ -15,6 +15,7 @@ vi.mock("@/lib/db/guests", () => ({
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => null),
   upsertConvState: vi.fn(async () => {}),
+  resolveGuestState: vi.fn(() => undefined),
   CONVSTATE_VERSION: "test",
 }));
 vi.mock("@/lib/handlers/pipeline/availability", () => ({
@@ -32,7 +33,11 @@ vi.mock("@/lib/handlers/pipeline/availability", () => ({
   askedToVerifyAvailability: () => false,
   isPureConfirm: () => false,
   normalizeReservationIntent: () => ({ kind: "other", executable: false, normalizedText: "" }),
+  detectLateCheckoutQuestion: () => false,
+  detectEarlyCheckinQuestion: () => false,
   detectCheckinOrCheckoutTimeQuestion: () => null,
+  buildLateCheckoutResponse: () => "Late checkout sujeto a disponibilidad.",
+  buildEarlyCheckinResponse: () => "El early check-in esta sujeto a disponibilidad.",
   isPureAffirmative: () => false,
   askedToConfirmCheckTime: () => null,
 }));

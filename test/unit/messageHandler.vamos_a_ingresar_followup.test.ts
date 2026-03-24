@@ -24,6 +24,7 @@ import { getConvState } from "@/lib/db/convState";
 vi.mock("@/lib/db/convState", () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: "convstate-test",
 }));
 
