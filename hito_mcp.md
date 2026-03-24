@@ -4153,3 +4153,39 @@ Impacto:
 - hace robusta la continuidad del draft `create`
 - preserva contratos actuales del pipeline
 - mejora confiabilidad del flujo de reserva sin refactor estructural
+
+### FIX-WEB-WIDGET-CONVERSATION-ISOLATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-24  
+Commit: af41ea00472d229581f850a5192d07b38e1935b7
+
+Descripcion:
+
+Se corrige el aislamiento de conversación en el canal web/widget para evitar
+mezcla de mensajes entre tabs o ventanas, aislando correctamente
+`conversationId` y `guestId` por scope de tab.
+
+Archivos afectados:
+
+- `components/admin/ChatPage.tsx`
+- `lib/agents/helpers.ts`
+- `public/widget/begai-chat.js`
+- `utils/conversationSession.ts`
+- `utils/guestSession.ts`
+- `utils/webTabScope.ts`
+- `test/unit/conversationSession.storage.spec.ts`
+- `test/frontend/chatPage.lang.spec.tsx`
+- `test/unit/inputNormalizerAgent.basic.test.ts`
+
+Validacion:
+
+- aislamiento por ventanas validado
+- `pnpm run ts-check` PASS
+
+Impacto:
+
+- evita mezcla de conversaciones entre tabs/ventanas
+- aísla correctamente sesión web por scope de tab
+- mejora seguridad operativa del canal widget
+- mantiene trazabilidad técnica del estado por ventana
