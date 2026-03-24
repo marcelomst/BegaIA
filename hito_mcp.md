@@ -4064,3 +4064,33 @@ Impacto:
 - estabiliza escenarios multi-turn y follow-ups sensibles
 - corrige dos bugs reales de runtime detectados durante el saneamiento
 - mejora confiabilidad de validación antes de futuros hitos
+
+### FEAT-PIPELINE-ORDINAL-REFERENCES-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-24  
+Commit: 8dc6d348377903f022aab6528d0cb21cbf2f2b05
+
+Descripcion:
+
+Se introduce soporte inicial para referencias ordinales explícitas sobre
+reservas conocidas en conversación, manteniendo resolución conservadora y sin
+abrir coreferencia libre.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts` PASS
+- `Test Files  3 passed (3)`
+- `Tests  21 passed (21)`
+
+Impacto:
+
+- mejora navegación conversacional entre múltiples reservas ya conocidas
+- reduce pedidos innecesarios de código en casos ordinales simples
+- mantiene trazabilidad y resolución conservadora
+- no abre NLP general ni refactor estructural
