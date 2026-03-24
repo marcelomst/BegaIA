@@ -1,4 +1,5 @@
 // Path: /root/begasist/utils/guestSession.ts
+import { getScopedSessionKey } from "@/utils/webTabScope";
 
 const GUEST_ID_STORAGE_KEY = "guestId";
 
@@ -11,11 +12,11 @@ function buildGuestId(): string {
 
 export function getOrCreateGuestId(): string {
   if (typeof window === "undefined") return "";
-  const existing = String(sessionStorage.getItem(GUEST_ID_STORAGE_KEY) ?? "").trim();
+  const existing = String(sessionStorage.getItem(getScopedSessionKey(GUEST_ID_STORAGE_KEY)) ?? "").trim();
   if (existing && existing !== "web-guest") {
     return existing;
   }
   const guestId = buildGuestId();
-  sessionStorage.setItem(GUEST_ID_STORAGE_KEY, guestId);
+  sessionStorage.setItem(getScopedSessionKey(GUEST_ID_STORAGE_KEY), guestId);
   return guestId;
 }

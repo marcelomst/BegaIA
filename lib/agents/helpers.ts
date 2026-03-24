@@ -20,6 +20,17 @@ import type { SlotMap } from "@/types/audit";
 export function extractSlotsFromText(text: string, _lang: string): Partial<SlotMap> {
   const out: Partial<SlotMap> = {};
   const t = (text || "").toLowerCase();
+  const inferYear = (day: number, month: number, explicitYear?: number) => {
+    if (typeof explicitYear === "number") return explicitYear < 100 ? 2000 + explicitYear : explicitYear;
+    const now = new Date();
+    let year = now.getFullYear();
+    const candidate = new Date(year, month - 1, day);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (candidate < today) year += 1;
+    return year;
+  };
+  const toISOFromParts = (day: number, month: number, explicitYear?: number) =>
+    `${String(inferYear(day, month, explicitYear)).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   // Fechas: "19/09/2025 al 22/09/2025", "19-09-2025 hasta 22-09-2025"
   const dateRange =
     t.match(/(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
@@ -34,13 +45,57 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     if (ci?.[1]) out.checkIn = toISODateDDMMYYYY(ci[1]) || out.checkIn;
     if (co?.[1]) out.checkOut = toISODateDDMMYYYY(co[1]) || out.checkOut;
   }
+  if (!out.checkIn && !out.checkOut) {
+    const months: Record<string, number> = {
+      enero: 1, ene: 1, january: 1, jan: 1,
+      febrero: 2, feb: 2, february: 2,
+      marzo: 3, mar: 3, march: 3,
+      abril: 4, abr: 4, apr: 4, april: 4,
+      mayo: 5, may: 5,
+      junio: 6, jun: 6, june: 6,
+      julio: 7, jul: 7, july: 7,
+      agosto: 8, ago: 8, aug: 8, august: 8,
+      septiembre: 9, setiembre: 9, sept: 9, sep: 9, september: 9,
+      octubre: 10, oct: 10, october: 10,
+      noviembre: 11, nov: 11, november: 11,
+      diciembre: 12, dic: 12, dec: 12, december: 12,
+    };
+    const monthRange = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
+    if (monthRange) {
+      const day1 = parseInt(monthRange[1], 10);
+      const month1 = months[monthRange[2]];
+      const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : undefined;
+      const day2 = parseInt(monthRange[4], 10);
+      const month2 = months[monthRange[5]] || month1;
+      const year2 = monthRange[6] ? parseInt(monthRange[6], 10) : year1;
+      if (month1 && month2) {
+        out.checkIn = toISOFromParts(day1, month1, year1);
+        out.checkOut = toISOFromParts(day2, month2, year2);
+      }
+    } else {
+      const singleMonth = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?/i);
+      if (singleMonth) {
+        const day = parseInt(singleMonth[1], 10);
+        const month = months[singleMonth[2]];
+        const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : undefined;
+        if (month) out.checkIn = toISOFromParts(day, month, year);
+      }
+    }
+  }
   // Personas / huéspedes: "para dos personas", "somos 3"
   const ng = t.match(/(?:para|somos|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas)/);
   if (ng?.[1]) out.numGuests = String(parseInt(ng[1], 10));
   // Tipo de habitación: lista simple (se puede extender)
   const types = ["doble", "triple", "individual", "single", "twin", "queen", "king", "matrimonial", "suite", "deluxe", "standard"];
   const found = types.find(tp => t.includes(tp));
-  if (found) out.roomType = found;
+  if (found) {
+    out.roomType =
+      found === "doble" || found === "matrimonial"
+        ? "double"
+        : found === "individual"
+          ? "single"
+          : found;
+  }
   return out;
 }
 

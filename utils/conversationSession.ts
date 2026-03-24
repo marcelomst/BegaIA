@@ -1,7 +1,12 @@
 // /utils/conversationSession.ts
+import { getScopedSessionKey } from "@/utils/webTabScope";
+
+const CONVERSATION_ID_STORAGE_KEY = "conversationId";
+const GUEST_ID_STORAGE_KEY = "guestId";
+
 export function getConversationId(): string | null {
   if (typeof window === "undefined") return null;
-  const sessionValue = sessionStorage.getItem("conversationId");
+  const sessionValue = sessionStorage.getItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
   if (sessionValue !== null) {
     const v = String(sessionValue).trim();
     if (v && v !== "undefined" && v !== "null") return v;
@@ -10,13 +15,13 @@ export function getConversationId(): string | null {
 }
 export function hasConversationId(): boolean {
   if (typeof window === "undefined") return false;
-  const sessionValue = sessionStorage.getItem("conversationId");
+  const sessionValue = sessionStorage.getItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
   return sessionValue !== null;
 }
 
 export function setConversationId(id: string) {
   if (typeof window !== "undefined") {
-    sessionStorage.setItem("conversationId", id);
+    sessionStorage.setItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY), id);
   }
 }
 
@@ -50,8 +55,10 @@ function setCookie(name: string, value: string, days: number) {
 // por ejemplo, al cerrar sesión o al cambiar de usuario.
 export function resetConversationSession() {
   try {
-    sessionStorage.removeItem("conversationId");
-    sessionStorage.removeItem("guestId");
+    sessionStorage.removeItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
+    sessionStorage.removeItem(getScopedSessionKey(GUEST_ID_STORAGE_KEY));
+    sessionStorage.removeItem(CONVERSATION_ID_STORAGE_KEY);
+    sessionStorage.removeItem(GUEST_ID_STORAGE_KEY);
     localStorage.removeItem("lang");
     document.cookie = "lang=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   } catch {}

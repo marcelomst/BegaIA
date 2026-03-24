@@ -66,6 +66,7 @@ type ChatTurn = {
 export default function ChatPage() {
   const searchParams = useSearchParams();
   const hotelId = searchParams?.get("hotelId") ?? "";
+  const guestId = getOrCreateGuestId();
 
   // ===== Estado base del chat =====
   const [query, setQuery] = useState("");
@@ -132,7 +133,7 @@ export default function ChatPage() {
       (async () => {
         try {
           const res = await fetch(
-            `/api/messages/by-conversation?channelId=web&conversationId=${convId}`,
+            `/api/messages/by-conversation?channelId=web&conversationId=${convId}&hotelId=${encodeURIComponent(hotelId)}&guestId=${encodeURIComponent(guestId)}`,
             { signal, credentials: "same-origin" }
           );
           if (!res.ok) throw new Error("HTTP " + res.status);
@@ -154,7 +155,10 @@ export default function ChatPage() {
     // Lista de conversaciones
     (async () => {
       try {
-        const res = await fetch("/api/conversations/list", { signal, credentials: "same-origin" });
+        const res = await fetch(
+          `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
+          { signal, credentials: "same-origin" }
+        );
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = (await res.json()) as { conversations?: ConversationSummary[] };
         setMyConversations(Array.isArray(data.conversations) ? data.conversations : []);
@@ -164,7 +168,7 @@ export default function ChatPage() {
     })();
 
     return () => controller.abort();
-  }, []);
+  }, [guestId, hotelId]);
 
   // Sembrar UI de reservas si el historial está vacío o sin mensajes del asistente
   const seedUXIfEmpty = (base: ChatTurn[]): ChatTurn[] => {
@@ -213,7 +217,7 @@ export default function ChatPage() {
 
     try {
       const res = await fetch(
-        `/api/messages/by-conversation?channelId=web&conversationId=${convId}`,
+        `/api/messages/by-conversation?channelId=web&conversationId=${convId}&hotelId=${encodeURIComponent(hotelId)}&guestId=${encodeURIComponent(guestId)}`,
         { signal, credentials: "same-origin" }
       );
       if (!res.ok) throw new Error("HTTP " + res.status);
@@ -238,7 +242,7 @@ export default function ChatPage() {
       setQuery("");
       textareaRef.current?.focus();
     }
-  }, []);
+  }, [guestId, hotelId]);
 
   const handleNewConversation = useCallback(async () => {
     if (conversationId) {
@@ -264,14 +268,17 @@ export default function ChatPage() {
     textareaRef.current?.focus();
 
     setTimeout(() => {
-      fetch("/api/conversations/list", { credentials: "same-origin" })
+      fetch(
+        `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
+        { credentials: "same-origin" }
+      )
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((data: { conversations?: ConversationSummary[] }) =>
           setMyConversations(data.conversations ?? [])
         )
         .catch(() => setMyConversations([]));
     }, 200);
-  }, [conversationId]);
+  }, [conversationId, guestId, hotelId]);
 
   // ===== Envío de mensaje =====
   const sendQuery = useCallback(async () => {
@@ -285,8 +292,6 @@ export default function ChatPage() {
 
     const currentConversationId = getConversationId();
     const currentLang = getLang();
-    const guestId = getOrCreateGuestId();
-
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -348,7 +353,10 @@ export default function ChatPage() {
       }
 
       // refrescar lista de chats
-      fetch("/api/conversations/list", { credentials: "same-origin" })
+      fetch(
+        `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
+        { credentials: "same-origin" }
+      )
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((data: { conversations?: ConversationSummary[] }) =>
           setMyConversations(data.conversations ?? [])
@@ -453,7 +461,6 @@ export default function ChatPage() {
     setQuery("");
     // No bloqueamos con loading global (flujo rápido); llamamos backend igualmente
     try {
-      const guestId = getOrCreateGuestId();
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

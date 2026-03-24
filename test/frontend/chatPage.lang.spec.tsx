@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import ChatPage from "@/components/admin/ChatPage";
+import { getScopedSessionKey } from "@/utils/webTabScope";
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("hotelId=hotel999"),
@@ -16,6 +17,7 @@ describe("ChatPage • language changes affect API payload", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.startsWith("/api/conversations/list")) {
+        expect(url).toContain("guestId=");
         return new Response(JSON.stringify({ conversations: [] }), { status: 200 });
       }
       if (url.startsWith("/api/messages/by-conversation")) {
@@ -27,7 +29,7 @@ describe("ChatPage • language changes affect API payload", () => {
         if (body.lang !== "en") {
           return new Response("Lang not propagated", { status: 400 });
         }
-        const storedGuestId = sessionStorage.getItem("guestId");
+        const storedGuestId = sessionStorage.getItem(getScopedSessionKey("guestId"));
         if (!body.guestId || typeof body.guestId !== "string") {
           return new Response("guestId missing", { status: 400 });
         }

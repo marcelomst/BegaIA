@@ -3,6 +3,7 @@
   // ---- Config global (nuevo nombre) + fallback por compatibilidad ----
   const cfg = (window.BegAIChat ||= (window.BegasistChat || {}));
   const brand = "BegAI";
+  const DEBUG_SESSION = cfg.debug === true || cfg.debugSession === true;
 
   // ---- UI config ----
   const primary = (cfg.theme && cfg.theme.primary) || "#0ea5e9";
@@ -31,6 +32,23 @@
   const externalT = typeof cfg.t === "function" ? cfg.t : null;
 
   function normLang(l) { return String(l || "").toLowerCase().replace("_", "-").slice(0, 2); }
+  const TAB_SCOPE_PREFIX = "begai:web-tab:";
+  const buildScopeId = () =>
+    (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const getTabScopeId = () => {
+    const current = String(window.name || "").trim();
+    if (current.startsWith(TAB_SCOPE_PREFIX)) return current.slice(TAB_SCOPE_PREFIX.length);
+    const next = buildScopeId();
+    window.name = `${TAB_SCOPE_PREFIX}${next}`;
+    return next;
+  };
+  const scopedSessionKey = (baseKey) => `${baseKey}:${hotelId}:${getTabScopeId()}`;
+  const debug = (event, data) => {
+    if (!DEBUG_SESSION) return;
+    try { console.log(`[BegAIChat][${event}]`, data); } catch {}
+  };
 
   // ---- Migración de localStorage (begasist:* → begai:*) ----
   const OLD_PREFIX = "begasist";
@@ -43,8 +61,6 @@
     if (oldVal && !newVal) localStorage.setItem(newKey, oldVal);
   }
   migrateKey(`lang:${hotelId}`);
-  migrateKey(`conversationId:${hotelId}`);
-  migrateKey(`guestId:${hotelId}`);
 
   // Idioma inicial: localStorage > config.lang > navegador > "es"
   const langKeyNew = `${NEW_PREFIX}:lang:${hotelId}`;
@@ -71,29 +87,22 @@
     return (I18N[currentLang] || I18N.es)[key] || key;
   };
 
-  // 🔐 conversación persistente (con migración)
-  const convKeyNew = `${NEW_PREFIX}:conversationId:${hotelId}`;
-  const convKeyOld = `${OLD_PREFIX}:conversationId:${hotelId}`;
-  const getConv = () => localStorage.getItem(convKeyNew) || localStorage.getItem(convKeyOld);
-  const setConv = (id) => localStorage.setItem(convKeyNew, id);
+  // 🔐 conversación/guest aislados por tab con persistencia por sessionStorage
+  const convKey = scopedSessionKey("conversationId");
+  const getConv = () => sessionStorage.getItem(convKey);
+  const setConv = (id) => sessionStorage.setItem(convKey, id);
   const clearConv = () => {
-    localStorage.removeItem(convKeyNew);
-    localStorage.removeItem(convKeyOld);
+    sessionStorage.removeItem(convKey);
   };
 
-  const guestKeyNew = `${NEW_PREFIX}:guestId:${hotelId}`;
-  const guestKeyOld = `${OLD_PREFIX}:guestId:${hotelId}`;
-  const guestKeyLegacy = "guestId";
+  const guestKey = scopedSessionKey("guestId");
   const buildGuestId = () =>
     (typeof crypto !== "undefined" && crypto.randomUUID)
       ? `guest-${crypto.randomUUID()}`
       : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const getGuest = () =>
-    localStorage.getItem(guestKeyNew) ||
-    localStorage.getItem(guestKeyOld) ||
-    localStorage.getItem(guestKeyLegacy);
+  const getGuest = () => sessionStorage.getItem(guestKey);
   const setGuest = (id) => {
-    localStorage.setItem(guestKeyNew, id);
+    sessionStorage.setItem(guestKey, id);
   };
   const getOrCreateGuest = () => {
     const existing = String(getGuest() || "").trim();
@@ -273,6 +282,7 @@
       if (es) { try { es.close(); } catch {} es = null; }
       esConvId = conversationId;
       const url = `${api}/api/web/events?conversationId=${encodeURIComponent(conversationId)}`;
+      debug("sse.open", { tabScopeId: getTabScopeId(), guestId: getGuest(), conversationId, url });
       es = new EventSource(url, { withCredentials: false });
       es.onopen = () => console.log("[BegAIChat] SSE abierto:", url);
       es.onerror = (e) => console.warn("[BegAIChat] SSE error:", e);
@@ -344,6 +354,7 @@
       guestId: getOrCreateGuest(),
       lang: currentLang,
     };
+    debug("chat.request", { tabScopeId: getTabScopeId(), payload });
 
     try {
       const res = await fetch(`${api}/api/chat`, {
@@ -355,6 +366,14 @@
       const raw = await res.text();
       let data = {};
       try { data = JSON.parse(raw); } catch {}
+      debug("chat.response", {
+        tabScopeId: getTabScopeId(),
+        status: res.status,
+        ok: res.ok,
+        responseConversationId: data && data.conversationId,
+        currentConversationId: getConv(),
+        guestId: getGuest(),
+      });
 
       if (data.conversationId && data.conversationId !== getConv()) {
         setConv(data.conversationId);
@@ -395,5 +414,13 @@
     if (e.key === "Escape" && panel.style.display === "flex") toggle();
   });
 
-  console.log("[BegAIChat] listo •", { hotelId, apiBase: api, lang: currentLang, position: pos });
+  console.log("[BegAIChat] listo •", {
+    hotelId,
+    apiBase: api,
+    lang: currentLang,
+    position: pos,
+    tabScopeId: getTabScopeId(),
+    guestId: getGuest(),
+    conversationId: getConv(),
+  });
 })();

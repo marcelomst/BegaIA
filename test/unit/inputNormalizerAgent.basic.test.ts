@@ -57,4 +57,15 @@ describe('runInputNormalizer (mínimo)', () => {
         // Draft presente cuando hay slots inferidos del turno
         expect(!!norm.stateForPlaybook?.draft).toBe(true);
     });
+
+    it('extrae fechas con mes nombrado y canonicaliza habitación para una nueva reserva explícita', async () => {
+        const msg = {
+            ...baseMsg,
+            content: 'quiero reservar una habitación doble del 21 de abril al 25 de abril',
+        };
+        const norm = await runInputNormalizer({ msg });
+        expect(norm.currSlots.roomType).toBe('double');
+        expect(norm.currSlots.checkIn).toBe('2026-04-21');
+        expect(norm.currSlots.checkOut).toBe('2026-04-25');
+    });
 });

@@ -2,6 +2,9 @@ import { describe, expect, it, beforeEach } from "vitest";
 
 import { getConversationId, hasConversationId, resetConversationSession, setConversationId } from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
+import { getScopedSessionKey } from "@/utils/webTabScope";
+
+type NamedGlobal = typeof globalThis & { name: string };
 
 function makeStorage() {
   const store = new Map<string, string>();
@@ -19,6 +22,7 @@ describe("widget session storage isolation", () => {
     Object.defineProperty(globalThis, "localStorage", { value: makeStorage(), configurable: true });
     Object.defineProperty(globalThis, "document", { value: { cookie: "" }, configurable: true });
     Object.defineProperty(globalThis, "window", { value: globalThis, configurable: true });
+    Object.defineProperty(globalThis, "name", { value: "", writable: true, configurable: true });
     sessionStorage.clear();
     localStorage.clear();
     document.cookie = "conversationId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -34,7 +38,7 @@ describe("widget session storage isolation", () => {
     setConversationId("conv-tab-1");
 
     expect(getConversationId()).toBe("conv-tab-1");
-    expect(sessionStorage.getItem("conversationId")).toBe("conv-tab-1");
+    expect(sessionStorage.getItem(getScopedSessionKey("conversationId"))).toBe("conv-tab-1");
     expect(localStorage.getItem("conversationId")).toBe("conv-shared-legacy");
   });
 
@@ -45,7 +49,7 @@ describe("widget session storage isolation", () => {
 
     expect(guestId).toMatch(/^guest-/);
     expect(guestId).not.toBe("guest-shared-legacy");
-    expect(sessionStorage.getItem("guestId")).toBe(guestId);
+    expect(sessionStorage.getItem(getScopedSessionKey("guestId"))).toBe(guestId);
     expect(localStorage.getItem("guestId")).toBe("guest-shared-legacy");
   });
 
@@ -55,7 +59,22 @@ describe("widget session storage isolation", () => {
 
     resetConversationSession();
 
-    expect(sessionStorage.getItem("conversationId")).toBeNull();
-    expect(sessionStorage.getItem("guestId")).toBeNull();
+    expect(sessionStorage.getItem(getScopedSessionKey("conversationId"))).toBeNull();
+    expect(sessionStorage.getItem(getScopedSessionKey("guestId"))).toBeNull();
+  });
+
+  it("aísla conversationId y guestId por tab scope aunque compartan el mismo sessionStorage subyacente", () => {
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-1";
+    setConversationId("conv-tab-1");
+    const guestOne = getOrCreateGuestId();
+
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-2";
+    expect(getConversationId()).toBeNull();
+    const guestTwo = getOrCreateGuestId();
+
+    expect(guestTwo).toMatch(/^guest-/);
+    expect(guestTwo).not.toBe(guestOne);
+    expect(sessionStorage.getItem("conversationId:tab-1")).toBe("conv-tab-1");
+    expect(sessionStorage.getItem("conversationId:tab-2")).toBeNull();
   });
 });
