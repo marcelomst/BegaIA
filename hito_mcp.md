@@ -4122,3 +4122,34 @@ Impacto:
 - mejora consistencia de clasificación del intent `modify`
 - reduce falsos negativos en wording inglés
 - mantiene el fix acotado a normalización semántica puntual
+
+### FIX-PIPELINE-RESERVATION-CONFIRMATION-FLOW-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-24  
+Commit: 19ff00daf14807c86ebdcc5b36f5273d9c0f64c0
+
+Descripcion:
+
+Se corrige el paso de confirmación en el flujo de nueva reserva para evitar la
+caída en fallback cuando ya existía un draft completo y una propuesta
+confirmable.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+
+Validacion:
+
+- validación manual reportada en widget
+- flujo completo de reserva funciona
+- confirmación funciona correctamente
+- no hay regresiones en `modify/cancel`
+
+Impacto:
+
+- elimina fallback incorrecto al confirmar una nueva reserva válida
+- hace robusta la continuidad del draft `create`
+- preserva contratos actuales del pipeline
+- mejora confiabilidad del flujo de reserva sin refactor estructural
