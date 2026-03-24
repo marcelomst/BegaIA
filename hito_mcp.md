@@ -4009,3 +4009,58 @@ Impacto:
 - se documentan `stableIntentsGuard`, `guestState`, `reservationHistory` y `activeReservationContext`
 - se documenta soporte de múltiples reservas y resolución de referencias
 - se alinea la documentación con el sistema real y se eliminan desfasajes con la implementación
+
+### FIX-TEST-SUITE-STABILIZATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-24  
+Commit: ad23fec6d5e8654cb7dff1acd35d35095b210fb1
+
+Descripcion:
+
+Se estabiliza la suite frente al drift acumulado entre runtime actual, mocks,
+setups multi-turn, expectativas envejecidas y sensibilidad temporal, incluyendo
+correcciones puntuales de runtime detectadas durante el saneamiento.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/availability.unified.flow.spec.ts`
+- `test/e2e.modify_single_date_followup.spec.ts`
+- `test/frontend/chatPage.lang.spec.tsx`
+- `test/graph.reservation.persist.spec.ts`
+- `test/unit/messageHandler.autosend.snapshot_verify.test.ts`
+- `test/unit/messageHandler.availability_affirm_ack.test.ts`
+- `test/unit/messageHandler.confirm_both_dates_no_handoff.test.ts`
+- `test/unit/messageHandler.date_year_inheritance.heuristic.test.ts`
+- `test/unit/messageHandler.date_year_inheritance.test.ts`
+- `test/unit/messageHandler.followup_status_verify.test.ts`
+- `test/unit/messageHandler.inreso_followup.test.ts`
+- `test/unit/messageHandler.modify_checkin_and_dates_prompt.test.ts`
+- `test/unit/messageHandler.modify_dates_prompts.locales.test.ts`
+- `test/unit/messageHandler.modify_single_date_followup.test.ts`
+- `test/unit/messageHandler.new_dates_prompt.test.ts`
+- `test/unit/messageHandler.past_checkin_guard.test.ts`
+- `test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts`
+- `test/unit/messageHandler.pricing_kb_bypass.spec.ts`
+- `test/unit/messageHandler.rich.test.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+- `test/unit/messageHandler.vamos_a_ingresar_followup.test.ts`
+- `test/unit/messageHandler.verify_pending_snapshot_continuity.spec.ts`
+
+Validacion:
+
+- `pnpm exec vitest run ...` sobre 22 suites del bloque afectado PASS
+- `Test Files  22 passed (22)`
+- `Tests  62 passed (62)`
+- `0 files failed`
+- `0 tests failed`
+
+Impacto:
+
+- deja la suite alineada con el runtime actual
+- reduce falsos negativos por drift de mocks, fechas y timers
+- estabiliza escenarios multi-turn y follow-ups sensibles
+- corrige dos bugs reales de runtime detectados durante el saneamiento
+- mejora confiabilidad de validación antes de futuros hitos
