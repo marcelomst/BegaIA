@@ -389,7 +389,20 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   const recent = await getRecentHistorySafe(msg.hotelId, msg.channel, conversationId, CONFIG.HISTORY_LIMIT);
   const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
   // --- Novedad: slots del turno actual (pre-LLM) → evitar re-preguntas
-  const turnSlots = extractSlotsFromText(String(msg.content || ""), lang);
+  const turnText = String(msg.content || "");
+  const turnSlots = extractSlotsFromText(turnText, lang);
+  const shortGuestCount = turnText.match(/^\s*(\d{1,2})\s*$/);
+  if (
+    !turnSlots.numGuests &&
+    shortGuestCount?.[1] &&
+    (st?.activeFlow === "reservation" || st?.desiredAction === "create" || prevCategory === "reservation") &&
+    prevSlotsStrict?.roomType &&
+    prevSlotsStrict?.checkIn &&
+    prevSlotsStrict?.checkOut &&
+    !prevSlotsStrict?.numGuests
+  ) {
+    turnSlots.numGuests = String(parseInt(shortGuestCount[1], 10));
+  }
   const currSlots: ReservationSlotsStrict = { ...(prevSlotsStrict || {}), ...(turnSlots || {}) };
   console.log('[DEBUG-numGuests] currSlots:', JSON.stringify(currSlots));
   return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, currSlots };
@@ -1195,7 +1208,20 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
 
   // --- Novedad: slots del turno actual (pre-LLM) → evitar re-preguntas
-  const turnSlots = extractSlotsFromText(String(msg.content || ""), lang);
+  const turnText = String(msg.content || "");
+  const turnSlots = extractSlotsFromText(turnText, lang);
+  const shortGuestCount = turnText.match(/^\s*(\d{1,2})\s*$/);
+  if (
+    !turnSlots.numGuests &&
+    shortGuestCount?.[1] &&
+    (st?.activeFlow === "reservation" || st?.desiredAction === "create" || prevCategory === "reservation") &&
+    prevSlotsStrict?.roomType &&
+    prevSlotsStrict?.checkIn &&
+    prevSlotsStrict?.checkOut &&
+    !prevSlotsStrict?.numGuests
+  ) {
+    turnSlots.numGuests = String(parseInt(shortGuestCount[1], 10));
+  }
   // fusionamos: lo nuevo del turno tiene prioridad (si el usuario corrigió algo)
   const currSlots: ReservationSlotsStrict = { ...(prevSlotsStrict || {}), ...(turnSlots || {}) };
   console.log('[DEBUG-numGuests] currSlots:', JSON.stringify(currSlots));
@@ -1891,6 +1917,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   try {
     const userTxt = String(pre.msg.content || "");
     const tLower = userTxt.toLowerCase();
+    const reservationReferenceFast = resolveReservationReference(pre.st, userTxt);
     const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
     const isModifyFollowupContext = pre.prevCategory === "modify_reservation" || pre.prevCategory === "modify";
     const mentionsReservation = /(reserva|booking)/i.test(tLower);
@@ -1902,7 +1929,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasAnyDateTokenFast = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(userTxt);
     const mentionsDatesFast = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
     const isDateTopicFast = Boolean(sideIntentFast || hasAnyDateTokenFast || mentionsDatesFast);
-    if (genericModify && reservationReference.status === "ambiguous") {
+    if (genericModify && reservationReferenceFast.status === "ambiguous") {
       finalText = buildReservationReferenceClarification(pre.lang);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };
     }
@@ -2107,6 +2134,49 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const userTxtRaw = String(pre.msg.content || "");
   const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
   const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
+  const hasConfirmedBookingContext =
+    Boolean(pre.st?.lastReservation?.reservationId) ||
+    pre.st?.salesStage === "close";
+  const looksExplicitNewReservation =
+    /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) &&
+    normalizedReservationIntent.kind !== "modify" &&
+    normalizedReservationIntent.kind !== "cancel";
+  const reservationRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
+  const reservationCheckIn = nextSlots.checkIn || pre.currSlots.checkIn || pre.st?.reservationSlots?.checkIn;
+  const reservationCheckOut = nextSlots.checkOut || pre.currSlots.checkOut || pre.st?.reservationSlots?.checkOut;
+  const reservationGuests = nextSlots.numGuests || pre.currSlots.numGuests || pre.st?.reservationSlots?.numGuests;
+  const trimmedUserText = userTxtRaw.trim();
+  if (
+    !pre.inModifyMode &&
+    !hasConfirmedBookingContext &&
+    isSafeGuestName(trimmedUserText) &&
+    (pre.st?.activeFlow === "reservation" || pre.st?.desiredAction === "create" || pre.prevCategory === "reservation") &&
+    reservationRoomType &&
+    reservationCheckIn &&
+    reservationCheckOut &&
+    reservationGuests &&
+    !isSafeGuestName(String(pre.st?.reservationSlots?.guestName || pre.currSlots.guestName || nextSlots.guestName || ""))
+  ) {
+    nextSlots = { ...nextSlots, guestName: trimmedUserText };
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationSlots: {
+        ...(pre.st?.reservationSlots || {}),
+        roomType: reservationRoomType,
+        checkIn: reservationCheckIn,
+        checkOut: reservationCheckOut,
+        numGuests: String(reservationGuests),
+        guestName: trimmedUserText,
+        locale: pre.lang,
+      },
+      activeReservationContext: buildDraftReservationContext("collecting"),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+  }
+  const reservationGuestName = nextSlots.guestName || pre.currSlots.guestName || pre.st?.reservationSlots?.guestName;
   if (
     reservationReference.status === "ambiguous" &&
     (normalizedReservationIntent.kind === "modify" || normalizedReservationIntent.kind === "cancel")
@@ -2114,6 +2184,62 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     finalText = buildReservationReferenceClarification(pre.lang);
     nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (
+    looksExplicitNewReservation &&
+    !hasConfirmedBookingContext &&
+    reservationRoomType &&
+    reservationCheckIn &&
+    reservationCheckOut &&
+    !reservationGuests
+  ) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationSlots: {
+        ...(pre.st?.reservationSlots || {}),
+        roomType: reservationRoomType,
+        checkIn: reservationCheckIn,
+        checkOut: reservationCheckOut,
+        locale: pre.lang,
+      },
+      activeReservationContext: buildDraftReservationContext("collecting"),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+    nextCategory = "reservation";
+    return { finalText: buildAskGuests(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (
+    !pre.inModifyMode &&
+    !hasConfirmedBookingContext &&
+    /^\s*\d{1,2}\s*$/.test(userTxtRaw) &&
+    (pre.st?.activeFlow === "reservation" || pre.st?.desiredAction === "create" || pre.prevCategory === "reservation") &&
+    reservationRoomType &&
+    reservationCheckIn &&
+    reservationCheckOut &&
+    reservationGuests &&
+    !isSafeGuestName(reservationGuestName || "")
+  ) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationSlots: {
+        ...(pre.st?.reservationSlots || {}),
+        roomType: reservationRoomType,
+        checkIn: reservationCheckIn,
+        checkOut: reservationCheckOut,
+        numGuests: String(reservationGuests),
+        locale: pre.lang,
+      },
+      activeReservationContext: buildDraftReservationContext("collecting"),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+    nextCategory = "reservation";
+    return { finalText: buildAskGuestName(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };
   }
   // Pedido de enviar copia por email (soporta 'enviá', 'enviame', 'mandame', etc.)
   const emailAskRE = /((envi|mand)(?:ar|a|á|ame|áme)?\b[^\n]*\b(copia|copy)[^\n]*\b(correo|e-?mail|email))|send\b[^\n]*copy[^\n]*email/i;
@@ -2559,6 +2685,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // Guarda temprana: si el usuario envía un "CONFIRMAR" puro sin haber indicado huéspedes o nombre, pedirlos primero
   const hasGuests = Boolean(pre.currSlots?.numGuests || pre.st?.reservationSlots?.numGuests);
   const hasGuestName = isSafeGuestName(pre.currSlots?.guestName || pre.st?.reservationSlots?.guestName || "");
+  const hasCompleteCreateDraft = Boolean(
+    !pre.inModifyMode &&
+    (pre.st?.activeFlow === "reservation" || pre.st?.desiredAction === "create" || pre.prevCategory === "reservation") &&
+    (pre.currSlots?.roomType || pre.st?.reservationSlots?.roomType) &&
+    (pre.currSlots?.checkIn || pre.st?.reservationSlots?.checkIn) &&
+    (pre.currSlots?.checkOut || pre.st?.reservationSlots?.checkOut) &&
+    (pre.currSlots?.numGuests || pre.st?.reservationSlots?.numGuests) &&
+    hasGuestName
+  );
   const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } | undefined;
   const isVerifyAvailabilityAffirmative =
     (Boolean(pendingAvailabilityVerification) || askedToVerifyAvailability(pre.lcHistory, pre.lang)) &&
@@ -2805,7 +2940,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
   }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
-    if (!isReservationConfirmable && !pre.inModifyMode) {
+    if (!isReservationConfirmable && !pre.inModifyMode && !hasCompleteCreateDraft) {
       if (reservationFlow === "confirmed") {
         finalText = pre.lang === "es"
           ? "Ya tengo una reserva confirmada para esta conversación. Si querés modificar o cancelar, decímelo."
@@ -2826,6 +2961,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
     if (!hasGuestName) {
+      if (!pre.inModifyMode) {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+            locale: pre.lang,
+          },
+          activeReservationContext: buildDraftReservationContext("collecting"),
+          activeFlow: "reservation",
+          desiredAction: "create",
+          salesStage: "qualify",
+          lastCategory: "reservation",
+          updatedBy: "ai",
+        } as any);
+      }
       finalText = buildAskGuestName(pre.lang);
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
@@ -2931,7 +3081,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
     }
-    if (askedToConfirmReservation(pre.lcHistory)) {
+    if (askedToConfirmReservation(pre.lcHistory) || hasCompleteCreateDraft) {
       const snapshot = {
         guestName: pre.st?.reservationSlots?.guestName || nextSlots.guestName,
         roomType: pre.st?.reservationSlots?.roomType || nextSlots.roomType,
@@ -3038,6 +3188,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           pre.st?.lastReservation?.reservationId ||
           pre.st?.salesStage === "close"
         );
+        const mentionsReservationObject = /\b(reserva|booking|reservation)\b/i.test(kbUserText);
+        if (postBookingSnapshotQ && !hasConfirmedBookingContext) {
+          finalText = pre.lang === "es"
+            ? "No encuentro una reserva activa en esta conversación. Si querés revisar una reserva existente, pasame el código de reserva."
+            : pre.lang === "pt"
+              ? "Não encontrei uma reserva ativa nesta conversa. Se quiser revisar uma reserva existente, me envie o código da reserva."
+              : "I can't find an active booking on this conversation. If you want to review an existing booking, send me the booking code.";
+          nextCategory = "reservation_snapshot";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+        }
+        if (
+          mentionsReservationObject &&
+          !hasConfirmedBookingContext &&
+          (postBookingReservationIntent.kind === "modify" || postBookingReservationIntent.kind === "cancel")
+        ) {
+          finalText = buildAskReservationCode(pre.lang);
+          nextCategory = postBookingReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
+          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+        }
         if (
           postBookingSnapshotQ &&
           hasConfirmedBookingContext &&
@@ -3783,6 +3952,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (isSupportTurn) {
     finalText = applyCommittedHotelTone(String(finalText || ""), pre.lang);
+  }
+  const quotedReservationSnapshot = {
+    guestName:
+      pre.st?.reservationSlots?.guestName ||
+      nextSlots.guestName ||
+      (isSafeGuestName(String(pre.msg.content || "").trim()) ? String(pre.msg.content || "").trim() : undefined),
+    roomType: pre.st?.reservationSlots?.roomType || nextSlots.roomType,
+    checkIn: pre.st?.reservationSlots?.checkIn || nextSlots.checkIn,
+    checkOut: pre.st?.reservationSlots?.checkOut || nextSlots.checkOut,
+    numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
+    locale: pre.lang,
+  };
+  if (
+    !pre.inModifyMode &&
+    isQuoteOrConfirmText(String(finalText || ""), pre.lang) &&
+    quotedReservationSnapshot.roomType &&
+    quotedReservationSnapshot.checkIn &&
+    quotedReservationSnapshot.checkOut &&
+    quotedReservationSnapshot.numGuests &&
+    isSafeGuestName(quotedReservationSnapshot.guestName || "")
+  ) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationSlots: quotedReservationSnapshot,
+      lastProposal: {
+        text: String(finalText || ""),
+        available: true,
+      },
+      activeReservationContext: buildDraftReservationContext("quoted"),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
   }
   finalText = stripGlobalTailNoise(String(finalText || ""));
   const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
