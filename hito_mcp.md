@@ -4189,3 +4189,34 @@ Impacto:
 - aísla correctamente sesión web por scope de tab
 - mejora seguridad operativa del canal widget
 - mantiene trazabilidad técnica del estado por ventana
+
+### REF-PIPELINE-REFERENCE-TARGET-MODEL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-25  
+Commit: 23fe82743c61cb60358435d8524ea164cab2b03a
+
+Descripcion:
+
+Se introduce un modelo mínimo y explícito de target referencial para reservas,
+desacoplando la resolución puntual de referencias del foco conversacional
+general sin reescribir el runtime.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- `test/unit/messageHandler.reference_resolution.spec.ts` PASS
+- suites relacionadas del pipeline ya validadas previamente en verde
+
+Impacto:
+
+- cierra el modelo mínimo de target referencial
+- separa mejor foco conversacional general de target seleccionado para operación
+- mejora continuidad multi-turn entre `snapshot`, `modify` y `cancel`
+- prepara el terreno para un futuro hito de lifecycle / expiration del target
+- evita sobre-ingeniería y mantiene trazabilidad limpia
