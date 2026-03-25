@@ -4220,3 +4220,31 @@ Impacto:
 - mejora continuidad multi-turn entre `snapshot`, `modify` y `cancel`
 - prepara el terreno para un futuro hito de lifecycle / expiration del target
 - evita sobre-ingeniería y mantiene trazabilidad limpia
+
+### DOC-ADR-DOC-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-25  
+Commit: 1971dce405eb3c99ead6523d6d2f7e11fd49f8a7
+
+Descripcion:
+
+Se crea el ADR de gobernanza documental explícita de Begasist para separar
+historia, arquitectura viva, operación, ADR y artefactos derivados, declarando
+fuente de verdad por dominio e integrando la disciplina documental con Git.
+
+Archivos afectados:
+
+- `docs/architecture/ADR-DOC-GOVERNANCE-01.md`
+
+Validacion:
+
+- no corresponde validación automática por tratarse de documentación de arquitectura
+
+Impacto:
+
+- formaliza gobernanza documental explícita del proyecto
+- separa historia, arquitectura viva, operación, ADR y artefactos derivados
+- declara fuente de verdad por dominio
+- introduce niveles de impacto documental
+- formaliza el rol de HDOC e integra la disciplina `CODE -> COMMIT -> HASH -> PUSH -> DOC`
