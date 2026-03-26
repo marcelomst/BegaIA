@@ -4248,3 +4248,31 @@ Impacto:
 - declara fuente de verdad por dominio
 - introduce niveles de impacto documental
 - formaliza el rol de HDOC e integra la disciplina `CODE -> COMMIT -> HASH -> PUSH -> DOC`
+
+### FIX-PIPELINE-REFERENCE-TARGET-LIFECYCLE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-26  
+Commit: 17aa676f9a80159af4c7462a0ae82e830bab45b2
+
+Descripcion:
+
+Se implementa el lifecycle mínimo de `selectedReservationTarget`, definiendo
+cuándo se preserva, reemplaza, limpia o ignora para evitar continuidad inválida
+entre turnos sin reescribir el runtime.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- cobertura reportada en verde para reference resolution / lifecycle del target
+
+Impacto:
+
+- evita arrastre inválido de target referencial entre dominios
+- corrige return temprano inconsistente del `stableIntentsGuard`
+- deja el modelo de target más seguro para evolución futura
+- mantiene intacta la continuidad útil de `snapshot`, `modify` y `cancel`
