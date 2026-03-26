@@ -4276,3 +4276,30 @@ Impacto:
 - corrige return temprano inconsistente del `stableIntentsGuard`
 - deja el modelo de target más seguro para evolución futura
 - mantiene intacta la continuidad útil de `snapshot`, `modify` y `cancel`
+
+### DOC-ARCHITECTURE-DOC-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-26  
+Commit: a688cb6f5b3b28051969d6fa49bb81758e98497e
+
+Descripcion:
+
+Se alinea el documento de gobernanza documental con el modelo operativo vigente
+de Begasist para que `HDOC` tenga reglas explícitas, trazables y utilizables
+como fuente operativa.
+
+Archivos afectados:
+
+- `docs/architecture/ADR-DOC-GOVERNANCE-01.md`
+
+Validacion:
+
+- no corresponde validación automática por tratarse de documentación arquitectónica / operativa
+
+Impacto:
+
+- deja reglas explícitas para el cierre documental
+- mejora claridad de responsabilidades entre agentes y Marcelo
+- fortalece la disciplina de trazabilidad documental
+- da base operativa más clara para decisiones de `HDOC`
