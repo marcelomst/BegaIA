@@ -1411,6 +1411,30 @@ function hasRecentReservationMention(pre: PreLLMResult): boolean {
   } catch { /* noop */ }
   return false;
 }
+
+function shouldClearSelectedReservationTargetForCategory(
+  nextCategory: string | null | undefined,
+  promptKeyUsed: string | null | undefined
+): boolean {
+  if (!nextCategory && !promptKeyUsed) return false;
+  if (nextCategory === "amenities" || nextCategory === "amenities_info") return true;
+  if (nextCategory === "billing" || nextCategory === "support") return true;
+  if (nextCategory === "retrieval_based" || nextCategory === "out_of_scope") return true;
+  if (
+    [
+      "amenities_list",
+      "pool_gym_spa",
+      "breakfast_bar",
+      "parking",
+      "payments_and_billing",
+      "invoice_receipts",
+      "contact_support",
+    ].includes(promptKeyUsed || "")
+  ) {
+    return true;
+  }
+  return false;
+}
 function looksLikeEventsQuery(text: string): boolean {
   const t = String(text || "").toLowerCase();
   return /\b(evento|eventos|agenda|calendario|festival|festivales|concierto|conciertos|recital|recitales|feria|ferias|show|shows|teatro|exposicion|exposición|exposiciones|carnaval)\b/.test(t);
@@ -1866,6 +1890,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : stableIntent.intentKey === "faq_check_in_time"
           ? "checkin_info"
           : "amenities_info";
+    if (shouldClearSelectedReservationTargetForCategory(nextCategory, null)) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        selectedReservationTarget: null,
+        updatedBy: "ai",
+      } as any);
+    }
     debugLog("[stable-intents-guard] matched", {
       conversationId: pre.conversationId,
       intentKey: stableIntent.intentKey,
@@ -2230,10 +2260,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const userTxtRaw = String(pre.msg.content || "");
   const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
   const explicitOrdinalReservationTarget = resolveExplicitOrdinalReservationTarget(pre.st, userTxtRaw);
-  const selectedReservationTarget = resolveSelectedReservationTarget(pre.st);
+  const persistedSelectedReservationTarget = resolveSelectedReservationTarget(pre.st);
   const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
   const hasModifyVerb = /\b(modific|cambi|alter|mudar|change|edit|update)\w*\b/i.test(normalizeReferenceText(userTxtRaw));
   const snapshotQueryKind = detectReservationSnapshotQuery(userTxtRaw, pre.lang);
+  const looksNonReservationDomainTurn =
+    normalizedReservationIntent.kind === "other" &&
+    !snapshotQueryKind &&
+    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
+  if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      selectedReservationTarget: null,
+      updatedBy: "ai",
+    } as any);
+  }
+  const selectedReservationTarget = looksNonReservationDomainTurn ? null : persistedSelectedReservationTarget;
   const hasAnaphoraReference = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxtRaw));
   const explicitReservationCode = parseReservationCode(userTxtRaw);
   const explicitIdReservationTarget = explicitReservationCode
@@ -4238,6 +4279,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (isSupportTurn) {
     finalText = applyCommittedHotelTone(String(finalText || ""), pre.lang);
+  }
+  if (shouldClearSelectedReservationTargetForCategory(nextCategory, promptKeyUsed)) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      selectedReservationTarget: null,
+      updatedBy: "ai",
+    } as any);
   }
   const quotedReservationSnapshot = {
     guestName:

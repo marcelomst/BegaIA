@@ -393,6 +393,32 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("limpia selectedReservationTarget al cambiar a un dominio no transaccional", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-clear-domain-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("mostrame la primera reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("¿tienen wifi?", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/reserva actual|check-in|check-out|cancelar/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget ?? null).toBeNull();
+  });
+
+  it("limpia selectedReservationTarget cuando el usuario inicia una nueva reserva", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-clear-create-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá la primera", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("quiero hacer una nueva reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/nueva|check-in|check-out|fechas/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget ?? null).toBeNull();
+  });
+
   it("usa selectedReservationTarget para cancelar después de snapshot: 'mostrame la primera' + 'cancelala'", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-snapshot-cancel-1";
