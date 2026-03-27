@@ -4303,3 +4303,34 @@ Impacto:
 - mejora claridad de responsabilidades entre agentes y Marcelo
 - fortalece la disciplina de trazabilidad documental
 - da base operativa más clara para decisiones de `HDOC`
+
+### FIX-PIPELINE-DOMAIN-LOCK-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-27  
+Commit: ecca447b6b8d2b1400696dd5749caabf50c0af72
+
+Descripcion:
+
+Se introduce un domain lock liviano para evitar que el pipeline salga
+incorrectamente del dominio `reservation` durante follow-ups cortos
+compatibles, previniendo fugas a fallback o a dominios ajenos.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+
+Validacion:
+
+- validación manual reportada
+- el runtime ya no fuga a fallback en follow-ups breves de `reservation`
+- continuidad correcta en widget
+
+Impacto:
+
+- estabiliza el dominio `reservation` durante `create/modify`
+- reduce fugas espurias a turismo, contacto o fallback
+- mejora continuidad multi-turn sin abrir refactor grande
+- mantiene escape explícito para dominios genuinamente nuevos
