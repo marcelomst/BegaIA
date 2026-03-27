@@ -4334,3 +4334,39 @@ Impacto:
 - reduce fugas espurias a turismo, contacto o fallback
 - mejora continuidad multi-turn sin abrir refactor grande
 - mantiene escape explícito para dominios genuinamente nuevos
+
+### FIX-PIPELINE-DATE-COHERENCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-27  
+Commit: f6d47c2f0ecb5a91ad845ec36c2725b71a2dc0a3
+
+Descripcion:
+
+Se introduce validación de coherencia temporal en el pipeline de reservas para
+impedir cotización, propuesta, confirmación o modificación con fechas
+incoherentes antes de avanzar a pricing o confirmación.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.date_coherence.spec.ts`
+
+Validacion:
+
+- estado reportado: commit publicado correctamente
+- validación previa del hito realizada antes del cierre técnico
+
+Impacto:
+
+- refuerza una invariante crítica del runtime
+- evita cotización, propuesta o confirmación con fechas incoherentes
+- reduce riesgo de propuestas absurdas o reservas inválidas
+- mejora robustez del flujo `create/modify` sin introducir nuevo modelo de estado
+
+Posicion evolutiva:
+
+- deriva de manual parity con aceptación de fechas incoherentes, cotización con datos inválidos y `modify` inconsistente
+- pertenece a la fase `Stabilize reservation (pre-focus governance)`
+- continúa después de `FIX-PIPELINE-DOMAIN-LOCK-01`
+- prepara el sistema para `FIX-PIPELINE-MODIFY-SUBSTATE-01` y luego `REF-PIPELINE-FOCUS-GOVERNANCE-01`
