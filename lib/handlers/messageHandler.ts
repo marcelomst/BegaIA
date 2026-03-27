@@ -1159,6 +1159,80 @@ function buildReservationDomainLockReply(
       : "Perfect, I will continue with your booking.";
 }
 
+function assessReservationDateCoherence(
+  checkIn?: string,
+  checkOut?: string,
+  maxNights = 90
+): { ok: true; nights: number } | { ok: false; reason: "check_order" | "range_too_long" } | null {
+  if (!checkIn || !checkOut) return null;
+  const ci = /^\d{4}-\d{2}-\d{2}$/.test(checkIn) ? new Date(`${checkIn}T00:00:00Z`) : new Date(checkIn);
+  const co = /^\d{4}-\d{2}-\d{2}$/.test(checkOut) ? new Date(`${checkOut}T00:00:00Z`) : new Date(checkOut);
+  if (Number.isNaN(ci.getTime()) || Number.isNaN(co.getTime())) return { ok: false, reason: "check_order" };
+  const nights = Math.round((co.getTime() - ci.getTime()) / 86400000);
+  if (nights <= 0) return { ok: false, reason: "check_order" };
+  if (nights > maxNights) return { ok: false, reason: "range_too_long" };
+  return { ok: true, nights };
+}
+
+function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?: string } | null {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  const numeric = raw.match(/(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/i);
+  if (numeric) {
+    const toIso = (token: string) => {
+      const parts = token.split(/[/-]/).map((part) => part.trim());
+      if (parts.length !== 3) return undefined;
+      const [dd, mm, yyyyRaw] = parts;
+      const yyyy = yyyyRaw.length === 2 ? `20${yyyyRaw}` : yyyyRaw;
+      return `${yyyy.padStart(4, "0")}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+    };
+    return { checkIn: toIso(numeric[1]), checkOut: toIso(numeric[2]) };
+  }
+  const months: Record<string, number> = {
+    enero: 1, ene: 1, january: 1, jan: 1,
+    febrero: 2, feb: 2, february: 2,
+    marzo: 3, mar: 3, march: 3,
+    abril: 4, abr: 4, apr: 4, april: 4,
+    mayo: 5, may: 5,
+    junio: 6, jun: 6, june: 6,
+    julio: 7, jul: 7, july: 7,
+    agosto: 8, ago: 8, aug: 8, august: 8,
+    septiembre: 9, setiembre: 9, sept: 9, sep: 9, september: 9,
+    octubre: 10, oct: 10, october: 10,
+    noviembre: 11, nov: 11, november: 11,
+    diciembre: 12, dic: 12, dec: 12, december: 12,
+  };
+  const monthRange = raw
+    .toLowerCase()
+    .match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
+  if (!monthRange) return null;
+  const nowYear = new Date().getFullYear();
+  const month1 = months[monthRange[2]];
+  const month2 = months[monthRange[5]] || month1;
+  if (!month1 || !month2) return null;
+  const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : nowYear;
+  const year2 = monthRange[6] ? parseInt(monthRange[6], 10) : year1;
+  return {
+    checkIn: `${String(year1).padStart(4, "0")}-${String(month1).padStart(2, "0")}-${String(parseInt(monthRange[1], 10)).padStart(2, "0")}`,
+    checkOut: `${String(year2).padStart(4, "0")}-${String(month2).padStart(2, "0")}-${String(parseInt(monthRange[4], 10)).padStart(2, "0")}`,
+  };
+}
+
+function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "check_order" | "range_too_long"): string {
+  if (reason === "range_too_long") {
+    return lang === "es"
+      ? "Las fechas no son válidas para una reserva estándar. La estadía quedó demasiado larga. ¿Querés que las corrijamos?"
+      : lang === "pt"
+        ? "As datas não são válidas para uma reserva padrão. A estadia ficou longa demais. Quer corrigi-las?"
+        : "Those dates are not valid for a standard booking. The stay became too long. Do you want to correct them?";
+  }
+  return lang === "es"
+    ? "Las fechas no son válidas. El check-out debe ser posterior al check-in. ¿Querés que las corrijamos?"
+    : lang === "pt"
+      ? "As datas não são válidas. O check-out deve ser posterior ao check-in. Quer corrigi-las?"
+      : "Those dates are not valid. Check-out must be after check-in. Do you want to correct them?";
+}
+
 // === NEW: intentar structured prompt (enriquecedor/fallback)
 async function tryStructuredAnalyze(params: {
   hotelId: string;
@@ -2071,6 +2145,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxt0 = String(pre.msg.content || "");
     const dr0 = extractDateRangeFromText(userTxt0);
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
+      const rawDr0 = extractRawOrderedDateRange(userTxt0);
+      const dr0Coherence =
+        assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) ||
+        assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);
+      if (dr0Coherence && !dr0Coherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, dr0Coherence.reason);
+        nextCategory = pre.inModifyMode ? "modify_reservation" : "reservation";
+        return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+      }
       const ciTxt = isoToDDMMYYYY(dr0.checkIn) || dr0.checkIn;
       const coTxt = isoToDDMMYYYY(dr0.checkOut) || dr0.checkOut;
       finalText = pre.lang === 'es'
@@ -2430,6 +2513,45 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const reservationCheckIn = nextSlots.checkIn || pre.currSlots.checkIn || pre.st?.reservationSlots?.checkIn;
   const reservationCheckOut = nextSlots.checkOut || pre.currSlots.checkOut || pre.st?.reservationSlots?.checkOut;
   const reservationGuests = nextSlots.numGuests || pre.currSlots.numGuests || pre.st?.reservationSlots?.numGuests;
+  const rawOrderedDateRange = extractRawOrderedDateRange(userTxtRaw);
+  const explicitTurnDateCoherence = assessReservationDateCoherence(rawOrderedDateRange?.checkIn, rawOrderedDateRange?.checkOut);
+  const reservationDateCoherence = assessReservationDateCoherence(reservationCheckIn, reservationCheckOut);
+  const dateTurnTouched =
+    pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn ||
+    pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut ||
+    Boolean(extractDateRangeFromText(userTxtRaw).checkIn || extractDateRangeFromText(userTxtRaw).checkOut);
+  const hasOperationalReservationFlow =
+    looksExplicitNewReservation ||
+    pre.inModifyMode ||
+    pre.st?.activeFlow === "reservation" ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.st?.desiredAction === "create" ||
+    pre.st?.desiredAction === "modify" ||
+    pre.prevCategory === "reservation" ||
+    pre.prevCategory === "modify_reservation";
+  if (
+    explicitTurnDateCoherence &&
+    !explicitTurnDateCoherence.ok &&
+    hasOperationalReservationFlow
+  ) {
+    finalText = buildInvalidReservationDatesReply(pre.lang, explicitTurnDateCoherence.reason);
+    nextCategory = pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
+      ? "modify_reservation"
+      : "reservation";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (
+    reservationDateCoherence &&
+    !reservationDateCoherence.ok &&
+    hasOperationalReservationFlow &&
+    (dateTurnTouched || isPureConfirm(userTxtRaw) || askedToVerifyAvailability(pre.lcHistory, pre.lang))
+  ) {
+    finalText = buildInvalidReservationDatesReply(pre.lang, reservationDateCoherence.reason);
+    nextCategory = pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
+      ? "modify_reservation"
+      : "reservation";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
   const trimmedUserText = userTxtRaw.trim();
   if (
     !pre.inModifyMode &&
@@ -3457,6 +3579,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : "What should I change? (dates, room type or guests)";
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
+      const modifyDateCoherence = assessReservationDateCoherence(ci, co);
+      if (modifyDateCoherence && !modifyDateCoherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, modifyDateCoherence.reason);
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
       try {
         const { modifyReservation } = await import("@/lib/agents/reservations");
         const snapshot: any = {
@@ -3508,6 +3635,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       };
       if (!snapshot.roomType || !snapshot.checkIn || !snapshot.checkOut) {
         finalText = buildAskMissingDate(pre.lang, !snapshot.checkIn ? "checkIn" : "checkOut");
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const createDateCoherence = assessReservationDateCoherence(snapshot.checkIn, snapshot.checkOut);
+      if (createDateCoherence && !createDateCoherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, createDateCoherence.reason);
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
       try {
@@ -4345,6 +4477,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const ci = ciISO ? (isoToDDMMYYYY(ciISO) || ciISO) : undefined;
     const co = coISO ? (isoToDDMMYYYY(coISO) || coISO) : undefined;
     if (ci && co) {
+      const availabilityDateCoherence = assessReservationDateCoherence(ciISO, coISO);
+      if (availabilityDateCoherence && !availabilityDateCoherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, availabilityDateCoherence.reason);
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
       try {
         // Línea de acuse explícito con "verifico" y fechas en dd/mm/aaaa
         const ackLine = pre.lang === "es"
@@ -4388,6 +4525,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const ciISO = proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
       const coISO = proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
       if (ciISO && coISO) {
+        const availabilityStatusDateCoherence = assessReservationDateCoherence(ciISO, coISO);
+        if (availabilityStatusDateCoherence && !availabilityStatusDateCoherence.ok) {
+          finalText = buildInvalidReservationDatesReply(pre.lang, availabilityStatusDateCoherence.reason);
+          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+        }
         const res = await runAvailabilityCheck(pre, { ...nextSlots }, ciISO, coISO);
         finalText = res.finalText;
         nextSlots = { ...nextSlots, ...res.nextSlots };
