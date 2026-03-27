@@ -1029,6 +1029,136 @@ function isGuestNameFollowupInReservation(
   return /\b(a nombre de qui[eé]n ser[ií]a la reserva|nombre y apellido|what name should i use for the reservation|full name|nome e sobrenome|em nome de quem seria a reserva)\b/.test(lastText);
 }
 
+function hasActiveReservationDomain(pre: PreLLMResult): boolean {
+  const st = pre.st;
+  const hasDraftSlots = Boolean(
+    st?.reservationSlots?.roomType ||
+    st?.reservationSlots?.checkIn ||
+    st?.reservationSlots?.checkOut ||
+    st?.reservationSlots?.numGuests ||
+    st?.reservationSlots?.guestName
+  );
+  return Boolean(
+    pre.inModifyMode ||
+    st?.activeFlow === "reservation" ||
+    st?.activeFlow === "modify_reservation" ||
+    st?.desiredAction === "create" ||
+    st?.desiredAction === "modify" ||
+    pre.prevCategory === "reservation" ||
+    pre.prevCategory === "modify_reservation" ||
+    st?.conversationStage === "reservation_quoted" ||
+    st?.salesStage === "quote" ||
+    st?.activeReservationContext?.kind === "draft" ||
+    st?.activeReservationContext?.kind === "reservation" ||
+    hasDraftSlots
+  );
+}
+
+function getReservationDomainLockSignal(pre: PreLLMResult, text: string): {
+  active: boolean;
+  compatible: boolean;
+  roomTypeOnly: boolean;
+  guestCount: boolean;
+  nightCount: boolean;
+  breakfastPreference: boolean;
+} {
+  const active = hasActiveReservationDomain(pre);
+  const normalized = normalizeReferenceText(text || "");
+  const trimmed = String(text || "").trim();
+  const normalizedIntent = normalizeReservationIntent(text || "");
+  const extracted = extractSlotsFromText(text || "", pre.lang);
+  const roomTypeOnly = Boolean(extracted.roomType) && !extracted.checkIn && !extracted.checkOut && !extracted.numGuests;
+  const guestCount = Boolean(extracted.numGuests) && !extracted.checkIn && !extracted.checkOut;
+  const nightCount =
+    /\b\d{1,2}\s+noches?\b|\b\d{1,2}\s+nights?\b|\b\d{1,2}\s+noites?\b/.test(normalized) ||
+    /^(una|dos|tres|cuatro|cinco|one|two|three|four|five|uma|duas|tres|quatro|cinco)\s+(noche|noches|night|nights|noite|noites)\b/.test(normalized);
+  const breakfastPreference =
+    /^(con|sin)\s+desayuno\b/.test(normalized) ||
+    /^(with|without)\s+breakfast\b/.test(normalized) ||
+    /^(com|sem)\s+cafe\s+da\s+manha\b/.test(normalized);
+  const breaksLock =
+    normalizedIntent.kind === "cancel" ||
+    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|factura|invoice|pago|payment|ayuda|help|soporte|support)\b/.test(normalized);
+  const compatible =
+    active &&
+    !breaksLock &&
+    trimmed.length <= 40 &&
+    (roomTypeOnly || guestCount || nightCount || breakfastPreference);
+  return { active, compatible, roomTypeOnly, guestCount, nightCount, breakfastPreference };
+}
+
+function buildReservationDomainLockReply(
+  pre: PreLLMResult,
+  signal: { roomTypeOnly: boolean; guestCount: boolean; nightCount: boolean; breakfastPreference: boolean },
+  nextSlots: ReservationSlotsStrict
+): string {
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(pre.currSlots || {}),
+    ...(nextSlots || {}),
+  } as ReservationSlotsStrict;
+  const inModifyFlow =
+    pre.inModifyMode ||
+    pre.st?.desiredAction === "modify" ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.prevCategory === "modify_reservation";
+
+  if (inModifyFlow) {
+    if (signal.guestCount) {
+      return pre.lang === "es"
+        ? "Perfecto. Tomo esa nueva cantidad de huéspedes para la modificación. ¿Querés cambiar algo más?"
+        : pre.lang === "pt"
+          ? "Perfeito. Considero essa nova quantidade de hóspedes na alteração. Quer mudar mais alguma coisa?"
+          : "Got it. I will use that new guest count for the change. Would you like to change anything else?";
+    }
+    if (signal.roomTypeOnly) {
+      return pre.lang === "es"
+        ? "Perfecto. Tomo ese tipo de habitación para la modificación. ¿Querés cambiar algo más?"
+        : pre.lang === "pt"
+          ? "Perfeito. Considero esse tipo de quarto na alteração. Quer mudar mais alguma coisa?"
+          : "Got it. I will use that room type for the change. Would you like to change anything else?";
+    }
+    if (signal.nightCount) {
+      return pre.lang === "es"
+        ? "Perfecto. Para cambiar la estadía necesito las fechas exactas de check-in y check-out."
+        : pre.lang === "pt"
+          ? "Perfeito. Para alterar a estadia, preciso das datas exatas de check-in e check-out."
+          : "Got it. To change the stay length, I need the exact check-in and check-out dates.";
+    }
+    if (signal.breakfastPreference) {
+      return pre.lang === "es"
+        ? "Lo tomo en cuenta, pero para modificar la reserva necesito definir fechas, habitación o huéspedes."
+        : pre.lang === "pt"
+          ? "Levo isso em conta, mas para alterar a reserva preciso definir datas, quarto ou hóspedes."
+          : "I will keep that in mind, but to modify the booking I need dates, room type, or guest count.";
+    }
+  }
+
+  if (!knownSlots.checkIn) return buildAskMissingDate(pre.lang, "checkIn");
+  if (!knownSlots.checkOut) return buildAskMissingDate(pre.lang, "checkOut");
+  if (!knownSlots.roomType) {
+    return pre.lang === "es"
+      ? "¿Qué tipo de habitación querés reservar?"
+      : pre.lang === "pt"
+        ? "Que tipo de quarto você quer reservar?"
+        : "Which room type would you like to book?";
+  }
+  if (!knownSlots.numGuests) return buildAskGuests(pre.lang);
+  if (!isSafeGuestName(knownSlots.guestName || "")) return buildAskGuestName(pre.lang);
+  if (signal.breakfastPreference) {
+    return pre.lang === "es"
+      ? "Perfecto, lo tengo en cuenta para la reserva. ¿Confirmás que seguimos con esos datos?"
+      : pre.lang === "pt"
+        ? "Perfeito, vou considerar isso na reserva. Você confirma que seguimos com esses dados?"
+        : "Got it, I will keep that in mind for the booking. Do you want to continue with those details?";
+  }
+  return pre.lang === "es"
+    ? "Perfecto, sigo con tu reserva."
+    : pre.lang === "pt"
+      ? "Perfeito, continuo com sua reserva."
+      : "Perfect, I will continue with your booking.";
+}
+
 // === NEW: intentar structured prompt (enriquecedor/fallback)
 async function tryStructuredAnalyze(params: {
   hotelId: string;
@@ -1505,6 +1635,7 @@ function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState):
 async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {
   const kbUserText = String(pre.msg.content || "");
   const kbLower = kbUserText.toLowerCase();
+  const reservationDomainLock = getReservationDomainLockSignal(pre, kbUserText);
   const isRoomTypeFollowup = isRoomTypeFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
   const isGuestsFollowup = isGuestsFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
   const isGuestNameFollowup = isGuestNameFollowupInReservation(pre.lcHistory, kbUserText);
@@ -1521,6 +1652,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
     isGuestNameFollowup ||
     isAvailabilityVerifyAffirmative ||
     isReservationConfirmFollowup ||
+    reservationDomainLock.compatible ||
     !!pre.stateForPlaybook?.draft ||
     !!pre.stateForPlaybook?.confirmedBooking;
   const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
@@ -2262,11 +2394,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const explicitOrdinalReservationTarget = resolveExplicitOrdinalReservationTarget(pre.st, userTxtRaw);
   const persistedSelectedReservationTarget = resolveSelectedReservationTarget(pre.st);
   const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
+  const reservationDomainLock = getReservationDomainLockSignal(pre, userTxtRaw);
   const hasModifyVerb = /\b(modific|cambi|alter|mudar|change|edit|update)\w*\b/i.test(normalizeReferenceText(userTxtRaw));
   const snapshotQueryKind = detectReservationSnapshotQuery(userTxtRaw, pre.lang);
   const looksNonReservationDomainTurn =
     normalizedReservationIntent.kind === "other" &&
     !snapshotQueryKind &&
+    !reservationDomainLock.compatible &&
     /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
   if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
@@ -3596,6 +3730,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           isGuestNameFollowup ||
           isAvailabilityVerifyAffirmative ||
           isReservationConfirmFollowup ||
+          reservationDomainLock.compatible ||
           !!pre.stateForPlaybook?.draft ||
           !!pre.stateForPlaybook?.confirmedBooking;
         debugLog("[KB] fastpath check", {
@@ -3883,6 +4018,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
       }
     }
+  }
+  const reservationLockEscaped =
+    reservationDomainLock.compatible &&
+    (
+      nextCategory === "retrieval_based" ||
+      nextCategory === "out_of_scope" ||
+      nextCategory === "amenities" ||
+      nextCategory === "amenities_info" ||
+      nextCategory === "billing" ||
+      nextCategory === "support" ||
+      isContactHotelText(finalText, pre.lang)
+    );
+  if (reservationLockEscaped) {
+    nextCategory =
+      pre.inModifyMode ||
+      pre.st?.desiredAction === "modify" ||
+      pre.st?.activeFlow === "modify_reservation" ||
+      pre.prevCategory === "modify_reservation"
+        ? "modify_reservation"
+        : "reservation";
+    finalText = buildReservationDomainLockReply(pre, reservationDomainLock, nextSlots);
   }
   // Post-procesamiento: si seguimos en modo modificación y la respuesta sugiere "contactar al hotel", reorientar a guía de modificación
   if (pre.inModifyMode) {

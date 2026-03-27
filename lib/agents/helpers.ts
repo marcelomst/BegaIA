@@ -86,22 +86,41 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   const ng = t.match(/(?:para|somos|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas)/);
   if (ng?.[1]) out.numGuests = String(parseInt(ng[1], 10));
   // Tipo de habitación: lista simple (se puede extender)
-  const types = ["doble", "triple", "individual", "single", "twin", "queen", "king", "matrimonial", "suite", "deluxe", "standard"];
+  const types = [
+    "cuadruple",
+    "cuádruple",
+    "quadruple",
+    "familiar",
+    "doble",
+    "triple",
+    "individual",
+    "simple",
+    "single",
+    "twin",
+    "queen",
+    "king",
+    "matrimonial",
+    "suite",
+    "deluxe",
+    "standard",
+  ];
   const found = types.find(tp => t.includes(tp));
   if (found) {
     out.roomType =
-      found === "doble" || found === "matrimonial"
-        ? "double"
-        : found === "individual"
-          ? "single"
-          : found;
+      found === "cuadruple" || found === "cuádruple" || found === "quadruple" || found === "familiar"
+        ? "quadruple"
+        : found === "doble" || found === "matrimonial"
+          ? "double"
+          : found === "individual" || found === "simple"
+            ? "single"
+            : found;
   }
   return out;
 }
 
 // --- Valida si un nombre de huésped es seguro ---
 const BAD_NAME_RE = /^(hola|hello|hi|hey|buenas|buenos dias|buenos días|buenas tardes|buenas noches|olá|ola|oi|quiero reservar|quero reservar)$/i;
-const ROOM_WORD_RE = /(suite|matrimonial|doble|triple|individual|single|double|twin|queen|king|deluxe|standard)/i;
+const ROOM_WORD_RE = /(suite|matrimonial|doble|triple|individual|simple|single|double|twin|queen|king|deluxe|standard|cuadruple|cuádruple|quadruple|familiar)/i;
 export function isSafeGuestName(s?: string) {
   if (!s) return false;
   const t = s.trim();
@@ -207,7 +226,7 @@ export function maxGuestsFor(roomType?: string): number {
   if (/single|individual|simple/.test(rt)) return 1;
   if (/double|doble|matrimonial|twin|queen|king/.test(rt)) return 2;
   if (/triple/.test(rt)) return 3;
-  if (/suite|familiar/.test(rt)) return 4;
+  if (/suite|familiar|quadruple|cuadruple|cuádruple/.test(rt)) return 4;
   return 4;
 }
 
@@ -515,7 +534,7 @@ export function heuristicClassify(text: string): IntentResult {
   }
 
   const mentionsRoomWord =
-    /\b(single|individual|simple|double|doble|matrimonial|twin|queen|king|triple|suite|familiar)\b/i.test(t);
+    /\b(single|individual|simple|double|doble|matrimonial|twin|queen|king|triple|suite|familiar|quadruple|cuadruple|cuádruple)\b/i.test(t);
   if (mentionsRoomWord) {
     return { category: "reservation", desiredAction: "create", intentConfidence: 0.76, intentSource: "heuristic" };
   }
@@ -542,6 +561,7 @@ export function localizeRoomType(rt: string | undefined, lang2: "es" | "en" | "p
     single: { es: "simple", en: "single", pt: "individual" },
     double: { es: "doble", en: "double", pt: "duplo" },
     triple: { es: "triple", en: "triple", pt: "triplo" },
+    quadruple: { es: "cuadruple", en: "quadruple", pt: "quádruplo" },
     suite: { es: "suite", en: "suite", pt: "suite" },
     queen: { es: "queen", en: "queen", pt: "queen" },
     king: { es: "king", en: "king", pt: "king" },
