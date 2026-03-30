@@ -4509,3 +4509,31 @@ Rol arquitectonico:
 Invariante reforzada:
 
 - el sistema no debe abandonar el dominio activo ante inputs imperfectos dentro de un flujo válido
+
+### FIX-PIPELINE-FALLBACK-HIERARCHY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: fde92ff951ab87698e2a0e038c35175f4dc8de03
+
+Descripcion:
+
+Se introduce una jerarquía explícita de fallback dentro de flujos activos de
+`reservation`, priorizando continuidad local antes de cualquier escape al
+fallback global.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+
+Validacion:
+
+- hito registrado como consolidación operativa de la jerarquía de fallback dentro de `reservation`
+
+Impacto:
+
+- reduce escapes prematuros al fallback global
+- mejora continuidad local de `create`, `modify`, `snapshot` y `confirm`
+- evita ejecución inválida de `modify` sin dato nuevo
+- fortalece robustez del runtime actual sin cambiar arquitectura
