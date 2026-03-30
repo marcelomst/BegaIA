@@ -56,6 +56,13 @@ function formatChannelLabel(value: string | null | undefined, t: any): string {
   return t?.sidebar?.[value] || value;
 }
 
+function compactConversationId(value: string | null | undefined): string {
+  const raw = String(value || "").trim();
+  if (!raw) return "-";
+  if (raw.length <= 18) return raw;
+  return `${raw.slice(0, 8)}...${raw.slice(-6)}`;
+}
+
 export default function ChannelInbox({
   hotelId,
   channel,
@@ -78,6 +85,19 @@ export default function ChannelInbox({
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedConv, setSelectedConv] = useState<string | null>(null);
   const [selectedConvChannel, setSelectedConvChannel] = useState<string>(channel);
+  const [copiedConversationId, setCopiedConversationId] = useState<string | null>(null);
+
+  const copyConversationId = async (conversationId: string) => {
+    try {
+      await navigator.clipboard.writeText(conversationId);
+      setCopiedConversationId(conversationId);
+      window.setTimeout(() => {
+        setCopiedConversationId((current) => (current === conversationId ? null : current));
+      }, 1500);
+    } catch (err) {
+      console.warn("No se pudo copiar conversationId", err);
+    }
+  };
   const [subject, setSubject] = useState("");
   const [messages, setMessages] = useState<ChatTurnWithMeta[]>([]);
   const [snapshot, setSnapshot] = useState<{
@@ -524,6 +544,22 @@ export default function ChannelInbox({
                     <MessageSquareText className="h-3.5 w-3.5" />
                     {selectedGuestConversations.length} conversacion{selectedGuestConversations.length === 1 ? "" : "es"} del huésped
                   </span>
+                  {selectedConversation?.conversationId && (
+                    <button
+                      type="button"
+                      onClick={() => copyConversationId(selectedConversation.conversationId)}
+                      className="inline-flex min-w-0 max-w-[360px] items-center gap-1 rounded border border-border bg-background px-2 py-0.5 font-mono transition hover:bg-muted"
+                      title={selectedConversation.conversationId}
+                    >
+                      <MessageSquareText className="h-3.5 w-3.5" />
+                      <span className="min-w-0 flex-1 truncate">
+                        conversationId: {compactConversationId(selectedConversation.conversationId)}
+                      </span>
+                      {copiedConversationId === selectedConversation.conversationId && (
+                        <span className="font-sans text-[11px] text-emerald-600">copiado</span>
+                      )}
+                    </button>
+                  )}
                   <span className="inline-flex items-center gap-1">
                     <Clock3 className="h-3.5 w-3.5" />
                     Última actividad: {formatDateTime(selectedConversation?.lastUpdatedAt || guestProfile?.lastActivityAt)}
