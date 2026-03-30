@@ -401,7 +401,45 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("la tercera", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/necesito una precis[ióo]n|c[oó]digo|fecha/i);
+    expect(replyText).toMatch(/no encontr[eé].*tercera|primera|segunda/i);
+  });
+
+  it("si la cuarta no existe no ejecuta cancelación y pide aclaración segura", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-fourth-cancel-missing-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("cancelá la cuarta", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/no encontr[eé].*cuarta|primera|segunda/i);
+    expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+  });
+
+  it("si la cuarta no existe no entra en modify", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-fourth-modify-missing-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá la cuarta", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/no encontr[eé].*cuarta|primera|segunda/i);
+    expect(stateByConversation.get(conversationId)?.desiredAction).not.toBe("modify");
+  });
+
+  it("permite continuidad segura después de referencia fuera de rango: 'la cuarta' luego 'la segunda'", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-fourth-then-second-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("la cuarta", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("la segunda", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-NEW-02|28\/03\/2026 → 30\/03\/2026|double/i);
   });
 
   it("marca reservas canceladas como canceladas en el listado", async () => {
@@ -814,7 +852,7 @@ describe("messageHandler reference resolution", () => {
 
     expect(cancelReservation).not.toHaveBeenCalled();
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/reserva nueva|anterior|fecha espec/i);
+    expect(replyText).toMatch(/no encontr[eé].*segunda|primera/i);
   });
 
   it("sin reservas conocidas, 'la primera' pide aclaración", async () => {
@@ -828,7 +866,7 @@ describe("messageHandler reference resolution", () => {
 
     expect(modifyReservation).not.toHaveBeenCalled();
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/reserva nueva|anterior|fecha espec/i);
+    expect(replyText).toMatch(/no encontr[eé].*referencia|pasame el c[oó]digo|mostrame tus reservas/i);
   });
 
   it("mantiene no regresión para 'cancelá la anterior'", async () => {

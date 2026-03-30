@@ -563,8 +563,12 @@ type ReservationReferenceTarget = {
 
 type ReservationReferenceResolution =
   | { status: "resolved"; target: ReservationReferenceTarget }
+  | { status: "out_of_range"; requested: "first" | "second" | "third" | "fourth" | "last"; availableCount: number }
   | { status: "ambiguous" }
   | { status: "unresolved" };
+
+type ReservationOrdinalReference =
+  | { type: "ordinal"; value: "first" | "second" | "third" | "fourth" | "last" };
 
 function normalizeReferenceText(text: string): string {
   return String(text || "")
@@ -724,27 +728,86 @@ function buildOrderedReservationHistoryCandidates(state: any): ReservationRefere
     }));
 }
 
-function extractReservationOrdinalReference(text: string): "first" | "second" | "third" | "last" | null {
-  if (/\b(?:la|esa)\s+(?:primer|primera)\b|\b(?:primer|primera)\b/.test(text)) return "first";
-  if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return "second";
-  if (/\b(?:la|esa)\s+tercera\b|\btercera\b/.test(text)) return "third";
-  if (/\b(?:la|esa)\s+(?:ultima|última)\b|\b(?:ultima|última)\b/.test(text)) return "last";
+function extractReservationOrdinalReferenceSpec(text: string): ReservationOrdinalReference | null {
+  if (/\b(?:la|esa)\s+(?:primer|primera)\b|\b(?:primer|primera)\b/.test(text)) return { type: "ordinal", value: "first" };
+  if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return { type: "ordinal", value: "second" };
+  if (/\b(?:la|esa)\s+tercera\b|\btercera\b/.test(text)) return { type: "ordinal", value: "third" };
+  if (/\b(?:la|esa)\s+cuarta\b|\bcuarta\b/.test(text)) return { type: "ordinal", value: "fourth" };
+  if (/\b(?:la|esa)\s+(?:ultima|última)\b|\b(?:ultima|última)\b/.test(text)) return { type: "ordinal", value: "last" };
   return null;
 }
 
-function resolveExplicitOrdinalReservationTarget(state: any, userText: string): ReservationReferenceTarget | null {
-  const ordinalReference = extractReservationOrdinalReference(normalizeReferenceText(userText));
-  if (!ordinalReference) return null;
+function extractReservationOrdinalReference(text: string): "first" | "second" | "third" | "fourth" | "last" | null {
+  const ref = extractReservationOrdinalReferenceSpec(text);
+  return ref?.value ?? null;
+}
+
+function validateOrdinalReservationReference(
+  state: any,
+  reference: ReservationOrdinalReference | null
+): { ok: true; target: ReservationReferenceTarget } | { ok: false; requested: ReservationOrdinalReference["value"]; availableCount: number } | null {
+  if (!reference) return null;
   const orderedReservationHistory = buildOrderedReservationHistoryCandidates(state);
-  const ordinalTarget =
-    ordinalReference === "first"
-      ? orderedReservationHistory[0]
-      : ordinalReference === "second"
-        ? orderedReservationHistory[1]
-        : ordinalReference === "third"
-          ? orderedReservationHistory[2]
-          : orderedReservationHistory.at(-1);
-  return ordinalTarget?.reservationId ? ordinalTarget : null;
+  const availableCount = orderedReservationHistory.length;
+  if (availableCount === 0) {
+    return { ok: false, requested: reference.value, availableCount: 0 };
+  }
+  if (reference.value === "last") {
+    const target = orderedReservationHistory.at(-1);
+    return target?.reservationId
+      ? { ok: true, target }
+      : { ok: false, requested: reference.value, availableCount };
+  }
+  const ordinalIndexMap = { first: 0, second: 1, third: 2, fourth: 3 } as const;
+  const target = orderedReservationHistory[ordinalIndexMap[reference.value]];
+  return target?.reservationId
+    ? { ok: true, target }
+    : { ok: false, requested: reference.value, availableCount };
+}
+
+function resolveValidatedOrdinalReservationTarget(
+  state: any,
+  userText: string
+): ReservationReferenceTarget | null {
+  const validation = validateOrdinalReservationReference(state, extractReservationOrdinalReferenceSpec(normalizeReferenceText(userText)));
+  return validation?.ok ? validation.target : null;
+}
+
+function buildOutOfRangeReservationReferenceReply(
+  lang: "es" | "en" | "pt",
+  requested: "first" | "second" | "third" | "fourth" | "last",
+  availableCount: number
+): string {
+  const esOrdinalMap = { first: "primera", second: "segunda", third: "tercera", fourth: "cuarta", last: "última" } as const;
+  const ptOrdinalMap = { first: "primeira", second: "segunda", third: "terceira", fourth: "quarta", last: "última" } as const;
+  const enOrdinalMap = { first: "first", second: "second", third: "third", fourth: "fourth", last: "last" } as const;
+  if (lang === "es") {
+    if (availableCount <= 0) return "No encontré reservas para esa referencia. Si querés, mostrame tus reservas o pasame el código.";
+    const options = availableCount === 1 ? "la primera" : availableCount === 2 ? "la primera o la segunda" : "la primera, la segunda o la tercera";
+    return `No encontré una reserva ${esOrdinalMap[requested]}. Tenés ${availableCount} reserva${availableCount === 1 ? "" : "s"}. ¿Querés ver ${options}?`;
+  }
+  if (lang === "pt") {
+    if (availableCount <= 0) return "Não encontrei reservas para essa referência. Se quiser, posso listar suas reservas ou você pode me passar o código.";
+    const options = availableCount === 1 ? "a primeira" : availableCount === 2 ? "a primeira ou a segunda" : "a primeira, a segunda ou a terceira";
+    return `Não encontrei uma reserva ${ptOrdinalMap[requested]}. Você tem ${availableCount} reserva${availableCount === 1 ? "" : "s"}. Quer ver ${options}?`;
+  }
+  if (availableCount <= 0) return "I could not find any bookings for that reference. I can list your bookings or you can share the code.";
+  const options = availableCount === 1 ? "the first one" : availableCount === 2 ? "the first or second one" : "the first, second, or third one";
+  return `I could not find a ${enOrdinalMap[requested]} booking. You have ${availableCount} booking${availableCount === 1 ? "" : "s"}. Do you want to view ${options}?`;
+}
+
+function buildReservationReferenceGuardReply(
+  lang: "es" | "en" | "pt",
+  resolution: ReservationReferenceResolution
+): string {
+  if (resolution.status === "out_of_range") {
+    return buildOutOfRangeReservationReferenceReply(lang, resolution.requested, resolution.availableCount);
+  }
+  return buildReservationReferenceClarification(lang);
+}
+
+function resolveExplicitOrdinalReservationTarget(state: any, userText: string): ReservationReferenceTarget | null {
+  return resolveValidatedOrdinalReservationTarget(state, userText);
 }
 
 function getReservationReferenceTargetById(state: any, reservationId?: string | null): ReservationReferenceTarget | null {
@@ -774,7 +837,7 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const mentionsPrevious = /\bla anterior\b/.test(text);
   const mentionsThat = /\besa\b/.test(text);
   const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
-  const ordinalReference = extractReservationOrdinalReference(text);
+  const ordinalReference = extractReservationOrdinalReferenceSpec(text);
 
   if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsTomorrow && !ordinalReference) {
     return { status: "unresolved" };
@@ -800,15 +863,11 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   }
 
   if (ordinalReference) {
-    const ordinalTarget =
-      ordinalReference === "first"
-        ? orderedReservationHistory[0]
-        : ordinalReference === "second"
-          ? orderedReservationHistory[1]
-          : ordinalReference === "third"
-            ? orderedReservationHistory[2]
-            : orderedReservationHistory.at(-1);
-    if (ordinalTarget?.reservationId) return { status: "resolved", target: ordinalTarget };
+    const validation = validateOrdinalReservationReference(state, ordinalReference);
+    if (validation?.ok) return { status: "resolved", target: validation.target };
+    if (validation && !validation.ok) {
+      return { status: "out_of_range", requested: validation.requested, availableCount: validation.availableCount };
+    }
     return { status: "ambiguous" };
   }
 
@@ -2571,8 +2630,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       RE_CHANGE_DATES.test(userTxt) || RE_CHANGE_DATES.test(normalizedUserTxtFast) ||
       RE_CHANGE_ROOM.test(userTxt) || RE_CHANGE_ROOM.test(normalizedUserTxtFast) ||
       RE_CHANGE_GUESTS.test(userTxt) || RE_CHANGE_GUESTS.test(normalizedUserTxtFast);
-    if (genericModify && reservationReferenceFast.status === "ambiguous") {
-      finalText = buildReservationReferenceClarification(pre.lang);
+    if (genericModify && (reservationReferenceFast.status === "ambiguous" || reservationReferenceFast.status === "out_of_range")) {
+      finalText = buildReservationReferenceGuardReply(pre.lang, reservationReferenceFast);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };
     }
     const boundReservationTarget =
@@ -2936,15 +2995,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   const reservationGuestName = nextSlots.guestName || pre.currSlots.guestName || pre.st?.reservationSlots?.guestName;
   if (
-    reservationReference.status === "ambiguous" &&
+    (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") &&
     (normalizedReservationIntent.kind === "modify" || normalizedReservationIntent.kind === "cancel")
   ) {
-    finalText = buildReservationReferenceClarification(pre.lang);
+    finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
     nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
-  if (effectiveSnapshotQueryKind && reservationReference.status === "ambiguous" && !explicitOrdinalReservationTarget) {
-    finalText = buildReservationReferenceClarification(pre.lang);
+  if (
+    effectiveSnapshotQueryKind &&
+    (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") &&
+    !explicitOrdinalReservationTarget
+  ) {
+    finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
     nextCategory = "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
@@ -3834,8 +3897,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "cancel_reservation", nextSlots: {}, needsSupervision, graphResult };
     }
     if (!resolvedCancelCode) {
-      if (reservationReference.status === "ambiguous") {
-        finalText = buildReservationReferenceClarification(pre.lang);
+      if (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") {
+        finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
         return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
       }
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
@@ -4085,8 +4148,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
       if (!codeFromUser) {
-        if (reservationReference.status === "ambiguous") {
-          finalText = buildReservationReferenceClarification(pre.lang);
+        if (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") {
+          finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
           return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
         }
         finalText = buildAskReservationCode(pre.lang);
