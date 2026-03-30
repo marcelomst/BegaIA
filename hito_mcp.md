@@ -4370,3 +4370,39 @@ Posicion evolutiva:
 - pertenece a la fase `Stabilize reservation (pre-focus governance)`
 - continúa después de `FIX-PIPELINE-DOMAIN-LOCK-01`
 - prepara el sistema para `FIX-PIPELINE-MODIFY-SUBSTATE-01` y luego `REF-PIPELINE-FOCUS-GOVERNANCE-01`
+
+### FIX-PIPELINE-REFERENCE-COVERAGE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: 5a85898d1d8f024d5b2c4278a650a194ee849df9
+
+Descripcion:
+
+Se consolida la cobertura del Reference Engine en `reservation`, unificando
+listado, snapshot, ordinales y continuidad post-snapshot sobre una base
+referencial canónica y estable.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- cierre registrado contra commit publicado `5a85898`
+- cobertura operativa consolidada para listing, snapshot, ordinales y continuidad post-snapshot
+
+Impacto:
+
+- cierra gaps importantes de reference coverage en `reservation`
+- evita fallback en follow-ups ordinales válidos
+- preserva estado real de reservas en snapshot y listado
+- consolida `reservation` como dominio piloto robusto antes de la generalización del foco
+
+Posicion evolutiva:
+
+- deriva de manual parity con listados inconsistentes, ordinales incompletos, continuidad post-snapshot frágil y visualización incorrecta de canceladas
+- completa la fase `Stabilize reservation (pre-focus governance)`
+- queda conectado con la secuencia `FIX-PIPELINE-DOMAIN-LOCK-01` -> `FIX-PIPELINE-DATE-COHERENCE-01` -> `FIX-PIPELINE-MODIFY-SUBSTATE-01` -> `FIX-PIPELINE-REFERENCE-COVERAGE-01`
+- prepara la transición hacia `REF-PIPELINE-FOCUS-CONTRACT-01`
