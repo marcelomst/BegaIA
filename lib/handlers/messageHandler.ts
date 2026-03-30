@@ -728,6 +728,12 @@ function buildOrderedReservationHistoryCandidates(state: any): ReservationRefere
     }));
 }
 
+function buildActionableReservationCandidates(state: any): ReservationReferenceTarget[] {
+  return buildOrderedReservationHistoryCandidates(state).filter(
+    (candidate) => candidate.reservationId && candidate.reservationStatus !== "cancelled"
+  );
+}
+
 function extractReservationOrdinalReferenceSpec(text: string): ReservationOrdinalReference | null {
   if (/\b(?:la|esa)\s+(?:primer|primera)\b|\b(?:primer|primera)\b/.test(text)) return { type: "ordinal", value: "first" };
   if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return { type: "ordinal", value: "second" };
@@ -804,6 +810,52 @@ function buildReservationReferenceGuardReply(
     return buildOutOfRangeReservationReferenceReply(lang, resolution.requested, resolution.availableCount);
   }
   return buildReservationReferenceClarification(lang);
+}
+
+function buildAmbiguousReservationSelectionReply(
+  lang: "es" | "en" | "pt",
+  action: "modify" | "cancel" | "snapshot",
+  availableCount: number
+): string {
+  const optionsEs = availableCount <= 1 ? "la primera" : availableCount === 2 ? "la primera o la segunda" : "la primera, la segunda o la tercera";
+  const optionsPt = availableCount <= 1 ? "a primeira" : availableCount === 2 ? "a primeira ou a segunda" : "a primeira, a segunda ou a terceira";
+  const optionsEn = availableCount <= 1 ? "the first one" : availableCount === 2 ? "the first or second one" : "the first, second, or third one";
+  if (lang === "es") {
+    const verb = action === "modify" ? "modificar" : action === "cancel" ? "cancelar" : "ver";
+    return `Tenés varias reservas. ¿Cuál querés ${verb}? Podés decir ${optionsEs} o pasarme el código.`;
+  }
+  if (lang === "pt") {
+    const verb = action === "modify" ? "alterar" : action === "cancel" ? "cancelar" : "ver";
+    return `Você tem várias reservas. Qual quer ${verb}? Você pode dizer ${optionsPt} ou me passar o código.`;
+  }
+  const verb = action === "modify" ? "modify" : action === "cancel" ? "cancel" : "view";
+  return `You have multiple bookings. Which one do you want to ${verb}? You can say ${optionsEn} or share the code.`;
+}
+
+function getAmbiguousReservationAction(
+  pre: PreLLMResult,
+  userText: string,
+  options: {
+    reservationReference: ReservationReferenceResolution;
+    snapshotQueryKind: ReservationSnapshotQueryKind | null;
+    normalizedReservationIntent: ReturnType<typeof normalizeReservationIntent>;
+    hasModifyVerb: boolean;
+    hasAnaphoraReference: boolean;
+    explicitIdReservationTarget: ReservationReferenceTarget | null;
+    explicitOrdinalReservationTarget: ReservationReferenceTarget | null;
+    selectedReservationTarget: ReservationReferenceTarget | null;
+  }
+): "modify" | "cancel" | "snapshot" | null {
+  const actionableCount = buildActionableReservationCandidates(pre.st).length;
+  if (actionableCount <= 1) return null;
+  if (options.reservationReference.status === "resolved") return null;
+  if (options.selectedReservationTarget?.reservationId) return null;
+  if (options.hasAnaphoraReference) return null;
+  if (options.explicitIdReservationTarget?.reservationId || options.explicitOrdinalReservationTarget?.reservationId) return null;
+  if (options.snapshotQueryKind && options.snapshotQueryKind !== "list") return "snapshot";
+  if (options.normalizedReservationIntent.kind === "cancel") return "cancel";
+  if (options.normalizedReservationIntent.kind === "modify" || wantsGenericModify(userText, pre.lang) || options.hasModifyVerb) return "modify";
+  return null;
 }
 
 function resolveExplicitOrdinalReservationTarget(state: any, userText: string): ReservationReferenceTarget | null {
@@ -2614,6 +2666,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const explicitReservationCodeFast = parseReservationCode(userTxt);
     const reservationReferenceFast = resolveReservationReference(pre.st, userTxt);
     const ordinalReservationTargetFast = resolveExplicitOrdinalReservationTarget(pre.st, userTxt);
+    const actionableReservationCountFast = buildActionableReservationCandidates(pre.st).length;
     const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
     const isModifyFollowupContext = pre.prevCategory === "modify_reservation" || pre.prevCategory === "modify";
     const mentionsReservation = /(reserva|booking)/i.test(tLower);
@@ -2641,6 +2694,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const canOpenModifyMenu =
       !isDateTopicFast &&
       !isExplicitFieldChangeFast &&
+      !(genericModify && actionableReservationCountFast > 1 && reservationReferenceFast.status !== "resolved") &&
       (softModifyFollowup || (genericModify && (hasConfirmed || !!boundReservationTarget)));
     if (canOpenModifyMenu) {
       const knownSlots = {
@@ -2912,6 +2966,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ? getReservationReferenceTargetById(pre.st, pre.st.activeReservationContext.reservationId)
       : null);
   const activeModifyField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+  const ambiguousReservationAction = getAmbiguousReservationAction(pre, userTxtRaw, {
+    reservationReference,
+    snapshotQueryKind: effectiveSnapshotQueryKind,
+    normalizedReservationIntent,
+    hasModifyVerb,
+    hasAnaphoraReference,
+    explicitIdReservationTarget,
+    explicitOrdinalReservationTarget,
+    selectedReservationTarget,
+  });
   const hasConfirmedBookingContext =
     Boolean(pre.st?.lastReservation?.reservationId) ||
     pre.st?.salesStage === "close";
@@ -3000,6 +3064,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   ) {
     finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
     nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (ambiguousReservationAction) {
+    finalText = buildAmbiguousReservationSelectionReply(
+      pre.lang,
+      ambiguousReservationAction,
+      buildActionableReservationCandidates(pre.st).length
+    );
+    nextCategory =
+      ambiguousReservationAction === "cancel"
+        ? "cancel_reservation"
+        : ambiguousReservationAction === "modify"
+          ? "modify_reservation"
+          : "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
   if (

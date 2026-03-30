@@ -430,6 +430,63 @@ describe("messageHandler reference resolution", () => {
     expect(stateByConversation.get(conversationId)?.desiredAction).not.toBe("modify");
   });
 
+  it("con múltiples reservas, 'modificá mi reserva' no ejecuta y pide aclaración", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-ambiguous-modify-my-booking-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/varias reservas|primera|segunda|c[oó]digo/i);
+    expect(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+  });
+
+  it("con múltiples reservas, 'cancelá mi reserva' no cancela y pide aclaración", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-ambiguous-cancel-my-booking-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("cancelá mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/varias reservas|primera|segunda|c[oó]digo/i);
+  });
+
+  it("después de gating ambiguo, 'la segunda' permite continuar correctamente", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-ambiguous-then-second-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("la segunda", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-NEW-02|28\/03\/2026 → 30\/03\/2026|double/i);
+  });
+
+  it("con una sola reserva, 'modificá mi reserva' funciona normalmente", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-modify-my-booking-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationHistory: [baseMultiReservationState().reservationHistory[0]],
+      lastReservation: baseMultiReservationState().reservationHistory[0],
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-OLD-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-20T10:00:00.000Z",
+      },
+    }));
+
+    await handleIncomingMessage(msg("modificá mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/qu[eé] te gustar[ií]a cambiar|fechas|hu[eé]spedes/i);
+  });
+
   it("permite continuidad segura después de referencia fuera de rango: 'la cuarta' luego 'la segunda'", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-fourth-then-second-1";
