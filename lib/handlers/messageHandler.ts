@@ -22,6 +22,7 @@ import type {
   LastReservation,
   ActiveReservationContext,
   SelectedReservationTarget,
+  ModifyState,
 } from "@/lib/db/convState";
 import crypto from "crypto";
 
@@ -136,7 +137,7 @@ function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: str
   };
 }
 
-type ReservationSnapshotQueryKind = "full" | "dates" | "guests";
+type ReservationSnapshotQueryKind = "full" | "dates" | "guests" | "list";
 
 function detectReservationSnapshotQuery(
   text: string,
@@ -153,8 +154,13 @@ function detectReservationSnapshotQuery(
   if (!normalized) return null;
 
   if (
+    /\b(mis reservas|mis bookings|my bookings|my reservations|quiero ver mis reservas|quiero ver mis bookings|mostrar mis reservas|mostrar mis bookings|lista de reservas|list my bookings|list my reservations)\b/i.test(normalized)
+  ) {
+    return "list";
+  }
+  if (
     /\b(cual es mi reserva|me recordas la reserva|recordame la reserva|recorda mi reserva|recordame mi reserva|mi reserva|my booking|my reservation|booking details|reservation details)\b/i.test(normalized) ||
-    /\b(mostrame|muestrame|mostrarme|mostrar|muestre|muestres|quiero\s+ver|quiero\s+que\s+me\s+muestres|ver|resumen|detalle|detalles|snapshot|captura)\b.*\b(reserva|booking|reservation|primer|primera|segunda|ultima|last)\b/i.test(normalized)
+    /\b(mostrame|muestrame|mostrarme|mostrar|muestre|muestres|quiero\s+ver|quiero\s+que\s+me\s+muestres|ver|resumen|detalle|detalles|snapshot|captura)\b.*\b(reserva|booking|reservation|primer|primera|segunda|tercera|ultima|last)\b/i.test(normalized)
   ) {
     return "full";
   }
@@ -175,11 +181,18 @@ function buildReservationSnapshotAnswer(
   kind: ReservationSnapshotQueryKind,
   lang: "es" | "en" | "pt",
   slots: ReservationSlotsStrict,
-  reservationId?: string
+  reservationId?: string,
+  reservationStatus?: LastReservation["status"]
 ): string {
   const roomType = slots.roomType ? localizeRoomType(slots.roomType, lang) : undefined;
   const checkIn = isoToDDMMYYYY(slots.checkIn) || slots.checkIn;
   const checkOut = isoToDDMMYYYY(slots.checkOut) || slots.checkOut;
+  const statusLabel =
+    reservationStatus === "cancelled"
+      ? (lang === "pt" ? "Cancelada" : lang === "en" ? "Cancelled" : "Cancelada")
+      : reservationStatus === "error"
+        ? (lang === "pt" ? "Com erro" : lang === "en" ? "Error" : "Con error")
+        : (lang === "pt" ? "Ativa" : lang === "en" ? "Active" : "Activa");
   if (kind === "dates") {
     if (lang === "pt") return `Sua reserva está para ${checkIn ?? "(sem data)"} → ${checkOut ?? "(sem data)"}.`;
     if (lang === "en") return `Your booking is for ${checkIn ?? "(no date)"} → ${checkOut ?? "(no date)"}.`;
@@ -194,6 +207,7 @@ function buildReservationSnapshotAnswer(
     return [
       "Este é o resumo da sua reserva:",
       reservationId ? `- Código: ${reservationId}` : "",
+      `- Estado: ${statusLabel}`,
       slots.guestName ? `- Nome: ${slots.guestName}` : "",
       roomType ? `- Quarto: ${roomType}` : "",
       checkIn && checkOut ? `- Datas: ${checkIn} → ${checkOut}` : "",
@@ -204,6 +218,7 @@ function buildReservationSnapshotAnswer(
     return [
       "This is your booking summary:",
       reservationId ? `- Code: ${reservationId}` : "",
+      `- Status: ${statusLabel}`,
       slots.guestName ? `- Name: ${slots.guestName}` : "",
       roomType ? `- Room: ${roomType}` : "",
       checkIn && checkOut ? `- Dates: ${checkIn} → ${checkOut}` : "",
@@ -213,6 +228,7 @@ function buildReservationSnapshotAnswer(
   return [
     "Este es el resumen de tu reserva:",
     reservationId ? `- Código: ${reservationId}` : "",
+    `- Estado: ${statusLabel}`,
     slots.guestName ? `- Nombre: ${slots.guestName}` : "",
     roomType ? `- Habitación: ${roomType}` : "",
     checkIn && checkOut ? `- Fechas: ${checkIn} → ${checkOut}` : "",
@@ -509,9 +525,34 @@ function buildSelectedReservationTargetFromReference(
   return buildSelectedReservationTarget(reservationId, kind, source, resolutionMode);
 }
 
+function buildModifyState(activeField: ModifyState["activeField"]): ModifyState | null {
+  if (!activeField) return null;
+  return {
+    activeField,
+    updatedAt: safeNowISO(),
+  };
+}
+
+function buildModifyFieldPrompt(lang: "es" | "en" | "pt", activeField: ModifyState["activeField"]): string {
+  if (activeField === "dates") return buildAskNewDates(lang);
+  if (activeField === "guests") {
+    return lang === "es"
+      ? "¿Cuál sería la nueva cantidad de huéspedes?"
+      : lang === "pt"
+        ? "Qual seria a nova quantidade de hóspedes?"
+        : "What would be the new number of guests?";
+  }
+  return lang === "es"
+    ? "¿Qué tipo de habitación querés ahora?"
+    : lang === "pt"
+      ? "Qual tipo de quarto você quer agora?"
+      : "Which room type would you like now?";
+}
+
 type ReservationReferenceTarget = {
   kind: "draft" | "reservation";
   reservationId?: string;
+  reservationStatus?: LastReservation["status"];
   guestName?: string;
   roomType?: string;
   numGuests?: number | string;
@@ -562,6 +603,63 @@ function getEffectiveActiveReservationContext(state: any): ActiveReservationCont
   return undefined;
 }
 
+function buildCanonicalReservationRecords(state: any): LastReservation[] {
+  const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
+  const records = [...history];
+  if (state?.lastReservation?.reservationId) records.push(state.lastReservation);
+
+  const byId = new Map<string, LastReservation>();
+  for (const item of records) {
+    if (!item?.reservationId) continue;
+    const prev = byId.get(item.reservationId);
+    if (!prev) {
+      byId.set(item.reservationId, item);
+      continue;
+    }
+    const prevAt = String(prev.createdAt || "");
+    const currAt = String(item.createdAt || "");
+    if (!prevAt || currAt >= prevAt) byId.set(item.reservationId, item);
+  }
+
+  return Array.from(byId.values()).sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+}
+
+function buildReservationListAnswer(
+  lang: "es" | "en" | "pt",
+  reservations: LastReservation[]
+): string {
+  if (!reservations.length) {
+    return lang === "pt"
+      ? "Não encontrei reservas para mostrar nesta conversa."
+      : lang === "en"
+        ? "I couldn't find any bookings to show in this conversation."
+        : "No encontré reservas para mostrar en esta conversación.";
+  }
+
+  const lines = reservations.map((item, index) => {
+    const roomType = item.roomType ? localizeRoomType(item.roomType, lang) : undefined;
+    const checkIn = isoToDDMMYYYY(item.checkIn) || item.checkIn || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
+    const checkOut = isoToDDMMYYYY(item.checkOut) || item.checkOut || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
+    const status =
+      item.status === "cancelled"
+        ? (lang === "pt" ? "cancelada" : lang === "en" ? "cancelled" : "cancelada")
+        : item.status === "error"
+          ? (lang === "pt" ? "com erro" : lang === "en" ? "error" : "con error")
+          : (lang === "pt" ? "ativa" : lang === "en" ? "active" : "activa");
+    const guests = item.numGuests ? ` · ${lang === "pt" ? "hóspedes" : lang === "en" ? "guests" : "huéspedes"}: ${item.numGuests}` : "";
+    const room = roomType ? ` · ${lang === "pt" ? "quarto" : lang === "en" ? "room" : "habitación"}: ${roomType}` : "";
+    return `${index + 1}. ${item.reservationId} · ${status}${room} · ${checkIn} → ${checkOut}${guests}`;
+  });
+
+  const title =
+    lang === "pt"
+      ? "Estas são as reservas desta conversa:"
+      : lang === "en"
+        ? "These are the bookings on this conversation:"
+        : "Estas son las reservas de esta conversación:";
+  return [title, ...lines].join("\n");
+}
+
 function buildReservationReferenceCandidates(state: any): ReservationReferenceTarget[] {
   const candidates: ReservationReferenceTarget[] = [];
   const active = getEffectiveActiveReservationContext(state);
@@ -576,20 +674,21 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
       source: "active",
     });
   } else if (active?.kind === "reservation" && active.reservationId) {
+    const activeRecord = buildCanonicalReservationRecords(state).find((item) => item.reservationId === active.reservationId);
     candidates.push({
       kind: "reservation",
       reservationId: active.reservationId,
-      guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : undefined,
-      roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : undefined,
-      numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : undefined,
-      checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
-      checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
+      reservationStatus: activeRecord?.status,
+      guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : activeRecord?.guestName,
+      roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : activeRecord?.roomType,
+      numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : activeRecord?.numGuests,
+      checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : activeRecord?.checkIn,
+      checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : activeRecord?.checkOut,
       source: "active",
     });
   }
 
-  const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
-  for (const item of history) {
+  for (const item of buildCanonicalReservationRecords(state)) {
     if (!item?.reservationId) continue;
     if (candidates.some((candidate) => candidate.reservationId === item.reservationId && candidate.kind === "reservation")) {
       continue;
@@ -597,6 +696,7 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: item.reservationId,
+      reservationStatus: item.status,
       guestName: item.guestName,
       roomType: item.roomType,
       numGuests: item.numGuests,
@@ -606,53 +706,28 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     });
   }
 
-  if (
-    state?.lastReservation?.reservationId &&
-    !candidates.some((candidate) => candidate.reservationId === state.lastReservation.reservationId)
-  ) {
-    candidates.push({
-      kind: "reservation",
-      reservationId: state.lastReservation.reservationId,
-      guestName: state.lastReservation.guestName || state?.reservationSlots?.guestName,
-      roomType: state.lastReservation.roomType || state?.reservationSlots?.roomType,
-      numGuests: state.lastReservation.numGuests || state?.reservationSlots?.numGuests,
-      checkIn: state.lastReservation.checkIn || state?.reservationSlots?.checkIn,
-      checkOut: state.lastReservation.checkOut || state?.reservationSlots?.checkOut,
-      source: "lastReservation",
-    });
-  }
-
   return candidates;
 }
 
 function buildOrderedReservationHistoryCandidates(state: any): ReservationReferenceTarget[] {
-  const candidates = buildReservationReferenceCandidates(state).filter(
-    (candidate) => candidate.kind === "reservation" && candidate.reservationId
-  );
-
-  return candidates
-    .map((candidate, index) => {
-      const historyEntry = (state?.reservationHistory || []).find((item: any) => item?.reservationId === candidate.reservationId);
-      const createdAt =
-        historyEntry?.createdAt ||
-        (state?.lastReservation?.reservationId === candidate.reservationId ? state?.lastReservation?.createdAt : undefined) ||
-        "";
-      return { candidate, createdAt, index };
-    })
-    .sort((a, b) => {
-      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
-        return String(a.createdAt).localeCompare(String(b.createdAt));
-      }
-      if (a.createdAt && !b.createdAt) return -1;
-      if (!a.createdAt && b.createdAt) return 1;
-      return a.index - b.index;
-    })
-    .map((item) => item.candidate);
+  return buildCanonicalReservationRecords(state)
+    .map((item) => ({
+      kind: "reservation" as const,
+      reservationId: item.reservationId,
+      reservationStatus: item.status,
+      guestName: item.guestName,
+      roomType: item.roomType,
+      numGuests: item.numGuests,
+      checkIn: item.checkIn,
+      checkOut: item.checkOut,
+      source: "history" as const,
+    }));
 }
 
-function extractReservationOrdinalReference(text: string): "first" | "second" | "last" | null {
+function extractReservationOrdinalReference(text: string): "first" | "second" | "third" | "last" | null {
   if (/\b(?:la|esa)\s+(?:primer|primera)\b|\b(?:primer|primera)\b/.test(text)) return "first";
   if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return "second";
+  if (/\b(?:la|esa)\s+tercera\b|\btercera\b/.test(text)) return "third";
   if (/\b(?:la|esa)\s+(?:ultima|última)\b|\b(?:ultima|última)\b/.test(text)) return "last";
   return null;
 }
@@ -666,7 +741,9 @@ function resolveExplicitOrdinalReservationTarget(state: any, userText: string): 
       ? orderedReservationHistory[0]
       : ordinalReference === "second"
         ? orderedReservationHistory[1]
-        : orderedReservationHistory.at(-1);
+        : ordinalReference === "third"
+          ? orderedReservationHistory[2]
+          : orderedReservationHistory.at(-1);
   return ordinalTarget?.reservationId ? ordinalTarget : null;
 }
 
@@ -728,7 +805,9 @@ function resolveReservationReference(state: any, userText: string): ReservationR
         ? orderedReservationHistory[0]
         : ordinalReference === "second"
           ? orderedReservationHistory[1]
-          : orderedReservationHistory.at(-1);
+          : ordinalReference === "third"
+            ? orderedReservationHistory[2]
+            : orderedReservationHistory.at(-1);
     if (ordinalTarget?.reservationId) return { status: "resolved", target: ordinalTarget };
     return { status: "ambiguous" };
   }
@@ -2162,6 +2241,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
           : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
       nextSlots = { ...nextSlots, checkIn: dr0.checkIn, checkOut: dr0.checkOut } as ReservationSlotsStrict;
+      if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          modifyState: buildModifyState("dates"),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
+      }
       return { finalText, nextCategory: 'modify_reservation', nextSlots, needsSupervision, graphResult: null };
     }
   } catch { /* noop */ }
@@ -2203,11 +2291,29 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
             : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
         nextSlots = { ...nextSlots, checkIn: ciISO, checkOut: coISO } as ReservationSlotsStrict;
+        if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            modifyState: buildModifyState("dates"),
+            activeFlow: "modify_reservation",
+            desiredAction: "modify",
+            lastCategory: "modify_reservation",
+            updatedBy: "ai",
+          } as any);
+        }
         return { finalText, nextCategory: 'modify_reservation', nextSlots, needsSupervision, graphResult: null };
       }
       // No hay fecha previa: pedir la faltante
       const missingSide = drFast.checkIn ? "checkOut" : "checkIn";
       finalText = buildAskMissingDate(pre.lang, missingSide as any);
+      if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          modifyState: buildModifyState("dates"),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
+      }
       return { finalText, nextCategory: pre.inModifyMode ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
     }
   } catch { /* noop fast-path */ }
@@ -2270,6 +2376,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             explicitReservationCodeFast ? "explicit_id" : ordinalReservationTargetFast ? "ordinal" : hasAnaphoraReferenceFast ? "anaphora" : "active_focus",
             explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
           ),
+          modifyState: null,
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -2480,14 +2587,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const reservationDomainLock = getReservationDomainLockSignal(pre, userTxtRaw);
   const hasModifyVerb = /\b(modific|cambi|alter|mudar|change|edit|update)\w*\b/i.test(normalizeReferenceText(userTxtRaw));
   const snapshotQueryKind = detectReservationSnapshotQuery(userTxtRaw, pre.lang);
+  const hasExplicitOrdinalReference = Boolean(extractReservationOrdinalReference(normalizeReferenceText(userTxtRaw)));
+  const implicitOrdinalSnapshotFollowup =
+    !snapshotQueryKind &&
+    normalizedReservationIntent.kind === "other" &&
+    hasExplicitOrdinalReference &&
+    !(
+      pre.inModifyMode ||
+      pre.st?.desiredAction === "modify" ||
+      pre.prevCategory === "modify_reservation"
+    ) &&
+    (pre.prevCategory === "reservation_snapshot" || !hasModifyVerb);
+  const effectiveSnapshotQueryKind = snapshotQueryKind || (implicitOrdinalSnapshotFollowup ? "full" : null);
   const looksNonReservationDomainTurn =
     normalizedReservationIntent.kind === "other" &&
-    !snapshotQueryKind &&
+    !effectiveSnapshotQueryKind &&
     !reservationDomainLock.compatible &&
     /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
   if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
+      modifyState: null,
       updatedBy: "ai",
     } as any);
   }
@@ -2502,6 +2622,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (pre.st?.activeReservationContext?.kind === "reservation"
       ? getReservationReferenceTargetById(pre.st, pre.st.activeReservationContext.reservationId)
       : null);
+  const activeModifyField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
   const hasConfirmedBookingContext =
     Boolean(pre.st?.lastReservation?.reservationId) ||
     pre.st?.salesStage === "close";
@@ -2592,25 +2713,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
-  if (snapshotQueryKind && reservationReference.status === "ambiguous" && !explicitOrdinalReservationTarget) {
+  if (effectiveSnapshotQueryKind && reservationReference.status === "ambiguous" && !explicitOrdinalReservationTarget) {
     finalText = buildReservationReferenceClarification(pre.lang);
     nextCategory = "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
   const resolvedSnapshotTarget =
-    snapshotQueryKind && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
+    effectiveSnapshotQueryKind === "list"
+      ? null
+      : effectiveSnapshotQueryKind && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
       ? reservationReference.target
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
-  if (snapshotQueryKind && resolvedSnapshotTarget) {
+  if (effectiveSnapshotQueryKind === "list") {
+    const canonicalReservations = buildCanonicalReservationRecords(pre.st);
+    finalText = buildReservationListAnswer(pre.lang, canonicalReservations);
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      selectedReservationTarget: null,
+      modifyState: null,
+      activeFlow: null,
+      desiredAction: undefined,
+      lastCategory: "reservation_snapshot",
+      updatedBy: "ai",
+    } as any);
+    nextCategory = "reservation_snapshot";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {
     const target = resolvedSnapshotTarget;
-    finalText = buildReservationSnapshotAnswer(snapshotQueryKind, pre.lang, {
+    finalText = buildReservationSnapshotAnswer(effectiveSnapshotQueryKind, pre.lang, {
       reservationId: target.reservationId,
       guestName: target.guestName,
       roomType: target.roomType,
       numGuests: target.numGuests,
       checkIn: target.checkIn,
       checkOut: target.checkOut,
-    } as any);
+    } as any, target.reservationId, target.reservationStatus);
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       activeReservationContext: buildFocusedReservationContext(target.reservationId, "confirmed"),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(
@@ -2618,6 +2755,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
+      modifyState: null,
       activeFlow: null,
       desiredAction: undefined,
       lastCategory: "reservation_snapshot",
@@ -2651,6 +2789,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
+      modifyState: null,
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
@@ -2680,6 +2819,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : "anaphora",
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
+      modifyState: null,
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
@@ -2693,6 +2833,143 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       checkIn: target?.checkIn,
       checkOut: target?.checkOut,
     } as ReservationSlotsStrict);
+    return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+  }
+  if (
+    activeModifyField &&
+    (pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation") &&
+    !(normalizedReservationIntent.kind === "cancel" || looksExplicitNewReservation || looksNonReservationDomainTurn)
+  ) {
+    const codeFromModifySubstate =
+      explicitReservationCode ||
+      (resolvedModifyTarget?.kind === "reservation" ? resolvedModifyTarget.reservationId : undefined) ||
+      (pre.st?.activeReservationContext?.kind === "reservation"
+        ? pre.st?.activeReservationContext?.reservationId
+        : undefined);
+    const rawGuestCount = extractSlotsFromText(userTxtRaw, pre.lang).numGuests;
+    const nextGuestCount = rawGuestCount || reservationGuests;
+    const nextRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
+    const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);
+    const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : reservationCheckIn;
+    const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : reservationCheckOut;
+
+    if (activeModifyField === "guests" && nextGuestCount) {
+      if (!codeFromModifySubstate) {
+        finalText = buildAskReservationCode(pre.lang);
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const { modifyReservation } = await import("@/lib/agents/reservations");
+      const snapshot: any = {
+        guestName: pre.st?.reservationSlots?.guestName,
+        roomType: nextRoomType,
+        numGuests: nextGuestCount,
+        checkIn: nextCheckIn,
+        checkOut: nextCheckOut,
+        locale: pre.lang,
+      };
+      const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: snapshot,
+        modifyState: null,
+        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastReservation: {
+          reservationId: codeFromModifySubstate,
+          status: mod.ok ? "updated" : "error",
+          createdAt: new Date().toISOString(),
+          channel: (pre.msg.channel as any) || "web",
+          guestName: snapshot.guestName,
+          roomType: snapshot.roomType,
+          checkIn: snapshot.checkIn,
+          checkOut: snapshot.checkOut,
+          numGuests: snapshot.numGuests,
+        },
+        updatedBy: "ai",
+      } as any);
+      finalText = mod.message;
+      nextSlots = { ...nextSlots, numGuests: nextGuestCount } as ReservationSlotsStrict;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (activeModifyField === "roomType" && nextRoomType && String(nextRoomType) !== String(pre.st?.reservationSlots?.roomType || "")) {
+      if (!codeFromModifySubstate) {
+        finalText = buildAskReservationCode(pre.lang);
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const { modifyReservation } = await import("@/lib/agents/reservations");
+      const snapshot: any = {
+        guestName: pre.st?.reservationSlots?.guestName,
+        roomType: nextRoomType,
+        numGuests: reservationGuests,
+        checkIn: nextCheckIn,
+        checkOut: nextCheckOut,
+        locale: pre.lang,
+      };
+      const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: snapshot,
+        modifyState: null,
+        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastReservation: {
+          reservationId: codeFromModifySubstate,
+          status: mod.ok ? "updated" : "error",
+          createdAt: new Date().toISOString(),
+          channel: (pre.msg.channel as any) || "web",
+          guestName: snapshot.guestName,
+          roomType: snapshot.roomType,
+          checkIn: snapshot.checkIn,
+          checkOut: snapshot.checkOut,
+          numGuests: snapshot.numGuests,
+        },
+        updatedBy: "ai",
+      } as any);
+      finalText = mod.message;
+      nextSlots = { ...nextSlots, roomType: nextRoomType } as ReservationSlotsStrict;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (activeModifyField === "dates" && nextCheckIn && nextCheckOut) {
+      if (!codeFromModifySubstate) {
+        finalText = buildAskReservationCode(pre.lang);
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const modifyDateCoherence = assessReservationDateCoherence(nextCheckIn, nextCheckOut);
+      if (modifyDateCoherence && !modifyDateCoherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, modifyDateCoherence.reason);
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const { modifyReservation } = await import("@/lib/agents/reservations");
+      const snapshot: any = {
+        guestName: pre.st?.reservationSlots?.guestName,
+        roomType: nextRoomType,
+        numGuests: reservationGuests,
+        checkIn: nextCheckIn,
+        checkOut: nextCheckOut,
+        locale: pre.lang,
+      };
+      const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: snapshot,
+        modifyState: null,
+        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastReservation: {
+          reservationId: codeFromModifySubstate,
+          status: mod.ok ? "updated" : "error",
+          createdAt: new Date().toISOString(),
+          channel: (pre.msg.channel as any) || "web",
+          guestName: snapshot.guestName,
+          roomType: snapshot.roomType,
+          checkIn: snapshot.checkIn,
+          checkOut: snapshot.checkOut,
+          numGuests: snapshot.numGuests,
+        },
+        updatedBy: "ai",
+      } as any);
+      finalText = mod.message;
+      nextSlots = { ...nextSlots, checkIn: nextCheckIn, checkOut: nextCheckOut } as ReservationSlotsStrict;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    finalText = buildModifyFieldPrompt(pre.lang, activeModifyField);
     return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
   }
   if (
@@ -2712,6 +2989,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         locale: pre.lang,
       },
       selectedReservationTarget: null,
+      modifyState: null,
       activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
@@ -3440,6 +3718,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastProposal: null,
       pendingAvailabilityVerification: null,
       selectedReservationTarget: null,
+      modifyState: null,
       activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
@@ -3553,6 +3832,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             checkOut: co,
             locale: pre.lang,
           },
+          modifyState: null,
           activeReservationContext: buildDraftReservationContext("collecting"),
           activeFlow: "reservation",
           desiredAction: "create",
@@ -3593,6 +3873,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const mod = await modifyReservation(pre.msg.hotelId, codeFromUser, snapshot, pre.msg.channel);
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: snapshot,
+          modifyState: null,
           lastReservation: {
             reservationId: codeFromUser,
             status: mod.ok ? "updated" : "error",
@@ -3761,18 +4042,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           postBookingReservationIntent.kind !== "modify" &&
           postBookingReservationIntent.kind !== "cancel"
         ) {
-          const snapshotSlots = {
-            ...(pre.st?.reservationSlots || {}),
-            ...(nextSlots || {}),
-          } as ReservationSlotsStrict;
-          finalText = buildReservationSnapshotAnswer(
-            postBookingSnapshotQ,
-            pre.lang,
-            snapshotSlots,
-            pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
-              ? pre.st.lastReservation.reservationId
-              : undefined
-          );
+          if (postBookingSnapshotQ === "list") {
+            finalText = buildReservationListAnswer(pre.lang, buildCanonicalReservationRecords(pre.st));
+          } else {
+            const snapshotSlots = {
+              ...(pre.st?.reservationSlots || {}),
+              ...(nextSlots || {}),
+            } as ReservationSlotsStrict;
+            finalText = buildReservationSnapshotAnswer(
+              postBookingSnapshotQ,
+              pre.lang,
+              snapshotSlots,
+              pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
+                ? pre.st.lastReservation.reservationId
+                : undefined,
+              pre.st?.lastReservation?.status
+            );
+          }
           nextCategory = "reservation_snapshot";
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
@@ -4204,6 +4490,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         pre.st?.activeReservationContext?.kind === "reservation" &&
         Boolean(pre.st?.activeReservationContext?.reservationId);
       if (pre.inModifyMode && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
+        const activeField: ModifyState["activeField"] =
+          wantsChangeDates ? "dates" : wantsChangeGuests ? "guests" : "roomType";
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          modifyState: buildModifyState(activeField),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
         if (wantsChangeDates) {
           finalText = buildAskNewDates(pre.lang);
         } else if (wantsChangeGuests) {
@@ -4261,6 +4556,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: { ...knownSlots, locale: pre.lang },
           activeReservationContext: buildFocusedReservationContext(resolvedModifyTarget.reservationId, "confirmed"),
+          modifyState: null,
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",

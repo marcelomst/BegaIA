@@ -152,6 +152,64 @@ function baseMultiReservationState(overrides: Record<string, any> = {}) {
   };
 }
 
+function baseThreeReservationState(overrides: Record<string, any> = {}) {
+  return baseMultiReservationState({
+    reservationHistory: [
+      {
+        reservationId: "RES-OLD-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "single",
+        checkIn: "2026-03-24",
+        checkOut: "2026-03-26",
+        numGuests: "1",
+      },
+      {
+        reservationId: "RES-MID-02",
+        status: "created",
+        createdAt: "2026-03-21T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-28",
+        checkOut: "2026-03-30",
+        numGuests: "2",
+      },
+      {
+        reservationId: "RES-NEW-03",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "triple",
+        checkIn: "2026-04-02",
+        checkOut: "2026-04-05",
+        numGuests: "3",
+      },
+    ],
+    lastReservation: {
+      reservationId: "RES-NEW-03",
+      status: "created",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+      guestName: "Marcelo Martinez",
+      roomType: "triple",
+      checkIn: "2026-04-02",
+      checkOut: "2026-04-05",
+      numGuests: "3",
+    },
+    activeReservationContext: {
+      kind: "reservation",
+      reservationId: "RES-NEW-03",
+      phase: "confirmed",
+      updatedAt: "2026-03-22T10:00:00.000Z",
+    },
+    ...overrides,
+  });
+}
+
 describe("messageHandler reference resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -309,6 +367,104 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/abrimos una nueva|check-in y check-out/i);
   });
 
+  it("lista 'mis reservas' con orden estable", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/estas son las reservas/i);
+    expect(replyText).toMatch(/1\.\s+RES-OLD-01/i);
+    expect(replyText).toMatch(/2\.\s+RES-MID-02/i);
+    expect(replyText).toMatch(/3\.\s+RES-NEW-03/i);
+  });
+
+  it("resuelve 'la tercera' después de listar reservas", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-third-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("la tercera", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-NEW-03|02\/04\/2026 → 05\/04\/2026|triple/i);
+  });
+
+  it("si la tercera no existe pide aclaración segura", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-third-missing-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("la tercera", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/necesito una precis[ióo]n|c[oó]digo|fecha/i);
+  });
+
+  it("marca reservas canceladas como canceladas en el listado", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-cancelled-1";
+    stateByConversation.set(
+      conversationId,
+      baseThreeReservationState({
+        reservationHistory: [
+          {
+            reservationId: "RES-OLD-01",
+            status: "created",
+            createdAt: "2026-03-20T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "single",
+            checkIn: "2026-03-24",
+            checkOut: "2026-03-26",
+            numGuests: "1",
+          },
+          {
+            reservationId: "RES-MID-02",
+            status: "cancelled",
+            createdAt: "2026-03-23T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "double",
+            checkIn: "2026-03-28",
+            checkOut: "2026-03-30",
+            numGuests: "2",
+          },
+          {
+            reservationId: "RES-NEW-03",
+            status: "created",
+            createdAt: "2026-03-22T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "triple",
+            checkIn: "2026-04-02",
+            checkOut: "2026-04-05",
+            numGuests: "3",
+          },
+        ],
+        lastReservation: {
+          reservationId: "RES-MID-02",
+          status: "cancelled",
+          createdAt: "2026-03-23T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-03-28",
+          checkOut: "2026-03-30",
+          numGuests: "2",
+        },
+      })
+    );
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-MID-02.*cancelada/i);
+  });
+
   it("mantiene foco referencial y resuelve 'modificá esa' después de 'mostrame la segunda'", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-anaphora-modify-1";
@@ -374,6 +530,45 @@ describe("messageHandler reference resolution", () => {
     });
     expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
       reservationId: "RES-OLD-01",
+    });
+  });
+
+  it("persiste subestado de huéspedes y aplica el cambio sin volver al menú genérico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-guests-substate-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá la primera reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar huéspedes", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("2 personas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-OLD-01",
+      expect.objectContaining({ numGuests: "2" }),
+      "web"
+    );
+    expect(replyText).toMatch(/modificada res-old-01/i);
+    expect(replyText).not.toMatch(/qu[eé] te gustar[ií]a cambiar|nueva cantidad de hu[eé]spedes/i);
+    expect(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+  });
+
+  it("persiste subestado de fechas y mantiene continuidad sin volver al menú genérico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-substate-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá la primera reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar fechas", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("24/03/2026 al 26/03/2026", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).not.toMatch(/qu[eé] cambio aplico|qu[eé] te gustar[ií]a cambiar/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "dates",
     });
   });
 
@@ -505,6 +700,21 @@ describe("messageHandler reference resolution", () => {
 
     expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
       reservationId: "RES-OLD-01",
+      awaitingConfirmation: true,
+    });
+  });
+
+  it("mantiene continuidad post-listado: 'mis reservas' + 'mostrame la segunda' + 'cancelá esa'", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-followup-cancel-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("mostrame la segunda", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cancelá esa", conversationId), { mode: "automatic", sendReply });
+
+    expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+      reservationId: "RES-MID-02",
       awaitingConfirmation: true,
     });
   });
