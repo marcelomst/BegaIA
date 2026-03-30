@@ -4460,3 +4460,52 @@ Impacto:
 - facilita soporte e inspección operativa
 - reduce fricción para copiar identifiers largos
 - mantiene el cambio acotado a UI/admin
+
+### FIX-PIPELINE-DOMAIN-LOCK-02
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: 1d324cda4143a0b5426ff62752aa60f7f1a8c8ed
+
+Descripcion:
+
+Se endurece la gobernanza de dominio en `reservation` para evitar que el
+runtime abandone incorrectamente el dominio activo ante inputs imperfectos
+dentro de un flujo válido.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+
+Validacion:
+
+- cierre registrado contra commit publicado `1d324cd`
+- hito validado como refuerzo operativo del dominio `reservation` dentro del runtime actual
+
+Impacto:
+
+- reduce fugas espurias al fallback global
+- mantiene `reservation` activo ante inputs imperfectos pero compatibles
+- mejora robustez del flujo sin introducir LLM ni graph
+- fortalece la gobernanza interna del dominio dentro del runtime actual
+
+Posicion evolutiva:
+
+- deriva de manual parity con typos de confirm, fallback incorrecto y contaminación entre snapshot, modify y fallback global
+- pertenece a la fase `Stabilize reservation pipeline governance`
+- continúa después de `FIX-PIPELINE-DOMAIN-LOCK-01`, `FIX-PIPELINE-DATE-COHERENCE-01`, `FIX-PIPELINE-MODIFY-SUBSTATE-01` y `FIX-PIPELINE-REFERENCE-COVERAGE-01`
+- prepara la transición hacia `REF-PIPELINE-FOCUS-CONTRACT-01`
+
+Rol arquitectonico:
+
+- no introduce nuevo runtime
+- no migra a graph
+- no introduce foco global
+- consolida el slice `domain governance` como responsabilidad interna del runtime
+
+Invariante reforzada:
+
+- el sistema no debe abandonar el dominio activo ante inputs imperfectos dentro de un flujo válido
