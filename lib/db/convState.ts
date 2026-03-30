@@ -101,6 +101,11 @@ export type SelectedReservationTarget = {
   resolvedAt: string;
 };
 
+export type ModifyState = {
+  activeField?: "guests" | "dates" | "roomType";
+  updatedAt: string;
+};
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -128,6 +133,7 @@ export type ConversationFlowState = {
   reservationHistory?: LastReservation[] | null;
   activeReservationContext?: ActiveReservationContext | null;
   selectedReservationTarget?: SelectedReservationTarget | null;
+  modifyState?: ModifyState | null;
   pendingCancellation?: PendingCancellation | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
   guestState?: GuestState | null;
@@ -362,6 +368,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("modifyState" in patch) {
+    if ((patch as any).modifyState == null) {
+      $unset["modifyState"] = true;
+    } else {
+      $set["modifyState"] = (patch as any).modifyState;
+    }
+  }
+
   if ("pendingCancellation" in patch) {
     if ((patch as any).pendingCancellation == null) {
       $unset["pendingCancellation"] = true;
@@ -425,6 +439,7 @@ export async function upsertConvState(
       if ("reservationHistory" in patch && (patch as any).reservationHistory != null) doc.reservationHistory = (patch as any).reservationHistory;
       if ("activeReservationContext" in patch && (patch as any).activeReservationContext != null) doc.activeReservationContext = (patch as any).activeReservationContext;
       if ("selectedReservationTarget" in patch && (patch as any).selectedReservationTarget != null) doc.selectedReservationTarget = (patch as any).selectedReservationTarget;
+      if ("modifyState" in patch && (patch as any).modifyState != null) doc.modifyState = (patch as any).modifyState;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
       if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;
