@@ -290,6 +290,7 @@ Referencias actualmente soportadas cuando la señal es suficiente:
 - `la anterior`
 - `esa`
 - `la de mañana`
+- ordinales explícitas como `la primera`, `la segunda`, `la tercera` y `la última`
 
 Regla operativa:
 
@@ -299,9 +300,26 @@ Regla operativa:
 
 Alcance actual:
 
-- integración mínima con `modify/cancel`
+- integración con `snapshot`, `modify` y `cancel`
+- validación contra lista canónica de reservas antes de ejecutar acciones
+- gating de suficiencia cuando hay múltiples reservas accionables y falta target claro
 - no hay coreferencia completa
-- no hay ordinales robustos (`la primera`, `la segunda`)
+- no hay coreferencia libre por nombre, habitación o fecha arbitraria
+
+Modelo interno mínimo vigente del Reference Engine:
+
+1. reference detection
+2. existence validation
+3. sufficiency validation
+4. target resolution
+5. execution
+
+Guardrails vigentes:
+
+- referencias ordinales fuera de rango no ejecutan acciones
+- si hay varias reservas accionables sin target suficiente, el sistema bloquea
+  `modify`, `cancel` o snapshot accionable y pide aclaración
+- el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
 
@@ -328,6 +346,7 @@ LLM-driven. Es un runtime híbrido controlado.
 - `guestState` es señal contextual, no controlador principal
 - `activeReservationContext` es la señal preferida de foco actual
 - ante ambigüedad fuerte en referencias, se pide aclaración
+- las acciones sobre reservas requieren target existente y suficiente antes de ejecutar
 
 ## 10. Límites actuales
 
@@ -337,7 +356,6 @@ El sistema todavía no hace, o no hace completamente:
 - pricing real por tarifa
 - validación definitiva de inclusión por tarifa
 - coreferencia compleja completa
-- referencias ordinales robustas
 - UI para selección de reserva
 - grupos complejos
 - multi-reservation con identidad de draft completa

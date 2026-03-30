@@ -4565,3 +4565,31 @@ Impacto:
 - mejora seguridad del flujo conversacional
 - separa con más claridad etapas internas del Reference Engine
 - reduce riesgo de actuar sobre reserva equivocada
+
+### FIX-PIPELINE-AMBIGUITY-GATING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: ed0e6d1d2c77f70cc973667bbbd2c8c5c47510f4
+
+Descripcion:
+
+Se introduce ambiguity gating determinístico en `reservation`, bloqueando
+ejecución cuando existen múltiples reservas accionables sin target suficiente y
+completando el modelo mínimo de validación del Reference Engine.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como incorporación de una etapa explícita de validación de suficiencia en el pipeline de referencias de `reservation`
+
+Impacto:
+
+- bloquea ejecución ambigua de `modify/cancel`
+- mejora seguridad conversacional
+- completa el modelo interno `reference detection -> existence validation -> sufficiency validation -> target resolution -> execution`
+- fortalece comportamiento determinístico del runtime antes de foco global
