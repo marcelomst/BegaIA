@@ -142,6 +142,22 @@ describe("messageHandler domain lock de reservation", () => {
     expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
   });
 
+  it("usa fallback local en create flow para input insuficiente y no cae al global", async () => {
+    currentState = {
+      activeFlow: "reservation",
+      desiredAction: "create",
+      lastCategory: "reservation",
+      reservationSlots: {},
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mmm"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/check-in|fecha/i);
+    expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
   it("mantiene modify flow para '2 personas' y no vuelve al fallback", async () => {
     currentState = {
       activeFlow: "modify_reservation",
@@ -186,6 +202,29 @@ describe("messageHandler domain lock de reservation", () => {
     expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
   });
 
+  it("usa fallback local en modify activo para input ambiguo y no sale al global", async () => {
+    currentState = {
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
+      modifyState: { activeField: "guests" },
+      reservationSlots: {
+        roomType: "single",
+        checkIn: "2026-04-21",
+        checkOut: "2026-04-25",
+        numGuests: "1",
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mmm"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/nueva cantidad|hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
   it("mantiene snapshot continuity para 'esa' y no escapa a fallback global", async () => {
     currentState = {
       lastCategory: "reservation_snapshot",
@@ -203,6 +242,52 @@ describe("messageHandler domain lock de reservation", () => {
     await handleIncomingMessage(msg("esa"), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
+  it("usa aclaración local en post-snapshot con input débil", async () => {
+    currentState = {
+      lastCategory: "reservation_snapshot",
+      selectedReservationTarget: {
+        reservationId: "RES-OLD-01",
+        kind: "confirmed",
+        source: "ordinal",
+        resolutionMode: "strong",
+        resolvedAt: new Date().toISOString(),
+      },
+      activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mmm"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/primera|segunda|[uú]ltima|c[oó]digo/i);
+    expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
+  it("usa fallback local en confirm activo para input no concluyente", async () => {
+    currentState = {
+      activeFlow: "reservation",
+      desiredAction: "create",
+      lastCategory: "reservation",
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-04-21",
+        checkOut: "2026-04-25",
+        numGuests: "2",
+        guestName: "Marcelo Martinez",
+      },
+      lastProposal: { text: "Tarifa por noche: 100 USD. ¿Confirmás la reserva?", available: true },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mmm"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/confirmar|cambiar/i);
     expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
   });
 

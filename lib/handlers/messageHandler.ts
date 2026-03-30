@@ -1329,6 +1329,144 @@ function buildReservationDomainLockReply(
       : "Perfect, I will continue with your booking.";
 }
 
+function isReservationFlowStillActive(pre: PreLLMResult): boolean {
+  return Boolean(
+    hasActiveReservationDomain(pre) ||
+    pre.prevCategory === "reservation_snapshot" ||
+    pre.st?.selectedReservationTarget?.reservationId ||
+    pre.st?.modifyState?.activeField ||
+    askedToConfirmReservation(pre.lcHistory)
+  );
+}
+
+function shouldUseReservationLocalFallback(
+  pre: PreLLMResult,
+  nextCategory: string | null | undefined,
+  finalText: string,
+  signal: ReturnType<typeof getReservationDomainLockSignal>
+): boolean {
+  if (signal.breaksLock) return false;
+  if (!isReservationFlowStillActive(pre)) return false;
+  return Boolean(
+    nextCategory === "retrieval_based" ||
+    nextCategory === "out_of_scope" ||
+    nextCategory === "amenities" ||
+    nextCategory === "amenities_info" ||
+    nextCategory === "billing" ||
+    nextCategory === "support" ||
+    isContactHotelText(finalText, pre.lang)
+  );
+}
+
+function buildReservationLocalFallbackReply(
+  pre: PreLLMResult,
+  signal: ReturnType<typeof getReservationDomainLockSignal>,
+  nextSlots: ReservationSlotsStrict
+): { nextCategory: "reservation" | "modify_reservation" | "reservation_snapshot"; finalText: string } {
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(pre.currSlots || {}),
+    ...(nextSlots || {}),
+  } as ReservationSlotsStrict;
+  const activeModifyField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+  const inModifyFlow =
+    pre.inModifyMode ||
+    pre.st?.desiredAction === "modify" ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.prevCategory === "modify_reservation";
+  const inSnapshotFlow =
+    pre.prevCategory === "reservation_snapshot" ||
+    Boolean(pre.st?.selectedReservationTarget?.reservationId);
+  const inConfirmFlow =
+    (!inModifyFlow && askedToConfirmReservation(pre.lcHistory)) ||
+    pre.st?.salesStage === "quote" ||
+    pre.st?.conversationStage === "reservation_quoted";
+
+  if (inModifyFlow) {
+    if (activeModifyField === "guests") {
+      return {
+        nextCategory: "modify_reservation",
+        finalText:
+          pre.lang === "es"
+            ? "Seguimos modificando huéspedes. Decime la nueva cantidad de huéspedes."
+            : pre.lang === "pt"
+              ? "Seguimos alterando os hóspedes. Me diga a nova quantidade de hóspedes."
+              : "We are still changing guests. Tell me the new guest count.",
+      };
+    }
+    if (activeModifyField === "dates") {
+      return {
+        nextCategory: "modify_reservation",
+        finalText:
+          pre.lang === "es"
+            ? "Seguimos modificando fechas. Decime el nuevo check-in y check-out."
+            : pre.lang === "pt"
+              ? "Seguimos alterando as datas. Me diga o novo check-in e check-out."
+              : "We are still changing dates. Tell me the new check-in and check-out.",
+      };
+    }
+    if (activeModifyField === "roomType") {
+      return {
+        nextCategory: "modify_reservation",
+        finalText:
+          pre.lang === "es"
+            ? "Seguimos modificando la habitación. Decime el nuevo tipo de habitación."
+            : pre.lang === "pt"
+              ? "Seguimos alterando o quarto. Me diga o novo tipo de quarto."
+              : "We are still changing the room. Tell me the new room type.",
+      };
+    }
+    return {
+      nextCategory: "modify_reservation",
+      finalText: buildModifyGuidance(pre.lang, nextSlots),
+    };
+  }
+
+  if (inSnapshotFlow && !signal.confirmSignal) {
+    return {
+      nextCategory: "reservation_snapshot",
+      finalText:
+        pre.lang === "es"
+          ? "Decime qué reserva querés ver o gestionar: la primera, la segunda, la última, o pasame el código."
+          : pre.lang === "pt"
+            ? "Me diga qual reserva você quer ver ou gerir: a primeira, a segunda, a última, ou me passe o código."
+            : "Tell me which booking you want to view or manage: the first, second, last, or share the booking code.",
+    };
+  }
+
+  if (inConfirmFlow) {
+    return {
+      nextCategory: "reservation",
+      finalText:
+        pre.lang === "es"
+          ? "Seguimos en el cierre de la reserva. Si querés confirmarla, respondé \"confirmar\". Si querés cambiar algo, decímelo."
+          : pre.lang === "pt"
+            ? "Seguimos no fechamento da reserva. Se quiser confirmá-la, responda \"confirmar\". Se quiser mudar algo, me diga."
+            : "We are still closing the booking. If you want to confirm it, reply \"confirmar\". If you want to change something, tell me.",
+    };
+  }
+
+  if (!knownSlots.checkIn) return { nextCategory: "reservation", finalText: buildAskMissingDate(pre.lang, "checkIn") };
+  if (!knownSlots.checkOut) return { nextCategory: "reservation", finalText: buildAskMissingDate(pre.lang, "checkOut") };
+  if (!knownSlots.roomType) {
+    return {
+      nextCategory: "reservation",
+      finalText:
+        pre.lang === "es"
+          ? "Seguimos con tu reserva. ¿Qué tipo de habitación querés?"
+          : pre.lang === "pt"
+            ? "Seguimos com a sua reserva. Que tipo de quarto você quer?"
+            : "We are still working on your booking. Which room type do you want?",
+    };
+  }
+  if (!knownSlots.numGuests) return { nextCategory: "reservation", finalText: buildAskGuests(pre.lang) };
+  if (!isSafeGuestName(knownSlots.guestName || "")) return { nextCategory: "reservation", finalText: buildAskGuestName(pre.lang) };
+  return {
+    nextCategory: "reservation",
+    finalText: buildReservationDomainLockReply(pre, signal, nextSlots),
+  };
+}
+
 function assessReservationDateCoherence(
   checkIn?: string,
   checkOut?: string,
@@ -1897,6 +2035,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
     isAvailabilityVerifyAffirmative ||
     isReservationConfirmFollowup ||
     reservationDomainLock.compatible ||
+    isReservationFlowStillActive(pre) ||
     !!pre.stateForPlaybook?.draft ||
     !!pre.stateForPlaybook?.confirmedBooking;
   const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
@@ -2943,6 +3082,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);
     const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : reservationCheckIn;
     const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : reservationCheckOut;
+    const hasTurnLevelModifyValue =
+      (activeModifyField === "guests" && Boolean(rawGuestCount)) ||
+      (activeModifyField === "roomType" && Boolean(nextSlots.roomType || pre.currSlots.roomType)) ||
+      (activeModifyField === "dates" && hasExplicitDateRange);
+
+    if (!hasTurnLevelModifyValue) {
+      finalText = buildReservationLocalFallbackReply(pre, reservationDomainLock, nextSlots).finalText;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
 
     if (activeModifyField === "guests" && nextGuestCount) {
       if (!codeFromModifySubstate) {
@@ -4240,6 +4388,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           isAvailabilityVerifyAffirmative ||
           isReservationConfirmFollowup ||
           reservationDomainLock.compatible ||
+          isReservationFlowStillActive(pre) ||
           !!pre.stateForPlaybook?.draft ||
           !!pre.stateForPlaybook?.confirmedBooking;
         debugLog("[KB] fastpath check", {
@@ -4528,26 +4677,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
     }
   }
-  const reservationLockEscaped =
-    reservationDomainLock.compatible &&
-    (
-      nextCategory === "retrieval_based" ||
-      nextCategory === "out_of_scope" ||
-      nextCategory === "amenities" ||
-      nextCategory === "amenities_info" ||
-      nextCategory === "billing" ||
-      nextCategory === "support" ||
-      isContactHotelText(finalText, pre.lang)
-    );
-  if (reservationLockEscaped) {
-    nextCategory =
-      pre.inModifyMode ||
-      pre.st?.desiredAction === "modify" ||
-      pre.st?.activeFlow === "modify_reservation" ||
-      pre.prevCategory === "modify_reservation"
-        ? "modify_reservation"
-        : "reservation";
-    finalText = buildReservationDomainLockReply(pre, reservationDomainLock, nextSlots);
+  const reservationLocalFallbackNeeded = shouldUseReservationLocalFallback(pre, nextCategory, finalText, reservationDomainLock);
+  if (reservationLocalFallbackNeeded) {
+    const localFallback = buildReservationLocalFallbackReply(pre, reservationDomainLock, nextSlots);
+    nextCategory = localFallback.nextCategory;
+    finalText = localFallback.finalText;
   }
   // Post-procesamiento: si seguimos en modo modificación y la respuesta sugiere "contactar al hotel", reorientar a guía de modificación
   if (pre.inModifyMode) {
