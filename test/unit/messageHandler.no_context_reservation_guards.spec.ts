@@ -170,4 +170,20 @@ describe("messageHandler guards sin contexto de reserva", () => {
     expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
     expect(replyText).toMatch(/reserva creada|reserva confirmada|R-NEW-01/i);
   });
+
+  it("tolera typo en confirmación dentro del flujo activo y no cae en fallback", async () => {
+    const sendReply = vi.fn(async () => {});
+    await handleIncomingMessage(
+      msg("quiero reservar una habitación doble del 21 de abril al 25 de abril"),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo Martinez"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("conmfirmar"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(confirmAndCreate).toHaveBeenCalled();
+    expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar|whatsapp|email/i);
+    expect(replyText).toMatch(/reserva creada|reserva confirmada|R-NEW-01/i);
+  });
 });

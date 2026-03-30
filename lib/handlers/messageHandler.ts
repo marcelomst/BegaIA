@@ -1133,9 +1133,71 @@ function hasActiveReservationDomain(pre: PreLLMResult): boolean {
   );
 }
 
+function isReservationConfirmSignal(text: string): boolean {
+  if (isPureConfirm(text)) return true;
+  const compact = normalizeReferenceText(text || "").replace(/\s+/g, "");
+  return /^(confirmar+|confirmo|comfirmar+|confimar+|cofirmar+|conmfirmar+|confirmame|confirma|confirmalo|confirmarla|confirmarr+)$/.test(compact);
+}
+
+function hasStrongReservationDomainExitIntent(text: string): boolean {
+  const normalized = normalizeReferenceText(text || "");
+  const normalizedIntent = normalizeReservationIntent(text || "");
+  return Boolean(
+    normalizedIntent.kind === "cancel" ||
+    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|factura|invoice|pago|payment|ayuda|help|soporte|support)\b/.test(normalized)
+  );
+}
+
+function isReservationSnapshotFollowupSignal(pre: PreLLMResult, text: string): boolean {
+  const normalized = normalizeReferenceText(text || "");
+  const trimmed = String(text || "").trim();
+  if (!trimmed || trimmed.length > 48) return false;
+  const hasSnapshotContext =
+    pre.prevCategory === "reservation_snapshot" ||
+    Boolean(pre.st?.selectedReservationTarget?.reservationId);
+  if (!hasSnapshotContext) return false;
+  return Boolean(
+    /\b(esa|la misma|el mismo)\b/.test(normalized) ||
+    extractReservationOrdinalReference(normalized) ||
+    /\b(mostrame|muestrame|mostrarme|mostrar|ver|detalle|detalles|resumen|snapshot|captura)\b/.test(normalized)
+  );
+}
+
+function isReservationModifySubstateSignal(pre: PreLLMResult, text: string): boolean {
+  const activeField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+  if (!activeField) return false;
+  const normalized = normalizeReferenceText(text || "");
+  const trimmed = String(text || "").trim();
+  const extracted = extractSlotsFromText(text || "", pre.lang);
+  if (!trimmed || trimmed.length > 48) return false;
+  if (activeField === "guests") {
+    return Boolean(
+      extracted.numGuests ||
+      /^\d{1,2}$/.test(trimmed) ||
+      /\b(persona|personas|huesped|huespedes|guest|guests|hospede|hospedes)\b/.test(normalized)
+    );
+  }
+  if (activeField === "roomType") {
+    return Boolean(extracted.roomType);
+  }
+  if (activeField === "dates") {
+    const range = extractDateRangeFromText(text || "");
+    return Boolean(
+      range.checkIn ||
+      range.checkOut ||
+      /\b\d{1,2}\s+noches?\b|\b\d{1,2}\s+nights?\b|\b\d{1,2}\s+noites?\b/.test(normalized)
+    );
+  }
+  return false;
+}
+
 function getReservationDomainLockSignal(pre: PreLLMResult, text: string): {
   active: boolean;
   compatible: boolean;
+  breaksLock: boolean;
+  confirmSignal: boolean;
+  snapshotFollowup: boolean;
+  modifySubstate: boolean;
   roomTypeOnly: boolean;
   guestCount: boolean;
   nightCount: boolean;
@@ -1144,7 +1206,6 @@ function getReservationDomainLockSignal(pre: PreLLMResult, text: string): {
   const active = hasActiveReservationDomain(pre);
   const normalized = normalizeReferenceText(text || "");
   const trimmed = String(text || "").trim();
-  const normalizedIntent = normalizeReservationIntent(text || "");
   const extracted = extractSlotsFromText(text || "", pre.lang);
   const roomTypeOnly = Boolean(extracted.roomType) && !extracted.checkIn && !extracted.checkOut && !extracted.numGuests;
   const guestCount = Boolean(extracted.numGuests) && !extracted.checkIn && !extracted.checkOut;
@@ -1155,20 +1216,29 @@ function getReservationDomainLockSignal(pre: PreLLMResult, text: string): {
     /^(con|sin)\s+desayuno\b/.test(normalized) ||
     /^(with|without)\s+breakfast\b/.test(normalized) ||
     /^(com|sem)\s+cafe\s+da\s+manha\b/.test(normalized);
-  const breaksLock =
-    normalizedIntent.kind === "cancel" ||
-    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|factura|invoice|pago|payment|ayuda|help|soporte|support)\b/.test(normalized);
+  const confirmSignal = isReservationConfirmSignal(text || "");
+  const snapshotFollowup = isReservationSnapshotFollowupSignal(pre, text || "");
+  const modifySubstate = isReservationModifySubstateSignal(pre, text || "");
+  const breaksLock = hasStrongReservationDomainExitIntent(text || "");
   const compatible =
     active &&
     !breaksLock &&
     trimmed.length <= 40 &&
-    (roomTypeOnly || guestCount || nightCount || breakfastPreference);
-  return { active, compatible, roomTypeOnly, guestCount, nightCount, breakfastPreference };
+    (roomTypeOnly || guestCount || nightCount || breakfastPreference || confirmSignal || snapshotFollowup || modifySubstate);
+  return { active, compatible, breaksLock, confirmSignal, snapshotFollowup, modifySubstate, roomTypeOnly, guestCount, nightCount, breakfastPreference };
 }
 
 function buildReservationDomainLockReply(
   pre: PreLLMResult,
-  signal: { roomTypeOnly: boolean; guestCount: boolean; nightCount: boolean; breakfastPreference: boolean },
+  signal: {
+    confirmSignal: boolean;
+    snapshotFollowup: boolean;
+    modifySubstate: boolean;
+    roomTypeOnly: boolean;
+    guestCount: boolean;
+    nightCount: boolean;
+    breakfastPreference: boolean;
+  },
   nextSlots: ReservationSlotsStrict
 ): string {
   const knownSlots = {
@@ -1183,6 +1253,13 @@ function buildReservationDomainLockReply(
     pre.prevCategory === "modify_reservation";
 
   if (inModifyFlow) {
+    if (signal.snapshotFollowup) {
+      return pre.lang === "es"
+        ? "Seguimos trabajando sobre esa reserva. Decime qué cambio querés hacer."
+        : pre.lang === "pt"
+          ? "Seguimos trabalhando nessa reserva. Me diga qual alteração você quer fazer."
+          : "We are still working on that booking. Tell me what you want to change.";
+    }
     if (signal.guestCount) {
       return pre.lang === "es"
         ? "Perfecto. Tomo esa nueva cantidad de huéspedes para la modificación. ¿Querés cambiar algo más?"
@@ -1213,6 +1290,20 @@ function buildReservationDomainLockReply(
     }
   }
 
+  if (signal.confirmSignal) {
+    return pre.lang === "es"
+      ? "Perfecto, tomo eso como confirmación y sigo con la reserva."
+      : pre.lang === "pt"
+        ? "Perfeito, tomo isso como confirmação e sigo com a reserva."
+        : "Got it, I will treat that as confirmation and continue with the booking.";
+  }
+  if (signal.snapshotFollowup) {
+    return pre.lang === "es"
+      ? "Seguimos sobre esa reserva. Decime si querés verla, modificarla o cancelarla."
+      : pre.lang === "pt"
+        ? "Seguimos nessa reserva. Me diga se você quer vê-la, alterá-la ou cancelá-la."
+        : "We are still on that booking. Tell me if you want to view, modify, or cancel it.";
+  }
   if (!knownSlots.checkIn) return buildAskMissingDate(pre.lang, "checkIn");
   if (!knownSlots.checkOut) return buildAskMissingDate(pre.lang, "checkOut");
   if (!knownSlots.roomType) {

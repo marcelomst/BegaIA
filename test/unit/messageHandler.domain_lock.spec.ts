@@ -34,6 +34,13 @@ vi.mock("@/lib/agents", () => ({
           meta: {},
         };
       }
+      if (/factura|invoice/.test(text)) {
+        return {
+          messages: [{ role: "assistant", content: "Puedo ayudarte con la factura." }],
+          category: "billing",
+          meta: {},
+        };
+      }
       return {
         messages: [{ role: "assistant", content: "Podés escribirnos por WhatsApp o email para seguir." }],
         category: "retrieval_based",
@@ -179,6 +186,26 @@ describe("messageHandler domain lock de reservation", () => {
     expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
   });
 
+  it("mantiene snapshot continuity para 'esa' y no escapa a fallback global", async () => {
+    currentState = {
+      lastCategory: "reservation_snapshot",
+      selectedReservationTarget: {
+        reservationId: "RES-OLD-01",
+        kind: "confirmed",
+        source: "ordinal",
+        resolutionMode: "strong",
+        resolvedAt: new Date().toISOString(),
+      },
+      activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("esa"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
   it("rompe el lock correctamente para '¿tienen wifi?'", async () => {
     currentState = {
       activeFlow: "reservation",
@@ -194,6 +221,24 @@ describe("messageHandler domain lock de reservation", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/wi-?fi/i);
+    expect(replyText).not.toMatch(/check-in|hu[eé]spedes|reserva/i);
+  });
+
+  it("rompe el lock correctamente para 'quiero factura'", async () => {
+    currentState = {
+      activeFlow: "reservation",
+      desiredAction: "create",
+      lastCategory: "reservation",
+      reservationSlots: {
+        roomType: "double",
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero factura"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/factura|comprobantes|monedas/i);
     expect(replyText).not.toMatch(/check-in|hu[eé]spedes|reserva/i);
   });
 });

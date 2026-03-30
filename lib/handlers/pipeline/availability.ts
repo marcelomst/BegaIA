@@ -472,7 +472,7 @@ export function normalizeReservationIntent(text: string): ReservationIntentNorma
     }
 
     const explicitConfirm =
-        /\b(confirmar|confirmo|comfirmar|confimar|cofirmar|confirmame|confirma|confirmalo|confirmarla)\b/i.test(normalizedText) ||
+        /\b(confirmar+|confirmo|comfirmar|confimar|cofirmar|conmfirmar|confirmame|confirma|confirmalo|confirmarla|confirmarr)\b/i.test(normalizedText) ||
         /\b(confirm\b(?:\s+(?:book|booking|reservation))?|book it)\b/i.test(normalizedText) ||
         /\b(reserva|reservar|reserva la|reservalo|reservala|hacelo|adelante)\b/i.test(normalizedText);
     if (explicitConfirm) return { kind: "confirm", executable: true, normalizedText };
