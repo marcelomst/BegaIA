@@ -4406,3 +4406,30 @@ Posicion evolutiva:
 - completa la fase `Stabilize reservation (pre-focus governance)`
 - queda conectado con la secuencia `FIX-PIPELINE-DOMAIN-LOCK-01` -> `FIX-PIPELINE-DATE-COHERENCE-01` -> `FIX-PIPELINE-MODIFY-SUBSTATE-01` -> `FIX-PIPELINE-REFERENCE-COVERAGE-01`
 - prepara la transición hacia `REF-PIPELINE-FOCUS-CONTRACT-01`
+
+### FIX-PIPELINE-MODIFY-SUBSTATE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: 216beb9f632d6702f9b155f6625d18b5eb96b238
+
+Descripcion:
+
+Se persiste explícitamente el subestado de `modify` en `conv_state`, cerrando
+una desalineación contractual entre runtime, persistencia conversacional y
+expectativas de tests ya integrados.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+
+Validacion:
+
+- el cambio cierra la brecha entre modelo persistido, uso del runtime y expectativas de tests ya existentes
+
+Impacto:
+
+- evita desalineación entre `messageHandler` y `conv_state`
+- formaliza el subestado mínimo de `modify`
+- prepara continuidad consistente de modificaciones guiadas por campo activo
+- mantiene el cambio acotado a estado conversacional, sin mezclarlo con UI ni con otros hitos del pipeline
