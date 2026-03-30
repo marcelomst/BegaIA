@@ -4433,3 +4433,30 @@ Impacto:
 - formaliza el subestado mínimo de `modify`
 - prepara continuidad consistente de modificaciones guiadas por campo activo
 - mantiene el cambio acotado a estado conversacional, sin mezclarlo con UI ni con otros hitos del pipeline
+
+### FEAT-ADMIN-CONVERSATION-ID-VISIBILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: 41f3165d95c9af9fb04a20977e9c8cf7e4ecf7dd
+
+Descripcion:
+
+Se mejora la visibilidad operativa de `conversationId` en `ChannelInbox`,
+agregando render compacto y acción de copiado para facilitar inspección y
+trazabilidad manual desde la interfaz admin.
+
+Archivos afectados:
+
+- `components/admin/ChannelInbox.tsx`
+
+Validacion:
+
+- cambio visible y operativo en interfaz admin, sin impacto en runtime conversacional
+
+Impacto:
+
+- mejora trazabilidad manual desde inbox admin
+- facilita soporte e inspección operativa
+- reduce fricción para copiar identifiers largos
+- mantiene el cambio acotado a UI/admin
