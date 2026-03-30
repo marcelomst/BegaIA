@@ -4537,3 +4537,31 @@ Impacto:
 - mejora continuidad local de `create`, `modify`, `snapshot` y `confirm`
 - evita ejecución inválida de `modify` sin dato nuevo
 - fortalece robustez del runtime actual sin cambiar arquitectura
+
+### FIX-PIPELINE-REFERENCE-RANGE-GUARDS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-30  
+Commit: cf75bba46fc39dddefc1cabf503747bc849b6e78
+
+Descripcion:
+
+Se introduce validación determinística de referencias ordinales fuera de rango
+dentro del Reference Engine de `reservation`, evitando ejecución sobre targets
+inexistentes y reforzando seguridad conversacional.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo de seguridad conversacional y validación determinística del Reference Engine en `reservation`
+
+Impacto:
+
+- bloquea ejecución sobre referencias ordinales inexistentes
+- mejora seguridad del flujo conversacional
+- separa con más claridad etapas internas del Reference Engine
+- reduce riesgo de actuar sobre reserva equivocada
