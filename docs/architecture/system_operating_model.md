@@ -149,6 +149,46 @@ Gobernanza:
 - distinguir entre documentacion historica (`hito_mcp.md`) y documentacion
   operativa estable (`docs/architecture/`)
 
+### Clasificación de cierres documentales
+
+HDOC debe clasificar cada cierre en una de dos categorías:
+
+#### 1. `solo hito`
+
+Actualizar únicamente `hito_mcp.md`.
+
+Aplica cuando:
+
+- el cambio es local
+- no introduce nuevas reglas generales del runtime
+- no altera comportamiento estructural del sistema
+
+#### 2. `hito + evolución documental`
+
+Actualizar `hito_mcp.md` y evaluar actualización de documentación estable en `docs/architecture/*`.
+
+Aplica cuando el hito:
+
+- introduce una regla general del runtime
+- define una jerarquía operativa
+- crea o consolida un slice identificable
+- altera el comportamiento estructural observable del runtime aunque no cambie el ADR ni el runtime target
+
+Ejemplos de slices:
+
+- domain governance
+- fallback governance
+- reference lifecycle
+- modify substate
+
+#### Regla de duda
+
+Si hay duda entre `solo hito` y `hito + evolución documental`, priorizar `hito + evolución documental` cuando el cambio afecte la gobernanza del runtime.
+
+#### Objetivo
+
+Evitar que la documentación refleje solo eventos aislados y asegurar que capture la evolución del comportamiento del sistema.
+
 ## Documentos relacionados
 
 - [channel_map.md](/home/marcelo/begasist/docs/architecture/channel_map.md)
