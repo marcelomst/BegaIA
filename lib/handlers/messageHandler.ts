@@ -549,6 +549,46 @@ function buildModifyFieldPrompt(lang: "es" | "en" | "pt", activeField: ModifySta
       : "Which room type would you like now?";
 }
 
+type CreateFlowMissingField = "checkIn" | "checkOut" | "numGuests" | "roomType" | "guestName" | null;
+
+function getNextCreateFlowMissingField(slots: ReservationSlotsStrict): CreateFlowMissingField {
+  if (!slots.checkIn) return "checkIn";
+  if (!slots.checkOut) return "checkOut";
+  if (!slots.numGuests) return "numGuests";
+  if (!slots.roomType) return "roomType";
+  if (!isSafeGuestName(slots.guestName || "")) return "guestName";
+  return null;
+}
+
+function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlowMissingField): string {
+  if (missingField === "checkIn" || missingField === "checkOut") return buildAskMissingDate(lang, missingField);
+  if (missingField === "numGuests") return buildAskGuests(lang);
+  if (missingField === "guestName") return buildAskGuestName(lang);
+  return lang === "es"
+    ? "Seguimos con tu reserva. ¿Qué tipo de habitación querés?"
+    : lang === "pt"
+      ? "Seguimos com a sua reserva. Que tipo de quarto você quer?"
+      : "We are still working on your booking. Which room type would you like?";
+}
+
+async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStrict): Promise<void> {
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    reservationSlots: {
+      ...(pre.st?.reservationSlots || {}),
+      ...slots,
+      locale: pre.lang,
+    },
+    selectedReservationTarget: null,
+    modifyState: null,
+    activeReservationContext: buildDraftReservationContext("collecting"),
+    activeFlow: "reservation",
+    desiredAction: "create",
+    salesStage: "qualify",
+    lastCategory: "reservation",
+    updatedBy: "ai",
+  } as any);
+}
+
 type ReservationReferenceTarget = {
   kind: "draft" | "reservation";
   reservationId?: string;
@@ -1481,6 +1521,7 @@ function buildReservationDomainLockReply(
   }
   if (!knownSlots.checkIn) return buildAskMissingDate(pre.lang, "checkIn");
   if (!knownSlots.checkOut) return buildAskMissingDate(pre.lang, "checkOut");
+  if (!knownSlots.numGuests) return buildAskGuests(pre.lang);
   if (!knownSlots.roomType) {
     return pre.lang === "es"
       ? "¿Qué tipo de habitación querés reservar?"
@@ -1488,7 +1529,6 @@ function buildReservationDomainLockReply(
         ? "Que tipo de quarto você quer reservar?"
         : "Which room type would you like to book?";
   }
-  if (!knownSlots.numGuests) return buildAskGuests(pre.lang);
   if (!isSafeGuestName(knownSlots.guestName || "")) return buildAskGuestName(pre.lang);
   if (signal.breakfastPreference) {
     return pre.lang === "es"
@@ -3411,101 +3451,60 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     finalText = buildModifyFieldPrompt(pre.lang, activeModifyField);
     return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
   }
+  const createDraftSlots = mergeReservationSlots(pre.st?.reservationSlots, {
+    roomType: reservationRoomType,
+    checkIn: reservationCheckIn,
+    checkOut: reservationCheckOut,
+    numGuests: reservationGuests ? String(reservationGuests) : undefined,
+    guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
+  });
+  const nextCreateMissingField = getNextCreateFlowMissingField(createDraftSlots);
+  const activeCreateFlow =
+    !pre.inModifyMode &&
+    !hasConfirmedBookingContext &&
+    (looksExplicitNewReservation ||
+      pre.st?.activeFlow === "reservation" ||
+      pre.st?.desiredAction === "create" ||
+      pre.prevCategory === "reservation");
   if (
     looksExplicitNewReservation &&
     !hasConfirmedBookingContext &&
-    !reservationRoomType &&
-    reservationCheckIn &&
-    reservationCheckOut
+    !!nextCreateMissingField &&
+    (createDraftSlots.checkIn || createDraftSlots.checkOut || createDraftSlots.numGuests || createDraftSlots.roomType)
   ) {
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationSlots: {
-        ...(pre.st?.reservationSlots || {}),
-        checkIn: reservationCheckIn,
-        checkOut: reservationCheckOut,
-        ...(reservationGuests ? { numGuests: String(reservationGuests) } : {}),
-        locale: pre.lang,
-      },
-      selectedReservationTarget: null,
-      modifyState: null,
-      activeReservationContext: buildDraftReservationContext("collecting"),
-      activeFlow: "reservation",
-      desiredAction: "create",
-      salesStage: "qualify",
-      lastCategory: "reservation",
-      updatedBy: "ai",
-    } as any);
+    await persistCreateDraft(pre, createDraftSlots);
     nextCategory = "reservation";
     return {
-      finalText:
-        pre.lang === "es"
-          ? "Seguimos con tu reserva. ¿Qué tipo de habitación querés?"
-          : pre.lang === "pt"
-            ? "Seguimos com a sua reserva. Que tipo de quarto você quer?"
-            : "We are still working on your booking. Which room type would you like?",
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
       nextCategory,
       nextSlots,
       needsSupervision,
       graphResult,
     };
   }
+  const turnExtractedCreateSlots = extractSlotsFromText(String(pre.msg.content || ""), pre.lang);
+  const turnHasNewCreateData = Boolean(
+    turnExtractedCreateSlots.checkIn ||
+    turnExtractedCreateSlots.checkOut ||
+    turnExtractedCreateSlots.roomType ||
+    turnExtractedCreateSlots.numGuests ||
+    looksLikeName(String(pre.msg.content || ""))
+  );
   if (
-    looksExplicitNewReservation &&
-    !hasConfirmedBookingContext &&
-    reservationRoomType &&
-    reservationCheckIn &&
-    reservationCheckOut &&
-    !reservationGuests
+    activeCreateFlow &&
+    !looksExplicitNewReservation &&
+    nextCreateMissingField &&
+    turnHasNewCreateData
   ) {
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationSlots: {
-        ...(pre.st?.reservationSlots || {}),
-        roomType: reservationRoomType,
-        checkIn: reservationCheckIn,
-        checkOut: reservationCheckOut,
-        locale: pre.lang,
-      },
-      selectedReservationTarget: null,
-      modifyState: null,
-      activeReservationContext: buildDraftReservationContext("collecting"),
-      activeFlow: "reservation",
-      desiredAction: "create",
-      salesStage: "qualify",
-      lastCategory: "reservation",
-      updatedBy: "ai",
-    } as any);
+    await persistCreateDraft(pre, createDraftSlots);
     nextCategory = "reservation";
-    return { finalText: buildAskGuests(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };
-  }
-  if (
-    looksExplicitNewReservation &&
-    !hasConfirmedBookingContext &&
-    reservationRoomType &&
-    reservationCheckIn &&
-    reservationCheckOut &&
-    reservationGuests &&
-    !isSafeGuestName(reservationGuestName || "")
-  ) {
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationSlots: {
-        ...(pre.st?.reservationSlots || {}),
-        roomType: reservationRoomType,
-        checkIn: reservationCheckIn,
-        checkOut: reservationCheckOut,
-        numGuests: String(reservationGuests),
-        locale: pre.lang,
-      },
-      selectedReservationTarget: null,
-      modifyState: null,
-      activeReservationContext: buildDraftReservationContext("collecting"),
-      activeFlow: "reservation",
-      desiredAction: "create",
-      salesStage: "qualify",
-      lastCategory: "reservation",
-      updatedBy: "ai",
-    } as any);
-    nextCategory = "reservation";
-    return { finalText: buildAskGuestName(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };
+    return {
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      nextCategory,
+      nextSlots,
+      needsSupervision,
+      graphResult,
+    };
   }
   if (
     !pre.inModifyMode &&
@@ -4260,6 +4259,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : "Perfect, we will keep the current booking and open a new one. Please share the check-in and check-out dates for this additional booking.";
     return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
   }
+  if (
+    activeCreateFlow &&
+    nextCreateMissingField &&
+    !turnHasNewCreateData &&
+    isPureAffirmative(userTxtRaw, pre.lang) &&
+    !isVerifyAvailabilityAffirmative
+  ) {
+    await persistCreateDraft(pre, createDraftSlots);
+    nextCategory = "reservation";
+    return {
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      nextCategory,
+      nextSlots,
+      needsSupervision,
+      graphResult,
+    };
+  }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
     if (!isReservationConfirmable && !pre.inModifyMode && !hasCompleteCreateDraft) {
       if (reservationFlow === "confirmed") {
@@ -4270,11 +4286,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : "There is already a confirmed booking on this conversation. Tell me if you want to modify or cancel it.";
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
-      finalText = pre.lang === "es"
-        ? "Todavía no tengo una propuesta lista para confirmar. Decime fechas (check-in y check-out) y tipo de habitación para avanzar."
-        : pre.lang === "pt"
-          ? "Ainda não tenho uma proposta pronta para confirmar. Me diga as datas (check-in e check-out) e o tipo de quarto para avançar."
-          : "I don’t have a proposal ready to confirm yet. Please share check-in/check-out dates and room type to continue.";
+      if (activeCreateFlow && nextCreateMissingField) {
+        await persistCreateDraft(pre, createDraftSlots);
+        finalText = buildCreateFlowPrompt(pre.lang, nextCreateMissingField);
+      } else {
+        finalText = pre.lang === "es"
+          ? "Todavía no tengo una propuesta lista para confirmar. Decime fechas (check-in y check-out) y tipo de habitación para avanzar."
+          : pre.lang === "pt"
+            ? "Ainda não tenho uma proposta pronta para confirmar. Me diga as datas (check-in e check-out) e o tipo de quarto para avançar."
+            : "I don’t have a proposal ready to confirm yet. Please share check-in/check-out dates and room type to continue.";
+      }
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!hasGuests) {
