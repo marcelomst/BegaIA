@@ -251,7 +251,15 @@ Responsabilidad:
 Uso:
 
 - capturar fechas, room type, huéspedes, nombre
+- consolidar múltiples datos útiles del mismo turno antes de decidir
+- hacer merge consistente entre estado previo, input actual y fallback estructurado
 - sostener follow-ups y cambios incrementales
+
+Regla operativa:
+
+- la ingestión de slots debe ocurrir antes de cualquier decisión de fallback o
+  continuidad de flujo
+- el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
 
 ## 6. Reservas múltiples
 
@@ -323,11 +331,12 @@ Alcance actual:
 Modelo interno mínimo vigente del Reference Engine:
 
 1. canonical state build
-2. reference detection
-3. existence validation
-4. sufficiency validation
-5. target resolution
-6. execution
+2. slot ingestion
+3. reference detection
+4. existence validation
+5. sufficiency validation
+6. target resolution
+7. execution
 
 Guardrails vigentes:
 
@@ -336,6 +345,7 @@ Guardrails vigentes:
   `modify`, `cancel` o snapshot accionable y pide aclaración
 - no debe existir lógica duplicada por etapa para reinterpretar reservas fuera
   del estado canónico
+- la información útil de un turno debe persistirse antes de decidir fallback
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas

@@ -4652,3 +4652,32 @@ Impacto:
 - sirve como regla de evaluación para hitos futuros
 - fortalece gobernanza arquitectónica del pipeline
 - reduce riesgo de deriva estructural en `reservation`
+
+### FIX-PIPELINE-SLOT-INGESTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: 18e9c68ebc0c17f3b86b9e2d35e2f536ce968e95
+
+Descripcion:
+
+Se mejora la ingestión de slots en `reservation` para capturar múltiples inputs
+útiles en un solo turno y consolidarlos antes de cualquier decisión del
+runtime.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- hito registrado como mejora del stage de ingestión del runtime
+
+Impacto:
+
+- mejora calidad de entrada al estado del runtime
+- reduce pérdida de información entre turno y estado
+- elimina repreguntas redundantes
+- hace más robusto `create/modify` cuando el usuario ya trae varios datos juntos
