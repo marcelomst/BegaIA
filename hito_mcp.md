@@ -4593,3 +4593,32 @@ Impacto:
 - mejora seguridad conversacional
 - completa el modelo interno `reference detection -> existence validation -> sufficiency validation -> target resolution -> execution`
 - fortalece comportamiento determinístico del runtime antes de foco global
+
+### FIX-PIPELINE-RESERVATION-CANONICAL-STATE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: d6be3c1e2a17f10cb768086fa20a898fa3366c66
+
+Descripcion:
+
+Se introduce un estado canónico de reservas como fuente única de verdad para el
+dominio `reservation`, asegurando deduplicación, resolución de conflictos,
+definición uniforme de accionabilidad y orden determinístico.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como consolidación de una fuente de verdad canónica para `reservation`
+
+Impacto:
+
+- reduce duplicación estructural del dominio
+- evita que distintas etapas interpreten reservas distintas como válidas
+- hace determinístico el orden y la accionabilidad
+- fortalece la consistencia interna del pipeline
+- consolida el stage implícito `canonical state build`

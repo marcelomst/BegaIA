@@ -276,6 +276,20 @@ mínima.
 Existe una primera capa conservadora de resolución de referencias
 conversacionales sobre reservas múltiples.
 
+Antes de resolver referencias o accionar sobre reservas, el runtime consolida
+un estado canónico del dominio `reservation`.
+
+Ese stage cumple una función de fuente de verdad interna:
+
+- deduplica por `reservationId`
+- preserva la versión más reciente cuando hay conflicto
+- conserva el estado canónico (`active`, `cancelled`, `error`)
+- define orden determinístico
+- define una única lista de reservas accionables
+
+Esto evita que distintas etapas del pipeline operen sobre versiones diferentes
+de una misma reserva.
+
 Señales usadas por orden:
 
 1. `activeReservationContext`
@@ -308,17 +322,20 @@ Alcance actual:
 
 Modelo interno mínimo vigente del Reference Engine:
 
-1. reference detection
-2. existence validation
-3. sufficiency validation
-4. target resolution
-5. execution
+1. canonical state build
+2. reference detection
+3. existence validation
+4. sufficiency validation
+5. target resolution
+6. execution
 
 Guardrails vigentes:
 
 - referencias ordinales fuera de rango no ejecutan acciones
 - si hay varias reservas accionables sin target suficiente, el sistema bloquea
   `modify`, `cancel` o snapshot accionable y pide aclaración
+- no debe existir lógica duplicada por etapa para reinterpretar reservas fuera
+  del estado canónico
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
