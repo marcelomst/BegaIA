@@ -609,6 +609,16 @@ function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlo
       : "We are still working on your booking. Which room type would you like?";
 }
 
+function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
+  return Boolean(
+    slots.checkIn &&
+    slots.checkOut &&
+    slots.numGuests &&
+    slots.roomType &&
+    isSafeGuestName(slots.guestName || "")
+  );
+}
+
 function shouldAppendFocusContinuation(
   pre: PreLLMResult,
   focus: ConversationFocus | null,
@@ -665,6 +675,8 @@ async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStri
       ...slots,
       locale: pre.lang,
     },
+    lastProposal: null,
+    pendingAvailabilityVerification: null,
     selectedReservationTarget: null,
     modifyState: null,
     conversationFocus: buildConversationFocus("create"),
@@ -5480,6 +5492,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const proposed = getProposedAvailabilityRange(pre.lcHistory);
     const ciISO = pendingAvailabilityVerification?.checkIn || proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
     const coISO = pendingAvailabilityVerification?.checkOut || proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
+    const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots, {
+      checkIn: ciISO,
+      checkOut: coISO,
+    });
+    if (activeCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
+      const missingField = getNextCreateFlowMissingField(createQuoteSlots);
+      if (missingField) {
+        await persistCreateDraft(pre, createQuoteSlots);
+        finalText = buildCreateFlowPrompt(pre.lang, missingField);
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+    }
     const ci = ciISO ? (isoToDDMMYYYY(ciISO) || ciISO) : undefined;
     const co = coISO ? (isoToDDMMYYYY(coISO) || coISO) : undefined;
     if (ci && co) {
@@ -5530,6 +5554,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const proposed = getProposedAvailabilityRange(pre.lcHistory);
       const ciISO = proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
       const coISO = proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
+      const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots, {
+        checkIn: ciISO,
+        checkOut: coISO,
+      });
+      if (activeCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
+        const missingField = getNextCreateFlowMissingField(createQuoteSlots);
+        if (missingField) {
+          await persistCreateDraft(pre, createQuoteSlots);
+          finalText = buildCreateFlowPrompt(pre.lang, missingField);
+          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+        }
+      }
       if (ciISO && coISO) {
         const availabilityStatusDateCoherence = assessReservationDateCoherence(ciISO, coISO);
         if (availabilityStatusDateCoherence && !availabilityStatusDateCoherence.ok) {
@@ -5622,6 +5658,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
     locale: pre.lang,
   };
+  if (
+    activeCreateFlow &&
+    !pre.inModifyMode &&
+    !hasConfirmedBookingContext &&
+    !isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict) &&
+    (isQuoteOrConfirmText(String(finalText || ""), pre.lang) || isVerifyAvailabilityPrompt(String(finalText || "")))
+  ) {
+    const missingField = getNextCreateFlowMissingField(quotedReservationSnapshot as ReservationSlotsStrict);
+    if (missingField) {
+      await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);
+      nextCategory = "reservation";
+      finalText = buildCreateFlowPrompt(pre.lang, missingField);
+    }
+  }
   if (
     !pre.inModifyMode &&
     isQuoteOrConfirmText(String(finalText || ""), pre.lang) &&
