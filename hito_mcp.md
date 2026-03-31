@@ -4740,3 +4740,31 @@ Impacto:
 - evita reinicios innecesarios de `create/modify`
 - refina el slice `focus governance`
 - agrega capacidad explícita de `focus continuation`
+
+### FIX-PIPELINE-CREATE-QUOTE-GATING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: 08038b72a9e53ca76120e745859f595af7b0bc3d
+
+Descripcion:
+
+Se introduce quote gating explícito dentro de `reservation.create`, bloqueando
+cotización, verificación de disponibilidad y respuestas comerciales mientras el
+draft siga incompleto.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo de una regla de ejecución del runtime
+
+Impacto:
+
+- evita ejecución comercial sobre estado incompleto
+- refuerza que create sequencing gobierna antes de availability/quote
+- elimina persistencia de propuestas prematuras
+- mejora consistencia del runtime sobre estado canónico

@@ -303,6 +303,23 @@ Regla operativa:
   incompleto
 - el runtime debe conducir el siguiente paso lógico según completitud real del
   estado
+- no se debe verificar disponibilidad ni generar propuesta comercial mientras el
+  draft de `create` siga incompleto
+
+### 5.8 `quote gating`
+
+Responsabilidad:
+
+- bloquear disponibilidad, quote y proposal dentro de `reservation.create`
+  mientras el draft no tenga completitud suficiente
+
+Regla operativa:
+
+- si el draft está incompleto, el runtime debe volver al siguiente faltante
+  real del create sequencing
+- `lastProposal` y `pendingAvailabilityVerification` no deben quedar
+  persistidos como estado prematuro
+- la ejecución comercial solo puede ocurrir sobre estado suficiente
 
 ## 6. Reservas múltiples
 
@@ -380,7 +397,8 @@ Modelo interno mínimo vigente del Reference Engine:
 5. sufficiency validation
 6. target resolution
 7. create sequencing
-8. execution
+8. quote gating
+9. execution
 
 Guardrails vigentes:
 
@@ -392,6 +410,7 @@ Guardrails vigentes:
 - la información útil de un turno debe persistirse antes de decidir fallback
 - el flujo `create` debe avanzar por completitud de estado y no por reacción
   oportunista al último mensaje
+- no debe existir cotización o proposal sobre drafts incompletos
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
