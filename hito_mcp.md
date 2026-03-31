@@ -4622,3 +4622,33 @@ Impacto:
 - hace determinístico el orden y la accionabilidad
 - fortalece la consistencia interna del pipeline
 - consolida el stage implícito `canonical state build`
+
+### DOC-ARCHITECTURE-CANONICAL-STATE-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: 4b23fd17dbdf13b7d4d73f0deaf5c3e2c9076510
+
+Descripcion:
+
+Se formaliza el principio de estado canónico y se alinea el roadmap
+arquitectónico para que la evolución del runtime opere siempre sobre fuentes de
+verdad consistentes, sin duplicación estructural ni capas paralelas no
+habilitadas.
+
+Archivos afectados:
+
+- `docs/architecture/canonical_state_principle.md`
+- `docs/architecture/roadmap.md`
+
+Validacion:
+
+- no corresponde validación automática; es un hito documental/arquitectónico
+
+Impacto:
+
+- define un principio arquitectónico estable
+- alinea el roadmap con ese principio
+- sirve como regla de evaluación para hitos futuros
+- fortalece gobernanza arquitectónica del pipeline
+- reduce riesgo de deriva estructural en `reservation`
