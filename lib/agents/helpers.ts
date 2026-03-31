@@ -20,6 +20,8 @@ import type { SlotMap } from "@/types/audit";
 export function extractSlotsFromText(text: string, _lang: string): Partial<SlotMap> {
   const out: Partial<SlotMap> = {};
   const t = (text || "").toLowerCase();
+  const sumGuestMatches = (rx: RegExp) =>
+    Array.from(t.matchAll(rx)).reduce((total, match) => total + parseInt(match[1], 10), 0);
   const inferYear = (day: number, month: number, explicitYear?: number) => {
     if (typeof explicitYear === "number") return explicitYear < 100 ? 2000 + explicitYear : explicitYear;
     const now = new Date();
@@ -60,10 +62,10 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       noviembre: 11, nov: 11, november: 11,
       diciembre: 12, dic: 12, dec: 12, december: 12,
     };
-    const monthRange = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
+    const monthRange = t.match(/(?:del?\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
     if (monthRange) {
       const day1 = parseInt(monthRange[1], 10);
-      const month1 = months[monthRange[2]];
+      const month1 = months[monthRange[2]] || months[monthRange[5]];
       const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : undefined;
       const day2 = parseInt(monthRange[4], 10);
       const month2 = months[monthRange[5]] || month1;
@@ -82,9 +84,16 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       }
     }
   }
-  // Personas / huéspedes: "para dos personas", "somos 3"
-  const ng = t.match(/(?:para|somos|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas)/);
-  if (ng?.[1]) out.numGuests = String(parseInt(ng[1], 10));
+  // Personas / huéspedes: soporta totales directos y combinaciones "2 adultos y 1 menor"
+  const adultGuests = sumGuestMatches(/\b(\d{1,2})\s*(?:adultos?|adults?|mayores?)\b/g);
+  const childGuests = sumGuestMatches(/\b(\d{1,2})\s*(?:menor(?:es)?|ninos?|niños?|children|child|kids?)\b/g);
+  const composedGuests = adultGuests + childGuests;
+  if (composedGuests > 0) {
+    out.numGuests = String(composedGuests);
+  } else {
+    const ng = t.match(/(?:para|somos|for|we are|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?)/);
+    if (ng?.[1]) out.numGuests = String(parseInt(ng[1], 10));
+  }
   // Tipo de habitación: lista simple (se puede extender)
   const types = [
     "cuadruple",
