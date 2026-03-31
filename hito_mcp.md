@@ -4710,3 +4710,33 @@ Impacto:
 - reduce repreguntas innecesarias
 - evita decisiones sobre estado incompleto
 - agrega el stage explícito `create sequencing`
+
+### REF-PIPELINE-FOCUS-CONTINUATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: 5ff3ee9e1fd894ae62af3676431b4ef5d26e1af4
+
+Descripcion:
+
+Se agrega continuación explícita del flujo activo tras interrupciones laterales,
+preservando `conversationFocus` y reenganchando el flujo sobre estado real ya
+gobernado.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- micro-hito registrado como refinamiento estable del modelo de `focus governance`
+
+Impacto:
+
+- mejora continuidad conversacional del runtime
+- hace útil la preservación de foco mediante reenganche explícito
+- evita reinicios innecesarios de `create/modify`
+- refina el slice `focus governance`
+- agrega capacidad explícita de `focus continuation`

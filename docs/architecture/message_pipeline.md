@@ -131,6 +131,7 @@ Señales relevantes actuales:
 - `lastReservation`
 - `reservationHistory`
 - `activeReservationContext`
+- `conversationFocus`
 - `pendingCancellation`
 - `pendingAvailabilityVerification`
 - `salesStage`
@@ -241,7 +242,27 @@ Uso:
 - mejorar multi-reservation
 - habilitar reference resolution conservadora
 
-### 5.5 `reservationSlots`
+### 5.5 `conversationFocus`
+
+Responsabilidad:
+
+- preservar el foco conversacional activo del runtime y permitir continuación
+  explícita después de interrupciones laterales compatibles
+
+Uso:
+
+- reutilizar estado real ya gobernado para retomar `create`, `modify` o `cancel`
+- evitar reinicios innecesarios del flujo activo
+- impedir que preservar foco quede como señal pasiva sin reenganche operativo
+
+Regla operativa:
+
+- preservar foco no alcanza por sí solo; el runtime puede anexar continuación
+  explícita cuando el lateral no resolvió el faltante del flujo activo
+- no debe existir continuación redundante si el turno lateral ya aportó el dato
+  necesario
+
+### 5.6 `reservationSlots`
 
 Responsabilidad:
 
@@ -261,7 +282,7 @@ Regla operativa:
   continuidad de flujo
 - el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
 
-### 5.6 `create sequencing`
+### 5.7 `create sequencing`
 
 Responsabilidad:
 
