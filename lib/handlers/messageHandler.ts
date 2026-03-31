@@ -23,6 +23,7 @@ import type {
   ActiveReservationContext,
   SelectedReservationTarget,
   ModifyState,
+  ConversationFocus,
 } from "@/lib/db/convState";
 import crypto from "crypto";
 
@@ -533,6 +534,43 @@ function buildModifyState(activeField: ModifyState["activeField"]): ModifyState 
   };
 }
 
+function buildConversationFocus(subFlow: ConversationFocus["subFlow"]): ConversationFocus {
+  return {
+    domain: "reservation",
+    subFlow,
+    active: true,
+    updatedAt: safeNowISO(),
+  };
+}
+
+function getConversationFocus(state?: Partial<{
+  conversationFocus?: ConversationFocus | null;
+  activeFlow?: string | null;
+  desiredAction?: string | null;
+}> | null): ConversationFocus | null {
+  const explicit = state?.conversationFocus;
+  if (explicit?.domain === "reservation" && explicit.active && explicit.subFlow) {
+    return explicit;
+  }
+  if (state?.desiredAction === "cancel" || state?.activeFlow === "cancel_reservation") {
+    return buildConversationFocus("cancel");
+  }
+  if (state?.desiredAction === "modify" || state?.activeFlow === "modify_reservation") {
+    return buildConversationFocus("modify");
+  }
+  if (state?.desiredAction === "create" || state?.activeFlow === "reservation") {
+    return buildConversationFocus("create");
+  }
+  return null;
+}
+
+function shouldSwitchFlow(
+  currentFocus: ConversationFocus | null,
+  nextFlow: ConversationFocus["subFlow"] | null
+): boolean {
+  return Boolean(currentFocus?.active && nextFlow && currentFocus.subFlow !== nextFlow);
+}
+
 function buildModifyFieldPrompt(lang: "es" | "en" | "pt", activeField: ModifyState["activeField"]): string {
   if (activeField === "dates") return buildAskNewDates(lang);
   if (activeField === "guests") {
@@ -571,6 +609,55 @@ function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlo
       : "We are still working on your booking. Which room type would you like?";
 }
 
+function shouldAppendFocusContinuation(
+  pre: PreLLMResult,
+  focus: ConversationFocus | null,
+  options: {
+    isLateralTurn: boolean;
+    turnHasReservationData: boolean;
+  }
+): boolean {
+  if (!options.isLateralTurn) return false;
+  if (!focus?.active) return false;
+  if (focus.subFlow !== "create" && focus.subFlow !== "modify") return false;
+  if (options.turnHasReservationData) return false;
+  return true;
+}
+
+function buildFocusContinuationPrompt(
+  pre: PreLLMResult,
+  focus: ConversationFocus | null,
+  nextSlots: ReservationSlotsStrict
+): string | null {
+  if (!focus?.active) return null;
+  if (focus.subFlow === "create") {
+    const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+    const missingField = getNextCreateFlowMissingField(knownSlots);
+    if (!missingField) return null;
+    const prompt = buildCreateFlowPrompt(pre.lang, missingField);
+    return pre.lang === "es"
+      ? `Para seguir con la reserva, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
+      : pre.lang === "pt"
+        ? `Para seguir com a reserva, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
+        : `To continue with the booking, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`;
+  }
+  if (focus.subFlow === "modify") {
+    const activeField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+    const prompt = activeField
+      ? buildModifyFieldPrompt(pre.lang, activeField)
+      : buildModifyOptionsMenu(pre.lang, {
+          ...(pre.st?.reservationSlots || {}),
+          ...(nextSlots || {}),
+        } as ReservationSlotsStrict);
+    return pre.lang === "es"
+      ? `Para seguir con la modificación, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
+      : pre.lang === "pt"
+        ? `Para seguir com a alteração, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
+        : `To continue with the change, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`;
+  }
+  return null;
+}
+
 async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStrict): Promise<void> {
   await updateConversationState(pre.msg.hotelId, pre.conversationId, {
     reservationSlots: {
@@ -580,6 +667,7 @@ async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStri
     },
     selectedReservationTarget: null,
     modifyState: null,
+    conversationFocus: buildConversationFocus("create"),
     activeReservationContext: buildDraftReservationContext("collecting"),
     activeFlow: "reservation",
     desiredAction: "create",
@@ -1317,6 +1405,7 @@ function isGuestNameFollowupInReservation(
 
 function hasActiveReservationDomain(pre: PreLLMResult): boolean {
   const st = pre.st;
+  const focus = getConversationFocus(st);
   const hasDraftSlots = Boolean(
     st?.reservationSlots?.roomType ||
     st?.reservationSlots?.checkIn ||
@@ -1344,7 +1433,8 @@ function hasActiveReservationDomain(pre: PreLLMResult): boolean {
     st?.activeReservationContext?.kind === "draft" ||
     st?.activeReservationContext?.kind === "reservation" ||
     hasDraftSlots ||
-    hasTurnLevelSlots
+    hasTurnLevelSlots ||
+    focus?.active
   );
 }
 
@@ -1359,7 +1449,7 @@ function hasStrongReservationDomainExitIntent(text: string): boolean {
   const normalizedIntent = normalizeReservationIntent(text || "");
   return Boolean(
     normalizedIntent.kind === "cancel" ||
-    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|factura|invoice|pago|payment|ayuda|help|soporte|support)\b/.test(normalized)
+    /\b(wifi|wi-fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|factura|invoice|pago|payment|ayuda|help|soporte|support)\b/.test(normalized)
   );
 }
 
@@ -1545,12 +1635,14 @@ function buildReservationDomainLockReply(
 }
 
 function isReservationFlowStillActive(pre: PreLLMResult): boolean {
+  const focus = getConversationFocus(pre.st);
   return Boolean(
     hasActiveReservationDomain(pre) ||
     pre.prevCategory === "reservation_snapshot" ||
     pre.st?.selectedReservationTarget?.reservationId ||
     pre.st?.modifyState?.activeField ||
-    askedToConfirmReservation(pre.lcHistory)
+    askedToConfirmReservation(pre.lcHistory) ||
+    focus?.active
   );
 }
 
@@ -2684,6 +2776,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           modifyState: buildModifyState("dates"),
+          conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -2734,6 +2827,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             modifyState: buildModifyState("dates"),
+            conversationFocus: buildConversationFocus("modify"),
             activeFlow: "modify_reservation",
             desiredAction: "modify",
             lastCategory: "modify_reservation",
@@ -2748,6 +2842,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           modifyState: buildModifyState("dates"),
+          conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -2819,6 +2914,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
           ),
           modifyState: null,
+          conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -3040,12 +3136,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.prevCategory === "modify_reservation"
     ) &&
     (pre.prevCategory === "reservation_snapshot" || !hasModifyVerb);
-  const effectiveSnapshotQueryKind = snapshotQueryKind || (implicitOrdinalSnapshotFollowup ? "full" : null);
+  const effectiveSnapshotQueryKind =
+    normalizedReservationIntent.kind === "cancel"
+      ? null
+      : snapshotQueryKind || (implicitOrdinalSnapshotFollowup ? "full" : null);
   const looksNonReservationDomainTurn =
     normalizedReservationIntent.kind === "other" &&
     !effectiveSnapshotQueryKind &&
     !reservationDomainLock.compatible &&
-    /\b(wifi|wi-fi|internet|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
+    /\b(wifi|wi-fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
   if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
@@ -3148,6 +3247,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         guestName: trimmedUserText,
         locale: pre.lang,
       },
+      conversationFocus: buildConversationFocus("create"),
       activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
@@ -3200,6 +3300,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
       modifyState: null,
+      conversationFocus: null,
       activeFlow: null,
       desiredAction: undefined,
       lastCategory: "reservation_snapshot",
@@ -3226,6 +3327,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
       modifyState: null,
+      conversationFocus: null,
       activeFlow: null,
       desiredAction: undefined,
       lastCategory: "reservation_snapshot",
@@ -3260,6 +3362,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
       modifyState: null,
+      conversationFocus: buildConversationFocus("modify"),
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
@@ -3290,6 +3393,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
       ),
       modifyState: null,
+      conversationFocus: buildConversationFocus("modify"),
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
@@ -3459,10 +3563,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftSlots);
+  const currentFocus = getConversationFocus(pre.st);
   const activeCreateFlow =
     !pre.inModifyMode &&
     !hasConfirmedBookingContext &&
     (looksExplicitNewReservation ||
+      currentFocus?.subFlow === "create" ||
       pre.st?.activeFlow === "reservation" ||
       pre.st?.desiredAction === "create" ||
       pre.prevCategory === "reservation");
@@ -3526,6 +3632,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         numGuests: String(reservationGuests),
         locale: pre.lang,
       },
+      conversationFocus: buildConversationFocus("create"),
       activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
@@ -4013,9 +4120,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ? pre.st?.activeReservationContext.reservationId
       : undefined);
   if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
-      activeFlow: "cancel_reservation",
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
+        conversationFocus: buildConversationFocus("cancel"),
+        activeFlow: "cancel_reservation",
       activeReservationContext: buildFocusedReservationContext(cancelCodeFromUser, "confirmed"),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(cancelCodeFromUser, explicitReservationCode ? "explicit_id" : "active_focus", explicitReservationCode ? "strong" : "weak"),
       desiredAction: "cancel",
@@ -4048,6 +4156,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           "active_focus",
           "weak"
         ),
+        conversationFocus: null,
         activeFlow: null,
         desiredAction: undefined,
         lastCategory: "cancel_reservation",
@@ -4074,7 +4183,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     if (
       reservationReference.status === "resolved" &&
       reservationReference.target.kind === "draft" &&
-      !cancelCodeFromUser
+      !cancelCodeFromUser &&
+      !selectedReservationTarget?.reservationId &&
+      !(pre.st?.activeReservationContext?.kind === "reservation" && pre.st?.activeReservationContext?.reservationId) &&
+      !pre.st?.lastReservation?.reservationId
     ) {
       const fallbackReservation =
         reservationReference.target.source === "active" &&
@@ -4086,6 +4198,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         reservationSlots: null,
         lastProposal: null,
         pendingAvailabilityVerification: null,
+        conversationFocus: null,
         activeFlow: null,
         desiredAction: undefined,
         activeReservationContext: fallbackReservation,
@@ -4107,6 +4220,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: null,
+        conversationFocus: buildConversationFocus("cancel"),
         activeFlow: "cancel_reservation",
         desiredAction: "cancel",
         lastCategory: "cancel_reservation",
@@ -4118,6 +4232,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     if (!(isPureConfirm(userTxtRaw) || hasInlineCancelConfirmation)) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: { reservationId: resolvedCancelCode, awaitingConfirmation: true },
+        conversationFocus: buildConversationFocus("cancel"),
         activeFlow: "cancel_reservation",
         activeReservationContext: buildFocusedReservationContext(resolvedCancelCode, "confirmed"),
         selectedReservationTarget: buildSelectedReservationTargetFromReference(
@@ -4154,6 +4269,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
           explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
         ),
+        conversationFocus: null,
         activeFlow: null,
         desiredAction: undefined,
         lastCategory: "cancel_reservation",
@@ -4225,6 +4341,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pendingAvailabilityVerification: null,
       selectedReservationTarget: null,
       modifyState: null,
+      conversationFocus: buildConversationFocus("create"),
       activeReservationContext: buildDraftReservationContext("collecting"),
       activeFlow: "reservation",
       desiredAction: "create",
@@ -4310,6 +4427,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             ...(nextSlots || {}),
             locale: pre.lang,
           },
+          conversationFocus: buildConversationFocus("create"),
           activeReservationContext: buildDraftReservationContext("collecting"),
           activeFlow: "reservation",
           desiredAction: "create",
@@ -4361,6 +4479,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             locale: pre.lang,
           },
           modifyState: null,
+          conversationFocus: buildConversationFocus("create"),
           activeReservationContext: buildDraftReservationContext("collecting"),
           activeFlow: "reservation",
           desiredAction: "create",
@@ -4485,6 +4604,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             activeReservationContext: buildFocusedReservationContext(createdReservation.reservationId, "confirmed"),
             lastReservation: createdReservation,
             salesStage: "close",
+            conversationFocus: null,
             activeFlow: null,
             desiredAction: undefined,
             updatedBy: "ai",
@@ -4979,6 +5099,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           ...fallbackSlots,
           locale: pre.lang,
         },
+        conversationFocus:
+          localFallback.nextCategory === "modify_reservation"
+            ? buildConversationFocus("modify")
+            : localFallback.nextCategory === "reservation"
+              ? buildConversationFocus("create")
+              : null,
         activeReservationContext:
           localFallback.nextCategory === "modify_reservation"
             ? pre.st?.activeReservationContext
@@ -5048,6 +5174,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               locale: pre.lang,
             },
             modifyState: buildModifyState(activeField),
+            conversationFocus: buildConversationFocus("modify"),
             activeFlow: "modify_reservation",
             desiredAction: "modify",
             lastCategory: "modify_reservation",
@@ -5075,6 +5202,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           modifyState: buildModifyState(activeField),
+          conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -5138,6 +5266,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           reservationSlots: { ...knownSlots, locale: pre.lang },
           activeReservationContext: buildFocusedReservationContext(resolvedModifyTarget.reservationId, "confirmed"),
           modifyState: null,
+          conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
           desiredAction: "modify",
           lastCategory: "modify_reservation",
@@ -5455,6 +5584,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   if (isSupportTurn) {
     finalText = applyCommittedHotelTone(String(finalText || ""), pre.lang);
   }
+  const focusAfterTurn = getConversationFocus(pre.st);
+  const focusTurnExtractedSlots = extractSlotsFromText(String(pre.msg.content || ""), pre.lang);
+  const focusTurnHasReservationData = Boolean(
+    focusTurnExtractedSlots.checkIn ||
+    focusTurnExtractedSlots.checkOut ||
+    focusTurnExtractedSlots.roomType ||
+    focusTurnExtractedSlots.numGuests ||
+    looksLikeName(String(pre.msg.content || "")) ||
+    extractRawOrderedDateRange(String(pre.msg.content || ""))?.checkIn
+  );
+  if (
+    shouldAppendFocusContinuation(pre, focusAfterTurn, {
+      isLateralTurn: isAmenitiesTurn,
+      turnHasReservationData: focusTurnHasReservationData,
+    })
+  ) {
+    const continuation = buildFocusContinuationPrompt(pre, focusAfterTurn, nextSlots);
+    if (continuation) {
+      finalText = `${String(finalText || "").trim()} ${continuation}`.trim();
+    }
+  }
   if (shouldClearSelectedReservationTargetForCategory(nextCategory, promptKeyUsed)) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
@@ -5487,6 +5637,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         text: String(finalText || ""),
         available: true,
       },
+      conversationFocus: buildConversationFocus("create"),
       activeReservationContext: buildDraftReservationContext("quoted"),
       activeFlow: "reservation",
       desiredAction: "create",

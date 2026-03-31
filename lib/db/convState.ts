@@ -106,6 +106,13 @@ export type ModifyState = {
   updatedAt: string;
 };
 
+export type ConversationFocus = {
+  domain: "reservation";
+  subFlow: "create" | "modify" | "cancel";
+  active: boolean;
+  updatedAt: string;
+};
+
 export type ConversationStage =
   | "intake"
   | "reservation_collecting"
@@ -120,7 +127,7 @@ export type ConversationFlowState = {
   conversationId: string;
 
   // Flujo actual (compat)
-  activeFlow?: "reservation" | "cancel_reservation" | null;
+  activeFlow?: "reservation" | "modify_reservation" | "cancel_reservation" | null;
 
   // Slots vivos del borrador
   reservationSlots?: ReservationSlots;
@@ -134,6 +141,7 @@ export type ConversationFlowState = {
   activeReservationContext?: ActiveReservationContext | null;
   selectedReservationTarget?: SelectedReservationTarget | null;
   modifyState?: ModifyState | null;
+  conversationFocus?: ConversationFocus | null;
   pendingCancellation?: PendingCancellation | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
   guestState?: GuestState | null;
@@ -192,6 +200,41 @@ function deriveConversationStage(
     patch.reservationSlots
   ) {
     return "reservation_collecting";
+  }
+  return undefined;
+}
+
+function deriveConversationFocus(
+  patch: Partial<ConversationFlowState>
+): ConversationFocus | null | undefined {
+  if ("conversationFocus" in patch) {
+    return patch.conversationFocus ?? null;
+  }
+  if (patch.desiredAction === "cancel" || patch.activeFlow === "cancel_reservation") {
+    return { domain: "reservation", subFlow: "cancel", active: true, updatedAt: new Date().toISOString() };
+  }
+  if (patch.desiredAction === "modify" || patch.activeFlow === "modify_reservation") {
+    return { domain: "reservation", subFlow: "modify", active: true, updatedAt: new Date().toISOString() };
+  }
+  if (
+    patch.desiredAction === "create" ||
+    patch.activeFlow === "reservation" ||
+    patch.salesStage === "qualify" ||
+    patch.salesStage === "quote" ||
+    patch.salesStage === "followup" ||
+    patch.reservationSlots ||
+    patch.activeReservationContext?.kind === "draft"
+  ) {
+    return { domain: "reservation", subFlow: "create", active: true, updatedAt: new Date().toISOString() };
+  }
+  if (
+    "activeFlow" in patch ||
+    "desiredAction" in patch ||
+    "salesStage" in patch ||
+    "reservationSlots" in patch ||
+    "activeReservationContext" in patch
+  ) {
+    return null;
   }
   return undefined;
 }
@@ -270,6 +313,7 @@ export async function upsertConvState(
     }
   }
   const derivedConversationStage = deriveConversationStage(patch);
+  const derivedConversationFocus = deriveConversationFocus(patch);
   if ("conversationStage" in patch) {
     if (patch.conversationStage == null) {
       $unset["conversationStage"] = true;
@@ -376,6 +420,15 @@ export async function upsertConvState(
     }
   }
 
+  if ("conversationFocus" in patch || typeof derivedConversationFocus !== "undefined") {
+    const nextFocus = "conversationFocus" in patch ? patch.conversationFocus ?? null : derivedConversationFocus;
+    if (nextFocus == null) {
+      $unset["conversationFocus"] = true;
+    } else {
+      $set["conversationFocus"] = nextFocus;
+    }
+  }
+
   if ("pendingCancellation" in patch) {
     if ((patch as any).pendingCancellation == null) {
       $unset["pendingCancellation"] = true;
@@ -423,6 +476,7 @@ export async function upsertConvState(
       if ("salesStage" in patch) doc.salesStage = patch.salesStage ?? null;
       if ("desiredAction" in patch) doc.desiredAction = patch.desiredAction ?? null;
       if (derivedConversationStage) doc.conversationStage = derivedConversationStage;
+      if (derivedConversationFocus != null) doc.conversationFocus = derivedConversationFocus;
       if ("supervised" in patch) doc.supervised = !!(patch as any).supervised;
       if ("lastSupervision" in patch && (patch as any).lastSupervision != null) doc.lastSupervision = (patch as any).lastSupervision;
       if ("reservationSlots" in patch) {
@@ -440,6 +494,7 @@ export async function upsertConvState(
       if ("activeReservationContext" in patch && (patch as any).activeReservationContext != null) doc.activeReservationContext = (patch as any).activeReservationContext;
       if ("selectedReservationTarget" in patch && (patch as any).selectedReservationTarget != null) doc.selectedReservationTarget = (patch as any).selectedReservationTarget;
       if ("modifyState" in patch && (patch as any).modifyState != null) doc.modifyState = (patch as any).modifyState;
+      if ("conversationFocus" in patch && (patch as any).conversationFocus != null) doc.conversationFocus = (patch as any).conversationFocus;
       if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
       if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
       if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;
