@@ -4768,3 +4768,29 @@ Impacto:
 - refuerza que create sequencing gobierna antes de availability/quote
 - elimina persistencia de propuestas prematuras
 - mejora consistencia del runtime sobre estado canónico
+
+### DOC-ARCHITECTURE-MANUAL-TEST-PLAN-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: ab9c693ea5da34d7ad344c3a8c16496c345ece95
+
+Descripcion:
+
+Se versiona el plan de tests manuales usado como fuente de observación para
+detectar gaps reales del runtime y para dejar trazabilidad del origen de fixes
+técnicos posteriores.
+
+Archivos afectados:
+
+- `docs/architecture/plan_tests_manuales.md`
+
+Validacion:
+
+- no corresponde validación automática; es un hito documental
+
+Impacto:
+
+- mejora trazabilidad entre observación manual y fix técnico
+- preserva contexto de origen para futuros análisis
+- ayuda a justificar técnicamente hitos derivados de manual parity
