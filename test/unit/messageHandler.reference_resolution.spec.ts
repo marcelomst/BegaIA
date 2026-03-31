@@ -560,6 +560,114 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).toMatch(/RES-MID-02.*cancelada/i);
   });
 
+  it("deduplica por reservationId y conserva la versión más reciente como estado canónico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-canonical-dedupe-1";
+    stateByConversation.set(
+      conversationId,
+      baseMultiReservationState({
+        reservationHistory: [
+          {
+            reservationId: "RES-DUPE-01",
+            status: "created",
+            createdAt: "2026-03-20T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "single",
+            checkIn: "2026-03-24",
+            checkOut: "2026-03-26",
+            numGuests: "1",
+          },
+          {
+            reservationId: "RES-DUPE-01",
+            status: "cancelled",
+            createdAt: "2026-03-22T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "single",
+            checkIn: "2026-03-24",
+            checkOut: "2026-03-26",
+            numGuests: "1",
+          },
+        ],
+        lastReservation: {
+          reservationId: "RES-DUPE-01",
+          status: "cancelled",
+          createdAt: "2026-03-22T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "single",
+          checkIn: "2026-03-24",
+          checkOut: "2026-03-26",
+          numGuests: "1",
+        },
+      })
+    );
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText.match(/RES-DUPE-01/g)?.length).toBe(1);
+    expect(replyText).toMatch(/cancelada/i);
+  });
+
+  it("ambiguity gating usa solo reservas accionables del estado canónico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-canonical-actionable-1";
+    stateByConversation.set(
+      conversationId,
+      baseMultiReservationState({
+        reservationHistory: [
+          {
+            reservationId: "RES-ACTIVE-01",
+            status: "created",
+            createdAt: "2026-03-20T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "single",
+            checkIn: "2026-03-24",
+            checkOut: "2026-03-26",
+            numGuests: "1",
+          },
+          {
+            reservationId: "RES-CANCELLED-02",
+            status: "cancelled",
+            createdAt: "2026-03-22T10:00:00.000Z",
+            channel: "web",
+            guestName: "Marcelo Martinez",
+            roomType: "double",
+            checkIn: "2026-03-28",
+            checkOut: "2026-03-30",
+            numGuests: "2",
+          },
+        ],
+        lastReservation: {
+          reservationId: "RES-ACTIVE-01",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "single",
+          checkIn: "2026-03-24",
+          checkOut: "2026-03-26",
+          numGuests: "1",
+        },
+        activeReservationContext: {
+          kind: "reservation",
+          reservationId: "RES-ACTIVE-01",
+          phase: "confirmed",
+          updatedAt: "2026-03-20T10:00:00.000Z",
+        },
+      })
+    );
+
+    await handleIncomingMessage(msg("modificá mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/qu[eé] te gustar[ií]a cambiar|fechas|hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/varias reservas/i);
+  });
+
   it("mantiene foco referencial y resuelve 'modificá esa' después de 'mostrame la segunda'", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-anaphora-modify-1";

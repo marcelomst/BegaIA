@@ -570,6 +570,10 @@ type ReservationReferenceResolution =
 type ReservationOrdinalReference =
   | { type: "ordinal"; value: "first" | "second" | "third" | "fourth" | "last" };
 
+type CanonicalReservationRecord = LastReservation & {
+  canonicalStatus: "active" | "cancelled" | "error";
+};
+
 function normalizeReferenceText(text: string): string {
   return String(text || "")
     .toLowerCase()
@@ -607,30 +611,59 @@ function getEffectiveActiveReservationContext(state: any): ActiveReservationCont
   return undefined;
 }
 
-function buildCanonicalReservationRecords(state: any): LastReservation[] {
+function normalizeCanonicalReservationStatus(status: string | null | undefined): CanonicalReservationRecord["canonicalStatus"] {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (normalized === "cancelled") return "cancelled";
+  if (normalized === "error") return "error";
+  return "active";
+}
+
+function buildReservationCanonicalState(state: any): {
+  records: CanonicalReservationRecord[];
+  actionableRecords: CanonicalReservationRecord[];
+  byId: Map<string, CanonicalReservationRecord>;
+} {
   const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
   const records = [...history];
   if (state?.lastReservation?.reservationId) records.push(state.lastReservation);
 
-  const byId = new Map<string, LastReservation>();
+  const byId = new Map<string, CanonicalReservationRecord>();
   for (const item of records) {
     if (!item?.reservationId) continue;
+    const current: CanonicalReservationRecord = {
+      ...item,
+      canonicalStatus: normalizeCanonicalReservationStatus(item.status),
+    };
     const prev = byId.get(item.reservationId);
     if (!prev) {
-      byId.set(item.reservationId, item);
+      byId.set(item.reservationId, current);
       continue;
     }
     const prevAt = String(prev.createdAt || "");
-    const currAt = String(item.createdAt || "");
-    if (!prevAt || currAt >= prevAt) byId.set(item.reservationId, item);
+    const currAt = String(current.createdAt || "");
+    if (!prevAt || currAt > prevAt || (currAt === prevAt && current.canonicalStatus !== prev.canonicalStatus)) {
+      byId.set(current.reservationId, current);
+    }
   }
 
-  return Array.from(byId.values()).sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+  const canonicalRecords = Array.from(byId.values()).sort((a, b) => {
+    const byCreatedAt = String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+    return byCreatedAt || String(a.reservationId || "").localeCompare(String(b.reservationId || ""));
+  });
+  return {
+    records: canonicalRecords,
+    actionableRecords: canonicalRecords.filter((item) => item.canonicalStatus === "active"),
+    byId,
+  };
+}
+
+function buildCanonicalReservationRecords(state: any): CanonicalReservationRecord[] {
+  return buildReservationCanonicalState(state).records;
 }
 
 function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
-  reservations: LastReservation[]
+  reservations: CanonicalReservationRecord[]
 ): string {
   if (!reservations.length) {
     return lang === "pt"
@@ -645,9 +678,9 @@ function buildReservationListAnswer(
     const checkIn = isoToDDMMYYYY(item.checkIn) || item.checkIn || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
     const checkOut = isoToDDMMYYYY(item.checkOut) || item.checkOut || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
     const status =
-      item.status === "cancelled"
+      item.canonicalStatus === "cancelled"
         ? (lang === "pt" ? "cancelada" : lang === "en" ? "cancelled" : "cancelada")
-        : item.status === "error"
+        : item.canonicalStatus === "error"
           ? (lang === "pt" ? "com erro" : lang === "en" ? "error" : "con error")
           : (lang === "pt" ? "ativa" : lang === "en" ? "active" : "activa");
     const guests = item.numGuests ? ` · ${lang === "pt" ? "hóspedes" : lang === "en" ? "guests" : "huéspedes"}: ${item.numGuests}` : "";
@@ -682,7 +715,7 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: active.reservationId,
-      reservationStatus: activeRecord?.status,
+      reservationStatus: activeRecord?.canonicalStatus === "active" ? "created" : activeRecord?.canonicalStatus,
       guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : activeRecord?.guestName,
       roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : activeRecord?.roomType,
       numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : activeRecord?.numGuests,
@@ -700,7 +733,7 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     candidates.push({
       kind: "reservation",
       reservationId: item.reservationId,
-      reservationStatus: item.status,
+      reservationStatus: item.canonicalStatus === "active" ? "created" : item.canonicalStatus,
       guestName: item.guestName,
       roomType: item.roomType,
       numGuests: item.numGuests,
@@ -714,11 +747,11 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
 }
 
 function buildOrderedReservationHistoryCandidates(state: any): ReservationReferenceTarget[] {
-  return buildCanonicalReservationRecords(state)
+  return buildReservationCanonicalState(state).records
     .map((item) => ({
       kind: "reservation" as const,
       reservationId: item.reservationId,
-      reservationStatus: item.status,
+      reservationStatus: item.canonicalStatus === "active" ? "created" : item.canonicalStatus,
       guestName: item.guestName,
       roomType: item.roomType,
       numGuests: item.numGuests,
@@ -729,9 +762,17 @@ function buildOrderedReservationHistoryCandidates(state: any): ReservationRefere
 }
 
 function buildActionableReservationCandidates(state: any): ReservationReferenceTarget[] {
-  return buildOrderedReservationHistoryCandidates(state).filter(
-    (candidate) => candidate.reservationId && candidate.reservationStatus !== "cancelled"
-  );
+  return buildReservationCanonicalState(state).actionableRecords.map((item) => ({
+    kind: "reservation" as const,
+    reservationId: item.reservationId,
+    reservationStatus: "created",
+    guestName: item.guestName,
+    roomType: item.roomType,
+    numGuests: item.numGuests,
+    checkIn: item.checkIn,
+    checkOut: item.checkOut,
+    source: "history" as const,
+  }));
 }
 
 function extractReservationOrdinalReferenceSpec(text: string): ReservationOrdinalReference | null {
