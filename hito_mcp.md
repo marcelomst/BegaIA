@@ -4681,3 +4681,32 @@ Impacto:
 - reduce pérdida de información entre turno y estado
 - elimina repreguntas redundantes
 - hace más robusto `create/modify` cuando el usuario ya trae varios datos juntos
+
+### FIX-PIPELINE-CREATE-SEQUENCING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-03-31  
+Commit: 84b42680dd7bd95fc2591e8c4690da17769d55c1
+
+Descripcion:
+
+Se introduce gobernanza explícita del create flow en `reservation`, definiendo
+una secuencia determinística de captura y persistencia previa a la decisión del
+runtime.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_sequencing.spec.ts`
+
+Validacion:
+
+- hito registrado como consolidación del flujo create bajo reglas explícitas de secuenciación y completitud
+
+Impacto:
+
+- transforma el create flow en un flujo gobernado, no meramente reactivo
+- mejora consistencia de captura de datos
+- reduce repreguntas innecesarias
+- evita decisiones sobre estado incompleto
+- agrega el stage explícito `create sequencing`

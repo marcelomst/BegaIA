@@ -261,6 +261,28 @@ Regla operativa:
   continuidad de flujo
 - el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
 
+### 5.6 `create sequencing`
+
+Responsabilidad:
+
+- gobernar el orden determinístico de captura dentro del flujo `create`
+
+Secuencia actual:
+
+1. `checkIn`
+2. `checkOut`
+3. `numGuests`
+4. `roomType`
+5. `guestName`
+
+Regla operativa:
+
+- el draft debe persistirse antes de decidir el siguiente paso
+- una confirmación vacía no puede hacer avanzar el flujo si el estado sigue
+  incompleto
+- el runtime debe conducir el siguiente paso lógico según completitud real del
+  estado
+
 ## 6. Reservas múltiples
 
 El sistema ya no asume rígidamente:
@@ -336,7 +358,8 @@ Modelo interno mínimo vigente del Reference Engine:
 4. existence validation
 5. sufficiency validation
 6. target resolution
-7. execution
+7. create sequencing
+8. execution
 
 Guardrails vigentes:
 
@@ -346,6 +369,8 @@ Guardrails vigentes:
 - no debe existir lógica duplicada por etapa para reinterpretar reservas fuera
   del estado canónico
 - la información útil de un turno debe persistirse antes de decidir fallback
+- el flujo `create` debe avanzar por completitud de estado y no por reacción
+  oportunista al último mensaje
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
