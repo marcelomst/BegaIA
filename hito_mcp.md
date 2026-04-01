@@ -4933,3 +4933,31 @@ Impacto:
 - asegura que cancelación mutativa impacte la fuente de verdad real
 - mantiene consistencia entre ejecución, respuesta, estado y snapshot posterior
 - elimina duplicación estructural en cancel
+
+### FIX-PIPELINE-CREATE-DRAFT-CONSISTENCY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: d02aca6d9f3d7f0ffd92d09f32f18b06830490d0
+
+Descripcion:
+
+Se introduce validación de consistencia interna del draft antes de avanzar el
+flujo de create en `reservation`, bloqueando quote o execution sobre estado
+incoherente y saneando conflictos cuando corresponde.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+
+Validacion:
+
+- hito registrado como incorporación del stage `draft consistency validation`
+
+Impacto:
+
+- evita decisiones sobre drafts incoherentes
+- mejora calidad del estado antes de quote/execution
+- preserva intención del usuario sin ejecutar sobre estado inválido
+- consolida `draft consistency validation` como stage explícito del pipeline

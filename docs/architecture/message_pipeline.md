@@ -284,7 +284,24 @@ Regla operativa:
   continuidad de flujo
 - el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
 
-### 5.7 `create sequencing`
+### 5.7 `draft consistency validation`
+
+Responsabilidad:
+
+- validar coherencia interna del draft antes de availability, quote o ejecución
+
+Regla operativa:
+
+- un draft inconsistente no puede avanzar en el pipeline
+- el runtime puede remover slots conflictivos para preservar la intención válida
+  del usuario
+- la validación ocurre antes de decisiones comerciales o mutativas
+
+Ejemplo actual:
+
+- `single + 3 huéspedes` -> remover `roomType`, mantener `numGuests`
+
+### 5.8 `create sequencing`
 
 Responsabilidad:
 
@@ -308,7 +325,7 @@ Regla operativa:
 - no se debe verificar disponibilidad ni generar propuesta comercial mientras el
   draft de `create` siga incompleto
 
-### 5.8 `quote gating`
+### 5.9 `quote gating`
 
 Responsabilidad:
 
@@ -397,15 +414,16 @@ Modelo interno mínimo vigente del Reference Engine:
 
 1. canonical state build
 2. slot ingestion
-3. reference detection
-4. existence validation
-5. sufficiency validation
-6. target resolution
-7. create sequencing
-8. quote gating
-9. modify execution integrity
-10. cancel execution integrity
-11. execution
+3. draft consistency validation
+4. reference detection
+5. existence validation
+6. sufficiency validation
+7. target resolution
+8. create sequencing
+9. quote gating
+10. modify execution integrity
+11. cancel execution integrity
+12. execution
 
 Guardrails vigentes:
 
@@ -415,6 +433,7 @@ Guardrails vigentes:
 - no debe existir lógica duplicada por etapa para reinterpretar reservas fuera
   del estado canónico
 - la información útil de un turno debe persistirse antes de decidir fallback
+- un draft inconsistente debe sanearse o pedir aclaración antes de seguir
 - el flujo `create` debe avanzar por completitud de estado y no por reacción
   oportunista al último mensaje
 - no debe existir cotización o proposal sobre drafts incompletos
