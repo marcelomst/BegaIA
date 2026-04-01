@@ -135,4 +135,36 @@ describe("messageHandler create quote gating", () => {
     expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(currentState?.lastProposal?.available).toBe(true);
   });
+
+  it("con create activo + fechas + 'sí' no cotiza y mantiene create sin contaminar modify", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer otra reserva"),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(
+      msg("10/06/2026 a 15/06/2026"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(lastReply(sendReply)).not.toMatch(/verifique disponibilidad|tarifa por noche|disponible/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.lastCategory).toBe("reservation");
+    expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
+
+    await handleIncomingMessage(
+      msg("sí"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.lastCategory).toBe("reservation");
+    expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
+    expect(currentState?.lastProposal ?? null).toBeNull();
+  });
 });

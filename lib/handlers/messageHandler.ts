@@ -619,6 +619,15 @@ function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
   );
 }
 
+function resolveReservationFastPathSubFlow(pre: PreLLMResult): "create" | "modify" {
+  const currentFocus = getConversationFocus(pre.st);
+  if (currentFocus?.subFlow === "create") return "create";
+  if (currentFocus?.subFlow === "modify") return "modify";
+  if (pre.st?.desiredAction === "create" || pre.st?.activeFlow === "reservation") return "create";
+  if (pre.inModifyMode || pre.prevCategory === "modify_reservation") return "modify";
+  return "create";
+}
+
 function shouldAppendFocusContinuation(
   pre: PreLLMResult,
   focus: ConversationFocus | null,
@@ -687,6 +696,25 @@ async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStri
     lastCategory: "reservation",
     updatedBy: "ai",
   } as any);
+}
+
+function shouldPersistCreateAvailabilityVerification(
+  pre: PreLLMResult,
+  nextCategory: string | null | undefined,
+  nextSlots: ReservationSlotsStrict | null | undefined,
+  finalText: string | null | undefined
+): boolean {
+  if (!nextSlots?.checkIn || !nextSlots?.checkOut) return false;
+  if (!isVerifyAvailabilityPrompt(String(finalText || ""))) return false;
+  const focus = getConversationFocus(pre.st);
+  const createFlowActive =
+    focus?.subFlow === "create" ||
+    pre.st?.desiredAction === "create" ||
+    pre.st?.activeFlow === "reservation" ||
+    nextCategory === "reservation";
+  if (!createFlowActive) return true;
+  const mergedSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+  return isCreateStateReadyForQuote(mergedSlots);
 }
 
 type ReservationReferenceTarget = {
@@ -2768,14 +2796,34 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxt0 = String(pre.msg.content || "");
     const dr0 = extractDateRangeFromText(userTxt0);
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
+      const fastPathSubFlow = resolveReservationFastPathSubFlow(pre);
       const rawDr0 = extractRawOrderedDateRange(userTxt0);
       const dr0Coherence =
         assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) ||
         assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);
       if (dr0Coherence && !dr0Coherence.ok) {
         finalText = buildInvalidReservationDatesReply(pre.lang, dr0Coherence.reason);
-        nextCategory = pre.inModifyMode ? "modify_reservation" : "reservation";
+        nextCategory = fastPathSubFlow === "modify" ? "modify_reservation" : "reservation";
         return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+      }
+      const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxt0, pre.lang));
+      const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, fastPathTurnSlots, {
+        checkIn: dr0.checkIn,
+        checkOut: dr0.checkOut,
+      });
+      nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+      if (fastPathSubFlow === "create") {
+        const missingField = getNextCreateFlowMissingField(fastPathSlots);
+        if (missingField) {
+          await persistCreateDraft(pre, fastPathSlots);
+          return {
+            finalText: buildCreateFlowPrompt(pre.lang, missingField),
+            nextCategory: "reservation",
+            nextSlots,
+            needsSupervision,
+            graphResult: null,
+          };
+        }
       }
       const ciTxt = isoToDDMMYYYY(dr0.checkIn) || dr0.checkIn;
       const coTxt = isoToDDMMYYYY(dr0.checkOut) || dr0.checkOut;
@@ -2784,8 +2832,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : pre.lang === 'pt'
           ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
           : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
-      nextSlots = { ...nextSlots, checkIn: dr0.checkIn, checkOut: dr0.checkOut } as ReservationSlotsStrict;
-      if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+      if (fastPathSubFlow === "modify") {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           modifyState: buildModifyState("dates"),
           conversationFocus: buildConversationFocus("modify"),
@@ -2795,7 +2842,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           updatedBy: "ai",
         } as any);
       }
-      return { finalText, nextCategory: 'modify_reservation', nextSlots, needsSupervision, graphResult: null };
+      return {
+        finalText,
+        nextCategory: fastPathSubFlow === "modify" ? "modify_reservation" : "reservation",
+        nextSlots,
+        needsSupervision,
+        graphResult: null,
+      };
     }
   } catch { /* noop */ }
   // Fast-path: si el usuario aporta UNA sola fecha (check-in o check-out) en modo modificación o contexto de reserva,
@@ -2824,10 +2877,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const prevISO = prevSingle.checkIn || prevSingle.checkOut;
       const currISO = drFast.checkIn || drFast.checkOut;
       if (prevISO && currISO) {
+        const fastPathSubFlow = resolveReservationFastPathSubFlow(pre);
         const a = new Date(prevISO);
         const b = new Date(currISO);
         const ciISO = a <= b ? prevISO : currISO;
         const coISO = a <= b ? currISO : prevISO;
+        const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
+        const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, fastPathTurnSlots, {
+          checkIn: ciISO,
+          checkOut: coISO,
+        });
+        nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+        if (fastPathSubFlow === "create") {
+          const missingField = getNextCreateFlowMissingField(fastPathSlots);
+          if (missingField) {
+            await persistCreateDraft(pre, fastPathSlots);
+            return {
+              finalText: buildCreateFlowPrompt(pre.lang, missingField),
+              nextCategory: "reservation",
+              nextSlots,
+              needsSupervision,
+              graphResult: null,
+            };
+          }
+        }
         const ciTxt = isoToDDMMYYYY(ciISO) || ciISO;
         const coTxt = isoToDDMMYYYY(coISO) || coISO;
         finalText = pre.lang === 'es'
@@ -2835,8 +2908,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           : pre.lang === 'pt'
             ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
             : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
-        nextSlots = { ...nextSlots, checkIn: ciISO, checkOut: coISO } as ReservationSlotsStrict;
-        if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+        if (fastPathSubFlow === "modify") {
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             modifyState: buildModifyState("dates"),
             conversationFocus: buildConversationFocus("modify"),
@@ -2846,7 +2918,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             updatedBy: "ai",
           } as any);
         }
-        return { finalText, nextCategory: 'modify_reservation', nextSlots, needsSupervision, graphResult: null };
+        return {
+          finalText,
+          nextCategory: fastPathSubFlow === "modify" ? "modify_reservation" : "reservation",
+          nextSlots,
+          needsSupervision,
+          graphResult: null,
+        };
       }
       // No hay fecha previa: pedir la faltante
       const missingSide = drFast.checkIn ? "checkOut" : "checkIn";
@@ -6308,7 +6386,8 @@ export async function handleIncomingMessage(
         console.warn("[handleIncomingMessage] updateConversationState warn:", (e as any)?.message || e);
       }
     }
-    const verifyPendingSnapshot = body?.nextSlots?.checkIn && body?.nextSlots?.checkOut && isVerifyAvailabilityPrompt(String(body?.finalText || ""))
+    const verifyPendingSnapshot =
+      shouldPersistCreateAvailabilityVerification(pre, body?.nextCategory, body?.nextSlots, body?.finalText)
       ? {
           checkIn: body.nextSlots.checkIn,
           checkOut: body.nextSlots.checkOut,
