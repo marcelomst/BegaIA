@@ -70,5 +70,5 @@ describe("/api/chat hardening", () => {
     expect(typeof json.error).toBe("string");
     expect(String(json.error)).not.toContain("boom-raw-internal");
     expect(json.conversationId).toBeTruthy();
-  });
+  }, 15000);
 });

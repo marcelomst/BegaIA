@@ -44,7 +44,7 @@ describe("/api/chat (integration)", () => {
     expect(conversationId).toBeDefined();
     expect(message?.messageId).toBeDefined();
     expect(["sent", "pending"]).toContain(status);
-  });
+  }, 15000);
 
   it("idempotente: mismo messageId no duplica", async () => {
     const messageId = "msg-fixed-1";

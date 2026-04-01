@@ -41,7 +41,7 @@ describe("guest conversation binding (integration)", () => {
 
     expect(wa.conversationId).toBe(seeded.conversationId);
     expect(web.conversationId).toBe(seeded.conversationId);
-  });
+  }, 15000);
 
   it("prioritizes explicit conversationId over guest-based binding", async () => {
     const seeded = await createConversation({

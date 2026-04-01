@@ -66,6 +66,20 @@ export async function POST(req: Request) {
     textLength: content.length,
   });
 
+  if (!hotelId) {
+    return jsonWithBuild(
+      { ok: false, error: "hotelId is required", status: "sent", conversationId: fallbackConversationId },
+      { status: 400 }
+    );
+  }
+
+  if (!content) {
+    return jsonWithBuild(
+      { ok: false, error: "message is required", status: "sent", conversationId: fallbackConversationId },
+      { status: 400 }
+    );
+  }
+
   try {
     const result = await handleChannelMessage({
       query: content,
