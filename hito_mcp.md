@@ -4850,3 +4850,31 @@ Impacto:
 - reduce desvíos a paths incorrectos
 - refuerza consistencia de ejecución sobre estado real
 - consolida `modify execution integrity` como refinamiento estable del pipeline
+
+### FIX-API-CHAT-REQUEST-VALIDATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: a40e3822fcd90344130f159cbe2af80ba11bcae2
+
+Descripcion:
+
+Se endurece la validación de entrada en `/api/chat`, rechazando requests sin
+`hotelId` o sin mensaje antes de ejecutar el pipeline.
+
+Archivos afectados:
+
+- `app/api/chat/route.ts`
+- `test/api.chat.route.spec.ts`
+- `test/integration/api_chat.test.ts`
+- `test/integration/guestConversationBinding.spec.ts`
+
+Validacion:
+
+- cobertura de route e integración ajustada para reflejar validación temprana
+
+Impacto:
+
+- reduce entrada inválida al runtime
+- fortalece hardening del borde API
+- evita trabajo innecesario con requests mal formados
