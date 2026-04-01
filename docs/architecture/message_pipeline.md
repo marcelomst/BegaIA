@@ -404,7 +404,8 @@ Modelo interno mínimo vigente del Reference Engine:
 7. create sequencing
 8. quote gating
 9. modify execution integrity
-10. execution
+10. cancel execution integrity
+11. execution
 
 Guardrails vigentes:
 
@@ -419,6 +420,8 @@ Guardrails vigentes:
 - no debe existir cotización o proposal sobre drafts incompletos
 - una vez seleccionado un target en `modify`, availability, confirm y execution
   deben operar sobre esa misma reserva
+- una cancelación confirmada debe impactar la fuente de verdad canónica y
+  reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas

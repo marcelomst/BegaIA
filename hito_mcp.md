@@ -4904,3 +4904,32 @@ Impacto:
 - mejora estabilidad de la suite de integración
 - reduce ruido de fallas no funcionales
 - deja más confiable la validación de hitos técnicos
+
+### FIX-PIPELINE-CANCEL-EXECUTION-INTEGRITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: d72997e2dd5576a73ee64528538ed6808907fabc
+
+Descripcion:
+
+Se corrige una inconsistencia crítica en cancelación para asegurar que una
+cancelación confirmada impacte correctamente la fuente de verdad del estado y
+los snapshots posteriores.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.cancel_multiturn_continuity.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo de consistencia mutativa y alineación entre ejecución y fuente de verdad canónica
+
+Impacto:
+
+- introduce/refuerza `cancel execution integrity`
+- asegura que cancelación mutativa impacte la fuente de verdad real
+- mantiene consistencia entre ejecución, respuesta, estado y snapshot posterior
+- elimina duplicación estructural en cancel
