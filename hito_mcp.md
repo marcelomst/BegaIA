@@ -4794,3 +4794,31 @@ Impacto:
 - mejora trazabilidad entre observación manual y fix técnico
 - preserva contexto de origen para futuros análisis
 - ayuda a justificar técnicamente hitos derivados de manual parity
+
+### FIX-PIPELINE-CREATE-QUOTE-GATING-02
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: 58c6fcf17d6624935c41b9c98980c560563fd4b9
+
+Descripcion:
+
+Se corrige `flow poisoning` dentro de `reservation.create`, evitando que
+fast-paths de fechas degraden un create activo a `modify_reservation` y
+reforzando la integridad del quote gating.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+
+Validacion:
+
+- hito registrado como corrección estructural de integridad del flujo `reservation.create`
+
+Impacto:
+
+- elimina contaminación entre fast-path de fechas y flujo create
+- preserva autoridad del foco gobernado
+- evita persistencia comercial sobre draft incompleto
+- refuerza coherencia entre `create sequencing`, `quote gating` y `focus governance`

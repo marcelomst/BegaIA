@@ -261,6 +261,8 @@ Regla operativa:
   explícita cuando el lateral no resolvió el faltante del flujo activo
 - no debe existir continuación redundante si el turno lateral ya aportó el dato
   necesario
+- `conversationFocus` mantiene autoridad sobre señales legacy cuando el flujo
+  gobernado activo sigue siendo `create`
 
 ### 5.6 `reservationSlots`
 
@@ -319,6 +321,8 @@ Regla operativa:
   real del create sequencing
 - `lastProposal` y `pendingAvailabilityVerification` no deben quedar
   persistidos como estado prematuro
+- un fast-path de fechas no puede degradar un `create` activo a
+  `modify_reservation`
 - la ejecución comercial solo puede ocurrir sobre estado suficiente
 
 ## 6. Reservas múltiples
