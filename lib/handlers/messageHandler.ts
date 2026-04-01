@@ -471,12 +471,33 @@ function mergeReservationHistory(
   history: LastReservation[] | null | undefined,
   reservation: LastReservation | null | undefined
 ): LastReservation[] {
-  const base = Array.isArray(history) ? [...history] : [];
+  const base = Array.isArray(history) ? history.filter((item) => item?.reservationId !== reservation?.reservationId) : [];
   if (!reservation || !reservation.reservationId) return base;
-  if (base.some((item) => item.reservationId === reservation.reservationId && item.status === reservation.status)) {
-    return base;
-  }
   return [...base, reservation];
+}
+
+function buildPersistedReservationRecord(
+  state: any,
+  reservationId: string,
+  status: LastReservation["status"],
+  channel: LastReservation["channel"]
+): LastReservation {
+  const canonicalRecord = buildReservationCanonicalState(state).byId.get(reservationId);
+  const reservationSlots =
+    state?.lastReservation?.reservationId === reservationId
+      ? state?.reservationSlots
+      : undefined;
+  return {
+    reservationId,
+    status,
+    createdAt: safeNowISO(),
+    channel,
+    guestName: reservationSlots?.guestName || canonicalRecord?.guestName,
+    roomType: reservationSlots?.roomType || canonicalRecord?.roomType,
+    checkIn: reservationSlots?.checkIn || canonicalRecord?.checkIn,
+    checkOut: reservationSlots?.checkOut || canonicalRecord?.checkOut,
+    numGuests: reservationSlots?.numGuests || canonicalRecord?.numGuests,
+  };
 }
 
 function buildDraftReservationContext(
@@ -4319,13 +4340,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
       const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);
+      const cancelledReservation = buildPersistedReservationRecord(
+        pre.st,
+        pendingCancellation.reservationId,
+        r.ok ? "cancelled" : "error",
+        ((pre.msg.channel as any) || "web") as LastReservation["channel"]
+      );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        lastReservation: {
-          reservationId: pendingCancellation.reservationId,
-          status: r.ok ? "cancelled" : "error",
-          createdAt: new Date().toISOString(),
-          channel: (pre.msg.channel as any) || "web",
-        },
+        lastReservation: cancelledReservation,
+        reservationHistory: mergeReservationHistory(
+          mergeReservationHistory(
+            (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+            (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+          ),
+          cancelledReservation
+        ),
         pendingCancellation: null,
         activeReservationContext: buildFocusedReservationContext(
           pendingCancellation.reservationId,
@@ -4432,13 +4461,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
       const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);
+      const cancelledReservation = buildPersistedReservationRecord(
+        pre.st,
+        resolvedCancelCode,
+        r.ok ? "cancelled" : "error",
+        ((pre.msg.channel as any) || "web") as LastReservation["channel"]
+      );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        lastReservation: {
-          reservationId: resolvedCancelCode,
-          status: r.ok ? "cancelled" : "error",
-          createdAt: new Date().toISOString(),
-          channel: (pre.msg.channel as any) || "web",
-        },
+        lastReservation: cancelledReservation,
+        reservationHistory: mergeReservationHistory(
+          mergeReservationHistory(
+            (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+            (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+          ),
+          cancelledReservation
+        ),
         pendingCancellation: null,
         activeReservationContext: buildFocusedReservationContext(
           resolvedCancelCode,

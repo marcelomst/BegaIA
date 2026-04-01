@@ -159,6 +159,52 @@ describe("messageHandler cancel reservation multiturn continuity", () => {
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Reserva cancelada/i);
   });
 
+  it("persiste la cancelación por código dentro de reservationHistory sin dejar versión activa duplicada", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-cancel-flow-history-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastReservation: {
+        reservationId: "RES999999",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES123456",
+          status: "created",
+          createdAt: "2026-03-19T10:00:00.000Z",
+          channel: "web",
+        },
+        {
+          reservationId: "RES999999",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
+    });
+
+    await handleIncomingMessage(msg("cancelar RES123456 confirmar", conversationId), { mode: "automatic", sendReply });
+
+    const st = stateByConversation.get(conversationId);
+    const matching = (st?.reservationHistory || []).filter((item: any) => item?.reservationId === "RES123456");
+    expect(matching).toHaveLength(1);
+    expect(matching[0]).toMatchObject({
+      reservationId: "RES123456",
+      status: "cancelled",
+    });
+  });
+
   it.each([
     "no canceles todavía",
     "RES123456",

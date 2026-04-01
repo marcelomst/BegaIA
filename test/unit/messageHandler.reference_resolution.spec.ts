@@ -989,6 +989,34 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("refleja cancelación confirmada en el estado canónico y en el snapshot posterior", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-integrity-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+
+    await handleIncomingMessage(msg("mostrame la segunda", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cancelá esa", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const st = stateByConversation.get(conversationId);
+    const cancelledRecords = (st?.reservationHistory || []).filter((item: any) => item?.reservationId === "RES-MID-02");
+    expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES-MID-02");
+    expect(cancelledRecords).toHaveLength(1);
+    expect(cancelledRecords[0]).toMatchObject({
+      reservationId: "RES-MID-02",
+      status: "cancelled",
+    });
+    expect(st?.lastReservation).toMatchObject({
+      reservationId: "RES-MID-02",
+      status: "cancelled",
+    });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-MID-02 .*cancelada/i);
+    expect(replyText).not.toMatch(/RES-MID-02 .*activa/i);
+  });
+
   it("resuelve 'cancelá esa' por activeReservationContext cuando el deíctico es puro", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-that-1";
