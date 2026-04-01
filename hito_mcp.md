@@ -4822,3 +4822,31 @@ Impacto:
 - preserva autoridad del foco gobernado
 - evita persistencia comercial sobre draft incompleto
 - refuerza coherencia entre `create sequencing`, `quote gating` y `focus governance`
+
+### FIX-PIPELINE-MODIFY-TARGET-CONTINUITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: 057d4bd6f3b1761110e99d8f56a4d943df70b2c3
+
+Descripcion:
+
+Se preserva continuidad de target en `modify` hasta execution, evitando caída
+al path de `create/proposal` y asegurando que availability y confirm operen
+sobre la reserva seleccionada.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo de `modify execution integrity`
+
+Impacto:
+
+- asegura que una vez elegido el target, toda la ejecución opere sobre esa reserva
+- reduce desvíos a paths incorrectos
+- refuerza consistencia de ejecución sobre estado real
+- consolida `modify execution integrity` como refinamiento estable del pipeline

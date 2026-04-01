@@ -389,6 +389,7 @@ Alcance actual:
 - integración con `snapshot`, `modify` y `cancel`
 - validación contra lista canónica de reservas antes de ejecutar acciones
 - gating de suficiencia cuando hay múltiples reservas accionables y falta target claro
+- continuidad explícita del target en `modify` hasta availability, confirm y ejecución final
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -402,7 +403,8 @@ Modelo interno mínimo vigente del Reference Engine:
 6. target resolution
 7. create sequencing
 8. quote gating
-9. execution
+9. modify execution integrity
+10. execution
 
 Guardrails vigentes:
 
@@ -415,6 +417,8 @@ Guardrails vigentes:
 - el flujo `create` debe avanzar por completitud de estado y no por reacción
   oportunista al último mensaje
 - no debe existir cotización o proposal sobre drafts incompletos
+- una vez seleccionado un target en `modify`, availability, confirm y execution
+  deben operar sobre esa misma reserva
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
