@@ -4878,3 +4878,29 @@ Impacto:
 - reduce entrada inválida al runtime
 - fortalece hardening del borde API
 - evita trabajo innecesario con requests mal formados
+
+### FIX-TEST-SUITE-INTEGRATION-STABILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-01  
+Commit: 2a0f12de21e581a2e19b9331bb8039f2fe3d27ad
+
+Descripcion:
+
+Se estabilizan tests de integración sensibles a timing y mocks en el flujo de
+chat, reduciendo fragilidad y falsos negativos del entorno de validación.
+
+Archivos afectados:
+
+- `test/integration/recotizacion.planner_only.test.ts`
+- `test/mocks/db_conversations.ts`
+
+Validacion:
+
+- hito registrado como estabilización de suite de integración sin cambio de runtime de producto
+
+Impacto:
+
+- mejora estabilidad de la suite de integración
+- reduce ruido de fallas no funcionales
+- deja más confiable la validación de hitos técnicos
