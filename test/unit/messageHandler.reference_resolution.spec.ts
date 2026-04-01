@@ -52,6 +52,17 @@ vi.mock("@/lib/agents/reservations", () => ({
     message: `✅ Modificada ${reservationId}`,
     snapshot,
   })),
+  askAvailability: vi.fn(async (_hotelId: string, snapshot: any) => ({
+    ok: true,
+    available: true,
+    proposal: `Tengo ${snapshot.roomType || "doble"} disponible. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+    options: [{ roomType: snapshot.roomType || "double", pricePerNight: 100, currency: "USD" }],
+  })),
+  confirmAndCreate: vi.fn(async () => ({
+    ok: true,
+    reservationId: "RES-CREATED-NEW",
+    message: "created",
+  })),
   cancelReservation: vi.fn(async (_hotelId: string, reservationId: string) => ({
     ok: true,
     message: `✅ Cancelada ${reservationId}`,
@@ -79,7 +90,7 @@ vi.mock("@langchain/openai", () => ({
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
-import { cancelReservation, modifyReservation } from "@/lib/agents/reservations";
+import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation } from "@/lib/agents/reservations";
 
 function msg(content: string, conversationId: string) {
   return {
@@ -772,6 +783,62 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/qu[eé] cambio aplico|qu[eé] te gustar[ií]a cambiar/i);
     expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
       activeField: "dates",
+    });
+  });
+
+  it("mantiene continuidad de target en modify hasta la confirmación final y no crea una reserva nueva", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-execution-integrity-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("quiero cambiar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("la segunda", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiame la fecha", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("10/04/2026 a 12/04/2026", conversationId), { mode: "automatic", sendReply });
+
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+
+    await handleIncomingMessage(msg("sí", conversationId), { mode: "automatic", sendReply });
+    const quoteReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(askAvailability).toHaveBeenCalledWith(
+      "hotel999",
+      expect.objectContaining({
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        numGuests: "2",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+      })
+    );
+    expect(quoteReply).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(stateByConversation.get(conversationId)?.conversationFocus).toMatchObject({ subFlow: "modify" });
+    expect(stateByConversation.get(conversationId)?.lastCategory).toBe("modify_reservation");
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId: "RES-NEW-02" });
+
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-NEW-02",
+      expect.objectContaining({
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        numGuests: "2",
+        checkIn: "2026-04-10",
+        checkOut: "2026-04-12",
+      }),
+      "web"
+    );
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-new-02/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId: "RES-NEW-02" });
+    expect(stateByConversation.get(conversationId)?.lastReservation).toMatchObject({
+      reservationId: "RES-NEW-02",
+      status: "updated",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: "2026-04-10",
+      checkOut: "2026-04-12",
     });
   });
 

@@ -619,10 +619,11 @@ function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
   );
 }
 
-function resolveReservationFastPathSubFlow(pre: PreLLMResult): "create" | "modify" {
+function resolveReservationFastPathSubFlow(pre: PreLLMResult, userText?: string): "create" | "modify" {
   const currentFocus = getConversationFocus(pre.st);
   if (currentFocus?.subFlow === "create") return "create";
   if (currentFocus?.subFlow === "modify") return "modify";
+  if (userText && normalizeReservationIntent(userText).kind === "modify") return "modify";
   if (pre.st?.desiredAction === "create" || pre.st?.activeFlow === "reservation") return "create";
   if (pre.inModifyMode || pre.prevCategory === "modify_reservation") return "modify";
   return "create";
@@ -698,6 +699,52 @@ async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStri
   } as any);
 }
 
+function isModifyExecutionActive(pre: PreLLMResult): boolean {
+  const focus = getConversationFocus(pre.st);
+  return Boolean(
+    pre.inModifyMode ||
+    focus?.subFlow === "modify" ||
+    pre.st?.desiredAction === "modify" ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.prevCategory === "modify_reservation"
+  );
+}
+
+function getModifyExecutionReservationId(
+  pre: PreLLMResult,
+  reservationReference?: ReservationReferenceResolution | null,
+  resolvedModifyTarget?: ReservationReferenceTarget | null
+): string | undefined {
+  return (
+    (resolvedModifyTarget?.kind === "reservation" ? resolvedModifyTarget.reservationId : undefined) ||
+    (reservationReference?.status === "resolved" && reservationReference.target.kind === "reservation"
+      ? reservationReference.target.reservationId
+      : undefined) ||
+    (pre.st?.activeReservationContext?.kind === "reservation"
+      ? pre.st?.activeReservationContext?.reservationId
+      : undefined) ||
+    pre.st?.selectedReservationTarget?.reservationId
+  );
+}
+
+async function persistModifyExecutionContext(
+  pre: PreLLMResult,
+  reservationId: string | undefined,
+  patch: Record<string, any> = {}
+): Promise<void> {
+  if (!reservationId) return;
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    conversationFocus: buildConversationFocus("modify"),
+    activeReservationContext: buildFocusedReservationContext(reservationId, "confirmed"),
+    selectedReservationTarget: buildSelectedReservationTargetFromReference(reservationId, "active_focus", "weak"),
+    activeFlow: "modify_reservation",
+    desiredAction: "modify",
+    lastCategory: "modify_reservation",
+    updatedBy: "ai",
+    ...patch,
+  } as any);
+}
+
 function shouldPersistCreateAvailabilityVerification(
   pre: PreLLMResult,
   nextCategory: string | null | undefined,
@@ -709,9 +756,7 @@ function shouldPersistCreateAvailabilityVerification(
   const focus = getConversationFocus(pre.st);
   const createFlowActive =
     focus?.subFlow === "create" ||
-    pre.st?.desiredAction === "create" ||
-    pre.st?.activeFlow === "reservation" ||
-    nextCategory === "reservation";
+    pre.st?.desiredAction === "create";
   if (!createFlowActive) return true;
   const mergedSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
   return isCreateStateReadyForQuote(mergedSlots);
@@ -1694,6 +1739,12 @@ function shouldUseReservationLocalFallback(
 ): boolean {
   if (signal.breaksLock) return false;
   if (!isReservationFlowStillActive(pre)) return false;
+  if (
+    ((pre.st as any)?.pendingAvailabilityVerification && isPureAffirmative(String(pre.msg.content || ""), pre.lang)) ||
+    isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
+  ) {
+    return false;
+  }
   return Boolean(
     nextCategory === "retrieval_based" ||
     nextCategory === "out_of_scope" ||
@@ -2796,7 +2847,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxt0 = String(pre.msg.content || "");
     const dr0 = extractDateRangeFromText(userTxt0);
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
-      const fastPathSubFlow = resolveReservationFastPathSubFlow(pre);
+      const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxt0);
       const rawDr0 = extractRawOrderedDateRange(userTxt0);
       const dr0Coherence =
         assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) ||
@@ -2877,7 +2928,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const prevISO = prevSingle.checkIn || prevSingle.checkOut;
       const currISO = drFast.checkIn || drFast.checkOut;
       if (prevISO && currISO) {
-        const fastPathSubFlow = resolveReservationFastPathSubFlow(pre);
+        const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
         const a = new Date(prevISO);
         const b = new Date(currISO);
         const ciISO = a <= b ? prevISO : currISO;
@@ -3520,8 +3571,26 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (activeModifyField === "guests" && Boolean(rawGuestCount)) ||
       (activeModifyField === "roomType" && Boolean(nextSlots.roomType || pre.currSlots.roomType)) ||
       (activeModifyField === "dates" && hasExplicitDateRange);
+    const awaitingModifyAvailabilityVerification =
+      activeModifyField === "dates" &&
+      Boolean((pre.st as any)?.pendingAvailabilityVerification) &&
+      (
+        isPureAffirmative(userTxtRaw, pre.lang) ||
+        isPureConfirm(userTxtRaw) ||
+        isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
+      );
+    const awaitingModifyQuoteConfirmation =
+      isPureConfirm(userTxtRaw) &&
+      (
+        askedToConfirmReservation(pre.lcHistory) ||
+        Boolean(pre.st?.lastProposal) ||
+        pre.st?.salesStage === "quote" ||
+        pre.st?.conversationStage === "reservation_quoted"
+      );
+    const awaitingModifyExecutionContinuation =
+      awaitingModifyAvailabilityVerification || awaitingModifyQuoteConfirmation;
 
-    if (!hasTurnLevelModifyValue) {
+    if (!hasTurnLevelModifyValue && !awaitingModifyExecutionContinuation) {
       finalText = buildReservationLocalFallbackReply(pre, reservationDomainLock, nextSlots).finalText;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
@@ -3541,10 +3610,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         locale: pre.lang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      await persistModifyExecutionContext(pre, codeFromModifySubstate, {
         reservationSlots: snapshot,
         modifyState: null,
-        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
         lastReservation: {
           reservationId: codeFromModifySubstate,
           status: mod.ok ? "updated" : "error",
@@ -3578,10 +3650,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         locale: pre.lang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      await persistModifyExecutionContext(pre, codeFromModifySubstate, {
         reservationSlots: snapshot,
         modifyState: null,
-        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
         lastReservation: {
           reservationId: codeFromModifySubstate,
           status: mod.ok ? "updated" : "error",
@@ -3593,14 +3668,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           checkOut: snapshot.checkOut,
           numGuests: snapshot.numGuests,
         },
-        updatedBy: "ai",
-      } as any);
+      });
       finalText = mod.message;
       nextSlots = { ...nextSlots, roomType: nextRoomType } as ReservationSlotsStrict;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
 
-    if (activeModifyField === "dates" && nextCheckIn && nextCheckOut) {
+    if (activeModifyField === "dates" && hasExplicitDateRange && nextCheckIn && nextCheckOut) {
       if (!codeFromModifySubstate) {
         finalText = buildAskReservationCode(pre.lang);
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
@@ -3620,10 +3694,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         locale: pre.lang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      await persistModifyExecutionContext(pre, codeFromModifySubstate, {
         reservationSlots: snapshot,
         modifyState: null,
-        activeReservationContext: buildFocusedReservationContext(codeFromModifySubstate, "confirmed"),
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
         lastReservation: {
           reservationId: codeFromModifySubstate,
           status: mod.ok ? "updated" : "error",
@@ -3635,15 +3712,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           checkOut: snapshot.checkOut,
           numGuests: snapshot.numGuests,
         },
-        updatedBy: "ai",
-      } as any);
+      });
       finalText = mod.message;
       nextSlots = { ...nextSlots, checkIn: nextCheckIn, checkOut: nextCheckOut } as ReservationSlotsStrict;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
 
+    if (awaitingModifyExecutionContinuation) {
+      // Defer to the availability verification handlers below so the modify target
+      // stays authoritative through quote/confirm instead of looping back to the field prompt.
+    } else {
     finalText = buildModifyFieldPrompt(pre.lang, activeModifyField);
     return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
   }
   const createDraftSlots = mergeReservationSlots(pre.st?.reservationSlots, {
     roomType: reservationRoomType,
@@ -3654,6 +3735,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   });
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftSlots);
   const currentFocus = getConversationFocus(pre.st);
+  const modifyExecutionActive = isModifyExecutionActive(pre);
   const activeCreateFlow =
     !pre.inModifyMode &&
     !hasConfirmedBookingContext &&
@@ -3662,6 +3744,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.activeFlow === "reservation" ||
       pre.st?.desiredAction === "create" ||
       pre.prevCategory === "reservation");
+  const quoteGatedCreateFlow =
+    !pre.inModifyMode &&
+    !hasConfirmedBookingContext &&
+    (
+      looksExplicitNewReservation ||
+      currentFocus?.subFlow === "create" ||
+      pre.st?.desiredAction === "create"
+    );
   if (
     looksExplicitNewReservation &&
     !hasConfirmedBookingContext &&
@@ -4484,7 +4574,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     };
   }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
-    if (!isReservationConfirmable && !pre.inModifyMode && !hasCompleteCreateDraft) {
+    if (!isReservationConfirmable && !modifyExecutionActive && !hasCompleteCreateDraft) {
       if (reservationFlow === "confirmed") {
         finalText = pre.lang === "es"
           ? "Ya tengo una reserva confirmada para esta conversación. Si querés modificar o cancelar, decímelo."
@@ -4510,7 +4600,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
     if (!hasGuestName) {
-      if (!pre.inModifyMode) {
+      if (!modifyExecutionActive) {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: {
             ...(pre.st?.reservationSlots || {}),
@@ -4530,7 +4620,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
     // === Sprint 3: confirmar modificación de reserva ===
-    if (pre.inModifyMode) {
+    if (modifyExecutionActive) {
       const codeFromUser =
         parseReservationCode(userTxtRaw) ||
         parseReservationCode(String(pre.msg.content || "")) ||
@@ -4608,9 +4698,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           roomType: rt, numGuests: ng, checkIn: ci, checkOut: co, locale: pre.lang,
         };
         const mod = await modifyReservation(pre.msg.hotelId, codeFromUser, snapshot, pre.msg.channel);
-        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        await persistModifyExecutionContext(pre, codeFromUser, {
           reservationSlots: snapshot,
           modifyState: null,
+          lastProposal: null,
+          pendingAvailabilityVerification: null,
+          salesStage: "close",
+          conversationStage: "reservation_confirmed",
           lastReservation: {
             reservationId: codeFromUser,
             status: mod.ok ? "updated" : "error",
@@ -4622,9 +4716,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             checkOut: snapshot.checkOut,
             numGuests: snapshot.numGuests,
           },
-          activeReservationContext: buildFocusedReservationContext(codeFromUser, "confirmed"),
-          updatedBy: "ai",
-        } as any);
+        });
         finalText = mod.message;
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       } catch (e) {
@@ -5386,7 +5478,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const timeQ = detectCheckinOrCheckoutTimeQuestion(String(pre.msg.content || ""), pre.lang);
     // Disparar flujo de fechas también si hay cualquier token de fecha corto o completo en el mensaje (dd/mm o dd/mm/yyyy)
     const hasAnyDateToken = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(String(pre.msg.content || ''));
-    const triggerDateFlow = !timeQ && !lateCheckoutQ && !earlyCheckinQ && (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
+    const awaitingAvailabilityFollowup =
+      Boolean((pre.st as any)?.pendingAvailabilityVerification) &&
+      (
+        isPureAffirmative(String(pre.msg.content || ""), pre.lang) ||
+        isPureConfirm(String(pre.msg.content || "")) ||
+        isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
+      );
+    const triggerDateFlow =
+      !awaitingAvailabilityFollowup &&
+      !timeQ &&
+      !lateCheckoutQ &&
+      !earlyCheckinQ &&
+      (pre.inModifyMode || mentionsDates || hasAnyDateToken || Boolean(userDates.checkIn || userDates.checkOut));
 
     if (lateCheckoutQ) {
       finalText = buildLateCheckoutResponse(pre.lang, guestState);
@@ -5574,7 +5678,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       checkIn: ciISO,
       checkOut: coISO,
     });
-    if (activeCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
+    if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
       const missingField = getNextCreateFlowMissingField(createQuoteSlots);
       if (missingField) {
         await persistCreateDraft(pre, createQuoteSlots);
@@ -5601,11 +5705,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         // Anteponemos el ACK para satisfacer expectativas de UX/tests y luego el resultado concreto
         finalText = `${ackLine}\n\n${res.finalText}`.trim();
         nextSlots = res.nextSlots;
-        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-          pendingAvailabilityVerification: null,
-          lastCategory: "reservation",
-          updatedBy: "ai",
-        } as any);
+        if (modifyExecutionActive) {
+          const modifyReservationId = getModifyExecutionReservationId(pre, reservationReference, resolvedModifyTarget);
+          await persistModifyExecutionContext(pre, modifyReservationId, {
+            reservationSlots: {
+              ...(pre.st?.reservationSlots || {}),
+              ...(res.nextSlots || {}),
+              locale: pre.lang,
+            },
+            lastProposal: {
+              text: finalText,
+              available: true,
+            },
+            salesStage: "quote",
+            conversationStage: "reservation_quoted",
+            pendingAvailabilityVerification: null,
+          });
+          nextCategory = "modify_reservation";
+        } else {
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            pendingAvailabilityVerification: null,
+            lastCategory: "reservation",
+            updatedBy: "ai",
+          } as any);
+        }
         if (res.needsHandoff) {
           needsSupervision = true;
         }
@@ -5636,7 +5759,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         checkIn: ciISO,
         checkOut: coISO,
       });
-      if (activeCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
+      if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
         const missingField = getNextCreateFlowMissingField(createQuoteSlots);
         if (missingField) {
           await persistCreateDraft(pre, createQuoteSlots);
@@ -5653,6 +5776,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const res = await runAvailabilityCheck(pre, { ...nextSlots }, ciISO, coISO);
         finalText = res.finalText;
         nextSlots = { ...nextSlots, ...res.nextSlots };
+        if (modifyExecutionActive) {
+          const modifyReservationId = getModifyExecutionReservationId(pre, reservationReference, resolvedModifyTarget);
+          await persistModifyExecutionContext(pre, modifyReservationId, {
+            reservationSlots: {
+              ...(pre.st?.reservationSlots || {}),
+              ...(res.nextSlots || {}),
+              locale: pre.lang,
+            },
+            lastProposal: {
+              text: finalText,
+              available: true,
+            },
+            salesStage: "quote",
+            conversationStage: "reservation_quoted",
+          });
+          nextCategory = "modify_reservation";
+        }
         if (res.needsHandoff) {
           needsSupervision = true;
         }
@@ -5737,8 +5877,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     locale: pre.lang,
   };
   if (
-    activeCreateFlow &&
-    !pre.inModifyMode &&
+    quoteGatedCreateFlow &&
+    !modifyExecutionActive &&
     !hasConfirmedBookingContext &&
     !isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict) &&
     (isQuoteOrConfirmText(String(finalText || ""), pre.lang) || isVerifyAvailabilityPrompt(String(finalText || "")))
@@ -5751,7 +5891,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   if (
-    !pre.inModifyMode &&
+    !modifyExecutionActive &&
     isQuoteOrConfirmText(String(finalText || ""), pre.lang) &&
     quotedReservationSnapshot.roomType &&
     quotedReservationSnapshot.checkIn &&
