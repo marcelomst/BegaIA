@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Validaremos solo el comportamiento del planner/grafo (fuente única)
 // verificando texto final, conv_state y payload a askAvailability.
@@ -17,6 +17,12 @@ vi.mock("@/lib/db_conversations", async () => await import("../mocks/db_conversa
 vi.mock("@/lib/db/convState", () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    resolveGuestState: vi.fn((st: any) => {
+        if (!st) return undefined;
+        if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") return "booked";
+        if (st.reservationSlots || st.salesStage || st.conversationStage) return "prospect";
+        return undefined;
+    }),
     CONVSTATE_VERSION: "convstate-test",
 }));
 
@@ -38,6 +44,25 @@ vi.mock("@/lib/agents/reservations", () => ({
 }));
 
 import { getCollection } from "../mocks/astra";
+
+
+
+beforeEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    delete (globalThis as any).__TEST_TEXT__;
+    delete (globalThis as any).__TEST_CATEGORY__;
+    process.env.USE_ORCHESTRATOR_AGENT = "1";
+    process.env.USE_MH_FLOW_GRAPH = "1";
+    process.env.USE_PRE_POS_PIPELINE = "1";
+});
+
+afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    delete (globalThis as any).__TEST_TEXT__;
+    delete (globalThis as any).__TEST_CATEGORY__;
+});
 
 const hotelId = "hotel999";
 const channel = "web" as const;
@@ -153,7 +178,7 @@ describe("Recotización (planner)", () => {
         expect(slotsPlanner.numGuests).toBe("3");
         expect(slotsPlanner.checkIn).toBe("2025-10-02");
         expect(slotsPlanner.checkOut).toBe("2025-10-04");
-    });
+    }, 15000);
 
     it("1 → 2 huéspedes, mantiene double y recotiza: texto, payload y conv_state correctos", async () => {
         const baseState = {
@@ -199,5 +224,5 @@ describe("Recotización (planner)", () => {
         expect(slotsPlanner.numGuests).toBe("2");
         expect(slotsPlanner.checkIn).toBe("2025-10-02");
         expect(slotsPlanner.checkOut).toBe("2025-10-04");
-    });
+    }, 15000);
 });

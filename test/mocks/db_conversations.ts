@@ -78,6 +78,10 @@ export async function updateConversation(conversationId: string, changes: Partia
   return { acknowledged: true, matchedCount: 1, modifiedCount: 1 };
 }
 
+export async function appendConversationReplyTrace(_input: any) {
+  return { acknowledged: true };
+}
+
 // Utilidades opcionales por si algún código las usa
 export async function getConversation(conversationId: string) {
   return (await col().findOne({ conversationId })) as Conversation | null;
