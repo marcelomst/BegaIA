@@ -167,4 +167,41 @@ describe("messageHandler create quote gating", () => {
     expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
     expect(currentState?.lastProposal ?? null).toBeNull();
   });
+
+  it("bloquea draft inconsistente single + 3 huéspedes sin cotizar ni salir del create", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una simple del 10 al 15 de mayo de 2026 para 3 adultos"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/no admite 3 hu[eé]sped|cambiar a|m[aá]s de una habitaci[oó]n/i);
+    expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
+    expect(currentState?.lastProposal ?? null).toBeNull();
+    expect(currentState?.reservationSlots?.numGuests).toBe("3");
+    expect(currentState?.reservationSlots?.roomType).toBeUndefined();
+  });
+
+  it("después de aclarar el roomType consistente continúa el create normalmente", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una simple del 10 al 15 de mayo de 2026 para 3 adultos"),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(
+      msg("triple"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(currentState?.reservationSlots?.numGuests).toBe("3");
+    expect(currentState?.reservationSlots?.roomType).toBe("triple");
+  });
 });

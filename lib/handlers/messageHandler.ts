@@ -43,7 +43,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -609,6 +609,14 @@ function buildModifyFieldPrompt(lang: "es" | "en" | "pt", activeField: ModifySta
 }
 
 type CreateFlowMissingField = "checkIn" | "checkOut" | "numGuests" | "roomType" | "guestName" | null;
+type CreateDraftConsistencyResult =
+  | { valid: true; sanitizedSlots: ReservationSlotsStrict }
+  | {
+      valid: false;
+      reason: "room_capacity" | "date_coherence";
+      sanitizedSlots: ReservationSlotsStrict;
+      message: string;
+    };
 
 function getNextCreateFlowMissingField(slots: ReservationSlotsStrict): CreateFlowMissingField {
   if (!slots.checkIn) return "checkIn";
@@ -628,6 +636,78 @@ function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlo
     : lang === "pt"
       ? "Seguimos com a sua reserva. Que tipo de quarto você quer?"
       : "We are still working on your booking. Which room type would you like?";
+}
+
+function buildCreateDraftCapacityReply(
+  lang: "es" | "en" | "pt",
+  roomType: string,
+  guests: number
+): string {
+  const localizedRoom = localizeRoomType(roomType, lang);
+  const suggestions = [
+    { roomType: "double", capacity: 2 },
+    { roomType: "triple", capacity: 3 },
+    { roomType: "quadruple", capacity: 4 },
+  ]
+    .filter((item) => guests <= item.capacity)
+    .map((item) => localizeRoomType(item.roomType, lang))
+    .slice(0, 2);
+
+  const suggestionText =
+    suggestions.length === 0
+      ? lang === "pt"
+        ? "mais de um quarto"
+        : lang === "en"
+          ? "more than one room"
+          : "más de una habitación"
+      : suggestions.length === 1
+        ? `${suggestions[0]} ${lang === "pt" ? "ou" : lang === "en" ? "or" : "o"} ${
+            lang === "pt" ? "mais de um quarto" : lang === "en" ? "more than one room" : "más de una habitación"
+          }`
+        : `${suggestions[0]}, ${suggestions[1]} ${
+            lang === "pt" ? "ou" : lang === "en" ? "or" : "o"
+          } ${lang === "pt" ? "mais de um quarto" : lang === "en" ? "more than one room" : "más de una habitación"}`;
+
+  return lang === "pt"
+    ? `Um quarto ${localizedRoom} não comporta ${guests} hóspede(s). Quer mudar para ${suggestionText}?`
+    : lang === "en"
+      ? `A ${localizedRoom} room does not fit ${guests} guest(s). Do you want to switch to ${suggestionText}?`
+      : `Una habitación ${localizedRoom} no admite ${guests} huésped(es). ¿Querés cambiar a ${suggestionText}?`;
+}
+
+function validateCreateDraftConsistency(
+  lang: "es" | "en" | "pt",
+  slots: ReservationSlotsStrict
+): CreateDraftConsistencyResult {
+  const sanitizedSlots = { ...slots };
+  const dateCoherence = assessReservationDateCoherence(slots.checkIn, slots.checkOut);
+  if (dateCoherence && !dateCoherence.ok) {
+    delete sanitizedSlots.checkIn;
+    delete sanitizedSlots.checkOut;
+    return {
+      valid: false,
+      reason: "date_coherence",
+      sanitizedSlots,
+      message: buildInvalidReservationDatesReply(lang, dateCoherence.reason),
+    };
+  }
+
+  const guests = Number.parseInt(String(slots.numGuests || ""), 10);
+  const hasValidGuests = Number.isFinite(guests) && guests > 0;
+  if (slots.roomType && hasValidGuests) {
+    const capacity = maxGuestsFor(slots.roomType);
+    if (capacity > 0 && guests > capacity) {
+      delete sanitizedSlots.roomType;
+      return {
+        valid: false,
+        reason: "room_capacity",
+        sanitizedSlots,
+        message: buildCreateDraftCapacityReply(lang, slots.roomType, guests),
+      };
+    }
+  }
+
+  return { valid: true, sanitizedSlots };
 }
 
 function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
@@ -703,6 +783,26 @@ async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStri
   await updateConversationState(pre.msg.hotelId, pre.conversationId, {
     reservationSlots: {
       ...(pre.st?.reservationSlots || {}),
+      ...slots,
+      locale: pre.lang,
+    },
+    lastProposal: null,
+    pendingAvailabilityVerification: null,
+    selectedReservationTarget: null,
+    modifyState: null,
+    conversationFocus: buildConversationFocus("create"),
+    activeReservationContext: buildDraftReservationContext("collecting"),
+    activeFlow: "reservation",
+    desiredAction: "create",
+    salesStage: "qualify",
+    lastCategory: "reservation",
+    updatedBy: "ai",
+  } as any);
+}
+
+async function persistCreateDraftSnapshot(pre: PreLLMResult, slots: ReservationSlotsStrict): Promise<void> {
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    reservationSlots: {
       ...slots,
       locale: pre.lang,
     },
@@ -2885,6 +2985,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       });
       nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
       if (fastPathSubFlow === "create") {
+        const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
+        if (!createDraftConsistency.valid) {
+          await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+          return {
+            finalText: createDraftConsistency.message,
+            nextCategory: "reservation",
+            nextSlots: { ...createDraftConsistency.sanitizedSlots },
+            needsSupervision,
+            graphResult: null,
+          };
+        }
         const missingField = getNextCreateFlowMissingField(fastPathSlots);
         if (missingField) {
           await persistCreateDraft(pre, fastPathSlots);
@@ -2961,6 +3072,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         });
         nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
         if (fastPathSubFlow === "create") {
+          const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
+          if (!createDraftConsistency.valid) {
+            await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+            return {
+              finalText: createDraftConsistency.message,
+              nextCategory: "reservation",
+              nextSlots: { ...createDraftConsistency.sanitizedSlots },
+              needsSupervision,
+              graphResult: null,
+            };
+          }
           const missingField = getNextCreateFlowMissingField(fastPathSlots);
           if (missingField) {
             await persistCreateDraft(pre, fastPathSlots);
@@ -3754,7 +3876,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     numGuests: reservationGuests ? String(reservationGuests) : undefined,
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
-  const nextCreateMissingField = getNextCreateFlowMissingField(createDraftSlots);
   const currentFocus = getConversationFocus(pre.st);
   const modifyExecutionActive = isModifyExecutionActive(pre);
   const activeCreateFlow =
@@ -3773,13 +3894,34 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       currentFocus?.subFlow === "create" ||
       pre.st?.desiredAction === "create"
     );
+  const createDraftConsistency =
+    activeCreateFlow || quoteGatedCreateFlow || looksExplicitNewReservation
+      ? validateCreateDraftConsistency(pre.lang, createDraftSlots)
+      : ({ valid: true, sanitizedSlots: createDraftSlots } as CreateDraftConsistencyResult);
+  if (!createDraftConsistency.valid) {
+    await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+    nextCategory = "reservation";
+    return {
+      finalText: createDraftConsistency.message,
+      nextCategory,
+      nextSlots: { ...createDraftConsistency.sanitizedSlots },
+      needsSupervision,
+      graphResult,
+    };
+  }
+  const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
   if (
     looksExplicitNewReservation &&
     !hasConfirmedBookingContext &&
     !!nextCreateMissingField &&
-    (createDraftSlots.checkIn || createDraftSlots.checkOut || createDraftSlots.numGuests || createDraftSlots.roomType)
+    (
+      createDraftConsistency.sanitizedSlots.checkIn ||
+      createDraftConsistency.sanitizedSlots.checkOut ||
+      createDraftConsistency.sanitizedSlots.numGuests ||
+      createDraftConsistency.sanitizedSlots.roomType
+    )
   ) {
-    await persistCreateDraft(pre, createDraftSlots);
+    await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
     return {
       finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
@@ -3803,7 +3945,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     nextCreateMissingField &&
     turnHasNewCreateData
   ) {
-    await persistCreateDraft(pre, createDraftSlots);
+    await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
     return {
       finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
@@ -5715,6 +5857,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       checkIn: ciISO,
       checkOut: coISO,
     });
+    if (quoteGatedCreateFlow) {
+      const createDraftConsistency = validateCreateDraftConsistency(pre.lang, createQuoteSlots);
+      if (!createDraftConsistency.valid) {
+        await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+        finalText = createDraftConsistency.message;
+        return {
+          finalText,
+          nextCategory: "reservation",
+          nextSlots: { ...createDraftConsistency.sanitizedSlots },
+          needsSupervision,
+          graphResult,
+        };
+      }
+    }
     if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
       const missingField = getNextCreateFlowMissingField(createQuoteSlots);
       if (missingField) {
@@ -5796,6 +5952,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         checkIn: ciISO,
         checkOut: coISO,
       });
+      if (quoteGatedCreateFlow) {
+        const createDraftConsistency = validateCreateDraftConsistency(pre.lang, createQuoteSlots);
+        if (!createDraftConsistency.valid) {
+          await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+          finalText = createDraftConsistency.message;
+          return {
+            finalText,
+            nextCategory: "reservation",
+            nextSlots: { ...createDraftConsistency.sanitizedSlots },
+            needsSupervision,
+            graphResult,
+          };
+        }
+      }
       if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
         const missingField = getNextCreateFlowMissingField(createQuoteSlots);
         if (missingField) {
@@ -5917,14 +6087,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     quoteGatedCreateFlow &&
     !modifyExecutionActive &&
     !hasConfirmedBookingContext &&
-    !isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict) &&
     (isQuoteOrConfirmText(String(finalText || ""), pre.lang) || isVerifyAvailabilityPrompt(String(finalText || "")))
   ) {
-    const missingField = getNextCreateFlowMissingField(quotedReservationSnapshot as ReservationSlotsStrict);
-    if (missingField) {
-      await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);
+    const createDraftConsistency = validateCreateDraftConsistency(pre.lang, quotedReservationSnapshot as ReservationSlotsStrict);
+    if (!createDraftConsistency.valid) {
+      await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
       nextCategory = "reservation";
-      finalText = buildCreateFlowPrompt(pre.lang, missingField);
+      finalText = createDraftConsistency.message;
+    } else if (!isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict)) {
+      const missingField = getNextCreateFlowMissingField(quotedReservationSnapshot as ReservationSlotsStrict);
+      if (missingField) {
+        await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);
+        nextCategory = "reservation";
+        finalText = buildCreateFlowPrompt(pre.lang, missingField);
+      }
     }
   }
   if (
