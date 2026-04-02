@@ -132,6 +132,74 @@ Gobernanza:
 - no mezclar `PIPELINE`, `KB`, `MCP`, `ADMIN` u otras capas en el mismo commit
 - si el working tree mezcla objetivos, dividir antes de commitear
 
+### Convencion de nombres de hitos
+
+Formato base:
+
+```text
+TIPO-DOMINIO-SUBDOMINIO-TEMA-NN
+```
+
+Ejemplos:
+
+- `FIX-PIPELINE-CREATE-QUOTE-GATING-02`
+- `REF-PIPELINE-FOCUS-CONTINUATION-01`
+- `DOC-ARCHITECTURE-CANONICAL-STATE-GOVERNANCE-01`
+
+#### Tipos permitidos
+
+- `FIX`
+  - corrige comportamiento incorrecto
+- `FEAT`
+  - agrega una capacidad nueva
+- `REF`
+  - refina modelo, estructura o gobernanza sin cambiar el objetivo funcional principal
+- `DOC`
+  - cambia documentacion, criterios o gobernanza documental
+
+#### Reglas de estructura
+
+- el segundo bloque debe identificar el dominio principal (`PIPELINE`, `API`, `ARCHITECTURE`, `WEB`, `ADMIN`, `TEST-SUITE`, etc.)
+- los bloques siguientes deben identificar el slice y el problema real
+- el sufijo numerico (`-01`, `-02`, etc.) se incrementa cuando se vuelve a trabajar el mismo tema en un hito nuevo
+
+#### Reglas de consistencia
+
+- el mismo identificador debe repetirse exactamente en:
+  - auditoria de `agent.repo_guardian`
+  - commit real
+  - push publicado
+  - cierre de `agent.hdoc`
+- el nombre del hito debe reflejar el alcance real del diff, no una intencion vaga
+- si el diff cambia de alcance, el nombre debe ajustarse antes del commit
+- si el diff contiene mas de una responsabilidad clara, hay que dividir el hito
+
+#### Regla semantica
+
+- si el nombre necesita "y ademas", probablemente hay mezcla de hitos
+- el nombre debe poder explicar una sola responsabilidad clara
+- el nombre debe ser defendible arquitectonicamente
+
+#### Regla de trazabilidad
+
+- no usar naming generico tipo `fix(...)`, `feat(...)` o variantes equivalentes como identificador de hito
+- el identificador del hito debe vivir dentro del mensaje de commit
+- si no se commitea aislado, no existe como hito
+
+### Criterio transversal de representacion canonica
+
+Todo hito tecnico debe evaluarse verificando que contribuya a consolidar una representacion canonica del dominio sobre el que opera, donde:
+
+- el estado es la fuente de verdad
+- no existen duplicaciones estructurales
+- la ejecucion opera sobre entidades consistentes
+
+Restricciones:
+
+- no modificar el runtime vigente, salvo que el roadmap o ADR lo habilite explicitamente
+- no introducir capas paralelas
+- no generalizar cross-domain antes del nivel correspondiente del roadmap
+
 ## Reglas Git
 
 - Marcelo es el unico autorizado a ejecutar Git de escritura
