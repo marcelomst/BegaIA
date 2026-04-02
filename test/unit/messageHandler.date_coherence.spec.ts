@@ -108,6 +108,28 @@ describe("messageHandler date coherence", () => {
     expect(confirmAndCreate).not.toHaveBeenCalled();
   });
 
+  it("bloquea fechas invertidas en raw sin corregirlas automáticamente", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero reservar 10/05/2026 05/05/2026"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/fechas parecen inconsistentes|check-out debe ser posterior/i);
+    expect(replyText).not.toMatch(/10\/05\/2026 → 05\/05\/2026|05\/05\/2026 → 10\/05\/2026|disponible|tarifa/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
+  it("bloquea formato de fecha inválido en raw", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero reservar del 004/05/2026 al 10/05/2026"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/fecha ingresada no es v[aá]lida|pod[eé]s corregirla/i);
+    expect(replyText).not.toMatch(/disponible|tarifa|confirm[aá]s la reserva/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
   it("bloquea modify flow con fechas inválidas y no aplica cambios", async () => {
     currentState = {
       activeFlow: "modify_reservation",

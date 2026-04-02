@@ -43,7 +43,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor, ddmmyyyyToISO } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -1009,6 +1009,7 @@ function buildReservationListAnswer(
 
   const lines = reservations.map((item, index) => {
     const roomType = item.roomType ? localizeRoomType(item.roomType, lang) : undefined;
+    const guestName = String(item.guestName || "").trim();
     const checkIn = isoToDDMMYYYY(item.checkIn) || item.checkIn || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
     const checkOut = isoToDDMMYYYY(item.checkOut) || item.checkOut || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
     const status =
@@ -1017,9 +1018,12 @@ function buildReservationListAnswer(
         : item.canonicalStatus === "error"
           ? (lang === "pt" ? "com erro" : lang === "en" ? "error" : "con error")
           : (lang === "pt" ? "ativa" : lang === "en" ? "active" : "activa");
+    const owner = guestName
+      ? ` · ${lang === "pt" ? "em nome de" : lang === "en" ? "under" : "a nombre de"} ${guestName}`
+      : "";
     const guests = item.numGuests ? ` · ${lang === "pt" ? "hóspedes" : lang === "en" ? "guests" : "huéspedes"}: ${item.numGuests}` : "";
     const room = roomType ? ` · ${lang === "pt" ? "quarto" : lang === "en" ? "room" : "habitación"}: ${roomType}` : "";
-    return `${index + 1}. ${item.reservationId} · ${status}${room} · ${checkIn} → ${checkOut}${guests}`;
+    return `${index + 1}. ${item.reservationId} · ${status}${owner}${room} · ${checkIn} → ${checkOut}${guests}`;
   });
 
   const title =
@@ -2045,7 +2049,14 @@ function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?
   };
 }
 
-function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "check_order" | "range_too_long"): string {
+function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "check_order" | "range_too_long" | "invalid_format"): string {
+  if (reason === "invalid_format") {
+    return lang === "es"
+      ? "La fecha ingresada no es válida. ¿Podés corregirla?"
+      : lang === "pt"
+        ? "A data informada não é válida. Pode corrigi-la?"
+        : "That date is not valid. Can you correct it?";
+  }
   if (reason === "range_too_long") {
     return lang === "es"
       ? "Las fechas no son válidas para una reserva estándar. La estadía quedó demasiado larga. ¿Querés que las corrijamos?"
@@ -2054,10 +2065,35 @@ function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "ch
         : "Those dates are not valid for a standard booking. The stay became too long. Do you want to correct them?";
   }
   return lang === "es"
-    ? "Las fechas no son válidas. El check-out debe ser posterior al check-in. ¿Querés que las corrijamos?"
+    ? "Las fechas parecen inconsistentes. El check-out debe ser posterior al check-in. ¿Podés confirmarlas?"
     : lang === "pt"
-      ? "As datas não são válidas. O check-out deve ser posterior ao check-in. Quer corrigi-las?"
-      : "Those dates are not valid. Check-out must be after check-in. Do you want to correct them?";
+      ? "As datas parecem inconsistentes. O check-out deve ser posterior ao check-in. Pode confirmá-las?"
+      : "Those dates look inconsistent. Check-out must be after check-in. Can you confirm them?";
+}
+
+function detectRawReservationDateIssue(text: string): { reason: "check_order" | "range_too_long" | "invalid_format" } | null {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+
+  const broadNumericTokens = Array.from(raw.matchAll(/\b(\d{1,4}[/-]\d{1,4}[/-]\d{2,4})\b/g)).map((match) => match[1]);
+  if (!broadNumericTokens.length) return null;
+
+  const strictNumericTokens: string[] = [];
+  for (const token of broadNumericTokens) {
+    if (!/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}$/.test(token)) {
+      return { reason: "invalid_format" };
+    }
+    const iso = ddmmyyyyToISO(token);
+    if (!iso) return { reason: "invalid_format" };
+    strictNumericTokens.push(iso);
+  }
+
+  if (strictNumericTokens.length >= 2) {
+    const rawCoherence = assessReservationDateCoherence(strictNumericTokens[0], strictNumericTokens[1]);
+    if (rawCoherence && !rawCoherence.ok) return { reason: rawCoherence.reason };
+  }
+
+  return null;
 }
 
 // === NEW: intentar structured prompt (enriquecedor/fallback)
@@ -2962,6 +2998,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       final_prompt_key: null,
     });
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+  }
+  const rawCreateDateIssue = detectRawReservationDateIssue(String(pre.msg.content || ""));
+  if (rawCreateDateIssue) {
+    const rawCreateText = String(pre.msg.content || "");
+    const rawCreateIntent = normalizeReservationIntent(rawCreateText);
+    const rawCreateSubFlow = resolveReservationFastPathSubFlow(pre, rawCreateText);
+    const isNonReservationFollowup =
+      pre.prevCategory === "send_email_copy" ||
+      pre.prevCategory === "send_whatsapp_copy";
+    const hasExplicitCreateContext =
+      /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(rawCreateText) ||
+      pre.st?.desiredAction === "create" ||
+      pre.st?.activeFlow === "reservation" ||
+      pre.prevCategory === "reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "create";
+    if (!isNonReservationFollowup && rawCreateSubFlow === "create" && rawCreateIntent.kind !== "modify" && rawCreateIntent.kind !== "cancel" && hasExplicitCreateContext) {
+      return {
+        finalText: buildInvalidReservationDatesReply(pre.lang, rawCreateDateIssue.reason),
+        nextCategory: "reservation",
+        nextSlots,
+        needsSupervision,
+        graphResult: null,
+      };
+    }
   }
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
@@ -4922,6 +4982,26 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
         locale: pre.lang,
       };
+      const createDraftConsistency = validateCreateDraftConsistency(pre.lang, snapshot as ReservationSlotsStrict);
+      if (!createDraftConsistency.valid) {
+        await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+        finalText = createDraftConsistency.message;
+        return {
+          finalText,
+          nextCategory: "reservation",
+          nextSlots: { ...createDraftConsistency.sanitizedSlots },
+          needsSupervision,
+          graphResult,
+        };
+      }
+      if (!isCreateStateReadyForQuote(snapshot as ReservationSlotsStrict)) {
+        const missingField = getNextCreateFlowMissingField(snapshot as ReservationSlotsStrict);
+        if (missingField) {
+          await persistCreateDraft(pre, snapshot as ReservationSlotsStrict);
+          finalText = buildCreateFlowPrompt(pre.lang, missingField);
+          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+        }
+      }
       if (!snapshot.roomType || !snapshot.checkIn || !snapshot.checkOut) {
         finalText = buildAskMissingDate(pre.lang, !snapshot.checkIn ? "checkIn" : "checkOut");
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
@@ -4934,7 +5014,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       try {
         const { confirmAndCreate } = await import("@/lib/agents/reservations");
         const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
-        if (result.ok) {
+        const hasReservationId = Boolean(String(result.reservationId || "").trim());
+        if (result.ok && hasReservationId) {
           const createdReservation: LastReservation = {
             reservationId: result.reservationId || "",
             status: "created",
@@ -4971,17 +5052,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             updatedBy: "ai",
           } as any);
         }
-        finalText = result.ok
+        finalText = result.ok && hasReservationId
           ? (pre.lang === "es"
             ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(snapshot.roomType, pre.lang)}**, Fechas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
             : pre.lang === "pt"
               ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(snapshot.roomType, pre.lang)}**, Datas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
               : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(snapshot.roomType, pre.lang)}**, Dates **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`)
-          : result.message;
+          : (result.ok
+            ? (pre.lang === "es"
+              ? "No pude confirmar la reserva con datos incompletos. Sigamos con el dato faltante."
+              : pre.lang === "pt"
+                ? "Não consegui confirmar a reserva com dados incompletos. Vamos continuar com a informação que falta."
+                : "I couldn't confirm the booking with incomplete data. Let's continue with the missing detail.")
+            : result.message);
         return {
           finalText,
           nextCategory: "reservation",
-          nextSlots: result.ok ? { ...nextSlots, ...snapshot } : nextSlots,
+          nextSlots: result.ok && hasReservationId ? { ...nextSlots, ...snapshot } : nextSlots,
           needsSupervision,
           graphResult
         };
