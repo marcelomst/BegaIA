@@ -277,6 +277,7 @@ Uso:
 - consolidar múltiples datos útiles del mismo turno antes de decidir
 - hacer merge consistente entre estado previo, input actual y fallback estructurado
 - sostener follow-ups y cambios incrementales
+- permitir ingestión inline de `guestName` en turnos ricos de `create`
 
 Regla operativa:
 
@@ -285,6 +286,8 @@ Regla operativa:
 - el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
 - la validación RAW de fechas debe ocurrir antes de normalizar o avanzar el
   flujo de `create`
+- la captura inline de `guestName` no debe degradar otros slots ya válidos ni
+  disparar confirm prematuro
 
 ### 5.7 `draft consistency validation`
 

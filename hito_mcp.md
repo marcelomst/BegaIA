@@ -4879,6 +4879,40 @@ Impacto:
 - fortalece hardening del borde API
 - evita trabajo innecesario con requests mal formados
 
+### FIX-PIPELINE-CREATE-INLINE-GUEST-NAME-INGESTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-02  
+Commit: ef508fc1e34ed9209ddd4c95774a1b31c823efda
+
+Descripcion:
+
+Se corrige la ingestión inline de `guestName` en turnos ricos de `create`,
+evitando repreguntas innecesarias y previniendo caída errónea en confirm
+prematuro.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- PASS reportado en tests automáticos del bloque de helpers, slot ingestion y create quote gating
+- `pnpm run ts-check` PASS
+- validación manual positiva para captura inline de nombre y flujo create intacto
+
+Impacto:
+
+- mejora el stage de `slot ingestion`
+- evita repreguntas innecesarias de `guestName`
+- preserva integridad del create rico en un solo turno
+- elimina una fuente de confirm prematuro erróneo
+- mantiene consistencia entre input rico y estado del runtime
+
 ### FIX-TEST-SUITE-INTEGRATION-STABILITY-01
 
 Estado: COMPLETADO  
