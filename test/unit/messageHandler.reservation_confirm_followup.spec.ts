@@ -188,6 +188,74 @@ describe("messageHandler reservation confirm follow-up", () => {
     expect(replyText.toLowerCase()).toContain("fecha");
   });
 
+  it("no ejecuta create si la propuesta quedó con draft incompleto y vuelve al dato faltante", async () => {
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValueOnce({
+      reservationSlots: {
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        roomType: "double",
+      },
+      salesStage: "quote",
+      desiredAction: "create",
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "create",
+        active: true,
+        updatedAt: "2026-04-02T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage({
+      messageId: "confirm-incomplete-create-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "confirmar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-3",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+  });
+
+  it("no persiste una reserva creada si confirmAndCreate devuelve ok pero sin reservationId", async () => {
+    const sendReply = vi.fn(async () => {});
+    (confirmAndCreate as any).mockResolvedValueOnce({
+      ok: true,
+      reservationId: "",
+      message: "ok-without-id",
+    });
+
+    await handleIncomingMessage({
+      messageId: "confirm-empty-id-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "confirmar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(updateConversationState).not.toHaveBeenCalledWith(
+      "hotel999",
+      "conv-confirm-1",
+      expect.objectContaining({
+        lastReservation: expect.objectContaining({
+          status: "created",
+        }),
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/dato faltante|incomplet/i);
+  });
+
   it("al confirmar un segundo booking deja el foco activo en la nueva reserva sin perder el historial", async () => {
     const sendReply = vi.fn(async () => {});
     (getConvState as any).mockResolvedValueOnce({
