@@ -283,6 +283,8 @@ Regla operativa:
 - la ingestión de slots debe ocurrir antes de cualquier decisión de fallback o
   continuidad de flujo
 - el runtime no debe repreguntar datos que ya fueron ingeridos de forma válida
+- la validación RAW de fechas debe ocurrir antes de normalizar o avanzar el
+  flujo de `create`
 
 ### 5.7 `draft consistency validation`
 
@@ -296,6 +298,8 @@ Regla operativa:
 - el runtime puede remover slots conflictivos para preservar la intención válida
   del usuario
 - la validación ocurre antes de decisiones comerciales o mutativas
+- una fecha inválida o invertida debe bloquear el avance antes de cualquier
+  quote, availability o ejecución
 
 Ejemplo actual:
 

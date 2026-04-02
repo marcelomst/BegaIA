@@ -4961,3 +4961,79 @@ Impacto:
 - mejora calidad del estado antes de quote/execution
 - preserva intención del usuario sin ejecutar sobre estado inválido
 - consolida `draft consistency validation` como stage explícito del pipeline
+
+### FIX-PIPELINE-CREATE-RAW-DATE-VALIDATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-02  
+Commit: 2d1b71672c165fb8593e255601aa6d373ff1e4d8
+
+Descripcion:
+
+Se introduce validación RAW de fechas antes de cualquier normalización en
+`reservation.create`, bloqueando avances sobre input temporal inválido.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.date_coherence.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo estable de la regla RAW previa al avance de `create`
+
+Impacto:
+
+- protege invariantes de `create`
+- evita autocorrección silenciosa de fechas
+- asegura que execution no ocurra sobre estado inválido
+
+### DOC-ARCHITECTURE-HITO-NAMING-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-02  
+Commit: 5d58cbad93b13303d53d449d6dfaa49fb2f473c9
+
+Descripcion:
+
+Se formalizan reglas estables para nombrado de hitos y evaluación canónica de
+cambios técnicos dentro del modelo operativo de Begasist.
+
+Archivos afectados:
+
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- no corresponde validación automática; es un hito documental/operativo
+
+Impacto:
+
+- fortalece gobernanza operativa de guardian + HDOC
+- mejora consistencia entre auditoría, commit y documentación
+- deja regla estable para futuros cierres
+
+### FIX-TEST-SUITE-CREATE-CONFIRM-INTEGRITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-02  
+Commit: aa38e01998fd8620f3920c8eaeb7556f8ab89d2e
+
+Descripcion:
+
+Se cubren salvaguardas críticas de create/confirm que ya existen en runtime
+para evitar regresiones silenciosas en el flujo de confirmación.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- hito registrado como consolidación de validación de comportamiento ya gobernado
+
+Impacto:
+
+- mejora cobertura sobre integridad de confirmación en create
+- reduce riesgo de regresiones silenciosas en flujo de confirmación
+- refuerza validación de execution sobre estado consistente
