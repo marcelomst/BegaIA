@@ -278,6 +278,8 @@ Uso:
 - hacer merge consistente entre estado previo, input actual y fallback estructurado
 - sostener follow-ups y cambios incrementales
 - permitir ingestión inline de `guestName` en turnos ricos de `create`
+- interpretar `numGuests` con una semántica canónica común entre helper y
+  runtime
 
 Regla operativa:
 
@@ -288,6 +290,10 @@ Regla operativa:
   flujo de `create`
 - la captura inline de `guestName` no debe degradar otros slots ya válidos ni
   disparar confirm prematuro
+- `numGuests` representa el total final de huéspedes
+- helper resuelve total directo y composición explícita
+- runtime sólo resuelve follow-ups contextuales cortos, sin competir
+  semánticamente con el helper
 
 ### 5.7 `draft consistency validation`
 

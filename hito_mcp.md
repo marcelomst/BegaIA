@@ -4913,6 +4913,37 @@ Impacto:
 - elimina una fuente de confirm prematuro erróneo
 - mantiene consistencia entre input rico y estado del runtime
 
+### REF-PIPELINE-GUEST-COUNT-INGESTION-HARDENING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-02  
+Commit: f0d6ce5440f15384829a5f17d68ca0e8c11e0bbd
+
+Descripcion:
+
+Se endurece la gobernanza de ingestión de `numGuests` en el pipeline de
+reservas, unificando su semántica base entre helper y runtime sin introducir
+capas paralelas.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- PASS reportado en helpers, slot ingestion, no-context guards e integración
+- `pnpm run ts-check` PASS
+
+Impacto:
+
+- unifica la gobernanza de `numGuests`
+- reduce inconsistencia entre helper y runtime
+- evita falsos positivos fuera de contexto
+- preserva create/modify con una semántica base común
+- mantiene la frontera helper para parsing base y runtime para follow-up contextual
+
 ### FIX-TEST-SUITE-INTEGRATION-STABILITY-01
 
 Estado: COMPLETADO  
