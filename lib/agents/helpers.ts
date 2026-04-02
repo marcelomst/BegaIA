@@ -1,4 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+function extractDirectGuestTotal(text: string): number | undefined {
+  const t = String(text || "").toLowerCase();
+  const patterns = [
+    /\b(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?)\b/,
+    /\b(?:somos|vamos|seriamos|seríamos|seremos|we are|were)\s+(\d{1,2})\b/,
+    /\bpara\s+(\d{1,2})\b(?!\s*(?:adultos?|adults?|mayores?|menor(?:es)?|ninos?|niños?|children|child|kids?|bebes?|bebés?|babies|baby))/,
+  ];
+  for (const rx of patterns) {
+    const match = t.match(rx);
+    if (match?.[1]) {
+      const parsed = parseInt(match[1], 10);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+  }
+  return undefined;
+}
+
+function extractComposedGuestTotal(text: string): number | undefined {
+  const t = String(text || "").toLowerCase();
+  const sumMatches = (rx: RegExp) =>
+    Array.from(t.matchAll(rx)).reduce((total, match) => total + parseInt(match[1], 10), 0);
+  const adults = sumMatches(/\b(\d{1,2})\s*(?:adultos?|adults?|mayores?)\b/g);
+  const children = sumMatches(
+    /(?:^|[\s,.;:!?])(\d{1,2})\s*(?:menor(?:es)?|ninos?|niños?|children|child|kids?|bebes?|bebés?|beb[eé]|bab(?:y|ies))(?=$|[\s,.;:!?])/gu
+  );
+  const total = adults + children;
+  return total > 0 ? total : undefined;
+}
+
 // Normaliza slots legacy: guests -> numGuests (string)
 export function normalizeSlots(slots: any): any {
   if (slots && typeof slots === "object") {
@@ -21,8 +50,6 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   const out: Partial<SlotMap> = {};
   const rawText = String(text || "");
   const t = (text || "").toLowerCase();
-  const sumGuestMatches = (rx: RegExp) =>
-    Array.from(t.matchAll(rx)).reduce((total, match) => total + parseInt(match[1], 10), 0);
   const inferYear = (day: number, month: number, explicitYear?: number) => {
     if (typeof explicitYear === "number") return explicitYear < 100 ? 2000 + explicitYear : explicitYear;
     const now = new Date();
@@ -85,20 +112,15 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       }
     }
   }
-  // Personas / huéspedes: soporta totales directos y combinaciones "2 adultos y 1 menor"
-  const adultGuests = sumGuestMatches(/\b(\d{1,2})\s*(?:adultos?|adults?|mayores?)\b/g);
-  const childGuests = sumGuestMatches(/\b(\d{1,2})\s*(?:menor(?:es)?|ninos?|niños?|children|child|kids?)\b/g);
-  const composedGuests = adultGuests + childGuests;
-  if (composedGuests > 0) {
+  // Personas / huéspedes: primero total directo, luego composición explícita. Si se contradicen, no resolver.
+  const directGuests = extractDirectGuestTotal(t);
+  const composedGuests = extractComposedGuestTotal(t);
+  if (typeof directGuests === "number" && typeof composedGuests === "number") {
+    if (directGuests === composedGuests) out.numGuests = String(directGuests);
+  } else if (typeof directGuests === "number") {
+    out.numGuests = String(directGuests);
+  } else if (typeof composedGuests === "number") {
     out.numGuests = String(composedGuests);
-  } else {
-    const ng = t.match(/(?:para|somos|for|we are|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?)/);
-    if (ng?.[1]) {
-      out.numGuests = String(parseInt(ng[1], 10));
-    } else {
-      const bareNg = t.match(/\b(?:para|somos|for|we are)\s*(\d{1,2})\b/);
-      if (bareNg?.[1]) out.numGuests = String(parseInt(bareNg[1], 10));
-    }
   }
   // Tipo de habitación: lista simple (se puede extender)
   const types = [
@@ -303,9 +325,15 @@ export function extractGuests(msg: string): string | undefined {
     if (Number.isFinite(n)) return String(n);
   }
 
-  // 2) Formas contextuales
-  const contextual = withoutDates.match(/\b(?:somos|para)?\s*(\d{1,2})\s*(?:p[eé]r+r?sonas|personas|hu[eé]spedes|pessoas)\b/);
-  if (contextual?.[1]) return String(parseInt(contextual[1], 10));
+  // 2) Formas directas/contextuales y composición explícita
+  const direct = extractDirectGuestTotal(withoutDates);
+  const composed = extractComposedGuestTotal(withoutDates);
+  if (typeof direct === "number" && typeof composed === "number") {
+    if (direct === composed) return String(direct);
+    return undefined;
+  }
+  if (typeof direct === "number") return String(direct);
+  if (typeof composed === "number") return String(composed);
 
   // 3) Palabras → número
   const WORD2NUM: Record<string, number> = { uno: 1, una: 1, dos: 2, tres: 3, quatro: 4, cuatro: 4 };

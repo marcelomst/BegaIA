@@ -56,4 +56,44 @@ describe("extractSlotsFromText", () => {
     });
     expect(slots.guestName).toBeUndefined();
   });
+
+  it("detecta total directo con 'somos 3'", () => {
+    const slots = extractSlotsFromText("somos 3 para la reserva", "es");
+    expect(slots.numGuests).toBe("3");
+  });
+
+  it("detecta total directo con 'vamos 2'", () => {
+    const slots = extractSlotsFromText("vamos 2 del 1 al 5 de mayo", "es");
+    expect(slots.numGuests).toBe("2");
+  });
+
+  it("detecta total directo con 'seríamos 4'", () => {
+    const slots = extractSlotsFromText("seríamos 4 en una doble", "es");
+    expect(slots.numGuests).toBe("4");
+  });
+
+  it("detecta composición con '2 adultos y 1 menor'", () => {
+    const slots = extractSlotsFromText("2 adultos y 1 menor", "es");
+    expect(slots.numGuests).toBe("3");
+  });
+
+  it("detecta composición con '2 mayores y 1 niño'", () => {
+    const slots = extractSlotsFromText("2 mayores y 1 niño", "es");
+    expect(slots.numGuests).toBe("3");
+  });
+
+  it("detecta composición con '2 adultos, 1 menor y 1 bebé'", () => {
+    const slots = extractSlotsFromText("2 adultos, 1 menor y 1 bebé", "es");
+    expect(slots.numGuests).toBe("4");
+  });
+
+  it("no resuelve contradicciones entre total directo y composición", () => {
+    const slots = extractSlotsFromText("somos 2, 2 adultos y 1 menor", "es");
+    expect(slots.numGuests).toBeUndefined();
+  });
+
+  it("no absorbe un número suelto ambiguo fuera de contexto", () => {
+    const slots = extractSlotsFromText("2", "es");
+    expect(slots.numGuests).toBeUndefined();
+  });
 });

@@ -42,6 +42,10 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
     currentState = { ...(currentState || {}), ...patch };
   }),
 }));
+vi.mock("@/lib/agents/reservations", () => ({
+  confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-NEW-01", message: "ok" })),
+  modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
+}));
 vi.mock("@/lib/prompts", () => ({
   defaultPrompt: "{{retrieved}}",
   curatedPrompts: {},
@@ -92,6 +96,24 @@ describe("messageHandler slot ingestion", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/tipo de habitaci[oó]n|room type/i);
+    expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-05-10",
+      checkOut: "2026-05-15",
+      numGuests: "3",
+    });
+  });
+
+  it("en create interpreta 'somos 3' como total directo y avanza al siguiente faltante real", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 10 al 15 de mayo de 2026, somos 3"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/tipo de habitaci[oó]n/i);
     expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes/i);
     expect(currentState?.reservationSlots).toMatchObject({
       checkIn: "2026-05-10",
@@ -195,5 +217,45 @@ describe("messageHandler slot ingestion", () => {
       numGuests: "3",
     });
     expect(currentState?.modifyState?.activeField).toBe("guests");
+  });
+
+  it("en modify interpreta 'somos 3' con la misma semántica base de huéspedes", async () => {
+    currentState = {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-15",
+        numGuests: "2",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "R-123",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+      modifyState: {
+        activeField: "guests",
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("somos 3"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l ser[ií]a la nueva cantidad de hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/no entend[ií]|humano|asesor/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      numGuests: "3",
+    });
   });
 });
