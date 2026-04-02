@@ -136,6 +136,28 @@ describe("messageHandler create quote gating", () => {
     expect(currentState?.lastProposal?.available).toBe(true);
   });
 
+  it("con turno rico completo e inline guestName no cae en confirm prematuro y cotiza normalmente", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo de 2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-05-01",
+      checkOut: "2026-05-05",
+      numGuests: "2",
+      roomType: "double",
+      guestName: "Ana Gomez",
+    });
+  });
+
   it("con create activo + fechas + 'sí' no cotiza y mantiene create sin contaminar modify", async () => {
     const sendReply = vi.fn(async () => {});
 

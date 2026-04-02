@@ -119,6 +119,49 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("absorbe guestName inline con patron 'a nombre de' y no repregunta nombre", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo de 2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("absorbe guestName inline con patron 'nombre X' y no repregunta nombre", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo de 2026, nombre Ana Gomez, doble para 2 personas"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("no toma 'nombre de la empresa ...' como guestName ni degrada otros slots", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo de 2026, nombre de la empresa Acme, doble para 2"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-05-01",
+      checkOut: "2026-05-05",
+      numGuests: "2",
+    });
+    expect(currentState?.reservationSlots?.guestName).toBeUndefined();
+  });
+
   it("en modify absorbe intención + campo + nuevo valor en el mismo turno sin repregunta redundante", async () => {
     currentState = {
       reservationSlots: {

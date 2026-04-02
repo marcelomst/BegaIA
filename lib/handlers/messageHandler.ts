@@ -4812,7 +4812,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       graphResult,
     };
   }
-  if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative) {
+  if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative && !looksExplicitNewReservation) {
     if (!isReservationConfirmable && !modifyExecutionActive && !hasCompleteCreateDraft) {
       if (reservationFlow === "confirmed") {
         finalText = pre.lang === "es"

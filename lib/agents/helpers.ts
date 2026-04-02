@@ -19,6 +19,7 @@ export function normalizeSlots(slots: any): any {
 import type { SlotMap } from "@/types/audit";
 export function extractSlotsFromText(text: string, _lang: string): Partial<SlotMap> {
   const out: Partial<SlotMap> = {};
+  const rawText = String(text || "");
   const t = (text || "").toLowerCase();
   const sumGuestMatches = (rx: RegExp) =>
     Array.from(t.matchAll(rx)).reduce((total, match) => total + parseInt(match[1], 10), 0);
@@ -92,7 +93,12 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     out.numGuests = String(composedGuests);
   } else {
     const ng = t.match(/(?:para|somos|for|we are|para\s*|)\s*(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?)/);
-    if (ng?.[1]) out.numGuests = String(parseInt(ng[1], 10));
+    if (ng?.[1]) {
+      out.numGuests = String(parseInt(ng[1], 10));
+    } else {
+      const bareNg = t.match(/\b(?:para|somos|for|we are)\s*(\d{1,2})\b/);
+      if (bareNg?.[1]) out.numGuests = String(parseInt(bareNg[1], 10));
+    }
   }
   // Tipo de habitación: lista simple (se puede extender)
   const types = [
@@ -120,9 +126,19 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
         ? "quadruple"
         : found === "doble" || found === "matrimonial"
           ? "double"
-          : found === "individual" || found === "simple"
-            ? "single"
-            : found;
+        : found === "individual" || found === "simple"
+          ? "single"
+          : found;
+  }
+  const inlineGuestName =
+    rawText.match(/\ba\s+nombre\s+de\b[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu) ||
+    rawText.match(/\bnombre\b(?!\s+de\b)[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu);
+  if (inlineGuestName?.[1]) {
+    const candidate = inlineGuestName[1]
+      .trim()
+      .replace(/[.,;:!?]+$/g, "")
+      .replace(/\s{2,}/g, " ");
+    if (isSafeGuestName(candidate)) out.guestName = normalizeNameCase(candidate);
   }
   return out;
 }
