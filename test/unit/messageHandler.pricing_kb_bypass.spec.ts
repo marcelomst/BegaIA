@@ -81,7 +81,7 @@ describe("messageHandler pricing KB bypass", () => {
     vi.clearAllMocks();
   });
 
-  it("omite KB fastpath descriptivo para pricing transaccional y delega al flujo de reserva", async () => {
+  it("pricing puro no cae en KB descriptivo ni arranca collecting de reserva", async () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
@@ -96,11 +96,11 @@ describe("messageHandler pricing KB bypass", () => {
       detectedLanguage: "es",
     } as any, { mode: "automatic", sendReply });
 
-    expect(agentGraph.invoke).toHaveBeenCalled();
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
     expect(sendReply).toHaveBeenCalled();
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toContain("check-in");
+    expect(replyText).toMatch(/cotiz|precio exacto/i);
     expect(replyText).not.toContain("Amenities descriptivos");
   });
 

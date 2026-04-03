@@ -1609,9 +1609,107 @@ function looksTransactionalPricingIntent(text: string): boolean {
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
-  const hasPriceSignal = /\b(precio|precios|tarifa|tarifas|rate|rates|price|prices|cotiz(?:acion|acion|ar)?|quote|quotes)\b/.test(t);
+  const hasPriceSignal =
+    /\b(precio|precios|tarifa|tarifas|rate|rates|price|prices|cotiz(?:acion|acion|ar)?|quote|quotes)\b/.test(t) ||
+    /\b(cuanto|quanto|how much)\s+(sale|cuesta|cost|is)\b/.test(t);
   const hasReservationSignal = /\b(habitacion|room|rooms|single|individual|double|doble|matrimonial|twin|queen|king|triple|suite|familiar|reserva|reservar|booking)\b/.test(t);
   return hasPriceSignal && hasReservationSignal;
+}
+
+type DominantTurnDomain =
+  | "reservation"
+  | "pricing"
+  | "policies"
+  | "faq"
+  | "fallback";
+
+function detectDominantTurnDomain(
+  text: string,
+  lang: "es" | "en" | "pt"
+): {
+  dominant: DominantTurnDomain;
+  hasMultiple: boolean;
+  hasReservation: boolean;
+  hasPricing: boolean;
+  hasPolicies: boolean;
+  hasFaq: boolean;
+} {
+  const rawText = String(text || "");
+  const normalized = rawText
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const normalizedReservationIntent = normalizeReservationIntent(rawText);
+  const extracted = extractSlotsFromText(rawText, lang);
+  const hasExplicitBookingVerb =
+    /\b(reserv(ar|a|o)?|book(?:ing)?|booking)\b/.test(normalized);
+  const hasReservationObject =
+    /\b(reserva|booking|reservation)\b/.test(normalized);
+  const hasReservation =
+    normalizedReservationIntent.kind === "modify" ||
+    normalizedReservationIntent.kind === "cancel" ||
+    hasExplicitBookingVerb ||
+    (hasReservationObject && Boolean(extracted.checkIn || extracted.checkOut || extracted.roomType || extracted.numGuests || extracted.guestName));
+  const hasPricing = looksTransactionalPricingIntent(rawText);
+  const hasPolicies =
+    /\b(mascotas?|pets?|pet[- ]?friendly|aceptan mascotas|permiten mascotas|allowed pets|politicas?|policies?|policy|condiciones)\b/.test(normalized);
+  const hasFaq =
+    /\b(desayuno|breakfast|wifi|wi[- ]?fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|check[- ]?in|check[- ]?out)\b/.test(normalized);
+
+  const domains = [
+    hasReservation ? "reservation" : null,
+    hasPricing ? "pricing" : null,
+    hasPolicies ? "policies" : null,
+    hasFaq ? "faq" : null,
+  ].filter(Boolean) as DominantTurnDomain[];
+
+  const dominant =
+    domains.includes("reservation")
+      ? "reservation"
+      : domains.includes("pricing")
+        ? "pricing"
+        : domains.includes("policies")
+          ? "policies"
+          : domains.includes("faq")
+            ? "faq"
+            : "fallback";
+
+  return {
+    dominant,
+    hasMultiple: domains.length > 1,
+    hasReservation,
+    hasPricing,
+    hasPolicies,
+    hasFaq,
+  };
+}
+
+function isExplicitModifyExitTurn(text: string): boolean {
+  const normalized = normalizeReferenceText(text || "");
+  return Boolean(
+    /\b(no\s+quiero\s+modific(ar|arla|arl[oa]?)|ya\s+no\s+quiero\s+modific(ar|arla|arl[oa]?)|no\s+la\s+quiero\s+modific(ar|ar)|olvida\s+la\s+modificaci[oó]n|dejala\s+as[ii]|dejalo\s+as[ii])\b/.test(normalized)
+  );
+}
+
+function buildPricingClarificationReply(
+  lang: "es" | "en" | "pt",
+  slots: ReservationSlotsStrict
+): string {
+  const roomLabel =
+    slots.roomType
+      ? localizeRoomType(String(slots.roomType), lang)
+      : lang === "es"
+        ? "una habitación"
+        : lang === "pt"
+          ? "um quarto"
+          : "a room";
+  if (lang === "es") {
+    return `Puedo cotizar ${roomLabel}. Para darte un precio exacto necesito fechas y cantidad de huéspedes.`;
+  }
+  if (lang === "pt") {
+    return `Posso cotar ${roomLabel}. Para passar um valor exato, preciso das datas e da quantidade de hóspedes.`;
+  }
+  return `I can quote ${roomLabel}. To give you an exact price, I need the dates and guest count.`;
 }
 
 function isRoomTypeFollowupInReservation(
@@ -1912,6 +2010,11 @@ function shouldUseReservationLocalFallback(
   finalText: string,
   signal: ReturnType<typeof getReservationDomainLockSignal>
 ): boolean {
+  const dominantTurnDomain = detectDominantTurnDomain(String(pre.msg.content || ""), pre.lang);
+  const shouldAllowCrossDomainOverride =
+    !signal.compatible &&
+    (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies");
+  if (shouldAllowCrossDomainOverride) return false;
   if (signal.breaksLock) return false;
   if (!isReservationFlowStillActive(pre)) return false;
   if (
@@ -2980,8 +3083,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let explicitRich = state.explicitRich;
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   const guestState = resolveGuestState(pre.st);
+  const rawTurnText = String(pre.msg.content || "");
+  const dominantTurnDomain = detectDominantTurnDomain(rawTurnText, pre.lang);
   const stableIntent = await runStableIntentsGuard({
-    rawQuery: String(pre.msg.content || ""),
+    rawQuery: rawTurnText,
     hotelId: pre.msg.hotelId,
     preferredLanguage: pre.lang,
     conversationId: pre.conversationId,
@@ -2997,7 +3102,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     policy_source: stableIntent.policySource ?? null,
     response_source: stableIntent.responseSource ?? null,
   });
-  if (stableIntent.matched && stableIntent.response) {
+  const shouldSuppressStableIntent =
+    stableIntent.matched &&
+    dominantTurnDomain.hasMultiple &&
+    (dominantTurnDomain.dominant === "reservation" || dominantTurnDomain.dominant === "pricing");
+  if (stableIntent.matched && stableIntent.response && !shouldSuppressStableIntent) {
     finalText = stableIntent.response;
     nextCategory =
       stableIntent.intentKey === "faq_check_out_time"
@@ -3005,6 +3114,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : stableIntent.intentKey === "faq_check_in_time"
           ? "checkin_info"
           : "amenities_info";
+    const stableFocus = getConversationFocus(pre.st);
+    const stableTurnSlots = extractSlotsFromText(rawTurnText, pre.lang);
+    const stableTurnHasReservationData = Boolean(
+      stableTurnSlots.checkIn ||
+      stableTurnSlots.checkOut ||
+      stableTurnSlots.roomType ||
+      stableTurnSlots.numGuests ||
+      looksLikeName(rawTurnText) ||
+      extractRawOrderedDateRange(rawTurnText)?.checkIn
+    );
+    if (
+      shouldAppendFocusContinuation(pre, stableFocus, {
+        isLateralTurn: nextCategory === "amenities_info" || nextCategory === "checkin_info" || nextCategory === "checkout_info",
+        turnHasReservationData: stableTurnHasReservationData,
+      })
+    ) {
+      const continuation = buildFocusContinuationPrompt(pre, stableFocus, nextSlots);
+      if (continuation) finalText = `${String(finalText || "").trim()} ${continuation}`.trim();
+    }
     if (shouldClearSelectedReservationTargetForCategory(nextCategory, null)) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         selectedReservationTarget: null,
@@ -3028,13 +3156,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     });
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
   }
-  const earlyCheckinShortcutQ = detectEarlyCheckinQuestion(String(pre.msg.content || ""), pre.lang);
-  if (earlyCheckinShortcutQ) {
+  const earlyCheckinShortcutQ = detectEarlyCheckinQuestion(rawTurnText, pre.lang);
+  if (
+    earlyCheckinShortcutQ &&
+    !(
+      dominantTurnDomain.hasMultiple &&
+      (dominantTurnDomain.dominant === "reservation" || dominantTurnDomain.dominant === "pricing")
+    )
+  ) {
     const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
     const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
     finalText = buildEarlyCheckinResponse(pre.lang, guestState, {
       checkInTime: confCheckIn,
-      asksLuggage: /\b(valijas?|equipaje|luggage|bags?|bagagem|malas?)\b/i.test(String(pre.msg.content || "")),
+      asksLuggage: /\b(valijas?|equipaje|luggage|bags?|bagagem|malas?)\b/i.test(rawTurnText),
     });
     nextCategory = "checkin_info";
     emitRoutingDecision(pre.msg, {
@@ -3072,6 +3206,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         graphResult: null,
       };
     }
+  }
+  if (dominantTurnDomain.dominant === "pricing" && !dominantTurnDomain.hasReservation) {
+    const pricingSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, extractSlotsFromText(rawTurnText, pre.lang));
+    return {
+      finalText: buildPricingClarificationReply(pre.lang, pricingSlots),
+      nextCategory: "retrieval_based",
+      nextSlots,
+      needsSupervision,
+      graphResult: null,
+    };
   }
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
@@ -3517,6 +3661,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const persistedSelectedReservationTarget = resolveSelectedReservationTarget(pre.st);
   const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
   const reservationDomainLock = getReservationDomainLockSignal(pre, userTxtRaw);
+  const explicitModifyExit =
+    isExplicitModifyExitTurn(userTxtRaw) &&
+    (pre.inModifyMode ||
+      pre.st?.desiredAction === "modify" ||
+      pre.st?.activeFlow === "modify_reservation" ||
+      pre.prevCategory === "modify_reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "modify");
   const hasModifyVerb = /\b(modific|cambi|alter|mudar|change|edit|update)\w*\b/i.test(normalizeReferenceText(userTxtRaw));
   const snapshotQueryKind = detectReservationSnapshotQuery(userTxtRaw, pre.lang);
   const hasExplicitOrdinalReference = Boolean(extractReservationOrdinalReference(normalizeReferenceText(userTxtRaw)));
@@ -3539,14 +3690,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     !effectiveSnapshotQueryKind &&
     !reservationDomainLock.compatible &&
     /\b(wifi|wi-fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|desayuno|breakfast|ayuda|help|soporte|support|factura|invoice|pago|payment)\b/i.test(normalizeReferenceText(userTxtRaw));
-  if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget) {
+  const shouldPreserveReservationSelectionForOverride =
+    looksNonReservationDomainTurn &&
+    (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies") &&
+    isReservationFlowStillActive(pre);
+  if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget && !shouldPreserveReservationSelectionForOverride) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
       modifyState: null,
       updatedBy: "ai",
     } as any);
   }
-  const selectedReservationTarget = looksNonReservationDomainTurn ? null : persistedSelectedReservationTarget;
+  const selectedReservationTarget =
+    looksNonReservationDomainTurn && !shouldPreserveReservationSelectionForOverride
+      ? null
+      : persistedSelectedReservationTarget;
   const hasAnaphoraReference = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxtRaw));
   const explicitReservationCode = parseReservationCode(userTxtRaw);
   const explicitIdReservationTarget = explicitReservationCode
@@ -3575,6 +3733,24 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) &&
     normalizedReservationIntent.kind !== "modify" &&
     normalizedReservationIntent.kind !== "cancel";
+  if (explicitModifyExit) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      modifyState: null,
+      conversationFocus: null,
+      activeFlow: null,
+      desiredAction: undefined,
+      selectedReservationTarget: null,
+      activeReservationContext: null,
+      updatedBy: "ai",
+    } as any);
+    finalText = pre.lang === "es"
+      ? "De acuerdo, salgo de la modificación. Si querés, podemos revisar otra consulta."
+      : pre.lang === "pt"
+        ? "Certo, saio da alteração. Se quiser, podemos revisar outra consulta."
+        : "Understood. I am leaving the modification flow. If you want, we can review something else.";
+    nextCategory = "retrieval_based";
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
   const reservationRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
   const reservationCheckIn = nextSlots.checkIn || pre.currSlots.checkIn || pre.st?.reservationSlots?.checkIn;
   const reservationCheckOut = nextSlots.checkOut || pre.currSlots.checkOut || pre.st?.reservationSlots?.checkOut;
@@ -3739,6 +3915,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     resolvedModifyTarget
   ) {
     const target = resolvedModifyTarget;
+    const directModifyTurnSlots = extractSlotsFromText(userTxtRaw, pre.lang);
+    const hasImmediateModifyValue =
+      Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) ||
+      Boolean(directModifyTurnSlots.numGuests) ||
+      Boolean(directModifyTurnSlots.roomType);
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       reservationSlots: {
         ...(pre.st?.reservationSlots || {}),
@@ -3762,6 +3943,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "modify_reservation",
       updatedBy: "ai",
     } as any);
+    if (!hasImmediateModifyValue) {
+      finalText = buildModifyOptionsMenu(pre.lang, {
+        ...(pre.st?.reservationSlots || {}),
+        guestName: target.guestName,
+        roomType: reservationRoomType || target.roomType,
+        numGuests: reservationGuests || target.numGuests,
+        checkIn: reservationCheckIn || target.checkIn,
+        checkOut: reservationCheckOut || target.checkOut,
+      } as ReservationSlotsStrict);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
   }
   if (
     !snapshotQueryKind &&
@@ -5179,7 +5371,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               ? "Não encontrei uma reserva ativa nesta conversa. Se quiser revisar uma reserva existente, me envie o código da reserva."
               : "I can't find an active booking on this conversation. If you want to review an existing booking, send me the booking code.";
           nextCategory = "reservation_snapshot";
-          return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
         if (
           mentionsReservationObject &&
@@ -5295,17 +5487,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const isReservationConfirmFollowup =
           askedToConfirmReservation(pre.lcHistory) &&
           (isPureConfirm(kbUserText) || isPureAffirmative(kbUserText, pre.lang));
+        const allowsCrossDomainFocusOverride =
+          !reservationDomainLock.compatible &&
+          (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies");
         const hasReservationContext =
-          pre.inModifyMode ||
-          isRoomTypeFollowup ||
-          isGuestsFollowup ||
-          isGuestNameFollowup ||
-          isAvailabilityVerifyAffirmative ||
-          isReservationConfirmFollowup ||
-          reservationDomainLock.compatible ||
-          isReservationFlowStillActive(pre) ||
-          !!pre.stateForPlaybook?.draft ||
-          !!pre.stateForPlaybook?.confirmedBooking;
+          !allowsCrossDomainFocusOverride &&
+          (
+            pre.inModifyMode ||
+            dominantTurnDomain.dominant === "reservation" ||
+            dominantTurnDomain.dominant === "pricing" ||
+            isRoomTypeFollowup ||
+            isGuestsFollowup ||
+            isGuestNameFollowup ||
+            isAvailabilityVerifyAffirmative ||
+            isReservationConfirmFollowup ||
+            reservationDomainLock.compatible ||
+            isReservationFlowStillActive(pre) ||
+            !!pre.stateForPlaybook?.draft ||
+            !!pre.stateForPlaybook?.confirmedBooking
+          );
         debugLog("[KB] fastpath check", {
           hasReservationContext,
           wantsNearby,
@@ -5413,6 +5613,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               finalText = text;
               nextCategory = cat || "retrieval_based";
               nextSlots = pre.currSlots; // KB no toca slots de reserva
+              const kbFocus = getConversationFocus(pre.st);
+              const kbTurnHasReservationData = Boolean(
+                extractSlotsFromText(kbUserText, pre.lang).checkIn ||
+                extractSlotsFromText(kbUserText, pre.lang).checkOut ||
+                extractSlotsFromText(kbUserText, pre.lang).roomType ||
+                extractSlotsFromText(kbUserText, pre.lang).numGuests ||
+                looksLikeName(kbUserText) ||
+                extractRawOrderedDateRange(kbUserText)?.checkIn
+              );
+              if (
+                shouldAppendFocusContinuation(pre, kbFocus, {
+                  isLateralTurn:
+                    nextCategory === "amenities_info" ||
+                    nextCategory === "checkin_info" ||
+                    nextCategory === "checkout_info" ||
+                    nextCategory === "billing" ||
+                    nextCategory === "support",
+                  turnHasReservationData: kbTurnHasReservationData,
+                })
+              ) {
+                const continuation = buildFocusContinuationPrompt(pre, kbFocus, nextSlots);
+                if (continuation) {
+                  finalText = `${String(finalText || "").trim()} ${continuation}`.trim();
+                }
+              }
 
               graphResult = {
                 ...(kb.debug || {}),
