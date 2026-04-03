@@ -3,6 +3,7 @@ import { AIMessage } from "@langchain/core/messages";
 import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { confirmAndCreate } from "@/lib/agents/reservations";
 import { firstNameOf } from "@/lib/agents/helpers";
+import { canonicalizeRoomType } from "@/lib/schemas/reservation";
 import type { GraphState } from "../graphState";
 
 /**
@@ -19,7 +20,7 @@ export async function handleReservationConfirmNode(state: typeof GraphState.Stat
     // Tipado estricto para confirmAndCreate
     const slots = {
         guestName: String(st.reservationSlots.guestName),
-        roomType: String(st.reservationSlots.roomType),
+        roomType: canonicalizeRoomType(String(st.reservationSlots.roomType)),
         checkIn: String(st.reservationSlots.checkIn),
         checkOut: String(st.reservationSlots.checkOut),
         locale: String(st.reservationSlots.locale),

@@ -96,4 +96,49 @@ describe("extractSlotsFromText", () => {
     const slots = extractSlotsFromText("2", "es");
     expect(slots.numGuests).toBeUndefined();
   });
+
+  it("canonicaliza alias 'simple' a 'single'", () => {
+    const slots = extractSlotsFromText("quiero una simple", "es");
+    expect(slots.roomType).toBe("single");
+  });
+
+  it("canonicaliza alias 'matrimonial' a 'double'", () => {
+    const slots = extractSlotsFromText("cuarto matrimonial", "es");
+    expect(slots.roomType).toBe("double");
+  });
+
+  it("detecta roomType en frases naturales como 'una doble'", () => {
+    const slots = extractSlotsFromText("quiero una doble", "es");
+    expect(slots.roomType).toBe("double");
+  });
+
+  it("detecta roomType en frases naturales como 'habitación doble'", () => {
+    const slots = extractSlotsFromText("necesito una habitación doble", "es");
+    expect(slots.roomType).toBe("double");
+  });
+
+  it("detecta roomType en frases naturales como 'para dos en doble'", () => {
+    const slots = extractSlotsFromText("somos 2 para dos noches en doble", "es");
+    expect(slots.roomType).toBe("double");
+  });
+
+  it("mantiene canónicos directos como 'twin' y 'suite'", () => {
+    expect(extractSlotsFromText("quiero una twin", "es").roomType).toBe("twin");
+    expect(extractSlotsFromText("necesito una suite", "es").roomType).toBe("suite");
+  });
+
+  it("no absorbe valores fuera del canon como 'king' o 'deluxe'", () => {
+    expect(extractSlotsFromText("quiero una king", "es").roomType).toBeUndefined();
+    expect(extractSlotsFromText("necesito una deluxe", "es").roomType).toBeUndefined();
+  });
+
+  it("no produce falsos positivos por substring accidental", () => {
+    const slots = extractSlotsFromText("la familiaridad del lugar importa", "es");
+    expect(slots.roomType).toBeUndefined();
+  });
+
+  it("no resuelve contradicciones de roomType como 'doble twin'", () => {
+    const slots = extractSlotsFromText("quiero una doble twin", "es");
+    expect(slots.roomType).toBeUndefined();
+  });
 });

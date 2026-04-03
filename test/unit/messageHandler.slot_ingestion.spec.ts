@@ -141,6 +141,21 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("en create interpreta 'quiero una doble' con canon estable y pide el siguiente dato faltante", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/check-?in|fecha/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+    });
+  });
+
   it("absorbe guestName inline con patron 'a nombre de' y no repregunta nombre", async () => {
     const sendReply = vi.fn(async () => {});
 
@@ -256,6 +271,46 @@ describe("messageHandler slot ingestion", () => {
     expect(replyText).not.toMatch(/no entend[ií]|humano|asesor/i);
     expect(currentState?.reservationSlots).toMatchObject({
       numGuests: "3",
+    });
+  });
+
+  it("en modify interpreta 'cambiame a triple' con el mismo canon base de roomType", async () => {
+    currentState = {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-15",
+        numGuests: "2",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "R-123",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+      modifyState: {
+        activeField: "roomType",
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("cambiame a triple"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qu[eé] tipo de habitaci[oó]n/i);
+    expect(replyText).not.toMatch(/no entend[ií]|humano|asesor/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "triple",
     });
   });
 });

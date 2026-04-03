@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { canonicalizeRoomType, maxGuestsForRoomType } from "@/lib/schemas/reservation";
+
 function extractDirectGuestTotal(text: string): number | undefined {
   const t = String(text || "").toLowerCase();
   const patterns = [
@@ -122,36 +124,8 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   } else if (typeof composedGuests === "number") {
     out.numGuests = String(composedGuests);
   }
-  // Tipo de habitación: lista simple (se puede extender)
-  const types = [
-    "cuadruple",
-    "cuádruple",
-    "quadruple",
-    "familiar",
-    "doble",
-    "triple",
-    "individual",
-    "simple",
-    "single",
-    "twin",
-    "queen",
-    "king",
-    "matrimonial",
-    "suite",
-    "deluxe",
-    "standard",
-  ];
-  const found = types.find(tp => t.includes(tp));
-  if (found) {
-    out.roomType =
-      found === "cuadruple" || found === "cuádruple" || found === "quadruple" || found === "familiar"
-        ? "quadruple"
-        : found === "doble" || found === "matrimonial"
-          ? "double"
-        : found === "individual" || found === "simple"
-          ? "single"
-          : found;
-  }
+  const detectedRoomType = canonicalizeRoomType(rawText);
+  if (detectedRoomType) out.roomType = detectedRoomType;
   const inlineGuestName =
     rawText.match(/\ba\s+nombre\s+de\b[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu) ||
     rawText.match(/\bnombre\b(?!\s+de\b)[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu);
@@ -269,12 +243,7 @@ export function looksLikeCorrection(msg: string) {
 
 // maxGuestsFor: Máximo de huéspedes por tipo de habitación
 export function maxGuestsFor(roomType?: string): number {
-  const rt = (roomType || "").toLowerCase();
-  if (/single|individual|simple/.test(rt)) return 1;
-  if (/double|doble|matrimonial|twin|queen|king/.test(rt)) return 2;
-  if (/triple/.test(rt)) return 3;
-  if (/suite|familiar|quadruple|cuadruple|cuádruple/.test(rt)) return 4;
-  return 4;
+  return maxGuestsForRoomType(roomType);
 }
 
 // clampGuests: Limita el número de huéspedes
@@ -609,18 +578,14 @@ export function toISODateDDMMYYYY(s: string): string | null {
 
 // Localiza el tipo de habitación para mostrar al usuario (manteniendo canónico interno)
 export function localizeRoomType(rt: string | undefined, lang2: "es" | "en" | "pt"): string {
-  const key = (rt || "").toLowerCase();
+  const key = canonicalizeRoomType(rt) || (rt || "").toLowerCase();
   const map: Record<string, { es: string; en: string; pt: string }> = {
     single: { es: "simple", en: "single", pt: "individual" },
     double: { es: "doble", en: "double", pt: "duplo" },
     triple: { es: "triple", en: "triple", pt: "triplo" },
     quadruple: { es: "cuadruple", en: "quadruple", pt: "quádruplo" },
     suite: { es: "suite", en: "suite", pt: "suite" },
-    queen: { es: "queen", en: "queen", pt: "queen" },
-    king: { es: "king", en: "king", pt: "king" },
     twin: { es: "twin", en: "twin", pt: "twin" },
-    deluxe: { es: "deluxe", en: "deluxe", pt: "deluxe" },
-    standard: { es: "standard", en: "standard", pt: "standard" },
   };
   const rec = map[key];
   if (!rec) return rt || "";

@@ -1,6 +1,6 @@
 // Path: /root/begasist/lib/agents/reservations.ts
 import { ChatOpenAI } from "@langchain/openai";
-import { reservationSlotsSchema, type ReservationSlots, validateBusinessRules } from "@/lib/schemas/reservation";
+import { canonicalizeRoomType, reservationSlotsSchema, type ReservationSlots, validateBusinessRules } from "@/lib/schemas/reservation";
 import {
   checkAvailabilityTool,
   createReservationTool,
@@ -130,20 +130,9 @@ function normalizeBookingSlots(slots: InputSlots): NormalizedSlots {
   if (typeof gSrc !== "undefined") out.guests = coerceGuests(gSrc as number | string);
   // Canonicalizar roomType aquí mismo de forma local
   if (typeof out.roomType === "string") {
-    const rt = String(out.roomType).toLowerCase();
-    const canonical =
-      /^(doble|double|matrimonial)$/.test(rt) || /(doble\s+matrimonial|matrimonial\s+doble)/.test(rt)
-        ? "double"
-        : /^(twin|dos\s*camas|dos\s*individuales)$/.test(rt)
-          ? "twin"
-          : /^(single|simple|individual)$/.test(rt)
-            ? "single"
-            : /^(triple)$/.test(rt)
-              ? "triple"
-              : /^(suite)$/.test(rt)
-                ? "suite"
-                : rt;
-    out.roomType = canonical;
+    const canonical = canonicalizeRoomType(String(out.roomType));
+    if (canonical) out.roomType = canonical;
+    else delete out.roomType;
   }
   return out as NormalizedSlots;
 }
@@ -328,7 +317,8 @@ export async function fillSlotsWithLLM(
 
     const partialFromFull: Partial<ReservationSlots> = {};
     if (full.guestName) partialFromFull.guestName = full.guestName;
-    if (full.roomType) partialFromFull.roomType = full.roomType;
+    const partialRoomType = canonicalizeRoomType(full.roomType);
+    if (partialRoomType) partialFromFull.roomType = partialRoomType;
     if (typeof full.numGuests === "number" && full.numGuests > 0) partialFromFull.numGuests = full.numGuests;
     if (full.checkIn) partialFromFull.checkIn = full.checkIn;
     if (full.checkOut) partialFromFull.checkOut = full.checkOut;
@@ -341,7 +331,10 @@ export async function fillSlotsWithLLM(
       const p: Partial<ReservationSlots> = {};
       const mrec = maybe as Record<string, unknown>;
       if (typeof mrec.guestName === "string") p.guestName = mrec.guestName;
-      if (typeof mrec.roomType === "string") p.roomType = mrec.roomType;
+      if (typeof mrec.roomType === "string") {
+        const canonicalRoomType = canonicalizeRoomType(mrec.roomType);
+        if (canonicalRoomType) p.roomType = canonicalRoomType;
+      }
       if (typeof mrec.checkIn === "string") p.checkIn = mrec.checkIn;
       if (typeof mrec.checkOut === "string") p.checkOut = mrec.checkOut;
       if (typeof mrec.numGuests === "number") p.numGuests = mrec.numGuests;

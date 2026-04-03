@@ -6,6 +6,7 @@ import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { fillSlotsWithLLM, confirmAndCreate } from "@/lib/agents/reservations";
 import type { FillSlotsResult } from "@/lib/agents/reservations";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
+import { canonicalizeRoomType, type CanonicalRoomType } from "@/lib/schemas/reservation";
 import { debugLog } from "@/lib/utils/debugLog";
 import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
@@ -284,7 +285,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     try {
         const prevSlotsForLLM = {
             guestName: merged.guestName,
-            roomType: merged.roomType,
+            roomType: canonicalizeRoomType(merged.roomType),
             checkIn: merged.checkIn,
             checkOut: merged.checkOut,
             numGuests: merged.numGuests ? parseInt(`${merged.numGuests}`, 10) : undefined,
@@ -339,6 +340,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             const toISODateTime = (d: string) => (d && d.length === 10 ? `${d}T00:00:00Z` : d);
             const completeSnapshot = {
                 ...merged,
+                roomType: canonicalizeRoomType(merged.roomType),
                 checkIn: toISODateTime(merged.checkIn!),
                 checkOut: toISODateTime(merged.checkOut!),
                 locale,
@@ -680,7 +682,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     }
     const completeSnapshot: {
         guestName: string;
-        roomType: string;
+        roomType?: CanonicalRoomType;
         checkIn: string;
         checkOut: string;
         numGuests?: number;
@@ -688,7 +690,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     } = {
         ...merged,
         guestName: completed.guestName,
-        roomType: completed.roomType,
+        roomType: canonicalizeRoomType(completed.roomType),
         checkIn: completed.checkIn,
         checkOut: completed.checkOut,
         numGuests: toInt((completed as any).guests ?? (completed as any).numGuests),

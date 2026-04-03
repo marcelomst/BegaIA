@@ -1,6 +1,81 @@
 // Path: /root/begasist/lib/schemas/reservation.ts
 import { z } from "zod";
 
+export const CANONICAL_ROOM_TYPES = [
+  "single",
+  "double",
+  "triple",
+  "quadruple",
+  "twin",
+  "suite",
+] as const;
+
+export type CanonicalRoomType = typeof CANONICAL_ROOM_TYPES[number];
+
+const ROOM_TYPE_ALIAS_MAP: Record<string, CanonicalRoomType> = {
+  single: "single",
+  simple: "single",
+  individual: "single",
+  double: "double",
+  doble: "double",
+  matrimonial: "double",
+  triple: "triple",
+  quadruple: "quadruple",
+  cuadruple: "quadruple",
+  familiar: "quadruple",
+  twin: "twin",
+  suite: "suite",
+};
+
+function normalizeRoomTypeLexicalInput(value: string): string {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const ROOM_TYPE_PATTERNS = Object.entries(ROOM_TYPE_ALIAS_MAP)
+  .sort((a, b) => b[0].length - a[0].length)
+  .map(([alias, canonical]) => ({
+    canonical,
+    pattern: new RegExp(`(?:^|[^\\p{L}])${escapeRegex(alias)}(?=$|[^\\p{L}])`, "u"),
+  }));
+
+export function canonicalizeRoomType(rt?: string): CanonicalRoomType | undefined {
+  const normalized = normalizeRoomTypeLexicalInput(String(rt || ""));
+  if (!normalized) return undefined;
+  const matches = new Set<CanonicalRoomType>();
+  for (const entry of ROOM_TYPE_PATTERNS) {
+    if (entry.pattern.test(normalized)) matches.add(entry.canonical);
+  }
+  if (matches.size !== 1) return undefined;
+  return Array.from(matches)[0];
+}
+
+export function maxGuestsForRoomType(roomType?: string): number {
+  const canonical = canonicalizeRoomType(roomType);
+  switch (canonical) {
+    case "single":
+      return 1;
+    case "double":
+    case "twin":
+      return 2;
+    case "triple":
+      return 3;
+    case "quadruple":
+    case "suite":
+      return 4;
+    default:
+      return 4;
+  }
+}
+
 /**
  * 🎯 Slots mínimos para consultar disponibilidad y crear reserva.
  * - Fechas en ISO-8601 (validación estricta).
@@ -10,7 +85,9 @@ import { z } from "zod";
  */
 export const reservationSlotsSchema = z.object({
   guestName: z.string().min(2, "Nombre muy corto"),
-  roomType: z.string().min(3, "Tipo de habitación requerido"),
+  roomType: z.string()
+    .transform((value) => canonicalizeRoomType(value))
+    .refine((value): value is CanonicalRoomType => typeof value === "string", "Tipo de habitación requerido"),
   numGuests: z.number().int().positive("Cantidad de huéspedes inválida").optional(),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "checkIn debe ser YYYY-MM-DD"),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "checkOut debe ser YYYY-MM-DD"),
@@ -18,33 +95,6 @@ export const reservationSlotsSchema = z.object({
 });
 
 export type ReservationSlots = z.infer<typeof reservationSlotsSchema>;
-
-/** Capacidad sugerida por tipo de habitación (normalizada). */
-const ROOM_CAPACITY: Record<string, number> = {
-  single: 1,
-  individual: 1,
-  simple: 1,
-  double: 2,
-  doble: 2,
-  matrimonial: 2,
-  twin: 2,
-  triple: 3,
-  suite: 4,
-  familiar: 4,
-};
-const DEFAULT_MAX_GUESTS = 4;
-
-/** Normaliza el tipo de habitación a una clave conocida para capacidad. */
-function normalizeRoomType(rt: string): string {
-  const t = (rt || "").toLowerCase();
-  if (/single|individual|simple/.test(t)) return "single";
-  if (/double|doble|matrimonial/.test(t)) return "double";
-  if (/twin/.test(t)) return "twin";
-  if (/triple/.test(t)) return "triple";
-  if (/suite/.test(t)) return "suite";
-  if (/familiar|family/.test(t)) return "familiar";
-  return t; // si no matchea, devolvemos tal cual
-}
 
 /** Inicio del día (00:00:00) en la TZ del servidor. */
 function startOfTodayMs() {
