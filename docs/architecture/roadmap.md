@@ -153,6 +153,27 @@ NO crear capas paralelas
 runtime determinístico, estable y confiable en reservation
 ```
 
+Estado del bloque:
+
+- `NIVEL 2 — RESERVATION DOMAIN GOVERNANCE`: cerrado
+
+Capacidades consolidadas del dominio `reservation`:
+
+- canonical state como fuente de verdad
+- slot ingestion gobernado
+- draft consistency validation
+- create sequencing
+- quote gating
+- reference resolution con existence y sufficiency validation
+- modify execution integrity
+- cancel execution integrity
+
+Condición de cierre:
+
+- `execution == source of truth`
+- no persistir estado inválido o no materializado
+- no perder continuidad local cuando el contexto ya permite resolver
+
 ---
 
 # 🧠 NIVEL 1.5 — MAKE SLICES EXPLICIT (IMPLÍCITO)
