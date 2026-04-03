@@ -221,6 +221,48 @@ function baseThreeReservationState(overrides: Record<string, any> = {}) {
   });
 }
 
+function baseSingleReservationState(overrides: Record<string, any> = {}) {
+  return {
+    reservationSlots: {
+      guestName: "Marcelo Martinez",
+      roomType: "double",
+      checkIn: "2026-03-28",
+      checkOut: "2026-03-30",
+      numGuests: "2",
+    },
+    salesStage: "close",
+    conversationStage: "reservation_confirmed",
+    lastReservation: {
+      reservationId: "RES-ONLY-01",
+      status: "created",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+      guestName: "Marcelo Martinez",
+      roomType: "double",
+      checkIn: "2026-03-28",
+      checkOut: "2026-03-30",
+      numGuests: "2",
+    },
+    reservationHistory: [
+      {
+        reservationId: "RES-ONLY-01",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-28",
+        checkOut: "2026-03-30",
+        numGuests: "2",
+      },
+    ],
+    activeReservationContext: null,
+    selectedReservationTarget: null,
+    updatedAt: "2026-03-22T10:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("messageHandler reference resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1140,5 +1182,103 @@ describe("messageHandler reference resolution", () => {
       reservationId: "RES-OLD-01",
       awaitingConfirmation: true,
     });
+  });
+
+  it("auto-resuelve la única reserva activa en modify sin pedir desambiguación", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-modify-auto-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("cambiame a triple", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l reserva|pasame el c[oó]digo|la primera o la segunda/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-ONLY-01",
+    });
+    expect(stateByConversation.get(conversationId)?.activeReservationContext).toMatchObject({
+      kind: "reservation",
+      reservationId: "RES-ONLY-01",
+    });
+  });
+
+  it("mantiene continuidad posterior con 'somos 3' sobre el mismo target único", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-modify-continuity-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("cambiame a triple", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("somos 3", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l reserva|pasame el c[oó]digo|la primera o la segunda/i);
+    expect(replyText).toMatch(/nueva cantidad de hu[eé]spedes|quer[eé]s cambiar algo m[aá]s/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      roomType: "triple",
+      numGuests: "3",
+    });
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-ONLY-01",
+    });
+    expect(stateByConversation.get(conversationId)?.activeReservationContext).toMatchObject({
+      kind: "reservation",
+      reservationId: "RES-ONLY-01",
+    });
+  });
+
+  it("resuelve 'esa' cuando solo existe una reserva activa candidata", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-anaphora-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("modificá esa", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l reserva|pasame el c[oó]digo/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      source: "anaphora",
+    });
+  });
+
+  it("resuelve 'la única que tengo' cuando solo existe una reserva activa candidata", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-unique-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("modificá la única que tengo", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l reserva|pasame el c[oó]digo/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-ONLY-01",
+    });
+  });
+
+  it("resuelve 'la primera' cuando solo existe una reserva activa candidata", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-single-first-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("modificá la primera", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/cu[aá]l reserva|pasame el c[oó]digo/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      source: "ordinal",
+    });
+  });
+
+  it("con múltiples reservas sigue pidiendo desambiguación en modify", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-multi-still-ambiguous-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({ activeReservationContext: null, selectedReservationTarget: null }));
+
+    await handleIncomingMessage(msg("cambiame a triple", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/varias reservas|cu[aá]l quer[eé]s modificar|la primera o la segunda/i);
   });
 });

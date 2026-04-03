@@ -1148,6 +1148,11 @@ function buildActionableReservationCandidates(state: any): ReservationReferenceT
   }));
 }
 
+function resolveSingleActionableReservationTarget(state: any): ReservationReferenceTarget | null {
+  const actionable = buildActionableReservationCandidates(state);
+  return actionable.length === 1 ? actionable[0] : null;
+}
+
 function extractReservationOrdinalReferenceSpec(text: string): ReservationOrdinalReference | null {
   if (/\b(?:la|esa)\s+(?:primer|primera)\b|\b(?:primer|primera)\b/.test(text)) return { type: "ordinal", value: "first" };
   if (/\b(?:la|esa)\s+segunda\b|\bsegunda\b/.test(text)) return { type: "ordinal", value: "second" };
@@ -1294,6 +1299,7 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const active = getEffectiveActiveReservationContext(state);
   const candidates = buildReservationReferenceCandidates(state);
   const reservationCandidates = candidates.filter((candidate) => candidate.kind === "reservation" && candidate.reservationId);
+  const singleActionableReservation = resolveSingleActionableReservationTarget(state);
   const orderedReservationHistory = buildOrderedReservationHistoryCandidates(state);
   const activeReservationId = active?.kind === "reservation" ? active.reservationId : undefined;
   const alternateReservations = reservationCandidates.filter((candidate) => candidate.reservationId !== activeReservationId);
@@ -1302,10 +1308,11 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const mentionsOther = /\bla otra\b/.test(text);
   const mentionsPrevious = /\bla anterior\b/.test(text);
   const mentionsThat = /\besa\b/.test(text);
+  const mentionsUnique = /\bla unica que tengo\b|\bla unica\b|\bla única que tengo\b|\bla única\b/.test(text);
   const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
   const ordinalReference = extractReservationOrdinalReferenceSpec(text);
 
-  if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsTomorrow && !ordinalReference) {
+  if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsUnique && !mentionsTomorrow && !ordinalReference) {
     return { status: "unresolved" };
   }
 
@@ -1362,6 +1369,14 @@ function resolveReservationReference(state: any, userText: string): ReservationR
             source: "active",
           },
     };
+  }
+
+  if ((mentionsThat || mentionsUnique) && singleActionableReservation?.reservationId) {
+    return { status: "resolved", target: singleActionableReservation };
+  }
+
+  if (mentionsUnique) {
+    return reservationCandidates.length > 1 ? { status: "ambiguous" } : { status: "unresolved" };
   }
 
   if (mentionsTomorrow) {
@@ -3718,7 +3733,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const resolvedModifyTarget =
     reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
       ? reservationReference.target
-      : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
+      : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget || resolveSingleActionableReservationTarget(pre.st);
   if (
     (normalizedReservationIntent.kind === "modify" || wantsGenericModify(userTxtRaw, pre.lang) || hasModifyVerb) &&
     resolvedModifyTarget
@@ -3728,10 +3743,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       reservationSlots: {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
-        roomType: target.roomType,
-        numGuests: target.numGuests,
-        checkIn: target.checkIn,
-        checkOut: target.checkOut,
+        roomType: reservationRoomType || target.roomType,
+        numGuests: reservationGuests || target.numGuests,
+        checkIn: reservationCheckIn || target.checkIn,
+        checkOut: reservationCheckOut || target.checkOut,
         locale: pre.lang,
       },
       activeReservationContext: buildFocusedReservationContext(target.reservationId, "confirmed"),
@@ -4901,9 +4916,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         (reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
           ? reservationReference.target.reservationId
           : undefined) ||
+        selectedReservationTarget?.reservationId ||
         (pre.st?.activeReservationContext?.kind === "reservation"
           ? pre.st?.activeReservationContext?.reservationId
-          : undefined);
+          : undefined) ||
+        resolveSingleActionableReservationTarget(pre.st)?.reservationId;
       const ci = nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
       const co = nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
       const rt = nextSlots.roomType || pre.st?.reservationSlots?.roomType;
@@ -5640,20 +5657,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const wantsChangeDates = RE_CHANGE_DATES.test(userTxt) || RE_CHANGE_DATES.test(normalizedUserTxt);
     const wantsChangeRoom = RE_CHANGE_ROOM.test(userTxt) || RE_CHANGE_ROOM.test(normalizedUserTxt);
     const wantsChangeGuests = RE_CHANGE_GUESTS.test(userTxt) || RE_CHANGE_GUESTS.test(normalizedUserTxt);
-    if (wantsChangeDates || wantsChangeRoom || wantsChangeGuests) {
-      const immediateTurnSlots = toStrictSlots(extractSlotsFromText(userTxt, pre.lang));
-      const immediateDateRange = extractRawOrderedDateRange(userTxt);
-      const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, immediateTurnSlots);
-      const hasBoundReservationTarget =
-        pre.st?.activeReservationContext?.kind === "reservation" &&
-        Boolean(pre.st?.activeReservationContext?.reservationId);
+    const immediateTurnSlots = toStrictSlots(extractSlotsFromText(userTxt, pre.lang));
+    const immediateDateRange = extractRawOrderedDateRange(userTxt);
+    const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, immediateTurnSlots);
+    const hasBoundReservationTarget =
+      pre.st?.activeReservationContext?.kind === "reservation" &&
+      Boolean(pre.st?.activeReservationContext?.reservationId);
+    const hasImmediateDateValue = Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut);
+    const hasImmediateGuestValue = Boolean(immediateTurnSlots.numGuests);
+    const hasImmediateRoomValue = Boolean(immediateTurnSlots.roomType);
+    const hasImplicitModifyValueFollowup =
+      pre.inModifyMode &&
+      (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
+      (hasImmediateDateValue || hasImmediateGuestValue || hasImmediateRoomValue);
+    if (wantsChangeDates || wantsChangeRoom || wantsChangeGuests || hasImplicitModifyValueFollowup) {
       if (pre.inModifyMode && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
         const activeField: ModifyState["activeField"] =
-          wantsChangeDates ? "dates" : wantsChangeGuests ? "guests" : "roomType";
+          wantsChangeDates || hasImmediateDateValue ? "dates" : wantsChangeGuests || hasImmediateGuestValue ? "guests" : "roomType";
         const hasImmediateFieldValue =
-          (activeField === "dates" && Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut)) ||
-          (activeField === "guests" && Boolean(immediateTurnSlots.numGuests)) ||
-          (activeField === "roomType" && Boolean(immediateTurnSlots.roomType));
+          (activeField === "dates" && hasImmediateDateValue) ||
+          (activeField === "guests" && hasImmediateGuestValue) ||
+          (activeField === "roomType" && hasImmediateRoomValue);
         if (hasImmediateFieldValue) {
           const ingestedSlots = mergeReservationSlots(knownSlots, immediateDateRange);
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
