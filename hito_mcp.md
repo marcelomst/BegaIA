@@ -4981,6 +4981,39 @@ Impacto:
 - preserva create/modify con una semántica base común
 - mantiene la frontera helper para parsing base y runtime para follow-up contextual
 
+### FIX-PIPELINE-CROSS-DOMAIN-INTENT-PRIORITIZATION-02
+
+Estado: COMPLETADO  
+Fecha: 2026-04-03  
+Commit: c3e5e13d87f9b5bc2d6e6dc26c36d5ef8e1dc1e1
+
+Descripcion:
+
+Se endurece la gobernanza cross-domain del runtime, evitando degradación de
+`pricing` a `reservation collecting`, relajando el carácter absoluto de
+`conversationFocus` en turnos informativos puros e introduciendo salida
+explícita de subflow `modify`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+- `test/unit/messageHandler.pricing_kb_bypass.spec.ts`
+
+Validacion:
+
+- `vitest` PASS
+- `ts-check` PASS
+- validación manual positiva en reservation+faq, pricing+policies, modify+faq y salida explícita de modify
+
+Impacto:
+
+- refuerza gobernanza efectiva cross-domain
+- reduce secuestro conversacional por foco activo
+- evita falsa activación de reservation collecting en pricing
+- agrega salida explícita y segura de subflow `modify`
+- preserva invariantes del runtime sin tocar arquitectura ni graph
+
 ### FIX-TEST-SUITE-INTEGRATION-STABILITY-01
 
 Estado: COMPLETADO  

@@ -263,6 +263,9 @@ Regla operativa:
   necesario
 - `conversationFocus` mantiene autoridad sobre señales legacy cuando el flujo
   gobernado activo sigue siendo `create`
+- `conversationFocus` no es absoluto ante turnos informativos puros de `faq` o
+  `policies`
+- el usuario puede salir explícitamente de un subflow como `modify`
 
 ### 5.6 `reservationSlots`
 
@@ -466,6 +469,7 @@ Ejemplos representativos:
 - modify / cancel -> runtime + conv_state + ejecutor de dominio
 - multi-reservation -> runtime + conv_state
 - reference resolution -> runtime + foco activo + historial
+- cross-domain turn prioritization -> runtime + foco + heurísticas determinísticas
 
 Esto confirma que el pipeline actual no es puramente determinista ni puramente
 LLM-driven. Es un runtime híbrido controlado.
@@ -480,6 +484,10 @@ LLM-driven. Es un runtime híbrido controlado.
 - `stableIntentsGuard` debe seguir siendo conservador
 - `guestState` es señal contextual, no controlador principal
 - `activeReservationContext` es la señal preferida de foco actual
+- un turno ejecuta un solo dominio
+- la prioridad de dominio es determinística cuando compiten `reservation`,
+  `pricing`, `policies`, `faq` y `fallback`
+- `pricing` explícito no debe degradar a `reservation collecting`
 - ante ambigüedad fuerte en referencias, se pide aclaración
 - las acciones sobre reservas requieren target existente y suficiente antes de ejecutar
 
