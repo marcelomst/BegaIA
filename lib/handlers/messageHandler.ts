@@ -952,6 +952,40 @@ function normalizeCanonicalReservationStatus(status: string | null | undefined):
   return "active";
 }
 
+function hasMaterializedReservationPayload(item: any): boolean {
+  if (!item || typeof item !== "object") return false;
+  return Boolean(
+    String(item.guestName || "").trim() ||
+    String(item.roomType || "").trim() ||
+    String(item.checkIn || "").trim() ||
+    String(item.checkOut || "").trim() ||
+    String(item.numGuests || "").trim()
+  );
+}
+
+function isCanonicalReservationRecordEligible(item: any): boolean {
+  if (!item?.reservationId) return false;
+  const status = normalizeCanonicalReservationStatus(item.status);
+  if (status === "cancelled" || status === "error") return true;
+  return hasMaterializedReservationPayload(item);
+}
+
+function historyContainsReservationId(
+  history: LastReservation[] | null | undefined,
+  reservationId: string | undefined
+): boolean {
+  if (!reservationId) return false;
+  return (Array.isArray(history) ? history : []).some((item) => item?.reservationId === reservationId);
+}
+
+function shouldPreserveLastReservationRecord(
+  history: LastReservation[] | null | undefined,
+  record: LastReservation | null | undefined
+): boolean {
+  if (!record?.reservationId) return false;
+  return isCanonicalReservationRecordEligible(record) || historyContainsReservationId(history, record.reservationId);
+}
+
 function buildReservationCanonicalState(state: any): {
   records: CanonicalReservationRecord[];
   actionableRecords: CanonicalReservationRecord[];
@@ -959,7 +993,7 @@ function buildReservationCanonicalState(state: any): {
 } {
   const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
   const records = [...history];
-  if (state?.lastReservation?.reservationId) records.push(state.lastReservation);
+  if (shouldPreserveLastReservationRecord(history, state?.lastReservation)) records.push(state.lastReservation);
 
   const byId = new Map<string, CanonicalReservationRecord>();
   for (const item of records) {
@@ -999,7 +1033,8 @@ function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
   reservations: CanonicalReservationRecord[]
 ): string {
-  if (!reservations.length) {
+  const visibleReservations = reservations.filter((item) => isCanonicalReservationRecordEligible(item));
+  if (!visibleReservations.length) {
     return lang === "pt"
       ? "Não encontrei reservas para mostrar nesta conversa."
       : lang === "en"
@@ -1007,7 +1042,7 @@ function buildReservationListAnswer(
         : "No encontré reservas para mostrar en esta conversación.";
   }
 
-  const lines = reservations.map((item, index) => {
+  const lines = visibleReservations.map((item, index) => {
     const roomType = item.roomType ? localizeRoomType(item.roomType, lang) : undefined;
     const guestName = String(item.guestName || "").trim();
     const checkIn = isoToDDMMYYYY(item.checkIn) || item.checkIn || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
@@ -5027,6 +5062,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             checkOut: snapshot.checkOut,
             numGuests: snapshot.numGuests,
           };
+          const preservedHistory = mergeReservationHistory(
+            mergeReservationHistory(
+              (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+              shouldPreserveLastReservationRecord(
+                (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+                (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+              )
+                ? ((pre.st?.lastReservation as LastReservation | undefined) ?? undefined)
+                : undefined
+            ),
+            createdReservation
+          );
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             reservationSlots: {
               guestName: snapshot.guestName,
@@ -5036,13 +5083,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               numGuests: snapshot.numGuests,
               locale: snapshot.locale,
             },
-            reservationHistory: mergeReservationHistory(
-              mergeReservationHistory(
-                (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
-                (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
-              ),
-              createdReservation
-            ),
+            reservationHistory: preservedHistory,
             activeReservationContext: buildFocusedReservationContext(createdReservation.reservationId, "confirmed"),
             lastReservation: createdReservation,
             salesStage: "close",
