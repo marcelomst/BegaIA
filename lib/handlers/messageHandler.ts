@@ -3917,9 +3917,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
       ? reservationReference.target
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget || resolveSingleActionableReservationTarget(pre.st);
+  const normalizedUserTxtForModify = normalizeReferenceText(userTxtRaw);
+  const wantsChangeDates = RE_CHANGE_DATES.test(userTxtRaw) || RE_CHANGE_DATES.test(normalizedUserTxtForModify);
+  const wantsChangeRoom = RE_CHANGE_ROOM.test(userTxtRaw) || RE_CHANGE_ROOM.test(normalizedUserTxtForModify);
+  const wantsChangeGuests = RE_CHANGE_GUESTS.test(userTxtRaw) || RE_CHANGE_GUESTS.test(normalizedUserTxtForModify);
+  const hasExplicitModifyFieldRequest = wantsChangeDates || wantsChangeRoom || wantsChangeGuests;
   if (
     (normalizedReservationIntent.kind === "modify" || wantsGenericModify(userTxtRaw, pre.lang) || hasModifyVerb) &&
-    resolvedModifyTarget
+    resolvedModifyTarget &&
+    !(hasExplicitModifyFieldRequest && (pre.inModifyMode || pre.prevCategory === "modify_reservation"))
   ) {
     const target = resolvedModifyTarget;
     const directModifyTurnSlots = extractSlotsFromText(userTxtRaw, pre.lang);
@@ -5903,7 +5909,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
       (hasImmediateDateValue || hasImmediateGuestValue || hasImmediateRoomValue);
     if (wantsChangeDates || wantsChangeRoom || wantsChangeGuests || hasImplicitModifyValueFollowup) {
-      if (pre.inModifyMode && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
+      if ((pre.inModifyMode || pre.prevCategory === "modify_reservation") && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
         const activeField: ModifyState["activeField"] =
           wantsChangeDates || hasImmediateDateValue ? "dates" : wantsChangeGuests || hasImmediateGuestValue ? "guests" : "roomType";
         const hasImmediateFieldValue =
