@@ -1823,7 +1823,8 @@ function isReservationSnapshotFollowupSignal(pre: PreLLMResult, text: string): b
   return Boolean(
     /\b(esa|la misma|el mismo)\b/.test(normalized) ||
     extractReservationOrdinalReference(normalized) ||
-    /\b(mostrame|muestrame|mostrarme|mostrar|ver|detalle|detalles|resumen|snapshot|captura)\b/.test(normalized)
+    /\b(mostrame|muestrame|mostrarme|mostrar|ver|detalle|detalles|resumen|snapshot|captura)\b/.test(normalized) ||
+    /\b(como quedo|como quedó|como queda|como quedaria|como quedaría)\b/.test(normalized)
   );
 }
 
@@ -4020,13 +4021,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         ? pre.st?.activeReservationContext?.reservationId
         : undefined);
     const rawGuestCount = extractSlotsFromText(userTxtRaw, pre.lang).numGuests;
-    const nextGuestCount = rawGuestCount || reservationGuests;
+    const trimmedGuestInput = String(userTxtRaw || "").trim();
+    const numericGuestCount =
+      activeModifyField === "guests" && /^\d{1,2}$/.test(trimmedGuestInput)
+        ? trimmedGuestInput
+        : undefined;
+    const nextGuestCount = rawGuestCount || numericGuestCount || reservationGuests;
     const nextRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
     const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);
     const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : reservationCheckIn;
     const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : reservationCheckOut;
     const hasTurnLevelModifyValue =
-      (activeModifyField === "guests" && Boolean(rawGuestCount)) ||
+      (activeModifyField === "guests" && Boolean(rawGuestCount || numericGuestCount)) ||
       (activeModifyField === "roomType" && Boolean(nextSlots.roomType || pre.currSlots.roomType)) ||
       (activeModifyField === "dates" && hasExplicitDateRange);
     const awaitingModifyAvailabilityVerification =
