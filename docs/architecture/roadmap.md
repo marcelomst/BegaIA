@@ -1,10 +1,4 @@
-Perfecto — este es el momento justo para hacerlo.
-
-Te voy a dejar el **roadmap ajustado explícitamente al ADR**, no solo compatible, sino **protegido contra desvíos**.
-
----
-
-# 🧭 BEGASIST — ROADMAP AJUSTADO (ALINEADO AL ADR)
+# 🧭 BEGASIST — ROADMAP (ALINEADO AL ESTADO REAL)
 
 ## 📌 REFERENCIA
 
@@ -12,8 +6,8 @@ ADR: `adr_pipeline_runtime_target.md`
 
 ### Decisión base:
 
-* `messageHandler` es el runtime principal ✔️
-* NO migrar a graph aún ✔️
+- `messageHandler` es el runtime principal ✔️
+- NO migrar a graph aún ✔️
 
 ---
 
@@ -29,12 +23,12 @@ NO cambiar el runtime hasta estabilizar completamente el comportamiento
 
 ### Estado explícito + reference engine
 
-* selectedReservationTarget ✔️
-* ordinales ✔️
-* anáforas ✔️
-* lifecycle ✔️
-* modify substate ✔️
-* date coherence ✔️
+- selectedReservationTarget ✔️
+- ordinales ✔️
+- anáforas ✔️
+- lifecycle ✔️
+- modify substate ✔️
+- date coherence ✔️
 
 👉 Resultado:
 
@@ -44,9 +38,9 @@ runtime state-driven mínimo viable
 
 ---
 
-# 🧩 NIVEL 1 — STABILIZE RUNTIME BEHAVIOR (EN CURSO)
+# 🧩 NIVEL 1 — STABILIZE RUNTIME BEHAVIOR (CERRADO — RUNTIME)
 
-👉 OBJETIVO:
+👉 OBJETIVO (CERRADO):
 
 ```text
 hacer el runtime confiable SIN cambiar su arquitectura
@@ -69,95 +63,76 @@ NO crear capas paralelas
 
 ### Domain Governance
 
-* DOMAIN-LOCK-01
-* DOMAIN-LOCK-02
-
----
+- DOMAIN-LOCK-01
+- DOMAIN-LOCK-02
 
 ### Fallback Governance
 
-* FALLBACK-HIERARCHY-01
-
----
+- FALLBACK-HIERARCHY-01
 
 ### Modify Control
 
-* MODIFY-SUBSTATE-01
-
----
+- MODIFY-SUBSTATE-01
 
 ### Reference Coverage
 
-* REFERENCE-COVERAGE-01
-
----
+- REFERENCE-COVERAGE-01
 
 ### Validación
 
-* DATE-COHERENCE-01
+- DATE-COHERENCE-01
 
 ---
 
-## 🔴 PENDIENTES (CRÍTICOS)
+# 🟢 CAPACIDADES CONSOLIDADAS (NO PENDIENTES)
 
-### 1. FIX-PIPELINE-REFERENCE-RANGE-GUARDS-01
+Estas capacidades ya están implementadas en runtime, documentadas y cubiertas por test suite.
 
-👉 seguridad conversacional
+### RANGE GUARDS
 
-* validar ordinal fuera de rango
-* bloquear ejecución inválida
-* pedir aclaración
+- validación de ordinal fuera de rango
+- bloqueo de ejecución inválida
+- solicitud de aclaración
 
----
+### AMBIGUITY GATING
 
-### 2. FIX-PIPELINE-AMBIGUITY-GATING-01
+- detección de múltiples targets
+- bloqueo de ejecución sin claridad
+- solicitud de aclaración
 
-👉 control de ambigüedad
+### SLOT INGESTION
 
-* detectar múltiples targets
-* bloquear ejecución sin claridad
-* pedir aclaración
+- ingestión completa en un turno
+- reducción de repreguntas redundantes
 
----
+### CREATE SEQUENCING
 
-### 3. FIX-PIPELINE-RESERVATION-CANONICAL-STATE-01
-
-👉 consistencia de datos
-
-* dedupe por reservationId
-* estado correcto (active/cancelled)
+- orden natural del flujo
+- evita propuesta prematura
 
 ---
 
-### 4. FIX-PIPELINE-SLOT-INGESTION-01
+## ⚠️ DEUDA RESIDUAL (EXPLÍCITA)
 
-👉 robustez de input
+### CANONICAL STATE (validación adicional)
 
-* ingestión completa en un turno
-* evitar repreguntas redundantes
-
----
-
-### 5. FIX-PIPELINE-CREATE-SEQUENCING-01
-
-👉 coherencia UX
-
-* orden natural del flujo
-* no propuesta prematura
+- dedupe adicional
+- edge cases de consistencia
+- validación extendida
 
 ---
 
-## 🎯 RESULTADO ESPERADO DEL NIVEL 1
+## 🎯 RESULTADO DEL NIVEL 1
 
 ```text
 runtime determinístico, estable y confiable en reservation
 ```
 
-Estado del bloque:
+---
 
-- `NIVEL 2 — RESERVATION DOMAIN GOVERNANCE`: cerrado
+## 📌 ESTADO DEL DOMINIO `reservation`
 
-Capacidades consolidadas del dominio `reservation`:
+Capacidades consolidadas:
 
 - canonical state como fuente de verdad
 - slot ingestion gobernado
@@ -168,19 +143,21 @@ Capacidades consolidadas del dominio `reservation`:
 - modify execution integrity
 - cancel execution integrity
 
-Condición de cierre:
+---
 
-- `execution == source of truth`
-- no persistir estado inválido o no materializado
-- no perder continuidad local cuando el contexto ya permite resolver
+## ✅ CONDICIÓN DE CIERRE
+
+- execution == source of truth
+- no persistir estado inválido
+- no perder continuidad resoluble
+- no memoria lateral
+- mono-dominio por turno
 
 ---
 
 # 🧠 NIVEL 1.5 — MAKE SLICES EXPLICIT (IMPLÍCITO)
 
 👉 SIN refactor
-
-👉 SOLO identificar y consolidar internamente:
 
 ```text
 reference resolution
@@ -191,9 +168,7 @@ fallback governance
 date coherence
 ```
 
----
-
-## ⚠️ REGLA CRÍTICA
+## ⚠️ REGLA
 
 ```text
 IDENTIFICAR slices ≠ EXTRAER slices
@@ -203,13 +178,23 @@ IDENTIFICAR slices ≠ EXTRAER slices
 
 # 🚀 NIVEL 2 — FOCUS GOVERNANCE (CONTROLADO)
 
-## REF-PIPELINE-FOCUS-GOVERNANCE-01
+## CONDICIÓN DE ENTRADA
 
-👉 SOLO cuando Nivel 1 esté completo
+```text
+runtime estable
+invariantes cumplidas
+test suite robusta
+```
 
 ---
 
-## 🔒 REGLAS DE ESTE NIVEL
+## REF-PIPELINE-FOCUS-GOVERNANCE-01
+
+👉 Solo con Nivel 1 cerrado
+
+---
+
+## 🔒 REGLAS
 
 ```text
 NO crear nuevo runtime
@@ -221,36 +206,30 @@ NO introducir graph
 
 ## ✔️ PERMITIDO
 
-* introducir estructura explícita:
-
 ```ts
-conversationFocus
+conversationFocus;
 ```
 
-* lógica de scheduler simple
-* control de dominio cross-flow
-
-👉 todo dentro del runtime actual
+- scheduler simple
+- control cross-domain
 
 ---
 
 ## ❌ PROHIBIDO
 
-* engine paralelo
-* router externo
-* reescritura del pipeline
+- engine paralelo
+- router externo
+- reescritura del pipeline
 
 ---
 
 # 🧱 NIVEL 3 — CROSS-DOMAIN GOVERNANCE
 
-👉 aplicar modelo a:
+Aplicar modelo a:
 
-* amenities
-* billing
-* support
-
----
+- amenities
+- billing
+- support
 
 ## 🔒 REGLA
 
@@ -264,17 +243,17 @@ extender, no rediseñar
 
 👉 SOLO si:
 
-* comportamiento estable ✔️
-* slices claros ✔️
-* tests sólidos ✔️
+- comportamiento estable ✔️
+- slices claros ✔️
+- tests sólidos ✔️
 
 ---
 
 ## POSIBLES ACCIONES
 
-* extraer slices de messageHandler
-* modularización
-* evaluar graph
+- extraer slices
+- modularizar
+- evaluar graph
 
 ---
 
@@ -286,12 +265,12 @@ NO refactor sin evidencia de estabilidad
 
 ---
 
-# ⚠️ ANTI-PATRONES (PROHIBIDOS)
+# ⚠️ ANTI-PATRONES
 
 ```text
 ❌ migrar a graph prematuramente
 ❌ duplicar runtime
-❌ introducir abstracciones sin necesidad real
+❌ introducir abstracciones innecesarias
 ❌ mezclar refactor con fixes
 ❌ romper comportamiento estable
 ```
@@ -300,64 +279,16 @@ NO refactor sin evidencia de estabilidad
 
 # 🧭 ORDEN OPERATIVO ACTUAL
 
-1. RANGE GUARDS
-2. AMBIGUITY GATING
-3. CANONICAL STATE
-4. SLOT INGESTION
-5. CREATE SEQUENCING
-6. FOCUS GOVERNANCE
-
----
-
-# 🧠 INSIGHT FINAL
-
 ```text
-No estás cambiando la arquitectura.
-Estás haciendo explícitas sus reglas internas.
+1. CANONICAL STATE (validación residual)
+2. FOCUS GOVERNANCE
 ```
 
 ---
 
-# 🎯 FRASE GUÍA
+# 🧠 FRASE GUÍA
 
 ```text
 El runtime no cambia.
 El comportamiento se gobierna.
 ```
-
----
-
----
-
-# 🚀 Qué cambia con este ajuste
-
-Antes:
-
-* roadmap correcto pero implícito respecto al ADR
-
-Ahora:
-
-* roadmap con **guardrails explícitos contra desviación**
-
----
-
-# 🎯 Resultado
-
-Esto te asegura:
-
-* no desviarte hacia graph prematuramente
-* no romper el runtime actual
-* no caer en refactors peligrosos
-* avanzar igual de rápido, pero seguro
-
----
-
-## 👉 Siguiente paso
-
-Podés seguir con total confianza con:
-
-```text
-FIX-PIPELINE-REFERENCE-RANGE-GUARDS-01
-```
-
-Si querés, en el nuevo chat arrancamos directo con ese prompt 👍
