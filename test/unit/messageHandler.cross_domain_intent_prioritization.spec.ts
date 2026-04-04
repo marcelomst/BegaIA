@@ -336,4 +336,84 @@ describe("messageHandler cross-domain intent prioritization", () => {
     expect(currentState?.desiredAction).toBeUndefined();
     expect(currentState?.selectedReservationTarget).toBeNull();
   });
+
+  it("retiene una FAQ secundaria explícita y la retoma solo si el usuario la reactiva", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo y saber si tienen desayuno", "conv-cross-domain-6"),
+      { mode: "automatic", sendReply }
+    );
+
+    const firstReply = lastReply(sendReply);
+    expect(firstReply).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(firstReply).not.toMatch(/desayuno|07:00 - 10:30/i);
+
+    await handleIncomingMessage(
+      msg("desayuno?", "conv-cross-domain-6"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).toMatch(/desayuno|07:00 - 10:30/i);
+  });
+
+  it("retiene como máximo una secundaria y descarta el resto", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 y saber si tienen desayuno y si aceptan mascotas", "conv-cross-domain-7"),
+      { mode: "automatic", sendReply }
+    );
+
+    const reply = lastReply(sendReply);
+    expect(reply).not.toMatch(/mascotas|desayuno/i);
+  });
+
+  it("la intención retenida no secuestra una continuidad fuerte del siguiente turno", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo y saber si tienen desayuno", "conv-cross-domain-8"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).not.toMatch(/desayuno|07:00 - 10:30/i);
+
+    await handleIncomingMessage(
+      msg("2 personas", "conv-cross-domain-8"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).toMatch(/tipo de habitaci[oó]n/i);
+    expect(lastReply(sendReply)).not.toMatch(/desayuno|07:00 - 10:30/i);
+  });
+
+  it("limpia la intención retenida si el usuario la cancela explícitamente", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 de mayo y saber si tienen desayuno", "conv-cross-domain-9"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).not.toMatch(/desayuno|07:00 - 10:30/i);
+
+    await handleIncomingMessage(
+      msg("olvidate de eso", "conv-cross-domain-9"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).not.toMatch(/desayuno|07:00 - 10:30/i);
+  });
+
+  it("no retiene secundaria contradictoria dentro del mismo turno", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 1 al 5 y no me interesa el desayuno", "conv-cross-domain-10"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).not.toMatch(/desayuno/i);
+  });
 });
