@@ -5281,3 +5281,30 @@ Impacto:
 - fortalece la test suite como guardrail arquitectónico
 - reduce riesgo de regresiones en gobernanza cross-domain
 - bloquea cues, memoria lateral, reaparición implícita y mezcla de dominios
+
+### DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: 68e98748406e9a77f35e39c60470f033dca11099
+
+Descripcion:
+
+Se alinea `docs/architecture/roadmap.md` con el estado real del sistema,
+eliminando pendientes fantasma y corrigiendo una desalineación que ya inducía
+decisiones equivocadas.
+
+Archivos afectados:
+
+- `docs/architecture/roadmap.md`
+
+Validacion:
+
+- hito registrado como corrección de gobernanza documental sobre el roadmap vigente
+
+Impacto:
+
+- mejora gobernanza arquitectónica
+- reduce riesgo de duplicar trabajo ya hecho
+- alinea roadmap con runtime real
+- separa capacidades consolidadas de deuda residual explícita
