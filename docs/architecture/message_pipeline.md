@@ -430,6 +430,8 @@ Alcance actual:
 - cuando el target de `modify` ya está resuelto, una intención explícita de
   campo (`huéspedes`, `fechas`, `habitación`) debe ganar sobre el branch
   genérico de `modify`
+- el subestado `guests` de `modify` debe aceptar input numérico corto válido y
+  permitir snapshot follow-up post-modify sin reabrir menú
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -464,6 +466,10 @@ Guardrails vigentes:
   deben operar sobre esa misma reserva
 - en `modify`, la intención específica de campo debe ganar sobre el routing
   genérico para preservar determinismo y continuidad de target
+- en `modify.guests`, un valor corto válido no debe caer en repregunta,
+  fallback ni reapertura del menú
+- el follow-up de snapshot post-modify debe formar parte del cierre correcto de
+  la transacción
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión

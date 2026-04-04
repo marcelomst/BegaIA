@@ -5282,6 +5282,33 @@ Impacto:
 - reduce riesgo de regresiones en gobernanza cross-domain
 - bloquea cues, memoria lateral, reaparición implícita y mezcla de dominios
 
+### FIX-PIPELINE-MODIFY-FLOW-DETERMINISM-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: 34d56843d98c1e76de4091eee230b3088bd3fcbf
+
+Descripcion:
+
+Se corrige determinismo del flujo `modify`, evitando repregunta innecesaria en
+subestado `guests`, aceptando input numérico corto y habilitando follow-up de
+snapshot post-modify.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como restauración del comportamiento transaccional esperado de `modify`
+
+Impacto:
+
+- mejora determinismo del flujo `modify`
+- reduce ambigüedad operativa en subestado `guests`
+- hace consistente el cierre de transacción post-modify
+- evita reapertura innecesaria del menú
+
 ### DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01
 
 Estado: COMPLETADO  
