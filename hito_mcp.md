@@ -5255,3 +5255,29 @@ Impacto:
 - evita regresión de routing entre branch genérico y branch específico
 - preserva continuidad entre referencia resuelta y modificación concreta del campo
 - mantiene continuidad de target sin introducir estado persistente nuevo
+
+### FEAT-TEST-SUITE-PIPELINE-SECONDARY-INTENT-GOVERNANCE-GUARD-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: f796ad81286873668344bd08138d3a7958d4e05f
+
+Descripcion:
+
+Se endurecen los guardrails de test suite para bloquear regresiones de
+gobernanza del pipeline respecto de intención secundaria, cues
+conversacionales, memoria lateral y reactivación implícita.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.secondary_intent_governance_guard.spec.ts`
+
+Validacion:
+
+- hito registrado como guardrail ejecutable de gobernanza secundaria del pipeline
+
+Impacto:
+
+- fortalece la test suite como guardrail arquitectónico
+- reduce riesgo de regresiones en gobernanza cross-domain
+- bloquea cues, memoria lateral, reaparición implícita y mezcla de dominios
