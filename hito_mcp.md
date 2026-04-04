@@ -5199,3 +5199,31 @@ Impacto:
 - elimina memoria lateral no autorizada
 - refuerza determinismo conversacional
 - asegura que la intención secundaria no se ejecuta, no se menciona y no se recuerda
+
+### FIX-PIPELINE-DOMAIN-LOCK-FAQ-OVERRIDE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: 5bb5aea6672c181bde10ac8a6de1b48e71a827f4
+
+Descripcion:
+
+Se corrige una regresión donde una FAQ o policy pura rompía correctamente el
+domain lock en routing, pero el runtime reinyectaba continuidad de
+`reservation` en el output final.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.secondary_intent_governance_guard.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo estable de pureza mono-dominio en output assembly
+
+Impacto:
+
+- elimina una regresión de ensamblado de respuesta
+- evita contaminación conversacional desde `reservation` hacia `faq/policies`
+- asegura respuesta pura del dominio dominante cuando el lock se rompe
+- mantiene continuidad válida de `reservation` fuera del caso incompatible

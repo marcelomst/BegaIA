@@ -268,6 +268,8 @@ Regla operativa:
 - el usuario puede salir explícitamente de un subflow como `modify`
 - no debe existir retención explícita ni implícita de intención secundaria
   entre turnos
+- si `faq` o `policies` rompen el domain lock, la continuidad previa de
+  `reservation` debe cortarse también en el ensamblado final del output
 
 ### 5.6 `reservationSlots`
 
@@ -492,6 +494,9 @@ LLM-driven. Es un runtime híbrido controlado.
 - `pricing` explícito no debe degradar a `reservation collecting`
 - la intención secundaria no se ejecuta, no se menciona y no se recuerda entre
   turnos; sólo reaparece si el usuario la expresa otra vez
+- si `faq` o `policies` dominan el turno tras romper el domain lock, la
+  respuesta final debe quedar pura en ese dominio sin concatenar follow-ups de
+  `reservation`
 - ante ambigüedad fuerte en referencias, se pide aclaración
 - las acciones sobre reservas requieren target existente y suficiente antes de ejecutar
 
