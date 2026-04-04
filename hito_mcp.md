@@ -5172,3 +5172,30 @@ Impacto:
 - mejora cobertura sobre integridad de confirmación en create
 - reduce riesgo de regresiones silenciosas en flujo de confirmación
 - refuerza validación de execution sobre estado consistente
+
+### FIX-PIPELINE-CONTINUATION-SECONDARY-INTENT-NON-PERSISTENT-RETENTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: 86a08c5ed9da1261c8050bf3e996f0cab8aa6b02
+
+Descripcion:
+
+Se elimina toda forma de retención de intención secundaria en el pipeline,
+tanto explícita como implícita, restaurando gobernanza mono-dominio por turno.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+
+Validacion:
+
+- hito registrado como refuerzo estable de mono-dominio por turno sin memoria lateral
+
+Impacto:
+
+- restaura gobernanza estricta del pipeline
+- elimina memoria lateral no autorizada
+- refuerza determinismo conversacional
+- asegura que la intención secundaria no se ejecuta, no se menciona y no se recuerda

@@ -266,6 +266,8 @@ Regla operativa:
 - `conversationFocus` no es absoluto ante turnos informativos puros de `faq` o
   `policies`
 - el usuario puede salir explícitamente de un subflow como `modify`
+- no debe existir retención explícita ni implícita de intención secundaria
+  entre turnos
 
 ### 5.6 `reservationSlots`
 
@@ -488,6 +490,8 @@ LLM-driven. Es un runtime híbrido controlado.
 - la prioridad de dominio es determinística cuando compiten `reservation`,
   `pricing`, `policies`, `faq` y `fallback`
 - `pricing` explícito no debe degradar a `reservation collecting`
+- la intención secundaria no se ejecuta, no se menciona y no se recuerda entre
+  turnos; sólo reaparece si el usuario la expresa otra vez
 - ante ambigüedad fuerte en referencias, se pide aclaración
 - las acciones sobre reservas requieren target existente y suficiente antes de ejecutar
 
