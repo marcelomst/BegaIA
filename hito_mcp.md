@@ -5227,3 +5227,31 @@ Impacto:
 - evita contaminación conversacional desde `reservation` hacia `faq/policies`
 - asegura respuesta pura del dominio dominante cuando el lock se rompe
 - mantiene continuidad válida de `reservation` fuera del caso incompatible
+
+### FIX-PIPELINE-REFERENCE-RESOLUTION-MODIFY-GUESTS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-04  
+Commit: eb202b10c6cb3f6c6bc62e1aaa4950b72bdd25fb
+
+Descripcion:
+
+Se corrige una regresión en `modify` donde, tras resolver target de reserva,
+una intención explícita de cambiar `huéspedes`, `fechas` o `habitación` podía
+ser interceptada por el branch genérico en lugar de activar el subestado
+específico.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como refuerzo estable de prioridad de intención específica en `modify`
+
+Impacto:
+
+- restaura determinismo del flujo `modify`
+- evita regresión de routing entre branch genérico y branch específico
+- preserva continuidad entre referencia resuelta y modificación concreta del campo
+- mantiene continuidad de target sin introducir estado persistente nuevo

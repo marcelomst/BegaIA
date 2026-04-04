@@ -427,6 +427,9 @@ Alcance actual:
 - validación contra lista canónica de reservas antes de ejecutar acciones
 - gating de suficiencia cuando hay múltiples reservas accionables y falta target claro
 - continuidad explícita del target en `modify` hasta availability, confirm y ejecución final
+- cuando el target de `modify` ya está resuelto, una intención explícita de
+  campo (`huéspedes`, `fechas`, `habitación`) debe ganar sobre el branch
+  genérico de `modify`
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -459,6 +462,8 @@ Guardrails vigentes:
 - no debe existir cotización o proposal sobre drafts incompletos
 - una vez seleccionado un target en `modify`, availability, confirm y execution
   deben operar sobre esa misma reserva
+- en `modify`, la intención específica de campo debe ganar sobre el routing
+  genérico para preservar determinismo y continuidad de target
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
