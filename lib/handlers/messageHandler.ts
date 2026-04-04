@@ -3125,7 +3125,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       looksLikeName(rawTurnText) ||
       extractRawOrderedDateRange(rawTurnText)?.checkIn
     );
+    const stableLockSignal = getReservationDomainLockSignal(pre, rawTurnText);
+    const shouldBlockContinuation =
+      stableLockSignal.active &&
+      !stableLockSignal.compatible &&
+      (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies");
     if (
+      !shouldBlockContinuation &&
       shouldAppendFocusContinuation(pre, stableFocus, {
         isLateralTurn: nextCategory === "amenities_info" || nextCategory === "checkin_info" || nextCategory === "checkout_info",
         turnHasReservationData: stableTurnHasReservationData,
