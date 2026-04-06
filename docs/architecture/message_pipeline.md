@@ -434,6 +434,8 @@ Alcance actual:
   permitir snapshot follow-up post-modify sin reabrir menú
 - el snapshot de `modify` debe construirse exclusivamente desde la reserva
   objetivo ya resuelta, sin contaminarse con nombre o fechas de otra reserva
+- si el usuario pide ver cómo quedó tras `modify`, el snapshot del target
+  activo debe ganar sobre guidance genérica o routing por defecto
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -474,6 +476,8 @@ Guardrails vigentes:
   la transacción
 - en `modify`, `reservationId`, nombre, fechas, capacidad y habitación deben
   quedar alineados al mismo target resuelto
+- cuando ya existe target activo de `modify`, pedidos como `mostrame como
+  quedó`, `detalle` o `resumen` no deben degradar a guidance genérica
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión

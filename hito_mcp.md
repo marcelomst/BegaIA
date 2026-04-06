@@ -5336,6 +5336,33 @@ Impacto:
 - mejora consistencia de ejecución y persistencia
 - evita que una modificación correcta por target termine con datos ajenos
 
+### FIX-PIPELINE-MODIFY-SNAPSHOT-FOLLOWUP-ROUTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-06  
+Commit: 54a140cfa62787ceea385c72a6154c606d52806c
+
+Descripcion:
+
+Se corrige el routing de follow-up post-modify para que pedidos como
+`mostrame como quedó` prioricen snapshot del target activo en lugar de reabrir
+guidance genérica de modificación.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como cierre del follow-up transaccional correcto de `modify`
+
+Impacto:
+
+- cierra correctamente el follow-up post-modify
+- mejora determinismo de routing en `modify`
+- completa la experiencia transaccional del flujo
+- evita que un estado ya correcto vuelva a guidance genérica
+
 ### DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01
 
 Estado: COMPLETADO  
