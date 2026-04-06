@@ -5389,3 +5389,31 @@ Impacto:
 - reduce riesgo de duplicar trabajo ya hecho
 - alinea roadmap con runtime real
 - separa capacidades consolidadas de deuda residual explícita
+
+### TEST-SNAPSHOT-FOLLOWUP-PRECEDENCE-GUARD-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-06  
+Commit: 444022c825aee0ca3e8799d5785ead19fec88c8d
+
+Descripcion:
+
+Se agrega una suite de guardrails para congelar por tests la precedencia de
+`snapshot follow-up` cuando existe contexto activo de reserva, evitando
+degradación a guidance de `modify` o routing genérico.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts`
+
+Validacion:
+
+- hito registrado como guardrail ejecutable de precedencia para snapshot follow-up
+- los 9 fallos detectados en suites preexistentes no pertenecen causalmente a este hito
+
+Impacto:
+
+- fortalece la test suite como guardrail de precedencia
+- reduce riesgo de regresión en snapshot post-modify
+- deja congelado un contrato ya validado en runtime
+- mejora trazabilidad entre comportamiento real y cobertura automatizada
