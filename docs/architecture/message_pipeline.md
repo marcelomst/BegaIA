@@ -432,6 +432,8 @@ Alcance actual:
   genérico de `modify`
 - el subestado `guests` de `modify` debe aceptar input numérico corto válido y
   permitir snapshot follow-up post-modify sin reabrir menú
+- el snapshot de `modify` debe construirse exclusivamente desde la reserva
+  objetivo ya resuelta, sin contaminarse con nombre o fechas de otra reserva
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -470,6 +472,8 @@ Guardrails vigentes:
   fallback ni reapertura del menú
 - el follow-up de snapshot post-modify debe formar parte del cierre correcto de
   la transacción
+- en `modify`, `reservationId`, nombre, fechas, capacidad y habitación deben
+  quedar alineados al mismo target resuelto
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión

@@ -5309,6 +5309,33 @@ Impacto:
 - hace consistente el cierre de transacción post-modify
 - evita reapertura innecesaria del menú
 
+### FIX-PIPELINE-MODIFY-TARGET-DATA-ISOLATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-06  
+Commit: 09f4c217188b9dad74185d562b4bccc365496030
+
+Descripcion:
+
+Se corrige contaminación de datos entre reservas durante `modify`, asegurando
+que la ejecución y el snapshot de modificación se construyan exclusivamente
+desde la reserva objetivo ya resuelta.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como refuerzo estable de aislamiento de datos sobre target resuelto en `modify`
+
+Impacto:
+
+- elimina contaminación cruzada entre reservas
+- refuerza aislamiento de datos en `modify`
+- mejora consistencia de ejecución y persistencia
+- evita que una modificación correcta por target termine con datos ajenos
+
 ### DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01
 
 Estado: COMPLETADO  
