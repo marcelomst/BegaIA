@@ -1818,7 +1818,8 @@ function isReservationSnapshotFollowupSignal(pre: PreLLMResult, text: string): b
   if (!trimmed || trimmed.length > 48) return false;
   const hasSnapshotContext =
     pre.prevCategory === "reservation_snapshot" ||
-    Boolean(pre.st?.selectedReservationTarget?.reservationId);
+    Boolean(pre.st?.selectedReservationTarget?.reservationId) ||
+    pre.st?.activeReservationContext?.kind === "reservation";
   if (!hasSnapshotContext) return false;
   return Boolean(
     /\b(esa|la misma|el mismo)\b/.test(normalized) ||
@@ -3872,6 +3873,37 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       : effectiveSnapshotQueryKind && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
       ? reservationReference.target
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
+  if (!effectiveSnapshotQueryKind && reservationDomainLock.snapshotFollowup && isReservationFlowStillActive(pre)) {
+    const targetId =
+      selectedReservationTarget?.reservationId ||
+      (pre.st?.activeReservationContext?.kind === "reservation"
+        ? pre.st.activeReservationContext.reservationId
+        : undefined);
+    const target = targetId ? getReservationReferenceTargetById(pre.st, targetId) : null;
+    if (targetId && target) {
+      finalText = buildReservationSnapshotAnswer(
+        "full",
+        pre.lang,
+        {
+          reservationId: target.reservationId,
+          guestName: target.guestName,
+          roomType: target.roomType,
+          numGuests: target.numGuests,
+          checkIn: target.checkIn,
+          checkOut: target.checkOut,
+        } as any,
+        targetId,
+        target.reservationStatus
+      );
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        modifyState: null,
+        lastCategory: "reservation_snapshot",
+        updatedBy: "ai",
+      } as any);
+      nextCategory = "reservation_snapshot";
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+    }
+  }
   if (effectiveSnapshotQueryKind === "list") {
     const canonicalReservations = buildCanonicalReservationRecords(pre.st);
     finalText = buildReservationListAnswer(pre.lang, canonicalReservations);
