@@ -428,6 +428,8 @@ Alcance actual:
 - integración con `snapshot`, `modify` y `cancel`
 - validación contra lista canónica de reservas antes de ejecutar acciones
 - gating de suficiencia cuando hay múltiples reservas accionables y falta target claro
+- una anáfora deíctica como `esa` no puede resolver target si no existe
+  selección previa válida y siguen existiendo múltiples candidatos
 - continuidad explícita del target en `modify` hasta availability, confirm y ejecución final
 - cuando el target de `modify` ya está resuelto, una intención explícita de
   campo (`huéspedes`, `fechas`, `habitación`) debe ganar sobre el branch
@@ -463,6 +465,8 @@ Guardrails vigentes:
 - referencias ordinales fuera de rango no ejecutan acciones
 - si hay varias reservas accionables sin target suficiente, el sistema bloquea
   `modify`, `cancel` o snapshot accionable y pide aclaración
+- una anáfora ambigua sin antecedente suficiente debe degradar a `ambiguous` y
+  pedir precisión; no debe inventarse selección
 - no debe existir lógica duplicada por etapa para reinterpretar reservas fuera
   del estado canónico
 - la información útil de un turno debe persistirse antes de decidir fallback

@@ -5502,3 +5502,31 @@ Impacto:
 - mejora consistencia interna del snapshot
 - evita respuestas textuales incorrectas con código y atributos cruzados
 - preserva integridad del dominio `reservation` sin tocar otros slices
+
+### FIX-REFERENCE-AMBIGUOUS-ANAPHORA-GATING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-07  
+Commit: c0797154bdca9c1d5f596b1114cdd7bd45b69a8e
+
+Descripcion:
+
+Se corrige la resolución indebida de anáforas ambiguas como `esa` cuando no
+existe selección previa válida y hay múltiples reservas candidatas.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como fix de gating para anáforas ambiguas sin antecedente válido
+- batería relevante en verde sin romper snapshot follow-up, selección previa, candidato único, cancel ni modify
+
+Impacto:
+
+- corrige un bug real de reference resolution
+- evita resolución errónea deíctica en escenarios ambiguos
+- refuerza la regla de no inventar target
+- mejora seguridad de routing transaccional en `reservation`
