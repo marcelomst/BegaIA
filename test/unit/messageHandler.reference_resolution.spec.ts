@@ -1129,10 +1129,9 @@ describe("messageHandler reference resolution", () => {
 
     await handleIncomingMessage(msg("cancelá esa", conversationId), { mode: "automatic", sendReply });
 
-    expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
-      reservationId: "RES-NEW-02",
-      awaitingConfirmation: true,
-    });
+    expect(stateByConversation.get(conversationId)?.pendingCancellation).toBeUndefined();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/precisi[oó]n|cu[aá]l|c[oó]digo|la primera|la segunda/i);
   });
 
   it("en 'cancelá esa última' el ordinal explícito gana sobre el foco activo", async () => {

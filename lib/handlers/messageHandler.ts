@@ -1311,6 +1311,7 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const mentionsUnique = /\bla unica que tengo\b|\bla unica\b|\bla única que tengo\b|\bla única\b/.test(text);
   const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
   const ordinalReference = extractReservationOrdinalReferenceSpec(text);
+  const hasSelectedTarget = Boolean(state?.selectedReservationTarget?.reservationId);
 
   if (!mentionsNew && !mentionsOther && !mentionsPrevious && !mentionsThat && !mentionsUnique && !mentionsTomorrow && !ordinalReference) {
     return { status: "unresolved" };
@@ -1341,6 +1342,10 @@ function resolveReservationReference(state: any, userText: string): ReservationR
     if (validation && !validation.ok) {
       return { status: "out_of_range", requested: validation.requested, availableCount: validation.availableCount };
     }
+    return { status: "ambiguous" };
+  }
+
+  if (mentionsThat && !hasSelectedTarget && reservationCandidates.length > 1) {
     return { status: "ambiguous" };
   }
 
