@@ -3873,7 +3873,26 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       : effectiveSnapshotQueryKind && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
       ? reservationReference.target
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
-  if (!effectiveSnapshotQueryKind && reservationDomainLock.snapshotFollowup && isReservationFlowStillActive(pre)) {
+  const normalizedSnapshotInput = normalizeReferenceText(userTxtRaw);
+  const hasActionIntent =
+    normalizedReservationIntent.kind === "cancel" ||
+    normalizedReservationIntent.kind === "modify" ||
+    explicitModifyExit ||
+    hasModifyVerb ||
+    wantsGenericModify(userTxtRaw, pre.lang);
+  const hasTargetCorrectionIntent =
+    /^\s*no\b/.test(normalizedSnapshotInput) &&
+    (Boolean(extractReservationOrdinalReference(normalizedSnapshotInput)) ||
+      /\b(esa|la misma|el mismo)\b/.test(normalizedSnapshotInput));
+  if (
+    !effectiveSnapshotQueryKind &&
+    reservationDomainLock.snapshotFollowup &&
+    isReservationFlowStillActive(pre) &&
+    normalizedReservationIntent.kind === "other" &&
+    !hasActionIntent &&
+    !hasExplicitOrdinalReference &&
+    !hasTargetCorrectionIntent
+  ) {
     const targetId =
       selectedReservationTarget?.reservationId ||
       (pre.st?.activeReservationContext?.kind === "reservation"
