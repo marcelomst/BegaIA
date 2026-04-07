@@ -5473,3 +5473,32 @@ Impacto:
 - alinea expectativas con el comportamiento vigente
 - refuerza disciplina de test suite respecto del contrato real
 - evita interpretar como regresión un guard de capacidad correcto
+
+### FIX-SNAPSHOT-TARGET-DATA-CONSISTENCY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-07  
+Commit: 3f8ec03987bc073f36a9f7a067d3c719948dc638
+
+Descripcion:
+
+Se corrige consistencia de snapshot posterior a cancelación, evitando mezcla de
+datos entre reservas cuando el snapshot se arma después de confirmar una
+cancelación.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como fix localizado de consistencia de snapshot post-cancel
+- validación relevante en verde y corrección manual `E7` confirmada
+
+Impacto:
+
+- corrige mezcla de datos post-cancelación
+- mejora consistencia interna del snapshot
+- evita respuestas textuales incorrectas con código y atributos cruzados
+- preserva integridad del dominio `reservation` sin tocar otros slices

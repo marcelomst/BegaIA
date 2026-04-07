@@ -284,6 +284,8 @@ Uso:
 - consolidar múltiples datos útiles del mismo turno antes de decidir
 - hacer merge consistente entre estado previo, input actual y fallback estructurado
 - sostener follow-ups y cambios incrementales
+- mantenerse alineado con el target activo tras cancelación confirmada cuando
+  luego se construye snapshot del mismo objeto de reserva
 - permitir ingestión inline de `guestName` en turnos ricos de `create`
 - interpretar `numGuests` con una semántica canónica común entre helper y
   runtime
@@ -484,6 +486,9 @@ Guardrails vigentes:
   usuario quiere actuar o corregir target, la acción debe conservar precedencia
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
+- tras cancelación confirmada, `reservationSlots` debe quedar sincronizado con
+  la reserva cancelada para que el snapshot no mezcle identidad y atributos de
+  reservas distintas
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
 
 ## 8. Casos donde el pipeline ya combina capas
