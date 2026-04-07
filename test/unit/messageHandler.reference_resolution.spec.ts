@@ -799,15 +799,12 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("2 personas", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(modifyReservation).toHaveBeenCalledWith(
-      "hotel999",
-      "RES-OLD-01",
-      expect.objectContaining({ numGuests: "2" }),
-      "web"
-    );
-    expect(replyText).toMatch(/modificada res-old-01/i);
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/no admite|cambiar a|habitaci[oó]n/i);
     expect(replyText).not.toMatch(/qu[eé] te gustar[ií]a cambiar|nueva cantidad de hu[eé]spedes/i);
-    expect(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+    });
   });
 
   it("persiste subestado de fechas y mantiene continuidad sin volver al menú genérico", async () => {

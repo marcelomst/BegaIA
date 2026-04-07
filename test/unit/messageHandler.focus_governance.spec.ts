@@ -260,7 +260,7 @@ describe("messageHandler focus governance", () => {
 
     await handleIncomingMessage(msg("3 personas"), { mode: "automatic", sendReply });
 
-    expect(lastReply(sendReply)).toMatch(/hu[eé]spedes|cantidad|modificada/i);
+    expect(lastReply(sendReply)).toMatch(/no admite|cambiar a|habitaci[oó]n/i);
     expect(currentState?.lastCategory).toBe("modify_reservation");
     expect(currentState?.conversationFocus?.subFlow === "modify" || currentState?.conversationFocus == null).toBe(true);
   });
