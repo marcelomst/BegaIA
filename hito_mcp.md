@@ -5445,3 +5445,31 @@ Impacto:
 - restaura continuidad correcta en cancel y reference correction
 - reduce ambigüedad entre snapshot y acción
 - mantiene intacta la precedencia válida de follow-ups de vista
+
+### FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-07  
+Commit: 5b1ae5b7804c6ce551cc9f11f89e433084448fe3
+
+Descripcion:
+
+Se alinean tests con el contrato vigente de `modify` respecto a validación
+preventiva de capacidad antes de ejecutar cambios.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.focus_governance.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito registrado como alineación de test suite con el contrato actual de capacidad en `modify`
+- batería relevante en verde sin regresiones en snapshot, cancel y reference resolution
+
+Impacto:
+
+- elimina falsos negativos en suites existentes
+- alinea expectativas con el comportamiento vigente
+- refuerza disciplina de test suite respecto del contrato real
+- evita interpretar como regresión un guard de capacidad correcto
