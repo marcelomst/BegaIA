@@ -5417,3 +5417,31 @@ Impacto:
 - reduce riesgo de regresión en snapshot post-modify
 - deja congelado un contrato ya validado en runtime
 - mejora trazabilidad entre comportamiento real y cobertura automatizada
+
+### FIX-SNAPSHOT-FOLLOWUP-GATING-ACTION-EXCLUSION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-07  
+Commit: fce5683d6d4e633a47c5563672127c2dd80d3452
+
+Descripcion:
+
+Se corrige el gating de `snapshotFollowup` para evitar que follow-ups de vista
+secuestren inputs con intención transaccional, restaurando la separación
+correcta entre snapshot y acción.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como fix de gating accional sobre snapshot follow-up
+- los 2 fallos remanentes detectados no pertenecen causalmente a este hito
+
+Impacto:
+
+- corrige un bug de routing puntual y sensible
+- restaura continuidad correcta en cancel y reference correction
+- reduce ambigüedad entre snapshot y acción
+- mantiene intacta la precedencia válida de follow-ups de vista

@@ -436,6 +436,8 @@ Alcance actual:
   objetivo ya resuelta, sin contaminarse con nombre o fechas de otra reserva
 - si el usuario pide ver cómo quedó tras `modify`, el snapshot del target
   activo debe ganar sobre guidance genérica o routing por defecto
+- el gating de `snapshot follow-up` no debe secuestrar inputs transaccionales
+  de `cancel`, `modify` ni correcciones referenciales de target
 - no hay coreferencia completa
 - no hay coreferencia libre por nombre, habitación o fecha arbitraria
 
@@ -478,6 +480,8 @@ Guardrails vigentes:
   quedar alineados al mismo target resuelto
 - cuando ya existe target activo de `modify`, pedidos como `mostrame como
   quedó`, `detalle` o `resumen` no deben degradar a guidance genérica
+- snapshot follow-up sólo debe interceptar turnos de vista genuina; si el
+  usuario quiere actuar o corregir target, la acción debe conservar precedencia
 - una cancelación confirmada debe impactar la fuente de verdad canónica y
   reflejarse sin duplicaciones en snapshot y listado posterior
 - el runtime no debe actuar sobre una reserva equivocada por falta de precisión
