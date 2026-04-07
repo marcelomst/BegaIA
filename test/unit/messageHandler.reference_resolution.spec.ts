@@ -1056,6 +1056,72 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/RES-MID-02 .*activa/i);
   });
 
+  it("snapshot post-cancel no mezcla datos entre reservas", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-snapshot-consistency-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-06-01",
+        checkOut: "2026-06-05",
+        numGuests: "2",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES-A1",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "single",
+          checkIn: "2026-05-01",
+          checkOut: "2026-05-05",
+          numGuests: "1",
+        },
+        {
+          reservationId: "RES-B2",
+          status: "created",
+          createdAt: "2026-03-21T10:00:00.000Z",
+          channel: "web",
+          guestName: "Raul Olivera",
+          roomType: "double",
+          checkIn: "2026-06-01",
+          checkOut: "2026-06-05",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-B2",
+        status: "created",
+        createdAt: "2026-03-21T10:00:00.000Z",
+        channel: "web",
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-06-01",
+        checkOut: "2026-06-05",
+        numGuests: "2",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-B2",
+        phase: "confirmed",
+        updatedAt: "2026-03-21T10:00:00.000Z",
+      },
+      updatedAt: "2026-03-21T10:00:00.000Z",
+    });
+
+    await handleIncomingMessage(msg("cancelá RES-A1", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("mostrame esa", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-A1/i);
+    expect(replyText).toMatch(/Marcelo Martinez/i);
+    expect(replyText).toMatch(/01\/05\/2026 → 05\/05\/2026/i);
+    expect(replyText).not.toMatch(/Raul Olivera|01\/06\/2026 → 05\/06\/2026/i);
+  });
+
   it("resuelve 'cancelá esa' por activeReservationContext cuando el deíctico es puro", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-that-1";

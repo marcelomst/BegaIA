@@ -4896,6 +4896,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: cancelledReservation,
+        reservationSlots: {
+          guestName: cancelledReservation.guestName,
+          roomType: cancelledReservation.roomType,
+          checkIn: cancelledReservation.checkIn,
+          checkOut: cancelledReservation.checkOut,
+          numGuests: cancelledReservation.numGuests,
+          locale: pre.lang,
+        },
         reservationHistory: mergeReservationHistory(
           mergeReservationHistory(
             (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
@@ -5017,6 +5025,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: cancelledReservation,
+        reservationSlots: {
+          guestName: cancelledReservation.guestName,
+          roomType: cancelledReservation.roomType,
+          checkIn: cancelledReservation.checkIn,
+          checkOut: cancelledReservation.checkOut,
+          numGuests: cancelledReservation.numGuests,
+          locale: pre.lang,
+        },
         reservationHistory: mergeReservationHistory(
           mergeReservationHistory(
             (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
