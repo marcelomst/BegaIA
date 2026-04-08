@@ -5558,3 +5558,30 @@ Impacto:
 - mejora criterio operativo de validación de replace, ambiguity y continuity
 - separa observación manual de fixes productivos
 - da soporte histórico a futuras validaciones de reference lifecycle
+
+### DOC-RESERVATION-TRUTH-HIERARCHY-AND-RUNTIME-PROJECTIONS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-08  
+Commit: 1588ef51ef6640e80566b4e0a290f69c53aa1113
+
+Descripcion:
+
+Se formaliza en arquitectura viva la jerarquía actual de verdad y proyección de
+reservas dentro del runtime conversacional, sin refactorizar runtime.
+
+Archivos afectados:
+
+- `docs/architecture/message_pipeline.md`
+
+Validacion:
+
+- hito registrado como explicitación del modelo vigente de verdad y proyecciones
+- no corresponde validación automática; es un hito documental/arquitectónico
+
+Impacto:
+
+- formaliza la jerarquía entre truth of record externa, proyección canónica local, punteros y helpers derivados
+- deja explícito el riesgo de inconsistencia si proyecciones derivadas dominan respuestas
+- mejora criterio de auditoría para futuros fixes de snapshot, modify y reference lifecycle
+- no cambia comportamiento ni abre migración estructural
