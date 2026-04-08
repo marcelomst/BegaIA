@@ -12,6 +12,26 @@ Para comprender la evolución del sistema debe consultarse también:
 
 que funciona como Architecture Evolution Log del proyecto.
 
+## Taxonomía documental
+
+Dentro de `docs/architecture/` conviven distintos planos documentales.
+
+- Arquitectura viva:
+  describe cómo funciona hoy un dominio del sistema
+- ADR:
+  registra decisiones estructurales estables
+- Operación:
+  define reglas de trabajo, cierre y gobernanza documental
+- Artefactos derivados:
+  diagramas e imágenes, no fuente primaria por sí solos
+
+Regla práctica:
+
+- si necesitás entender el sistema actual, empezá por la arquitectura viva
+- si necesitás entender por qué se tomó una decisión, revisá la ADR
+- si necesitás entender cómo se gobierna el trabajo y la documentación, revisá
+  el modelo operativo
+
 ## Organización de la documentación
 
 La arquitectura del sistema se documenta por dominios funcionales.
@@ -30,7 +50,60 @@ Ejemplo de dominios documentados:
 
 ## Documentos disponibles
 
-### Pipeline conversacional vigente
+### Operación
+
+#### Modelo operativo del sistema
+
+`system_operating_model.md`
+
+Es la fuente de verdad operativa para:
+
+- disciplina de trabajo
+- secuencia `CODE -> COMMIT -> HASH -> PUSH -> DOC`
+- roles y límites entre Marcelo, ChatGPT y agentes
+- reglas de cierre documental
+
+#### Mapa de chats operativos
+
+`channel_map.md`
+
+Define el mapa operativo mínimo entre dominios de chat, agentes responsables y
+uso esperado.
+
+### ADRs
+
+#### ADR: Gobernanza documental
+
+`ADR-DOC-GOVERNANCE-01.md`
+
+Fija la decisión estructural de separar:
+
+- historia
+- arquitectura viva
+- operación
+- ADR
+
+No reemplaza al modelo operativo; lo respalda.
+
+#### ADR: Transporte Email Objetivo
+
+`ADR-EMAIL-TRANSPORT-TARGET.md`
+
+Define la arquitectura objetivo del transporte email en producción,
+preservando el pipeline conversacional central y separando transporte,
+normalización, control técnico y dominio.
+
+#### ADR: Pipeline Runtime Target
+
+`ADR-PIPELINE-RUNTIME-TARGET.md`
+
+Define el cierre arquitectónico de la serie `PIPELINE-SIGNAL-ARCH`,
+manteniendo `messageHandler` como runtime principal vigente y dejando
+`mhFlowGraph` como candidato condicionado para una migración gradual futura.
+
+### Arquitectura viva
+
+#### Pipeline conversacional vigente
 
 `message_pipeline.md`
 
@@ -46,7 +119,7 @@ Explica:
 
 Debe tomarse como referencia arquitectónica del pipeline actual.
 
-### Admin Panel
+#### Admin Panel
 
 `admin_panel.md`
 
@@ -58,7 +131,52 @@ Describe la arquitectura del panel administrativo del sistema, incluyendo:
 - herramientas administrativas
 - evolución inicial documentada en `UI-ADMIN-01`
 
-### Arquitectura general
+#### Persistencia Astra
+
+`astra_persistence_policy.md`
+
+Describe la separación entre capa operacional SaaS y capa KB/retrieval.
+
+#### Guest aliases en CQL
+
+`astra_guest_aliases_table_adapter.md`
+
+Documenta la implementación de `guest_aliases` como tabla Cassandra CQL.
+
+#### Binding de conversación por huésped
+
+`conversation_binding_guest_identity.md`
+
+Documenta la resolución de conversación por identidad (`guestId`) con prioridad:
+
+1. `conversationId` explícito
+2. conversación activa por `(hotelId + guestId)`
+3. nueva conversación
+
+#### Inbox admin unificado
+
+`admin_inbox_unified.md`
+
+Documenta la consulta admin unificada por `guestId` sobre infraestructura
+multicanal.
+
+#### Modelo de identidad de huéspedes
+
+`guest_identity_model.md`
+
+Describe el modelo transversal de identidad (`guests`, `guest_aliases`,
+`guest_aliases_by_guest`) y su impacto operativo.
+
+#### Deuda VNEXT: Thread como caso operativo
+
+`thread_domain_vnext_debt.md`
+
+Documenta la deuda arquitectónica aprobada para una gran versión donde
+`Thread` pasa a ser una entidad de dominio superior a `Conversation`.
+
+### Artefactos derivados
+
+#### Arquitectura general
 
 `system_overview.mmd`
 `system_overview.svg`
@@ -154,72 +272,15 @@ sistema.
 
 [![Admin Panel Relation](./admin_panel_relation.png)](./admin_panel_relation.png)
 
-### Twilio inbound routing
+### Otros documentos de arquitectura viva
+
+#### Twilio inbound routing
 
 `twilio_inbound_contract.md`
 
 Documenta el contrato de routing inbound de WhatsApp Twilio:
 
 `Twilio inbound -> resolveHotelIdByTwilioTo(to) -> hotelId | unmapped`
-
-### Persistencia Astra
-
-`astra_persistence_policy.md`
-
-Describe la separación entre capa operacional SaaS y capa KB/retrieval.
-
-### Guest aliases en CQL
-
-`astra_guest_aliases_table_adapter.md`
-
-Documenta la implementación de `guest_aliases` como tabla Cassandra CQL.
-
-### Binding de conversación por huésped
-
-`conversation_binding_guest_identity.md`
-
-Documenta la resolución de conversación por identidad (`guestId`) con prioridad:
-
-1. `conversationId` explícito
-2. conversación activa por `(hotelId + guestId)`
-3. nueva conversación
-
-### Inbox admin unificado
-
-`admin_inbox_unified.md`
-
-Documenta la consulta admin unificada por `guestId` sobre infraestructura
-multicanal.
-
-### ADR: Transporte Email Objetivo
-
-`adr_email_transport_target.md`
-
-Define la arquitectura objetivo del transporte email en producción,
-preservando el pipeline conversacional central y separando transporte,
-normalización, control técnico y dominio.
-
-### ADR: Pipeline Runtime Target
-
-`adr_pipeline_runtime_target.md`
-
-Define el cierre arquitectónico de la serie `PIPELINE-SIGNAL-ARCH`,
-manteniendo `messageHandler` como runtime principal vigente y dejando
-`mhFlowGraph` como candidato condicionado para una migración gradual futura.
-
-### Deuda VNEXT: Thread como caso operativo
-
-`thread_domain_vnext_debt.md`
-
-Documenta la deuda arquitectónica aprobada para una gran versión donde
-`Thread` pasa a ser una entidad de dominio superior a `Conversation`.
-
-### Modelo de identidad de huéspedes
-
-`guest_identity_model.md`
-
-Describe el modelo transversal de identidad (`guests`, `guest_aliases`,
-`guest_aliases_by_guest`) y su impacto operativo.
 
 ## Relación con el Architecture Evolution Log
 

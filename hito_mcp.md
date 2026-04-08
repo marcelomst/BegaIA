@@ -1719,7 +1719,7 @@ Puntos centrales documentados:
 
 Archivos afectados:
 
-- `docs/architecture/adr_email_transport_target.md`
+- `docs/architecture/ADR-EMAIL-TRANSPORT-TARGET.md`
 - `docs/architecture/README.md`
 - `docs/README.md`
 
@@ -2319,7 +2319,7 @@ Serie cerrada por este ADR:
 
 Archivos afectados:
 
-- `docs/architecture/adr_pipeline_runtime_target.md`
+- `docs/architecture/ADR-PIPELINE-RUNTIME-TARGET.md`
 - `docs/architecture/README.md`
 - `docs/README.md`
 

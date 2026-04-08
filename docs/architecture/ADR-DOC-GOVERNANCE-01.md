@@ -1,201 +1,82 @@
-// Path: /home/marcelo/begasist/docs/architecture/system_operating_model.md
+# ADR-DOC-GOVERNANCE-01
 
-# System Operating Model
+## Estado
 
-Este documento define el contrato operativo general para construir y mantener
-Begasist con trazabilidad, separacion de roles y cambios verificables.
+Aprobado.
 
-Este modelo se encuentra alineado con la ADR de gobernanza documental:
-ADR-DOC-GOVERNANCE-01.
+## Decisión
 
-## Objetivo
+Begasist adopta una gobernanza documental explícita con separación de planos:
 
-- preservar coherencia arquitectonica
-- sostener disciplina Git estricta
-- asegurar trazabilidad entre codigo, commit y documentacion
-- coordinar el trabajo entre Marcelo, ChatGPT y agentes especializados
+- `hito_mcp.md` como registro histórico de hitos
+- `docs/architecture/*.md` como documentación viva por dominio
+- ADRs como registro de decisiones estructurales
+- artefactos derivados como representación visual, no como fuente primaria
 
-## Principios
+Se establece que [`system_operating_model.md`](/home/marcelo/begasist/docs/architecture/system_operating_model.md)
+es la fuente de verdad operativa para:
 
-- separar pensar, ejecutar y controlar
-- mantener cambios pequenos, auditables y reversibles
-- no mezclar dominios ni capas en un mismo hito
-- privilegiar evidencia sobre opinion
-- no cerrar hitos sin commit, hash y push reales
+- disciplina de trabajo
+- secuencia `CODE -> COMMIT -> HASH -> PUSH -> DOC`
+- roles y límites entre agentes
+- reglas de cierre documental
 
-## Modelo documental (explicito)
+## Contexto
 
-La documentacion del sistema se organiza en planos diferenciados:
+La gobernanza documental existía de hecho, pero estaba distribuida entre:
 
-- Historia: `hito_mcp.md`
-- Arquitectura viva: `docs/architecture/*.md`
-- Operacion: este documento y documentos operativos asociados
-- ADR: decisiones arquitectonicas explicitas
-- Artefactos derivados: diagramas, imagenes, snapshots
+- prácticas operativas
+- cierres en `hito_mcp.md`
+- documentos vivos de arquitectura
 
-Regla:
+Eso generaba riesgo de:
 
-- cada plano tiene una finalidad distinta
-- ningun plano reemplaza a otro
-- la fuente de verdad se respeta por dominio
+- drift entre runtime y documentación
+- duplicación de reglas
+- confusión sobre qué documento debía actualizarse
 
-## Roles
+## Razón
 
-### Marcelo
+La documentación de Begasist no debe operar como un bloque único.
 
-Responsabilidad:
+Cada plano cumple una función distinta:
 
-- autoridad exclusiva para ejecutar comandos Git de escritura
-- decision final sobre avance de cambios
-- ejecucion manual de comandos uno por vez
-- devolucion de output real para trazabilidad
+- la historia registra eventos
+- la arquitectura viva describe cómo funciona hoy el sistema
+- las ADRs fijan decisiones
+- el modelo operativo define cómo se trabaja y cómo se cierra un hito
 
-### ChatGPT
+Por eso, el contrato operativo no debe vivir dentro de una ADR extensa y mutable.
 
-Responsabilidad:
+## Consecuencias
 
-- arquitectura y orquestacion general
-- definicion de hitos
-- generacion de prompts y handoff
-- validacion conceptual
+### Positivas
 
-No hace:
+- se evita duplicar el contrato operativo
+- se aclara qué documento gobierna cada plano
+- las ADRs quedan más estables y auditables
+- `system_operating_model.md` puede evolucionar sin degradar la función de las ADRs
 
-- no escribe codigo productivo por fuera del flujo acordado
-- no ejecuta Git de escritura
+### Negativas
 
-### `agent.asistente_tecnico`
+- exige disciplina para mantener la frontera entre decisión y operación
+- obliga a revisar primero la taxonomía documental antes de agregar nuevos documentos
 
-Responsabilidad:
+## Regla de mantenimiento
 
-- implementacion tecnica
-- debugging
-- fixes incrementales
-- validacion con tests
+Si cambia la operación del sistema:
 
-Limites:
+- se actualiza [`system_operating_model.md`](/home/marcelo/begasist/docs/architecture/system_operating_model.md)
+- y se registra el hito correspondiente en `hito_mcp.md`
 
-- no romper contratos existentes sin instruccion explicita
-- no abrir refactors grandes sin plan
+Si cambia una decisión estructural sobre gobernanza documental:
 
-### `agent.arquitecto_sistema`
+- se actualiza esta ADR
+- y, si corresponde, también la documentación operativa o viva afectada
 
-Responsabilidad:
+## Cierre
 
-- decisiones estructurales
-- analisis de limites, acoplamientos y riesgos
-- evolucion arquitectonica
+La fuente de verdad operativa de Begasist queda en
+[`system_operating_model.md`](/home/marcelo/begasist/docs/architecture/system_operating_model.md).
 
-Limites:
-
-- no reemplazar runtime vigente sin evidencia
-- no inventar componentes ni archivos
-
-### `agent.repo_guardian`
-
-Responsabilidad:
-
-- auditar working tree
-- validar si el hito esta mezclado o limpio
-- sugerir tipo y nombre de commit
-
-Limites:
-
-- no modifica codigo
-- no ejecuta Git de escritura
-
-Regla:
-
-- 1 commit = 1 hito
-
-### `agent.hdoc`
-
-Responsabilidad:
-
-- gobernar el cierre documental del sistema
-- verificar evidencia real (commit, hash, push)
-- registrar hitos en `hito_mcp.md`
-- clasificar impacto documental
-- exigir actualizacion de documentacion estable cuando corresponde
-
-Regla central:
-
-```text
-CODE -> COMMIT -> HASH -> PUSH -> DOC
-```
-
-Limites:
-
-- no modifica codigo productivo
-- no ejecuta Git de escritura
-- no documenta sin evidencia real
-- no inventa commits, hashes ni pushes
-- no define arquitectura por si solo
-
-Gobernanza:
-
-- si falta commit, hash o push, bloquea documentacion
-- clasifica cada hito en nivel de impacto documental
-- puede requerir intervencion del arquitecto si el cambio afecta modelo estructural
-
-## Niveles de impacto documental
-
-Todo hito debe clasificarse antes de cerrarse:
-
-- Nivel 1 — solo hito
-  registro historico en `hito_mcp.md`
-
-- Nivel 2 — hito + doc existente
-  requiere actualizar documentacion viva existente
-
-- Nivel 3 — hito + doc nueva
-  requiere crear nueva documentacion o ADR
-
-Regla:
-
-- la clasificacion depende del impacto en el conocimiento del sistema
-- no del tamaño del cambio
-
-## Secuencia operativa
-
-1. ChatGPT define problema, hito o decision a evaluar
-2. `agent.arquitecto_sistema` analiza si hace falta contexto estructural
-3. `agent.asistente_tecnico` implementa el cambio y valida con tests
-4. `agent.repo_guardian` revisa alcance y disciplina del hito
-5. Marcelo ejecuta Git (`add`, `commit`, `push`)
-6. `agent.hdoc`:
-   - verifica evidencia
-   - clasifica impacto documental
-   - decide si corresponde actualizar documentacion viva
-   - registra el hito
-
-## Reglas de hito
-
-- un hito debe tener una sola intencion tecnica
-- un hito debe poder explicarse en una frase
-- un hito debe poder revertirse sin daño colateral innecesario
-- no mezclar `PIPELINE`, `KB`, `MCP`, `ADMIN` u otras capas en el mismo commit
-- si el working tree mezcla objetivos, dividir antes de commitear
-
-## Reglas Git
-
-- Marcelo es el unico autorizado a ejecutar Git de escritura
-- los agentes pueden usar Git readonly para analizar estado y evidencia
-- toda accion Git propuesta a Marcelo debe darse como un solo comando por vez
-- no asumir nunca que un comando fue ejecutado sin output real
-
-## Reglas documentales
-
-- no documentar sin commit real
-- no documentar sin hash real
-- no documentar sin push real
-- no cerrar hitos incompletos
-- no duplicar hitos ya documentados
-- distinguir entre historia, arquitectura viva y operacion
-- toda decision estructural debe reflejarse en arquitectura viva o ADR
-
-## Documentos relacionados
-
-- ADR-DOC-GOVERNANCE-01
-- hito_mcp.md
-- docs/architecture/\*
+`ADR-DOC-GOVERNANCE-01` preserva la decisión estructural que define esa separación.

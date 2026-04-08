@@ -2,7 +2,7 @@
 
 ## 📌 REFERENCIA
 
-ADR: `adr_pipeline_runtime_target.md`
+ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ### Decisión base:
 

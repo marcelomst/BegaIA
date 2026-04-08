@@ -662,7 +662,7 @@ El sistema todavía no hace, o no hace completamente:
 Decisiones relacionadas:
 
 - [`ADR-PIPELINE-SEMANTIC-CONTROL-01.md`](./ADR-PIPELINE-SEMANTIC-CONTROL-01.md)
-- [`adr_pipeline_runtime_target.md`](./adr_pipeline_runtime_target.md)
+- [`ADR-PIPELINE-RUNTIME-TARGET.md`](./ADR-PIPELINE-RUNTIME-TARGET.md)
 - [`pipeline-runtime-evolution.md`](./pipeline-runtime-evolution.md)
 
 Documentos complementarios:

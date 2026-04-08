@@ -4,13 +4,16 @@ Producto: ./product/begasist_concept.md
 
 Arquitectura: ./architecture/
 
+Operación destacada:
+
+- `./architecture/system_operating_model.md`
+
 Deuda arquitectónica destacada:
 
 - `./architecture/thread_domain_vnext_debt.md`
 
 ADR destacado:
 
-- `./architecture/adr_email_transport_target.md`
-- `./architecture/adr_pipeline_runtime_target.md`
-
-Disciplina: ./development/ (por ahora vacío)
+- `./architecture/ADR-DOC-GOVERNANCE-01.md`
+- `./architecture/ADR-EMAIL-TRANSPORT-TARGET.md`
+- `./architecture/ADR-PIPELINE-RUNTIME-TARGET.md`

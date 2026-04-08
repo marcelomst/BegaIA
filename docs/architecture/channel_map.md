@@ -3,6 +3,14 @@
 Este documento define el mapa operativo minimo entre dominios de chat,
 agentes responsables y uso esperado dentro de Begasist.
 
+Este archivo no es la fuente de verdad operativa general.
+
+La fuente de verdad operativa del sistema es
+[`system_operating_model.md`](/home/marcelo/begasist/docs/architecture/system_operating_model.md).
+
+La decision estructural que fija esa separacion está en
+[`ADR-DOC-GOVERNANCE-01.md`](/home/marcelo/begasist/docs/architecture/ADR-DOC-GOVERNANCE-01.md).
+
 Objetivo:
 
 - reducir ambiguedad al abrir chats nuevos
@@ -15,8 +23,10 @@ Objetivo:
   `<DOMINIO>-<SUBDOMINIO>-<NN>`
 - `AGENT` identifica el agente principal esperado para ese chat
 - `USO-ESPERADO` describe el tipo de trabajo que corresponde a ese canal
-- este mapa define destinos base; no reemplaza el criterio de hito ni la
-  revision de alcance
+- este mapa define destinos base; no reemplaza:
+  - el criterio de hito
+  - la revision de alcance
+  - el modelo operativo general
 - si un trabajo mezcla dominios, se debe dividir antes de abrir o continuar el
   chat
 

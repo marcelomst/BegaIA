@@ -3,6 +3,17 @@
 Este documento define el contrato operativo general para construir y mantener
 Begasist con trazabilidad, separacion de roles y cambios verificables.
 
+Este archivo es la fuente de verdad operativa del sistema.
+
+Su rol está respaldado por
+[`ADR-DOC-GOVERNANCE-01`](/home/marcelo/begasist/docs/architecture/ADR-DOC-GOVERNANCE-01.md),
+que fija la separación entre:
+
+- historia
+- arquitectura viva
+- operación
+- decisiones estructurales
+
 ## Objetivo
 
 - preservar coherencia arquitectonica
