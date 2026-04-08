@@ -5530,3 +5530,31 @@ Impacto:
 - evita resolución errónea deíctica en escenarios ambiguos
 - refuerza la regla de no inventar target
 - mejora seguridad de routing transaccional en `reservation`
+
+### DOC-ARCHITECTURE-MANUAL-STRESS-TEST-SERIES-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-08  
+Commit: 2a4419f4f560c9bba8eb8349b9fc4d716f9956c4
+
+Descripcion:
+
+Se versiona una serie mínima de tests manuales de estrés para validar replace,
+ambigüedad, arrastre de target, small talk y consistencia post-cancelación en
+el dominio `reservation`.
+
+Archivos afectados:
+
+- `docs/architecture/plan_tests_manuales.md`
+
+Validacion:
+
+- hito registrado como documentación operativa de observación manual
+- no corresponde validación automática; es un hito documental
+
+Impacto:
+
+- preserva una batería manual trazable para auditorías futuras
+- mejora criterio operativo de validación de replace, ambiguity y continuity
+- separa observación manual de fixes productivos
+- da soporte histórico a futuras validaciones de reference lifecycle
