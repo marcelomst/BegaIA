@@ -304,6 +304,109 @@ Regla operativa:
 - runtime sólo resuelve follow-ups contextuales cortos, sin competir
   semánticamente con el helper
 
+### 5.6.1 Jerarquía actual de verdad y proyecciones de reserva
+
+El runtime conversacional no es la fuente de verdad última de reservas.
+
+La jerarquía vigente hoy es:
+
+1. truth of record externa
+2. canonical runtime projection local
+3. runtime pointers / focus
+4. derived runtime helpers / operational projections
+
+#### A. Truth of record externa
+
+Fuente efectiva actual:
+
+- MCP conectado al Channel Manager
+
+Responsabilidad:
+
+- contener el estado material de negocio de la reserva
+- definir la verdad última fuera del pipeline conversacional
+
+#### B. Canonical runtime projection local
+
+Fuente local efectiva:
+
+- `buildReservationCanonicalState(state)`
+
+Alimentada hoy por:
+
+- `reservationHistory`
+- `lastReservation`
+
+Responsabilidad:
+
+- consolidar la proyección local que el runtime usa para operar
+- deduplicar y ordenar reservas
+- definir qué registros son accionables
+- sostener snapshot, reference resolution, modify y cancel sobre una base
+  coherente
+
+#### C. Runtime pointers / focus
+
+Punteros vigentes:
+
+- `selectedReservationTarget`
+- `activeReservationContext`
+
+Responsabilidad:
+
+- indicar sobre qué reserva o draft está trabajando el runtime
+- acotar foco y continuidad operativa
+
+Límite:
+
+- no son fuente material de verdad; apuntan a una reserva, pero no deben
+  reemplazar la proyección canónica local
+
+#### D. Derived runtime helpers / operational projections
+
+Proyecciones auxiliares actuales:
+
+- `reservationSlots`
+- `nextSlots`
+- merges locales por turno
+
+Responsabilidad:
+
+- sostener ingestión, continuidad y composición operativa dentro del turno
+- transportar payload útil para draft activo o follow-ups
+
+Límite:
+
+- no son helper inocuo
+- no deben dominar snapshot ni replies de reserva si contradicen el target o la
+  proyección canónica local
+
+Notas críticas del modelo actual:
+
+- `lastReservation` hoy es una pieza híbrida: sirve como compatibilidad y
+  última reserva operativa conocida, pero también alimenta la proyección
+  canónica local
+- la jerarquía ya existe de facto, pero todavía no está aplicada de manera
+  homogénea en todas las rutas del runtime
+- cuando una ruta usa proyecciones auxiliares como si fueran fuente material,
+  aparecen mezcla de datos, snapshots inconsistentes y contaminación entre
+  target y payload
+
+Invariante operativa:
+
+- snapshot y replies de reserva deben preferir target canónico y proyección
+  canónica local
+- las proyecciones auxiliares no deben dominar respuestas si contradicen el
+  target canónico
+
+Nota de alcance:
+
+- esta sección formaliza el modelo actual
+- no refactoriza runtime
+- no cambia comportamiento
+- no abre todavía una migración estructural
+- sirve como marco para futuras auditorías y fixes
+
 ### 5.7 `draft consistency validation`
 
 Responsabilidad:
