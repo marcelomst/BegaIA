@@ -5516,17 +5516,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           if (postBookingSnapshotQ === "list") {
             finalText = buildReservationListAnswer(pre.lang, buildCanonicalReservationRecords(pre.st));
           } else {
-            const snapshotSlots = {
-              ...(pre.st?.reservationSlots || {}),
-              ...(nextSlots || {}),
-            } as ReservationSlotsStrict;
+            const canonicalReservationId = pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
+              ? pre.st.lastReservation.reservationId
+              : undefined;
+            const canonicalRecord = canonicalReservationId
+              ? buildReservationCanonicalState(pre.st).byId.get(canonicalReservationId)
+              : undefined;
+            const canonicalSlots = canonicalRecord
+              ? {
+                guestName: canonicalRecord.guestName,
+                roomType: canonicalRecord.roomType,
+                checkIn: canonicalRecord.checkIn,
+                checkOut: canonicalRecord.checkOut,
+                numGuests: canonicalRecord.numGuests,
+                locale: pre.lang,
+              }
+              : undefined;
+            const supplementalSlots = nextSlots || {};
+            const snapshotSlots = (canonicalSlots
+              ? {
+                ...canonicalSlots,
+                guestName: canonicalSlots.guestName || supplementalSlots.guestName,
+                roomType: canonicalSlots.roomType || supplementalSlots.roomType,
+                checkIn: canonicalSlots.checkIn || supplementalSlots.checkIn,
+                checkOut: canonicalSlots.checkOut || supplementalSlots.checkOut,
+                numGuests: canonicalSlots.numGuests || supplementalSlots.numGuests,
+              }
+              : {
+                ...(pre.st?.reservationSlots || {}),
+                ...(supplementalSlots || {}),
+              }) as ReservationSlotsStrict;
             finalText = buildReservationSnapshotAnswer(
               postBookingSnapshotQ,
               pre.lang,
               snapshotSlots,
-              pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
-                ? pre.st.lastReservation.reservationId
-                : undefined,
+              canonicalReservationId,
               pre.st?.lastReservation?.status
             );
           }
