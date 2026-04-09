@@ -1,307 +1,404 @@
 # System Operating Model
 
-Este documento define el contrato operativo general para construir y mantener
-Begasist con trazabilidad, separacion de roles y cambios verificables.
+DOCUMENT_TYPE: OPERATING_MODEL  
+PRIORITY: MAX  
+SCOPE: GLOBAL  
+ENFORCEMENT: STRICT
 
-Este archivo es la fuente de verdad operativa del sistema.
+---
 
-Su rol está respaldado por
-[`ADR-DOC-GOVERNANCE-01`](/home/marcelo/begasist/docs/architecture/ADR-DOC-GOVERNANCE-01.md),
-que fija la separación entre:
+## PURPOSE
+
+Este documento define el contrato operativo obligatorio para construir y mantener el sistema con:
+
+- trazabilidad completa
+- separación estricta de roles
+- cambios verificables
+
+SOURCE_OF_TRUTH: TRUE
+
+SOURCE_OF_TRUTH_SCOPE:
+
+- disciplina de trabajo
+- secuencia `CODE -> COMMIT -> HASH -> PUSH -> DOC`
+- roles y límites entre Marcelo, ChatGPT y agentes
+- reglas de cierre documental
+
+---
+
+## GOVERNANCE_REFERENCE
+
+ADR: ADR-DOC-GOVERNANCE-01
+
+DEFINE:
 
 - historia
 - arquitectura viva
 - operación
 - decisiones estructurales
 
-## Objetivo
+---
+
+## OBJECTIVES
 
 - preservar coherencia arquitectonica
 - sostener disciplina Git estricta
 - asegurar trazabilidad entre codigo, commit y documentacion
-- coordinar el trabajo entre Marcelo, ChatGPT y agentes especializados
+- coordinar el trabajo entre Marcelo, ChatGPT y agentes
 
-## Principios
+---
+
+## PRINCIPLES (GUIDELINES)
+
+GUIDELINE: SEPARATION_OF_CONCERNS
 
 - separar pensar, ejecutar y controlar
-- mantener cambios pequenos, auditables y reversibles
-- no mezclar dominios ni capas en un mismo hito
+
+GUIDELINE: SMALL_CHANGES
+
+- mantener cambios pequeños, auditables y reversibles
+
+GUIDELINE: EVIDENCE_OVER_OPINION
+
 - privilegiar evidencia sobre opinion
+
+GUIDELINE: NO_PARTIAL_CLOSURE
+
 - no cerrar hitos sin commit, hash y push reales
 
-## Roles
+---
 
-### Marcelo
+## ROLES
 
-Responsabilidad:
+### ROLE: MARCELO
 
-- autoridad exclusiva para ejecutar comandos Git de escritura
-- decision final sobre avance de cambios
-- ejecucion manual de comandos uno por vez
-- devolucion de output real para trazabilidad
+MUST:
 
-### ChatGPT
+- ejecutar exclusivamente comandos Git de escritura
+- decidir avance de cambios
+- ejecutar comandos manualmente uno por vez
+- devolver output real
 
-Responsabilidad:
+FORBIDDEN:
 
-- arquitectura y orquestacion general
-- definicion de hitos
-- generacion de prompts y handoff
-- validacion conceptual
+- delegar ejecucion de Git write
 
-No hace:
+---
 
-- no escribe codigo productivo por fuera del flujo acordado
-- no ejecuta Git de escritura
+### ROLE: CHATGPT
 
-### `agent.asistente_tecnico`
+MUST:
 
-Responsabilidad:
+- definir arquitectura y orquestacion
+- definir hitos
+- generar prompts
+- validar conceptualmente
 
-- implementacion tecnica
-- debugging
-- fixes incrementales
-- validacion con tests
+FORBIDDEN:
 
-Limites:
+- escribir codigo productivo fuera del flujo
+- ejecutar Git write
 
-- no romper contratos existentes sin instruccion explicita
-- no abrir refactors grandes sin plan
+---
 
-### `agent.arquitecto_sistema`
+### ROLE: AGENT.ASISTENTE_TECNICO
 
-Responsabilidad:
+MUST:
 
-- decisiones estructurales
-- analisis de limites, acoplamientos y riesgos
-- evolucion arquitectonica
+- implementar cambios
+- debuggear
+- validar con tests
 
-Limites:
+FORBIDDEN:
 
-- no reemplazar runtime vigente sin evidencia
-- no inventar componentes ni archivos
+- romper contratos sin instruccion explicita
+- iniciar refactors grandes sin plan
 
-### `agent.repo_guardian`
+---
 
-Responsabilidad:
+### ROLE: AGENT.ARQUITECTO_SISTEMA
+
+MUST:
+
+- tomar decisiones estructurales
+- analizar acoplamientos y riesgos
+
+FORBIDDEN:
+
+- reemplazar runtime sin evidencia
+- inventar componentes o archivos
+
+---
+
+### ROLE: AGENT.REPO_GUARDIAN
+
+MUST:
 
 - auditar working tree
-- validar si el hito esta mezclado o limpio
-- sugerir tipo y nombre de commit
+- validar pureza del hito
+- sugerir commit
 
-Limites:
+FORBIDDEN:
 
-- no modifica codigo
-- no ejecuta Git de escritura
+- modificar codigo
+- ejecutar Git write
 
-Regla:
+RULE: ONE_COMMIT_PER_HITO
 
-- 1 commit = 1 hito
+---
 
-### `agent.hdoc`
+### ROLE: AGENT.HDOC
 
-Responsabilidad:
+MUST:
 
-- validar cierre documental de hitos
-- mantener `hito_mcp.md`
-- asegurar consistencia entre codigo, commit y documentacion
+- validar cierre documental
+- mantener hito_mcp.md
+- asegurar consistencia codigo/commit/doc
 
-Regla central:
+FORBIDDEN:
 
-```text
+- documentar sin evidencia
+- inventar commits/hashes/pushes
+- ejecutar Git write
+
+RULE: TRACEABILITY_CHAIN
+
+FLOW:
 CODE -> COMMIT -> HASH -> PUSH -> DOC
-```
 
-Limites:
+---
 
-- no modifica codigo productivo
-- no ejecuta Git de escritura
-- no documenta sin evidencia real
-- no inventa commits, hashes ni pushes
+## OPERATIONAL_FLOW
 
-Gobernanza:
+FLOW: STANDARD_SEQUENCE
 
-- si falta commit, hash o push, bloquea documentacion
-- entrega comandos Git a Marcelo uno por vez cuando hace falta
-- puede actualizar `hito_mcp.md` o documentacion operativa solo despues de
-  validar evidencia real
+1. ChatGPT define problema/hito
+2. AGENT.ARQUITECTO evalua contexto estructural
+3. AGENT.ASISTENTE_TECNICO implementa
+4. AGENT.REPO_GUARDIAN audita
+5. MARCELO ejecuta Git
+6. AGENT.HDOC documenta
 
-## Secuencia operativa
+---
 
-1. ChatGPT define problema, hito o decision a evaluar.
-2. `agent.arquitecto_sistema` analiza si hace falta contexto estructural.
-3. `agent.asistente_tecnico` implementa el cambio y valida con tests.
-4. `agent.repo_guardian` revisa alcance y disciplina del hito.
-5. Marcelo ejecuta `git add`, `git commit` y `git push` manualmente.
-6. `agent.hdoc` valida evidencia y actualiza la documentacion si corresponde.
+## HITO_RULES
 
-## Reglas de hito
+RULE: HITO_SINGLE_INTENTION
 
-- un hito debe tener una sola intencion tecnica
-- un hito debe poder explicarse en una frase
-- un hito debe poder revertirse sin daño colateral innecesario
-- no mezclar `PIPELINE`, `KB`, `MCP`, `ADMIN` u otras capas en el mismo commit
-- si el working tree mezcla objetivos, dividir antes de commitear
+- un hito tiene una sola intencion tecnica
 
-### Convencion de nombres de hitos
+RULE: HITO_EXPLAINABLE
 
-Formato base:
+- debe poder explicarse en una frase
 
-```text
+RULE: HITO_REVERSIBLE
+
+- debe poder revertirse sin daño colateral
+
+FORBIDDEN: CROSS_DOMAIN_HITO
+
+- no mezclar PIPELINE, KB, MCP, ADMIN u otras capas
+
+CHECK: HITO_SCOPE_VALIDATION
+IF:
+
+- el diff contiene multiples responsabilidades
+
+THEN:
+
+- dividir el hito antes del commit
+
+---
+
+## HITO_NAMING
+
+FORMAT:
 TIPO-DOMINIO-SUBDOMINIO-TEMA-NN
-```
 
-Ejemplos:
+EXAMPLES:
 
-- `FIX-PIPELINE-CREATE-QUOTE-GATING-02`
-- `REF-PIPELINE-FOCUS-CONTINUATION-01`
-- `DOC-ARCHITECTURE-CANONICAL-STATE-GOVERNANCE-01`
+- FIX-PIPELINE-CREATE-QUOTE-GATING-02
+- REF-PIPELINE-FOCUS-CONTINUATION-01
+- DOC-ARCHITECTURE-CANONICAL-STATE-GOVERNANCE-01
 
-#### Tipos permitidos
+ALLOWED_TYPES:
 
-- `FIX`
-  - corrige comportamiento incorrecto
-- `FEAT`
-  - agrega una capacidad nueva
-- `REF`
-  - refina modelo, estructura o gobernanza sin cambiar el objetivo funcional principal
-- `DOC`
-  - cambia documentacion, criterios o gobernanza documental
+- FIX = corrige comportamiento incorrecto
+- FEAT = agrega capacidad nueva
+- REF = refina modelo, estructura o gobernanza sin cambiar el objetivo funcional principal
+- DOC = cambia documentación, criterios o gobernanza documental
 
-#### Reglas de estructura
+STRUCTURE_RULES:
 
-- el segundo bloque debe identificar el dominio principal (`PIPELINE`, `API`, `ARCHITECTURE`, `WEB`, `ADMIN`, `TEST-SUITE`, etc.)
-- los bloques siguientes deben identificar el slice y el problema real
-- el sufijo numerico (`-01`, `-02`, etc.) se incrementa cuando se vuelve a trabajar el mismo tema en un hito nuevo
+- el segundo bloque identifica el dominio principal
+- los bloques siguientes identifican el slice y el problema real
+- el sufijo numérico se incrementa cuando se retoma el mismo tema en un hito nuevo
 
-#### Reglas de consistencia
+RULE: HITO_NAME_CONSISTENCY
 
-- el mismo identificador debe repetirse exactamente en:
-  - auditoria de `agent.repo_guardian`
-  - commit real
-  - push publicado
-  - cierre de `agent.hdoc`
-- el nombre del hito debe reflejar el alcance real del diff, no una intencion vaga
+- debe coincidir en:
+  - repo_guardian
+  - commit
+  - push
+  - hdoc
+- el nombre del hito debe reflejar el alcance real del diff
 - si el diff cambia de alcance, el nombre debe ajustarse antes del commit
-- si el diff contiene mas de una responsabilidad clara, hay que dividir el hito
 
-#### Regla semantica
+FORBIDDEN: GENERIC_NAMING
 
-- si el nombre necesita "y ademas", probablemente hay mezcla de hitos
+- no usar fix(), feat(), etc
+
+CHECK: HITO_NAME_VALIDATION
+IF:
+
+- el nombre requiere "y ademas"
+
+THEN:
+
+- hay mezcla de hitos
+
+RULE: HITO_NAME_SEMANTIC_DEFENSE
+
 - el nombre debe poder explicar una sola responsabilidad clara
-- el nombre debe ser defendible arquitectonicamente
+- el nombre debe ser defendible arquitectónicamente
 
-#### Regla de trazabilidad
+RULE: HITO_NAME_TRACEABILITY
 
-- no usar naming generico tipo `fix(...)`, `feat(...)` o variantes equivalentes como identificador de hito
-- el identificador del hito debe vivir dentro del mensaje de commit
+- el identificador del hito vive dentro del mensaje de commit
 - si no se commitea aislado, no existe como hito
 
-### Criterio transversal de representacion canonica
+---
 
-Todo hito tecnico debe evaluarse verificando que contribuya a consolidar una representacion canonica del dominio sobre el que opera, donde:
+## CANONICAL_REPRESENTATION
+
+RULE: CANONICAL_STATE_REQUIRED
 
 - el estado es la fuente de verdad
-- no existen duplicaciones estructurales
-- la ejecucion opera sobre entidades consistentes
+- no duplicar estructuras
+- operar sobre entidades consistentes
 
-Restricciones:
+FORBIDDEN:
 
-- no modificar el runtime vigente, salvo que el roadmap o ADR lo habilite explicitamente
-- no introducir capas paralelas
-- no generalizar cross-domain antes del nivel correspondiente del roadmap
+- modificar runtime sin ADR
+- introducir capas paralelas
+- generalizar cross-domain prematuramente
 
-## Reglas Git
+---
 
-- Marcelo es el unico autorizado a ejecutar Git de escritura
-- los agentes pueden usar Git readonly para analizar estado y evidencia
-- toda accion Git propuesta a Marcelo debe darse como un solo comando por vez
-- no asumir nunca que un comando fue ejecutado sin output real
+## GIT_RULES
 
-## Reglas documentales
+RULE: MARCELO_EXCLUSIVE_WRITE
 
-- no documentar sin commit real
-- no documentar sin hash real
-- no documentar sin push real
+- solo Marcelo ejecuta Git write
+
+RULE: SINGLE_COMMAND
+
+- comandos Git se dan uno por vez
+
+FORBIDDEN:
+
+- asumir ejecucion sin output real
+
+---
+
+## DOCUMENTATION_RULES
+
+FORBIDDEN:
+
+- documentar sin commit
+- documentar sin hash
+- documentar sin push
 - no cerrar hitos incompletos
 - no duplicar hitos ya documentados
-- distinguir entre documentacion historica (`hito_mcp.md`) y documentacion
-  operativa estable (`docs/architecture/`)
 
-### Clasificación de cierres documentales
+RULE: DOC_TYPES
 
-HDOC debe clasificar cada cierre en una de dos categorías:
+- historica → hito_mcp.md
+- arquitectura viva → docs/architecture/*.md
+- operativa → system_operating_model.md y documentos operativos asociados
+- ADR → decisiones estructurales estables
+- artefactos derivados → diagramas e imágenes, no fuente primaria
 
-#### 1. `solo hito`
+---
 
-Actualizar únicamente `hito_mcp.md`.
+## DOCUMENTATION_CLASSIFICATION
 
-Aplica cuando:
+TYPE: SOLO_HITO
 
-- el cambio es local
-- no introduce nuevas reglas generales del runtime
-- no altera comportamiento estructural del sistema
+APPLIES_IF:
 
-#### 2. `hito + evolución documental`
+- cambio local
+- sin impacto estructural
 
-Actualizar `hito_mcp.md` y evaluar actualización de documentación estable en `docs/architecture/*`.
+---
 
-Aplica cuando el hito:
+TYPE: HITO_PLUS_EVOLUTION
 
-- introduce una regla general del runtime
-- define una jerarquía operativa
-- crea o consolida un slice identificable
-- altera el comportamiento estructural observable del runtime aunque no cambie el ADR ni el runtime target
+APPLIES_IF:
 
-Ejemplos de slices:
+- introduce regla de runtime
+- define jerarquia
+- crea slice
+- cambia comportamiento observable
+
+EXAMPLE_SLICES:
 
 - domain governance
 - fallback governance
 - reference lifecycle
 - modify substate
 
-#### Regla de duda
+RULE: DOUBT_RESOLUTION
 
-Si hay duda entre `solo hito` y `hito + evolución documental`, priorizar `hito + evolución documental` cuando el cambio afecte la gobernanza del runtime.
+- en duda → usar HITO_PLUS_EVOLUTION
 
-#### Objetivo
+GOAL:
 
-Evitar que la documentación refleje solo eventos aislados y asegurar que capture la evolución del comportamiento del sistema.
+- evitar que la documentación refleje solo eventos aislados
+- asegurar que capture la evolución del comportamiento del sistema
 
-## Documentos relacionados
+---
 
-- [channel_map.md](/home/marcelo/begasist/docs/architecture/channel_map.md)
-- [chat_naming_standard.md](/home/marcelo/begasist/docs/architecture/chat_naming_standard.md)
-- [prompts_new_chats.md](/home/marcelo/begasist/docs/architecture/prompts_new_chats.md)
-- [hito_mcp.md](/home/marcelo/begasist/hito_mcp.md)
+## COMMIT_GRANULARITY
 
-### Control de granularidad de commits
+RULE: ONE_HITO_ONE_COMMIT
 
-Contexto:
+FORBIDDEN:
 
-Se observó fragmentación de commits en un mismo hito (especialmente en documentación),
-lo que dificulta la trazabilidad histórica del repositorio.
+- fragmentar commits del mismo hito
 
-Decisión:
+CHECK: COMMIT_FRAGMENTATION
+IF:
 
-- mantener el principio: 1 hito = 1 commit
-- evitar múltiples commits para un mismo bloque conceptual
+- multiples commits mismo hito
 
-Reglas:
+THEN:
 
-- si múltiples cambios pertenecen al mismo hito, deben consolidarse en un solo commit
+- consolidar antes de commit
+
+RATIONALE:
+
 - priorizar claridad histórica sobre granularidad técnica
-- detectar y advertir fragmentación innecesaria antes del commit
+- detectar fragmentación innecesaria antes del commit
 - no fragmentar documentación o cambios estructurales sin justificación real
 
-Alcance:
+APPLIES_TO:
 
 - código
 - documentación
 - arquitectura
 - prompts
 
-Nota:
+NOTE:
 
 - no requiere reescritura de historial existente
 - aplica hacia adelante
+
+---
+
+## RELATED_DOCS
+
+- channel_map.md
+- chat_naming_standard.md
+- prompts_new_chats.md
+- hito_mcp.md
