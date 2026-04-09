@@ -5831,3 +5831,36 @@ Impacto:
 - evita falla temprana en `Setup Node.js`
 - mantiene el cache de `pnpm` en un orden válido
 - mejora confiabilidad de CI sin expandir alcance
+
+### FIX-PIPELINE-AUXILIARY-FALLBACK-CANONICAL-ALIGNMENT-02
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 9d24f1d58fa4cf5875a4571ea0c45e9ae4e5bd06
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea la ruta auxiliar `buildReservationLocalFallbackReply(...)` con la
+jerarquía canónica de reservas, evitando que helpers derivados dominen sobre el
+target real.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación canónica local de
+  `buildReservationLocalFallbackReply(...)`
+- `selectedReservationTarget` y `activeReservationContext` documentados como
+  punteros hacia la proyección canónica local
+- `reservationSlots`, `currSlots` y `nextSlots` quedan subordinados como
+  helpers derivados/complementarios
+
+Impacto:
+
+- corrige una reply auxiliar local fallback
+- reduce riesgo de mezcla de atributos entre reservas
+- fortalece consistencia entre foco activo y respuesta textual
+- alinea implementación local con la jerarquía documentada del pipeline
