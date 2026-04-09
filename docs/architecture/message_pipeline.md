@@ -409,6 +409,34 @@ Invariante operativa:
 - `reservationSlots`, `currSlots` y `nextSlots` no deben dominar identidad ni
   atributos si existe target canónico resuelto
 
+#### Canonical Reply Governance
+
+Jerarquía obligatoria para replies de reserva:
+
+1. canonical runtime projection local
+2. runtime pointers, solo para localizar target
+3. derived helpers, solo como complemento o fallback
+
+Regla operativa:
+
+- si existe target canónico válido, ninguna reply de reserva puede
+  construirse usando helpers derivados como fuente dominante
+
+Alcance:
+
+- snapshot
+- confirmaciones
+- replies post-action
+- continuation prompts
+- fallback replies
+
+Naturaleza de la regla:
+
+- no es un refactor
+- no cambia la arquitectura base
+- no introduce nuevas capas
+- formaliza comportamiento ya implementado en múltiples rutas del runtime
+
 Nota de alcance:
 
 - esta sección formaliza el modelo actual

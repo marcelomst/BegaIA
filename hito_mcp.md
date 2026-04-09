@@ -6019,3 +6019,32 @@ Impacto:
 - reduce riesgo de mezcla de datos entre reservas
 - mejora consistencia entre canon y estado persistido
 - refuerza integridad de las capas que luego consumen ese record
+
+### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se formaliza como regla explícita del runtime la precedencia de la proyección
+canónica sobre helpers derivados en la construcción de replies de reserva.
+
+Archivos afectados:
+
+- `docs/architecture/message_pipeline.md`
+
+Validacion:
+
+- hito registrado como consolidación documental transversal, sin cambio de código
+- la regla queda explícita para snapshot, confirmaciones, replies post-action,
+  continuation prompts y fallback replies
+- el hito deriva de comportamientos ya implementados en múltiples rutas previas
+
+Impacto:
+
+- convierte una pauta ya implementada en gobernanza arquitectónica explícita
+- reduce ambigüedad documental sobre la precedencia entre canon y helpers
+- mejora coherencia transversal entre rutas de reply ya alineadas
+- no refactoriza runtime ni introduce capas nuevas
