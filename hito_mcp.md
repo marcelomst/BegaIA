@@ -5801,3 +5801,33 @@ Impacto:
 - reduce riesgo de mezcla de atributos entre reservas
 - fortalece consistencia entre foco activo y payload textual
 - alinea implementación local con la jerarquía documentada del pipeline
+
+### FIX-CI-CORE-PNPM-SETUP-ORDER-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: c9f21e763ed4720bb065f1714afd6b164ac0b1b2
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige el workflow `ci-core` para que `pnpm` esté disponible antes de que
+`actions/setup-node` inicialice el cache de dependencias.
+
+Archivos afectados:
+
+- `.github/workflows/ci-core.yml`
+
+Validacion:
+
+- hito registrado como fix de orden de setup para `pnpm` en `ci-core`
+- causa raíz documentada: inicialización de cache de `pnpm` sin `pnpm`
+  disponible en `PATH`
+- solución aplicada: instalar/configurar `pnpm` antes de `setup-node`
+
+Impacto:
+
+- restaura ejecución correcta del workflow `ci-core`
+- evita falla temprana en `Setup Node.js`
+- mantiene el cache de `pnpm` en un orden válido
+- mejora confiabilidad de CI sin expandir alcance
