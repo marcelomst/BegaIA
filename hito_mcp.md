@@ -5926,3 +5926,35 @@ Impacto:
 - evita falsos rojos por deuda histórica de lint
 - conserva visibilidad de warnings
 - separa salud de runtime/test suite de deuda heredada de estilo y lint
+
+### FIX-PIPELINE-MODIFY-CONTINUATION-CANONICAL-ALIGNMENT-03
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 02f55a08df9006a9bd825dcc5a100edc63a57c6e
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea la continuidad auxiliar de `modify` con la jerarquía canónica de
+reservas, evitando que el prompt o menú de continuación derive sus datos
+principales desde helpers no canónicos.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación canónica local de `buildFocusContinuationPrompt(...)`
+- `selectedReservationTarget` y `activeReservationContext` documentados como
+  punteros hacia la proyección canónica local dentro de `focus.subFlow === "modify"`
+- `reservationSlots` y `nextSlots` quedan subordinados como helpers
+  derivados/complementarios
+
+Impacto:
+
+- corrige la continuidad auxiliar de `modify`
+- reduce riesgo de mezcla de atributos entre reservas en prompts y menús laterales
+- fortalece consistencia entre foco activo y continuidad textual
+- alinea una ruta auxiliar con la jerarquía documentada del pipeline
