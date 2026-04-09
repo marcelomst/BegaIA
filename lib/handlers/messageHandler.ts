@@ -764,11 +764,32 @@ function buildFocusContinuationPrompt(
   }
   if (focus.subFlow === "modify") {
     const activeField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+    const canonicalTargetId =
+      pre.st?.selectedReservationTarget?.reservationId ||
+      (pre.st?.activeReservationContext?.kind === "reservation"
+        ? pre.st.activeReservationContext.reservationId
+        : undefined);
+    const canonicalRecord = canonicalTargetId
+      ? buildReservationCanonicalState(pre.st).byId.get(canonicalTargetId)
+      : undefined;
+    const derivedSlots = {
+      ...(pre.st?.reservationSlots || {}),
+      ...(nextSlots || {}),
+    } as ReservationSlotsStrict;
+    const menuSlots = (canonicalRecord
+      ? {
+        guestName: canonicalRecord.guestName || derivedSlots.guestName,
+        roomType: canonicalRecord.roomType || derivedSlots.roomType,
+        checkIn: canonicalRecord.checkIn || derivedSlots.checkIn,
+        checkOut: canonicalRecord.checkOut || derivedSlots.checkOut,
+        numGuests: canonicalRecord.numGuests || derivedSlots.numGuests,
+        locale: pre.lang,
+      }
+      : derivedSlots) as ReservationSlotsStrict;
     const prompt = activeField
       ? buildModifyFieldPrompt(pre.lang, activeField)
       : buildModifyOptionsMenu(pre.lang, {
-          ...(pre.st?.reservationSlots || {}),
-          ...(nextSlots || {}),
+          ...menuSlots,
         } as ReservationSlotsStrict);
     return pre.lang === "es"
       ? `Para seguir con la modificación, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
