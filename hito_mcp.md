@@ -5864,3 +5864,34 @@ Impacto:
 - reduce riesgo de mezcla de atributos entre reservas
 - fortalece consistencia entre foco activo y respuesta textual
 - alinea implementación local con la jerarquía documentada del pipeline
+
+### FIX-CI-CORE-PNPM-VERSION-SOURCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 324d4e8053042131b47c0dfaee16bcddb63c1e1d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige `ci-core` para que `pnpm` tenga una única fuente de versión en
+GitHub Actions, evitando conflicto entre la workflow config y `package.json`.
+
+Archivos afectados:
+
+- `.github/workflows/ci-core.yml`
+
+Validacion:
+
+- hito registrado como fix de fuente única de versión para `pnpm` en `ci-core`
+- causa raíz documentada: duplicación/conflicto de fuente de versión para
+  `pnpm`
+- solución aplicada: usar `package.json#packageManager` como única fuente de
+  versión y eliminar la versión redundante en la workflow
+
+Impacto:
+
+- elimina conflicto de versión de `pnpm` en CI
+- evita `ERR_PNPM_BAD_PM_VERSION`
+- consolida una única fuente de verdad para el package manager
+- mejora confiabilidad del workflow `ci-core`
