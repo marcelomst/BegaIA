@@ -5772,3 +5772,30 @@ Impacto:
 - reduce ambigüedad interpretativa
 - hace más auditable la disciplina de ejecución por hitos
 - mejora consistencia entre gobernanza operativa y práctica real de cierre
+
+### FIX-PIPELINE-AUXILIARY-REPLY-CANONICAL-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 92a30d1f81b27b7b871ddf5a023547da01edbc8c
+
+Descripcion:
+
+Se alinea una reply auxiliar de `reservation` con la jerarquía canónica del
+runtime, evitando que helpers derivados dominen sobre el target real.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación canónica de una reply auxiliar de `reservation`
+- batería relevante en verde sin regresiones en reference resolution, snapshot follow-up ni focus governance
+
+Impacto:
+
+- corrige una reply auxiliar puntual
+- reduce riesgo de mezcla de atributos entre reservas
+- fortalece consistencia entre foco activo y payload textual
+- alinea implementación local con la jerarquía documentada del pipeline

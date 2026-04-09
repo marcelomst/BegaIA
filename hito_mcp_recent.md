@@ -8,7 +8,55 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. DOC-ARCHITECTURE-DOC-GOVERNANCE-TAXONOMY-01
+## 1. FIX-PIPELINE-AUXILIARY-REPLY-CANONICAL-ALIGNMENT-01
+
+- Identificador: `FIX-PIPELINE-AUXILIARY-REPLY-CANONICAL-ALIGNMENT-01`
+- Nombre: `FIX-PIPELINE-AUXILIARY-REPLY-CANONICAL-ALIGNMENT-01`
+- Commit message: `FIX-PIPELINE-AUXILIARY-REPLY-CANONICAL-ALIGNMENT-01 align auxiliary reservation reply with canonical target projection`
+- Hash: `92a30d1f81b27b7b871ddf5a023547da01edbc8c`
+- Descripción breve: Se alinea una reply auxiliar de `reservation` con la jerarquía canónica del runtime, evitando que helpers derivados dominen sobre el target real.
+
+## 2. DOC-ARCHITECTURE-OPERATING-MODEL-FORMALIZATION-01
+
+- Identificador: `DOC-ARCHITECTURE-OPERATING-MODEL-FORMALIZATION-01`
+- Nombre: `DOC-ARCHITECTURE-OPERATING-MODEL-FORMALIZATION-01`
+- Commit message: `DOC-ARCHITECTURE-OPERATING-MODEL-FORMALIZATION-01 formalize system operating model as explicit governance contract`
+- Hash: `7651eeeb793a1f3c41a599d13823d514d54e0b91`
+- Descripción breve: Se formaliza `docs/architecture/system_operating_model.md` como contrato explícito de gobernanza operativa del sistema.
+
+## 3. DOC-REPO-README-REPOSITIONING-01
+
+- Identificador: `DOC-REPO-README-REPOSITIONING-01`
+- Nombre: `DOC-REPO-README-REPOSITIONING-01`
+- Commit message: `DOC-REPO-README-REPOSITIONING-01 rewrite root README as Begasist system overview`
+- Hash: `990dac4887e4232da6f8b85e4422e0f147930245`
+- Descripción breve: Se reescribe el `README.md` raíz para reposicionarlo como overview actual del sistema Begasist, reemplazando el framing histórico del prototipo anterior.
+
+## 4. DOC-HISTORY-RECENT-HITO-SNAPSHOT-01
+
+- Identificador: `DOC-HISTORY-RECENT-HITO-SNAPSHOT-01`
+- Nombre: `DOC-HISTORY-RECENT-HITO-SNAPSHOT-01`
+- Commit message: `DOC-HISTORY-RECENT-HITO-SNAPSHOT-01 version recent hito snapshot for operational context`
+- Hash: `3409fcc6865a419df1f10f854b060773e29e8f4f`
+- Descripción breve: Se versiona `hito_mcp_recent.md` como recorte operativo de historial reciente, sin reemplazar el historial completo de `hito_mcp.md`.
+
+## 5. DOC-REPO-LEGACY-DOCUMENT-ARCHIVE-01
+
+- Identificador: `DOC-REPO-LEGACY-DOCUMENT-ARCHIVE-01`
+- Nombre: `DOC-REPO-LEGACY-DOCUMENT-ARCHIVE-01`
+- Commit message: `DOC-REPO-LEGACY-DOCUMENT-ARCHIVE-01 archive legacy root documents into _legacy`
+- Hash: `198d7ce408563b4a9994889f22958cf92a98dbcb`
+- Descripción breve: Se limpia la raíz del repo archivando documentación legacy en `_legacy/`, sin mezclar runtime ni reescrituras documentales activas.
+
+## 6. FIX-SNAPSHOT-AUXILIARY-ROUTES-CANONICAL-ALIGNMENT-01
+
+- Identificador: `FIX-SNAPSHOT-AUXILIARY-ROUTES-CANONICAL-ALIGNMENT-01`
+- Nombre: `FIX-SNAPSHOT-AUXILIARY-ROUTES-CANONICAL-ALIGNMENT-01`
+- Commit message: `FIX-SNAPSHOT-AUXILIARY-ROUTES-CANONICAL-ALIGNMENT-01 prefer canonical reservation projection in post-booking snapshot fast-path`
+- Hash: `180023677027dbb0cf8f12bf53ce735e7d95821d`
+- Descripción breve: Se corrige el fast-path auxiliar de snapshot post-booking para que priorice la proyección canónica de reserva y no deje que `reservationSlots` domine sobre el target real.
+
+## 7. DOC-ARCHITECTURE-DOC-GOVERNANCE-TAXONOMY-01
 
 - Identificador: `DOC-ARCHITECTURE-DOC-GOVERNANCE-TAXONOMY-01`
 - Nombre: `DOC-ARCHITECTURE-DOC-GOVERNANCE-TAXONOMY-01`
@@ -16,23 +64,7 @@ No reemplaza el historial completo.
 - Hash: `823c1a70dbe1df55bd578bd1a4891fed9ee64852`
 - Descripción breve: Se ordena la gobernanza documental y la taxonomía de `docs/architecture/`, normalizando naming de ADRs y reforzando la separación entre operación, ADRs, arquitectura viva y artefactos derivados.
 
-## 2. DOC-RESERVATION-TRUTH-HIERARCHY-AND-RUNTIME-PROJECTIONS-01
-
-- Identificador: `DOC-RESERVATION-TRUTH-HIERARCHY-AND-RUNTIME-PROJECTIONS-01`
-- Nombre: `DOC-RESERVATION-TRUTH-HIERARCHY-AND-RUNTIME-PROJECTIONS-01`
-- Commit message: `DOC-RESERVATION-TRUTH-HIERARCHY-AND-RUNTIME-PROJECTIONS-01 formalize reservation truth hierarchy and runtime projections`
-- Hash: `1588ef5359ce13ed7745e3aadd5b90582ae443bc`
-- Descripción breve: Se formaliza en arquitectura viva la jerarquía actual de verdad y proyección de reservas dentro del runtime conversacional, sin refactorizar runtime.
-
-## 3. DOC-ARCHITECTURE-MANUAL-STRESS-TEST-SERIES-01
-
-- Identificador: `DOC-ARCHITECTURE-MANUAL-STRESS-TEST-SERIES-01`
-- Nombre: `DOC-ARCHITECTURE-MANUAL-STRESS-TEST-SERIES-01`
-- Commit message: `DOC-ARCHITECTURE-MANUAL-STRESS-TEST-SERIES-01 version manual stress test series`
-- Hash: `2a4419f5f835ce5588dd41ab7c4b709ff9aef609`
-- Descripción breve: Se versiona una serie mínima de tests manuales de estrés para validar replace, ambigüedad, arrastre de target, small talk y consistencia post-cancelación en el dominio `reservation`.
-
-## 4. FIX-REFERENCE-AMBIGUOUS-ANAPHORA-GATING-01
+## 8. FIX-REFERENCE-AMBIGUOUS-ANAPHORA-GATING-01
 
 - Identificador: `FIX-REFERENCE-AMBIGUOUS-ANAPHORA-GATING-01`
 - Nombre: `FIX-REFERENCE-AMBIGUOUS-ANAPHORA-GATING-01`
@@ -40,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `c0797154bdca9c1d5f596b1114cdd7bd45b69a8e`
 - Descripción breve: Se corrige la resolución indebida de anáforas ambiguas como `esa` cuando no existe selección previa válida y hay múltiples reservas candidatas.
 
-## 5. FIX-SNAPSHOT-TARGET-DATA-CONSISTENCY-01
+## 9. FIX-SNAPSHOT-TARGET-DATA-CONSISTENCY-01
 
 - Identificador: `FIX-SNAPSHOT-TARGET-DATA-CONSISTENCY-01`
 - Nombre: `FIX-SNAPSHOT-TARGET-DATA-CONSISTENCY-01`
@@ -48,42 +80,10 @@ No reemplaza el historial completo.
 - Hash: `3f8ec03987bc073f36a9f7a067d3c719948dc638`
 - Descripción breve: Se corrige consistencia de snapshot posterior a cancelación, evitando mezcla de datos entre reservas cuando el snapshot se arma después de confirmar una cancelación.
 
-## 6. FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01
+## 10. FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01
 
 - Identificador: `FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01`
 - Nombre: `FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01`
 - Commit message: `FIX-MODIFY-CAPACITY-CONTRACT-TEST-ALIGNMENT-01 align tests with capacity guard before modify execution`
 - Hash: `5b1ae5b7804c6ce551cc9f11f89e433084448fe3`
 - Descripción breve: Se alinean tests con el contrato vigente de `modify` respecto a validación preventiva de capacidad antes de ejecutar cambios.
-
-## 7. FIX-SNAPSHOT-FOLLOWUP-GATING-ACTION-EXCLUSION-01
-
-- Identificador: `FIX-SNAPSHOT-FOLLOWUP-GATING-ACTION-EXCLUSION-01`
-- Nombre: `FIX-SNAPSHOT-FOLLOWUP-GATING-ACTION-EXCLUSION-01`
-- Commit message: `FIX-SNAPSHOT-FOLLOWUP-GATING-ACTION-EXCLUSION-01 exclude transactional intents from snapshot follow-up gating`
-- Hash: `fce5683d6d4e633a47c5563672127c2dd80d3452`
-- Descripción breve: Se corrige el gating de `snapshotFollowup` para evitar que follow-ups de vista secuestren inputs con intención transaccional, restaurando la separación correcta entre snapshot y acción.
-
-## 8. TEST-SNAPSHOT-FOLLOWUP-PRECEDENCE-GUARD-01
-
-- Identificador: `TEST-SNAPSHOT-FOLLOWUP-PRECEDENCE-GUARD-01`
-- Nombre: `TEST-SNAPSHOT-FOLLOWUP-PRECEDENCE-GUARD-01`
-- Commit message: `TEST-SNAPSHOT-FOLLOWUP-PRECEDENCE-GUARD-01 add guard suite for snapshot follow-up precedence`
-- Hash: `444022c825aee0ca3e8799d5785ead19fec88c8d`
-- Descripción breve: Se agrega una suite de guardrails para congelar por tests la precedencia de `snapshot follow-up` cuando existe contexto activo de reserva, evitando degradación a guidance de `modify` o routing genérico.
-
-## 9. DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01
-
-- Identificador: `DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01`
-- Nombre: `DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01`
-- Commit message: `DOC-ARCHITECTURE-ROADMAP-ALIGNMENT-01 align roadmap with closed runtime capabilities and residual debt`
-- Hash: `68e98748406e9a77f35e39c60470f033dca11099`
-- Descripción breve: Se alinea `docs/architecture/roadmap.md` con el estado real del sistema, eliminando pendientes fantasma y corrigiendo una desalineación que ya inducía decisiones equivocadas.
-
-## 10. FIX-PIPELINE-MODIFY-SNAPSHOT-FOLLOWUP-ROUTING-01
-
-- Identificador: `FIX-PIPELINE-MODIFY-SNAPSHOT-FOLLOWUP-ROUTING-01`
-- Nombre: `FIX-PIPELINE-MODIFY-SNAPSHOT-FOLLOWUP-ROUTING-01`
-- Commit message: `FIX-PIPELINE-MODIFY-SNAPSHOT-FOLLOWUP-ROUTING-01 prioritize active target snapshot over generic modify guidance`
-- Hash: `54a140cfa62787ceea385c72a6154c606d52806c`
-- Descripción breve: Se corrige el routing de follow-up post-modify para que pedidos como `mostrame como quedó` prioricen snapshot del target activo en lugar de reabrir guidance genérica de modificación.
