@@ -5745,3 +5745,30 @@ Impacto:
 - corrige desalineación entre README root y sistema actual
 - reduce arrastre de framing histórico obsoleto
 - presenta Begasist con una narrativa coherente con su estado vigente
+
+### DOC-ARCHITECTURE-OPERATING-MODEL-FORMALIZATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 7651eeeb793a1f3c41a599d13823d514d54e0b91
+
+Descripcion:
+
+Se formaliza `docs/architecture/system_operating_model.md` como contrato
+explícito de gobernanza operativa del sistema.
+
+Archivos afectados:
+
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- hito registrado como formalización normativa del operating model
+- no corresponde validación automática; es un hito documental/operativo
+
+Impacto:
+
+- fortalece el operating model como fuente normativa
+- reduce ambigüedad interpretativa
+- hace más auditable la disciplina de ejecución por hitos
+- mejora consistencia entre gobernanza operativa y práctica real de cierre
