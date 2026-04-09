@@ -5988,3 +5988,34 @@ Impacto:
 - reduce riesgo de drift entre reserva creada y reply final
 - fortalece consistencia entre execution y representación textual
 - alinea una ruta post-action real con la jerarquía documentada del pipeline
+
+### FIX-PIPELINE-CANCEL-PERSISTED-RECORD-CANONICAL-ALIGNMENT-05
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 9844c824965a389f87ac7d25b153eae933205aac
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea `buildPersistedReservationRecord(...)` con la jerarquía canónica de
+reservas, haciendo que el record persistido priorice el canon sobre
+`reservationSlots`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación canónica del record persistido de reserva
+- el cambio queda acotado a `buildPersistedReservationRecord(...)`
+- `canonicalRecord` pasa a dominar sobre `reservationSlots` dentro de la capa
+  de persistencia
+
+Impacto:
+
+- corrige la persistencia del record de reserva
+- reduce riesgo de mezcla de datos entre reservas
+- mejora consistencia entre canon y estado persistido
+- refuerza integridad de las capas que luego consumen ese record
