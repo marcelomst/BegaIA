@@ -5895,3 +5895,34 @@ Impacto:
 - evita `ERR_PNPM_BAD_PM_VERSION`
 - consolida una única fuente de verdad para el package manager
 - mejora confiabilidad del workflow `ci-core`
+
+### FIX-CI-CORE-BLOCKING-LINT-SCOPE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 03bb9bdeb2b281f8a444698220fd4572d28e8d52
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se ajusta `ci-core` para evitar que el scoped lint siga bloqueando el workflow
+ por warnings heredados, manteniendo ese chequeo como observabilidad mientras
+esa deuda se limpia por separado.
+
+Archivos afectados:
+
+- `.github/workflows/ci-core.yml`
+
+Validacion:
+
+- hito registrado como ajuste de severidad del scoped lint en `ci-core`
+- causa raíz documentada: warnings heredados de lint disparaban el exit code 1
+  del workflow aunque `pnpm test:core` y `pnpm ts-check` pasaban
+- solución aplicada: mantener el chequeo scoped visible pero no bloqueante
+
+Impacto:
+
+- restaura continuidad de `ci-core`
+- evita falsos rojos por deuda histórica de lint
+- conserva visibilidad de warnings
+- separa salud de runtime/test suite de deuda heredada de estilo y lint
