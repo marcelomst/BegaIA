@@ -5778,6 +5778,7 @@ Impacto:
 Estado: COMPLETADO  
 Fecha: 2026-04-09  
 Commit: 92a30d1f81b27b7b871ddf5a023547da01edbc8c
+Clasificacion documental: SOLO_HITO
 
 Descripcion:
 
@@ -5790,7 +5791,8 @@ Archivos afectados:
 
 Validacion:
 
-- hito registrado como alineación canónica de una reply auxiliar de `reservation`
+- hito registrado como alineación local de una reply auxiliar de `reservation`
+- clasificado como `SOLO_HITO` por enforcement puntual de jerarquía ya existente
 - batería relevante en verde sin regresiones en reference resolution, snapshot follow-up ni focus governance
 
 Impacto:

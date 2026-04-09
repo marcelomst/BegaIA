@@ -398,11 +398,12 @@ Invariante operativa:
   canónica local
 - las proyecciones auxiliares no deben dominar respuestas si contradicen el
   target canónico
-- en rutas auxiliares de snapshot post-booking, `lastReservation` debe usarse
-  como puntero hacia la proyección canónica local, no como payload completo
+- en rutas auxiliares de snapshot post-booking, el runtime debe mantener esa
+  misma prioridad: `lastReservation` funciona como puntero hacia la proyección
+  canónica local, no como payload completo
 - en replies auxiliares de `reservation`, `selectedReservationTarget` y
-  `activeReservationContext` deben funcionar como punteros hacia la proyección
-  canónica local
+  `activeReservationContext` deben seguir funcionando como punteros hacia la
+  proyección canónica local
 - `reservationSlots` y `nextSlots` quedan subordinados como apoyo cuando no hay
   registro canónico suficiente
 - `reservationSlots`, `currSlots` y `nextSlots` no deben dominar identidad ni
