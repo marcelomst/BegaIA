@@ -5958,3 +5958,33 @@ Impacto:
 - reduce riesgo de mezcla de atributos entre reservas en prompts y menús laterales
 - fortalece consistencia entre foco activo y continuidad textual
 - alinea una ruta auxiliar con la jerarquía documentada del pipeline
+
+### FIX-PIPELINE-POSTACTION-SNAPSHOT-CANONICAL-ALIGNMENT-04
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 88f8d80b81c1df8617166ae637e10a216940221a
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea la reply de confirmación post-create con la proyección canónica del
+booking recién creado, evitando drift entre execution y texto final.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación canónica local de la reply post-create
+- el cambio queda acotado al bloque posterior a `confirmAndCreate(...)`
+- `replySnapshot` pasa a priorizar el registro canónico local del booking
+  recién creado y el `snapshot` derivado queda relegado a fallback
+
+Impacto:
+
+- corrige la confirmación textual post-create
+- reduce riesgo de drift entre reserva creada y reply final
+- fortalece consistencia entre execution y representación textual
+- alinea una ruta post-action real con la jerarquía documentada del pipeline
