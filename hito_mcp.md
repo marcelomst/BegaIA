@@ -5691,3 +5691,30 @@ Impacto:
 - reduce superficie de confusión en raíz
 - preserva trazabilidad documental en `_legacy/`
 - limpia la raíz sin pérdida de historial
+
+### DOC-HISTORY-RECENT-HITO-SNAPSHOT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 3409fcc6865a419df1f10f854b060773e29e8f4f
+
+Descripcion:
+
+Se versiona `hito_mcp_recent.md` como recorte operativo de historial reciente,
+sin reemplazar el historial completo de `hito_mcp.md`.
+
+Archivos afectados:
+
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- hito registrado como snapshot reciente de hitos para contexto operativo
+- no corresponde validación automática; es un hito documental
+
+Impacto:
+
+- mejora disponibilidad de contexto reciente
+- reduce costo de arranque en chats operativos
+- conserva separación entre historial completo y snapshot reciente
+- agrega un artefacto documental auxiliar sin invadir otros planos
