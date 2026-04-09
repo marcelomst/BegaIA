@@ -5650,3 +5650,44 @@ Impacto:
 - reduce riesgo de inconsistencias por dominancia indebida de slots derivados
 - alinea runtime con la jerarquía documental de verdad y proyección
 - mejora robustez del snapshot post-booking sin tocar otros dominios
+
+### DOC-REPO-LEGACY-DOCUMENT-ARCHIVE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 198d7ce408563b4a9994889f22958cf92a98dbcb
+
+Descripcion:
+
+Se limpia la raíz del repo archivando documentación legacy en `_legacy/`, sin
+mezclar runtime ni reescrituras documentales activas.
+
+Archivos afectados:
+
+- `_legacy/CONVENTIONAL_GIT_GUIDE.md`
+- `_legacy/ESQUEMA_DE_DATOS_KB.md`
+- `_legacy/KB_PIPELINE.md`
+- `_legacy/MCPIntro.md`
+- `_legacy/MIGRATION_CHECKLIST_system_playbook.md`
+- `_legacy/NOTAS.md`
+- `_legacy/README.dev.md`
+- `_legacy/README_TEST.md`
+- `_legacy/Whatsapp-Conversation-Flow.md`
+- `_legacy/arbol.md`
+- `_legacy/cache_para_hotel_phone_map.md`
+- `_legacy/comandoGit.md`
+- `_legacy/iteracion.md`
+- `_legacy/session-notes.md`
+- `_legacy/README.md`
+
+Validacion:
+
+- hito registrado como archivado documental legacy y repo hygiene
+- no corresponde validación automática; es un hito documental
+
+Impacto:
+
+- mejora orden del repositorio
+- reduce superficie de confusión en raíz
+- preserva trazabilidad documental en `_legacy/`
+- limpia la raíz sin pérdida de historial
