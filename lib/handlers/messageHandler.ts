@@ -1912,11 +1912,29 @@ function buildReservationDomainLockReply(
   },
   nextSlots: ReservationSlotsStrict
 ): string {
-  const knownSlots = {
+  const canonicalTargetId =
+    pre.st?.selectedReservationTarget?.reservationId ||
+    (pre.st?.activeReservationContext?.kind === "reservation"
+      ? pre.st.activeReservationContext.reservationId
+      : undefined);
+  const canonicalRecord = canonicalTargetId
+    ? buildReservationCanonicalState(pre.st).byId.get(canonicalTargetId)
+    : undefined;
+  const derivedSlots = {
     ...(pre.st?.reservationSlots || {}),
     ...(pre.currSlots || {}),
     ...(nextSlots || {}),
   } as ReservationSlotsStrict;
+  const knownSlots = (canonicalRecord
+    ? {
+      guestName: canonicalRecord.guestName || derivedSlots.guestName,
+      roomType: canonicalRecord.roomType || derivedSlots.roomType,
+      checkIn: canonicalRecord.checkIn || derivedSlots.checkIn,
+      checkOut: canonicalRecord.checkOut || derivedSlots.checkOut,
+      numGuests: canonicalRecord.numGuests || derivedSlots.numGuests,
+      locale: pre.lang,
+    }
+    : derivedSlots) as ReservationSlotsStrict;
   const inModifyFlow =
     pre.inModifyMode ||
     pre.st?.desiredAction === "modify" ||
