@@ -5718,3 +5718,30 @@ Impacto:
 - reduce costo de arranque en chats operativos
 - conserva separación entre historial completo y snapshot reciente
 - agrega un artefacto documental auxiliar sin invadir otros planos
+
+### DOC-REPO-README-REPOSITIONING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 990dac4887e4232da6f8b85e4422e0f147930245
+
+Descripcion:
+
+Se reescribe el `README.md` raíz para reposicionarlo como overview actual del
+sistema Begasist, reemplazando el framing histórico del prototipo anterior.
+
+Archivos afectados:
+
+- `README.md`
+
+Validacion:
+
+- hito registrado como reposicionamiento del README raíz
+- no corresponde validación automática; es un hito documental
+
+Impacto:
+
+- mejora la entrada principal del repositorio
+- corrige desalineación entre README root y sistema actual
+- reduce arrastre de framing histórico obsoleto
+- presenta Begasist con una narrativa coherente con su estado vigente
