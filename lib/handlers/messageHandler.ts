@@ -2065,11 +2065,29 @@ function buildReservationLocalFallbackReply(
   signal: ReturnType<typeof getReservationDomainLockSignal>,
   nextSlots: ReservationSlotsStrict
 ): { nextCategory: "reservation" | "modify_reservation" | "reservation_snapshot"; finalText: string } {
-  const knownSlots = {
+  const canonicalTargetId =
+    pre.st?.selectedReservationTarget?.reservationId ||
+    (pre.st?.activeReservationContext?.kind === "reservation"
+      ? pre.st.activeReservationContext.reservationId
+      : undefined);
+  const canonicalRecord = canonicalTargetId
+    ? buildReservationCanonicalState(pre.st).byId.get(canonicalTargetId)
+    : undefined;
+  const derivedSlots = {
     ...(pre.st?.reservationSlots || {}),
     ...(pre.currSlots || {}),
     ...(nextSlots || {}),
   } as ReservationSlotsStrict;
+  const knownSlots = (canonicalRecord
+    ? {
+      guestName: canonicalRecord.guestName || derivedSlots.guestName,
+      roomType: canonicalRecord.roomType || derivedSlots.roomType,
+      checkIn: canonicalRecord.checkIn || derivedSlots.checkIn,
+      checkOut: canonicalRecord.checkOut || derivedSlots.checkOut,
+      numGuests: canonicalRecord.numGuests || derivedSlots.numGuests,
+      locale: pre.lang,
+    }
+    : derivedSlots) as ReservationSlotsStrict;
   const activeModifyField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
   const inModifyFlow =
     pre.inModifyMode ||
