@@ -492,11 +492,11 @@ function buildPersistedReservationRecord(
     status,
     createdAt: safeNowISO(),
     channel,
-    guestName: reservationSlots?.guestName || canonicalRecord?.guestName,
-    roomType: reservationSlots?.roomType || canonicalRecord?.roomType,
-    checkIn: reservationSlots?.checkIn || canonicalRecord?.checkIn,
-    checkOut: reservationSlots?.checkOut || canonicalRecord?.checkOut,
-    numGuests: reservationSlots?.numGuests || canonicalRecord?.numGuests,
+    guestName: canonicalRecord?.guestName || reservationSlots?.guestName,
+    roomType: canonicalRecord?.roomType || reservationSlots?.roomType,
+    checkIn: canonicalRecord?.checkIn || reservationSlots?.checkIn,
+    checkOut: canonicalRecord?.checkOut || reservationSlots?.checkOut,
+    numGuests: canonicalRecord?.numGuests || reservationSlots?.numGuests,
   };
 }
 
