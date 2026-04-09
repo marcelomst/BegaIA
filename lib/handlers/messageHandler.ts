@@ -5441,6 +5441,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const { confirmAndCreate } = await import("@/lib/agents/reservations");
         const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
         const hasReservationId = Boolean(String(result.reservationId || "").trim());
+        let replySnapshot: ReservationSlotsStrict = snapshot as ReservationSlotsStrict;
         if (result.ok && hasReservationId) {
           const createdReservation: LastReservation = {
             reservationId: result.reservationId || "",
@@ -5465,6 +5466,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             ),
             createdReservation
           );
+          const canonicalRecordForReply = buildReservationCanonicalState({
+            ...(pre.st || {}),
+            reservationHistory: preservedHistory,
+            lastReservation: createdReservation,
+          }).byId.get(createdReservation.reservationId);
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             reservationSlots: {
               guestName: snapshot.guestName,
@@ -5483,13 +5489,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             desiredAction: undefined,
             updatedBy: "ai",
           } as any);
+          if (canonicalRecordForReply) {
+            replySnapshot = {
+              guestName: canonicalRecordForReply.guestName,
+              roomType: canonicalRecordForReply.roomType,
+              checkIn: canonicalRecordForReply.checkIn,
+              checkOut: canonicalRecordForReply.checkOut,
+              numGuests: canonicalRecordForReply.numGuests,
+              locale: pre.lang,
+            } as ReservationSlotsStrict;
+          }
         }
         finalText = result.ok && hasReservationId
           ? (pre.lang === "es"
-            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(snapshot.roomType, pre.lang)}**, Fechas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
+            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`
             : pre.lang === "pt"
-              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(snapshot.roomType, pre.lang)}**, Datas **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`
-              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(snapshot.roomType, pre.lang)}**, Dates **${snapshot.checkIn} → ${snapshot.checkOut}**${snapshot.numGuests ? ` · **${snapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(snapshot.guestName).trim().split(/\s+/)[0] || snapshot.guestName}!`)
+              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`
+              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`)
           : (result.ok
             ? (pre.lang === "es"
               ? "No pude confirmar la reserva con datos incompletos. Sigamos con el dato faltante."
