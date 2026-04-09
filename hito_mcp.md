@@ -5585,3 +5585,68 @@ Impacto:
 - deja explícito el riesgo de inconsistencia si proyecciones derivadas dominan respuestas
 - mejora criterio de auditoría para futuros fixes de snapshot, modify y reference lifecycle
 - no cambia comportamiento ni abre migración estructural
+
+### DOC-ARCHITECTURE-DOC-GOVERNANCE-TAXONOMY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-08  
+Commit: 823c1a70dbe1df55bd578bd1a4891fed9ee64852
+
+Descripcion:
+
+Se ordena la gobernanza documental y la taxonomía de `docs/architecture/`,
+normalizando naming de ADRs y reforzando la separación entre operación, ADRs,
+arquitectura viva y artefactos derivados.
+
+Archivos afectados:
+
+- `docs/README.md`
+- `docs/architecture/ADR-DOC-GOVERNANCE-01.md`
+- `docs/architecture/README.md`
+- `docs/architecture/ADR-EMAIL-TRANSPORT-TARGET.md`
+- `docs/architecture/ADR-PIPELINE-RUNTIME-TARGET.md`
+- `docs/architecture/channel_map.md`
+- `docs/architecture/message_pipeline.md`
+- `docs/architecture/roadmap.md`
+- `docs/architecture/system_operating_model.md`
+- `hito_mcp.md`
+
+Validacion:
+
+- hito registrado como ordenamiento de gobernanza documental y taxonomía
+- no corresponde validación automática; es un hito documental/arquitectónico
+
+Impacto:
+
+- mejora gobernanza documental
+- reduce duplicación entre documentos
+- normaliza naming de ADRs
+- refuerza la separación entre ADRs, operación y arquitectura viva
+
+### FIX-SNAPSHOT-AUXILIARY-ROUTES-CANONICAL-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-09  
+Commit: 180023677027dbb0cf8f12bf53ce735e7d95821d
+
+Descripcion:
+
+Se corrige el fast-path auxiliar de snapshot post-booking para que priorice la
+proyección canónica de reserva y no deje que `reservationSlots` domine sobre el
+target real.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como alineación del fast-path auxiliar de snapshot con la jerarquía canónica
+- batería relevante en verde sin regresiones en reference resolution, snapshot follow-up ni focus governance
+
+Impacto:
+
+- corrige una ruta auxiliar puntual de snapshot
+- reduce riesgo de inconsistencias por dominancia indebida de slots derivados
+- alinea runtime con la jerarquía documental de verdad y proyección
+- mejora robustez del snapshot post-booking sin tocar otros dominios
