@@ -3848,11 +3848,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     nextCategory = "retrieval_based";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
+  const userText = String(pre.msg.content || "").trim();
+  const inlineGuestName = looksLikeName(userText) && isSafeGuestName(userText) ? userText : undefined;
   const reservationRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
   const reservationCheckIn = nextSlots.checkIn || pre.currSlots.checkIn || pre.st?.reservationSlots?.checkIn;
   const reservationCheckOut = nextSlots.checkOut || pre.currSlots.checkOut || pre.st?.reservationSlots?.checkOut;
   const reservationGuests = nextSlots.numGuests || pre.currSlots.numGuests || pre.st?.reservationSlots?.numGuests;
-  const reservationGuestName = nextSlots.guestName || pre.currSlots.guestName || pre.st?.reservationSlots?.guestName;
+  const reservationGuestName =
+    inlineGuestName ||
+    nextSlots.guestName ||
+    pre.currSlots.guestName ||
+    pre.st?.reservationSlots?.guestName;
   const turnCreateSlots = extractSlotsFromText(String(pre.msg.content || ""), pre.lang);
   const createOverridesModify =
     pre.inModifyMode &&
@@ -6070,6 +6076,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           console.warn("⚠️ [graph] finalText vacío → delegando fallback determinista al OrchestratorPlanner");
         }
       }
+    }
+  }
+  // FIX-PIPELINE-CREATE-NAME-GATING-09:
+  // Si estamos en create y falta SOLO guestName, forzar prompt de nombre antes de fallback genérico.
+  {
+    const userText = String(pre.msg.content || "").trim();
+    const inlineName = looksLikeName(userText) && isSafeGuestName(userText) ? userText : undefined;
+    const createGatingSlots = mergeReservationSlots(
+      pre.st?.reservationSlots,
+      pre.currSlots,
+      nextSlots,
+      inlineName ? { guestName: inlineName } : {}
+    );
+    const createMissingField = getNextCreateFlowMissingField(createGatingSlots);
+    const createFlowActive =
+      !pre.inModifyMode &&
+      (pre.st?.activeFlow === "reservation" ||
+        pre.st?.desiredAction === "create" ||
+        pre.prevCategory === "reservation" ||
+        getConversationFocus(pre.st)?.subFlow === "create");
+    if (createFlowActive && createMissingField === "guestName" && nextCategory === "reservation") {
+      await persistCreateDraft(pre, createGatingSlots);
+      nextCategory = "reservation";
+      finalText = buildCreateFlowPrompt(pre.lang, "guestName");
     }
   }
   const reservationLocalFallbackNeeded = shouldUseReservationLocalFallback(pre, nextCategory, finalText, reservationDomainLock);
