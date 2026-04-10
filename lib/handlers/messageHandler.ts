@@ -3219,10 +3219,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       if (continuation) finalText = `${String(finalText || "").trim()} ${continuation}`.trim();
     }
     if (shouldClearSelectedReservationTargetForCategory(nextCategory, null)) {
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        selectedReservationTarget: null,
-        updatedBy: "ai",
-      } as any);
+      const shouldPreserveModifyTarget = Boolean(
+        (pre.inModifyMode ||
+          pre.st?.activeFlow === "modify_reservation" ||
+          pre.st?.desiredAction === "modify" ||
+          pre.prevCategory === "modify_reservation" ||
+          getConversationFocus(pre.st)?.subFlow === "modify") &&
+        (pre.st?.selectedReservationTarget?.reservationId ||
+          (pre.st?.activeReservationContext?.kind === "reservation" &&
+            pre.st.activeReservationContext.reservationId))
+      );
+      if (!shouldPreserveModifyTarget) {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          selectedReservationTarget: null,
+          updatedBy: "ai",
+        } as any);
+      }
     }
     debugLog("[stable-intents-guard] matched", {
       conversationId: pre.conversationId,
@@ -6687,10 +6699,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   if (shouldClearSelectedReservationTargetForCategory(nextCategory, promptKeyUsed)) {
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      selectedReservationTarget: null,
-      updatedBy: "ai",
-    } as any);
+    const shouldPreserveModifyTarget = Boolean(
+      (pre.inModifyMode ||
+        pre.st?.activeFlow === "modify_reservation" ||
+        pre.st?.desiredAction === "modify" ||
+        pre.prevCategory === "modify_reservation" ||
+        getConversationFocus(pre.st)?.subFlow === "modify") &&
+      (pre.st?.selectedReservationTarget?.reservationId ||
+        (pre.st?.activeReservationContext?.kind === "reservation" &&
+          pre.st.activeReservationContext.reservationId))
+    );
+    if (!shouldPreserveModifyTarget) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        selectedReservationTarget: null,
+        updatedBy: "ai",
+      } as any);
+    }
   }
   const quotedReservationSnapshot = {
     guestName:

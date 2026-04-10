@@ -246,6 +246,11 @@ describe("messageHandler focus governance", () => {
         phase: "confirmed",
         updatedAt: "2026-03-25T10:00:00.000Z",
       },
+      selectedReservationTarget: {
+        reservationId: "RES-200",
+        source: "active_focus",
+        strength: "weak",
+      },
     };
 
     await handleIncomingMessage(msg("¿tienen pileta?"), { mode: "automatic", sendReply });
@@ -257,6 +262,12 @@ describe("messageHandler focus governance", () => {
       subFlow: "modify",
       active: true,
     });
+
+    await handleIncomingMessage(msg("sí, seguí con el cambio"), { mode: "automatic", sendReply });
+
+    const followupText = lastReply(sendReply);
+    expect(followupText).not.toMatch(/¿?cu[aá]l quer[eé]s|c[oó]digo de reserva/i);
+    expect(currentState?.activeReservationContext?.reservationId).toBe("RES-200");
 
     await handleIncomingMessage(msg("3 personas"), { mode: "automatic", sendReply });
 
