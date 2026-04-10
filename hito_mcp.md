@@ -6088,6 +6088,39 @@ Impacto:
 - mejora continuidad operativa tras laterales compatibles
 - preserva identidad del target ya resuelto
 
+### FIX-PIPELINE-CREATE-NAME-GATING-09
+
+Estado: COMPLETADO  
+Fecha: 2026-04-10  
+Commit: b6686cb8240b6c30b9de228c84b437ea4bbb8127
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la captura y el gating de `guestName` en el flujo `create`,
+evitando caída a fallback genérico cuando el único faltante es el nombre del
+huésped.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito registrado como fix localizado de `guestName` gating en `create`
+- se captura `guestName` inline desde el turno actual y se ajusta la prioridad
+  de `reservationGuestName`
+- se fuerza `buildCreateFlowPrompt(..., "guestName")` cuando ese es el único
+  faltante antes del fallback genérico
+- slice validado en verde: `72/72` tests
+
+Impacto:
+
+- mejora captura inline de `guestName`
+- evita degradación del create cuando falta solo el nombre
+- preserva sequencing correcto del flujo create
+- reduce caídas innecesarias a fallback genérico
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
