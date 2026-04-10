@@ -6025,7 +6025,7 @@ Impacto:
 Estado: COMPLETADO  
 Fecha: 2026-04-10  
 Commit: 97e788fc7bb0fa04fe31fe9c62d9cc3fd24003d9
-Clasificacion documental: HITO_PLUS_EVOLUTION
+Clasificacion documental: SOLO_HITO
 
 Descripcion:
 
@@ -6042,6 +6042,8 @@ Validacion:
 
 - hito registrado como resolución de dominancia `create` vs continuidad
   incompatible de `modify`
+- clasificado como `SOLO_HITO` por corrección localizada de una resolución de
+  dominancia ya gobernada por los invariantes del pipeline
 - `create` explícito con payload suficiente rompe la continuidad incompatible
   de `modify`
 - no se ejecuta `modifyReservation(...)` y la reserva previa se mantiene intacta
