@@ -722,9 +722,23 @@ function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
 
 function resolveReservationFastPathSubFlow(pre: PreLLMResult, userText?: string): "create" | "modify" {
   const currentFocus = getConversationFocus(pre.st);
+  const normalizedIntent = normalizeReservationIntent(userText || "");
+  const looksExplicitCreate =
+    /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(String(userText || "")) &&
+    normalizedIntent.kind !== "modify" &&
+    normalizedIntent.kind !== "cancel";
+  const createTurnSlots = extractSlotsFromText(String(userText || ""), pre.lang);
+  const hasCreatePayload =
+    Boolean(createTurnSlots.checkIn && createTurnSlots.checkOut) &&
+    Boolean(
+      createTurnSlots.roomType ||
+      createTurnSlots.numGuests ||
+      isSafeGuestName(createTurnSlots.guestName || "")
+    );
+  if (looksExplicitCreate && hasCreatePayload) return "create";
   if (currentFocus?.subFlow === "create") return "create";
   if (currentFocus?.subFlow === "modify") return "modify";
-  if (userText && normalizeReservationIntent(userText).kind === "modify") return "modify";
+  if (userText && normalizedIntent.kind === "modify") return "modify";
   if (pre.st?.desiredAction === "create" || pre.st?.activeFlow === "reservation") return "create";
   if (pre.inModifyMode || pre.prevCategory === "modify_reservation") return "modify";
   return "create";
@@ -3826,6 +3840,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const reservationCheckIn = nextSlots.checkIn || pre.currSlots.checkIn || pre.st?.reservationSlots?.checkIn;
   const reservationCheckOut = nextSlots.checkOut || pre.currSlots.checkOut || pre.st?.reservationSlots?.checkOut;
   const reservationGuests = nextSlots.numGuests || pre.currSlots.numGuests || pre.st?.reservationSlots?.numGuests;
+  const reservationGuestName = nextSlots.guestName || pre.currSlots.guestName || pre.st?.reservationSlots?.guestName;
+  const turnCreateSlots = extractSlotsFromText(String(pre.msg.content || ""), pre.lang);
+  const createOverridesModify =
+    pre.inModifyMode &&
+    looksExplicitNewReservation &&
+    Boolean(turnCreateSlots.checkIn && turnCreateSlots.checkOut) &&
+    Boolean(turnCreateSlots.roomType || turnCreateSlots.numGuests || isSafeGuestName(turnCreateSlots.guestName || ""));
+  const modifyContinuityActive = pre.inModifyMode && !createOverridesModify;
   const rawOrderedDateRange = extractRawOrderedDateRange(userTxtRaw);
   const explicitTurnDateCoherence = assessReservationDateCoherence(rawOrderedDateRange?.checkIn, rawOrderedDateRange?.checkOut);
   const reservationDateCoherence = assessReservationDateCoherence(reservationCheckIn, reservationCheckOut);
@@ -3848,7 +3870,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     hasOperationalReservationFlow
   ) {
     finalText = buildInvalidReservationDatesReply(pre.lang, explicitTurnDateCoherence.reason);
-    nextCategory = pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
+    nextCategory = modifyContinuityActive || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
       ? "modify_reservation"
       : "reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
@@ -3860,7 +3882,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (dateTurnTouched || isPureConfirm(userTxtRaw) || askedToVerifyAvailability(pre.lcHistory, pre.lang))
   ) {
     finalText = buildInvalidReservationDatesReply(pre.lang, reservationDateCoherence.reason);
-    nextCategory = pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
+    nextCategory = modifyContinuityActive || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation"
       ? "modify_reservation"
       : "reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
@@ -3897,7 +3919,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       updatedBy: "ai",
     } as any);
   }
-  const reservationGuestName = nextSlots.guestName || pre.currSlots.guestName || pre.st?.reservationSlots?.guestName;
   if (
     (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") &&
     (normalizedReservationIntent.kind === "modify" || normalizedReservationIntent.kind === "cancel")
@@ -4345,9 +4366,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
   const currentFocus = getConversationFocus(pre.st);
-  const modifyExecutionActive = isModifyExecutionActive(pre);
+  const modifyExecutionActive = isModifyExecutionActive(pre) && !createOverridesModify;
   const activeCreateFlow =
-    !pre.inModifyMode &&
+    !modifyContinuityActive &&
     !hasConfirmedBookingContext &&
     (looksExplicitNewReservation ||
       currentFocus?.subFlow === "create" ||
@@ -4355,7 +4376,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.desiredAction === "create" ||
       pre.prevCategory === "reservation");
   const quoteGatedCreateFlow =
-    !pre.inModifyMode &&
+    !modifyContinuityActive &&
     !hasConfirmedBookingContext &&
     (
       looksExplicitNewReservation ||

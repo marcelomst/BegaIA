@@ -56,6 +56,10 @@ vi.mock("@/lib/db/convState", () => ({
 vi.mock("@/lib/agents", () => ({
   agentGraph: { invoke: vi.fn(async () => ({ messages: [], category: "reservation", meta: {} })) },
 }));
+vi.mock("@/lib/agents/reservations", () => ({
+  modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
+  confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-NEW-99", message: "ok" })),
+}));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async () => {}),
 }));
@@ -87,6 +91,7 @@ import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { agentGraph } from "@/lib/agents";
 import { getConvState } from "@/lib/db/convState";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
+import { modifyReservation } from "@/lib/agents/reservations";
 
 describe("messageHandler multi reservation", () => {
   beforeEach(() => {
@@ -210,5 +215,53 @@ describe("messageHandler multi reservation", () => {
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
+  });
+
+  it("create explícito con payload suficiente rompe continuidad de modify y no actualiza la reserva previa", async () => {
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-BASE-01", phase: "confirmed" },
+      selectedReservationTarget: { reservationId: "RES-BASE-01", source: "active_focus", strength: "weak" },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-4",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el dia 01/07/2026 al 10/07/2026, habitacion single, para 1 persona, a nombre de Raul Olivera",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-4",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-4",
+      expect.objectContaining({
+        lastCategory: "reservation",
+        pendingAvailabilityVerification: {
+          checkIn: "2026-07-01",
+          checkOut: "2026-07-10",
+        },
+        reservationSlots: {
+          checkIn: "2026-07-01",
+          checkOut: "2026-07-10",
+          guestName: "Raul Olivera",
+          numGuests: "1",
+          roomType: "single",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/actualizada|modificad/i);
   });
 });
