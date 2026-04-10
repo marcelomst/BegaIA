@@ -6055,6 +6055,37 @@ Impacto:
 - mejora aislamiento entre reservas múltiples
 - refuerza la coherencia del pipeline frente a cambios explícitos de intención
 
+### FIX-PIPELINE-MODIFY-TARGET-CONTINUITY-07
+
+Estado: COMPLETADO  
+Fecha: 2026-04-10  
+Commit: 11058f0e19a8ddb4741df137c48a0af92e854540
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se preserva el target de reserva en `modify` ante interacciones laterales
+compatibles, evitando pérdida de foco y repregunta de selección.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- hito registrado como preservación de target en continuidad de `modify`
+- el sistema ya no limpia `selectedReservationTarget` indebidamente ante
+  laterales compatibles
+- la continuidad retoma la misma reserva y no inventa target nuevo
+
+Impacto:
+
+- corrige pérdida de foco en `modify`
+- evita repreguntas innecesarias de selección
+- mejora continuidad operativa tras laterales compatibles
+- preserva identidad del target ya resuelto
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  

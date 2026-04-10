@@ -619,6 +619,9 @@ Guardrails vigentes:
 - no debe existir cotización o proposal sobre drafts incompletos
 - una vez seleccionado un target en `modify`, availability, confirm y execution
   deben operar sobre esa misma reserva
+- si `modify` sigue siendo el dominio activo y el target ya existe, laterales
+  compatibles no deben limpiar `selectedReservationTarget` ni forzar una nueva
+  selección de reserva
 - si el turno dominante pasa a `create` con payload suficiente, no debe
   ejecutarse `modify` ni reutilizarse el target previo de modificación
 - en `modify`, la intención específica de campo debe ganar sobre el routing
