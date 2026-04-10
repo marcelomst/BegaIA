@@ -268,6 +268,8 @@ Regla operativa:
 - el usuario puede salir explícitamente de un subflow como `modify`
 - no debe existir retención explícita ni implícita de intención secundaria
   entre turnos
+- si un turno expresa `create` explícito con payload suficiente, esa intención
+  debe dominar sobre una continuidad incompatible de `modify`
 - si `faq` o `policies` rompen el domain lock, la continuidad previa de
   `reservation` debe cortarse también en el ensamblado final del output
 
@@ -617,6 +619,8 @@ Guardrails vigentes:
 - no debe existir cotización o proposal sobre drafts incompletos
 - una vez seleccionado un target en `modify`, availability, confirm y execution
   deben operar sobre esa misma reserva
+- si el turno dominante pasa a `create` con payload suficiente, no debe
+  ejecutarse `modify` ni reutilizarse el target previo de modificación
 - en `modify`, la intención específica de campo debe ganar sobre el routing
   genérico para preservar determinismo y continuidad de target
 - en `modify.guests`, un valor corto válido no debe caer en repregunta,

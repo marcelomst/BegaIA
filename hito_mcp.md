@@ -6020,6 +6020,39 @@ Impacto:
 - mejora consistencia entre canon y estado persistido
 - refuerza integridad de las capas que luego consumen ese record
 
+### FIX-PIPELINE-CREATE-VS-MODIFY-DOMINANCE-RESOLUTION-06
+
+Estado: COMPLETADO  
+Fecha: 2026-04-10  
+Commit: 97e788fc7bb0fa04fe31fe9c62d9cc3fd24003d9
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la dominancia entre `create` explícito y continuidad previa de
+`modify`, asegurando que una nueva reserva con payload suficiente no sea
+degradada a modificación de una reserva existente.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+
+Validacion:
+
+- hito registrado como resolución de dominancia `create` vs continuidad
+  incompatible de `modify`
+- `create` explícito con payload suficiente rompe la continuidad incompatible
+  de `modify`
+- no se ejecuta `modifyReservation(...)` y la reserva previa se mantiene intacta
+
+Impacto:
+
+- corrige dominancia create vs modify
+- evita modificar por error una reserva previa
+- mejora aislamiento entre reservas múltiples
+- refuerza la coherencia del pipeline frente a cambios explícitos de intención
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
