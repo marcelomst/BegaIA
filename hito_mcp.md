@@ -6121,6 +6121,38 @@ Impacto:
 - preserva sequencing correcto del flujo create
 - reduce caídas innecesarias a fallback genérico
 
+### FIX-PIPELINE-MODIFY-LATERAL-DOMAIN-RESOLUTION-08A
+
+Estado: COMPLETADO  
+Fecha: 2026-04-11  
+Commit: 47c9f517cc1b800839dd085c15bac4a9f90356f4
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la resolución de laterales de amenities dentro de `modify`,
+evitando degradación a fallback de `reservation` y preservando la continuidad
+simple del subflow.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- hito registrado como resolución lateral de amenities dentro de `modify`
+- el lateral ya no cae en fallback de `reservation`
+- no degrada a pricing ni `create`
+- la continuidad simple de `modify` se preserva
+
+Impacto:
+
+- corrige resolución lateral en `modify`
+- evita degradación a fallback incorrecto
+- preserva continuidad simple del subflow
+- protege create y confirm flows de regresiones laterales
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
