@@ -6153,6 +6153,36 @@ Impacto:
 - preserva continuidad simple del subflow
 - protege create y confirm flows de regresiones laterales
 
+### DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-11  
+Commit: d1183d858962615b66ec67e43e96f3e64ee2fd0b
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se versionan un template de cápsula de contexto y una guía de handoff entre
+chat viejo y chat nuevo en la app de ChatGPT.
+
+Archivos afectados:
+
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/abrir_chat_nuevo.md`
+
+Validacion:
+
+- hito registrado como workflow documental de traspaso de contexto entre chats
+- se incorpora un template formal para cápsulas de contexto
+- se documenta el procedimiento para generar la cápsula e iniciar un chat nuevo
+
+Impacto:
+
+- agrega un template formal para cápsulas de contexto
+- documenta el workflow de handoff entre chat viejo y chat nuevo
+- reduce fricción para migrar contexto operativo
+- mejora consistencia del traspaso documental entre conversaciones
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
