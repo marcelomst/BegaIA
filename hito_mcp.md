@@ -6153,6 +6153,38 @@ Impacto:
 - preserva continuidad simple del subflow
 - protege create y confirm flows de regresiones laterales
 
+### FIX-PIPELINE-CANCEL-LATERAL-DOMAIN-RESOLUTION-09
+
+Estado: COMPLETADO  
+Fecha: 2026-04-11  
+Commit: ca41dfdd52f663d411a52638d87d63d197cff4fe
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la resolución de laterales de amenities dentro de `cancel`,
+evitando degradación a fallback de `reservation` y preservando la continuidad
+del contexto de cancelación.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.cancel_multiturn_continuity.spec.ts`
+
+Validacion:
+
+- hito registrado como resolución lateral de amenities dentro de `cancel`
+- el lateral ya no cae en fallback de `reservation`
+- `pendingCancellation` y `selectedReservationTarget` se preservan
+- `CONFIRMAR` posterior sigue ejecutando `cancelReservation(...)`
+
+Impacto:
+
+- corrige laterales dentro de `cancel`
+- evita fallback incorrecto de `reservation`
+- preserva continuidad real del proceso de cancelación
+- permite retomar `CONFIRMAR` después del lateral sin perder target
+
 ### DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01
 
 Estado: COMPLETADO  
