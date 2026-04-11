@@ -1694,7 +1694,7 @@ function detectDominantTurnDomain(
   const hasPolicies =
     /\b(mascotas?|pets?|pet[- ]?friendly|aceptan mascotas|permiten mascotas|allowed pets|politicas?|policies?|policy|condiciones)\b/.test(normalized);
   const hasFaq =
-    /\b(desayuno|breakfast|wifi|wi[- ]?fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|check[- ]?in|check[- ]?out)\b/.test(normalized);
+    /\b(desayuno|breakfast|wifi|wi[- ]?fi|internet|pileta|piscina|pool|spa|gym|gimnasio|parking|estacionamiento|amenities|check[- ]?in|check[- ]?out)\b/.test(normalized);
 
   const domains = [
     hasReservation ? "reservation" : null,
@@ -2071,10 +2071,26 @@ function shouldUseReservationLocalFallback(
   finalText: string,
   signal: ReturnType<typeof getReservationDomainLockSignal>
 ): boolean {
-  const dominantTurnDomain = detectDominantTurnDomain(String(pre.msg.content || ""), pre.lang);
+  const rawTurnText = String(pre.msg.content || "");
+  const dominantTurnDomain = detectDominantTurnDomain(rawTurnText, pre.lang);
+  const extracted = extractSlotsFromText(rawTurnText, pre.lang);
+  const hasExtractedReservationSlots = Boolean(
+    extracted.checkIn ||
+      extracted.checkOut ||
+      extracted.roomType ||
+      extracted.numGuests ||
+      extracted.guestName
+  );
+  const modifyContextActive =
+    pre.inModifyMode ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.st?.desiredAction === "modify" ||
+    pre.prevCategory === "modify_reservation" ||
+    getConversationFocus(pre.st)?.subFlow === "modify";
   const shouldAllowCrossDomainOverride =
-    !signal.compatible &&
-    (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies");
+    modifyContextActive &&
+    !hasExtractedReservationSlots &&
+    (dominantTurnDomain.hasFaq || dominantTurnDomain.hasPolicies);
   if (shouldAllowCrossDomainOverride) return false;
   if (signal.breaksLock) return false;
   if (!isReservationFlowStillActive(pre)) return false;

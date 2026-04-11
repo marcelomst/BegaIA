@@ -34,6 +34,13 @@ vi.mock("@/lib/agents", () => ({
           meta: {},
         };
       }
+      if (/estacionamiento|parking/.test(text)) {
+        return {
+          messages: [{ role: "assistant", content: "Sí, el estacionamiento está incluido." }],
+          category: "amenities_info",
+          meta: {},
+        };
+      }
       if (/cancel/.test(text)) {
         return {
           messages: [{ role: "assistant", content: "Para cancelar necesito identificar la reserva." }],
@@ -80,6 +87,15 @@ vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
         category: "amenities_info",
         answer: "Sí, tenemos pileta climatizada.",
         promptKey: "pool_gym_spa",
+        retrieved: [],
+      };
+    }
+    if (/estacionamiento|parking/.test(text)) {
+      return {
+        ok: true,
+        category: "amenities_info",
+        answer: "Sí, el estacionamiento está incluido.",
+        promptKey: "parking",
         retrieved: [],
       };
     }
@@ -274,6 +290,44 @@ describe("messageHandler focus governance", () => {
     expect(lastReply(sendReply)).toMatch(/no admite|cambiar a|habitaci[oó]n/i);
     expect(currentState?.lastCategory).toBe("modify_reservation");
     expect(currentState?.conversationFocus?.subFlow === "modify" || currentState?.conversationFocus == null).toBe(true);
+  });
+
+  it("responde amenities en modify y evita fallback de reserva", async () => {
+    const sendReply = vi.fn(async () => {});
+    currentState = {
+      reservationSlots: {
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-15",
+        numGuests: "2",
+        roomType: "double",
+      },
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "modify",
+        active: true,
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      selectedReservationTarget: {
+        reservationId: "RES-200",
+        kind: "reservation",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-200",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
+    await handleIncomingMessage(msg("¿el estacionamiento está incluido?"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/estacionamiento|parking/i);
+    expect(replyText).not.toMatch(/tarifa|cotiz|a nombre de qui[eé]n/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("modify");
   });
 
   it("no reengancha de forma redundante si el turno lateral ya trae el dato pendiente", async () => {
