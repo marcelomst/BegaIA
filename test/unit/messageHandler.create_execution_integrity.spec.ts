@@ -47,14 +47,20 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
 });
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
-    invoke: vi.fn(async () => ({
-      messages: [{
-        role: "assistant",
-        content: "Tengo doble disponible. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-      }],
-      category: "reservation",
-      meta: {},
-    })),
+    invoke: vi.fn(async (input: any) => {
+      const text = String(input?.normalizedMessage || "").toLowerCase();
+      const isTriple = /triple/.test(text);
+      return {
+        messages: [{
+          role: "assistant",
+          content: isTriple
+            ? "Tengo triple disponible. Tarifa por noche: 130 USD. Total 4 noches: 520 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
+            : "Tengo doble disponible. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+        }],
+        category: "reservation",
+        meta: {},
+      };
+    }),
   },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
@@ -214,5 +220,27 @@ describe("messageHandler create execution integrity", () => {
     expect(replyText).toMatch(/R-NEW-01/);
     expect(replyText).not.toMatch(/RES-GHOST-01/);
     expect(replyText).not.toMatch(/sin fecha → sin fecha/i);
+  });
+
+  it("alinear propuesta y confirmación cuando el usuario cambia a triple", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble del 10 al 15 de mayo de 2026 para 2 adultos a nombre de Marcelo Martinez"),
+      { mode: "automatic", sendReply }
+    );
+    expect(lastReply(sendReply)).toMatch(/doble/i);
+
+    await handleIncomingMessage(msg("triple"), { mode: "automatic", sendReply });
+    expect(lastReply(sendReply)).toMatch(/triple/i);
+
+    await handleIncomingMessage(msg("confirmar"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).toHaveBeenCalledTimes(1);
+    const payload = (confirmAndCreate as any).mock.calls.at(-1)?.[1] || {};
+    expect(payload.roomType).toBe("triple");
+    expect(String(payload.numGuests || "")).toBe("2");
+    expect(payload.checkIn).toBe("2026-05-10");
+    expect(payload.checkOut).toBe("2026-05-15");
   });
 });

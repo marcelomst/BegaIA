@@ -5462,11 +5462,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     if (askedToConfirmReservation(pre.lcHistory) || hasCompleteCreateDraft) {
       const snapshot = {
-        guestName: pre.st?.reservationSlots?.guestName || nextSlots.guestName,
-        roomType: pre.st?.reservationSlots?.roomType || nextSlots.roomType,
-        checkIn: pre.st?.reservationSlots?.checkIn || nextSlots.checkIn,
-        checkOut: pre.st?.reservationSlots?.checkOut || nextSlots.checkOut,
-        numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
+        ...mergeReservationSlots(pre.st?.reservationSlots, nextSlots),
         locale: pre.lang,
       };
       const createDraftConsistency = validateCreateDraftConsistency(pre.lang, snapshot as ReservationSlotsStrict);
@@ -6769,14 +6765,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   const quotedReservationSnapshot = {
-    guestName:
-      pre.st?.reservationSlots?.guestName ||
-      nextSlots.guestName ||
-      (isSafeGuestName(String(pre.msg.content || "").trim()) ? String(pre.msg.content || "").trim() : undefined),
-    roomType: pre.st?.reservationSlots?.roomType || nextSlots.roomType,
-    checkIn: pre.st?.reservationSlots?.checkIn || nextSlots.checkIn,
-    checkOut: pre.st?.reservationSlots?.checkOut || nextSlots.checkOut,
-    numGuests: pre.st?.reservationSlots?.numGuests || nextSlots.numGuests,
+    ...mergeReservationSlots(
+      pre.st?.reservationSlots,
+      nextSlots,
+      isSafeGuestName(String(pre.msg.content || "").trim()) ? { guestName: String(pre.msg.content || "").trim() } : undefined
+    ),
     locale: pre.lang,
   };
   if (
