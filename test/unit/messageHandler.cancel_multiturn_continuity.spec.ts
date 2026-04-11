@@ -77,7 +77,23 @@ vi.mock("@/lib/agents/reservations", () => ({
   })),
 }));
 vi.mock("@/lib/agents", () => ({
-  agentGraph: { invoke: vi.fn(async () => ({ messages: [{ role: "assistant", content: "Respuesta base" }], category: "reservation", meta: {} })) },
+  agentGraph: {
+    invoke: vi.fn(async (input: any) => {
+      const text = String(input?.normalizedMessage || "").toLowerCase();
+      if (/estacionamiento|parking/.test(text)) {
+        return {
+          messages: [{ role: "assistant", content: "Sí, el estacionamiento está incluido." }],
+          category: "amenities_info",
+          meta: {},
+        };
+      }
+      return {
+        messages: [{ role: "assistant", content: "Respuesta base" }],
+        category: "reservation",
+        meta: {},
+      };
+    }),
+  },
 }));
 vi.mock("@/lib/prompts", () => ({
   defaultPrompt: "{{retrieved}}",
@@ -86,12 +102,24 @@ vi.mock("@/lib/prompts", () => ({
 vi.mock("@/lib/web/eventBus", () => ({ emitToConversation: vi.fn(() => {}) }));
 vi.mock("@/lib/utils/debugLog", () => ({ debugLog: vi.fn() }));
 vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
-  answerWithKnowledge: vi.fn(async () => ({
-    ok: true,
-    category: "retrieval_based",
-    answer: "La política de cancelación depende de la tarifa.",
-    retrieved: [],
-  })),
+  answerWithKnowledge: vi.fn(async ({ question }: any) => {
+    const text = String(question || "").toLowerCase();
+    if (/estacionamiento|parking/.test(text)) {
+      return {
+        ok: true,
+        category: "amenities_info",
+        answer: "Sí, el estacionamiento está incluido.",
+        promptKey: "parking",
+        retrieved: [],
+      };
+    }
+    return {
+      ok: true,
+      category: "retrieval_based",
+      answer: "La política de cancelación depende de la tarifa.",
+      retrieved: [],
+    };
+  }),
 }));
 vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class { constructor(_c: any) {} async invoke() { return { content: "Respuesta base" }; } },
@@ -216,5 +244,54 @@ describe("messageHandler cancel reservation multiturn continuity", () => {
     await handleIncomingMessage(msg(content, conversationId), { mode: "automatic", sendReply });
 
     expect(cancelReservation).not.toHaveBeenCalled();
+  });
+
+  it("responde amenities en cancel sin perder continuidad ni target", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-cancel-lateral-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        numGuests: "2",
+      },
+      pendingCancellation: {
+        reservationId: "RES123456",
+        awaitingConfirmation: true,
+      },
+      selectedReservationTarget: {
+        reservationId: "RES123456",
+        kind: "reservation",
+      },
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "cancel",
+        active: true,
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "cancel_reservation",
+      desiredAction: "cancel",
+      lastCategory: "cancel_reservation",
+    });
+
+    await handleIncomingMessage(msg("¿el estacionamiento está incluido?", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/estacionamiento|parking/i);
+    expect(replyText).not.toMatch(/cancel|confirmar|c[oó]digo/i);
+    const st = stateByConversation.get(conversationId);
+    expect(st?.pendingCancellation).toMatchObject({
+      reservationId: "RES123456",
+      awaitingConfirmation: true,
+    });
+    expect(st?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES123456",
+      kind: "reservation",
+    });
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+    expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES123456");
   });
 });

@@ -2087,8 +2087,14 @@ function shouldUseReservationLocalFallback(
     pre.st?.desiredAction === "modify" ||
     pre.prevCategory === "modify_reservation" ||
     getConversationFocus(pre.st)?.subFlow === "modify";
+  const cancelContextActive =
+    Boolean(pre.st?.pendingCancellation?.reservationId) ||
+    pre.st?.activeFlow === "cancel_reservation" ||
+    pre.st?.desiredAction === "cancel" ||
+    pre.prevCategory === "cancel_reservation" ||
+    getConversationFocus(pre.st)?.subFlow === "cancel";
   const shouldAllowCrossDomainOverride =
-    modifyContextActive &&
+    (modifyContextActive || cancelContextActive) &&
     !hasExtractedReservationSlots &&
     (dominantTurnDomain.hasFaq || dominantTurnDomain.hasPolicies);
   if (shouldAllowCrossDomainOverride) return false;
