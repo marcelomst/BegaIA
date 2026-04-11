@@ -6185,6 +6185,39 @@ Impacto:
 - preserva continuidad real del proceso de cancelación
 - permite retomar `CONFIRMAR` después del lateral sin perder target
 
+### FIX-PIPELINE-CREATE-PROPOSAL-CONFIRM-PAYLOAD-ALIGNMENT-10
+
+Estado: COMPLETADO  
+Fecha: 2026-04-11  
+Commit: cb95ddc8ca83676881380b026e2b9486500e58f3
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea la confirmación final de `create` con la última propuesta vigente,
+evitando que el payload confirmado arrastre valores stale desde
+`reservationSlots`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+
+Validacion:
+
+- hito registrado como alineación entre propuesta vigente y payload final de
+  `create`
+- se reemplaza composición manual por `mergeReservationSlots(...)`
+- la confirmación final ya no arrastra valores stale
+- el caso `double -> triple -> confirmar` queda alineado
+
+Impacto:
+
+- corrige confirmación final de `create`
+- elimina drift entre propuesta cotizada y payload confirmado
+- mejora integridad de ejecución del create
+- refuerza coherencia entre draft, quote y confirmación final
+
 ### DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01
 
 Estado: COMPLETADO  
