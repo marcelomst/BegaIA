@@ -6248,6 +6248,38 @@ Impacto:
 - reduce fricción para migrar contexto operativo
 - mejora consistencia del traspaso documental entre conversaciones
 
+### DOC-ARCHITECTURE-FIXES-OPERATIONAL-RULE-RUNTIME-EVOLUTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 8850b45b85c68a5c3f7440e6fd448938d99edaf3
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se formaliza una regla operativa para que cada fix del runtime no solo corrija
+el comportamiento observado, sino que deje la regla más explícita, más
+canónica y menos repartida.
+
+Archivos afectados:
+
+- `docs/architecture/fixes-operational-rule-runtime-evolution.md`
+
+Validacion:
+
+- hito registrado como formalización de una regla operativa transversal para
+  fixes del runtime
+- el documento conecta corrección puntual con explicitud, canonicidad y menor
+  dispersión lógica
+- no introduce runtime nuevo ni refactor estructural
+
+Impacto:
+
+- formaliza una regla operativa transversal para fixes del runtime
+- alinea la práctica de fixes con la dirección arquitectónica vigente
+- mejora criterio documental para evolución controlada del runtime
+- no cambia arquitectura ejecutable
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
