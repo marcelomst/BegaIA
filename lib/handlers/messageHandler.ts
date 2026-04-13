@@ -815,6 +815,43 @@ function buildFocusContinuationPrompt(
   return null;
 }
 
+async function persistCreateLateralCategoryIfNeeded(
+  pre: PreLLMResult,
+  rawTurnText: string,
+  dominantTurnDomain: ReturnType<typeof detectDominantTurnDomain>,
+  nextCategory: string | null | undefined
+): Promise<void> {
+  if (!nextCategory) return;
+  const createContextActive =
+    !pre.inModifyMode &&
+    (pre.st?.activeFlow === "reservation" ||
+      pre.st?.desiredAction === "create" ||
+      pre.prevCategory === "reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "create");
+  if (!createContextActive) return;
+  const lateralTurnHasReservationData = Boolean(
+    extractSlotsFromText(rawTurnText, pre.lang).checkIn ||
+    extractSlotsFromText(rawTurnText, pre.lang).checkOut ||
+    extractSlotsFromText(rawTurnText, pre.lang).roomType ||
+    extractSlotsFromText(rawTurnText, pre.lang).numGuests ||
+    looksLikeName(rawTurnText) ||
+    extractRawOrderedDateRange(rawTurnText)?.checkIn
+  );
+  const isLateralDominant =
+    dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies";
+  const isLateralCategory =
+    nextCategory === "amenities_info" ||
+    nextCategory === "checkin_info" ||
+    nextCategory === "checkout_info" ||
+    nextCategory === "retrieval_based" ||
+    nextCategory === "cancellation_policy";
+  if (!isLateralDominant || !isLateralCategory || lateralTurnHasReservationData) return;
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    lastCategory: nextCategory,
+    updatedBy: "ai",
+  } as any);
+}
+
 async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStrict): Promise<void> {
   await updateConversationState(pre.msg.hotelId, pre.conversationId, {
     reservationSlots: {
@@ -5944,6 +5981,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                   finalText = `${String(finalText || "").trim()} ${continuation}`.trim();
                 }
               }
+              await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);
 
               graphResult = {
                 ...(kb.debug || {}),
@@ -6186,6 +6224,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       } as any);
     }
   }
+  await persistCreateLateralCategoryIfNeeded(pre, rawTurnText, dominantTurnDomain, nextCategory);
   // Post-procesamiento: si seguimos en modo modificación y la respuesta sugiere "contactar al hotel", reorientar a guía de modificación
   if (pre.inModifyMode) {
     // 1) Si el modelo intenta derivar al hotel, forzamos guía de modificación

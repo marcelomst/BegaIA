@@ -207,6 +207,7 @@ describe("messageHandler focus governance", () => {
 
     expect(lastReply(sendReply)).toMatch(/wifi|wi[- ]?fi/i);
     expect(lastReply(sendReply)).not.toMatch(/tipo de habitaci[oó]n|cu[aá]ntos hu[eé]spedes|a nombre de/i);
+    expect(currentState?.lastCategory).toBe("amenities_info");
     expect(currentState?.conversationFocus).toMatchObject({
       domain: "reservation",
       subFlow: "create",
