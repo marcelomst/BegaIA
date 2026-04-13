@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
+## 1. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION
+
+- Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION`
+- Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION`
+- Commit message: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION tighten post-fix parity evidence for create lateral continuity`
+- Hash: `28e3a5d427f5a572b6743b79adaab8b925edc0a6`
+- Descripción breve: Se endurece la evidencia experimental del escenario de lateral puro en `create`, revalidando de forma explícita el estado observado después de `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`.
+
+## 2. FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
 
 - Identificador: `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`
 - Nombre: `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `ba1345179d15ba8bf3470ed0591de4d4fd317c78`
 - Descripción breve: Se refina la continuidad de `create` para que, después de un lateral puro, el turno siguiente pueda reenganchar explícitamente el faltante pendiente si el usuario expresa continuación afirmativa.
 
-## 2. EXP-PIPELINE-CREATE-LATERAL-PARITY-02
+## 3. EXP-PIPELINE-CREATE-LATERAL-PARITY-02
 
 - Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02`
 - Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `60144597cbefce5ebc86ac7898fee56e3ba16b2e`
 - Descripción breve: Se agrega una suite experimental aislada para recolectar evidencia contextual de paridad entre `messageHandler` y `mhFlowGraph` en el escenario de `create` activo e incompleto con lateral puro y reenganche básico.
 
-## 3. EXP-PIPELINE-FAQ-GRAPH-PARITY-01
+## 4. EXP-PIPELINE-FAQ-GRAPH-PARITY-01
 
 - Identificador: `EXP-PIPELINE-FAQ-GRAPH-PARITY-01`
 - Nombre: `EXP-PIPELINE-FAQ-GRAPH-PARITY-01`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `ce461fa0d78ba1b5e465177ea72dcba1a4ab2e72`
 - Descripción breve: Se agrega una suite experimental aislada para recolectar evidencia auditable de paridad entre `messageHandler` y `mhFlowGraph` en dominios FAQ, amenities y policies.
 
-## 4. FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
+## 5. FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 - Identificador: `FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11`
 - Nombre: `FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `4bd76d8f7e31a09f4f0f11b65c0a8ba91d1c9e58`
 - Descripción breve: Se corrige la resolución de laterales dentro de `create` para que se resuelvan en su dominio real sin agregar continuación textual de `reservation` en ese mismo turno.
 
-## 5. DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02
+## 6. DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02
 
 - Identificador: `DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02`
 - Nombre: `DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `fb7d26a3d67694fa1194d9393f44a01ed7071b96`
 - Descripción breve: Se refinan la plantilla de cápsula de contexto y la guía de handoff entre chat viejo y chat nuevo en ChatGPT.
 
-## 6. DOC-ARCHITECTURE-FIXES-OPERATIONAL-RULE-RUNTIME-EVOLUTION-01
+## 7. DOC-ARCHITECTURE-FIXES-OPERATIONAL-RULE-RUNTIME-EVOLUTION-01
 
 - Identificador: `DOC-ARCHITECTURE-FIXES-OPERATIONAL-RULE-RUNTIME-EVOLUTION-01`
 - Nombre: `DOC-ARCHITECTURE-FIXES-OPERATIONAL-RULE-RUNTIME-EVOLUTION-01`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `8850b45b85c68a5c3f7440e6fd448938d99edaf3`
 - Descripción breve: Se formaliza una regla operativa para que cada fix del runtime no solo corrija el comportamiento observado, sino que deje la regla más explícita, más canónica y menos repartida.
 
-## 7. FIX-PIPELINE-CREATE-PROPOSAL-CONFIRM-PAYLOAD-ALIGNMENT-10
+## 8. FIX-PIPELINE-CREATE-PROPOSAL-CONFIRM-PAYLOAD-ALIGNMENT-10
 
 - Identificador: `FIX-PIPELINE-CREATE-PROPOSAL-CONFIRM-PAYLOAD-ALIGNMENT-10`
 - Nombre: `FIX-PIPELINE-CREATE-PROPOSAL-CONFIRM-PAYLOAD-ALIGNMENT-10`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `cb95ddc8ca83676881380b026e2b9486500e58f3`
 - Descripción breve: Se alinea la confirmación final de `create` con la última propuesta vigente, evitando que el payload confirmado arrastre valores stale desde `reservationSlots`.
 
-## 8. FIX-PIPELINE-CANCEL-LATERAL-DOMAIN-RESOLUTION-09
+## 9. FIX-PIPELINE-CANCEL-LATERAL-DOMAIN-RESOLUTION-09
 
 - Identificador: `FIX-PIPELINE-CANCEL-LATERAL-DOMAIN-RESOLUTION-09`
 - Nombre: `FIX-PIPELINE-CANCEL-LATERAL-DOMAIN-RESOLUTION-09`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `ca41dfdd52f663d411a52638d87d63d197cff4fe`
 - Descripción breve: Se corrige la resolución de laterales de amenities dentro de `cancel`, evitando degradación a fallback de `reservation` y preservando la continuidad del contexto de cancelación.
 
-## 9. DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01
+## 10. DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01
 
 - Identificador: `DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01`
 - Nombre: `DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01`
 - Commit message: `DOC-CHATGPT-CONTEXT-HANDOFF-CAPSULE-WORKFLOW-01 add capsule template and new chat handoff guide`
 - Hash: `d1183d858962615b66ec67e43e96f3e64ee2fd0b`
 - Descripción breve: Se versionan un template de cápsula de contexto y una guía de handoff entre chat viejo y chat nuevo en la app de ChatGPT.
-
-## 10. FIX-PIPELINE-MODIFY-LATERAL-DOMAIN-RESOLUTION-08A
-
-- Identificador: `FIX-PIPELINE-MODIFY-LATERAL-DOMAIN-RESOLUTION-08A`
-- Nombre: `FIX-PIPELINE-MODIFY-LATERAL-DOMAIN-RESOLUTION-08A`
-- Commit message: `FIX-PIPELINE-MODIFY-LATERAL-DOMAIN-RESOLUTION-08A resolve amenities lateral inside modify without falling back to reservation`
-- Hash: `47c9f517cc1b800839dd085c15bac4a9f90356f4`
-- Descripción breve: Se corrige la resolución de laterales de amenities dentro de `modify`, evitando degradación a fallback de `reservation` y preservando la continuidad simple del subflow.

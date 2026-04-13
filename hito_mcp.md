@@ -6344,6 +6344,37 @@ Impacto:
 - mantiene separado el experimento de fixes productivos
 - mejora trazabilidad de la comparación entre runtime actual y graph
 
+### EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 28e3a5d427f5a572b6743b79adaab8b925edc0a6
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se endurece la evidencia experimental del escenario de lateral puro en
+`create`, revalidando de forma explícita el estado observado después de
+`FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.graph_parity_create_lateral.spec.ts`
+
+Validacion:
+
+- hito registrado como revalidación experimental incremental
+- no toca runtime productivo ni lógica de dominio
+- endurece la evidencia del experimento base `EXP-PIPELINE-CREATE-LATERAL-PARITY-02`
+- el alcance queda acotado a un único archivo de test
+
+Impacto:
+
+- fortalece la evidencia experimental post-fix 12
+- hace más auditables las señales `createContinuity` y `pure`
+- mantiene separado el experimento de fixes productivos
+- mejora trazabilidad de la observación contextual ya existente
+
 ### FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
 
 Estado: COMPLETADO  
