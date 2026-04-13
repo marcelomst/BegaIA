@@ -6344,6 +6344,39 @@ Impacto:
 - mantiene separado el experimento de fixes productivos
 - mejora trazabilidad de la comparación entre runtime actual y graph
 
+### FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: ba1345179d15ba8bf3470ed0591de4d4fd317c78
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se refina la continuidad de `create` para que, después de un lateral puro, el
+turno siguiente pueda reenganchar explícitamente el faltante pendiente si el
+usuario expresa continuación afirmativa.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- hito auditado como puro, atómico y `single-intention`
+- el lateral puro sigue sin continuación textual en ese mismo turno
+- el turno siguiente reengancha con `buildCreateFlowPrompt(pre.lang, nextCreateMissingField)`
+- sanity validada en verde en focus governance, create sequencing y create
+  quote gating
+
+Impacto:
+
+- corrige la continuidad posterior a laterales puros en `create`
+- reengancha el faltante correcto sin contaminar el turno lateral
+- evita habilitar quote o availability prematuros
+- refuerza la continuidad simple del flujo `create`
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
