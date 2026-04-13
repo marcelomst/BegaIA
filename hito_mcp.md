@@ -6442,6 +6442,36 @@ Impacto:
 - hace más explícita la regla en un punto central del slice
 - preserva aislamiento entre lateral informativa y flujo transaccional
 
+### EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 79aa03242cf4c5323a25af4b48c5761f17b7f9a6
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se registra la evidencia final de `PARIDAD_OK` para el escenario de lateral
+puro en `create`, luego de los fixes 12 y 13.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.graph_parity_create_lateral.spec.ts`
+
+Validacion:
+
+- hito registrado como experimental final
+- no toca runtime productivo ni lógica de dominio
+- documenta `PARIDAD_OK` con `pure=true` y `createContinuity=true`
+- el alcance queda acotado a un único archivo de test
+
+Impacto:
+
+- deja evidencia final auditable de paridad contextual lograda
+- refleja la mejora observada tras los fixes 12 y 13
+- mantiene separado el experimento de fixes productivos
+- cierra la línea experimental del escenario lateral en `create`
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
