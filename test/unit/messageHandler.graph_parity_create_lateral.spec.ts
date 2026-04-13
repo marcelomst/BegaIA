@@ -174,7 +174,7 @@ describe("EXP-PIPELINE-CREATE-LATERAL-PARITY-02", () => {
     const handlerResult = await runScenario(false);
     const graphResult = await runScenario(true);
     const parity = evaluateParity(handlerResult, graphResult);
-    const expectedParity: "PARIDAD_OK" | "PARIDAD_PARCIAL" | "PARIDAD_NO" = "PARIDAD_PARCIAL";
+    const expectedParity: "PARIDAD_OK" | "PARIDAD_PARCIAL" | "PARIDAD_NO" = "PARIDAD_OK";
 
     console.log("[EXP-CREATE-LATERAL] HANDLER");
     summarizeResult("handler", handlerResult);
@@ -188,7 +188,7 @@ describe("EXP-PIPELINE-CREATE-LATERAL-PARITY-02", () => {
     expect(parity).toBe(expectedParity);
     expect(handlerResult.createContinuity).toBe(true);
     expect(graphResult.createContinuity).toBe(true);
-    expect(handlerResult.pure).toBe(false);
-    expect(graphResult.pure).toBe(false);
+    expect(handlerResult.pure).toBe(true);
+    expect(graphResult.pure).toBe(true);
   });
 });
