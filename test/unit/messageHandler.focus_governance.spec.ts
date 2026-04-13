@@ -166,7 +166,7 @@ describe("messageHandler focus governance", () => {
     await handleIncomingMessage(msg("¿tienen pileta?"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/pileta|piscina|pool/i);
-    expect(lastReply(sendReply)).toMatch(/para seguir con la reserva|cu[aá]ntos hu[eé]spedes/i);
+    expect(lastReply(sendReply)).not.toMatch(/para seguir con la reserva|cu[aá]ntos hu[eé]spedes|tipo de habitaci[oó]n/i);
     expect(currentState?.conversationFocus).toMatchObject({
       domain: "reservation",
       subFlow: "create",

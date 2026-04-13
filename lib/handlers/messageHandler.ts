@@ -755,6 +755,7 @@ function shouldAppendFocusContinuation(
   if (!options.isLateralTurn) return false;
   if (!focus?.active) return false;
   if (focus.subFlow !== "create" && focus.subFlow !== "modify") return false;
+  if (focus.subFlow === "create") return false;
   if (options.turnHasReservationData) return false;
   return true;
 }
@@ -2087,6 +2088,12 @@ function shouldUseReservationLocalFallback(
     pre.st?.desiredAction === "modify" ||
     pre.prevCategory === "modify_reservation" ||
     getConversationFocus(pre.st)?.subFlow === "modify";
+  const createContextActive =
+    !pre.inModifyMode &&
+    (pre.st?.activeFlow === "reservation" ||
+      pre.st?.desiredAction === "create" ||
+      pre.prevCategory === "reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "create");
   const cancelContextActive =
     Boolean(pre.st?.pendingCancellation?.reservationId) ||
     pre.st?.activeFlow === "cancel_reservation" ||
@@ -2094,7 +2101,7 @@ function shouldUseReservationLocalFallback(
     pre.prevCategory === "cancel_reservation" ||
     getConversationFocus(pre.st)?.subFlow === "cancel";
   const shouldAllowCrossDomainOverride =
-    (modifyContextActive || cancelContextActive) &&
+    (modifyContextActive || cancelContextActive || createContextActive) &&
     !hasExtractedReservationSlots &&
     (dominantTurnDomain.hasFaq || dominantTurnDomain.hasPolicies);
   if (shouldAllowCrossDomainOverride) return false;
