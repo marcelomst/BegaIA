@@ -34,6 +34,13 @@ vi.mock("@/lib/agents", () => ({
           meta: {},
         };
       }
+      if (/wifi|wi[- ]?fi/.test(text)) {
+        return {
+          messages: [{ role: "assistant", content: "Sí, hay wifi incluido." }],
+          category: "amenities_info",
+          meta: {},
+        };
+      }
       if (/estacionamiento|parking/.test(text)) {
         return {
           messages: [{ role: "assistant", content: "Sí, el estacionamiento está incluido." }],
@@ -87,6 +94,15 @@ vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
         category: "amenities_info",
         answer: "Sí, tenemos pileta climatizada.",
         promptKey: "pool_gym_spa",
+        retrieved: [],
+      };
+    }
+    if (/wifi|wi[- ]?fi/.test(text)) {
+      return {
+        ok: true,
+        category: "amenities_info",
+        answer: "Sí, hay wifi incluido.",
+        promptKey: "wifi",
         retrieved: [],
       };
     }
@@ -174,6 +190,30 @@ describe("messageHandler focus governance", () => {
     });
 
     await handleIncomingMessage(msg("2 adultos"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toMatch(/tipo de habitaci[oó]n/i);
+    expect(currentState?.conversationFocus).toMatchObject({
+      domain: "reservation",
+      subFlow: "create",
+      active: true,
+    });
+  });
+
+  it("mantiene lateral puro en create y reengancha el faltante en el turno siguiente", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo para 2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("¿el wifi está incluido?"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toMatch(/wifi|wi[- ]?fi/i);
+    expect(lastReply(sendReply)).not.toMatch(/tipo de habitaci[oó]n|cu[aá]ntos hu[eé]spedes|a nombre de/i);
+    expect(currentState?.conversationFocus).toMatchObject({
+      domain: "reservation",
+      subFlow: "create",
+      active: true,
+    });
+
+    await handleIncomingMessage(msg("sí, continuar"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/tipo de habitaci[oó]n/i);
     expect(currentState?.conversationFocus).toMatchObject({

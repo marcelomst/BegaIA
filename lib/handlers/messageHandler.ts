@@ -4475,11 +4475,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     turnExtractedCreateSlots.numGuests ||
     looksLikeName(String(pre.msg.content || ""))
   );
+  const turnWantsCreateContinuation =
+    isPureAffirmative(userTxtRaw, pre.lang) ||
+    /\b(continuar|seguir|dale|ok|listo)\b/i.test(userTxtRaw);
   if (
     activeCreateFlow &&
     !looksExplicitNewReservation &&
     nextCreateMissingField &&
     turnHasNewCreateData
+  ) {
+    await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
+    nextCategory = "reservation";
+    return {
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      nextCategory,
+      nextSlots,
+      needsSupervision,
+      graphResult,
+    };
+  }
+  if (
+    activeCreateFlow &&
+    !looksExplicitNewReservation &&
+    nextCreateMissingField &&
+    !turnHasNewCreateData &&
+    turnWantsCreateContinuation
   ) {
     await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
