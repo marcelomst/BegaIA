@@ -6408,6 +6408,40 @@ Impacto:
 - evita habilitar quote o availability prematuros
 - refuerza la continuidad simple del flujo `create`
 
+### FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 21c1430e2913c6503a4f44f7a66184fb88f04da3
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la pureza del dominio lateral dentro de `create`, haciendo que un
+turno lateral puro quede persistido con su categoría lateral real y no con
+trazas de `reservation`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- hito auditado como puro, atómico y `single-intention`
+- el lateral puro dentro de `create` queda persistido como dominio lateral
+  válido
+- no hay contaminación con `reservation`
+- sanity validada en verde en focus governance, create sequencing y create
+  quote gating
+
+Impacto:
+
+- corrige pureza de dominio en laterales de `create`
+- evita persistencia incorrecta de `reservation` en turnos laterales puros
+- hace más explícita la regla en un punto central del slice
+- preserva aislamiento entre lateral informativa y flujo transaccional
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
