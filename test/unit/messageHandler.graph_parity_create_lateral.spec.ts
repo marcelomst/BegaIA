@@ -186,5 +186,9 @@ describe("EXP-PIPELINE-CREATE-LATERAL-PARITY-02", () => {
     expect(graphResult.lateralReply.length).toBeGreaterThan(0);
     expect(["PARIDAD_OK", "PARIDAD_PARCIAL", "PARIDAD_NO"]).toContain(parity);
     expect(parity).toBe(expectedParity);
+    expect(handlerResult.createContinuity).toBe(true);
+    expect(graphResult.createContinuity).toBe(true);
+    expect(handlerResult.pure).toBe(false);
+    expect(graphResult.pure).toBe(false);
   });
 });
