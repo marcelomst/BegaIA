@@ -6280,6 +6280,39 @@ Impacto:
 - mejora criterio documental para evolución controlada del runtime
 - no cambia arquitectura ejecutable
 
+### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 4bd76d8f7e31a09f4f0f11b65c0a8ba91d1c9e58
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la resolución de laterales dentro de `create` para que se resuelvan
+en su dominio real sin agregar continuación textual de `reservation` en ese
+mismo turno.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- hito auditado como puro, atómico y `single-intention`
+- el lateral se resuelve en su dominio propio sin degradar a fallback de
+  `reservation`
+- no se agrega continuación textual de reserva en el mismo turno
+- la continuidad simple de `create` queda preservada
+
+Impacto:
+
+- corrige laterales dentro de `create`
+- evita fallback incorrecto de `reservation`
+- preserva continuidad simple del subflow
+- protege create sequencing y confirm flows de regresiones laterales
+
 ### DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02
 
 Estado: COMPLETADO  
