@@ -6280,6 +6280,38 @@ Impacto:
 - mejora criterio documental para evolución controlada del runtime
 - no cambia arquitectura ejecutable
 
+### EXP-PIPELINE-FAQ-GRAPH-PARITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: ce461fa0d78ba1b5e465177ea72dcba1a4ab2e72
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agrega una suite experimental aislada para recolectar evidencia auditable de
+paridad entre `messageHandler` y `mhFlowGraph` en dominios FAQ, amenities y
+policies.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.graph_parity_faq.spec.ts`
+
+Validacion:
+
+- hito registrado como experimental, puro, atómico y `single-intention`
+- no toca runtime productivo ni lógica de dominio
+- produce evidencia auditable de paridad entre `messageHandler` y
+  `mhFlowGraph`
+- el alcance queda acotado a un único archivo de test
+
+Impacto:
+
+- agrega evidencia auditable de paridad para dominios FAQ
+- permite observar diferencias reales sin intervenir runtime
+- mantiene separado el experimento de fixes productivos
+- mejora trazabilidad de la comparación entre runtime actual y graph
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
