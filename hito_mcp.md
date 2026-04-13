@@ -6280,6 +6280,37 @@ Impacto:
 - mejora criterio documental para evolución controlada del runtime
 - no cambia arquitectura ejecutable
 
+### DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: fb7d26a3d67694fa1194d9393f44a01ed7071b96
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se refinan la plantilla de cápsula de contexto y la guía de handoff entre
+chat viejo y chat nuevo en ChatGPT.
+
+Archivos afectados:
+
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/abrir_chat_nuevo.md`
+
+Validacion:
+
+- hito registrado como refinamiento documental de cápsula y handoff
+- la plantilla hace más explícita la regla operativa de fixes y el uso de
+  referencias documentales
+- la guía de apertura de chat nuevo queda reformulada y más estructurada
+
+Impacto:
+
+- mejora claridad operativa de la cápsula de contexto
+- refuerza el handoff entre conversaciones
+- hace más explícito el criterio de fixes dentro del material de traspaso
+- mejora consistencia documental del workflow entre chats
+
 ### DOC-PIPELINE-CANONICAL-REPLY-GOVERNANCE-01
 
 Estado: COMPLETADO  
