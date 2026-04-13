@@ -6312,6 +6312,38 @@ Impacto:
 - mantiene separado el experimento de fixes productivos
 - mejora trazabilidad de la comparación entre runtime actual y graph
 
+### EXP-PIPELINE-CREATE-LATERAL-PARITY-02
+
+Estado: COMPLETADO  
+Fecha: 2026-04-13  
+Commit: 60144597cbefce5ebc86ac7898fee56e3ba16b2e
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agrega una suite experimental aislada para recolectar evidencia contextual
+de paridad entre `messageHandler` y `mhFlowGraph` en el escenario de `create`
+activo e incompleto con lateral puro y reenganche básico.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.graph_parity_create_lateral.spec.ts`
+
+Validacion:
+
+- hito registrado como experimental, puro, atómico y `single-intention`
+- no toca runtime productivo ni lógica de dominio
+- produce evidencia contextual de paridad entre `messageHandler` y
+  `mhFlowGraph`
+- el alcance queda acotado a un único archivo de test
+
+Impacto:
+
+- agrega evidencia contextual de paridad para laterales en `create`
+- permite observar diferencias reales sin intervenir runtime
+- mantiene separado el experimento de fixes productivos
+- mejora trazabilidad de la comparación entre runtime actual y graph
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
