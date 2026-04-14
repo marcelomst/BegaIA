@@ -6503,6 +6503,39 @@ Impacto:
 - agrega `timestamp` a los mensajes de test
 - mantiene intacta la semántica funcional de las suites
 
+### FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14
+
+Estado: COMPLETADO  
+Fecha: 2026-04-14  
+Commit: 8c81f9bcd56f08ec7ce16aea99a742605527242a
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la precedencia entre `verify pending` y la continuidad afirmativa de
+`create`, para que verify domine cuando corresponde y no se corte por faltantes
+de create no pertinentes en ese punto.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- hito auditado como puro, atómico y `single-intention`
+- `verify pending` ahora precede a la continuidad afirmativa de `create`
+- el reprompt por faltantes queda restringido a `checkIn`, `checkOut` y
+  `roomType`
+- suites validadas en verde: verify pending continuity, create sequencing,
+  create quote gating y focus governance
+
+Impacto:
+
+- corrige precedencia de continuidad cuando existe verify pendiente
+- evita corte indebido del flujo por faltantes de create no pertinentes
+- preserva la continuidad correcta de verify
+- mantiene acotado el cambio al slice necesario
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
