@@ -6472,6 +6472,37 @@ Impacto:
 - mantiene separado el experimento de fixes productivos
 - cierra la línea experimental del escenario lateral en `create`
 
+### TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-14  
+Commit: 8ed48023903c5f768e2d540c12d30e297f6e21f9
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinean los fixtures compartidos de tests de parity con el shape esperado
+del mensaje, usando `channel` tipado y `timestamp`.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.graph_parity_create_lateral.spec.ts`
+- `test/unit/messageHandler.graph_parity_faq.spec.ts`
+
+Validacion:
+
+- hito registrado como ajuste de fixtures de tests de parity
+- no toca runtime productivo ni lógica de dominio
+- el alcance queda acotado a dos suites de parity
+- la intención es compatibilidad del shape del mensaje
+
+Impacto:
+
+- alinea fixtures de parity con el contrato esperado del mensaje
+- elimina incompatibilidades de tipado en `channel`
+- agrega `timestamp` a los mensajes de test
+- mantiene intacta la semántica funcional de las suites
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
