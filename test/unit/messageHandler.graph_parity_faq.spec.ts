@@ -131,11 +131,12 @@ function msg(content: string, conversationId: string) {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
     hotelId: "hotel999",
-    channel: "web",
+    channel: "web" as const,
     content,
     conversationId,
     sender: "guest",
     guestId: "guest-1",
+    timestamp: new Date().toISOString(),
   };
 }
 
