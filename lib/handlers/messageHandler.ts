@@ -4512,6 +4512,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     turnExtractedCreateSlots.numGuests ||
     looksLikeName(String(pre.msg.content || ""))
   );
+  const verifyPendingActive =
+    Boolean((pre.st as any)?.pendingAvailabilityVerification) ||
+    askedToVerifyAvailability(pre.lcHistory, pre.lang);
   const turnWantsCreateContinuation =
     isPureAffirmative(userTxtRaw, pre.lang) ||
     /\b(continuar|seguir|dale|ok|listo)\b/i.test(userTxtRaw);
@@ -4536,7 +4539,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     !looksExplicitNewReservation &&
     nextCreateMissingField &&
     !turnHasNewCreateData &&
-    turnWantsCreateContinuation
+    turnWantsCreateContinuation &&
+    !verifyPendingActive
   ) {
     await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
@@ -6619,7 +6623,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
       const missingField = getNextCreateFlowMissingField(createQuoteSlots);
-      if (missingField) {
+      if (missingField && (missingField === "checkIn" || missingField === "checkOut" || missingField === "roomType")) {
         await persistCreateDraft(pre, createQuoteSlots);
         finalText = buildCreateFlowPrompt(pre.lang, missingField);
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
@@ -6684,6 +6688,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const missing = !ciISO ? "checkIn" : !coISO ? "checkOut" : undefined;
       if (missing) finalText = buildAskMissingDate(pre.lang, missing as any);
     }
+    return {
+      finalText,
+      nextCategory: nextCategory || (modifyExecutionActive ? "modify_reservation" : "reservation"),
+      nextSlots,
+      needsSupervision,
+      graphResult,
+    };
   }
 
   // 4) Follow-up del usuario consultando estado de la verificación ("pudiste confirmar/verificar?")
