@@ -2347,6 +2347,17 @@ function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?
   };
 }
 
+function hasModifyDatesEntrySignal(
+  sideIntent: ReturnType<typeof detectDateSideFromText>,
+  userDates: { checkIn?: string; checkOut?: string },
+  rawOrdered: { checkIn?: string; checkOut?: string } | null
+): boolean {
+  if (sideIntent) return true;
+  if (userDates?.checkIn || userDates?.checkOut) return true;
+  if (rawOrdered?.checkIn || rawOrdered?.checkOut) return true;
+  return false;
+}
+
 function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "check_order" | "range_too_long" | "invalid_format"): string {
   if (reason === "invalid_format") {
     return lang === "es"
@@ -4152,6 +4163,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) ||
       Boolean(directModifyTurnSlots.numGuests) ||
       Boolean(directModifyTurnSlots.roomType);
+    const userDates = extractDateRangeFromText(userTxtRaw);
+    const sideIntent = detectDateSideFromText(userTxtRaw);
+    const hasTemporalModifySignal = hasModifyDatesEntrySignal(
+      sideIntent,
+      userDates,
+      rawOrderedDateRange
+    );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       reservationSlots: {
         ...(pre.st?.reservationSlots || {}),
@@ -4175,6 +4193,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "modify_reservation",
       updatedBy: "ai",
     } as any);
+    if (!hasImmediateModifyValue && hasTemporalModifySignal) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        modifyState: buildModifyState("dates"),
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = sideIntent ? buildAskMissingDate(pre.lang, sideIntent) : buildAskNewDates(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
     if (!hasImmediateModifyValue) {
       finalText = buildModifyOptionsMenu(pre.lang, {
         ...(pre.st?.reservationSlots || {}),
@@ -6264,10 +6294,41 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasImmediateDateValue = Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut);
     const hasImmediateGuestValue = Boolean(immediateTurnSlots.numGuests);
     const hasImmediateRoomValue = Boolean(immediateTurnSlots.roomType);
+    const temporalSideIntent = detectDateSideFromText(userTxt);
+    const temporalUserDates = extractDateRangeFromText(userTxt);
+    const hasTemporalModifySignal = hasModifyDatesEntrySignal(
+      temporalSideIntent,
+      temporalUserDates,
+      immediateDateRange
+    );
     const hasImplicitModifyValueFollowup =
       pre.inModifyMode &&
       (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
       (hasImmediateDateValue || hasImmediateGuestValue || hasImmediateRoomValue);
+    if (
+      pre.inModifyMode &&
+      (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
+      hasTemporalModifySignal &&
+      !hasImmediateDateValue &&
+      !wantsChangeDates
+    ) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: {
+          ...(pre.st?.reservationSlots || {}),
+          ...knownSlots,
+          locale: pre.lang,
+        },
+        modifyState: buildModifyState("dates"),
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = temporalSideIntent ? buildAskMissingDate(pre.lang, temporalSideIntent) : buildAskNewDates(pre.lang);
+      nextSlots = knownSlots;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
     if (wantsChangeDates || wantsChangeRoom || wantsChangeGuests || hasImplicitModifyValueFollowup) {
       if ((pre.inModifyMode || pre.prevCategory === "modify_reservation") && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
         const activeField: ModifyState["activeField"] =

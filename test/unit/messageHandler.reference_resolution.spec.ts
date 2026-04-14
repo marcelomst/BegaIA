@@ -825,6 +825,22 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("entra a modify.dates ante señal temporal y evita menú genérico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-entry-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("modificá la primera reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("ingreso el jueves", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/nuevas fechas|check-in|check-out|fechas/i);
+    expect(replyText).not.toMatch(/qu[eé] te gustar[ií]a cambiar|cambiar hu[eé]spedes|cambiar habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "dates",
+    });
+  });
+
   it("mantiene continuidad de target en modify hasta la confirmación final y no crea una reserva nueva", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-execution-integrity-1";
