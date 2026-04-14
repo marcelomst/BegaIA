@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14
+## 1. FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
+
+- Identificador: `FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15`
+- Nombre: `FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15`
+- Commit message: `FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15 enter modify.dates directly when temporal signals are sufficient`
+- Hash: `948c4574600481dbc8e151ea438e430f56e3d8bd`
+- Descripción breve: Se corrige la entrada a `modify.dates` para que, ante señal temporal suficiente, el flujo entre directamente al subflow correcto y evite el menú genérico de `modify`.
+
+## 2. FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14
 
 - Identificador: `FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14`
 - Nombre: `FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `8c81f9bcd56f08ec7ce16aea99a742605527242a`
 - Descripción breve: Se corrige la precedencia entre `verify pending` y la continuidad afirmativa de `create`, para que verify domine cuando corresponde y no se corte por faltantes de create no pertinentes en ese punto.
 
-## 2. TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01
+## 3. TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01
 
 - Identificador: `TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01`
 - Nombre: `TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `8ed48023903c5f768e2d540c12d30e297f6e21f9`
 - Descripción breve: Se alinean los fixtures compartidos de tests de parity con el shape esperado del mensaje, usando `channel` tipado y `timestamp`.
 
-## 3. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL
+## 4. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL
 
 - Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL`
 - Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `79aa03242cf4c5323a25af4b48c5761f17b7f9a6`
 - Descripción breve: Se registra la evidencia final de `PARIDAD_OK` para el escenario de lateral puro en `create`, luego de los fixes 12 y 13.
 
-## 4. FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
+## 5. FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
 
 - Identificador: `FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13`
 - Nombre: `FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `21c1430e2913c6503a4f44f7a66184fb88f04da3`
 - Descripción breve: Se corrige la pureza del dominio lateral dentro de `create`, haciendo que un turno lateral puro quede persistido con su categoría lateral real y no con trazas de `reservation`.
 
-## 5. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION
+## 6. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION
 
 - Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION`
 - Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-REVALIDATION`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `28e3a5d427f5a572b6743b79adaab8b925edc0a6`
 - Descripción breve: Se endurece la evidencia experimental del escenario de lateral puro en `create`, revalidando de forma explícita el estado observado después de `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`.
 
-## 6. FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
+## 7. FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12
 
 - Identificador: `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`
 - Nombre: `FIX-PIPELINE-CREATE-LATERAL-CONTINUITY-REFINEMENT-12`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `ba1345179d15ba8bf3470ed0591de4d4fd317c78`
 - Descripción breve: Se refina la continuidad de `create` para que, después de un lateral puro, el turno siguiente pueda reenganchar explícitamente el faltante pendiente si el usuario expresa continuación afirmativa.
 
-## 7. EXP-PIPELINE-CREATE-LATERAL-PARITY-02
+## 8. EXP-PIPELINE-CREATE-LATERAL-PARITY-02
 
 - Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02`
 - Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `60144597cbefce5ebc86ac7898fee56e3ba16b2e`
 - Descripción breve: Se agrega una suite experimental aislada para recolectar evidencia contextual de paridad entre `messageHandler` y `mhFlowGraph` en el escenario de `create` activo e incompleto con lateral puro y reenganche básico.
 
-## 8. EXP-PIPELINE-FAQ-GRAPH-PARITY-01
+## 9. EXP-PIPELINE-FAQ-GRAPH-PARITY-01
 
 - Identificador: `EXP-PIPELINE-FAQ-GRAPH-PARITY-01`
 - Nombre: `EXP-PIPELINE-FAQ-GRAPH-PARITY-01`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `ce461fa0d78ba1b5e465177ea72dcba1a4ab2e72`
 - Descripción breve: Se agrega una suite experimental aislada para recolectar evidencia auditable de paridad entre `messageHandler` y `mhFlowGraph` en dominios FAQ, amenities y policies.
 
-## 9. FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
+## 10. FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 - Identificador: `FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11`
 - Nombre: `FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11`
 - Commit message: `FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11 resolve lateral turns inside create without appending reservation continuation`
 - Hash: `4bd76d8f7e31a09f4f0f11b65c0a8ba91d1c9e58`
 - Descripción breve: Se corrige la resolución de laterales dentro de `create` para que se resuelvan en su dominio real sin agregar continuación textual de `reservation` en ese mismo turno.
-
-## 10. DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02
-
-- Identificador: `DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02`
-- Nombre: `DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02`
-- Commit message: `DOC-CHATGPT-CAPSULE-TEMPLATE-AND-HANDOFF-REFINEMENT-02 refine capsule template and handoff guide`
-- Hash: `fb7d26a3d67694fa1194d9393f44a01ed7071b96`
-- Descripción breve: Se refinan la plantilla de cápsula de contexto y la guía de handoff entre chat viejo y chat nuevo en ChatGPT.

@@ -6536,6 +6536,39 @@ Impacto:
 - preserva la continuidad correcta de verify
 - mantiene acotado el cambio al slice necesario
 
+### FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
+
+Estado: COMPLETADO  
+Fecha: 2026-04-14  
+Commit: 948c4574600481dbc8e151ea438e430f56e3d8bd
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la entrada a `modify.dates` para que, ante señal temporal
+suficiente, el flujo entre directamente al subflow correcto y evite el menú
+genérico de `modify`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- hito auditado como puro, atómico y `single-intention`
+- la entrada a `modify.dates` ahora se gobierna por señal temporal suficiente
+- se evita el menú genérico cuando corresponde entrar al subflow de fechas
+- sanity validada en verde en reference resolution, create sequencing, create
+  quote gating y verify pending continuity
+
+Impacto:
+
+- corrige gobernanza de entrada a `modify.dates`
+- evita degradación al menú genérico de modificación
+- mejora precisión del subflow de fechas
+- mantiene acotado el cambio al slice temporal de `modify`
+
 ### FIX-PIPELINE-CREATE-LATERAL-DOMAIN-RESOLUTION-11
 
 Estado: COMPLETADO  
