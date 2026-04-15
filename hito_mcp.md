@@ -6538,6 +6538,46 @@ Impacto:
 
 ### FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
 
+### FIX-PIPELINE-MODIFY-DATES-REALPATH-ENTRY-CONTINUATION-16
+
+Estado: COMPLETADO  
+Fecha: 2026-04-15  
+Commit: e1740e43138a4cf00493317096fa85f66ce8c5f0
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la continuidad real de `modify.dates` en conversación completa.
+La causa raíz no estaba en el parsing temporal sino en la falta de persistencia
+del estado `modify` al abrir el menú sin target explícito.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- tests unitarios del hito reportados en verde
+- flujo manual validado:
+  - `quiero cambiar mi reserva`
+  - `ingreso el jueves`
+  - `el domingo`
+- el runtime persiste `activeFlow`, `conversationFocus` y `lastCategory`
+  incluso sin `boundReservationTarget` explícito
+- `modify.dates` consume `checkIn` parcial y luego resuelve `checkOut`
+  contextual desde fecha única sin repreguntas redundantes
+
+Impacto:
+
+- corrige continuidad real de entrada y reenganche en `modify.dates`
+- evita degradación al menú genérico por ausencia de target explícito
+- preserva estado canónico del flujo `modify` sin inventar target
+- consolida una regla estable de continuidad dentro de `messageHandler`
+
+### FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
+
 Estado: COMPLETADO  
 Fecha: 2026-04-14  
 Commit: 948c4574600481dbc8e151ea438e430f56e3d8bd

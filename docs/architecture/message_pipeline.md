@@ -139,6 +139,12 @@ Señales relevantes actuales:
 - `desiredAction`
 - `activeFlow`
 
+Regla operativa adicional:
+
+- abrir el menú de `modify` debe persistir continuidad suficiente del runtime
+  (`activeFlow`, `conversationFocus`, `lastCategory`) aunque todavía no exista
+  `boundReservationTarget` explícito
+
 ### 4.5 Intent engine
 
 Responsabilidad:
@@ -272,6 +278,9 @@ Regla operativa:
   debe dominar sobre una continuidad incompatible de `modify`
 - si `faq` o `policies` rompen el domain lock, la continuidad previa de
   `reservation` debe cortarse también en el ensamblado final del output
+- cuando `modify.dates` ya quedó activo y existe un único lado temporal
+  faltante, una fecha única posterior puede consumirse contextualmente sin
+  reabrir menú genérico ni reiniciar el subflow
 
 ### 5.6 `reservationSlots`
 
