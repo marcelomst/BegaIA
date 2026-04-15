@@ -43,7 +43,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor, ddmmyyyyToISO } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -2347,6 +2347,69 @@ function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?
   };
 }
 
+async function extractSupportedTemporalDateRange(
+  text: string,
+  lang: "es" | "en" | "pt"
+): Promise<{ checkIn?: string; checkOut?: string }> {
+  const explicitDates = extractDateRangeFromText(text);
+  if (explicitDates.checkIn || explicitDates.checkOut) return explicitDates;
+  const chronoDates = await chronoExtractDateRange(text, lang);
+  if (chronoDates.checkIn || chronoDates.checkOut) return chronoDates;
+  return explicitDates;
+}
+
+function detectModifyTemporalSideIntent(
+  text: string,
+  temporalDates?: { checkIn?: string; checkOut?: string }
+): "checkIn" | "checkOut" | undefined {
+  const directSideIntent = detectDateSideFromText(text);
+  if (directSideIntent) return directSideIntent;
+  if (!temporalDates?.checkIn && !temporalDates?.checkOut) return undefined;
+  const normalized = normalizeReferenceText(text || "");
+  const mentionsCheckIn = /\b(ingreso|ingresar|ingresaria|ingresaría|entro|entrar|entraria|entraría|llego|llegar|llegaria|llegaría|arribo|arribar)\b/.test(normalized);
+  const mentionsCheckOut = /\b(salida|salgo|salir|egreso|egresar|retirada|partida|partir|me voy|me iria|me iría)\b/.test(normalized);
+  if (mentionsCheckIn && !mentionsCheckOut) return "checkIn";
+  if (mentionsCheckOut && !mentionsCheckIn) return "checkOut";
+  return undefined;
+}
+
+function buildModifyPartialDateSlots(
+  baseSlots: ReservationSlotsStrict,
+  temporalDates: { checkIn?: string; checkOut?: string },
+  sideIntent?: "checkIn" | "checkOut"
+): ReservationSlotsStrict {
+  const next = { ...baseSlots };
+  if (sideIntent === "checkIn") {
+    next.checkIn = temporalDates.checkIn || temporalDates.checkOut || next.checkIn;
+    next.checkOut = undefined;
+    return next;
+  }
+  if (sideIntent === "checkOut") {
+    next.checkOut = temporalDates.checkOut || temporalDates.checkIn || next.checkOut;
+    next.checkIn = undefined;
+    return next;
+  }
+  return {
+    ...next,
+    ...temporalDates,
+  };
+}
+
+function resolveModifyDatesContextualMissingSide(
+  pre: Pick<PreLLMResult, "st">,
+  slots?: Partial<ReservationSlotsStrict> | null
+): "checkIn" | "checkOut" | undefined {
+  const activeField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+  if (activeField !== "dates") return undefined;
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(slots || {}),
+  } as ReservationSlotsStrict;
+  if (knownSlots.checkIn && !knownSlots.checkOut) return "checkOut";
+  if (!knownSlots.checkIn && knownSlots.checkOut) return "checkIn";
+  return undefined;
+}
+
 function hasModifyDatesEntrySignal(
   sideIntent: ReturnType<typeof detectDateSideFromText>,
   userDates: { checkIn?: string; checkOut?: string },
@@ -3466,16 +3529,102 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // pedimos la fecha faltante inmediatamente sin invocar el grafo pesado.
   try {
     const userTxtFast = String(pre.msg.content || "");
-    const drFast = extractDateRangeFromText(userTxtFast);
-    const hasOneDateOnly = (drFast.checkIn && !drFast.checkOut) || (!drFast.checkIn && drFast.checkOut);
+    const drFast = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const modifyContextActiveFast =
+      pre.inModifyMode ||
+      pre.prevCategory === "modify_reservation" ||
+      pre.st?.activeFlow === "modify_reservation" ||
+      pre.st?.desiredAction === "modify" ||
+      getConversationFocus(pre.st)?.subFlow === "modify";
+    const contextualMissingSideFast = resolveModifyDatesContextualMissingSide(pre, nextSlots);
+    const singleFastISO = drFast.checkIn || drFast.checkOut;
+    const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);
     const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
     if (hasOneDateOnly && hasContext) {
+      const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
+      const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
+      if (singleFastISO && contextualMissingSideFast) {
+        const contextualFastDates = contextualMissingSideFast === "checkIn"
+          ? { checkIn: singleFastISO }
+          : { checkOut: singleFastISO };
+        const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
+        const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, fastPathTurnSlots, contextualFastDates);
+        nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+        const ciISO = fastPathSlots.checkIn;
+        const coISO = fastPathSlots.checkOut;
+        if (ciISO && coISO) {
+          const ciTxt = isoToDDMMYYYY(ciISO) || ciISO;
+          const coTxt = isoToDDMMYYYY(coISO) || coISO;
+          finalText = pre.lang === 'es'
+            ? `Anoté nuevas fechas: ${ciTxt} → ${coTxt}. ¿Deseás que verifique disponibilidad y posibles diferencias?`
+            : pre.lang === 'pt'
+              ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
+              : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
+          if (fastPathSubFlow === "modify") {
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              reservationSlots: {
+                ...(pre.st?.reservationSlots || {}),
+                ...fastPathSlots,
+                locale: pre.lang,
+              },
+              modifyState: buildModifyState("dates"),
+              conversationFocus: buildConversationFocus("modify"),
+              activeFlow: "modify_reservation",
+              desiredAction: "modify",
+              lastCategory: "modify_reservation",
+              updatedBy: "ai",
+            } as any);
+          }
+          return {
+            finalText,
+            nextCategory: fastPathSubFlow === "modify" ? "modify_reservation" : "reservation",
+            nextSlots,
+            needsSupervision,
+            graphResult: null,
+          };
+        }
+      }
+      if (singleFastISO && fastPathSubFlow === "modify" && fastTemporalSideIntent) {
+        const partialModifySlots = buildModifyPartialDateSlots(
+          {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+            locale: pre.lang,
+          } as ReservationSlotsStrict,
+          drFast,
+          fastTemporalSideIntent
+        );
+        nextSlots = { ...partialModifySlots } as ReservationSlotsStrict;
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            ...partialModifySlots,
+            locale: pre.lang,
+          },
+          modifyState: buildModifyState("dates"),
+          conversationFocus: buildConversationFocus("modify"),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
+        finalText = buildAskMissingDate(
+          pre.lang,
+          fastTemporalSideIntent === "checkIn" ? "checkOut" : "checkIn"
+        );
+        return {
+          finalText,
+          nextCategory: "modify_reservation",
+          nextSlots,
+          needsSupervision,
+          graphResult: null,
+        };
+      }
       const isConfirmedBooking = pre.st?.salesStage === "close";
       if (drFast.checkIn && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {
         finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);
         const { checkIn: _dropInvalidCheckIn, ...restNextSlots } = nextSlots;
         nextSlots = restNextSlots as ReservationSlotsStrict;
-        return { finalText, nextCategory: pre.inModifyMode ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
+        return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
       }
       // Si existe una fecha única previa en el historial del usuario (excluyendo el mensaje actual), emparejar y confirmar rango
       const hist = [...pre.lcHistory];
@@ -3488,7 +3637,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const prevISO = prevSingle.checkIn || prevSingle.checkOut;
       const currISO = drFast.checkIn || drFast.checkOut;
       if (prevISO && currISO) {
-        const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
         const a = new Date(prevISO);
         const b = new Date(currISO);
         const ciISO = a <= b ? prevISO : currISO;
@@ -3551,8 +3699,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       // No hay fecha previa: pedir la faltante
       const missingSide = drFast.checkIn ? "checkOut" : "checkIn";
       finalText = buildAskMissingDate(pre.lang, missingSide as any);
-      if (pre.inModifyMode || pre.prevCategory === "modify_reservation") {
+      if (modifyContextActiveFast) {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+            ...buildModifyPartialDateSlots(
+              {
+                ...(pre.st?.reservationSlots || {}),
+                ...(nextSlots || {}),
+                locale: pre.lang,
+              } as ReservationSlotsStrict,
+              drFast,
+              fastTemporalSideIntent
+            ),
+            locale: pre.lang,
+          },
           modifyState: buildModifyState("dates"),
           conversationFocus: buildConversationFocus("modify"),
           activeFlow: "modify_reservation",
@@ -3561,7 +3723,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           updatedBy: "ai",
         } as any);
       }
-      return { finalText, nextCategory: pre.inModifyMode ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
+      return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };
     }
   } catch { /* noop fast-path */ }
   // Fast-path 2: contexto de reserva confirmada o intención genérica de modificar → mostrar menú sin invocar grafo
@@ -3580,10 +3742,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const genericModify = wantsGenericModify(userTxt, pre.lang);
     const softModifyFollowup = hasConfirmed && isModifyFollowupContext && mentionsReservation && looksGreeting;
     // Evitar menú genérico si el usuario mencionó explícitamente check-in/check-out o fechas
-    const sideIntentFast = detectDateSideFromText(userTxt);
+    const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);
+    const sideIntentFast = detectModifyTemporalSideIntent(userTxt, userDatesFast);
     const hasAnyDateTokenFast = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(userTxt);
     const mentionsDatesFast = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
-    const isDateTopicFast = Boolean(sideIntentFast || hasAnyDateTokenFast || mentionsDatesFast);
+    const isDateTopicFast = Boolean(sideIntentFast || userDatesFast.checkIn || userDatesFast.checkOut || hasAnyDateTokenFast || mentionsDatesFast);
     const normalizedUserTxtFast = normalizeReferenceText(userTxt);
     const isExplicitFieldChangeFast =
       RE_CHANGE_DATES.test(userTxt) || RE_CHANGE_DATES.test(normalizedUserTxtFast) ||
@@ -3616,23 +3779,24 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             }
           : {}),
       } as ReservationSlotsStrict;
+      const modifyMenuPatch: Record<string, unknown> = {
+        reservationSlots: { ...knownSlots, locale: pre.lang },
+        modifyState: null,
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        updatedBy: "ai",
+      };
       if (boundReservationTarget?.reservationId) {
-        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-          reservationSlots: { ...knownSlots, locale: pre.lang },
-          activeReservationContext: buildFocusedReservationContext(boundReservationTarget.reservationId, "confirmed"),
-          selectedReservationTarget: buildSelectedReservationTargetFromReference(
-            boundReservationTarget.reservationId,
-            explicitReservationCodeFast ? "explicit_id" : ordinalReservationTargetFast ? "ordinal" : hasAnaphoraReferenceFast ? "anaphora" : "active_focus",
-            explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
-          ),
-          modifyState: null,
-          conversationFocus: buildConversationFocus("modify"),
-          activeFlow: "modify_reservation",
-          desiredAction: "modify",
-          lastCategory: "modify_reservation",
-          updatedBy: "ai",
-        } as any);
+        modifyMenuPatch.activeReservationContext = buildFocusedReservationContext(boundReservationTarget.reservationId, "confirmed");
+        modifyMenuPatch.selectedReservationTarget = buildSelectedReservationTargetFromReference(
+          boundReservationTarget.reservationId,
+          explicitReservationCodeFast ? "explicit_id" : ordinalReservationTargetFast ? "ordinal" : hasAnaphoraReferenceFast ? "anaphora" : "active_focus",
+          explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
+        );
       }
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, modifyMenuPatch as any);
       finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
       return { finalText, nextCategory: "modify_reservation", nextSlots: knownSlots, needsSupervision, graphResult: null };
     }
@@ -3890,6 +4054,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ? getReservationReferenceTargetById(pre.st, pre.st.activeReservationContext.reservationId)
       : null);
   const activeModifyField = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
+  const modifyFocusActiveEarly =
+    pre.inModifyMode ||
+    pre.prevCategory === "modify_reservation" ||
+    pre.st?.activeFlow === "modify_reservation" ||
+    pre.st?.desiredAction === "modify" ||
+    getConversationFocus(pre.st)?.subFlow === "modify";
   const ambiguousReservationAction = getAmbiguousReservationAction(pre, userTxtRaw, {
     reservationReference,
     snapshotQueryKind: effectiveSnapshotQueryKind,
@@ -3907,6 +4077,49 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) &&
     normalizedReservationIntent.kind !== "modify" &&
     normalizedReservationIntent.kind !== "cancel";
+  if (
+    !activeModifyField &&
+    modifyFocusActiveEarly &&
+    !(normalizedReservationIntent.kind === "cancel" || looksExplicitNewReservation || looksNonReservationDomainTurn)
+  ) {
+    const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
+    const earlyModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, earlyModifyDates);
+    if (
+      earlyModifySideIntent &&
+      (earlyModifyDates.checkIn || earlyModifyDates.checkOut) &&
+      (selectedOrActiveReservationTarget?.reservationId ||
+        resolveSingleActionableReservationTarget(pre.st)?.reservationId ||
+        pre.st?.lastReservation?.reservationId)
+    ) {
+      const partialModifySlots = buildModifyPartialDateSlots(
+        {
+          ...(pre.st?.reservationSlots || {}),
+          ...(nextSlots || {}),
+          locale: pre.lang,
+        } as ReservationSlotsStrict,
+        earlyModifyDates,
+        earlyModifySideIntent
+      );
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: {
+          ...partialModifySlots,
+          locale: pre.lang,
+        },
+        modifyState: buildModifyState("dates"),
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildAskMissingDate(
+        pre.lang,
+        earlyModifySideIntent === "checkIn" ? "checkOut" : "checkIn"
+      );
+      nextSlots = partialModifySlots;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+  }
   if (explicitModifyExit) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       modifyState: null,
@@ -4163,8 +4376,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) ||
       Boolean(directModifyTurnSlots.numGuests) ||
       Boolean(directModifyTurnSlots.roomType);
-    const userDates = extractDateRangeFromText(userTxtRaw);
-    const sideIntent = detectDateSideFromText(userTxtRaw);
+    const userDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
+    const sideIntent = detectModifyTemporalSideIntent(userTxtRaw, userDates);
     const hasTemporalModifySignal = hasModifyDatesEntrySignal(
       sideIntent,
       userDates,
@@ -4194,7 +4407,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       updatedBy: "ai",
     } as any);
     if (!hasImmediateModifyValue && hasTemporalModifySignal) {
+      const partialModifySlots = buildModifyPartialDateSlots({
+        ...(pre.st?.reservationSlots || {}),
+        guestName: target.guestName,
+        roomType: reservationRoomType || target.roomType,
+        numGuests: reservationGuests || target.numGuests,
+        checkIn: reservationCheckIn || target.checkIn,
+        checkOut: reservationCheckOut || target.checkOut,
+        locale: pre.lang,
+      } as ReservationSlotsStrict, userDates, sideIntent);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: partialModifySlots,
         modifyState: buildModifyState("dates"),
         conversationFocus: buildConversationFocus("modify"),
         activeFlow: "modify_reservation",
@@ -4202,7 +4425,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         lastCategory: "modify_reservation",
         updatedBy: "ai",
       } as any);
-      finalText = sideIntent ? buildAskMissingDate(pre.lang, sideIntent) : buildAskNewDates(pre.lang);
+      finalText = sideIntent
+        ? buildAskMissingDate(pre.lang, sideIntent === "checkIn" ? "checkOut" : "checkIn")
+        : buildAskNewDates(pre.lang);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!hasImmediateModifyValue) {
@@ -4290,10 +4515,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const baseCheckOut = baseModifyTarget?.checkOut || reservationCheckOut;
     const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : baseCheckIn;
     const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : baseCheckOut;
+    const modifyTemporalDates =
+      activeModifyField === "dates"
+        ? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)
+        : {};
+    const contextualMissingModifySide =
+      activeModifyField === "dates"
+        ? resolveModifyDatesContextualMissingSide(pre, {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+            checkIn: nextCheckIn,
+            checkOut: nextCheckOut,
+          } as ReservationSlotsStrict)
+        : undefined;
+    const modifySingleTemporalISO =
+      modifyTemporalDates.checkIn || modifyTemporalDates.checkOut;
+    const hasContextualSingleModifyDate =
+      activeModifyField === "dates" &&
+      Boolean(contextualMissingModifySide) &&
+      Boolean(modifySingleTemporalISO) &&
+      !(modifyTemporalDates.checkIn && modifyTemporalDates.checkOut);
     const hasTurnLevelModifyValue =
       (activeModifyField === "guests" && Boolean(rawGuestCount || numericGuestCount)) ||
       (activeModifyField === "roomType" && Boolean(nextSlots.roomType || pre.currSlots.roomType)) ||
-      (activeModifyField === "dates" && hasExplicitDateRange);
+      (activeModifyField === "dates" && (hasExplicitDateRange || hasContextualSingleModifyDate));
     const awaitingModifyAvailabilityVerification =
       activeModifyField === "dates" &&
       Boolean((pre.st as any)?.pendingAvailabilityVerification) &&
@@ -4312,6 +4557,52 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
     const awaitingModifyExecutionContinuation =
       awaitingModifyAvailabilityVerification || awaitingModifyQuoteConfirmation;
+
+    if (
+      activeModifyField === "dates" &&
+      contextualMissingModifySide &&
+      modifySingleTemporalISO &&
+      !hasExplicitDateRange
+    ) {
+      const contextualDateSlots = contextualMissingModifySide === "checkIn"
+        ? { checkIn: modifySingleTemporalISO }
+        : { checkOut: modifySingleTemporalISO };
+      const ingestedSlots = mergeReservationSlots(
+        {
+          ...(pre.st?.reservationSlots || {}),
+          guestName: baseGuestName,
+          roomType: baseRoomType,
+          numGuests: baseGuests,
+          checkIn: baseCheckIn,
+          checkOut: baseCheckOut,
+          locale: pre.lang,
+        } as ReservationSlotsStrict,
+        nextSlots,
+        contextualDateSlots
+      );
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: {
+          ...(pre.st?.reservationSlots || {}),
+          ...ingestedSlots,
+          locale: pre.lang,
+        },
+        modifyState: buildModifyState("dates"),
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        updatedBy: "ai",
+      } as any);
+      const ciTxt = isoToDDMMYYYY(ingestedSlots.checkIn) || ingestedSlots.checkIn;
+      const coTxt = isoToDDMMYYYY(ingestedSlots.checkOut) || ingestedSlots.checkOut;
+      finalText = pre.lang === "es"
+        ? `Anoté nuevas fechas: ${ciTxt} → ${coTxt}. ¿Deseás que verifique disponibilidad y posibles diferencias?`
+        : pre.lang === "pt"
+          ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
+          : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
+      nextSlots = ingestedSlots;
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
 
     if (!hasTurnLevelModifyValue && !awaitingModifyExecutionContinuation) {
       finalText = buildReservationLocalFallbackReply(pre, reservationDomainLock, nextSlots).finalText;
@@ -6294,28 +6585,34 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasImmediateDateValue = Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut);
     const hasImmediateGuestValue = Boolean(immediateTurnSlots.numGuests);
     const hasImmediateRoomValue = Boolean(immediateTurnSlots.roomType);
-    const temporalSideIntent = detectDateSideFromText(userTxt);
-    const temporalUserDates = extractDateRangeFromText(userTxt);
+    const temporalUserDates = await extractSupportedTemporalDateRange(userTxt, pre.lang);
+    const temporalSideIntent = detectModifyTemporalSideIntent(userTxt, temporalUserDates);
     const hasTemporalModifySignal = hasModifyDatesEntrySignal(
       temporalSideIntent,
       temporalUserDates,
       immediateDateRange
     );
+    const modifyContextActive =
+      pre.inModifyMode ||
+      pre.st?.activeFlow === "modify_reservation" ||
+      pre.st?.desiredAction === "modify" ||
+      pre.prevCategory === "modify_reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "modify";
     const hasImplicitModifyValueFollowup =
-      pre.inModifyMode &&
+      modifyContextActive &&
       (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
       (hasImmediateDateValue || hasImmediateGuestValue || hasImmediateRoomValue);
     if (
-      pre.inModifyMode &&
+      modifyContextActive &&
       (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
       hasTemporalModifySignal &&
       !hasImmediateDateValue &&
       !wantsChangeDates
     ) {
+      const partialModifySlots = buildModifyPartialDateSlots(knownSlots, temporalUserDates, temporalSideIntent);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         reservationSlots: {
-          ...(pre.st?.reservationSlots || {}),
-          ...knownSlots,
+          ...partialModifySlots,
           locale: pre.lang,
         },
         modifyState: buildModifyState("dates"),
@@ -6325,8 +6622,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         lastCategory: "modify_reservation",
         updatedBy: "ai",
       } as any);
-      finalText = temporalSideIntent ? buildAskMissingDate(pre.lang, temporalSideIntent) : buildAskNewDates(pre.lang);
-      nextSlots = knownSlots;
+      finalText = temporalSideIntent
+        ? buildAskMissingDate(pre.lang, temporalSideIntent === "checkIn" ? "checkOut" : "checkIn")
+        : buildAskNewDates(pre.lang);
+      nextSlots = partialModifySlots;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     if (wantsChangeDates || wantsChangeRoom || wantsChangeGuests || hasImplicitModifyValueFollowup) {
@@ -6450,7 +6749,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       // No interrumpimos: permitimos que el resto del flujo siga si añade más detalles
     }
 
-    const userDates = extractDateRangeFromText(String(pre.msg.content || ""));
+    const userDates = await extractSupportedTemporalDateRange(String(pre.msg.content || ""), pre.lang);
     const tLower = String(pre.msg.content || "").toLowerCase();
     const mentionsDates = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
     const datePhrases = [
@@ -6536,12 +6835,54 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       if (!nextCategory) nextCategory = "retrieval_based";
       // finalText queda como lo devolvió el grafo (idealmente RAG tras la corrección en graph.ts)
     } else if (triggerDateFlow) {
+      const modifyTemporalSideIntent = detectModifyTemporalSideIntent(String(pre.msg.content || ""), userDates);
+      const hasConfirmedModifyTargetContext =
+        Boolean(pre.st?.activeReservationContext?.reservationId) ||
+        Boolean(selectedReservationTarget?.reservationId) ||
+        Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId) ||
+        Boolean(pre.st?.lastReservation?.reservationId);
+      const shouldPersistPartialModifyDate =
+        (pre.inModifyMode ||
+          pre.prevCategory === "modify_reservation" ||
+          pre.st?.activeFlow === "modify_reservation" ||
+          pre.st?.desiredAction === "modify" ||
+          hasConfirmedModifyTargetContext) &&
+        Boolean(modifyTemporalSideIntent && (userDates.checkIn || userDates.checkOut));
+      if (shouldPersistPartialModifyDate && modifyTemporalSideIntent) {
+        const partialModifySlots = buildModifyPartialDateSlots(
+          {
+            ...(pre.st?.reservationSlots || {}),
+            ...(nextSlots || {}),
+            locale: pre.lang,
+          } as ReservationSlotsStrict,
+          userDates,
+          modifyTemporalSideIntent
+        );
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            ...partialModifySlots,
+            locale: pre.lang,
+          },
+          modifyState: buildModifyState("dates"),
+          conversationFocus: buildConversationFocus("modify"),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
+        nextSlots = partialModifySlots;
+      }
       // 1) Prompts iniciales si no hay fechas todavía
       const hasDateTokenInMsg = hasAnyDateToken; // reutilizamos cálculo previo
       let preserveAskCheckIn: string | null = null;
       if (!hasDateTokenInMsg) {
         const sideIntent = detectDateSideFromText(String(pre.msg.content || ""));
-        if (sideIntent) {
+        if (modifyTemporalSideIntent && (userDates.checkIn || userDates.checkOut)) {
+          finalText = buildAskMissingDate(
+            pre.lang,
+            modifyTemporalSideIntent === "checkIn" ? "checkOut" : "checkIn"
+          );
+        } else if (sideIntent) {
           finalText = buildAskMissingDate(pre.lang, sideIntent);
           if (sideIntent === 'checkIn') preserveAskCheckIn = finalText; // preservar si luego se genera confirmación accidental
         } else if (mentionsNewDates || mentionsDates) {
