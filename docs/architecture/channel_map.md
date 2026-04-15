@@ -44,10 +44,10 @@ Objetivo:
 
 | AGENT                | CHAT-REAL-NAME                        |
 | -------------------- | ------------------------------------- |
-| arquitecto_sistema   | Adopta rol arquitecto sistema         |
-| asistente_tecnico    | Documentar hallazgos PIPELINE-CORE-1  |
-| repo_guardian        | Refuerza disciplina Git               |
-| hdoc                 | Emitir estado hito Begasist           |
+| arquitecto_sistema   | Usar agent.arquitecto_sistema         |
+| asistente_tecnico    | Usa agent.asistente_tecnico           |
+| repo_guardian        | Actuar como repo_guardian             |
+| hdoc                 | Actúa como agent.hdoc                 |
 | -------------------- | ------------------------------------- |
 
 ## Criterio de alta
