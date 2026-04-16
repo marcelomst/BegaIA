@@ -852,6 +852,85 @@ async function persistCreateLateralCategoryIfNeeded(
   } as any);
 }
 
+function isPureLateralTurnWhileCreateActive(
+  pre: PreLLMResult,
+  rawTurnText: string,
+  dominantTurnDomain: ReturnType<typeof detectDominantTurnDomain>
+): boolean {
+  const createContextActive =
+    !pre.inModifyMode &&
+    (pre.st?.activeFlow === "reservation" ||
+      pre.st?.desiredAction === "create" ||
+      pre.prevCategory === "reservation" ||
+      getConversationFocus(pre.st)?.subFlow === "create");
+  if (!createContextActive) return false;
+  const extracted = extractSlotsFromText(rawTurnText, pre.lang);
+  const turnHasReservationData = Boolean(
+    extracted.checkIn ||
+    extracted.checkOut ||
+    extracted.roomType ||
+    extracted.numGuests ||
+    extracted.guestName ||
+    looksLikeName(rawTurnText) ||
+    extractRawOrderedDateRange(rawTurnText)?.checkIn
+  );
+  const isLateralDominant =
+    dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies";
+  return isLateralDominant && !turnHasReservationData;
+}
+
+function buildPureCreateLateralFailsafeReply(
+  lang: "es" | "en" | "pt",
+  rawTurnText: string
+): { category: "amenities_info" | "checkin_info" | "checkout_info"; text: string } | null {
+  const normalized = normalizeReferenceText(rawTurnText || "");
+  if (/\b(wifi|wi[- ]?fi|internet)\b/.test(normalized)) {
+    return {
+      category: "amenities_info",
+      text:
+        lang === "pt"
+          ? "Sim, contamos com Wi-Fi no hotel. Se quiser, confirmo a rede e os dados de acesso com a recepção."
+          : lang === "en"
+            ? "Yes, we have Wi-Fi at the hotel. If you want, I can confirm the network and access details with reception."
+            : "Sí, contamos con Wi-Fi en el hotel. Si querés, confirmo la red y los datos de acceso con recepción.",
+    };
+  }
+  if (/\b(parking|estacionamiento|aparcamiento)\b/.test(normalized)) {
+    return {
+      category: "amenities_info",
+      text:
+        lang === "pt"
+          ? "O estacionamento está sujeito à disponibilidade. Se quiser, confirmo o acesso e a operativa com a recepção."
+          : lang === "en"
+            ? "Parking is subject to availability. If you want, I can confirm access and current parking details with reception."
+            : "El estacionamiento está sujeto a disponibilidad. Si querés, confirmo el acceso y la operativa con recepción.",
+    };
+  }
+  if (/\b(checkin|ingreso|entrada|llegada|arribo)\b/.test(normalized)) {
+    return {
+      category: "checkin_info",
+      text:
+        lang === "pt"
+          ? "Posso confirmar o horário de check-in com a recepção."
+          : lang === "en"
+            ? "I can confirm the check-in time with reception."
+            : "Puedo confirmar el horario de check-in con recepción.",
+    };
+  }
+  if (/\b(checkout|salida|egreso|partida|retirada)\b/.test(normalized)) {
+    return {
+      category: "checkout_info",
+      text:
+        lang === "pt"
+          ? "Posso confirmar o horário de check-out com a recepção."
+          : lang === "en"
+            ? "I can confirm the check-out time with reception."
+            : "Puedo confirmar el horario de check-out con recepción.",
+    };
+  }
+  return null;
+}
+
 async function persistCreateDraft(pre: PreLLMResult, slots: ReservationSlotsStrict): Promise<void> {
   await updateConversationState(pre.msg.hotelId, pre.conversationId, {
     reservationSlots: {
@@ -2945,6 +3024,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
   const kbUserText = String(pre.msg.content || "");
   const kbLower = kbUserText.toLowerCase();
   const reservationDomainLock = getReservationDomainLockSignal(pre, kbUserText);
+  const dominantTurnDomain = detectDominantTurnDomain(kbUserText, pre.lang);
   const isRoomTypeFollowup = isRoomTypeFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
   const isGuestsFollowup = isGuestsFollowupInReservation(pre.lcHistory, kbUserText, pre.lang);
   const isGuestNameFollowup = isGuestNameFollowupInReservation(pre.lcHistory, kbUserText);
@@ -2965,6 +3045,8 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
     isReservationFlowStillActive(pre) ||
     !!pre.stateForPlaybook?.draft ||
     !!pre.stateForPlaybook?.confirmedBooking;
+  const pureCreateLateralTurn = isPureLateralTurnWhileCreateActive(pre, kbUserText, dominantTurnDomain);
+  const effectiveReservationContext = hasReservationContext && !pureCreateLateralTurn;
   const wantsNearby = Boolean(pickNearbyPromptKey(kbUserText));
   const looksEventIntent = (() => {
     const hay = kbUserText.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
@@ -2989,6 +3071,8 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
 
   debugLog("[KB] fastpath check", {
     hasReservationContext,
+    effectiveReservationContext,
+    pureCreateLateralTurn,
     wantsNearby,
     isRoomTypeFollowup,
     isGuestsFollowup,
@@ -3067,7 +3151,7 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
     }
   }
 
-  if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {
+  if (!effectiveReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {
     if (skipKbFastpath) {
       debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
     } else {
@@ -6155,9 +6239,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const isReservationConfirmFollowup =
           askedToConfirmReservation(pre.lcHistory) &&
           (isPureConfirm(kbUserText) || isPureAffirmative(kbUserText, pre.lang));
+        const pureCreateLateralTurn = isPureLateralTurnWhileCreateActive(pre, kbUserText, dominantTurnDomain);
         const allowsCrossDomainFocusOverride =
           !reservationDomainLock.compatible &&
-          (dominantTurnDomain.dominant === "faq" || dominantTurnDomain.dominant === "policies");
+          (
+            dominantTurnDomain.dominant === "faq" ||
+            dominantTurnDomain.dominant === "policies" ||
+            pureCreateLateralTurn
+          );
         const hasReservationContext =
           !allowsCrossDomainFocusOverride &&
           (
@@ -6176,6 +6265,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           );
         debugLog("[KB] fastpath check", {
           hasReservationContext,
+          pureCreateLateralTurn,
           wantsNearby,
           isRoomTypeFollowup,
           isGuestsFollowup,
@@ -6258,6 +6348,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
         }
         if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {
+          let pureCreateLateralKbResolved = false;
           if (skipKbFastpath) {
             debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
           } else {
@@ -6277,6 +6368,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             // - respuesta de texto no vacía
             // - categoría "segura" (retrieval / info hotel)
             if (kb.ok && safeCat && text) {
+              pureCreateLateralKbResolved = true;
               debugLog("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });
               finalText = text;
               nextCategory = cat || "retrieval_based";
@@ -6334,6 +6426,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           } catch (e) {
             console.warn("[KB] answerWithKnowledge error, sigo con agentGraph:", (e as any)?.message || e);
           }
+          }
+          if (pureCreateLateralTurn && !pureCreateLateralKbResolved) {
+            const failsafeReply = buildPureCreateLateralFailsafeReply(pre.lang, kbUserText);
+            if (failsafeReply) {
+              finalText = failsafeReply.text;
+              nextCategory = failsafeReply.category;
+              nextSlots = pre.currSlots;
+              await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);
+              graphResult = {
+                ...(graphResult || {}),
+                source: "create_lateral_failsafe",
+                category: nextCategory,
+              };
+              emitRoutingDecision(pre.msg, {
+                decision_layer: "bodyLLM",
+                route_source: "create_lateral_failsafe",
+                route_match: "pure_create_lateral_after_kb_miss",
+                early_return: true,
+                used_llm_classifier: false,
+                classifier_source: "fallback",
+                final_category: nextCategory,
+                final_prompt_key: null,
+              });
+              return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+            }
           }
         }
 

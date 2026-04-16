@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { agentGraph } from "@/lib/agents";
+import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
 
 let currentState: any = null;
 
@@ -199,10 +201,15 @@ describe("messageHandler focus governance", () => {
     });
   });
 
-  it("mantiene lateral puro en create y reengancha el faltante en el turno siguiente", async () => {
+  it("lateral en create no dispara continuidad y luego reengancha el faltante", async () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo para 2 personas"), { mode: "automatic", sendReply });
+    vi.mocked(agentGraph.invoke).mockResolvedValueOnce({
+      messages: [{ role: "assistant", content: "¿Cuál es el tipo de habitación?" }],
+      category: "reservation",
+      meta: {},
+    } as any);
     await handleIncomingMessage(msg("¿el wifi está incluido?"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/wifi|wi[- ]?fi/i);
@@ -222,6 +229,35 @@ describe("messageHandler focus governance", () => {
       subFlow: "create",
       active: true,
     });
+  });
+
+  it("lateral puro en create usa failsafe si KB falla y bloquea graph transaccional", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo para 2 personas"), { mode: "automatic", sendReply });
+    vi.mocked(agentGraph.invoke).mockClear();
+    vi.mocked(answerWithKnowledge).mockRejectedValueOnce(new Error("kb down"));
+    vi.mocked(agentGraph.invoke).mockResolvedValueOnce({
+      messages: [{ role: "assistant", content: "¿Cuál es el tipo de habitación?" }],
+      category: "reservation",
+      meta: {},
+    } as any);
+
+    await handleIncomingMessage(msg("¿el wifi está incluido?"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toMatch(/wifi|wi[- ]?fi/i);
+    expect(lastReply(sendReply)).not.toMatch(/tipo de habitaci[oó]n|cu[aá]ntos hu[eé]spedes|a nombre de/i);
+    expect(vi.mocked(agentGraph.invoke)).not.toHaveBeenCalled();
+    expect(currentState?.lastCategory).toBe("amenities_info");
+    expect(currentState?.conversationFocus).toMatchObject({
+      domain: "reservation",
+      subFlow: "create",
+      active: true,
+    });
+
+    await handleIncomingMessage(msg("sí, continuar"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toMatch(/tipo de habitaci[oó]n/i);
   });
 
   it("cambia de create a cancel cuando el usuario lo pide explícitamente", async () => {
