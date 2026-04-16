@@ -6410,6 +6410,53 @@ Impacto:
 
 ### FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
 
+### FIX-PIPELINE-CREATE-LATERAL-KB-FAILSAFE-18
+
+Estado: COMPLETADO  
+Fecha: 2026-04-16  
+Commit: 2728f86bd7ebc41066c5ebe6f59f638841b5f012
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el path real donde un lateral puro dentro de `create` perdía
+precedencia cuando KB fallaba. El gate lateral era correcto, pero el bloque
+inline de KB dentro de `bodyLLM` podía degradar el turno hacia `agentGraph`
+transaccional si `answerWithKnowledge(...)` fallaba o no devolvía categoría
+segura con texto.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- suites reportadas en verde:
+  - `test/unit/messageHandler.focus_governance.spec.ts`
+  - `test/unit/messageHandler.create_sequencing.spec.ts`
+  - `test/unit/messageHandler.create_quote_gating.spec.ts`
+- validación manual reportada:
+  - `quiero reservar del 1 al 5 de mayo para 2 personas`
+  - `¿el wifi está incluido?`
+  - `sí, continuar`
+  - `doble`
+  - `Marcelo Martinez`
+  - `confirmar`
+- si `pureCreateLateralTurn === true` y KB falla o no devuelve `safeCat + text`,
+  el turno responde fallback lateral puro y no cae al graph transaccional
+- `create` queda intacto y el turno siguiente reengancha el faltante real
+
+Impacto:
+
+- agrega failsafe canónico para laterales puros dentro de `create`
+- bloquea contaminación transaccional cuando KB falla
+- preserva continuidad posterior de `create` sin mezclar dominios
+- consolida una regla estable de precedencia lateral dentro del runtime vigente
+
+### FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
+
 Estado: COMPLETADO  
 Fecha: 2026-04-13  
 Commit: 21c1430e2913c6503a4f44f7a66184fb88f04da3

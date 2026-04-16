@@ -281,6 +281,9 @@ Regla operativa:
 - cuando `modify.dates` ya quedó activo y existe un único lado temporal
   faltante, una fecha única posterior puede consumirse contextualmente sin
   reabrir menú genérico ni reiniciar el subflow
+- si un lateral puro ocurre dentro de `create` y KB falla o no devuelve una
+  categoría segura con texto, el runtime debe responder un fallback lateral
+  puro y no puede degradar ese turno al graph transaccional
 
 ### 5.6 `reservationSlots`
 
