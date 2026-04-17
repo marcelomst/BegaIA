@@ -2492,6 +2492,61 @@ function resolveModifyDatesContextualMissingSide(
   return undefined;
 }
 
+function detectShortRelativeWeekday(text: string): number | undefined {
+  const normalized = normalizeReferenceText(text || "").trim();
+  if (!normalized) return undefined;
+  if (/\d/.test(normalized)) return undefined;
+  const weekdayMap: Array<[RegExp, number]> = [
+    [/\b(domingo|sunday)\b/, 0],
+    [/\b(lunes|monday)\b/, 1],
+    [/\b(martes|tuesday)\b/, 2],
+    [/\b(miercoles|miércoles|wednesday)\b/, 3],
+    [/\b(jueves|thursday)\b/, 4],
+    [/\b(viernes|friday)\b/, 5],
+    [/\b(sabado|sábado|saturday)\b/, 6],
+  ];
+  for (const [pattern, weekday] of weekdayMap) {
+    if (pattern.test(normalized)) return weekday;
+  }
+  return undefined;
+}
+
+function firstWeekdayStrictlyAfter(baseIso: string, weekday: number): string | undefined {
+  const base = new Date(`${baseIso}T00:00:00.000Z`);
+  if (Number.isNaN(base.getTime())) return undefined;
+  const candidate = new Date(base.getTime());
+  let delta = (weekday - candidate.getUTCDay() + 7) % 7;
+  if (delta === 0) delta = 7;
+  candidate.setUTCDate(candidate.getUTCDate() + delta);
+  return candidate.toISOString().slice(0, 10);
+}
+
+function anchorModifyRelativeDateToContext(
+  pre: Pick<PreLLMResult, "st">,
+  text: string,
+  temporalDates: { checkIn?: string; checkOut?: string },
+  slots?: Partial<ReservationSlotsStrict> | null
+): { checkIn?: string; checkOut?: string } {
+  const contextualMissingSide = resolveModifyDatesContextualMissingSide(pre, slots);
+  if (contextualMissingSide !== "checkOut") return temporalDates;
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(slots || {}),
+  } as ReservationSlotsStrict;
+  if (!knownSlots.checkIn || knownSlots.checkOut) return temporalDates;
+  const explicitDates = extractDateRangeFromText(text);
+  if (explicitDates.checkIn || explicitDates.checkOut) return temporalDates;
+  const rawOrderedDates = extractRawOrderedDateRange(text);
+  if (rawOrderedDates?.checkIn || rawOrderedDates?.checkOut) return temporalDates;
+  const relativeWeekday = detectShortRelativeWeekday(text);
+  if (typeof relativeWeekday !== "number") return temporalDates;
+  const anchoredCheckOut = firstWeekdayStrictlyAfter(knownSlots.checkIn, relativeWeekday);
+  if (!anchoredCheckOut) return temporalDates;
+  return {
+    checkOut: anchoredCheckOut,
+  };
+}
+
 function hasModifyDatesEntrySignal(
   sideIntent: ReturnType<typeof detectDateSideFromText>,
   userDates: { checkIn?: string; checkOut?: string },
@@ -3616,7 +3671,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // pedimos la fecha faltante inmediatamente sin invocar el grafo pesado.
   try {
     const userTxtFast = String(pre.msg.content || "");
-    const drFast = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const drFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const drFast = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
     const modifyContextActiveFast =
       pre.inModifyMode ||
       pre.prevCategory === "modify_reservation" ||
@@ -4602,10 +4658,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const baseCheckOut = baseModifyTarget?.checkOut || reservationCheckOut;
     const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : baseCheckIn;
     const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : baseCheckOut;
-    const modifyTemporalDates =
+    const modifyTemporalDatesRaw =
       activeModifyField === "dates"
         ? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)
         : {};
+    const modifyTemporalDates =
+      activeModifyField === "dates"
+        ? anchorModifyRelativeDateToContext(pre, userTxtRaw, modifyTemporalDatesRaw, nextSlots)
+        : modifyTemporalDatesRaw;
     const contextualMissingModifySide =
       activeModifyField === "dates"
         ? resolveModifyDatesContextualMissingSide(pre, {

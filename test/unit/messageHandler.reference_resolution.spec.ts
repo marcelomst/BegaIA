@@ -979,6 +979,100 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("reancla 'domingo' al primer domingo posterior al check-in parcial en modify.dates", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-context-anchor-sunday-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-23",
+        checkOut: undefined,
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bdomingo\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-19T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-23",
+      checkOut: "2026-04-26",
+    });
+  });
+
+  it("reancla 'lunes' al primer lunes posterior al check-in parcial en modify.dates", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-context-anchor-monday-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-24",
+        checkOut: undefined,
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\blunes\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-20T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("el lunes", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-24",
+      checkOut: "2026-04-27",
+    });
+  });
+
+  it("no reancla fechas explícitas y mantiene los casos existentes de modify.dates", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-context-anchor-explicit-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-23",
+        checkOut: undefined,
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+
+    await handleIncomingMessage(msg("18/4/2026", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-23",
+      checkOut: "2026-04-18",
+    });
+  });
+
   it("entra por relato largo a modify.dates y evita el menú genérico", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-dates-entry-2";
