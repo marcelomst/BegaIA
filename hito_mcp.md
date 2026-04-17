@@ -6826,3 +6826,37 @@ Impacto:
 - formaliza la gobernanza del roadmap para cambios locales vs estructurales
 - fortalece trazabilidad entre roadmap, dictamen arquitectónico y cierre
   documental
+
+### FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16
+
+Estado: COMPLETADO  
+Fecha: 2026-04-17  
+Commit: 4002b5e7946242a406192de386715be0b6ce69f0
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la continuidad local de `modify.dates` después de un lateral FAQ
+puro, retomando desde el faltante contextual real en lugar de repreguntar ambas
+fechas.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- no se agregan reglas nuevas de arquitectura ni gobernanza
+- se preserva el estado canónico ya presente en `modify.dates`
+- el reenganche posterior al lateral retoma el faltante real y evita
+  repregunta redundante
+
+Impacto:
+
+- corrige continuidad local dentro del runtime vigente
+- evita repregunta innecesaria de fechas en `modify.dates`
+- preserva foco y estado canónico sin fuentes paralelas
+- mantiene el alcance acotado a un fix operativo de slice
