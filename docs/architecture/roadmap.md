@@ -176,7 +176,7 @@ IDENTIFICAR slices ≠ EXTRAER slices
 
 ---
 
-# 🚀 NIVEL 2 — FOCUS GOVERNANCE (CONTROLADO)
+# 🚀 NIVEL 2 — FOCUS GOVERNANCE (CERRADO — RUNTIME)
 
 ## CONDICIÓN DE ENTRADA
 
@@ -221,6 +221,16 @@ conversationFocus;
 - router externo
 - reescritura del pipeline
 
+## ✅ RESULTADO REAL
+
+- laterales puros resueltos sin contaminación de dominio
+- create no secuestra turnos FAQ
+- continuidad post-lateral preservada
+- fallback lateral canónico cuando KB falla
+- no descenso al graph transaccional en turnos laterales puros
+
+👉 validado en runtime real + tests
+
 ---
 
 # 🧱 NIVEL 3 — CROSS-DOMAIN GOVERNANCE
@@ -239,13 +249,80 @@ extender, no rediseñar
 
 ---
 
+# 🧩 PRE-NIVEL 4 — HARDEN RUNTIME BOUNDARIES (ACTUAL)
+
+👉 ESTA ES LA ETAPA REAL ACTUAL
+
+## OBJETIVO
+
+endurecer comportamiento sistémico sin refactorizar
+
+## FOCO
+
+- contratos implícitos entre create / modify / verify / laterales
+- precedencia determinística entre dominios
+- continuidad sin pérdida de estado
+- evidencia multi-turno real
+
+## 🔒 REGLAS
+
+NO extraer slices
+NO modularizar
+NO introducir nuevas capas
+NO migrar a graph
+
+## RESULTADO ESPERADO
+
+- runtime completamente estable cross-slice
+- comportamiento predecible
+- evidencia suficiente para refactor seguro
+
+---
+
 # 🧠 NIVEL 4 — RUNTIME REFACTOR (CONDICIONAL)
 
 👉 SOLO si:
 
-- comportamiento estable ✔️
-- slices claros ✔️
-- tests sólidos ✔️
+## 📊 CONDICIONES DE ENTRADA (CHECKPOINT ARQUITECTÓNICO)
+
+👉 Evaluación basada en evidencia, no en percepción
+
+```text id="lvl4chk"
+- comportamiento estable: ✔ / ⚠ / ❌
+- slices claros: ✔ / ⚠ / ❌
+- tests sólidos: ✔ / ⚠ / ❌
+- evidencia cross-slice: ✔ / ⚠ / ❌
+- readiness para refactor: ✔ / ⚠ / ❌
+```
+
+---
+
+## 🧠 REGLA DE ACTUALIZACIÓN
+
+```text id="lvl4rule"
+Estos campos NO se actualizan por hito individual.
+
+Se actualizan únicamente mediante:
+
+- checkpoint arquitectónico explícito
+- informe del agente arquitecto_sistema
+```
+
+---
+
+## 📅 ÚLTIMO CHECKPOINT ARQUITECTÓNICO
+
+```text id="lvl4last"
+- estado: B) Parcialmente listo
+- comportamiento estable: ✔
+- slices claros: ⚠
+- tests sólidos: ⚠
+- evidencia cross-slice: ⚠
+- readiness para refactor: ⚠
+
+- fuente:
+  ANALYSIS-PIPELINE-NIVEL4-ENTRY-CONDITIONS
+```
 
 ---
 
@@ -277,11 +354,122 @@ NO refactor sin evidencia de estabilidad
 
 ---
 
+# 🧩 GOVERNANCE DEL ROADMAP (DINÁMICO)
+
+👉 El roadmap es un documento vivo, pero con control de autoridad explícito.
+
+---
+
+## 🔒 REGLA
+
+```text
+El roadmap se actualiza solo con evidencia validada.
+No por percepción ni por intención.
+```
+
+---
+
+## 🧠 ROLES Y RESPONSABILIDADES
+
+### 🛡️ Repo Guardian
+
+- valida evidencia de cada hito
+- determina impacto local en el runtime
+- puede indicar:
+  - mejora
+  - mantenimiento
+  - regresión
+
+👉 NO decide estados de nivel
+👉 NO modifica el roadmap directamente
+
+---
+
+### 🧠 Arquitecto_sistema
+
+- evalúa estado estructural del sistema
+- determina:
+  - si un nivel está cerrado
+  - si una condición de entrada se cumple
+  - si el sistema está listo para avanzar de nivel
+
+👉 única autoridad para cambios de estado global
+
+---
+
+### 📝 HDOC
+
+- actualiza `roadmap.md`
+- registra:
+  - cambios de estado
+  - evidencia consolidada
+  - evolución del sistema
+
+👉 ejecuta cambios solo si existe:
+
+- evidencia validada por Guardian, y/o
+- dictamen explícito de Arquitecto_sistema
+
+---
+
+## 🔁 TIPOS DE ACTUALIZACIÓN
+
+### 1. Actualización LOCAL (por hito)
+
+Ejemplos:
+
+- capacidades consolidadas
+- deuda residual
+- estado operativo puntual
+
+Flujo:
+
+```text
+Hito → Guardian valida → HDOC actualiza roadmap
+```
+
+---
+
+### 2. Actualización ESTRUCTURAL (por nivel)
+
+Ejemplos:
+
+- “Nivel 2 cerrado”
+- “Pre-Nivel 4 activo”
+- “condición slices claros = ⚠”
+
+Flujo:
+
+```text
+Arquitecto evalúa → Guardian valida consistencia → HDOC actualiza roadmap
+```
+
+---
+
+## 🚨 RESTRICCIÓN CLAVE
+
+```text
+Guardian valida.
+Arquitecto decide.
+HDOC documenta.
+```
+
+---
+
+## 🎯 OBJETIVO
+
+```text
+Mantener el roadmap actualizado sin perder canonicidad,
+evitando cambios arbitrarios o inconsistentes.
+```
+
+---
+
 # 🧭 ORDEN OPERATIVO ACTUAL
 
 ```text
 1. CANONICAL STATE (validación residual)
-2. FOCUS GOVERNANCE
+2. HARDEN RUNTIME BOUNDARIES (etapa actual)
 ```
 
 ---
