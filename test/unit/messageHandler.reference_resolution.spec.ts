@@ -923,6 +923,62 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("mantiene continuidad en modify.dates después de un lateral FAQ y retoma desde el faltante real", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-lateral-continuity-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bjueves\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-16T00:00:00.000Z") } }]
+          : /\bdomingo\b/i.test(text)
+            ? [{ start: { date: () => new Date("2026-04-19T00:00:00.000Z") } }]
+            : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero cambiar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("ingreso el jueves", conversationId), { mode: "automatic", sendReply });
+
+    expect(stateByConversation.get(conversationId)).toMatchObject({
+      modifyState: { activeField: "dates" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      conversationFocus: { subFlow: "modify", active: true },
+      reservationSlots: { checkIn: "2026-04-16", checkOut: undefined },
+    });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/check-out|fecha de check-out|salida/i);
+
+    await handleIncomingMessage(msg("¿el desayuno está incluido?", conversationId), { mode: "automatic", sendReply });
+
+    const faqReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(faqReply).toMatch(/desayuno|incluido|tarifa/i);
+    expect(stateByConversation.get(conversationId)).toMatchObject({
+      modifyState: { activeField: "dates" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      conversationFocus: { subFlow: "modify", active: true },
+      reservationSlots: { checkIn: "2026-04-16", checkOut: undefined },
+    });
+
+    await handleIncomingMessage(msg("sí, continuar", conversationId), { mode: "automatic", sendReply });
+
+    const continueReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(continueReply).toMatch(/check-out|fecha de check-out|salida/i);
+    expect(continueReply).not.toMatch(/nuevo check-in y check-out|qu[eé] cambio aplico|qu[eé] te gustar[ií]a cambiar/i);
+
+    await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
+
+    const finalReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(finalReply).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(finalReply).not.toMatch(/check-out|fecha de check-out|salida/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-16",
+      checkOut: "2026-04-19",
+    });
+  });
+
   it("entra por relato largo a modify.dates y evita el menú genérico", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-dates-entry-2";

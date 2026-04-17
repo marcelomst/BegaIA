@@ -2295,14 +2295,17 @@ function buildReservationLocalFallbackReply(
       };
     }
     if (activeModifyField === "dates") {
+      const missingModifySide = resolveModifyDatesContextualMissingSide(pre, nextSlots);
       return {
         nextCategory: "modify_reservation",
         finalText:
-          pre.lang === "es"
-            ? "Seguimos modificando fechas. Decime el nuevo check-in y check-out."
-            : pre.lang === "pt"
-              ? "Seguimos alterando as datas. Me diga o novo check-in e check-out."
-              : "We are still changing dates. Tell me the new check-in and check-out.",
+          missingModifySide
+            ? buildAskMissingDate(pre.lang, missingModifySide)
+            : pre.lang === "es"
+              ? "Seguimos modificando fechas. Decime el nuevo check-in y check-out."
+              : pre.lang === "pt"
+                ? "Seguimos alterando as datas. Me diga o novo check-in e check-out."
+                : "We are still changing dates. Tell me the new check-in and check-out.",
       };
     }
     if (activeModifyField === "roomType") {
