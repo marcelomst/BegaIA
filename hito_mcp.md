@@ -6860,3 +6860,36 @@ Impacto:
 - evita repregunta innecesaria de fechas en `modify.dates`
 - preserva foco y estado canónico sin fuentes paralelas
 - mantiene el alcance acotado a un fix operativo de slice
+
+### FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17
+
+Estado: COMPLETADO  
+Fecha: 2026-04-17  
+Commit: f95f095bcac31177b3e8f2836f60fc614f541b03
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige el anclaje contextual local para weekdays relativos cortos en
+`modify.dates` cuando existe `checkIn` parcial y falta `checkOut`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- no se alteran contratos estructurales, arquitectura global ni roadmap
+- el runtime usa el estado parcial real como referencia temporal canónica
+- se evita depender de `hoy` como ancla dominante cuando ya existe contexto
+  parcial válido
+
+Impacto:
+
+- corrige anclaje contextual local dentro de `modify.dates`
+- preserva el estado parcial real como referencia canónica
+- evita parsing paralelo global o fuentes temporales competidoras
+- mantiene el alcance acotado a un fix operativo de slice
