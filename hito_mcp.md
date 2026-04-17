@@ -6748,3 +6748,44 @@ Impacto:
 - reduce ambigüedad documental sobre la precedencia entre canon y helpers
 - mejora coherencia transversal entre rutas de reply ya alineadas
 - no refactoriza runtime ni introduce capas nuevas
+
+### DOC-OPERATING-MODEL-AGENT-DISPATCH-AND-TOOLING-ALIGNMENT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-17  
+Commit: 884b4b0244d079e2a69886841a7df7dc4988a776
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se alinea el contrato operativo global con el dispatch explícito de agentes,
+la herramienta de cápsula, la puerta de entrada y el prompt de checkpoint
+arquitectónico.
+
+Archivos afectados:
+
+- `README.md`
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/architecture/system_operating_model.md`
+- `docs/architecture/prompts/architectural_checkpoint.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- se explicita la jerarquía entre `system_operating_model.md` y
+  `config.toml`
+- se formaliza `AGPT HITO DISPATCH RULE`
+- se formaliza la interfaz `Guardian -> HDOC` con salida estructurada
+  obligatoria
+- HDOC queda explícitamente impedido de reanalizar el diff completo salvo
+  inconsistencia material, duda documental real o conflicto de evidencia
+
+Impacto:
+
+- consolida el contrato operativo global entre documentos y ejecución
+- reduce ambigüedad en dispatch de agentes y fases operativas
+- fortalece trazabilidad entre orquestación, auditoría y cierre documental
+- requiere mantener `README.md` y `docs/CAPSULE_TEMPLATE_V3.md` como
+  artefactos derivados y no como fuentes normativas paralelas
