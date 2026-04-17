@@ -1,3 +1,5 @@
+// Path: README.md
+
 # Begasist
 
 [![ci-core](https://github.com/marcelomst/BegaIA/actions/workflows/ci-core.yml/badge.svg?branch=main)](https://github.com/marcelomst/BegaIA/actions/workflows/ci-core.yml)
@@ -116,6 +118,20 @@ Directorios principales y propósito:
 
 Begasist está organizado para que humanos y agentes trabajen sobre el mismo
 modelo documental.
+
+Fuentes de verdad:
+
+- `docs/architecture/system_operating_model.md`
+  - contrato operativo global
+
+- `/home/marcelo/.codex/config.toml`
+  - definición operativa de agentes en VSCode Codex
+  - modelos, prompts y responsabilidades reales
+
+REGLA:
+
+- el operating model gobierna la disciplina
+- `config.toml` gobierna la ejecución de agentes
 
 Al usar este proyecto desde ChatGPT o mediante agentes especializados:
 

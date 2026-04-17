@@ -1,8 +1,10 @@
+// Path: docs/architecture/system_operating_model.md
+
 # System Operating Model
 
-DOCUMENT_TYPE: OPERATING_MODEL  
-PRIORITY: MAX  
-SCOPE: GLOBAL  
+DOCUMENT_TYPE: OPERATING_MODEL
+PRIORITY: MAX
+SCOPE: GLOBAL
 ENFORCEMENT: STRICT
 
 ---
@@ -12,7 +14,7 @@ ENFORCEMENT: STRICT
 Este documento define el contrato operativo obligatorio para construir y mantener el sistema con:
 
 - trazabilidad completa
-- separación estricta de roles
+- separación estricta de rolescapsule
 - cambios verificables
 
 SOURCE_OF_TRUTH: TRUE
@@ -26,16 +28,36 @@ SOURCE_OF_TRUTH_SCOPE:
 
 ---
 
+## AGENT RUNTIME SOURCE OF TRUTH
+
+La definición operativa vigente de agentes NO vive exclusivamente en este documento.
+
+La fuente de verdad para:
+
+- definición de agentes
+- modelos utilizados
+- prompts de sistema
+- límites operativos de cada agente
+
+es:
+
+- `/home/marcelo/.codex/config.toml`
+
+REGLA:
+
+- `system_operating_model.md` define el contrato global de operación
+- `config.toml` define la implementación operativa concreta de agentes en VSCode Codex
+
+Si existe conflicto:
+
+- prevalece el contrato del operating model
+- la configuración activa de agentes debe leerse desde `config.toml`
+
+---
+
 ## GOVERNANCE_REFERENCE
 
 ADR: ADR-DOC-GOVERNANCE-01
-
-DEFINE:
-
-- historia
-- arquitectura viva
-- operación
-- decisiones estructurales
 
 ---
 
@@ -51,20 +73,147 @@ DEFINE:
 ## PRINCIPLES (GUIDELINES)
 
 GUIDELINE: SEPARATION_OF_CONCERNS
-
-- separar pensar, ejecutar y controlar
-
 GUIDELINE: SMALL_CHANGES
-
-- mantener cambios pequeños, auditables y reversibles
-
 GUIDELINE: EVIDENCE_OVER_OPINION
-
-- privilegiar evidencia sobre opinion
-
 GUIDELINE: NO_PARTIAL_CLOSURE
 
-- no cerrar hitos sin commit, hash y push reales
+---
+
+## ORCHESTRATION MODEL
+
+El sistema distingue dos niveles de orquestación:
+
+### Nivel 1 — AGPT (ChatGPT App)
+
+Responsabilidades:
+
+- definir hitos
+- interpretar Operating System (.md)
+- decidir flujo entre agentes
+- proponer clasificación documental
+- consolidar contexto entre iteraciones
+
+AGPT NO:
+
+- ejecuta código
+- audita diffs
+- documenta cierres
+
+---
+
+### Nivel 2 — Agentes VSCode Codex
+
+Definidos en:
+
+- `/home/marcelo/.codex/config.toml`
+
+Roles principales:
+
+- asistente_tecnico → implementación
+- repo_guardian → auditoría de hito
+- hdoc → cierre documental
+- arquitecto_sistema → análisis estructural profundo (on-demand)
+- arquitecto_kb → análisis estructural de KB (on-demand)
+
+REGLA:
+
+- los agentes ejecutan
+- AGPT orquesta
+
+---
+
+## AGPT HITO DISPATCH RULE (NEW)
+
+AGPT DEBE emitir todos los hitos con asignación explícita de agente y fase operativa.
+
+Esto elimina ambigüedad en la ejecución y evita dispatch incorrecto.
+
+---
+
+### CAMPOS OBLIGATORIOS EN CADA HITO
+
+Todo hito definido por AGPT debe incluir:
+
+- `agent_target`
+- `flow_position`
+
+---
+
+### DEFINICIÓN DE CAMPOS
+
+#### agent_target
+
+Debe ser uno de:
+
+- asistente_tecnico
+- repo_guardian
+- hdoc
+- arquitecto_sistema
+- arquitecto_kb
+
+---
+
+#### flow_position
+
+Debe ser uno de:
+
+- analysis
+- implementation
+- audit
+- documentation
+
+---
+
+### REGLA DE ASIGNACIÓN
+
+AGPT debe seleccionar el agente según el tipo dominante de trabajo:
+
+- cambiar código → `asistente_tecnico`
+- auditar hito/diff → `repo_guardian`
+- cerrar documentalmente → `hdoc`
+- entender problema estructural → `arquitecto_sistema`
+- analizar KB/tokens/templates → `arquitecto_kb`
+
+---
+
+### REGLA DE COHERENCIA
+
+Debe cumplirse:
+
+- implementation → asistente_tecnico
+- audit → repo_guardian
+- documentation → hdoc
+- analysis → arquitecto_sistema o arquitecto_kb
+
+Si hay inconsistencia:
+
+👉 el hito es inválido y debe corregirse antes de ejecutarse
+
+---
+
+### REGLA DE DESEMPATE
+
+Si AGPT duda entre agentes:
+
+- si el cambio ya está claro → asistente_tecnico
+- si el problema no está completamente entendido → arquitecto_sistema
+- si el código ya existe y se valida → repo_guardian
+- si ya hay commit/hash/push → hdoc
+
+---
+
+### PROHIBICIÓN
+
+AGPT NO puede emitir hitos sin:
+
+- agent_target
+- flow_position
+
+---
+
+### PRINCIPIO
+
+> AGPT decide quién ejecuta antes de definir qué se ejecuta.
 
 ---
 
@@ -79,13 +228,9 @@ MUST:
 - ejecutar comandos manualmente uno por vez
 - devolver output real
 
-FORBIDDEN:
-
-- delegar ejecucion de Git write
-
 ---
 
-### ROLE: CHATGPT
+### ROLE: CHATGPT (AGPT)
 
 MUST:
 
@@ -96,7 +241,7 @@ MUST:
 
 FORBIDDEN:
 
-- escribir codigo productivo fuera del flujo
+- escribir codigo productivo
 - ejecutar Git write
 
 ---
@@ -109,25 +254,6 @@ MUST:
 - debuggear
 - validar con tests
 
-FORBIDDEN:
-
-- romper contratos sin instruccion explicita
-- iniciar refactors grandes sin plan
-
----
-
-### ROLE: AGENT.ARQUITECTO_SISTEMA
-
-MUST:
-
-- tomar decisiones estructurales
-- analizar acoplamientos y riesgos
-
-FORBIDDEN:
-
-- reemplazar runtime sin evidencia
-- inventar componentes o archivos
-
 ---
 
 ### ROLE: AGENT.REPO_GUARDIAN
@@ -136,14 +262,9 @@ MUST:
 
 - auditar working tree
 - validar pureza del hito
+- interpretar diff
+- producir salida estructurada para HDOC
 - sugerir commit
-
-FORBIDDEN:
-
-- modificar codigo
-- ejecutar Git write
-
-RULE: ONE_COMMIT_PER_HITO
 
 ---
 
@@ -152,152 +273,159 @@ RULE: ONE_COMMIT_PER_HITO
 MUST:
 
 - validar cierre documental
-- mantener hito_mcp.md
+- mantener `hito_mcp.md`
+- mantener `hito_mcp_recent.md` como recorte operativo de los últimos 10 hitos
 - asegurar consistencia codigo/commit/doc
+- consumir salida estructurada de Guardian
 
-FORBIDDEN:
+REGLA:
 
-- documentar sin evidencia
-- inventar commits/hashes/pushes
-- ejecutar Git write
+- `hito_mcp_recent.md` debe reflejar SIEMPRE los últimos 10 hitos documentados
+- debe generarse a partir de `hito_mcp.md`
+- no introduce información nueva
+- no reemplaza el historial completo
 
-RULE: TRACEABILITY_CHAIN
+PROPÓSITO:
 
-FLOW:
-CODE -> COMMIT -> HASH -> PUSH -> DOC
+- permitir a AGPT tener contexto reciente portable
+- facilitar inicio de nuevos chats sin pérdida de trazabilidad reciente
+
+---
+
+## OPERATIONAL FLOW
+
+### Flujo real operativo
+
+AGPT → Técnico → AGPT → Guardian → HDOC → AGPT
+
+Opcional:
+
+AGPT → Arquitecto_sistema / Arquitecto_kb
 
 ---
 
-## OPERATIONAL_FLOW
+## GUARDIAN → HDOC INTERFACE
 
-FLOW: STANDARD_SEQUENCE
+PROBLEMA:
 
-1. ChatGPT define problema/hito
-2. AGENT.ARQUITECTO evalua contexto estructural
-3. AGENT.ASISTENTE_TECNICO implementa
-4. AGENT.REPO_GUARDIAN audita
-5. MARCELO ejecuta Git
-6. AGENT.HDOC documenta
+- duplicación de interpretación de diffs
+
+REGLA:
+
+> El diff se interpreta UNA sola vez en Guardian
 
 ---
+
+### Salida obligatoria de Guardian
+
+Debe incluir:
+
+- hito_id
+- hito_type
+- scope_real
+- archivos_afectados
+- commit_name_sugerido
+- doc_classification_proposed
+- doc_rationale
+- canonicality_impact
+- canonicality_rationale
+- architecture_docs_candidates
+- ready_for_hdoc
+
+---
+
+### Regla para HDOC
+
+HDOC:
+
+- usa salida de Guardian como fuente primaria
+- no reinterpreta diff completo
+
+EXCEPCIÓN:
+
+- inconsistencia
+- duda documental
+- conflicto de evidencia
+
+---
+
+## DOCUMENT CLASSIFICATION FLOW
+
+1. AGPT propone clasificación
+2. Guardian valida
+3. HDOC consolida
+
+REGLA:
+
+- evidencia siempre prevalece
+
+---
+
+## ROADMAP_GOVERNANCE
+
+El `roadmap.md` es un documento vivo, pero su actualización debe seguir una
+autoridad explícita.
+
+NOTA:
+
+El detalle operativo del checkpoint arquitectónico y las condiciones de entrada a Nivel 4
+se define en `roadmap.md`.
+REGLA:
+
+- Repo Guardian valida evidencia de hitos y consistencia local
+- Arquitecto_sistema decide cambios de estado estructural o de nivel
+- HDOC consolida los cambios en `roadmap.md`
+
+DISTINCIÓN OBLIGATORIA:
+
+### Actualización local del roadmap
+
+Aplica a:
+
+- capacidades consolidadas
+- deuda residual
+- estado operativo puntual
+
+Puede basarse en:
+
+- evidencia validada por Repo Guardian
+
+### Actualización estructural del roadmap
+
+Aplica a:
+
+- estado de niveles
+- condiciones de entrada/salida de nivel
+- checkpoints arquitectónicos
+- readiness para refactor
+
+Requiere:
+
+- dictamen explícito de `arquitecto_sistema`
+- validación de consistencia por Repo Guardian
+- consolidación documental por HDOC
+
+PROHIBICIÓN:
+
+- Repo Guardian no decide por sí solo estados de nivel
+- HDOC no altera checkpoints estructurales sin dictamen explícito del arquitecto
 
 ## HITO_RULES
 
 RULE: HITO_SINGLE_INTENTION
-
-- un hito tiene una sola intencion tecnica
-
 RULE: HITO_EXPLAINABLE
-
-- debe poder explicarse en una frase
-
 RULE: HITO_REVERSIBLE
-
-- debe poder revertirse sin daño colateral
-
-FORBIDDEN: CROSS_DOMAIN_HITO
-
-- no mezclar PIPELINE, KB, MCP, ADMIN u otras capas
-
-CHECK: HITO_SCOPE_VALIDATION
-IF:
-
-- el diff contiene multiples responsabilidades
-
-THEN:
-
-- dividir el hito antes del commit
-
----
-
-## HITO_NAMING
-
-FORMAT:
-TIPO-DOMINIO-SUBDOMINIO-TEMA-NN
-
-EXAMPLES:
-
-- FIX-PIPELINE-CREATE-QUOTE-GATING-02
-- REF-PIPELINE-FOCUS-CONTINUATION-01
-- DOC-ARCHITECTURE-CANONICAL-STATE-GOVERNANCE-01
-
-ALLOWED_TYPES:
-
-- FIX = corrige comportamiento incorrecto
-- FEAT = agrega capacidad nueva
-- REF = refina modelo, estructura o gobernanza sin cambiar el objetivo funcional principal
-- DOC = cambia documentación, criterios o gobernanza documental
-
-STRUCTURE_RULES:
-
-- el segundo bloque identifica el dominio principal
-- los bloques siguientes identifican el slice y el problema real
-- el sufijo numérico se incrementa cuando se retoma el mismo tema en un hito nuevo
-
-RULE: HITO_NAME_CONSISTENCY
-
-- debe coincidir en:
-  - repo_guardian
-  - commit
-  - push
-  - hdoc
-- el nombre del hito debe reflejar el alcance real del diff
-- si el diff cambia de alcance, el nombre debe ajustarse antes del commit
-
-FORBIDDEN: GENERIC_NAMING
-
-- no usar fix(), feat(), etc
-
-CHECK: HITO_NAME_VALIDATION
-IF:
-
-- el nombre requiere "y ademas"
-
-THEN:
-
-- hay mezcla de hitos
-
-RULE: HITO_NAME_SEMANTIC_DEFENSE
-
-- el nombre debe poder explicar una sola responsabilidad clara
-- el nombre debe ser defendible arquitectónicamente
-
-RULE: HITO_NAME_TRACEABILITY
-
-- el identificador del hito vive dentro del mensaje de commit
-- si no se commitea aislado, no existe como hito
-
----
-
-## CANONICAL_REPRESENTATION
-
-RULE: CANONICAL_STATE_REQUIRED
-
-- el estado es la fuente de verdad
-- no duplicar estructuras
-- operar sobre entidades consistentes
-
-FORBIDDEN:
-
-- modificar runtime sin ADR
-- introducir capas paralelas
-- generalizar cross-domain prematuramente
 
 ---
 
 ## GIT_RULES
 
-RULE: MARCELO_EXCLUSIVE_WRITE
+RULE: ONE_HITO_ONE_COMMIT
+RULE: TRACEABILITY_CHAIN
 
-- solo Marcelo ejecuta Git write
+FLOW:
 
-RULE: SINGLE_COMMAND
-
-- comandos Git se dan uno por vez
-
-FORBIDDEN:
-
-- asumir ejecucion sin output real
+CODE → COMMIT → HASH → PUSH → DOC
 
 ---
 
@@ -308,97 +436,27 @@ FORBIDDEN:
 - documentar sin commit
 - documentar sin hash
 - documentar sin push
-- no cerrar hitos incompletos
-- no duplicar hitos ya documentados
-
-RULE: DOC_TYPES
-
-- historica → hito_mcp.md
-- arquitectura viva → docs/architecture/*.md
-- operativa → system_operating_model.md y documentos operativos asociados
-- ADR → decisiones estructurales estables
-- artefactos derivados → diagramas e imágenes, no fuente primaria
 
 ---
 
 ## DOCUMENTATION_CLASSIFICATION
 
 TYPE: SOLO_HITO
-
-APPLIES_IF:
-
-- cambio local
-- sin impacto estructural
-
----
-
 TYPE: HITO_PLUS_EVOLUTION
 
-APPLIES_IF:
-
-- introduce regla de runtime
-- define jerarquia
-- crea slice
-- cambia comportamiento observable
-
-EXAMPLE_SLICES:
-
-- domain governance
-- fallback governance
-- reference lifecycle
-- modify substate
-
-RULE: DOUBT_RESOLUTION
-
-- en duda → usar HITO_PLUS_EVOLUTION
-
-GOAL:
-
-- evitar que la documentación refleje solo eventos aislados
-- asegurar que capture la evolución del comportamiento del sistema
-
 ---
 
-## COMMIT_GRANULARITY
+## NO PARTIAL CLOSURE
 
-RULE: ONE_HITO_ONE_COMMIT
+Se mantiene sin cambios:
 
-FORBIDDEN:
+- 1 hito → 1 commit
+- 1 hito → 1 cierre documental
 
-- fragmentar commits del mismo hito
+NO se introducen:
 
-CHECK: COMMIT_FRAGMENTATION
-IF:
-
-- multiples commits mismo hito
-
-THEN:
-
-- consolidar antes de commit
-
-RATIONALE:
-
-- priorizar claridad histórica sobre granularidad técnica
-- detectar fragmentación innecesaria antes del commit
-- no fragmentar documentación o cambios estructurales sin justificación real
-
-APPLIES_TO:
-
-- código
-- documentación
-- arquitectura
-- prompts
-
-NOTE:
-
-- no requiere reescritura de historial existente
-- aplica hacia adelante
+- estados intermedios
+- batching documental
+- PENDING_HDOC
 
 ---
-
-## RELATED_DOCS
-
-- channel_map.md
-- chat_naming_standard.md
-- prompts_new_chats.md
-- hito_mcp.md
