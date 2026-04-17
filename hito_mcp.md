@@ -6789,3 +6789,40 @@ Impacto:
 - fortalece trazabilidad entre orquestación, auditoría y cierre documental
 - requiere mantener `README.md` y `docs/CAPSULE_TEMPLATE_V3.md` como
   artefactos derivados y no como fuentes normativas paralelas
+
+### DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-04-17  
+Commit: 3369b4d5ad85e046208a1ace0cf4867117bae494
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se actualiza el estado real del roadmap, el checkpoint de entrada a Nivel 4 y
+las reglas de gobernanza para distinguir cambios locales frente a cambios
+estructurales del roadmap.
+
+Archivos afectados:
+
+- `docs/architecture/roadmap.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: structural_candidate`
+- dictamen explícito de `arquitecto_sistema`: `APROBADO_PARA_HDOC`
+- se valida como correcto el pasaje a `PRE-NIVEL 4 — HARDEN RUNTIME BOUNDARIES`
+- se valida el checkpoint explícito de entrada a Nivel 4
+- se valida consistencia con `system_operating_model.md`
+- queda observación editorial no bloqueante: acotar la autoridad del roadmap
+  al estado arquitectónico del roadmap, niveles y checkpoints
+
+Impacto:
+
+- corrige la representación arquitectónica del momento real del sistema
+- explicita la etapa actual y sus precondiciones de endurecimiento
+- formaliza la gobernanza del roadmap para cambios locales vs estructurales
+- fortalece trazabilidad entre roadmap, dictamen arquitectónico y cierre
+  documental
