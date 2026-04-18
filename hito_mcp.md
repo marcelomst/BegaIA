@@ -6893,3 +6893,36 @@ Impacto:
 - preserva el estado parcial real como referencia canónica
 - evita parsing paralelo global o fuentes temporales competidoras
 - mantiene el alcance acotado a un fix operativo de slice
+
+### FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18
+
+Estado: COMPLETADO  
+Fecha: 2026-04-18  
+Commit: a270e2b02edb7cee654866aad8d203ce8e8dcf70
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige `modify.dates` para interpretar correcciones conversacionales sobre
+un rango ya completo y reemplazar el slot corregido sin degradar el subflow.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- no altera arquitectura, contratos globales ni roadmap
+- reemplaza el slot corregido sobre el estado ya capturado como fuente de
+  verdad
+- no reinicia el flujo ni introduce parsing global paralelo
+
+Impacto:
+
+- corrige una corrección conversacional local dentro de `modify.dates`
+- reemplaza el slot corregido sin degradar el subflow
+- preserva el estado ya capturado como referencia canónica
+- mantiene el alcance acotado a un fix operativo de slice
