@@ -1073,6 +1073,143 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("corrige el check-out en modify.dates con 'no, quise decir el martes' sin perder el check-in", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-correction-direct-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-23",
+        checkOut: "2026-04-26",
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bmartes\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-21T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("no, quise decir el martes", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).not.toMatch(/check-in y check-out|fecha de check-out|salida/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-23",
+      checkOut: "2026-04-28",
+    });
+  });
+
+  it("corrige el check-out en modify.dates con 'perdón, el martes' sin requerir 'no' explícito", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-correction-soft-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-23",
+        checkOut: "2026-04-26",
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bmartes\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-21T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("perdón, el martes", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-23",
+      checkOut: "2026-04-28",
+    });
+  });
+
+  it("no corrige slots en modify.dates cuando no hay marcador conversacional de corrección", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-correction-guard-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      reservationSlots: {
+        ...baseMultiReservationState().reservationSlots,
+        checkIn: "2026-04-23",
+        checkOut: "2026-04-26",
+      },
+      modifyState: { activeField: "dates", updatedAt: "2026-04-10T10:00:00.000Z" },
+      conversationFocus: { domain: "reservation", subFlow: "modify", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bmartes\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-21T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("el martes", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-23",
+      checkOut: "2026-04-26",
+    });
+  });
+
+  it("no aplica la corrección de modify.dates cuando el flujo activo es create", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-correction-create-guard-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        checkIn: "2026-04-23",
+        checkOut: "2026-04-26",
+        numGuests: "2",
+      },
+      salesStage: "quote",
+      conversationStage: "reservation_in_progress",
+      activeFlow: "create_reservation",
+      desiredAction: "create",
+      conversationFocus: { domain: "reservation", subFlow: "create", active: true, updatedAt: "2026-04-10T10:00:00.000Z" },
+      updatedAt: "2026-04-10T10:00:00.000Z",
+    });
+    process.env.USE_CHRONO_LAYER = "1";
+    (globalThis as any).__chronoImport = async () => ({
+      es: {
+        parse: (text: string) => /\bmartes\b/i.test(text)
+          ? [{ start: { date: () => new Date("2026-04-21T00:00:00.000Z") } }]
+          : [],
+      },
+    });
+
+    await handleIncomingMessage(msg("perdón, el martes", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(stateByConversation.get(conversationId)?.activeFlow).toBe("create_reservation");
+    expect(stateByConversation.get(conversationId)?.modifyState).toBeUndefined();
+  });
+
   it("entra por relato largo a modify.dates y evita el menú genérico", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-dates-entry-2";

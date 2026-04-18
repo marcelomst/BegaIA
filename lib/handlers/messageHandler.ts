@@ -2521,6 +2521,23 @@ function firstWeekdayStrictlyAfter(baseIso: string, weekday: number): string | u
   return candidate.toISOString().slice(0, 10);
 }
 
+function anchorRelativeWeekdayToCheckOutAfterCheckIn(
+  text: string,
+  temporalDates: { checkIn?: string; checkOut?: string },
+  checkInIso?: string
+): { checkIn?: string; checkOut?: string } {
+  if (!checkInIso) return temporalDates;
+  const explicitDates = extractDateRangeFromText(text);
+  if (explicitDates.checkIn || explicitDates.checkOut) return temporalDates;
+  const rawOrderedDates = extractRawOrderedDateRange(text);
+  if (rawOrderedDates?.checkIn || rawOrderedDates?.checkOut) return temporalDates;
+  const relativeWeekday = detectShortRelativeWeekday(text);
+  if (typeof relativeWeekday !== "number") return temporalDates;
+  const anchoredCheckOut = firstWeekdayStrictlyAfter(checkInIso, relativeWeekday);
+  if (!anchoredCheckOut) return temporalDates;
+  return { checkOut: anchoredCheckOut };
+}
+
 function anchorModifyRelativeDateToContext(
   pre: Pick<PreLLMResult, "st">,
   text: string,
@@ -2534,17 +2551,13 @@ function anchorModifyRelativeDateToContext(
     ...(slots || {}),
   } as ReservationSlotsStrict;
   if (!knownSlots.checkIn || knownSlots.checkOut) return temporalDates;
-  const explicitDates = extractDateRangeFromText(text);
-  if (explicitDates.checkIn || explicitDates.checkOut) return temporalDates;
-  const rawOrderedDates = extractRawOrderedDateRange(text);
-  if (rawOrderedDates?.checkIn || rawOrderedDates?.checkOut) return temporalDates;
-  const relativeWeekday = detectShortRelativeWeekday(text);
-  if (typeof relativeWeekday !== "number") return temporalDates;
-  const anchoredCheckOut = firstWeekdayStrictlyAfter(knownSlots.checkIn, relativeWeekday);
-  if (!anchoredCheckOut) return temporalDates;
-  return {
-    checkOut: anchoredCheckOut,
-  };
+  return anchorRelativeWeekdayToCheckOutAfterCheckIn(text, temporalDates, knownSlots.checkIn);
+}
+
+function hasModifyDateCorrectionCue(text: string): boolean {
+  const normalized = normalizeReferenceText(text || "").trim();
+  if (!normalized) return false;
+  return /\b(no|perdon|perdón|disculpa|disculpá|quise decir|queria decir|quería decir|me equivoque|me equivoqué)\b/.test(normalized);
 }
 
 function hasModifyDatesEntrySignal(
@@ -3673,6 +3686,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxtFast = String(pre.msg.content || "");
     const drFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
     const drFast = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
+    const activeModifyFieldFast = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
     const modifyContextActiveFast =
       pre.inModifyMode ||
       pre.prevCategory === "modify_reservation" ||
@@ -3683,9 +3697,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const singleFastISO = drFast.checkIn || drFast.checkOut;
     const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);
     const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
-    if (hasOneDateOnly && hasContext) {
-      const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
-      const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
+    const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
+    const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
+    const hasCompleteModifyDatesFast =
+      activeModifyFieldFast === "dates" &&
+      Boolean((pre.st?.reservationSlots?.checkIn || nextSlots.checkIn) && (pre.st?.reservationSlots?.checkOut || nextSlots.checkOut));
+    const shouldDeferSingleDateFastPath =
+      fastPathSubFlow === "modify" &&
+      hasCompleteModifyDatesFast &&
+      !contextualMissingSideFast &&
+      !fastTemporalSideIntent;
+    if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {
       if (singleFastISO && contextualMissingSideFast) {
         const contextualFastDates = contextualMissingSideFast === "checkIn"
           ? { checkIn: singleFastISO }
@@ -4656,6 +4678,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const baseGuests = reservationGuests || baseModifyTarget?.numGuests;
     const baseCheckIn = baseModifyTarget?.checkIn || reservationCheckIn;
     const baseCheckOut = baseModifyTarget?.checkOut || reservationCheckOut;
+    const currentModifyCheckIn = nextSlots.checkIn || pre.st?.reservationSlots?.checkIn || baseCheckIn;
+    const currentModifyCheckOut = nextSlots.checkOut || pre.st?.reservationSlots?.checkOut || baseCheckOut;
     const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : baseCheckIn;
     const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : baseCheckOut;
     const modifyTemporalDatesRaw =
@@ -4677,6 +4701,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : undefined;
     const modifySingleTemporalISO =
       modifyTemporalDates.checkIn || modifyTemporalDates.checkOut;
+    const hasModifyDateCorrection =
+      activeModifyField === "dates" &&
+      Boolean(currentModifyCheckIn && currentModifyCheckOut) &&
+      hasModifyDateCorrectionCue(userTxtRaw) &&
+      Boolean(modifySingleTemporalISO) &&
+      !hasExplicitDateRange;
     const hasContextualSingleModifyDate =
       activeModifyField === "dates" &&
       Boolean(contextualMissingModifySide) &&
@@ -4749,6 +4779,63 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
       nextSlots = ingestedSlots;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (activeModifyField === "dates" && hasModifyDateCorrection) {
+      const correctionSideIntent = detectModifyTemporalSideIntent(userTxtRaw, modifyTemporalDates) || "checkOut";
+      const correctionTemporalDates =
+        correctionSideIntent === "checkOut"
+          ? anchorRelativeWeekdayToCheckOutAfterCheckIn(userTxtRaw, modifyTemporalDates, currentModifyCheckIn)
+          : modifyTemporalDates;
+      const correctedTemporalISO =
+        correctionSideIntent === "checkIn"
+          ? (correctionTemporalDates.checkIn || correctionTemporalDates.checkOut)
+          : (correctionTemporalDates.checkOut || correctionTemporalDates.checkIn);
+      if (correctedTemporalISO) {
+        const correctedDates = correctionSideIntent === "checkIn"
+          ? { checkIn: correctedTemporalISO, checkOut: currentModifyCheckOut }
+          : { checkIn: currentModifyCheckIn, checkOut: correctedTemporalISO };
+        const modifyDateCoherence = assessReservationDateCoherence(correctedDates.checkIn, correctedDates.checkOut);
+        if (modifyDateCoherence && !modifyDateCoherence.ok) {
+          finalText = buildInvalidReservationDatesReply(pre.lang, modifyDateCoherence.reason);
+          return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+        }
+        const correctedSlots = mergeReservationSlots(
+          {
+            ...(pre.st?.reservationSlots || {}),
+            guestName: baseGuestName,
+            roomType: baseRoomType,
+            numGuests: baseGuests,
+            checkIn: currentModifyCheckIn,
+            checkOut: currentModifyCheckOut,
+            locale: pre.lang,
+          } as ReservationSlotsStrict,
+          nextSlots,
+          correctedDates
+        );
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: {
+            ...(pre.st?.reservationSlots || {}),
+            ...correctedSlots,
+            locale: pre.lang,
+          },
+          modifyState: buildModifyState("dates"),
+          conversationFocus: buildConversationFocus("modify"),
+          activeFlow: "modify_reservation",
+          desiredAction: "modify",
+          lastCategory: "modify_reservation",
+          updatedBy: "ai",
+        } as any);
+        const ciTxt = isoToDDMMYYYY(correctedSlots.checkIn) || correctedSlots.checkIn;
+        const coTxt = isoToDDMMYYYY(correctedSlots.checkOut) || correctedSlots.checkOut;
+        finalText = pre.lang === "es"
+          ? `Anoté nuevas fechas: ${ciTxt} → ${coTxt}. ¿Deseás que verifique disponibilidad y posibles diferencias?`
+          : pre.lang === "pt"
+            ? `Anotei as novas datas: ${ciTxt} → ${coTxt}. Deseja que eu verifique a disponibilidade e possíveis diferenças?`
+            : `Noted the new dates: ${ciTxt} → ${coTxt}. Do you want me to check availability and any differences?`;
+        nextSlots = correctedSlots;
+        return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+      }
     }
 
     if (!hasTurnLevelModifyValue && !awaitingModifyExecutionContinuation) {
