@@ -249,9 +249,9 @@ extender, no rediseñar
 
 ---
 
-# 🧩 PRE-NIVEL 4 — HARDEN RUNTIME BOUNDARIES (ACTUAL)
+# 🧩 PRE-NIVEL 4 — HARDEN RUNTIME BOUNDARIES (CERRADO)
 
-👉 ESTA ES LA ETAPA REAL ACTUAL
+👉 checkpoint alcanzado: `CHECKPOINT-PRE-NIVEL-4-RUNTIME-BOUNDARIES`
 
 ## OBJETIVO
 
@@ -313,15 +313,16 @@ Se actualizan únicamente mediante:
 ## 📅 ÚLTIMO CHECKPOINT ARQUITECTÓNICO
 
 ```text id="lvl4last"
-- estado: B) Parcialmente listo
+- estado: A) Listo
 - comportamiento estable: ✔
-- slices claros: ⚠
-- tests sólidos: ⚠
-- evidencia cross-slice: ⚠
-- readiness para refactor: ⚠
+- slices claros: ✔
+- tests sólidos: ✔
+- evidencia cross-slice: ✔
+- readiness para refactor: ✔
 
 - fuente:
-  ANALYSIS-PIPELINE-NIVEL4-ENTRY-CONDITIONS
+  CHECKPOINT-PRE-NIVEL-4-RUNTIME-BOUNDARIES
+  dictamen arquitecto_sistema + consistencia validada por repo_guardian
 ```
 
 ---
@@ -435,7 +436,8 @@ Hito → Guardian valida → HDOC actualiza roadmap
 Ejemplos:
 
 - “Nivel 2 cerrado”
-- “Pre-Nivel 4 activo”
+- “Pre-Nivel 4 cerrado”
+- “Nivel 4 habilitado por checkpoint”
 - “condición slices claros = ⚠”
 
 Flujo:
@@ -469,7 +471,7 @@ evitando cambios arbitrarios o inconsistentes.
 
 ```text
 1. CANONICAL STATE (validación residual)
-2. HARDEN RUNTIME BOUNDARIES (etapa actual)
+2. RUNTIME REFACTOR (entrada habilitada por checkpoint)
 ```
 
 ---
