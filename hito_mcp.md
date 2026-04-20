@@ -6961,3 +6961,41 @@ Impacto:
 - alinea handler y graph bajo una misma regla de commit explícito
 - preserva la ejecución gobernada por el estado conversacional existente
 - mantiene el alcance acotado a un fix operativo de slice
+
+### FEAT-ADMIN-DEMO-INVENTORY-OBSERVABILITY-19
+
+Estado: COMPLETADO  
+Fecha: 2026-04-20  
+Commit: 7a860c799b0be05149280fd89f2b67d43fb85627
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agrega una herramienta de observabilidad y control del inventario demo en
+memoria con UI, API, snapshot real del adapter y reset operativo por `hotelId`.
+
+Archivos afectados:
+
+- `app/admin/demo-inventory/page.tsx`
+- `app/api/admin/demo-inventory/route.ts`
+- `app/admin/layout.tsx`
+- `instrumentation.ts`
+- `lib/mcp/channelManagerAdapter.ts`
+- `lib/utils/debugLog.ts`
+- `middleware.ts`
+- `test/unit/channelManagerAdapter.registry.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- no modifica arquitectura estructural, ADR ni roadmap
+- la observabilidad lee y controla el store real del adapter inmemory
+- no introduce estado paralelo ni cache derivado
+
+Impacto:
+
+- agrega capacidad operativa nueva acotada al entorno demo
+- evita debugging ciego sobre el inventario demo en memoria
+- fortalece observabilidad usando el snapshot real del adapter
+- mantiene el alcance acotado a una feature operativa de entorno demo
