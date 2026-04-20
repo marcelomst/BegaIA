@@ -220,6 +220,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             icon={<Brain className="w-5 h-5" />}
                           />
                         )}
+                        <SidebarLink
+                          href="/admin/demo-inventory"
+                          label={sidebarOpen ? "Demo Inventory" : ""}
+                          icon={<Server className="w-5 h-5" />}
+                        />
                         {canAccessLogsSection(user.roleLevel) && (
                           <SidebarLink
                             href="/admin/logs"

@@ -107,6 +107,10 @@ export async function middleware(req: NextRequest) {
     return applyCORSHeaders(NextResponse.next(), origin);
   }
 
+  if (pathname === "/api/admin/demo-inventory") {
+    return applyCORSHeaders(NextResponse.next(), origin);
+  }
+
   // 2) Públicos (incluye /api/chat y /api/web/events)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return applyCORSHeaders(NextResponse.next(), origin);

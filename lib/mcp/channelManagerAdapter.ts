@@ -12,6 +12,54 @@ import type {
 } from "./types";
 import crypto from "crypto";
 
+export type DemoInventoryRoomSnapshot = {
+  roomType: string;
+  description: string;
+  stock: number;
+  maxGuests: number;
+  activeReservationsCount: number;
+  activeReservationIds: string[];
+  availableUnitsFromActiveReservations: number;
+};
+
+export type DemoInventorySearchRoomDebug = {
+  roomType: string;
+  description: string;
+  stock: number;
+  matchesRoomTypeFilter: boolean;
+  matchesGuestCapacity: boolean;
+  overlappingReservationsCount: number;
+  overlappingReservationIds: string[];
+  stayPressure: number;
+  computedAvailability: number;
+  returnedBySearch: boolean;
+};
+
+export type DemoInventorySnapshot = {
+  provider: "inmemory";
+  hotelId: string;
+  hotelKey: string;
+  sharedByHotelId: true;
+  totals: {
+    totalReservations: number;
+    activeReservations: number;
+    cancelledReservations: number;
+  };
+  roomTypes: DemoInventoryRoomSnapshot[];
+  activeReservations: Reservation[];
+  cancelledReservations: Reservation[];
+  searchDebug?: {
+    query: {
+      startDate: string;
+      endDate: string;
+      roomType?: string;
+      guests?: number;
+    };
+    returnedOptions: AvailabilityItem[];
+    rooms: DemoInventorySearchRoomDebug[];
+  };
+};
+
 export class InMemoryCMAdapter implements ChannelManagerAdapter {
   private stores: Map<string, Map<string, Reservation>> = new Map();
 
@@ -141,6 +189,29 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
     store.set(input.reservationId, updated);
     return updated;
   }
+
+  debugSnapshot(hotelId: string): { hotelKey: string; reservations: Reservation[] } {
+    const store = this.getStore(hotelId);
+    const reservations = [...store.values()].sort((a, b) => {
+      const ta = Date.parse(String(b.updatedAt || b.createdAt || ""));
+      const tb = Date.parse(String(a.updatedAt || a.createdAt || ""));
+      return ta - tb;
+    });
+    return {
+      hotelKey: normalizeHotelKey(hotelId),
+      reservations,
+    };
+  }
+
+  resetHotelStore(hotelId: string): { hotelKey: string; clearedReservations: number } {
+    const store = this.getStore(hotelId);
+    const clearedReservations = store.size;
+    store.clear();
+    return {
+      hotelKey: normalizeHotelKey(hotelId),
+      clearedReservations,
+    };
+  }
 }
 
 type DemoRoom = {
@@ -214,13 +285,77 @@ function normalizeHotelKey(hotelId?: string): string {
   return key || "default";
 }
 
-function getInMemoryAdapter(hotelId?: string): ChannelManagerAdapter {
+function getInMemoryAdapter(hotelId?: string): InMemoryCMAdapter {
   const key = normalizeHotelKey(hotelId);
   const existing = registry.get(key);
-  if (existing) return existing;
+  if (existing instanceof InMemoryCMAdapter) return existing;
   const created = new InMemoryCMAdapter();
   registry.set(key, created);
   return created;
+}
+
+function getStayPressure(startDate: Date | null, endDate: Date | null): number {
+  const nights = startDate && endDate ? getNights(startDate, endDate) : 1;
+  return nights >= 14 ? 1 : nights >= 7 ? 0.5 : 0;
+}
+
+function buildSearchDebug(
+  reservations: Reservation[],
+  query: { startDate: string; endDate: string; roomType?: string; guests?: number }
+): DemoInventorySnapshot["searchDebug"] {
+  const startDate = parseIsoDate(query.startDate);
+  const endDate = parseIsoDate(query.endDate);
+  const stayPressure = getStayPressure(startDate, endDate);
+  const guestCount = typeof query.guests === "number" && query.guests > 0 ? query.guests : undefined;
+
+  const rooms = ROOM_CATALOG.map((room) => {
+    const overlappingReservations = reservations.filter(
+      (reservation) =>
+        reservation.status !== "cancelled" &&
+        reservation.roomType === room.roomType &&
+        overlaps(startDate, endDate, parseIsoDate(reservation.checkInDate), parseIsoDate(reservation.checkOutDate)),
+    );
+    const matchesRoomTypeFilter = !query.roomType || room.roomType === query.roomType;
+    const matchesGuestCapacity = !guestCount || guestCount <= room.maxGuests;
+    const computedAvailability = Math.max(0, Math.floor(room.stock - overlappingReservations.length - stayPressure));
+
+    return {
+      roomType: room.roomType,
+      description: room.description,
+      stock: room.stock,
+      matchesRoomTypeFilter,
+      matchesGuestCapacity,
+      overlappingReservationsCount: overlappingReservations.length,
+      overlappingReservationIds: overlappingReservations.map((reservation) => reservation.reservationId),
+      stayPressure,
+      computedAvailability,
+      returnedBySearch: matchesRoomTypeFilter && matchesGuestCapacity && computedAvailability > 0,
+    } satisfies DemoInventorySearchRoomDebug;
+  });
+
+  const returnedOptions = rooms
+    .filter((room) => room.returnedBySearch)
+    .map((room) => {
+      const base = ROOM_CATALOG.find((entry) => entry.roomType === room.roomType);
+      const pricePerNight = Math.round(
+        (base?.basePrice ?? 70) *
+          getSeasonalMultiplier(startDate, endDate) *
+          (touchesWeekend(startDate, endDate) ? 1.15 : 1),
+      );
+      return {
+        roomType: room.roomType,
+        description: room.description,
+        pricePerNight,
+        currency: "USD",
+        availability: room.computedAvailability,
+      } satisfies AvailabilityItem;
+    });
+
+  return {
+    query,
+    returnedOptions,
+    rooms,
+  };
 }
 
 export function getCMProvider(): string {
@@ -229,4 +364,63 @@ export function getCMProvider(): string {
 
 export function getCMAdapter(hotelId?: string): ChannelManagerAdapter {
   return getInMemoryAdapter(hotelId);
+}
+
+export function inspectDemoInventory(
+  hotelId: string,
+  query?: { startDate?: string; endDate?: string; roomType?: string; guests?: number }
+): DemoInventorySnapshot {
+  const adapter = getInMemoryAdapter(hotelId);
+  const { hotelKey, reservations } = adapter.debugSnapshot(hotelId);
+  const activeReservations = reservations.filter((reservation) => reservation.status !== "cancelled");
+  const cancelledReservations = reservations.filter((reservation) => reservation.status === "cancelled");
+
+  const roomTypes = ROOM_CATALOG.map((room) => {
+    const activeForRoom = activeReservations.filter((reservation) => reservation.roomType === room.roomType);
+    return {
+      roomType: room.roomType,
+      description: room.description,
+      stock: room.stock,
+      maxGuests: room.maxGuests,
+      activeReservationsCount: activeForRoom.length,
+      activeReservationIds: activeForRoom.map((reservation) => reservation.reservationId),
+      availableUnitsFromActiveReservations: Math.max(0, room.stock - activeForRoom.length),
+    } satisfies DemoInventoryRoomSnapshot;
+  });
+
+  const searchDebug =
+    query?.startDate && query?.endDate
+      ? buildSearchDebug(activeReservations, {
+          startDate: query.startDate,
+          endDate: query.endDate,
+          roomType: query.roomType,
+          guests: query.guests,
+        })
+      : undefined;
+
+  return {
+    provider: "inmemory",
+    hotelId,
+    hotelKey,
+    sharedByHotelId: true,
+    totals: {
+      totalReservations: reservations.length,
+      activeReservations: activeReservations.length,
+      cancelledReservations: cancelledReservations.length,
+    },
+    roomTypes,
+    activeReservations,
+    cancelledReservations,
+    searchDebug,
+  };
+}
+
+export function resetDemoInventory(hotelId: string): { hotelId: string; hotelKey: string; clearedReservations: number } {
+  const adapter = getInMemoryAdapter(hotelId);
+  const { hotelKey, clearedReservations } = adapter.resetHotelStore(hotelId);
+  return {
+    hotelId,
+    hotelKey,
+    clearedReservations,
+  };
 }

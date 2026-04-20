@@ -1,6 +1,6 @@
 // Path: /root/begasist/test/unit/channelManagerAdapter.registry.spec.ts
 import { describe, expect, it } from "vitest";
-import { getCMAdapter } from "@/lib/mcp/channelManagerAdapter";
+import { getCMAdapter, inspectDemoInventory, resetDemoInventory } from "@/lib/mcp/channelManagerAdapter";
 
 describe("getCMAdapter registry by hotelId", () => {
   it("reuses instance for same hotelId and isolates different hotelId", async () => {
@@ -76,5 +76,60 @@ describe("getCMAdapter registry by hotelId", () => {
     });
 
     expect(overlapping).toEqual([]);
+  });
+
+  it("exposes active demo reservations and can reset the real hotel store", async () => {
+    const hotelId = `hotel-debug-${Date.now()}`;
+    const cm = getCMAdapter(hotelId);
+
+    const active = await cm.createReservation({
+      hotelId,
+      guestName: "Reserva Debug",
+      roomType: "double",
+      checkInDate: "2026-04-20",
+      checkOutDate: "2026-04-23",
+    });
+
+    const cancelled = await cm.createReservation({
+      hotelId,
+      guestName: "Reserva Cancelada",
+      roomType: "suite",
+      checkInDate: "2026-04-21",
+      checkOutDate: "2026-04-22",
+    });
+
+    await cm.cancelReservation({ hotelId, reservationId: cancelled.reservationId });
+
+    const snapshot = inspectDemoInventory(hotelId, {
+      startDate: "2026-04-21",
+      endDate: "2026-04-22",
+      roomType: "double",
+      guests: 2,
+    });
+
+    expect(snapshot.hotelId).toBe(hotelId);
+    expect(snapshot.sharedByHotelId).toBe(true);
+    expect(snapshot.totals.totalReservations).toBe(2);
+    expect(snapshot.totals.activeReservations).toBe(1);
+    expect(snapshot.activeReservations.map((reservation) => reservation.reservationId)).toContain(active.reservationId);
+    expect(snapshot.cancelledReservations.map((reservation) => reservation.reservationId)).toContain(cancelled.reservationId);
+    expect(snapshot.roomTypes.find((room) => room.roomType === "double")).toMatchObject({
+      stock: 4,
+      activeReservationsCount: 1,
+      activeReservationIds: [active.reservationId],
+      availableUnitsFromActiveReservations: 3,
+    });
+    expect(snapshot.searchDebug?.rooms.find((room) => room.roomType === "double")).toMatchObject({
+      overlappingReservationsCount: 1,
+      overlappingReservationIds: [active.reservationId],
+      returnedBySearch: true,
+    });
+
+    const resetResult = resetDemoInventory(hotelId);
+    expect(resetResult.clearedReservations).toBe(2);
+
+    const resetSnapshot = inspectDemoInventory(hotelId);
+    expect(resetSnapshot.totals.totalReservations).toBe(0);
+    expect(resetSnapshot.activeReservations).toEqual([]);
   });
 });

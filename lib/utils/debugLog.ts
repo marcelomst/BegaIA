@@ -1,17 +1,18 @@
 // lib/utils/debugLog.ts
 
-import fs from "fs";
-import path from "path";
-
 const ALLOWED_TAGS: string[] = [];
-const baseDir = process.env.BEGASIST_ROOT || process.env.INIT_CWD || process.cwd();
-const logDir = path.join(baseDir, "debug");
-const logPath = path.join(logDir, "log.txt");
 const DEBUGLOG_CONSOLE_STATE_KEY = "__begasistDebugLogConsoleState__";
 
 type LogType = "log" | "info" | "warn" | "error" | "debug";
 
 type ConsoleFn = (...args: any[]) => void;
+type NodeFsModule = {
+  mkdirSync: (path: string, options?: { recursive?: boolean }) => void;
+  appendFileSync: (path: string, data: string) => void;
+};
+type NodePathModule = {
+  join: (...paths: string[]) => string;
+};
 type DebugLogConsoleState = {
   installed: boolean;
   traceLogged: boolean;
@@ -21,6 +22,21 @@ type DebugLogConsoleState = {
   originalError: ConsoleFn;
   originalDebug: ConsoleFn;
 };
+
+function getNodeLogModules(): { fs: NodeFsModule; path: NodePathModule; logDir: string; logPath: string } | null {
+  if (typeof process === "undefined" || !process?.versions?.node) return null;
+  try {
+    const req = Function("return require")() as (id: string) => any;
+    const fs = req("fs") as NodeFsModule;
+    const path = req("path") as NodePathModule;
+    const baseDir = process.env.BEGASIST_ROOT || process.env.INIT_CWD || process.cwd();
+    const logDir = path.join(baseDir, "debug");
+    const logPath = path.join(logDir, "log.txt");
+    return { fs, path, logDir, logPath };
+  } catch {
+    return null;
+  }
+}
 
 function getConsoleState(): DebugLogConsoleState {
   const g = globalThis as typeof globalThis & {
@@ -60,13 +76,15 @@ function serializeArg(arg: any): string {
 }
 
 function writeLog(type: LogType, ...args: any[]) {
+  const modules = getNodeLogModules();
+  if (!modules) return;
   const time = new Date().toISOString();
   const msg = args.map(serializeArg);
   const full = `[${time}] [${type.toUpperCase()}] ${msg.join(" ")}\n`;
 
   try {
-    fs.mkdirSync(logDir, { recursive: true });
-    fs.appendFileSync(logPath, full);
+    modules.fs.mkdirSync(modules.logDir, { recursive: true });
+    modules.fs.appendFileSync(modules.logPath, full);
   } catch (err) {
     consoleState.originalError("❌ Error writing to log file:", err);
   }
