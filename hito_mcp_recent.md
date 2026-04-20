@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18
+## 1. FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21
+
+- Identificador: `FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21`
+- Nombre: `FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21`
+- Commit message: `FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21`
+- Hash: `7220ace9c21e6158a647a545b2c1c5625f1968c0`
+- Descripción breve: Se corrige la ejecución prematura y la duplicación en `create` mediante confirmación explícita de commit y un guard consistente entre handler y graph.
+
+## 2. FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18
 
 - Identificador: `FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18`
 - Nombre: `FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `a270e2b02edb7cee654866aad8d203ce8e8dcf70`
 - Descripción breve: Se corrige `modify.dates` para interpretar correcciones conversacionales sobre un rango ya completo y reemplazar el slot corregido sin degradar el subflow.
 
-## 2. FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17
+## 3. FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17
 
 - Identificador: `FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17`
 - Nombre: `FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `f95f095bcac31177b3e8f2836f60fc614f541b03`
 - Descripción breve: Se corrige el anclaje contextual local para weekdays relativos cortos en `modify.dates` cuando existe `checkIn` parcial y falta `checkOut`.
 
-## 3. FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16
+## 4. FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16
 
 - Identificador: `FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16`
 - Nombre: `FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `4002b5e7946242a406192de386715be0b6ce69f0`
 - Descripción breve: Se corrige la continuidad local de `modify.dates` después de un lateral FAQ puro, retomando desde el faltante contextual real en lugar de repreguntar ambas fechas.
 
-## 4. DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01
+## 5. DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01
 
 - Identificador: `DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01`
 - Nombre: `DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `3369b4d5ad85e046208a1ace0cf4867117bae494`
 - Descripción breve: Se actualiza el estado real del roadmap, el checkpoint de entrada a Nivel 4 y las reglas de gobernanza para distinguir cambios locales frente a cambios estructurales del roadmap.
 
-## 5. DOC-OPERATING-MODEL-AGENT-DISPATCH-AND-TOOLING-ALIGNMENT-01
+## 6. DOC-OPERATING-MODEL-AGENT-DISPATCH-AND-TOOLING-ALIGNMENT-01
 
 - Identificador: `DOC-OPERATING-MODEL-AGENT-DISPATCH-AND-TOOLING-ALIGNMENT-01`
 - Nombre: `DOC-OPERATING-MODEL-AGENT-DISPATCH-AND-TOOLING-ALIGNMENT-01`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `884b4b0244d079e2a69886841a7df7dc4988a776`
 - Descripción breve: Se alinea el contrato operativo global con el dispatch explícito de agentes, la herramienta de cápsula, la puerta de entrada y el prompt de checkpoint arquitectónico.
 
-## 6. FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
+## 7. FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15
 
 - Identificador: `FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15`
 - Nombre: `FIX-PIPELINE-MODIFY-DATES-ENTRY-GOVERNANCE-15`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `948c4574600481dbc8e151ea438e430f56e3d8bd`
 - Descripción breve: Se corrige la entrada a `modify.dates` para que, ante señal temporal suficiente, el flujo entre directamente al subflow correcto y evite el menú genérico de `modify`.
 
-## 7. FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14
+## 8. FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14
 
 - Identificador: `FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14`
 - Nombre: `FIX-PIPELINE-VERIFY-PENDING-SNAPSHOT-CONTINUITY-14`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `8c81f9bcd56f08ec7ce16aea99a742605527242a`
 - Descripción breve: Se corrige la precedencia entre `verify pending` y la continuidad afirmativa de `create`, para que verify domine cuando corresponde y no se corte por faltantes de create no pertinentes en ese punto.
 
-## 8. TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01
+## 9. TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01
 
 - Identificador: `TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01`
 - Nombre: `TEST-PIPELINE-GRAPH-PARITY-FIXTURE-ALIGNMENT-01`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `8ed48023903c5f768e2d540c12d30e297f6e21f9`
 - Descripción breve: Se alinean los fixtures compartidos de tests de parity con el shape esperado del mensaje, usando `channel` tipado y `timestamp`.
 
-## 9. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL
+## 10. EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL
 
 - Identificador: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL`
 - Nombre: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL`
 - Commit message: `EXP-PIPELINE-CREATE-LATERAL-PARITY-02-FINAL record PARIDAD_OK after create lateral fixes 12 and 13`
 - Hash: `79aa03242cf4c5323a25af4b48c5761f17b7f9a6`
 - Descripción breve: Se registra la evidencia final de `PARIDAD_OK` para el escenario de lateral puro en `create`, luego de los fixes 12 y 13.
-
-## 10. FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13
-
-- Identificador: `FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13`
-- Nombre: `FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13`
-- Commit message: `FIX-PIPELINE-CREATE-LATERAL-PURITY-REFINEMENT-13 persist pure lateral category inside create without falling back to reservation`
-- Hash: `21c1430e2913c6503a4f44f7a66184fb88f04da3`
-- Descripción breve: Se corrige la pureza del dominio lateral dentro de `create`, haciendo que un turno lateral puro quede persistido con su categoría lateral real y no con trazas de `reservation`.

@@ -6926,3 +6926,38 @@ Impacto:
 - reemplaza el slot corregido sin degradar el subflow
 - preserva el estado ya capturado como referencia canónica
 - mantiene el alcance acotado a un fix operativo de slice
+
+### FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21
+
+Estado: COMPLETADO  
+Fecha: 2026-04-20  
+Commit: 7220ace9c21e6158a647a545b2c1c5625f1968c0
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la ejecución prematura y la duplicación en `create` mediante
+confirmación explícita de commit y un guard consistente entre handler y graph.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/agents/nodes/reservation.ts`
+- `lib/agents/nodes/reservationConfirm.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- no cambia arquitectura, ADR ni roadmap
+- elimina caminos implícitos de ejecución en `create`
+- unifica la regla de commit explícito entre handler y graph
+
+Impacto:
+
+- corrige ejecución prematura y duplicación dentro de `create`
+- alinea handler y graph bajo una misma regla de commit explícito
+- preserva la ejecución gobernada por el estado conversacional existente
+- mantiene el alcance acotado a un fix operativo de slice
