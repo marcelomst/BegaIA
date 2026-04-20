@@ -6,6 +6,18 @@ import { firstNameOf } from "@/lib/agents/helpers";
 import { canonicalizeRoomType } from "@/lib/schemas/reservation";
 import type { GraphState } from "../graphState";
 
+function isExplicitCreateCommitSignal(text: string) {
+    const normalized = String(text || "").toLowerCase().trim();
+    if (!normalized) return false;
+    return (
+        /\b(confirmar|confirmo|confirmame|confirma|comfirmar|confimar|cofirmar|confirm)\b/.test(normalized) ||
+        /\b(si|sí)\s*,?\s*confirmo\b/.test(normalized) ||
+        /\bok\s+hacelo\b/.test(normalized) ||
+        /\bdale\b/.test(normalized) ||
+        /\bde acuerdo\b/.test(normalized)
+    );
+}
+
 /**
  * Nodo: reservation_confirm
  * Confirma la reserva, persiste lastReservation y responde con agradecimiento personalizado.
@@ -13,6 +25,14 @@ import type { GraphState } from "../graphState";
 export async function handleReservationConfirmNode(state: typeof GraphState.State) {
     const { hotelId, conversationId, detectedLanguage } = state;
     const lang = (detectedLanguage || "es").slice(0, 2) as "es" | "en" | "pt";
+    if (!isExplicitCreateCommitSignal(String(state.normalizedMessage || ""))) {
+        const prompt = lang === "es"
+            ? "Ya tengo la propuesta lista. Para emitir la reserva respondé “CONFIRMAR”."
+            : lang === "pt"
+                ? "Já tenho a proposta pronta. Para emitir a reserva, responda “CONFIRMAR”."
+                : "I already have the proposal ready. To issue the booking, reply “CONFIRMAR”.";
+        return { messages: [new AIMessage(prompt)], category: "reservation_confirm" };
+    }
     const st = await getConvState(hotelId, conversationId || "");
     if (!st || !st.reservationSlots || !st.reservationSlots.guestName || !st.reservationSlots.roomType || !st.reservationSlots.checkIn || !st.reservationSlots.checkOut || !st.reservationSlots.locale) {
         return { messages: [new AIMessage(lang === "es" ? "No hay datos de reserva para confirmar." : lang === "pt" ? "Não há dados de reserva para confirmar." : "No booking data to confirm.")], category: "reservation_confirm" };

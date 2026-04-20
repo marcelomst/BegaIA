@@ -5595,6 +5595,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isVerifyAvailabilityAffirmative =
     (Boolean(pendingAvailabilityVerification) || askedToVerifyAvailability(pre.lcHistory, pre.lang)) &&
     isPureAffirmative(String(pre.msg.content || ""), pre.lang);
+  const hasCreateQuoteConfirmationContext = Boolean(
+    !pre.inModifyMode &&
+    (
+      askedToConfirmReservation(pre.lcHistory) ||
+      Boolean(pre.st?.lastProposal) ||
+      pre.st?.salesStage === "quote" ||
+      pre.st?.conversationStage === "reservation_quoted"
+    )
+  );
   const { flow: reservationFlow, confirmable: isReservationConfirmable } = isConfirmableReservationState(pre.st, nextSlots);
 
   // === Sprint 3: cancelar reserva ===
@@ -5920,8 +5929,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       graphResult,
     };
   }
+  if (
+    hasCreateQuoteConfirmationContext &&
+    /^(si)$/.test(normalizeReferenceText(userTxtRaw).trim().replace(/[!?.,;:]+$/g, "")) &&
+    !isVerifyAvailabilityAffirmative
+  ) {
+    finalText = pre.lang === "es"
+      ? "Ya tengo la propuesta lista. Para emitir la reserva respondé “CONFIRMAR”."
+      : pre.lang === "pt"
+        ? "Já tenho a proposta pronta. Para emitir a reserva, responda “CONFIRMAR”."
+        : "I already have the proposal ready. To issue the booking, reply **CONFIRMAR**.";
+    return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+  }
   if (isPureConfirm(userTxtRaw) && !isVerifyAvailabilityAffirmative && !looksExplicitNewReservation) {
-    if (!isReservationConfirmable && !modifyExecutionActive && !hasCompleteCreateDraft) {
+    if (!isReservationConfirmable && !modifyExecutionActive && !hasCreateQuoteConfirmationContext) {
       if (reservationFlow === "confirmed") {
         finalText = pre.lang === "es"
           ? "Ya tengo una reserva confirmada para esta conversación. Si querés modificar o cancelar, decímelo."
@@ -6083,7 +6104,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
     }
-    if (askedToConfirmReservation(pre.lcHistory) || hasCompleteCreateDraft) {
+    if (hasCreateQuoteConfirmationContext) {
       const snapshot = {
         ...mergeReservationSlots(pre.st?.reservationSlots, nextSlots),
         locale: pre.lang,
@@ -6163,7 +6184,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             reservationHistory: preservedHistory,
             activeReservationContext: buildFocusedReservationContext(createdReservation.reservationId, "confirmed"),
             lastReservation: createdReservation,
+            lastProposal: null,
+            pendingAvailabilityVerification: null,
             salesStage: "close",
+            conversationStage: "reservation_confirmed",
             conversationFocus: null,
             activeFlow: null,
             desiredAction: undefined,
@@ -7335,7 +7359,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           });
           nextCategory = "modify_reservation";
         } else {
+          const quotedCreateSnapshot = {
+            ...mergeReservationSlots(pre.st?.reservationSlots, res.nextSlots, {
+              checkIn: ciISO,
+              checkOut: coISO,
+            }),
+            locale: pre.lang,
+          } as ReservationSlotsStrict;
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            reservationSlots: quotedCreateSnapshot,
+            lastProposal: {
+              text: finalText,
+              available: true,
+            },
+            conversationFocus: buildConversationFocus("create"),
+            activeReservationContext: buildDraftReservationContext("quoted"),
+            activeFlow: "reservation",
+            desiredAction: "create",
+            salesStage: "quote",
+            conversationStage: "reservation_quoted",
             pendingAvailabilityVerification: null,
             lastCategory: "reservation",
             updatedBy: "ai",

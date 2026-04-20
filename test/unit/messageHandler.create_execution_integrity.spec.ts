@@ -121,7 +121,7 @@ describe("messageHandler create execution integrity", () => {
     vi.clearAllMocks();
   });
 
-  it("el branch de availability intermedio no persiste reservas y el create final deja una sola reserva válida", async () => {
+  it("el branch de availability intermedio no persiste reservas y solo crea al confirmar explícitamente", async () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
@@ -136,6 +136,13 @@ describe("messageHandler create execution integrity", () => {
     await handleIncomingMessage(msg("sí"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/verifico disponibilidad|tarifa por noche|confirm[aá]s la reserva/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(currentState?.lastReservation).toBeUndefined();
+    expect(currentState?.reservationHistory).toBeUndefined();
+
+    await handleIncomingMessage(msg("sí"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toMatch(/propuesta lista|respond[eé]\s+\*\*confirmar\*\*/i);
     expect(confirmAndCreate).not.toHaveBeenCalled();
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();

@@ -36,6 +36,18 @@ function buildReservationConfirmLine(lang2: "es" | "en" | "pt") {
             : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
 }
 
+function isExplicitCreateCommitSignal(text: string) {
+    const normalized = String(text || "").toLowerCase().trim();
+    if (!normalized) return false;
+    return (
+        /\b(confirmar|confirmo|confirmame|confirma|comfirmar|confimar|cofirmar|confirm)\b/.test(normalized) ||
+        /\b(si|sí)\s*,?\s*confirmo\b/.test(normalized) ||
+        /\bok\s+hacelo\b/.test(normalized) ||
+        /\bdale\b/.test(normalized) ||
+        /\bde acuerdo\b/.test(normalized)
+    );
+}
+
 function shouldAppendReservationConfirm(snapshot: { guestName?: unknown }) {
     return isSafeGuestName(String(snapshot.guestName || ""));
 }
@@ -332,8 +344,14 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     if (state.salesStage === "close") {
         return await retrievalBased({ ...state, forceVectorSearch: true });
     }
-    // --- NUEVO: Si el usuario confirma y ya están todos los datos, crear la reserva aunque el salesStage no sea 'quote' ---
-    if (isConfirmIntentLight(normalizedMessage)) {
+    const hasCreateQuoteContext = Boolean(
+        salesStage === "quote" ||
+        st?.salesStage === "quote" ||
+        st?.conversationStage === "reservation_quoted" ||
+        st?.lastProposal
+    );
+    // Solo permitimos commit final con confirmación explícita, nunca con afirmativos livianos como "sí".
+    if (isExplicitCreateCommitSignal(normalizedMessage) && hasCreateQuoteContext) {
         const haveAllNow = REQUIRED_SLOTS.every((k) => !!merged[k]);
         if (haveAllNow) {
             // Normalizar checkIn y checkOut a ISO datetime (YYYY-MM-DDT00:00:00Z)
