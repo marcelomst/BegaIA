@@ -7069,3 +7069,35 @@ Impacto:
 - mantiene `execution` como fuente de verdad
 - reduce complejidad sin introducir nueva fuente de verdad
 - mantiene el alcance acotado a un refactor local del runtime
+
+### FIX-CREATE-FIRST-TURN-FULL-SLOT-PARSING-24
+
+Estado: COMPLETADO  
+Fecha: 2026-04-21  
+Commit: fa8cd789db9ee254421d65de3c0545ea40ee9c95
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige el parsing de rango `dd/mm` sin año en el primer turno de `create`
+mediante reutilización de `extractDateRangeFromTextLight` con guard explícito.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: local`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- reutiliza extractor existente y corrige una precedencia mínima de slots
+
+Impacto:
+
+- corrige ingestión temporal local en primer turno de `create`
+- preserva `execution` como fuente de verdad
+- evita introducir extractor nuevo o fuente paralela de fechas
+- mantiene el alcance acotado a un fix operativo de runtime
