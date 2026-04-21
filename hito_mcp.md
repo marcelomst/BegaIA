@@ -7037,3 +7037,35 @@ Impacto:
 - reduce divergencia futura entre handler y graph
 - preserva confirmación explícita como único trigger de ejecución
 - mantiene el alcance acotado a un refactor local del runtime
+
+### REFACTOR-RUNTIME-BRANCH-SIMPLIFICATION-23
+
+Estado: COMPLETADO  
+Fecha: 2026-04-21  
+Commit: 8cf7206f055ae8f7c95e49c41a933e8e6c88840d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se simplifican branches del runtime para el follow-up post-confirmación,
+extrayendo la resolución de snapshot confirmado a un helper puro y dejando los
+efectos en el branch principal.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: local`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- separa lectura de estado y efectos sin alterar semántica
+
+Impacto:
+
+- mejora legibilidad y auditabilidad del branch post-confirmación
+- mantiene `execution` como fuente de verdad
+- reduce complejidad sin introducir nueva fuente de verdad
+- mantiene el alcance acotado a un refactor local del runtime
