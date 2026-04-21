@@ -6999,3 +6999,41 @@ Impacto:
 - evita debugging ciego sobre el inventario demo en memoria
 - fortalece observabilidad usando el snapshot real del adapter
 - mantiene el alcance acotado a una feature operativa de entorno demo
+
+### REFACTOR-RUNTIME-CONFIRMATION-GOVERNANCE-22
+
+Estado: COMPLETADO  
+Fecha: 2026-04-21  
+Commit: 062211a6144bc68fb3e33fb4bbe0ae27222d80b6
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se consolida la gobernanza de confirmación de `create` en un helper compartido
+usado por handler y graph, preservando confirmación explícita como único
+trigger de ejecución y evitando reapertura de `create` post-confirmación.
+
+Archivos afectados:
+
+- `lib/agents/confirmationGovernance.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/agents/nodes/reservation.ts`
+- `lib/agents/nodes/reservationConfirm.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: local`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- centraliza el contrato de ejecución `create`
+- preserva `execution` como fuente de verdad y cierra el flujo
+  post-confirmación sin reabrir `create`
+
+Impacto:
+
+- elimina duplicación semántica de la regla de confirmación
+- reduce divergencia futura entre handler y graph
+- preserva confirmación explícita como único trigger de ejecución
+- mantiene el alcance acotado a un refactor local del runtime
