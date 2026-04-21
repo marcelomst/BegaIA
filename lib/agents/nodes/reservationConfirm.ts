@@ -2,21 +2,10 @@
 import { AIMessage } from "@langchain/core/messages";
 import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { confirmAndCreate } from "@/lib/agents/reservations";
+import { isExplicitCreateCommitSignal } from "@/lib/agents/confirmationGovernance";
 import { firstNameOf } from "@/lib/agents/helpers";
 import { canonicalizeRoomType } from "@/lib/schemas/reservation";
 import type { GraphState } from "../graphState";
-
-function isExplicitCreateCommitSignal(text: string) {
-    const normalized = String(text || "").toLowerCase().trim();
-    if (!normalized) return false;
-    return (
-        /\b(confirmar|confirmo|confirmame|confirma|comfirmar|confimar|cofirmar|confirm)\b/.test(normalized) ||
-        /\b(si|sí)\s*,?\s*confirmo\b/.test(normalized) ||
-        /\bok\s+hacelo\b/.test(normalized) ||
-        /\bdale\b/.test(normalized) ||
-        /\bde acuerdo\b/.test(normalized)
-    );
-}
 
 /**
  * Nodo: reservation_confirm

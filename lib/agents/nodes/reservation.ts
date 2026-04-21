@@ -8,6 +8,10 @@ import type { FillSlotsResult } from "@/lib/agents/reservations";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { canonicalizeRoomType, type CanonicalRoomType } from "@/lib/schemas/reservation";
 import { debugLog } from "@/lib/utils/debugLog";
+import {
+    hasCreateExecutionContext,
+    isExplicitCreateCommitSignal,
+} from "@/lib/agents/confirmationGovernance";
 import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
 import type { GraphState } from "../graphState";
@@ -34,18 +38,6 @@ function buildReservationConfirmLine(lang2: "es" | "en" | "pt") {
         : lang2 === "pt"
             ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
             : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).";
-}
-
-function isExplicitCreateCommitSignal(text: string) {
-    const normalized = String(text || "").toLowerCase().trim();
-    if (!normalized) return false;
-    return (
-        /\b(confirmar|confirmo|confirmame|confirma|comfirmar|confimar|cofirmar|confirm)\b/.test(normalized) ||
-        /\b(si|sí)\s*,?\s*confirmo\b/.test(normalized) ||
-        /\bok\s+hacelo\b/.test(normalized) ||
-        /\bdale\b/.test(normalized) ||
-        /\bde acuerdo\b/.test(normalized)
-    );
 }
 
 function shouldAppendReservationConfirm(snapshot: { guestName?: unknown }) {
@@ -344,12 +336,13 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     if (state.salesStage === "close") {
         return await retrievalBased({ ...state, forceVectorSearch: true });
     }
-    const hasCreateQuoteContext = Boolean(
-        salesStage === "quote" ||
-        st?.salesStage === "quote" ||
-        st?.conversationStage === "reservation_quoted" ||
-        st?.lastProposal
-    );
+    const hasCreateQuoteContext = hasCreateExecutionContext({
+        salesStage,
+        conversationStage: st?.conversationStage,
+        lastProposal: st?.lastProposal,
+        quotePromptActive: st?.salesStage === "quote",
+        hasCompleteReservationSnapshot: REQUIRED_SLOTS.every((k) => !!merged[k]),
+    });
     // Solo permitimos commit final con confirmación explícita, nunca con afirmativos livianos como "sí".
     if (isExplicitCreateCommitSignal(normalizedMessage) && hasCreateQuoteContext) {
         const haveAllNow = REQUIRED_SLOTS.every((k) => !!merged[k]);

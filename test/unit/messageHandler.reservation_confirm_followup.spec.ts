@@ -143,6 +143,66 @@ describe("messageHandler reservation confirm follow-up", () => {
     expect(replyText).not.toContain("contenido generico");
   });
 
+  it("no reabre create ante follow-up de confirmación si la reserva ya quedó confirmada", async () => {
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValueOnce({
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        numGuests: "2",
+      },
+      reservationHistory: [
+        {
+          reservationId: "R-0001",
+          status: "created",
+          createdAt: "2026-04-21T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-03-21",
+          checkOut: "2026-03-25",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "R-0001",
+        status: "created",
+        createdAt: "2026-04-21T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      activeFlow: null,
+      lastProposal: null,
+    });
+
+    await handleIncomingMessage({
+      messageId: "confirm-followup-closed-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "pudiste confirmar?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-confirm-closed-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/resumen de tu reserva/i);
+    expect(replyText).toMatch(/R-0001/i);
+    expect(replyText).not.toMatch(/CONFIRMAR/i);
+    expect(replyText).not.toMatch(/Tengo\s+doble\s+disponible/i);
+  });
+
   it("no confirma la reserva con un negativo explícito como 'no confirmes todavía'", async () => {
     const sendReply = vi.fn(async () => {});
 
