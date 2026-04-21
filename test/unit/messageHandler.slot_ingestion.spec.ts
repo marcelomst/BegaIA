@@ -188,6 +188,40 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("no captura 'quiero' como guestName desde un primer turno create con fechas", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 22/4 al 25/4"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-22",
+      checkOut: "2026-04-25",
+    });
+    expect(currentState?.reservationSlots?.guestName).toBeUndefined();
+  });
+
+  it("no captura tokens de intención como guestName desde 'quiero hacer una reserva'", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva del 22/4 al 25/4"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-22",
+      checkOut: "2026-04-25",
+    });
+    expect(currentState?.reservationSlots?.guestName).toBeUndefined();
+  });
+
   it("control: primer turno create con rango textual sigue entrando en create", async () => {
     const sendReply = vi.fn(async () => {});
 
@@ -212,6 +246,42 @@ describe("messageHandler slot ingestion", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("preserva captura de guestName completo con patron explicito", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 22/4 al 25/4, doble para 2 personas a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-22",
+      checkOut: "2026-04-25",
+      numGuests: "2",
+      guestName: "Ana Gomez",
+    });
+  });
+
+  it("preserva nombre parcial explicito como insuficiente y pide nombre completo", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 22/4 al 25/4, doble para 2 personas a nombre de Ana"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-22",
+      checkOut: "2026-04-25",
+      numGuests: "2",
+    });
+    expect(currentState?.reservationSlots?.guestName).toBeUndefined();
   });
 
   it("no toma 'nombre de la empresa ...' como guestName ni degrada otros slots", async () => {

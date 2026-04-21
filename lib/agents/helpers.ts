@@ -142,10 +142,13 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
 // --- Valida si un nombre de huésped es seguro ---
 const BAD_NAME_RE = /^(hola|hello|hi|hey|buenas|buenos dias|buenos días|buenas tardes|buenas noches|olá|ola|oi|quiero reservar|quero reservar)$/i;
 const ROOM_WORD_RE = /(suite|matrimonial|doble|triple|individual|simple|single|double|twin|queen|king|deluxe|standard|cuadruple|cuádruple|quadruple|familiar)/i;
+const GUEST_NAME_INTENT_WORD_RE = /\b(quiero|quero|reservar|reserva|booking|book|hacer|necesito|preciso|busco|cambiar|modificar|cancelar|confirmar|disponibilidad|habitaci[oó]n|quarto|personas?|hu[eé]spedes?|hospedes?|adultos?|menores?|niñ[oa]s?)\b/i;
 export function isSafeGuestName(s?: string) {
   if (!s) return false;
   const t = s.trim();
   if (!t) return false;
+  if (/[0-9?!,:;@/\\]/.test(t)) return false;
+  if (GUEST_NAME_INTENT_WORD_RE.test(t)) return false;
   if (BAD_NAME_RE.test(t) || ROOM_WORD_RE.test(t)) return false;
   // exigir al menos nombre y apellido
   const parts = t.split(/\s+/);
