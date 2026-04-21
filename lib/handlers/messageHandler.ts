@@ -1183,6 +1183,35 @@ function buildCanonicalReservationRecords(state: any): CanonicalReservationRecor
   return buildReservationCanonicalState(state).records;
 }
 
+function resolveConfirmedReservationFollowupSnapshot(
+  pre: PreLLMResult,
+  selectedOrActiveReservationTarget?: { reservationId?: string } | null
+): {
+  reservationId?: string;
+  status?: LastReservation["status"];
+  slots: ReservationSlotsStrict;
+} {
+  const reservationId =
+    selectedOrActiveReservationTarget?.reservationId ||
+    pre.st?.lastReservation?.reservationId ||
+    resolveSingleActionableReservationTarget(pre.st)?.reservationId;
+  const record = reservationId
+    ? buildReservationCanonicalState(pre.st).byId.get(reservationId)
+    : buildCanonicalReservationRecords(pre.st).find((item) => item.status !== "cancelled");
+  return {
+    reservationId: reservationId || record?.reservationId,
+    status: (record?.status || pre.st?.lastReservation?.status) as LastReservation["status"] | undefined,
+    slots: {
+      guestName: record?.guestName || pre.st?.reservationSlots?.guestName,
+      roomType: record?.roomType || pre.st?.reservationSlots?.roomType,
+      numGuests: record?.numGuests || pre.st?.reservationSlots?.numGuests,
+      checkIn: record?.checkIn || pre.st?.reservationSlots?.checkIn,
+      checkOut: record?.checkOut || pre.st?.reservationSlots?.checkOut,
+      locale: pre.lang,
+    } as ReservationSlotsStrict,
+  };
+}
+
 function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
   reservations: CanonicalReservationRecord[]
@@ -4252,35 +4281,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     normalizedReservationIntent.kind !== "cancel" &&
     !looksExplicitNewReservation
   ) {
-    const confirmedReservationId =
-      selectedOrActiveReservationTarget?.reservationId ||
-      pre.st?.lastReservation?.reservationId ||
-      resolveSingleActionableReservationTarget(pre.st)?.reservationId;
-    const confirmedRecord = confirmedReservationId
-      ? buildReservationCanonicalState(pre.st).byId.get(confirmedReservationId)
-      : buildCanonicalReservationRecords(pre.st).find((item) => item.status !== "cancelled");
-    const confirmedSlots = {
-      guestName: confirmedRecord?.guestName || pre.st?.reservationSlots?.guestName,
-      roomType: confirmedRecord?.roomType || pre.st?.reservationSlots?.roomType,
-      numGuests: confirmedRecord?.numGuests || pre.st?.reservationSlots?.numGuests,
-      checkIn: confirmedRecord?.checkIn || pre.st?.reservationSlots?.checkIn,
-      checkOut: confirmedRecord?.checkOut || pre.st?.reservationSlots?.checkOut,
-      locale: pre.lang,
-    } as ReservationSlotsStrict;
+    const confirmedSnapshot = resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget);
     finalText = buildReservationSnapshotAnswer(
       "full",
       pre.lang,
-      confirmedSlots,
-      confirmedReservationId || confirmedRecord?.reservationId,
-      (confirmedRecord?.status || pre.st?.lastReservation?.status) as LastReservation["status"]
+      confirmedSnapshot.slots,
+      confirmedSnapshot.reservationId,
+      confirmedSnapshot.status
     );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       activeReservationContext: buildFocusedReservationContext(
-        confirmedReservationId || confirmedRecord?.reservationId,
+        confirmedSnapshot.reservationId,
         "confirmed"
       ),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(
-        confirmedReservationId || confirmedRecord?.reservationId,
+        confirmedSnapshot.reservationId,
         "active_focus",
         "weak"
       ),
