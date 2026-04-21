@@ -168,6 +168,40 @@ describe("messageHandler slot ingestion", () => {
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 
+  it("primer turno completo con rango dd/mm sin año entra en create y no en modify.dates", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 22/4 al 25/4, doble para 2 personas a nombre de Ana"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/nueva fecha de check-in|modificando fechas/i);
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-22",
+      checkOut: "2026-04-25",
+      numGuests: "2",
+    });
+  });
+
+  it("control: primer turno create con rango textual sigue entrando en create", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("reservar del 22 al 25 de abril"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/nueva fecha de check-in|modificando fechas/i);
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+  });
+
   it("absorbe guestName inline con patron 'nombre X' y no repregunta nombre", async () => {
     const sendReply = vi.fn(async () => {});
 
@@ -232,6 +266,38 @@ describe("messageHandler slot ingestion", () => {
       numGuests: "3",
     });
     expect(currentState?.modifyState?.activeField).toBe("guests");
+  });
+
+  it("mantiene modify legítimo cuando existe reserva confirmada y el usuario pide cambiar fechas", async () => {
+    currentState = {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-15",
+        numGuests: "2",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "R-123",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "modify_reservation",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero cambiar fechas del 22/04/2026 al 25/04/2026"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/Anot[eé] nuevas fechas|verifique disponibilidad/i);
+    expect(currentState?.activeFlow).toBe("modify_reservation");
+    expect(currentState?.desiredAction).toBe("modify");
   });
 
   it("en modify interpreta 'somos 3' con la misma semántica base de huéspedes", async () => {

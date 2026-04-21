@@ -62,6 +62,7 @@ import {
   isAskAvailabilityStatusQuery,
   askedToVerifyAvailability,
   isPureConfirm,
+  extractDateRangeFromTextLight,
   normalizeReservationIntent,
   detectLateCheckoutQuestion,
   detectEarlyCheckinQuestion,
@@ -2460,12 +2461,22 @@ function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?
   };
 }
 
+function hasNumericDateRangeWithoutYear(text: string): boolean {
+  return /\b\d{1,2}[/-]\d{1,2}\b(?![/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*\b\d{1,2}[/-]\d{1,2}\b(?![/-]\d{2,4})/i.test(
+    String(text || "")
+  );
+}
+
 async function extractSupportedTemporalDateRange(
   text: string,
   lang: "es" | "en" | "pt"
 ): Promise<{ checkIn?: string; checkOut?: string }> {
   const explicitDates = extractDateRangeFromText(text);
   if (explicitDates.checkIn || explicitDates.checkOut) return explicitDates;
+  if (hasNumericDateRangeWithoutYear(text)) {
+    const lightDates = extractDateRangeFromTextLight(text);
+    if (lightDates.checkIn || lightDates.checkOut) return lightDates;
+  }
   const chronoDates = await chronoExtractDateRange(text, lang);
   if (chronoDates.checkIn || chronoDates.checkOut) return chronoDates;
   return explicitDates;
@@ -3643,7 +3654,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
-    const dr0 = extractDateRangeFromText(userTxt0);
+    const explicitDr0 = extractDateRangeFromText(userTxt0);
+    const dr0 =
+      explicitDr0.checkIn || explicitDr0.checkOut
+        ? explicitDr0
+        : hasNumericDateRangeWithoutYear(userTxt0)
+          ? extractDateRangeFromTextLight(userTxt0)
+          : {};
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
       const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxt0);
       const rawDr0 = extractRawOrderedDateRange(userTxt0);
