@@ -7101,3 +7101,35 @@ Impacto:
 - preserva `execution` como fuente de verdad
 - evita introducir extractor nuevo o fuente paralela de fechas
 - mantiene el alcance acotado a un fix operativo de runtime
+
+### FIX-CREATE-GUESTNAME-FALSE-POSITIVE-25
+
+Estado: COMPLETADO  
+Fecha: 2026-04-21  
+Commit: 0aefcc79ccc802a221c5a021286ce97d4ce6aefd
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrigen falsos positivos en extracción de `guestName` en `create` mediante
+endurecimiento del validador canónico `isSafeGuestName`.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: local`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva el contrato de nombre completo
+
+Impacto:
+
+- evita contaminación de slots con tokens transaccionales
+- endurece el validador canónico de nombres
+- preserva `execution` como fuente de verdad
+- mantiene el alcance acotado a un fix local de runtime
