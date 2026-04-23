@@ -134,6 +134,35 @@ describe("messageHandler guards sin contexto de reserva", () => {
     expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
   });
 
+  it("no activa create de forma prematura ante una consulta difusa de disponibilidad", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("hola, queria ver si hay disponibilidad"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/tipo de habitaci[oó]n|room type|a nombre de qui[eé]n|cu[aá]ntos hu[eé]spedes/i);
+    expect(currentState?.activeFlow).not.toBe("reservation");
+    expect(currentState?.desiredAction).not.toBe("create");
+  });
+
+  it("respeta sufficiency gating ante una petición vaga para este finde", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero algo para este finde"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/tipo de habitaci[oó]n|room type|a nombre de qui[eé]n|cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).toMatch(/fecha|check-?in|check-?out|aclar|confirm/i);
+    expect(currentState?.activeFlow).not.toBe("reservation");
+    expect(currentState?.desiredAction).not.toBe("create");
+  });
+
   it("si preguntó huéspedes para una nueva reserva, un '2' continúa reservation y no entra en modify", async () => {
     const sendReply = vi.fn(async () => {});
     await handleIncomingMessage(

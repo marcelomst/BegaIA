@@ -3683,6 +3683,26 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       graphResult: null,
     };
   }
+  const vagueWeekendReservationIntent =
+    !isCreateContextActive(pre) &&
+    !pre.inModifyMode &&
+    !Boolean(pre.st?.lastReservation?.reservationId) &&
+    pre.st?.salesStage !== "close" &&
+    pre.st?.conversationStage !== "reservation_confirmed" &&
+    !extractSlotsFromText(rawTurnText, pre.lang).checkIn &&
+    !extractSlotsFromText(rawTurnText, pre.lang).checkOut &&
+    /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|fim\s+de\s+semana)\b/i.test(rawTurnText) &&
+    /\b(quiero|quisiera|busco|algo|disponibil\w*|availability|stay|quedarme|alojarme)\b/i.test(rawTurnText);
+  if (vagueWeekendReservationIntent) {
+    finalText = buildAskNewDates(pre.lang);
+    return {
+      finalText,
+      nextCategory: "retrieval_based",
+      nextSlots,
+      needsSupervision,
+      graphResult: null,
+    };
+  }
   // Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately
   try {
     const userTxt0 = String(pre.msg.content || "");
