@@ -236,6 +236,29 @@ describe("messageHandler slot ingestion", () => {
     expect(currentState?.desiredAction).toBe("create");
   });
 
+  it("absorbe una corrección de fechas dentro de create y reemplaza el rango previo", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quiero reservar del 10 al 12 de septiembre"),
+      { mode: "automatic", sendReply }
+    );
+
+    await handleIncomingMessage(
+      msg("mejor del 11 al 13"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: expect.stringMatching(/-09-11$/),
+      checkOut: expect.stringMatching(/-09-13$/),
+    });
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/10\/09|12\/09|2026-09-10|2026-09-12/i);
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+  });
+
   it("absorbe guestName inline con patron 'nombre X' y no repregunta nombre", async () => {
     const sendReply = vi.fn(async () => {});
 

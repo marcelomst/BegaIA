@@ -2455,6 +2455,44 @@ function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?
   };
 }
 
+function anchorCreateDayRangeToDraft(
+  pre: Pick<PreLLMResult, "st" | "prevCategory" | "inModifyMode">,
+  text: string,
+  slots?: Partial<ReservationSlotsStrict> | null
+): { checkIn?: string; checkOut?: string } {
+  if (pre.inModifyMode) return {};
+  const focus = getConversationFocus(pre.st);
+  const createContextActive =
+    pre.st?.activeFlow === "reservation" ||
+    pre.st?.desiredAction === "create" ||
+    pre.prevCategory === "reservation" ||
+    focus?.subFlow === "create";
+  if (!createContextActive) return {};
+  if (extractDateRangeFromText(text).checkIn || extractDateRangeFromText(text).checkOut) return {};
+  if (extractRawOrderedDateRange(text)?.checkIn || extractRawOrderedDateRange(text)?.checkOut) return {};
+  if (hasNumericDateRangeWithoutYear(text)) return {};
+  const compactDayRange = String(text || "").match(/\b(?:del?\s+)?(\d{1,2})\s*(?:al|hasta|a)\s*(\d{1,2})\b/i);
+  if (!compactDayRange) return {};
+  const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, slots || {});
+  const baseIso = knownSlots.checkIn || knownSlots.checkOut;
+  if (!baseIso || !/^\d{4}-\d{2}-\d{2}$/.test(baseIso)) return {};
+  const [baseYear, baseMonth] = baseIso.split("-").map((part) => parseInt(part, 10));
+  const checkInDay = parseInt(compactDayRange[1], 10);
+  const checkOutDay = parseInt(compactDayRange[2], 10);
+  if (
+    !Number.isFinite(baseYear) ||
+    !Number.isFinite(baseMonth) ||
+    !Number.isFinite(checkInDay) ||
+    !Number.isFinite(checkOutDay)
+  ) {
+    return {};
+  }
+  return {
+    checkIn: `${String(baseYear).padStart(4, "0")}-${String(baseMonth).padStart(2, "0")}-${String(checkInDay).padStart(2, "0")}`,
+    checkOut: `${String(baseYear).padStart(4, "0")}-${String(baseMonth).padStart(2, "0")}-${String(checkOutDay).padStart(2, "0")}`,
+  };
+}
+
 function hasNumericDateRangeWithoutYear(text: string): boolean {
   return /\b\d{1,2}[/-]\d{1,2}\b(?![/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*\b\d{1,2}[/-]\d{1,2}\b(?![/-]\d{2,4})/i.test(
     String(text || "")
@@ -3649,15 +3687,56 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   try {
     const userTxt0 = String(pre.msg.content || "");
     const explicitDr0 = extractDateRangeFromText(userTxt0);
+    const rawDr0 = extractRawOrderedDateRange(userTxt0);
+    const lightDr0 = extractDateRangeFromTextLight(userTxt0);
+    const turnCreateSlots0 = extractSlotsFromText(userTxt0, pre.lang);
+    const anchoredCreateDr0 = anchorCreateDayRangeToDraft(pre, userTxt0, nextSlots);
+    const hasNumericStyleRange0 = Boolean(
+      userTxt0.match(/\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b\s*(?:al|hasta|a|-|→|->|—)\s*\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b/i)
+    );
+    const explicitDr0Valid =
+      Boolean(explicitDr0.checkIn && explicitDr0.checkOut) &&
+      assessReservationDateCoherence(explicitDr0.checkIn, explicitDr0.checkOut)?.ok === true;
+    const rawDr0Valid =
+      Boolean(rawDr0?.checkIn && rawDr0?.checkOut) &&
+      assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut)?.ok === true;
+    const lightDr0Valid =
+      Boolean(lightDr0.checkIn && lightDr0.checkOut) &&
+      assessReservationDateCoherence(lightDr0.checkIn, lightDr0.checkOut)?.ok === true;
+    const anchoredCreateDr0Valid =
+      Boolean(anchoredCreateDr0.checkIn && anchoredCreateDr0.checkOut) &&
+      assessReservationDateCoherence(anchoredCreateDr0.checkIn, anchoredCreateDr0.checkOut)?.ok === true;
     const dr0 =
-      explicitDr0.checkIn || explicitDr0.checkOut
-        ? explicitDr0
-        : hasNumericDateRangeWithoutYear(userTxt0)
-          ? extractDateRangeFromTextLight(userTxt0)
-          : {};
+      rawDr0Valid
+        ? rawDr0!
+        : explicitDr0Valid
+          ? explicitDr0
+          : lightDr0Valid
+            ? lightDr0
+            : anchoredCreateDr0Valid
+              ? anchoredCreateDr0
+              : explicitDr0.checkIn || explicitDr0.checkOut
+                ? explicitDr0
+                : hasNumericDateRangeWithoutYear(userTxt0)
+                  ? lightDr0
+                  : anchoredCreateDr0;
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
       const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxt0);
-      const rawDr0 = extractRawOrderedDateRange(userTxt0);
+      const hasCompleteCreatePayloadInTurn = Boolean(
+        turnCreateSlots0.checkIn &&
+        turnCreateSlots0.checkOut &&
+        turnCreateSlots0.roomType &&
+        turnCreateSlots0.numGuests &&
+        isSafeGuestName(turnCreateSlots0.guestName || "")
+      );
+      const shouldBypassRichCreateFastPath =
+        fastPathSubFlow === "create" &&
+        hasCompleteCreatePayloadInTurn &&
+        !hasNumericStyleRange0 &&
+        !anchoredCreateDr0Valid;
+      if (shouldBypassRichCreateFastPath) {
+        // Let the normal create quote-gating path own rich first-turn create payloads.
+      } else {
       const dr0Coherence =
         assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) ||
         assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);
@@ -3720,6 +3799,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         needsSupervision,
         graphResult: null,
       };
+      }
     }
   } catch { /* noop */ }
   // Fast-path: si el usuario aporta UNA sola fecha (check-in o check-out) en modo modificación o contexto de reserva,
