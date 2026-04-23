@@ -7200,3 +7200,37 @@ Impacto:
 - evita desvíos por atajo temporal sobre quote/confirmación
 - mantiene una única resolución operativa dentro de `messageHandler`
 - conserva el alcance acotado a un fix local del runtime vigente
+
+### REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-3
+
+Estado: COMPLETADO  
+Fecha: 2026-04-23  
+Commit: 942d54314c41ba139ee72ee5c51e54e64fc9973d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agrega un sufficiency gating local en `messageHandler` para evitar
+activación prematura de `create` ante consultas vagas de disponibilidad o
+pedidos ambiguos para fin de semana.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva el gating mínimo de `create` ante inputs difusos
+
+Impacto:
+
+- evita activaciones prematuras del flujo `create`
+- preserva una resolución consistente entre intención suficiente e
+  insuficiente
+- mantiene el runtime dentro de `messageHandler`
+- conserva el alcance acotado a un fix local del runtime vigente
