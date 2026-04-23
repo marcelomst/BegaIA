@@ -7234,3 +7234,37 @@ Impacto:
   insuficiente
 - mantiene el runtime dentro de `messageHandler`
 - conserva el alcance acotado a un fix local del runtime vigente
+
+### REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-4
+
+Estado: COMPLETADO  
+Fecha: 2026-04-23  
+Commit: 0aafb17817f53ea57fd6f3a33a19d9d312c7edef
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se estabilizan expectations de tests de `create` frente a rollover/calendario
+mediante actualización de fixtures de mes y uso de asserts menos frágiles para
+fechas.
+
+Archivos afectados:
+
+- `test/unit/inputNormalizerAgent.basic.test.ts`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- reduce fragilidad de la suite frente a rollover/calendario
+
+Impacto:
+
+- endurece la estabilidad local de tests de `create`
+- evita expectations frágiles ligadas al mes o al calendario corriente
+- no altera fuentes de verdad ni lógica operativa
+- conserva el alcance acotado a hardening de la suite
