@@ -125,7 +125,7 @@ describe("messageHandler guards sin contexto de reserva", () => {
   it("nueva reserva explícita con habitación y rango natural pide huéspedes y no pide código", async () => {
     const sendReply = vi.fn(async () => {});
     await handleIncomingMessage(
-      msg("quiero reservar una habitación doble del 21 de abril al 25 de abril"),
+      msg("quiero reservar una habitación doble del 21 de mayo al 25 de mayo"),
       { mode: "automatic", sendReply }
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -166,7 +166,7 @@ describe("messageHandler guards sin contexto de reserva", () => {
   it("si preguntó huéspedes para una nueva reserva, un '2' continúa reservation y no entra en modify", async () => {
     const sendReply = vi.fn(async () => {});
     await handleIncomingMessage(
-      msg("quiero reservar una habitación doble del 21 de abril al 25 de abril"),
+      msg("quiero reservar una habitación doble del 21 de mayo al 25 de mayo"),
       { mode: "automatic", sendReply }
     );
     await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });
@@ -176,8 +176,8 @@ describe("messageHandler guards sin contexto de reserva", () => {
     expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
-      checkIn: "2026-04-21",
-      checkOut: "2026-04-25",
+      checkIn: "2026-05-21",
+      checkOut: "2026-05-25",
     });
     expect(String(currentState?.reservationSlots?.numGuests || "")).toBe("2");
     expect(currentState?.activeFlow).toBe("reservation");
@@ -187,7 +187,7 @@ describe("messageHandler guards sin contexto de reserva", () => {
   it("si ya emitió una propuesta confirmable, 'confirmar' cierra la nueva reserva y no cae en fallback", async () => {
     const sendReply = vi.fn(async () => {});
     await handleIncomingMessage(
-      msg("quiero reservar una habitación doble del 21 de abril al 25 de abril"),
+      msg("quiero reservar una habitación doble del 21 de mayo al 25 de mayo"),
       { mode: "automatic", sendReply }
     );
     await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });
@@ -203,7 +203,7 @@ describe("messageHandler guards sin contexto de reserva", () => {
   it("tolera typo en confirmación dentro del flujo activo y no cae en fallback", async () => {
     const sendReply = vi.fn(async () => {});
     await handleIncomingMessage(
-      msg("quiero reservar una habitación doble del 21 de abril al 25 de abril"),
+      msg("quiero reservar una habitación doble del 21 de mayo al 25 de mayo"),
       { mode: "automatic", sendReply }
     );
     await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });

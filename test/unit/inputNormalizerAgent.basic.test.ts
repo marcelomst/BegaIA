@@ -61,11 +61,11 @@ describe('runInputNormalizer (mínimo)', () => {
     it('extrae fechas con mes nombrado y canonicaliza habitación para una nueva reserva explícita', async () => {
         const msg = {
             ...baseMsg,
-            content: 'quiero reservar una habitación doble del 21 de abril al 25 de abril',
+            content: 'quiero reservar una habitación doble del 21 de mayo al 25 de mayo',
         };
         const norm = await runInputNormalizer({ msg });
         expect(norm.currSlots.roomType).toBe('double');
-        expect(norm.currSlots.checkIn).toBe('2026-04-21');
-        expect(norm.currSlots.checkOut).toBe('2026-04-25');
+        expect(norm.currSlots.checkIn).toBe('2026-05-21');
+        expect(norm.currSlots.checkOut).toBe('2026-05-25');
     });
 });

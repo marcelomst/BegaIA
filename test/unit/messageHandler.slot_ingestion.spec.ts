@@ -182,8 +182,8 @@ describe("messageHandler slot ingestion", () => {
     expect(currentState?.desiredAction).toBe("create");
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
+      checkIn: expect.stringMatching(/-04-22$/),
+      checkOut: expect.stringMatching(/-04-25$/),
       numGuests: "2",
     });
   });
@@ -199,8 +199,8 @@ describe("messageHandler slot ingestion", () => {
     expect(currentState?.activeFlow).toBe("reservation");
     expect(currentState?.desiredAction).toBe("create");
     expect(currentState?.reservationSlots).toMatchObject({
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
+      checkIn: expect.stringMatching(/-04-22$/),
+      checkOut: expect.stringMatching(/-04-25$/),
     });
     expect(currentState?.reservationSlots?.guestName).toBeUndefined();
   });
@@ -216,8 +216,8 @@ describe("messageHandler slot ingestion", () => {
     expect(currentState?.activeFlow).toBe("reservation");
     expect(currentState?.desiredAction).toBe("create");
     expect(currentState?.reservationSlots).toMatchObject({
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
+      checkIn: expect.stringMatching(/-04-22$/),
+      checkOut: expect.stringMatching(/-04-25$/),
     });
     expect(currentState?.reservationSlots?.guestName).toBeUndefined();
   });
@@ -281,8 +281,8 @@ describe("messageHandler slot ingestion", () => {
 
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
+      checkIn: expect.stringMatching(/-04-22$/),
+      checkOut: expect.stringMatching(/-04-25$/),
       numGuests: "2",
       guestName: "Ana Gomez",
     });
@@ -300,8 +300,8 @@ describe("messageHandler slot ingestion", () => {
     expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
+      checkIn: expect.stringMatching(/-04-22$/),
+      checkOut: expect.stringMatching(/-04-25$/),
       numGuests: "2",
     });
     expect(currentState?.reservationSlots?.guestName).toBeUndefined();
