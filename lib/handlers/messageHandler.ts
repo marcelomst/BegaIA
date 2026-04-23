@@ -825,13 +825,7 @@ async function persistCreateLateralCategoryIfNeeded(
   nextCategory: string | null | undefined
 ): Promise<void> {
   if (!nextCategory) return;
-  const createContextActive =
-    !pre.inModifyMode &&
-    (pre.st?.activeFlow === "reservation" ||
-      pre.st?.desiredAction === "create" ||
-      pre.prevCategory === "reservation" ||
-      getConversationFocus(pre.st)?.subFlow === "create");
-  if (!createContextActive) return;
+  if (!isCreateContextActive(pre)) return;
   const lateralTurnHasReservationData = Boolean(
     extractSlotsFromText(rawTurnText, pre.lang).checkIn ||
     extractSlotsFromText(rawTurnText, pre.lang).checkOut ||
@@ -855,18 +849,23 @@ async function persistCreateLateralCategoryIfNeeded(
   } as any);
 }
 
+function isCreateContextActive(pre: PreLLMResult): boolean {
+  const focus = getConversationFocus(pre.st);
+  return Boolean(
+    !pre.inModifyMode &&
+      (pre.st?.activeFlow === "reservation" ||
+        pre.st?.desiredAction === "create" ||
+        pre.prevCategory === "reservation" ||
+        focus?.subFlow === "create")
+  );
+}
+
 function isPureLateralTurnWhileCreateActive(
   pre: PreLLMResult,
   rawTurnText: string,
   dominantTurnDomain: ReturnType<typeof detectDominantTurnDomain>
 ): boolean {
-  const createContextActive =
-    !pre.inModifyMode &&
-    (pre.st?.activeFlow === "reservation" ||
-      pre.st?.desiredAction === "create" ||
-      pre.prevCategory === "reservation" ||
-      getConversationFocus(pre.st)?.subFlow === "create");
-  if (!createContextActive) return false;
+  if (!isCreateContextActive(pre)) return false;
   const extracted = extractSlotsFromText(rawTurnText, pre.lang);
   const turnHasReservationData = Boolean(
     extracted.checkIn ||
@@ -2236,12 +2235,7 @@ function shouldUseReservationLocalFallback(
     pre.st?.desiredAction === "modify" ||
     pre.prevCategory === "modify_reservation" ||
     getConversationFocus(pre.st)?.subFlow === "modify";
-  const createContextActive =
-    !pre.inModifyMode &&
-    (pre.st?.activeFlow === "reservation" ||
-      pre.st?.desiredAction === "create" ||
-      pre.prevCategory === "reservation" ||
-      getConversationFocus(pre.st)?.subFlow === "create");
+  const createContextActive = isCreateContextActive(pre);
   const cancelContextActive =
     Boolean(pre.st?.pendingCancellation?.reservationId) ||
     pre.st?.activeFlow === "cancel_reservation" ||
@@ -6879,12 +6873,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       inlineName ? { guestName: inlineName } : {}
     );
     const createMissingField = getNextCreateFlowMissingField(createGatingSlots);
-    const createFlowActive =
-      !pre.inModifyMode &&
-      (pre.st?.activeFlow === "reservation" ||
-        pre.st?.desiredAction === "create" ||
-        pre.prevCategory === "reservation" ||
-        getConversationFocus(pre.st)?.subFlow === "create");
+    const createFlowActive = isCreateContextActive(pre);
     if (createFlowActive && createMissingField === "guestName" && nextCategory === "reservation") {
       await persistCreateDraft(pre, createGatingSlots);
       nextCategory = "reservation";
