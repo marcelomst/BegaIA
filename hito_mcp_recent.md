@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-CREATE-GUESTNAME-FALSE-POSITIVE-25
+## 1. REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-1
+
+- Identificador: `REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-1`
+- Nombre: `REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-1`
+- Commit message: `REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-1`
+- Hash: `3c8ba8ab3cafee4fbe9110206a0ec59244dcceb7`
+- Descripción breve: Se consolidan checks equivalentes de contexto `create` en `messageHandler` mediante el helper `isCreateContextActive(pre)`, sin alterar fast-paths, guards vagos ni tests.
+
+## 2. FIX-CREATE-GUESTNAME-FALSE-POSITIVE-25
 
 - Identificador: `FIX-CREATE-GUESTNAME-FALSE-POSITIVE-25`
 - Nombre: `FIX-CREATE-GUESTNAME-FALSE-POSITIVE-25`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `0aefcc79ccc802a221c5a021286ce97d4ce6aefd`
 - Descripción breve: Se corrigen falsos positivos en extracción de `guestName` en `create` mediante endurecimiento del validador canónico `isSafeGuestName`.
 
-## 2. FIX-CREATE-FIRST-TURN-FULL-SLOT-PARSING-24
+## 3. FIX-CREATE-FIRST-TURN-FULL-SLOT-PARSING-24
 
 - Identificador: `FIX-CREATE-FIRST-TURN-FULL-SLOT-PARSING-24`
 - Nombre: `FIX-CREATE-FIRST-TURN-FULL-SLOT-PARSING-24`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `fa8cd789db9ee254421d65de3c0545ea40ee9c95`
 - Descripción breve: Se corrige el parsing de rango `dd/mm` sin año en el primer turno de `create` mediante reutilización de `extractDateRangeFromTextLight` con guard explícito.
 
-## 3. REFACTOR-RUNTIME-BRANCH-SIMPLIFICATION-23
+## 4. REFACTOR-RUNTIME-BRANCH-SIMPLIFICATION-23
 
 - Identificador: `REFACTOR-RUNTIME-BRANCH-SIMPLIFICATION-23`
 - Nombre: `REFACTOR-RUNTIME-BRANCH-SIMPLIFICATION-23`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `8cf7206f055ae8f7c95e49c41a933e8e6c88840d`
 - Descripción breve: Se simplifican branches del runtime para el follow-up post-confirmación, extrayendo la resolución de snapshot confirmado a un helper puro y dejando efectos en el branch principal.
 
-## 4. REFACTOR-RUNTIME-CONFIRMATION-GOVERNANCE-22
+## 5. REFACTOR-RUNTIME-CONFIRMATION-GOVERNANCE-22
 
 - Identificador: `REFACTOR-RUNTIME-CONFIRMATION-GOVERNANCE-22`
 - Nombre: `REFACTOR-RUNTIME-CONFIRMATION-GOVERNANCE-22`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `062211a6144bc68fb3e33fb4bbe0ae27222d80b6`
 - Descripción breve: Se consolida la gobernanza de confirmación de `create` en un helper compartido usado por handler y graph, preservando confirmación explícita como único trigger de ejecución y evitando reapertura de `create` post-confirmación.
 
-## 5. FEAT-ADMIN-DEMO-INVENTORY-OBSERVABILITY-19
+## 6. FEAT-ADMIN-DEMO-INVENTORY-OBSERVABILITY-19
 
 - Identificador: `FEAT-ADMIN-DEMO-INVENTORY-OBSERVABILITY-19`
 - Nombre: `FEAT-ADMIN-DEMO-INVENTORY-OBSERVABILITY-19`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `7a860c799b0be05149280fd89f2b67d43fb85627`
 - Descripción breve: Se agrega una herramienta de observabilidad y control del inventario demo en memoria con UI, API, snapshot real del adapter y reset operativo por `hotelId`.
 
-## 6. FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21
+## 7. FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21
 
 - Identificador: `FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21`
 - Nombre: `FIX-PIPELINE-CREATE-PREMATURE-EXECUTION-21`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `7220ace9c21e6158a647a545b2c1c5625f1968c0`
 - Descripción breve: Se corrige la ejecución prematura y la duplicación en `create` mediante confirmación explícita de commit y un guard consistente entre handler y graph.
 
-## 7. FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18
+## 8. FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18
 
 - Identificador: `FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18`
 - Nombre: `FIX-PIPELINE-MODIFY-DATES-SLOT-CORRECTION-18`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `a270e2b02edb7cee654866aad8d203ce8e8dcf70`
 - Descripción breve: Se corrige `modify.dates` para interpretar correcciones conversacionales sobre un rango ya completo y reemplazar el slot corregido sin degradar el subflow.
 
-## 8. FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17
+## 9. FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17
 
 - Identificador: `FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17`
 - Nombre: `FIX-PIPELINE-MODIFY-DATES-CONTEXTUAL-ANCHORING-17`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `f95f095bcac31177b3e8f2836f60fc614f541b03`
 - Descripción breve: Se corrige el anclaje contextual local para weekdays relativos cortos en `modify.dates` cuando existe `checkIn` parcial y falta `checkOut`.
 
-## 9. FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16
+## 10. FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16
 
 - Identificador: `FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16`
 - Nombre: `FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16`
 - Commit message: `FIX-PIPELINE-MODIFY-LATERAL-CONTINUITY-16`
 - Hash: `4002b5e7946242a406192de386715be0b6ce69f0`
 - Descripción breve: Se corrige la continuidad local de `modify.dates` después de un lateral FAQ puro, retomando desde el faltante contextual real en lugar de repreguntar ambas fechas.
-
-## 10. DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01
-
-- Identificador: `DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01`
-- Nombre: `DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01`
-- Commit message: `DOC-ROADMAP-RUNTIME-BOUNDARIES-GOVERNANCE-UPDATE-01`
-- Hash: `3369b4d5ad85e046208a1ace0cf4867117bae494`
-- Descripción breve: Se actualiza el estado real del roadmap, el checkpoint de entrada a Nivel 4 y las reglas de gobernanza para distinguir cambios locales frente a cambios estructurales del roadmap.

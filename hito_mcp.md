@@ -7133,3 +7133,35 @@ Impacto:
 - endurece el validador canónico de nombres
 - preserva `execution` como fuente de verdad
 - mantiene el alcance acotado a un fix local de runtime
+
+### REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-1
+
+Estado: COMPLETADO  
+Fecha: 2026-04-23  
+Commit: 3c8ba8ab3cafee4fbe9110206a0ec59244dcceb7
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se consolidan checks equivalentes de contexto `create` en `messageHandler`
+mediante el helper `isCreateContextActive(pre)`, sin alterar fast-paths,
+guards vagos ni tests.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- reduce duplicación local de guards equivalentes dentro de `messageHandler`
+
+Impacto:
+
+- fortalece una única lógica para detectar contexto `create`
+- reduce duplicación local de checks equivalentes
+- preserva la fuente de verdad del runtime vigente
+- mantiene el alcance acotado a un refactor local y reversible
