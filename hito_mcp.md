@@ -7165,3 +7165,38 @@ Impacto:
 - reduce duplicación local de checks equivalentes
 - preserva la fuente de verdad del runtime vigente
 - mantiene el alcance acotado a un refactor local y reversible
+
+### REFACTOR-RUNTIME-INTENT-SIGNAL-NORMALIZATION-26-HITO-2
+
+Estado: COMPLETADO  
+Fecha: 2026-04-23  
+Commit: 6c3a7578d9a4f39a59d21f68eee06c8af089eb64
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se ajusta la precedencia del Fast-path 0 en `create` para priorizar rangos
+válidos y evitar que el corredor normal de quote/confirmación sea secuestrado
+por el atajo de fechas. El alcance incluye corrección contextual de rango corto
+dentro de `create`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva el corredor normal de `create` cuando el turno ya trae payload
+  completo
+
+Impacto:
+
+- corrige la precedencia local del Fast-path 0 en `create`
+- evita desvíos por atajo temporal sobre quote/confirmación
+- mantiene una única resolución operativa dentro de `messageHandler`
+- conserva el alcance acotado a un fix local del runtime vigente
