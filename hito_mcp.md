@@ -7336,3 +7336,37 @@ Impacto:
 - alinea la persistencia parcial con el flujo operativo real
 - no introduce estado paralelo ni nueva fuente de verdad
 - mantiene la lógica dentro de `messageHandler`
+
+### FIX-CREATE-CHECKIN-PROMPT-FRAMING-34
+
+Estado: COMPLETADO  
+Fecha: 2026-04-24  
+Commit: 3a95433483a86f44b654bb42598e5e8d551334cb
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige el wording de prompts de fecha faltante en contexto `create`,
+evitando framing de `modify` ("nueva fecha") cuando el flujo está iniciando una
+reserva o consulta de disponibilidad.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- refuerza la coherencia entre estado conversacional real y wording de prompt
+
+Impacto:
+
+- evita framing incorrecto de `modify` dentro de `create`
+- mantiene explícito el contexto `create/modify` en el mismo helper
+- no agrega estado nuevo ni fuentes paralelas de verdad
+- conserva el alcance acotado a un fix local de copy y wiring de contexto
