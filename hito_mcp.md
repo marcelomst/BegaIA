@@ -7268,3 +7268,37 @@ Impacto:
 - evita expectations frágiles ligadas al mes o al calendario corriente
 - no altera fuentes de verdad ni lógica operativa
 - conserva el alcance acotado a hardening de la suite
+
+### REFACTOR-RUNTIME-REFERENCE-RESOLUTION-ALIGNMENT-32
+
+Estado: COMPLETADO  
+Fecha: 2026-04-24  
+Commit: 8728ac3d86aee21e1b062a8c2540096fda31b8ea
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea el runtime local de `messageHandler` con el boundary contractual de
+reference resolution, separando de forma más explícita el resultado de decisión
+del consumo posterior sin mover lógica fuera de `messageHandler` ni cambiar
+comportamiento observable.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- explicita el boundary del slice reference resolution dentro del runtime
+  vigente
+
+Impacto:
+
+- fortalece la separación entre decision layer y consumo downstream
+- no agrega estado nuevo ni fuentes paralelas de verdad
+- preserva la lógica dentro de `messageHandler`
+- mantiene el alcance acotado a un refactor runtime-local sin cambio observable
