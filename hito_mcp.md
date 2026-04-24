@@ -7370,3 +7370,43 @@ Impacto:
 - mantiene explícito el contexto `create/modify` en el mismo helper
 - no agrega estado nuevo ni fuentes paralelas de verdad
 - conserva el alcance acotado a un fix local de copy y wiring de contexto
+
+### FIX-CREATE-AVAILABILITY-INQUIRY-POLICY-35
+
+Estado: COMPLETADO  
+Fecha: 2026-04-24  
+Commit: 61a4327aac45ae468917f1d922c65e47413b9da1
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se explicita la separación entre `availability inquiry` y `reservation.create`
+dentro de `messageHandler`, incorporando modo inquiry en
+`runAvailabilityCheck`, persistencia no transaccional para inquiry y reflejo
+documental de la policy en `message_pipeline.md`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `docs/architecture/message_pipeline.md`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- la regla quedó reflejada en `message_pipeline.md` como comportamiento
+  estructural observable
+- no requiere actualización de roadmap
+
+Impacto:
+
+- consolida la semántica operativa entre inquiry y `create`
+- evita persistencia transaccional prematura para inquiry
+- mantiene `messageHandler` como runtime vigente
+- fortalece la separación explícita entre consulta de disponibilidad y creación
+  de reserva
