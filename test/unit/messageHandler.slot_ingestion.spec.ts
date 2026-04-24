@@ -30,11 +30,21 @@ vi.mock("@/lib/db/convState", () => ({
 }));
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
-    invoke: vi.fn(async () => ({
-      messages: [{ role: "assistant", content: "Respuesta base" }],
-      category: "reservation",
-      meta: {},
-    })),
+    invoke: vi.fn(async (input: any) => {
+      const text = String(input?.normalizedMessage || "");
+      if (/disponibilidad/i.test(text)) {
+        return {
+          messages: [{ role: "assistant", content: "¿Cuál es el tipo de habitación?" }],
+          category: "reservation",
+          meta: {},
+        };
+      }
+      return {
+        messages: [{ role: "assistant", content: "Respuesta base" }],
+        category: "reservation",
+        meta: {},
+      };
+    }),
   },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
@@ -158,6 +168,42 @@ describe("messageHandler slot ingestion", () => {
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
     });
+  });
+
+  it("en availability -> create, después de 'doble' pide check-in sin framing de modificación", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("hola, queria ver si hay disponibilidad"),
+      { mode: "automatic", sendReply }
+    );
+
+    currentState = {
+      reservationSlots: {},
+      conversationFocus: {
+        active: true,
+        domain: "reservation",
+        subFlow: "create",
+      },
+      activeReservationContext: {
+        kind: "draft",
+        phase: "collecting",
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+    };
+
+    await handleIncomingMessage(
+      msg("doble"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/check-?in|fecha/i);
+    expect(replyText).not.toMatch(/nueva fecha/i);
   });
 
   it("absorbe guestName inline con patron 'a nombre de' y no repregunta nombre", async () => {

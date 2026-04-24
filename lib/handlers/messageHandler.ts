@@ -633,7 +633,7 @@ function getNextCreateFlowMissingField(slots: ReservationSlotsStrict): CreateFlo
 }
 
 function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlowMissingField): string {
-  if (missingField === "checkIn" || missingField === "checkOut") return buildAskMissingDate(lang, missingField);
+  if (missingField === "checkIn" || missingField === "checkOut") return buildAskMissingDate(lang, missingField, "create");
   if (missingField === "numGuests") return buildAskGuests(lang);
   if (missingField === "guestName") return buildAskGuestName(lang);
   return lang === "es"
@@ -6164,18 +6164,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasCheckOut = Boolean(freshTurnSlots.checkOut);
     if (hasCheckIn && !hasCheckOut) {
       finalText = pre.lang === "es"
-        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut")}`
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
         : pre.lang === "pt"
-          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut")}`
-          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut")}`;
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`;
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!hasCheckIn && hasCheckOut) {
       finalText = pre.lang === "es"
-        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn")}`
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
         : pre.lang === "pt"
-          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn")}`
-          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn")}`;
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`;
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
 
@@ -7671,7 +7671,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     } else {
       // Si por algún motivo no tenemos ambas fechas aún, pedimos la faltante
       const missing = !ciISO ? "checkIn" : !coISO ? "checkOut" : undefined;
-      if (missing) finalText = buildAskMissingDate(pre.lang, missing as any);
+      if (missing) finalText = buildAskMissingDate(pre.lang, missing as any, modifyExecutionActive ? "modify" : "create");
     }
     return {
       finalText,
@@ -7748,7 +7748,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       } else {
         // Si faltan fechas aún, pedir explícitamente
         const missing = !ciISO ? "checkIn" : "checkOut";
-        finalText = buildAskMissingDate(pre.lang, missing as any);
+        finalText = buildAskMissingDate(pre.lang, missing as any, modifyExecutionActive ? "modify" : "create");
       }
     } catch (e) {
       console.warn("[followup-status] availability error:", (e as any)?.message || e);

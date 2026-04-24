@@ -54,23 +54,31 @@ export function buildAskGuestName(lang: "es" | "en" | "pt"): string {
 
 export function buildAskMissingDate(
     lang: "es" | "en" | "pt",
-    missing: "checkIn" | "checkOut"
+    missing: "checkIn" | "checkOut",
+    context: "create" | "modify" = "modify"
 ): string {
     const isOut = missing === "checkOut";
+    const asksCreateCheckIn = !isOut && context === "create";
     if (lang === "es") {
         return isOut
             ? "Perfecto. ¿Podés confirmarme también la fecha de check-out? (formato dd/mm/aaaa)"
-            : "Entendido. ¿Cuál sería la nueva fecha de check-in? (formato dd/mm/aaaa)";
+            : asksCreateCheckIn
+                ? "Entendido. ¿Cuál sería la fecha de check-in? (formato dd/mm/aaaa)"
+                : "Entendido. ¿Cuál sería la nueva fecha de check-in? (formato dd/mm/aaaa)";
     }
     if (lang === "pt") {
         return isOut
             ? "Perfeito. Pode me confirmar também a data de check-out? (formato dd/mm/aaaa)"
-            : "Entendido. Qual seria a nova data de check-in? (formato dd/mm/aaaa)";
+            : asksCreateCheckIn
+                ? "Entendido. Qual seria a data de check-in? (formato dd/mm/aaaa)"
+                : "Entendido. Qual seria a nova data de check-in? (formato dd/mm/aaaa)";
     }
     // en
     return isOut
         ? "Great. Could you also share the check-out date? (format dd/mm/yyyy)"
-        : "Got it. What would be the new check-in date? (format dd/mm/yyyy)";
+        : asksCreateCheckIn
+            ? "Got it. What would be the check-in date? (format dd/mm/yyyy)"
+            : "Got it. What would be the new check-in date? (format dd/mm/yyyy)";
 }
 
 export function buildAskNewDates(lang: "es" | "en" | "pt"): string {
