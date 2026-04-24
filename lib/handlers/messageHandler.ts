@@ -4039,7 +4039,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const tLower = userTxt.toLowerCase();
     const hasAnaphoraReferenceFast = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxt));
     const explicitReservationCodeFast = parseReservationCode(userTxt);
-    const reservationReferenceFast = resolveReservationReference(pre.st, userTxt);
+    const resolutionFast = resolveReservationReference(pre.st, userTxt);
     const ordinalReservationTargetFast = resolveExplicitOrdinalReservationTarget(pre.st, userTxt);
     const actionableReservationCountFast = buildActionableReservationCandidates(pre.st).length;
     const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
@@ -4059,30 +4059,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       RE_CHANGE_DATES.test(userTxt) || RE_CHANGE_DATES.test(normalizedUserTxtFast) ||
       RE_CHANGE_ROOM.test(userTxt) || RE_CHANGE_ROOM.test(normalizedUserTxtFast) ||
       RE_CHANGE_GUESTS.test(userTxt) || RE_CHANGE_GUESTS.test(normalizedUserTxtFast);
-    if (genericModify && (reservationReferenceFast.status === "ambiguous" || reservationReferenceFast.status === "out_of_range")) {
-      finalText = buildReservationReferenceGuardReply(pre.lang, reservationReferenceFast);
+    if (genericModify && (resolutionFast.status === "ambiguous" || resolutionFast.status === "out_of_range")) {
+      finalText = buildReservationReferenceGuardReply(pre.lang, resolutionFast);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };
     }
-    const boundReservationTarget =
-      reservationReferenceFast.status === "resolved" && reservationReferenceFast.target.kind === "reservation"
-        ? reservationReferenceFast.target
+    const resolvedFastReservationTarget =
+      resolutionFast.status === "resolved" && resolutionFast.target.kind === "reservation"
+        ? resolutionFast.target
         : ordinalReservationTargetFast;
     const canOpenModifyMenu =
       !isDateTopicFast &&
       !isExplicitFieldChangeFast &&
-      !(genericModify && actionableReservationCountFast > 1 && reservationReferenceFast.status !== "resolved") &&
-      (softModifyFollowup || (genericModify && (hasConfirmed || !!boundReservationTarget)));
+      !(genericModify && actionableReservationCountFast > 1 && resolutionFast.status !== "resolved") &&
+      (softModifyFollowup || (genericModify && (hasConfirmed || !!resolvedFastReservationTarget)));
     if (canOpenModifyMenu) {
       const knownSlots = {
         ...(pre.st?.reservationSlots || {}),
         ...(nextSlots || {}),
-        ...(boundReservationTarget
+        ...(resolvedFastReservationTarget
           ? {
-            guestName: boundReservationTarget.guestName,
-            roomType: boundReservationTarget.roomType,
-            numGuests: boundReservationTarget.numGuests,
-            checkIn: boundReservationTarget.checkIn,
-            checkOut: boundReservationTarget.checkOut,
+            guestName: resolvedFastReservationTarget.guestName,
+            roomType: resolvedFastReservationTarget.roomType,
+            numGuests: resolvedFastReservationTarget.numGuests,
+            checkIn: resolvedFastReservationTarget.checkIn,
+            checkOut: resolvedFastReservationTarget.checkOut,
           }
           : {}),
       } as ReservationSlotsStrict;
@@ -4095,10 +4095,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         lastCategory: "modify_reservation",
         updatedBy: "ai",
       };
-      if (boundReservationTarget?.reservationId) {
-        modifyMenuPatch.activeReservationContext = buildFocusedReservationContext(boundReservationTarget.reservationId, "confirmed");
+      if (resolvedFastReservationTarget?.reservationId) {
+        modifyMenuPatch.activeReservationContext = buildFocusedReservationContext(resolvedFastReservationTarget.reservationId, "confirmed");
         modifyMenuPatch.selectedReservationTarget = buildSelectedReservationTargetFromReference(
-          boundReservationTarget.reservationId,
+          resolvedFastReservationTarget.reservationId,
           explicitReservationCodeFast ? "explicit_id" : ordinalReservationTargetFast ? "ordinal" : hasAnaphoraReferenceFast ? "anaphora" : "active_focus",
           explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
         );
@@ -4301,9 +4301,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   // Detección rápida: pedido de enviar copia por email
   const userTxtRaw = String(pre.msg.content || "");
-  const reservationReference = resolveReservationReference(pre.st, userTxtRaw);
+  const normalizedReferenceUserText = normalizeReferenceText(userTxtRaw);
+  // Reference resolution slice: decision-only boundary. No replies, persistence, or execution here.
+  const resolution = resolveReservationReference(pre.st, userTxtRaw);
   const explicitOrdinalReservationTarget = resolveExplicitOrdinalReservationTarget(pre.st, userTxtRaw);
   const persistedSelectedReservationTarget = resolveSelectedReservationTarget(pre.st);
+  const hasAnaphoraReference = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizedReferenceUserText);
+  const explicitReservationCode = parseReservationCode(userTxtRaw);
+  const explicitIdReservationTarget = explicitReservationCode
+    ? getReservationReferenceTargetById(pre.st, explicitReservationCode)
+    : null;
+  const resolvedReferenceReservationTarget =
+    resolution.status === "resolved" && resolution.target.kind === "reservation"
+      ? resolution.target
+      : null;
+  const reservationReference = resolution;
   const normalizedReservationIntent = normalizeReservationIntent(userTxtRaw);
   const reservationDomainLock = getReservationDomainLockSignal(pre, userTxtRaw);
   const explicitModifyExit =
@@ -4350,11 +4362,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     looksNonReservationDomainTurn && !shouldPreserveReservationSelectionForOverride
       ? null
       : persistedSelectedReservationTarget;
-  const hasAnaphoraReference = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxtRaw));
-  const explicitReservationCode = parseReservationCode(userTxtRaw);
-  const explicitIdReservationTarget = explicitReservationCode
-    ? getReservationReferenceTargetById(pre.st, explicitReservationCode)
-    : null;
   const selectedOrActiveReservationTarget =
     selectedReservationTarget ||
     (pre.st?.activeReservationContext?.kind === "reservation"
@@ -4368,7 +4375,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     pre.st?.desiredAction === "modify" ||
     getConversationFocus(pre.st)?.subFlow === "modify";
   const ambiguousReservationAction = getAmbiguousReservationAction(pre, userTxtRaw, {
-    reservationReference,
+    reservationReference: resolution,
     snapshotQueryKind: effectiveSnapshotQueryKind,
     normalizedReservationIntent,
     hasModifyVerb,
@@ -4574,10 +4581,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     } as any);
   }
   if (
-    (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") &&
+    (resolution.status === "ambiguous" || resolution.status === "out_of_range") &&
     (normalizedReservationIntent.kind === "modify" || normalizedReservationIntent.kind === "cancel")
   ) {
-    finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
+    finalText = buildReservationReferenceGuardReply(pre.lang, resolution);
     nextCategory = normalizedReservationIntent.kind === "cancel" ? "cancel_reservation" : "modify_reservation";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
@@ -4597,18 +4604,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (
     effectiveSnapshotQueryKind &&
-    (reservationReference.status === "ambiguous" || reservationReference.status === "out_of_range") &&
+    (resolution.status === "ambiguous" || resolution.status === "out_of_range") &&
     !explicitOrdinalReservationTarget
   ) {
-    finalText = buildReservationReferenceGuardReply(pre.lang, reservationReference);
+    finalText = buildReservationReferenceGuardReply(pre.lang, resolution);
     nextCategory = "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
   const resolvedSnapshotTarget =
     effectiveSnapshotQueryKind === "list"
       ? null
-      : effectiveSnapshotQueryKind && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
-        ? reservationReference.target
+      : effectiveSnapshotQueryKind && resolvedReferenceReservationTarget
+        ? resolvedReferenceReservationTarget
         : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
   const normalizedSnapshotInput = normalizeReferenceText(userTxtRaw);
   const hasActionIntent =
@@ -4703,8 +4710,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
   const resolvedModifyTarget =
-    reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
-      ? reservationReference.target
+    resolvedReferenceReservationTarget
+      ? resolvedReferenceReservationTarget
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget || resolveSingleActionableReservationTarget(pre.st);
   const normalizedUserTxtForModify = normalizeReferenceText(userTxtRaw);
   const wantsChangeDates = RE_CHANGE_DATES.test(userTxtRaw) || RE_CHANGE_DATES.test(normalizedUserTxtForModify);
