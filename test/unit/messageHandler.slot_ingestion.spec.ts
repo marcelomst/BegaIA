@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let currentState: any = null;
 
@@ -84,6 +84,10 @@ describe("messageHandler slot ingestion", () => {
   beforeEach(() => {
     currentState = null;
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("absorbe fechas y composición de huéspedes en un solo turno de create sin repreguntar huéspedes", async () => {
@@ -470,6 +474,88 @@ describe("messageHandler slot ingestion", () => {
     expect(replyText).not.toMatch(/no entend[ií]|humano|asesor/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "triple",
+    });
+  });
+
+  it("en follow-up create absorbe 'el sábado' como check-in y 'domingo' como check-out sin repreguntar salida", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+      },
+      conversationFocus: {
+        active: true,
+        domain: "reservation",
+        subFlow: "create",
+      },
+      activeReservationContext: {
+        kind: "draft",
+        phase: "collecting",
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("el sábado"), { mode: "automatic", sendReply });
+
+    const afterCheckInReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(afterCheckInReply).toMatch(/check-?out|salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+    });
+
+    await handleIncomingMessage(msg("Domingo"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+    });
+  });
+
+  it("cuando create espera check-out y recibe fecha explícita no vuelve a repreguntar la salida", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-04-25",
+      },
+      conversationFocus: {
+        active: true,
+        domain: "reservation",
+        subFlow: "create",
+      },
+      activeReservationContext: {
+        kind: "draft",
+        phase: "collecting",
+        updatedAt: new Date().toISOString(),
+      },
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "qualify",
+      lastCategory: "reservation",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("26/04/2026"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
     });
   });
 });

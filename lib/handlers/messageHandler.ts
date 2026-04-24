@@ -2595,6 +2595,15 @@ function firstWeekdayStrictlyAfter(baseIso: string, weekday: number): string | u
   return candidate.toISOString().slice(0, 10);
 }
 
+function firstWeekdayOnOrAfter(baseIso: string, weekday: number): string | undefined {
+  const base = new Date(`${baseIso}T00:00:00.000Z`);
+  if (Number.isNaN(base.getTime())) return undefined;
+  const candidate = new Date(base.getTime());
+  const delta = (weekday - candidate.getUTCDay() + 7) % 7;
+  candidate.setUTCDate(candidate.getUTCDate() + delta);
+  return candidate.toISOString().slice(0, 10);
+}
+
 function anchorRelativeWeekdayToCheckOutAfterCheckIn(
   text: string,
   temporalDates: { checkIn?: string; checkOut?: string },
@@ -2626,6 +2635,58 @@ function anchorModifyRelativeDateToContext(
   } as ReservationSlotsStrict;
   if (!knownSlots.checkIn || knownSlots.checkOut) return temporalDates;
   return anchorRelativeWeekdayToCheckOutAfterCheckIn(text, temporalDates, knownSlots.checkIn);
+}
+
+function resolveCreateDatesContextualMissingSide(
+  pre: Pick<PreLLMResult, "st" | "prevCategory">,
+  slots?: Partial<ReservationSlotsStrict> | null
+): "checkIn" | "checkOut" | undefined {
+  const focus = getConversationFocus(pre.st);
+  const createFlowActive =
+    focus?.subFlow === "create" ||
+    pre.st?.activeFlow === "reservation" ||
+    pre.st?.desiredAction === "create" ||
+    pre.prevCategory === "reservation";
+  if (!createFlowActive || pre.st?.salesStage === "close") return undefined;
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(slots || {}),
+  } as ReservationSlotsStrict;
+  const missingField = getNextCreateFlowMissingField(knownSlots);
+  return missingField === "checkIn" || missingField === "checkOut" ? missingField : undefined;
+}
+
+function anchorCreateRelativeDateToContext(
+  pre: Pick<PreLLMResult, "st" | "prevCategory">,
+  text: string,
+  temporalDates: { checkIn?: string; checkOut?: string },
+  slots?: Partial<ReservationSlotsStrict> | null
+): { checkIn?: string; checkOut?: string } {
+  const contextualMissingSide = resolveCreateDatesContextualMissingSide(pre, slots);
+  if (!contextualMissingSide) return temporalDates;
+  const knownSlots = {
+    ...(pre.st?.reservationSlots || {}),
+    ...(slots || {}),
+  } as ReservationSlotsStrict;
+  if (contextualMissingSide === "checkOut" && knownSlots.checkIn && !knownSlots.checkOut) {
+    const anchored = anchorRelativeWeekdayToCheckOutAfterCheckIn(text, temporalDates, knownSlots.checkIn);
+    if (anchored.checkOut) return { checkOut: anchored.checkOut };
+    if (temporalDates.checkIn || temporalDates.checkOut) {
+      return { checkOut: temporalDates.checkOut || temporalDates.checkIn };
+    }
+    return temporalDates;
+  }
+  if (contextualMissingSide === "checkIn" && !knownSlots.checkIn) {
+    if (temporalDates.checkIn || temporalDates.checkOut) {
+      return { checkIn: temporalDates.checkIn || temporalDates.checkOut };
+    }
+    const relativeWeekday = detectShortRelativeWeekday(text);
+    if (typeof relativeWeekday !== "number") return temporalDates;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const anchoredCheckIn = firstWeekdayOnOrAfter(todayIso, relativeWeekday);
+    return anchoredCheckIn ? { checkIn: anchoredCheckIn } : temporalDates;
+  }
+  return temporalDates;
 }
 
 function hasModifyDateCorrectionCue(text: string): boolean {
@@ -3827,7 +3888,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   try {
     const userTxtFast = String(pre.msg.content || "");
     const drFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
-    const drFast = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
+    const drFastModifyAnchored = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
+    const drFast = anchorCreateRelativeDateToContext(pre, userTxtFast, drFastModifyAnchored, nextSlots);
     const activeModifyFieldFast = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
     const modifyContextActiveFast =
       pre.inModifyMode ||
@@ -3836,6 +3898,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.desiredAction === "modify" ||
       getConversationFocus(pre.st)?.subFlow === "modify";
     const contextualMissingSideFast = resolveModifyDatesContextualMissingSide(pre, nextSlots);
+    const createContextualMissingSideFast = resolveCreateDatesContextualMissingSide(pre, nextSlots);
+    const reservationContextualMissingSideFast = contextualMissingSideFast || createContextualMissingSideFast;
     const singleFastISO = drFast.checkIn || drFast.checkOut;
     const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);
     const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
@@ -3850,8 +3914,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       !contextualMissingSideFast &&
       !fastTemporalSideIntent;
     if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {
-      if (singleFastISO && contextualMissingSideFast) {
-        const contextualFastDates = contextualMissingSideFast === "checkIn"
+      if (singleFastISO && reservationContextualMissingSideFast) {
+        const contextualFastDates = reservationContextualMissingSideFast === "checkIn"
           ? { checkIn: singleFastISO }
           : { checkOut: singleFastISO };
         const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
@@ -3859,6 +3923,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
         const ciISO = fastPathSlots.checkIn;
         const coISO = fastPathSlots.checkOut;
+        if (fastPathSubFlow === "create") {
+          const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
+          if (!createDraftConsistency.valid) {
+            await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+            return {
+              finalText: createDraftConsistency.message,
+              nextCategory: "reservation",
+              nextSlots: { ...createDraftConsistency.sanitizedSlots },
+              needsSupervision,
+              graphResult: null,
+            };
+          }
+          const missingField = getNextCreateFlowMissingField(fastPathSlots);
+          await persistCreateDraft(pre, fastPathSlots);
+          if (missingField) {
+            return {
+              finalText: buildCreateFlowPrompt(pre.lang, missingField),
+              nextCategory: "reservation",
+              nextSlots,
+              needsSupervision,
+              graphResult: null,
+            };
+          }
+        }
         if (ciISO && coISO) {
           const ciTxt = isoToDDMMYYYY(ciISO) || ciISO;
           const coTxt = isoToDDMMYYYY(coISO) || coISO;
