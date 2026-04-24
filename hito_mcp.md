@@ -7302,3 +7302,37 @@ Impacto:
 - no agrega estado nuevo ni fuentes paralelas de verdad
 - preserva la lógica dentro de `messageHandler`
 - mantiene el alcance acotado a un refactor runtime-local sin cambio observable
+
+### FIX-CREATE-CONTEXTUAL-DATE-FOLLOWUP-33
+
+Estado: COMPLETADO  
+Fecha: 2026-04-24  
+Commit: d3bc86b34fde60dd3ccc48bd87912d7f1bf3c45a
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige `create` para absorber una única fecha contextual relativa o
+explícita cuando el runtime espera `checkIn` o `checkOut`, persistiendo el
+draft parcial antes de decidir el siguiente prompt y evitando repreguntas del
+mismo slot.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- consolida la persistencia parcial del draft canónico en `create`
+
+Impacto:
+
+- evita repreguntas del mismo slot cuando ya hay fecha contextual suficiente
+- alinea la persistencia parcial con el flujo operativo real
+- no introduce estado paralelo ni nueva fuente de verdad
+- mantiene la lógica dentro de `messageHandler`
