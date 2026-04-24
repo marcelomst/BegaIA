@@ -535,8 +535,11 @@ export async function runAvailabilityCheck(
     pre: PreLike,
     slots: ReservationSlotsLike,
     ciISO: string,
-    coISO: string
+    coISO: string,
+    options?: { mode?: "proposal" | "inquiry"; persistConvState?: boolean }
 ): Promise<{ finalText: string; nextSlots: ReservationSlotsLike; needsHandoff: boolean }> {
+    const mode = options?.mode || "proposal";
+    const persistConvState = options?.persistConvState ?? (mode === "proposal");
     const snapshot: any = {
         guestName: slots.guestName || pre.st?.reservationSlots?.guestName,
         roomType: slots.roomType || pre.st?.reservationSlots?.roomType,
@@ -546,40 +549,42 @@ export async function runAvailabilityCheck(
         locale: pre.lang,
     };
     const availability = await askAvailability(pre.msg.hotelId, snapshot);
-    try {
-        await upsertConvState(pre.msg.hotelId, pre.conversationId, {
-            reservationSlots: snapshot,
-            lastProposal: {
-                text:
-                    (availability as any).proposal ||
-                    (((availability as any).ok === false)
-                        ? (pre.lang === "es" ? "Problema al consultar disponibilidad." : pre.lang === "pt" ? "Problema ao verificar disponibilidade." : "Issue checking availability.")
-                        : (availability.available
-                            ? (pre.lang === "es" ? "Hay disponibilidad." : pre.lang === "pt" ? "Há disponibilidade." : "Availability found.")
-                            : (pre.lang === "es" ? "Sin disponibilidad." : pre.lang === "pt" ? "Sem disponibilidade." : "No availability."))),
-                available: !!availability.available,
-                options: availability.options,
-                suggestedRoomType: availability?.options?.[0]?.roomType,
-                suggestedPricePerNight: typeof availability?.options?.[0]?.pricePerNight === "number" ? availability.options![0]!.pricePerNight : undefined,
-                toolCall: {
-                    name: "checkAvailability",
-                    input: {
-                        hotelId: pre.msg.hotelId,
-                        roomType: snapshot.roomType,
-                        numGuests: snapshot.numGuests ? parseInt(String(snapshot.numGuests), 10) || 1 : undefined,
-                        checkIn: snapshot.checkIn,
-                        checkOut: snapshot.checkOut,
+    if (persistConvState) {
+        try {
+            await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+                reservationSlots: snapshot,
+                lastProposal: {
+                    text:
+                        (availability as any).proposal ||
+                        (((availability as any).ok === false)
+                            ? (pre.lang === "es" ? "Problema al consultar disponibilidad." : pre.lang === "pt" ? "Problema ao verificar disponibilidade." : "Issue checking availability.")
+                            : (availability.available
+                                ? (pre.lang === "es" ? "Hay disponibilidad." : pre.lang === "pt" ? "Há disponibilidade." : "Availability found.")
+                                : (pre.lang === "es" ? "Sin disponibilidad." : pre.lang === "pt" ? "Sem disponibilidade." : "No availability."))),
+                    available: !!availability.available,
+                    options: availability.options,
+                    suggestedRoomType: availability?.options?.[0]?.roomType,
+                    suggestedPricePerNight: typeof availability?.options?.[0]?.pricePerNight === "number" ? availability.options![0]!.pricePerNight : undefined,
+                    toolCall: {
+                        name: "checkAvailability",
+                        input: {
+                            hotelId: pre.msg.hotelId,
+                            roomType: snapshot.roomType,
+                            numGuests: snapshot.numGuests ? parseInt(String(snapshot.numGuests), 10) || 1 : undefined,
+                            checkIn: snapshot.checkIn,
+                            checkOut: snapshot.checkOut,
+                        },
+                        outputSummary: availability.available ? "available:true" : "available:false",
+                        at: safeNowISO(),
                     },
-                    outputSummary: availability.available ? "available:true" : "available:false",
-                    at: safeNowISO(),
                 },
-            },
-            salesStage: availability.available ? "quote" : "followup",
-            desiredAction: ((availability as any).ok === false || availability.available === false) ? "notify_reception" : (pre.st?.desiredAction),
-            updatedBy: "ai",
-        } as any);
-    } catch (e) {
-        console.warn("[runAvailabilityCheck] upsertConvState warn:", (e as any)?.message || e);
+                salesStage: availability.available ? "quote" : "followup",
+                desiredAction: ((availability as any).ok === false || availability.available === false) ? "notify_reception" : (pre.st?.desiredAction),
+                updatedBy: "ai",
+            } as any);
+        } catch (e) {
+            console.warn("[runAvailabilityCheck] upsertConvState warn:", (e as any)?.message || e);
+        }
     }
 
     const isError = (availability as any).ok === false;
@@ -625,7 +630,7 @@ export async function runAvailabilityCheck(
             : pre.lang === "pt"
                 ? "Qual é o seu sobrenome?"
                 : "What's your last name?";
-    const actionLine = availability.available
+    const actionLine = mode === "proposal" && availability.available
         ? (needsGuests
             ? `\n\n${buildAskGuests(pre.lang)}`
             : (needsName

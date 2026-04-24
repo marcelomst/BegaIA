@@ -273,7 +273,7 @@ describe("messageHandler routing observability baseline", () => {
     );
   });
 
-  it("loggea decisión homogénea para ruta del grafo con classifier forzado", async () => {
+  it("loggea decisión homogénea para availability inquiry con classifier forzado", async () => {
     vi.mocked(answerWithKnowledge).mockResolvedValue({
       ok: false,
       category: "retrieval_based",
@@ -308,14 +308,14 @@ describe("messageHandler routing observability baseline", () => {
     expect(debugLog).toHaveBeenCalledWith(
       "[routing][decision]",
       expect.objectContaining({
-        decision_layer: "graph",
-        route_source: "forced_llm_classifier",
-        route_match: "FORCE_LLM_CLASSIFIER",
-        early_return: false,
-        used_llm_classifier: true,
-        classifier_source: "forced_llm",
-        final_category: "reservation",
-        final_prompt_key: "reservation_flow",
+        decision_layer: "bodyLLM",
+        route_source: "availability_inquiry_policy",
+        route_match: "availability_collecting",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: "availability_inquiry",
+        final_prompt_key: null,
       })
     );
   });

@@ -713,6 +713,83 @@ function validateCreateDraftConsistency(
   return { valid: true, sanitizedSlots };
 }
 
+type AvailabilityInquiryMissingField = "roomType" | "checkIn" | "checkOut" | null;
+
+function getNextAvailabilityInquiryMissingField(slots: ReservationSlotsStrict): AvailabilityInquiryMissingField {
+  if (!slots.roomType) return "roomType";
+  if (!slots.checkIn) return "checkIn";
+  if (!slots.checkOut) return "checkOut";
+  return null;
+}
+
+function buildAvailabilityInquiryPrompt(
+  lang: "es" | "en" | "pt",
+  missingField: AvailabilityInquiryMissingField
+): string {
+  if (missingField === "checkIn" || missingField === "checkOut") {
+    return buildAskMissingDate(lang, missingField, "create");
+  }
+  return lang === "es"
+    ? "¿Cuál es el tipo de habitación?"
+    : lang === "pt"
+      ? "Qual é o tipo de quarto?"
+      : "What is the room type?";
+}
+
+function isExplicitCreateReservationIntent(text: string): boolean {
+  const normalizedReservationIntent = normalizeReservationIntent(text || "");
+  return (
+    /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(String(text || "")) &&
+    normalizedReservationIntent.kind !== "modify" &&
+    normalizedReservationIntent.kind !== "cancel"
+  );
+}
+
+function isAvailabilityInquiryIntent(text: string): boolean {
+  const normalizedText = normalizeReferenceText(text || "");
+  if (!normalizedText) return false;
+  if (isExplicitCreateReservationIntent(text)) return false;
+  return (
+    /\b(disponibil\w*|availability)\b/.test(normalizedText) ||
+    /\b(hay|tienen?|have|is there|do you have)\b.*\b(lugar|place|room|habitacion|habitacion)\b/.test(normalizedText)
+  );
+}
+
+function isAvailabilityInquiryActive(pre: Pick<PreLLMResult, "st" | "prevCategory">): boolean {
+  if (pre.st?.salesStage === "quote" || pre.st?.salesStage === "close") return false;
+  return pre.prevCategory === "availability_inquiry" || pre.st?.lastCategory === "availability_inquiry";
+}
+
+function buildAvailabilityInquiryFollowup(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "Si querés reservar, después puedo ayudarte a completar la reserva."
+    : lang === "pt"
+      ? "Se você quiser reservar, depois posso ajudar a completar a reserva."
+      : "If you'd like to book it, I can help you complete the booking next.";
+}
+
+async function persistAvailabilityInquiry(
+  pre: PreLLMResult,
+  slots: ReservationSlotsStrict
+): Promise<void> {
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    reservationSlots: {
+      ...(pre.st?.reservationSlots || {}),
+      ...slots,
+      locale: pre.lang,
+    },
+    lastProposal: null,
+    pendingAvailabilityVerification: null,
+    activeReservationContext: null,
+    conversationFocus: null,
+    activeFlow: null,
+    desiredAction: undefined,
+    salesStage: "qualify",
+    lastCategory: "availability_inquiry",
+    updatedBy: "ai",
+  } as any);
+}
+
 function isCreateStateReadyForQuote(slots: ReservationSlotsStrict): boolean {
   return Boolean(
     slots.checkIn &&
@@ -2689,6 +2766,37 @@ function anchorCreateRelativeDateToContext(
   return temporalDates;
 }
 
+function anchorAvailabilityInquiryDateToContext(
+  pre: Pick<PreLLMResult, "st" | "prevCategory">,
+  text: string,
+  temporalDates: { checkIn?: string; checkOut?: string },
+  slots?: Partial<ReservationSlotsStrict> | null
+): { checkIn?: string; checkOut?: string } {
+  if (!isAvailabilityInquiryActive(pre)) return temporalDates;
+  const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, slots || {});
+  const missingField = getNextAvailabilityInquiryMissingField(knownSlots);
+  if (missingField !== "checkIn" && missingField !== "checkOut") return temporalDates;
+  if (missingField === "checkOut" && knownSlots.checkIn) {
+    const anchored = anchorRelativeWeekdayToCheckOutAfterCheckIn(text, temporalDates, knownSlots.checkIn);
+    if (anchored.checkOut) return { checkOut: anchored.checkOut };
+    if (temporalDates.checkIn || temporalDates.checkOut) {
+      return { checkOut: temporalDates.checkOut || temporalDates.checkIn };
+    }
+    return temporalDates;
+  }
+  if (missingField === "checkIn") {
+    if (temporalDates.checkIn || temporalDates.checkOut) {
+      return { checkIn: temporalDates.checkIn || temporalDates.checkOut };
+    }
+    const relativeWeekday = detectShortRelativeWeekday(text);
+    if (typeof relativeWeekday !== "number") return temporalDates;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const anchoredCheckIn = firstWeekdayOnOrAfter(todayIso, relativeWeekday);
+    return anchoredCheckIn ? { checkIn: anchoredCheckIn } : temporalDates;
+  }
+  return temporalDates;
+}
+
 function hasModifyDateCorrectionCue(text: string): boolean {
   const normalized = normalizeReferenceText(text || "").trim();
   if (!normalized) return false;
@@ -3803,6 +3911,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                   : anchoredCreateDr0;
     if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
       const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxt0);
+      const explicitCreateIntent0 = isExplicitCreateReservationIntent(userTxt0);
+      const availabilityInquiryPolicy0 = !explicitCreateIntent0 && (isAvailabilityInquiryIntent(userTxt0) || isAvailabilityInquiryActive(pre));
       const hasCompleteCreatePayloadInTurn = Boolean(
         turnCreateSlots0.checkIn &&
         turnCreateSlots0.checkOut &&
@@ -3832,6 +3942,56 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         checkOut: dr0.checkOut,
       });
       nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+      if (availabilityInquiryPolicy0) {
+        const inquiryMissingField = getNextAvailabilityInquiryMissingField(fastPathSlots);
+        await persistAvailabilityInquiry(pre, fastPathSlots);
+        if (inquiryMissingField) {
+          emitRoutingDecision(pre.msg, {
+            decision_layer: "bodyLLM",
+            route_source: "availability_inquiry_policy",
+            route_match: "availability_collecting",
+            early_return: true,
+            used_llm_classifier: false,
+            classifier_source: "heuristic",
+            final_category: "availability_inquiry",
+            final_prompt_key: null,
+          });
+          return {
+            finalText: buildAvailabilityInquiryPrompt(pre.lang, inquiryMissingField),
+            nextCategory: "availability_inquiry",
+            nextSlots,
+            needsSupervision,
+            graphResult: null,
+          };
+        }
+        const availabilityResult = await runAvailabilityCheck(pre, fastPathSlots, dr0.checkIn, dr0.checkOut, {
+          mode: "inquiry",
+          persistConvState: false,
+        });
+        finalText = availabilityResult.finalText;
+        if (!availabilityResult.needsHandoff) {
+          finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
+        }
+        nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
+        await persistAvailabilityInquiry(pre, nextSlots);
+        emitRoutingDecision(pre.msg, {
+          decision_layer: "bodyLLM",
+          route_source: "availability_inquiry_policy",
+          route_match: "availability_ready",
+          early_return: true,
+          used_llm_classifier: false,
+          classifier_source: "heuristic",
+          final_category: "availability_inquiry",
+          final_prompt_key: null,
+        });
+        return {
+          finalText,
+          nextCategory: "availability_inquiry",
+          nextSlots,
+          needsSupervision: needsSupervision || availabilityResult.needsHandoff,
+          graphResult: null,
+        };
+      }
       if (fastPathSubFlow === "create") {
         const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
         if (!createDraftConsistency.valid) {
@@ -3889,7 +4049,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxtFast = String(pre.msg.content || "");
     const drFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
     const drFastModifyAnchored = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
-    const drFast = anchorCreateRelativeDateToContext(pre, userTxtFast, drFastModifyAnchored, nextSlots);
+    const drFastCreateAnchored = anchorCreateRelativeDateToContext(pre, userTxtFast, drFastModifyAnchored, nextSlots);
+    const drFast = anchorAvailabilityInquiryDateToContext(pre, userTxtFast, drFastCreateAnchored, nextSlots);
+    const explicitCreateIntentFast = isExplicitCreateReservationIntent(userTxtFast);
+    const availabilityInquiryPolicyFast = !explicitCreateIntentFast && (isAvailabilityInquiryIntent(userTxtFast) || isAvailabilityInquiryActive(pre));
     const activeModifyFieldFast = pre.st?.modifyState?.activeField as ModifyState["activeField"] | undefined;
     const modifyContextActiveFast =
       pre.inModifyMode ||
@@ -3899,7 +4062,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       getConversationFocus(pre.st)?.subFlow === "modify";
     const contextualMissingSideFast = resolveModifyDatesContextualMissingSide(pre, nextSlots);
     const createContextualMissingSideFast = resolveCreateDatesContextualMissingSide(pre, nextSlots);
-    const reservationContextualMissingSideFast = contextualMissingSideFast || createContextualMissingSideFast;
+    const inquiryKnownFastSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots);
+    const inquiryMissingSideFast = availabilityInquiryPolicyFast
+      ? getNextAvailabilityInquiryMissingField(inquiryKnownFastSlots)
+      : null;
+    const reservationContextualMissingSideFast =
+      contextualMissingSideFast ||
+      createContextualMissingSideFast ||
+      (inquiryMissingSideFast === "checkIn" || inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);
     const singleFastISO = drFast.checkIn || drFast.checkOut;
     const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);
     const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
@@ -3923,6 +4093,58 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
         const ciISO = fastPathSlots.checkIn;
         const coISO = fastPathSlots.checkOut;
+        if (availabilityInquiryPolicyFast) {
+          const inquiryMissingField = getNextAvailabilityInquiryMissingField(fastPathSlots);
+          await persistAvailabilityInquiry(pre, fastPathSlots);
+          if (inquiryMissingField) {
+            emitRoutingDecision(pre.msg, {
+              decision_layer: "bodyLLM",
+              route_source: "availability_inquiry_policy",
+              route_match: "availability_collecting",
+              early_return: true,
+              used_llm_classifier: false,
+              classifier_source: "heuristic",
+              final_category: "availability_inquiry",
+              final_prompt_key: null,
+            });
+            return {
+              finalText: buildAvailabilityInquiryPrompt(pre.lang, inquiryMissingField),
+              nextCategory: "availability_inquiry",
+              nextSlots,
+              needsSupervision,
+              graphResult: null,
+            };
+          }
+          if (ciISO && coISO) {
+            const availabilityResult = await runAvailabilityCheck(pre, fastPathSlots, ciISO, coISO, {
+              mode: "inquiry",
+              persistConvState: false,
+            });
+            finalText = availabilityResult.finalText;
+            if (!availabilityResult.needsHandoff) {
+              finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
+            }
+            nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
+            await persistAvailabilityInquiry(pre, nextSlots);
+            emitRoutingDecision(pre.msg, {
+              decision_layer: "bodyLLM",
+              route_source: "availability_inquiry_policy",
+              route_match: "availability_ready",
+              early_return: true,
+              used_llm_classifier: false,
+              classifier_source: "heuristic",
+              final_category: "availability_inquiry",
+              final_prompt_key: null,
+            });
+            return {
+              finalText,
+              nextCategory: "availability_inquiry",
+              nextSlots,
+              needsSupervision: needsSupervision || availabilityResult.needsHandoff,
+              graphResult: null,
+            };
+          }
+        }
         if (fastPathSubFlow === "create") {
           const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
           if (!createDraftConsistency.valid) {
@@ -5280,6 +5502,81 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     numGuests: reservationGuests ? String(reservationGuests) : undefined,
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
+  const availabilityInquiryActive =
+    !hasConfirmedBookingContext &&
+    isAvailabilityInquiryActive(pre) &&
+    !looksExplicitNewReservation;
+  const availabilityInquiryIntent =
+    !hasConfirmedBookingContext &&
+    !looksExplicitNewReservation &&
+    isAvailabilityInquiryIntent(userTxtRaw);
+  const shouldHandleAvailabilityInquiry =
+    !modifyContinuityActive &&
+    !hasConfirmedBookingContext &&
+    (availabilityInquiryActive || availabilityInquiryIntent);
+  const availabilityInquirySlots = mergeReservationSlots(pre.st?.reservationSlots, {
+    roomType: reservationRoomType,
+    checkIn: reservationCheckIn,
+    checkOut: reservationCheckOut,
+    numGuests: reservationGuests ? String(reservationGuests) : undefined,
+  });
+  if (shouldHandleAvailabilityInquiry) {
+    const inquiryMissingField = getNextAvailabilityInquiryMissingField(availabilityInquirySlots);
+    if (inquiryMissingField) {
+      await persistAvailabilityInquiry(pre, availabilityInquirySlots);
+      nextCategory = "availability_inquiry";
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "bodyLLM",
+        route_source: "availability_inquiry_policy",
+        route_match: "availability_collecting",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: nextCategory,
+        final_prompt_key: null,
+      });
+      return {
+        finalText: buildAvailabilityInquiryPrompt(pre.lang, inquiryMissingField),
+        nextCategory,
+        nextSlots,
+        needsSupervision,
+        graphResult,
+      };
+    }
+
+    const inquiryCheckIn = availabilityInquirySlots.checkIn;
+    const inquiryCheckOut = availabilityInquirySlots.checkOut;
+    if (inquiryCheckIn && inquiryCheckOut) {
+      const inquiryDateCoherence = assessReservationDateCoherence(inquiryCheckIn, inquiryCheckOut);
+      if (inquiryDateCoherence && !inquiryDateCoherence.ok) {
+        finalText = buildInvalidReservationDatesReply(pre.lang, inquiryDateCoherence.reason);
+        return { finalText, nextCategory: "availability_inquiry", nextSlots, needsSupervision, graphResult };
+      }
+      const availabilityResult = await runAvailabilityCheck(pre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {
+        mode: "inquiry",
+        persistConvState: false,
+      });
+      finalText = availabilityResult.finalText;
+      if (!availabilityResult.needsHandoff) {
+        finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
+      }
+      nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
+      await persistAvailabilityInquiry(pre, nextSlots);
+      nextCategory = "availability_inquiry";
+      needsSupervision = needsSupervision || availabilityResult.needsHandoff;
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "bodyLLM",
+        route_source: "availability_inquiry_policy",
+        route_match: "availability_ready",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: nextCategory,
+        final_prompt_key: null,
+      });
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+    }
+  }
   const currentFocus = getConversationFocus(pre.st);
   const modifyExecutionActive = isModifyExecutionActive(pre) && !createOverridesModify;
   const activeCreateFlow =

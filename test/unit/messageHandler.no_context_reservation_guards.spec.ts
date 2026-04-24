@@ -143,7 +143,8 @@ describe("messageHandler guards sin contexto de reserva", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/tipo de habitaci[oó]n|room type|a nombre de qui[eé]n|cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).toMatch(/tipo de habitaci[oó]n|room type/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|cu[aá]ntos hu[eé]spedes|confirm[aá]s la reserva/i);
     expect(currentState?.activeFlow).not.toBe("reservation");
     expect(currentState?.desiredAction).not.toBe("create");
   });

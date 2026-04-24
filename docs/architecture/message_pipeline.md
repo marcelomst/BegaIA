@@ -502,6 +502,34 @@ Regla operativa:
 - no se debe verificar disponibilidad ni generar propuesta comercial mientras el
   draft de `create` siga incompleto
 
+### 5.8.a `availability inquiry sequencing`
+
+Responsabilidad:
+
+- separar consultas de disponibilidad de `reservation.create`
+
+Secuencia mínima actual:
+
+1. `roomType`
+2. `checkIn`
+3. `checkOut`
+
+Condición adicional:
+
+- `numGuests` puede aportar precisión, pero no debe bloquear una consulta
+  básica si el tipo de habitación ya está definido
+
+Regla operativa:
+
+- una availability inquiry puede persistir `reservationSlots` mínimos sin abrir
+  `create`
+- responder disponibilidad no debe pedir `guestName`
+- responder disponibilidad no debe pedir confirmación de reserva
+- `lastProposal` y `pendingAvailabilityVerification` no deben persistirse por
+  una simple availability inquiry
+- el flujo `create` solo se activa cuando el usuario expresa intención posterior
+  de reservar
+
 ### 5.9 `quote gating`
 
 Responsabilidad:
