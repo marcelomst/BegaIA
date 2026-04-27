@@ -768,6 +768,72 @@ function buildAvailabilityInquiryFollowup(lang: "es" | "en" | "pt"): string {
       : "If you'd like to book it, I can help you complete the booking next.";
 }
 
+function offeredAvailabilityInquiryCreateFollowup(
+  lcHistory: (HumanMessage | AIMessage)[]
+): boolean {
+  for (let i = lcHistory.length - 1; i >= 0 && i >= lcHistory.length - 4; i--) {
+    const m = lcHistory[i];
+    if (!(m instanceof AIMessage)) continue;
+    const text = normalizeReferenceText(String((m as any).content || ""));
+    if (
+      /si queres reservar/.test(text) ||
+      /puedo ayudarte a completar la reserva/.test(text) ||
+      /se voce quiser reservar/.test(text) ||
+      /posso ajudar a completar a reserva/.test(text) ||
+      /if youd like to book it/.test(text) ||
+      /i can help you complete the booking next/.test(text)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isAvailabilityInquiryCreateAdvanceIntent(
+  text: string,
+  lang: "es" | "en" | "pt"
+): boolean {
+  const normalized = normalizeReferenceText(text || "");
+  const normalizedIntent = normalizeReservationIntent(text || "");
+  if (
+    normalizedIntent.kind === "modify" ||
+    normalizedIntent.kind === "cancel" ||
+    normalizedIntent.kind === "deny_confirm"
+  ) {
+    return false;
+  }
+  if (isExplicitCreateReservationIntent(text)) return true;
+  if (normalizedIntent.kind === "confirm" || normalizedIntent.kind === "affirmative") return true;
+  if (
+    lang === "es" &&
+    /\b(si|dale|ok|okay|vamos|listo|hagamos|seguimos|continuemos|continuar|adelante)\b/.test(normalized)
+  ) {
+    return true;
+  }
+  if (
+    lang === "pt" &&
+    /\b(sim|ok|okay|vamos|fechado|seguimos|continuamos|continuar|bora)\b/.test(normalized)
+  ) {
+    return true;
+  }
+  if (
+    lang === "en" &&
+    /\b(yes|ok|okay|lets|let us|go ahead|continue|continue on|sure)\b/.test(normalized)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function shouldStartCreateFromAvailabilityInquiry(
+  pre: Pick<PreLLMResult, "st" | "prevCategory" | "lcHistory" | "lang">,
+  text: string
+): boolean {
+  if (!isAvailabilityInquiryActive(pre)) return false;
+  if (!offeredAvailabilityInquiryCreateFollowup(pre.lcHistory)) return false;
+  return isAvailabilityInquiryCreateAdvanceIntent(text, pre.lang);
+}
+
 async function persistAvailabilityInquiry(
   pre: PreLLMResult,
   slots: ReservationSlotsStrict
@@ -4698,8 +4764,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(pre.st?.lastReservation?.reservationId) ||
     pre.st?.salesStage === "close" ||
     pre.st?.conversationStage === "reservation_confirmed";
+  const availabilityInquiryCreateHandoff =
+    !hasConfirmedBookingContext &&
+    shouldStartCreateFromAvailabilityInquiry(pre, userTxtRaw);
   const looksExplicitNewReservation =
-    /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) &&
+    (
+      /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) ||
+      availabilityInquiryCreateHandoff
+    ) &&
     normalizedReservationIntent.kind !== "modify" &&
     normalizedReservationIntent.kind !== "cancel";
   if (
@@ -5513,6 +5585,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const shouldHandleAvailabilityInquiry =
     !modifyContinuityActive &&
     !hasConfirmedBookingContext &&
+    !availabilityInquiryCreateHandoff &&
     (availabilityInquiryActive || availabilityInquiryIntent);
   const availabilityInquirySlots = mergeReservationSlots(pre.st?.reservationSlots, {
     roomType: reservationRoomType,

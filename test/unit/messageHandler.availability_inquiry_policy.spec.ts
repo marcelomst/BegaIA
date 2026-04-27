@@ -81,6 +81,7 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
+import { getMessagesByConversation } from "@/lib/db/messages";
 
 function msg(content: string) {
   return {
@@ -104,6 +105,7 @@ describe("messageHandler availability inquiry policy", () => {
   beforeEach(() => {
     currentState = null;
     vi.clearAllMocks();
+    vi.mocked(getMessagesByConversation).mockResolvedValue([]);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
   });
@@ -168,6 +170,78 @@ describe("messageHandler availability inquiry policy", () => {
       checkIn: "2026-04-25",
       checkOut: "2026-04-26",
     });
+  });
+
+  it("handoff: tras inquiry positiva, 'si vamos' entra en create y pide el siguiente faltante real", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-04-25",
+        checkOut: "2026-04-26",
+      },
+      lastCategory: "availability_inquiry",
+      salesStage: "qualify",
+    };
+
+    vi.mocked(getMessagesByConversation).mockResolvedValue([
+      {
+        messageId: "a1",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "Tengo doble disponible. Tarifa por noche: 100 USD.\n\nSi querés reservar, después puedo ayudarte a completar la reserva.",
+        timestamp: new Date().toISOString(),
+        conversationId: "conv-availability-inquiry-policy-1",
+      },
+    ]);
+
+    await handleIncomingMessage(msg("si vamos"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.lastCategory).toBe("reservation");
+  });
+
+  it("handoff: tras inquiry positiva, 'hagamos la reserva' entra en create", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-04-25",
+        checkOut: "2026-04-26",
+      },
+      lastCategory: "availability_inquiry",
+      salesStage: "qualify",
+    };
+
+    vi.mocked(getMessagesByConversation).mockResolvedValue([
+      {
+        messageId: "a2",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "Tengo doble disponible. Tarifa por noche: 100 USD.\n\nSi querés reservar, después puedo ayudarte a completar la reserva.",
+        timestamp: new Date().toISOString(),
+        conversationId: "conv-availability-inquiry-policy-1",
+      },
+    ]);
+
+    await handleIncomingMessage(msg("hagamos la reserva"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.lastCategory).toBe("reservation");
   });
 
   it("regresión: create explícito sigue pidiendo guestName cuando falta", async () => {
