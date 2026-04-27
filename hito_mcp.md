@@ -7444,3 +7444,37 @@ Impacto:
 - evita duplicar estado para la transición inquiry -> `create`
 - mantiene la lógica dentro de `messageHandler`
 - conserva el alcance acotado a un ajuste puntual del flujo existente
+
+### FIX-AVAILABILITY-HANDOFF-STRICT-AFFIRMATION-37
+
+Estado: COMPLETADO  
+Fecha: 2026-04-27  
+Commit: 299929677943b21e4124888bef7fe1eb7573f266
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se endurece el handoff desde `availability_inquiry` hacia `create` dentro de
+`messageHandler` para aceptar solo intención explícita de reserva, agregando
+una aclaración para respuestas ambiguas y cobertura unitaria de casos positivos
+y negativos del handoff.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- corrige la regresión puntual introducida por el hito 36
+
+Impacto:
+
+- evita disparar `inquiry -> create` por afirmativos débiles
+- vuelve a exigir intención explícita de reserva
+- mantiene la transición dentro del mismo runtime y del mismo estado canónico
+- no crea subestados ni fuentes paralelas de verdad
