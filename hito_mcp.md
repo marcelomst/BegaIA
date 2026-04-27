@@ -7410,3 +7410,37 @@ Impacto:
 - mantiene `messageHandler` como runtime vigente
 - fortalece la separación explícita entre consulta de disponibilidad y creación
   de reserva
+
+### FIX-AVAILABILITY-INQUIRY-CREATE-HANDOFF-36
+
+Estado: COMPLETADO  
+Fecha: 2026-04-27  
+Commit: d840457080f257fe29d9ccb8e93bfad046caf96c
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se ajusta el runtime de reservation en `messageHandler` para hacer handoff
+desde `availability_inquiry` a `create` cuando hubo disponibilidad positiva
+previa y el usuario expresa intención de avanzar, reutilizando slots existentes
+y pidiendo el siguiente faltante real.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `commit_hash` resuelto por match único del `commit_name_sugerido`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+
+Impacto:
+
+- reutiliza `reservationSlots` y señales operativas ya canónicas
+- evita duplicar estado para la transición inquiry -> `create`
+- mantiene la lógica dentro de `messageHandler`
+- conserva el alcance acotado a un ajuste puntual del flujo existente
