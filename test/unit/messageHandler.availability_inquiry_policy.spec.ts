@@ -172,7 +172,7 @@ describe("messageHandler availability inquiry policy", () => {
     });
   });
 
-  it("handoff: tras inquiry positiva, 'si vamos' entra en create y pide el siguiente faltante real", async () => {
+  it("handoff: tras inquiry positiva, 'reservemos' entra en create y pide el siguiente faltante real", async () => {
     const sendReply = vi.fn(async () => {});
 
     currentState = {
@@ -198,7 +198,7 @@ describe("messageHandler availability inquiry policy", () => {
       },
     ]);
 
-    await handleIncomingMessage(msg("si vamos"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("reservemos"), { mode: "automatic", sendReply });
 
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
@@ -243,6 +243,87 @@ describe("messageHandler availability inquiry policy", () => {
     expect(currentState?.desiredAction).toBe("create");
     expect(currentState?.lastCategory).toBe("reservation");
   });
+
+  it("handoff: tras inquiry positiva, 'quiero reservar' entra en create", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-04-25",
+        checkOut: "2026-04-26",
+      },
+      lastCategory: "availability_inquiry",
+      salesStage: "qualify",
+    };
+
+    vi.mocked(getMessagesByConversation).mockResolvedValue([
+      {
+        messageId: "a3",
+        hotelId: "hotel999",
+        channel: "web",
+        sender: "assistant",
+        role: "ai",
+        content: "Tengo doble disponible. Tarifa por noche: 100 USD.\n\nSi querés reservar, después puedo ayudarte a completar la reserva.",
+        timestamp: new Date().toISOString(),
+        conversationId: "conv-availability-inquiry-policy-1",
+      },
+    ]);
+
+    await handleIncomingMessage(msg("quiero reservar"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(replyText).not.toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.lastCategory).toBe("reservation");
+  });
+
+  it.each(["ok", "sí", "dale", "confirmar"])(
+    "handoff: tras inquiry positiva, '%s' no entra en create",
+    async (userReply) => {
+      const sendReply = vi.fn(async () => {});
+
+      currentState = {
+        reservationSlots: {
+          roomType: "double",
+          checkIn: "2026-04-25",
+          checkOut: "2026-04-26",
+        },
+        lastCategory: "availability_inquiry",
+        salesStage: "qualify",
+      };
+
+      vi.mocked(getMessagesByConversation).mockResolvedValue([
+        {
+          messageId: "a4",
+          hotelId: "hotel999",
+          channel: "web",
+          sender: "assistant",
+          role: "ai",
+          content: "Tengo doble disponible. Tarifa por noche: 100 USD.\n\nSi querés reservar, después puedo ayudarte a completar la reserva.",
+          timestamp: new Date().toISOString(),
+          conversationId: "conv-availability-inquiry-policy-1",
+        },
+      ]);
+
+      await handleIncomingMessage(msg(userReply), { mode: "automatic", sendReply });
+
+      const replyText = lastReply(sendReply);
+      expect(replyText).toMatch(/quiero reservar|quero reservar|i want to book/i);
+      expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes|a nombre de qui[eé]n|nombre y apellido/i);
+      expect(replyText).not.toMatch(/disponible|disponibilidad|tarifa por noche/i);
+      expect(currentState?.conversationFocus?.subFlow).not.toBe("create");
+      expect(currentState?.desiredAction).not.toBe("create");
+      expect(currentState?.lastCategory).toBe("availability_inquiry");
+      expect(currentState?.reservationSlots).toMatchObject({
+        roomType: "double",
+        checkIn: "2026-04-25",
+        checkOut: "2026-04-26",
+      });
+    }
+  );
 
   it("regresión: create explícito sigue pidiendo guestName cuando falta", async () => {
     const sendReply = vi.fn(async () => {});
