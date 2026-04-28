@@ -7478,3 +7478,40 @@ Impacto:
 - vuelve a exigir intención explícita de reserva
 - mantiene la transición dentro del mismo runtime y del mismo estado canónico
 - no crea subestados ni fuentes paralelas de verdad
+
+### FIX-CREATE-RELATIVE-WEEKEND-RANGE-PARSING-38
+
+Estado: COMPLETADO  
+Fecha: 2026-04-28  
+Commit: 0506d8ccdee2c24e19349926b3877f571b9791f2
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el parsing de rangos relativos de fin de semana en `create`
+explícito, absorbiendo expresiones como `del sábado al domingo` y
+`este finde` en primer turno, y preservando el caso single-date como
+`checkIn` contextual sin generar rangos inválidos.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/agents/helpers.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: no_explicit_roadmap_change`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene coherencia con el runtime actual en `messageHandler`
+
+Impacto:
+
+- `create` explícito absorbe rangos relativos de fin de semana en primer turno
+- `quiero reservar el sábado` queda como single-date contextual y repregunta
+  `checkOut`
+- evita interpretar fechas únicas como rangos paralelos inválidos
+- fortalece la unicidad de la representación temporal dentro de `messageHandler`
