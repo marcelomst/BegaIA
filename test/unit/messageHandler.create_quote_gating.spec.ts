@@ -158,6 +158,31 @@ describe("messageHandler create quote gating", () => {
     });
   });
 
+  it("con turno rico completo y rango relativo de fin de semana cotiza normalmente", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble del sábado al domingo para 2 a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido|check-?in|check-?out/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+      roomType: "double",
+      guestName: "Ana Gomez",
+    });
+  });
+
   it("con create activo + fechas + 'sí' no cotiza y mantiene create sin contaminar modify", async () => {
     const sendReply = vi.fn(async () => {});
 

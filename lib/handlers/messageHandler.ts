@@ -2650,6 +2650,47 @@ function hasNumericDateRangeWithoutYear(text: string): boolean {
   );
 }
 
+function extractRelativeWeekendDateRange(
+  text: string,
+  baseDate = new Date()
+): { checkIn?: string; checkOut?: string } {
+  const normalized = normalizeReferenceText(text || "");
+  if (!normalized) return {};
+  const mentionsWeekend =
+    /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|este\s+fim\s+de\s+semana|fim\s+de\s+semana)\b/.test(normalized);
+  const mentionsSaturdayToSunday =
+    /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b/.test(normalized);
+  if (!mentionsWeekend && !mentionsSaturdayToSunday) return {};
+
+  const anchor = new Date(baseDate.getTime());
+  anchor.setUTCHours(0, 0, 0, 0);
+  const weekday = anchor.getUTCDay();
+  const saturdayDelta = weekday === 6 ? 0 : weekday === 0 ? 6 : 6 - weekday;
+  anchor.setUTCDate(anchor.getUTCDate() + saturdayDelta);
+
+  const checkIn = anchor.toISOString().slice(0, 10);
+  const checkOutDate = new Date(anchor.getTime());
+  checkOutDate.setUTCDate(checkOutDate.getUTCDate() + 1);
+  const checkOut = checkOutDate.toISOString().slice(0, 10);
+  return { checkIn, checkOut };
+}
+
+function extractRelativeWeekdayDate(
+  text: string,
+  baseDate = new Date()
+): { checkIn?: string; checkOut?: string } {
+  const explicitDates = extractDateRangeFromText(text);
+  if (explicitDates.checkIn || explicitDates.checkOut) return {};
+  const rawOrderedDates = extractRawOrderedDateRange(text);
+  if (rawOrderedDates?.checkIn || rawOrderedDates?.checkOut) return {};
+  if (extractRelativeWeekendDateRange(text, baseDate).checkIn) return {};
+  const relativeWeekday = detectShortRelativeWeekday(text);
+  if (typeof relativeWeekday !== "number") return {};
+  const todayIso = new Date(baseDate.getTime()).toISOString().slice(0, 10);
+  const anchoredCheckIn = firstWeekdayOnOrAfter(todayIso, relativeWeekday);
+  return anchoredCheckIn ? { checkIn: anchoredCheckIn } : {};
+}
+
 async function extractSupportedTemporalDateRange(
   text: string,
   lang: "es" | "en" | "pt"
@@ -3929,6 +3970,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const vagueWeekendReservationIntent =
     !isCreateContextActive(pre) &&
     !pre.inModifyMode &&
+    !isExplicitCreateReservationIntent(rawTurnText) &&
     !Boolean(pre.st?.lastReservation?.reservationId) &&
     pre.st?.salesStage !== "close" &&
     pre.st?.conversationStage !== "reservation_confirmed" &&
@@ -3952,8 +3994,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const explicitDr0 = extractDateRangeFromText(userTxt0);
     const rawDr0 = extractRawOrderedDateRange(userTxt0);
     const lightDr0 = extractDateRangeFromTextLight(userTxt0);
+    const relativeWeekendDr0 = extractRelativeWeekendDateRange(userTxt0);
     const turnCreateSlots0 = extractSlotsFromText(userTxt0, pre.lang);
     const anchoredCreateDr0 = anchorCreateDayRangeToDraft(pre, userTxt0, nextSlots);
+    const explicitCreateIntent0 = isExplicitCreateReservationIntent(userTxt0);
     const hasNumericStyleRange0 = Boolean(
       userTxt0.match(/\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b\s*(?:al|hasta|a|-|→|->|—)\s*\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b/i)
     );
@@ -3966,6 +4010,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const lightDr0Valid =
       Boolean(lightDr0.checkIn && lightDr0.checkOut) &&
       assessReservationDateCoherence(lightDr0.checkIn, lightDr0.checkOut)?.ok === true;
+    const relativeWeekendDr0Valid =
+      Boolean(relativeWeekendDr0.checkIn && relativeWeekendDr0.checkOut) &&
+      assessReservationDateCoherence(relativeWeekendDr0.checkIn, relativeWeekendDr0.checkOut)?.ok === true;
     const anchoredCreateDr0Valid =
       Boolean(anchoredCreateDr0.checkIn && anchoredCreateDr0.checkOut) &&
       assessReservationDateCoherence(anchoredCreateDr0.checkIn, anchoredCreateDr0.checkOut)?.ok === true;
@@ -3976,6 +4023,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           ? explicitDr0
           : lightDr0Valid
             ? lightDr0
+            : relativeWeekendDr0Valid
+              ? relativeWeekendDr0
             : anchoredCreateDr0Valid
               ? anchoredCreateDr0
               : explicitDr0.checkIn || explicitDr0.checkOut
@@ -3983,25 +4032,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 : hasNumericDateRangeWithoutYear(userTxt0)
                   ? lightDr0
                   : anchoredCreateDr0;
-    if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage) {
+    const hasCompleteRichCreatePayloadInTurn0 = Boolean(
+      explicitCreateIntent0 &&
+      !hasNumericStyleRange0 &&
+      turnCreateSlots0.checkIn &&
+      turnCreateSlots0.checkOut &&
+      turnCreateSlots0.roomType &&
+      turnCreateSlots0.numGuests &&
+      (turnCreateSlots0.guestName || isSafeGuestName(turnCreateSlots0.guestName || ""))
+    );
+    if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage && !hasCompleteRichCreatePayloadInTurn0) {
       const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxt0);
-      const explicitCreateIntent0 = isExplicitCreateReservationIntent(userTxt0);
       const availabilityInquiryPolicy0 = !explicitCreateIntent0 && (isAvailabilityInquiryIntent(userTxt0) || isAvailabilityInquiryActive(pre));
-      const hasCompleteCreatePayloadInTurn = Boolean(
-        turnCreateSlots0.checkIn &&
-        turnCreateSlots0.checkOut &&
-        turnCreateSlots0.roomType &&
-        turnCreateSlots0.numGuests &&
-        isSafeGuestName(turnCreateSlots0.guestName || "")
-      );
-      const shouldBypassRichCreateFastPath =
-        fastPathSubFlow === "create" &&
-        hasCompleteCreatePayloadInTurn &&
-        !hasNumericStyleRange0 &&
-        !anchoredCreateDr0Valid;
-      if (shouldBypassRichCreateFastPath) {
-        // Let the normal create quote-gating path own rich first-turn create payloads.
-      } else {
       const dr0Coherence =
         assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) ||
         assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);
@@ -4015,7 +4057,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         checkIn: dr0.checkIn,
         checkOut: dr0.checkOut,
       });
+      const hasCompleteCreatePayloadInTurn = Boolean(
+        fastPathSlots.checkIn &&
+        fastPathSlots.checkOut &&
+        fastPathSlots.roomType &&
+        fastPathSlots.numGuests &&
+        (fastPathSlots.guestName || isSafeGuestName(fastPathSlots.guestName || ""))
+      );
+      const shouldBypassRichCreateFastPath =
+        fastPathSubFlow === "create" &&
+        hasCompleteCreatePayloadInTurn &&
+        !hasNumericStyleRange0 &&
+        (
+          relativeWeekendDr0Valid ||
+          (explicitDr0Valid && !rawDr0Valid && !lightDr0Valid)
+        );
       nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+      if (shouldBypassRichCreateFastPath) {
+        // Let the normal create quote-gating path own rich first-turn create payloads.
+      } else {
       if (availabilityInquiryPolicy0) {
         const inquiryMissingField = getNextAvailabilityInquiryMissingField(fastPathSlots);
         await persistAvailabilityInquiry(pre, fastPathSlots);
@@ -4121,7 +4181,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // pedimos la fecha faltante inmediatamente sin invocar el grafo pesado.
   try {
     const userTxtFast = String(pre.msg.content || "");
-    const drFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const relativeWeekdayDrFast = extractRelativeWeekdayDate(userTxtFast);
+    const drFastRaw =
+      supportedDrFastRaw.checkIn || supportedDrFastRaw.checkOut
+        ? supportedDrFastRaw
+        : relativeWeekdayDrFast;
     const drFastModifyAnchored = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
     const drFastCreateAnchored = anchorCreateRelativeDateToContext(pre, userTxtFast, drFastModifyAnchored, nextSlots);
     const drFast = anchorAvailabilityInquiryDateToContext(pre, userTxtFast, drFastCreateAnchored, nextSlots);
@@ -4134,20 +4199,47 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.activeFlow === "modify_reservation" ||
       pre.st?.desiredAction === "modify" ||
       getConversationFocus(pre.st)?.subFlow === "modify";
+    const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
     const contextualMissingSideFast = resolveModifyDatesContextualMissingSide(pre, nextSlots);
-    const createContextualMissingSideFast = resolveCreateDatesContextualMissingSide(pre, nextSlots);
     const inquiryKnownFastSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots);
+    const createContextualMissingSideFastBase = resolveCreateDatesContextualMissingSide(pre, nextSlots);
+    const createContextualMissingSideFast =
+      createContextualMissingSideFastBase ||
+      (
+        fastPathSubFlow === "create" && explicitCreateIntentFast
+          ? !inquiryKnownFastSlots.checkIn
+            ? "checkIn"
+            : !inquiryKnownFastSlots.checkOut
+              ? "checkOut"
+              : undefined
+          : undefined
+      );
     const inquiryMissingSideFast = availabilityInquiryPolicyFast
       ? getNextAvailabilityInquiryMissingField(inquiryKnownFastSlots)
       : null;
-    const reservationContextualMissingSideFast =
+    const reservationContextualMissingSideFastRaw =
       contextualMissingSideFast ||
       createContextualMissingSideFast ||
       (inquiryMissingSideFast === "checkIn" || inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);
+    const reservationContextualMissingSideFast =
+      fastPathSubFlow === "create" &&
+      explicitCreateIntentFast &&
+      drFast.checkIn &&
+      !drFast.checkOut &&
+      !pre.st?.reservationSlots?.checkIn &&
+      reservationContextualMissingSideFastRaw === "checkOut"
+        ? "checkIn"
+        : reservationContextualMissingSideFastRaw;
     const singleFastISO = drFast.checkIn || drFast.checkOut;
     const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);
-    const hasContext = !isEventLikeMessage && (pre.inModifyMode || pre.st?.salesStage === "close" || !!pre.st?.reservationSlots);
-    const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
+    const hasContext =
+      !isEventLikeMessage &&
+      (
+        pre.inModifyMode ||
+        pre.st?.salesStage === "close" ||
+        !!pre.st?.reservationSlots ||
+        (fastPathSubFlow === "create" && explicitCreateIntentFast)
+      );
     const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
     const hasCompleteModifyDatesFast =
       activeModifyFieldFast === "dates" &&
@@ -4164,12 +4256,29 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           : { checkOut: singleFastISO };
         const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
         const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, fastPathTurnSlots, contextualFastDates);
-        nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
-        const ciISO = fastPathSlots.checkIn;
-        const coISO = fastPathSlots.checkOut;
+        const normalizedFastPathSlots = { ...fastPathSlots } as ReservationSlotsStrict;
+        if (
+          fastPathSubFlow === "create" &&
+          reservationContextualMissingSideFast === "checkIn" &&
+          drFast.checkIn &&
+          !drFast.checkOut &&
+          normalizedFastPathSlots.checkIn &&
+          normalizedFastPathSlots.checkOut
+        ) {
+          const inheritedCheckOutCoherence = assessReservationDateCoherence(
+            normalizedFastPathSlots.checkIn,
+            normalizedFastPathSlots.checkOut
+          );
+          if (inheritedCheckOutCoherence && !inheritedCheckOutCoherence.ok) {
+            delete normalizedFastPathSlots.checkOut;
+          }
+        }
+        nextSlots = { ...normalizedFastPathSlots } as ReservationSlotsStrict;
+        const ciISO = normalizedFastPathSlots.checkIn;
+        const coISO = normalizedFastPathSlots.checkOut;
         if (availabilityInquiryPolicyFast) {
-          const inquiryMissingField = getNextAvailabilityInquiryMissingField(fastPathSlots);
-          await persistAvailabilityInquiry(pre, fastPathSlots);
+          const inquiryMissingField = getNextAvailabilityInquiryMissingField(normalizedFastPathSlots);
+          await persistAvailabilityInquiry(pre, normalizedFastPathSlots);
           if (inquiryMissingField) {
             emitRoutingDecision(pre.msg, {
               decision_layer: "bodyLLM",
@@ -4220,7 +4329,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
         }
         if (fastPathSubFlow === "create") {
-          const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
+          const createDraftConsistency = validateCreateDraftConsistency(pre.lang, normalizedFastPathSlots);
           if (!createDraftConsistency.valid) {
             await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
             return {
@@ -4231,8 +4340,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               graphResult: null,
             };
           }
-          const missingField = getNextCreateFlowMissingField(fastPathSlots);
-          await persistCreateDraft(pre, fastPathSlots);
+          const missingField = getNextCreateFlowMissingField(normalizedFastPathSlots);
+          await persistCreateDraft(pre, normalizedFastPathSlots);
           if (missingField) {
             return {
               finalText: buildCreateFlowPrompt(pre.lang, missingField),
@@ -7732,8 +7841,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         isPureConfirm(String(pre.msg.content || "")) ||
         isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
       );
+    const currentTurnRelativeWeekendRange = extractRelativeWeekendDateRange(String(pre.msg.content || ""));
+    const currentTurnCreateRangeResolved =
+      !hasAnyDateToken &&
+      looksExplicitNewReservation &&
+      Boolean(
+        mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots).checkIn &&
+        mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots).checkOut
+      );
+    const createQuoteReadyOnCurrentTurn =
+      (
+        Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||
+        currentTurnCreateRangeResolved
+      ) &&
+      (isCreateContextActive(pre) || looksExplicitNewReservation);
     const triggerDateFlow =
       !awaitingAvailabilityFollowup &&
+      !createQuoteReadyOnCurrentTurn &&
       !timeQ &&
       !lateCheckoutQ &&
       !earlyCheckinQ &&
@@ -7884,6 +8008,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const prevCO = pre.prevSlotsStrict?.checkOut;
         const newCI = nextSlots.checkIn;
         const newCO = nextSlots.checkOut;
+        const createQuoteReadySlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+        const createQuoteReady =
+          (
+            Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||
+            currentTurnCreateRangeResolved
+          ) &&
+          (isCreateContextActive(pre) || looksExplicitNewReservation) &&
+          !getNextCreateFlowMissingField(createQuoteReadySlots);
         if (newCI && newCO && (newCI !== prevCI || newCO !== prevCO)) {
           const txt = (finalText || '').trim();
           // Fechas ya presentes? si ya mencionamos dd/mm/yyyy evitamos duplicar
@@ -7898,7 +8030,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             const ciTxt = toDDMMYYYY(newCI);
             const coTxt = toDDMMYYYY(newCO);
             // Sólo sobre-escribimos si no preservamos un prompt explícito de pedir fecha faltante
-            if (!/¿cu[aá]l es la fecha de check\-?out|what is the check\-?out date|qual é a data de check\-?out/i.test(txt)) {
+            if (!createQuoteReady && !/¿cu[aá]l es la fecha de check\-?out|what is the check\-?out date|qual é a data de check\-?out/i.test(txt)) {
               finalText = pre.lang === 'es'
                 ? `Anoté nuevas fechas: ${ciTxt} → ${coTxt}. ¿Deseás que verifique disponibilidad y posibles diferencias?`
                 : pre.lang === 'pt'

@@ -52,6 +52,14 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   const out: Partial<SlotMap> = {};
   const rawText = String(text || "");
   const t = (text || "").toLowerCase();
+  const normalized = rawText
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[“”"'`]/g, "")
+    .replace(/[¡!¿?.,;:()]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   const inferYear = (day: number, month: number, explicitYear?: number) => {
     if (typeof explicitYear === "number") return explicitYear < 100 ? 2000 + explicitYear : explicitYear;
     const now = new Date();
@@ -111,6 +119,43 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
         const month = months[singleMonth[2]];
         const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : undefined;
         if (month) out.checkIn = toISOFromParts(day, month, year);
+      }
+    }
+  }
+  if (!out.checkIn && !out.checkOut) {
+    const looksExplicitCreate =
+      /\b(reserv(?:ar|a|o|emos)?|book(?:ing)?)\b/i.test(normalized) &&
+      !/\b(modific|cambi|alter|change|update|cancel|anul)\b/i.test(normalized);
+    if (looksExplicitCreate) {
+      const weekendRange =
+        /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|este\s+fim\s+de\s+semana|fim\s+de\s+semana)\b/.test(normalized) ||
+        /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b/.test(normalized);
+      const weekdayMap: Array<[RegExp, number]> = [
+        [/\b(domingo|sunday)\b/, 0],
+        [/\b(lunes|monday)\b/, 1],
+        [/\b(martes|tuesday)\b/, 2],
+        [/\b(miercoles|wednesday)\b/, 3],
+        [/\b(jueves|thursday)\b/, 4],
+        [/\b(viernes|friday)\b/, 5],
+        [/\b(sabado|saturday)\b/, 6],
+      ];
+      const base = new Date();
+      base.setUTCHours(0, 0, 0, 0);
+      if (weekendRange) {
+        const weekday = base.getUTCDay();
+        const saturdayDelta = weekday === 6 ? 0 : weekday === 0 ? 6 : 6 - weekday;
+        base.setUTCDate(base.getUTCDate() + saturdayDelta);
+        out.checkIn = base.toISOString().slice(0, 10);
+        const nextDay = new Date(base.getTime());
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        out.checkOut = nextDay.toISOString().slice(0, 10);
+      } else {
+        const weekday = weekdayMap.find(([pattern]) => pattern.test(normalized))?.[1];
+        if (typeof weekday === "number") {
+          const delta = (weekday - base.getUTCDay() + 7) % 7;
+          base.setUTCDate(base.getUTCDate() + delta);
+          out.checkIn = base.toISOString().slice(0, 10);
+        }
       }
     }
   }

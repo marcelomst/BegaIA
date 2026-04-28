@@ -568,6 +568,50 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("en primer turno create absorbe 'del sábado al domingo' y no repregunta fechas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble del sábado al domingo para 2"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/check-?in|check-?out|fecha de entrada|fecha de salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+  });
+
+  it("en primer turno create absorbe 'este finde' y resuelve el rango completo", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar este finde para 2 en doble"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/check-?in|check-?out|fecha de entrada|fecha de salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+  });
+
   it("cuando create espera check-out y recibe fecha explícita no vuelve a repreguntar la salida", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
@@ -603,5 +647,25 @@ describe("messageHandler slot ingestion", () => {
       checkIn: "2026-04-25",
       checkOut: "2026-04-26",
     });
+  });
+
+  it("regresión: en create explícito 'el sábado' sigue funcionando como single-date contextual", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar el sábado"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/fechas parecen inconsistentes|check-out debe ser posterior/i);
+    expect(replyText).toMatch(/check-?out|salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-04-25",
+    });
+    expect(currentState?.reservationSlots?.checkOut).toBeUndefined();
   });
 });
