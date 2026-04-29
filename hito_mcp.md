@@ -7515,3 +7515,40 @@ Impacto:
   `checkOut`
 - evita interpretar fechas únicas como rangos paralelos inválidos
 - fortalece la unicidad de la representación temporal dentro de `messageHandler`
+
+### FIX-CONFIRMATION-PENDING-PROPOSAL-CORRECTIONS-39
+
+Estado: COMPLETADO  
+Fecha: 2026-04-29  
+Commit: 7761478f0a9574d2a99e291702a27ea3498ac8d4
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se introduce gobernanza explícita sobre la proposal pendiente previa a
+confirmación dentro de `messageHandler`, endureciendo la confirmación,
+cortando loops con negación y forzando recotización coherente cuando el
+usuario corrige fechas o huéspedes sin contaminar slots ajenos.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: no_explicit_roadmap_change`
+- el comportamiento encaja en el estado `quoted` ya documentado en
+  `message_pipeline.md`
+- conviene documentar la gobernanza explícita del tramo `quote -> confirm`
+  como hito documental separado, pero no bloquea este cierre
+
+Impacto:
+
+- la proposal activa solo confirma con `CONFIRMAR` limpio
+- afirmativos débiles o confirmaciones ambiguas ya no emiten reserva
+- una negación explícita pausa la proposal y rompe el loop de confirmación
+- correcciones válidas invalidan la proposal previa y fuerzan recomputación
+  coherente sin contaminar `guestName` u otros slots no corregidos
