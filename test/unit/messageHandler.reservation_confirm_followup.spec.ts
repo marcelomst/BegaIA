@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+let currentState: any = null;
+
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
   getMessagesByConversation: vi.fn(async () => [
@@ -25,17 +27,10 @@ vi.mock("@/lib/db/guests", () => ({
   updateGuest: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/db/convState", () => ({
-  getConvState: vi.fn(async () => ({
-    reservationSlots: {
-      guestName: "Marcelo Martinez",
-      roomType: "double",
-      checkIn: "2026-03-21",
-      checkOut: "2026-03-25",
-      numGuests: "2",
-    },
-    salesStage: "quote",
-  })),
-  upsertConvState: vi.fn(async () => {}),
+  getConvState: vi.fn(async () => currentState),
+  upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
+    currentState = { ...(currentState || {}), ...patch };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: (st: any) => {
     if (!st) return undefined;
@@ -61,11 +56,34 @@ vi.mock("@/lib/agents/reservations", () => ({
     message: "✅ Reserva creada. ID: R-0001",
   })),
 }));
+vi.mock("@/lib/handlers/pipeline/availability", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/handlers/pipeline/availability")>("@/lib/handlers/pipeline/availability");
+  return {
+    ...actual,
+    runAvailabilityCheck: vi.fn(async (_pre: any, slots: any, ciISO: string, coISO: string) => {
+      const roomType = slots.roomType || "double";
+      const guests = String(slots.numGuests || "2");
+      return {
+        finalText: `Tengo ${roomType} disponible. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+        nextSlots: {
+          ...slots,
+          checkIn: ciISO,
+          checkOut: coISO,
+          roomType,
+          numGuests: guests,
+        },
+        needsHandoff: false,
+      };
+    }),
+  };
+});
 vi.mock("@/lib/agents", () => ({
   agentGraph: { invoke: vi.fn(async () => ({ messages: [], category: "reservation", meta: {} })) },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
-  updateConversationState: vi.fn(async () => {}),
+  updateConversationState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
+    currentState = { ...(currentState || {}), ...patch };
+  }),
 }));
 vi.mock("@/lib/prompts", () => ({
   defaultPrompt: "{{retrieved}}",
@@ -91,33 +109,59 @@ import { getConvState } from "@/lib/db/convState";
 import { getMessagesByConversation } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 
+function msg(content: string, conversationId = "conv-confirm-1") {
+  return {
+    messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
+    hotelId: "hotel999",
+    channel: "web",
+    sender: "guest",
+    content,
+    timestamp: new Date().toISOString(),
+    conversationId,
+    guestId: "g1",
+    detectedLanguage: "es",
+  } as any;
+}
+
+function lastReply(sendReply: any): string {
+  return String(sendReply.mock.calls.at(-1)?.[0] || "");
+}
+
 describe("messageHandler reservation confirm follow-up", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    currentState = {
+      reservationSlots: {
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-21",
+        checkOut: "2026-03-25",
+        numGuests: "2",
+      },
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      activeFlow: "reservation",
+      desiredAction: "create",
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "create",
+        active: true,
+        updatedAt: "2026-04-02T10:00:00.000Z",
+      },
+      lastProposal: {
+        text: "Tengo doble disponible. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+        available: true,
+      },
+    };
   });
 
   it.each([
     "CONFIRMAR",
-    "si, confirmo",
-    "comfirmar",
-    "confimar",
-    "cofirmar",
-    "dale",
-    "ok hacelo",
-  ])("cierra la reserva cuando el usuario responde %s después de la oferta explícita", async (userInput) => {
+    "confirmar",
+  ])("cierra la reserva solo con confirmación limpia: %s", async (userInput) => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage({
-      messageId: "confirm-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: userInput,
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-1",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg(userInput), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).toHaveBeenCalled();
     expect(updateConversationState).toHaveBeenCalledWith(
@@ -138,9 +182,82 @@ describe("messageHandler reservation confirm follow-up", () => {
         }),
       })
     );
-    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/Reserva confirmada|R-0001/i);
     expect(replyText).not.toContain("contenido generico");
+  });
+
+  it.each(["confirmar?", "confirmar mañana"])(
+    "no confirma con confirmación ambigua en proposal activa: %s",
+    async (userInput) => {
+      const sendReply = vi.fn(async () => {});
+
+      await handleIncomingMessage(msg(userInput), { mode: "automatic", sendReply });
+
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).toMatch(/respond[eé] solo .?confirmar.?|si quer[eé]s confirmar la reserva/i);
+      expect(currentState?.salesStage).toBe("quote");
+      expect(currentState?.lastProposal?.available).toBe(true);
+    }
+  );
+
+  it.each(["sí", "ok"])(
+    "no confirma con afirmativo débil en proposal activa: %s",
+    async (userInput) => {
+      const sendReply = vi.fn(async () => {});
+
+      await handleIncomingMessage(msg(userInput), { mode: "automatic", sendReply });
+
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).toMatch(/propuesta lista|respond[eé].*confirmar/i);
+      expect(currentState?.salesStage).toBe("quote");
+      expect(currentState?.lastProposal?.available).toBe(true);
+    }
+  );
+
+  it("con 'no' sale del loop de confirmación y pausa la proposal", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("no"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).toMatch(/no confirmo esta propuesta|cambiar fechas, habitaci[oó]n o hu[eé]spedes/i);
+    expect(currentState?.salesStage).toBe("qualify");
+    expect(currentState?.lastProposal ?? null).toBeNull();
+  });
+
+  it("si corrige fechas sobre proposal activa invalida la propuesta previa y recotiza", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-06T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mejor del lunes al martes"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).toMatch(/tarifa por noche|confirm[aá]s la reserva/i);
+    expect(currentState?.salesStage).toBe("quote");
+    expect(currentState?.reservationSlots).toMatchObject({
+      guestName: "Marcelo Martinez",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: "2026-05-11",
+      checkOut: "2026-05-12",
+    });
+    vi.useRealTimers();
+  });
+
+  it("si corrige huéspedes no contamina guestName y mantiene el comportamiento de capacidad", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("mejor para 3"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).toMatch(/no admite 3 hu[eé]sped|cambiar a/i);
+    expect(currentState?.reservationSlots?.guestName).toBe("Marcelo Martinez");
+    expect(currentState?.reservationSlots?.numGuests).toBe("3");
+    expect(currentState?.reservationSlots?.roomType).toBeUndefined();
+    expect(currentState?.salesStage).toBe("qualify");
+    expect(currentState?.lastProposal ?? null).toBeNull();
   });
 
   it("no reabre create ante follow-up de confirmación si la reserva ya quedó confirmada", async () => {
@@ -183,20 +300,10 @@ describe("messageHandler reservation confirm follow-up", () => {
       lastProposal: null,
     });
 
-    await handleIncomingMessage({
-      messageId: "confirm-followup-closed-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "pudiste confirmar?",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-closed-1",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("pudiste confirmar?", "conv-confirm-closed-1"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).not.toHaveBeenCalled();
-    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/resumen de tu reserva/i);
     expect(replyText).toMatch(/R-0001/i);
     expect(replyText).not.toMatch(/CONFIRMAR/i);
@@ -206,17 +313,7 @@ describe("messageHandler reservation confirm follow-up", () => {
   it("no confirma la reserva con un negativo explícito como 'no confirmes todavía'", async () => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage({
-      messageId: "confirm-neg-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "no confirmes todavía",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-1",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("no confirmes todavía"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).not.toHaveBeenCalled();
   });
@@ -230,20 +327,10 @@ describe("messageHandler reservation confirm follow-up", () => {
     });
     (getMessagesByConversation as any).mockResolvedValueOnce([]);
 
-    await handleIncomingMessage({
-      messageId: "confirm-missing-state-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "confirmar",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-2",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", "conv-confirm-2"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).not.toHaveBeenCalled();
-    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const replyText = lastReply(sendReply);
     expect(replyText.toLowerCase()).toContain("propuesta");
     expect(replyText.toLowerCase()).toContain("fecha");
   });
@@ -266,20 +353,10 @@ describe("messageHandler reservation confirm follow-up", () => {
       },
     });
 
-    await handleIncomingMessage({
-      messageId: "confirm-incomplete-create-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "confirmar",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-3",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", "conv-confirm-3"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).not.toHaveBeenCalled();
-    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/cu[aá]ntos hu[eé]spedes/i);
   });
 
@@ -291,17 +368,7 @@ describe("messageHandler reservation confirm follow-up", () => {
       message: "ok-without-id",
     });
 
-    await handleIncomingMessage({
-      messageId: "confirm-empty-id-1",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "confirmar",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-1",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar"), { mode: "automatic", sendReply });
 
     expect(updateConversationState).not.toHaveBeenCalledWith(
       "hotel999",
@@ -312,7 +379,7 @@ describe("messageHandler reservation confirm follow-up", () => {
         }),
       })
     );
-    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/dato faltante|incomplet/i);
   });
 
@@ -345,17 +412,7 @@ describe("messageHandler reservation confirm follow-up", () => {
       },
     });
 
-    await handleIncomingMessage({
-      messageId: "confirm-2",
-      hotelId: "hotel999",
-      channel: "web",
-      sender: "guest",
-      content: "confirmar",
-      timestamp: new Date().toISOString(),
-      conversationId: "conv-confirm-3",
-      guestId: "g1",
-      detectedLanguage: "es",
-    } as any, { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", "conv-confirm-3"), { mode: "automatic", sendReply });
 
     expect(updateConversationState).toHaveBeenCalledWith(
       "hotel999",

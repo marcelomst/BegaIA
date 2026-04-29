@@ -2142,6 +2142,37 @@ function isReservationConfirmSignal(text: string): boolean {
   return /^(confirmar+|confirmo|comfirmar+|confimar+|cofirmar+|conmfirmar+|confirmame|confirma|confirmalo|confirmarla|confirmarr+)$/.test(compact);
 }
 
+function isStrictCreateProposalConfirmation(text: string): boolean {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return false;
+  const normalized = trimmed
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  return /^(confirmar|comfirmar|confimar|cofirmar)$/.test(normalized);
+}
+
+function isQuotedCreateNegativeReply(text: string): boolean {
+  const normalized = normalizeReferenceText(text || "");
+  return /^(no|no gracias|todavia no|todavia no gracias|aun no|aun no gracias)$/.test(normalized);
+}
+
+function buildQuotedCreateConfirmClarification(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "Si querés confirmar la reserva, respondé solo “CONFIRMAR”. Si querés cambiar algo de la propuesta, decímelo."
+    : lang === "pt"
+      ? "Se quiser confirmar a reserva, responda apenas “CONFIRMAR”. Se quiser alterar algo da proposta, me diga."
+      : 'If you want to confirm the booking, reply only with "CONFIRMAR". If you want to change something in the proposal, tell me.';
+}
+
+function buildQuotedCreateProposalPausedReply(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "Perfecto, no confirmo esta propuesta. Si querés cambiar fechas, habitación o huéspedes, decímelo."
+    : lang === "pt"
+      ? "Perfeito, não confirmo esta proposta. Se quiser alterar datas, quarto ou hóspedes, me diga."
+      : "Understood, I will not confirm this proposal. If you want to change dates, room type, or guests, tell me.";
+}
+
 function hasStrongReservationDomainExitIntent(text: string): boolean {
   const normalized = normalizeReferenceText(text || "");
   const normalizedIntent = normalizeReservationIntent(text || "");
@@ -2672,6 +2703,44 @@ function extractRelativeWeekendDateRange(
   const checkOutDate = new Date(anchor.getTime());
   checkOutDate.setUTCDate(checkOutDate.getUTCDate() + 1);
   const checkOut = checkOutDate.toISOString().slice(0, 10);
+  return { checkIn, checkOut };
+}
+
+function extractRelativeWeekdayRange(
+  text: string,
+  baseDate = new Date()
+): { checkIn?: string; checkOut?: string } {
+  const normalized = normalizeReferenceText(text || "");
+  if (!normalized) return {};
+  if (extractRelativeWeekendDateRange(text, baseDate).checkIn) return {};
+  const weekdayIndex: Record<string, number> = {
+    domingo: 0,
+    sunday: 0,
+    lunes: 1,
+    monday: 1,
+    martes: 2,
+    tuesday: 2,
+    miercoles: 3,
+    wednesday: 3,
+    jueves: 4,
+    thursday: 4,
+    viernes: 5,
+    friday: 5,
+    sabado: 6,
+    saturday: 6,
+  };
+  const match = normalized.match(
+    /\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b\s*(?:al|a|y|and)\s*\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b/
+  );
+  if (!match) return {};
+  const startWeekday = weekdayIndex[match[1]];
+  const endWeekday = weekdayIndex[match[2]];
+  if (typeof startWeekday !== "number" || typeof endWeekday !== "number") return {};
+  const todayIso = new Date(baseDate.getTime()).toISOString().slice(0, 10);
+  const checkIn = firstWeekdayOnOrAfter(todayIso, startWeekday);
+  if (!checkIn) return {};
+  const checkOut = firstWeekdayStrictlyAfter(checkIn, endWeekday);
+  if (!checkOut) return {};
   return { checkIn, checkOut };
 }
 
@@ -4182,11 +4251,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   try {
     const userTxtFast = String(pre.msg.content || "");
     const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
+    const relativeWeekdayRangeFast = extractRelativeWeekdayRange(userTxtFast);
     const relativeWeekdayDrFast = extractRelativeWeekdayDate(userTxtFast);
     const drFastRaw =
-      supportedDrFastRaw.checkIn || supportedDrFastRaw.checkOut
+      supportedDrFastRaw.checkIn && supportedDrFastRaw.checkOut
         ? supportedDrFastRaw
-        : relativeWeekdayDrFast;
+        : relativeWeekdayRangeFast.checkIn && relativeWeekdayRangeFast.checkOut
+          ? relativeWeekdayRangeFast
+          : supportedDrFastRaw.checkIn || supportedDrFastRaw.checkOut
+            ? supportedDrFastRaw
+            : relativeWeekdayDrFast;
     const drFastModifyAnchored = anchorModifyRelativeDateToContext(pre, userTxtFast, drFastRaw, nextSlots);
     const drFastCreateAnchored = anchorCreateRelativeDateToContext(pre, userTxtFast, drFastModifyAnchored, nextSlots);
     const drFast = anchorAvailabilityInquiryDateToContext(pre, userTxtFast, drFastCreateAnchored, nextSlots);
@@ -5816,6 +5890,209 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     };
   }
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
+  const quotedProposalStatusQuery = isAskAvailabilityStatusQuery(userTxtRaw, pre.lang);
+  const quotedProposalTimeConfirmSide = askedToConfirmCheckTime(pre.lcHistory, pre.lang);
+  const pendingCreateProposal = Boolean(
+    !pre.inModifyMode &&
+    !quotedProposalStatusQuery &&
+    !(quotedProposalTimeConfirmSide && isPureAffirmative(userTxtRaw, pre.lang)) &&
+    (
+      askedToConfirmReservation(pre.lcHistory) ||
+      pre.st?.lastProposal ||
+      pre.st?.salesStage === "quote" ||
+      pre.st?.conversationStage === "reservation_quoted"
+    )
+  );
+  if (pendingCreateProposal && !modifyExecutionActive) {
+    const trimmedQuotedReply = String(pre.msg.content || "").trim();
+    const normalizedQuotedReply = normalizeReferenceText(trimmedQuotedReply);
+    const quotedReplyHasConfirmWord = /\b(confirmar|confirmo|confirm)\b/.test(normalizedQuotedReply);
+    const strictQuotedConfirmation = isStrictCreateProposalConfirmation(trimmedQuotedReply);
+    const quotedReplyIsNegative = isQuotedCreateNegativeReply(trimmedQuotedReply);
+    const quotedReplyIsBareAffirmative =
+      isPureAffirmative(trimmedQuotedReply, pre.lang) ||
+      /\b(ok|okay|dale|listo|de acuerdo|sure)\b/.test(normalizedQuotedReply);
+
+    if (quotedReplyIsNegative) {
+      const pausedDraft = mergeReservationSlots(pre.st?.reservationSlots, nextSlots);
+      await persistCreateDraft(pre, pausedDraft);
+      finalText = buildQuotedCreateProposalPausedReply(pre.lang);
+      return { finalText, nextCategory: "reservation", nextSlots: pausedDraft, needsSupervision, graphResult };
+    }
+
+    if (!strictQuotedConfirmation && quotedReplyHasConfirmWord) {
+      finalText = buildQuotedCreateConfirmClarification(pre.lang);
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (!strictQuotedConfirmation && quotedReplyIsBareAffirmative) {
+      finalText = pre.lang === "es"
+        ? "Ya tengo la propuesta lista. Para emitir la reserva respondé “CONFIRMAR”."
+        : pre.lang === "pt"
+          ? "Já tenho a proposta pronta. Para emitir a reserva, responda “CONFIRMAR”."
+          : "I already have the proposal ready. To issue the booking, reply **CONFIRMAR**.";
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (!strictQuotedConfirmation) {
+      const quotedTurnSlots = extractSlotsFromText(trimmedQuotedReply, pre.lang);
+      const quotedTurnNormalizedReply = normalizeReferenceText(trimmedQuotedReply);
+      const quotedTurnWeekdayIndex: Record<string, number> = {
+        domingo: 0,
+        sunday: 0,
+        lunes: 1,
+        monday: 1,
+        martes: 2,
+        tuesday: 2,
+        miercoles: 3,
+        wednesday: 3,
+        jueves: 4,
+        thursday: 4,
+        viernes: 5,
+        friday: 5,
+        sabado: 6,
+        saturday: 6,
+      };
+      const quotedTurnDirectWeekdayMatch = quotedTurnNormalizedReply.match(
+        /\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b\s*(?:al|a|y|and)\s*\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b/
+      );
+      const quotedTurnDirectWeekdayRange = (() => {
+        if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };
+        const startWeekday = quotedTurnWeekdayIndex[quotedTurnDirectWeekdayMatch[1]];
+        const endWeekday = quotedTurnWeekdayIndex[quotedTurnDirectWeekdayMatch[2]];
+        if (typeof startWeekday !== "number" || typeof endWeekday !== "number") return {};
+        const baseIso = new Date().toISOString().slice(0, 10);
+        const checkIn = firstWeekdayOnOrAfter(baseIso, startWeekday);
+        const checkOut = checkIn ? firstWeekdayStrictlyAfter(checkIn, endWeekday) : undefined;
+        return checkIn && checkOut ? { checkIn, checkOut } : {};
+      })();
+      const quotedTurnSupportedDates = await extractSupportedTemporalDateRange(trimmedQuotedReply, pre.lang);
+      const quotedTurnRelativeWeekendRange = extractRelativeWeekendDateRange(trimmedQuotedReply);
+      const quotedTurnRelativeWeekdayRange = extractRelativeWeekdayRange(trimmedQuotedReply);
+      const quotedTurnSingleRelativeDate = extractRelativeWeekdayDate(trimmedQuotedReply);
+      const quotedTurnResolvedDates =
+        quotedTurnSupportedDates.checkIn && quotedTurnSupportedDates.checkOut
+          ? quotedTurnSupportedDates
+          : quotedTurnRelativeWeekendRange.checkIn && quotedTurnRelativeWeekendRange.checkOut
+            ? quotedTurnRelativeWeekendRange
+            : quotedTurnDirectWeekdayRange.checkIn && quotedTurnDirectWeekdayRange.checkOut
+              ? quotedTurnDirectWeekdayRange
+              : quotedTurnRelativeWeekdayRange.checkIn && quotedTurnRelativeWeekdayRange.checkOut
+                ? quotedTurnRelativeWeekdayRange
+                : quotedTurnSupportedDates.checkIn || quotedTurnSupportedDates.checkOut
+                  ? quotedTurnSupportedDates
+                  : quotedTurnSingleRelativeDate;
+      const quotedTurnAnchoredDates = anchorCreateRelativeDateToContext(
+        pre,
+        trimmedQuotedReply,
+        quotedTurnResolvedDates,
+        nextSlots
+      );
+      const quotedProposalCorrectionSlots = mergeReservationSlots(
+        pre.st?.reservationSlots,
+        nextSlots,
+        quotedTurnSlots,
+        quotedTurnAnchoredDates
+      );
+      const hasQuotedProposalCorrection = Boolean(
+        quotedTurnSlots.roomType ||
+        quotedTurnSlots.numGuests ||
+        quotedTurnSupportedDates.checkIn ||
+        quotedTurnSupportedDates.checkOut ||
+        quotedTurnRelativeWeekendRange.checkIn ||
+        quotedTurnRelativeWeekendRange.checkOut ||
+        quotedTurnDirectWeekdayRange.checkIn ||
+        quotedTurnDirectWeekdayRange.checkOut ||
+        quotedTurnRelativeWeekdayRange.checkIn ||
+        quotedTurnRelativeWeekdayRange.checkOut ||
+        quotedTurnSingleRelativeDate.checkIn ||
+        quotedTurnSingleRelativeDate.checkOut
+      );
+      const hasQuotedProposalDateCorrection = Boolean(
+        quotedTurnSupportedDates.checkIn ||
+        quotedTurnSupportedDates.checkOut ||
+        quotedTurnRelativeWeekendRange.checkIn ||
+        quotedTurnRelativeWeekendRange.checkOut ||
+        quotedTurnDirectWeekdayRange.checkIn ||
+        quotedTurnDirectWeekdayRange.checkOut ||
+        quotedTurnRelativeWeekdayRange.checkIn ||
+        quotedTurnRelativeWeekdayRange.checkOut ||
+        quotedTurnSingleRelativeDate.checkIn ||
+        quotedTurnSingleRelativeDate.checkOut
+      );
+
+      if (hasQuotedProposalCorrection) {
+        const quotedDraftConsistency = validateCreateDraftConsistency(pre.lang, quotedProposalCorrectionSlots);
+        if (!quotedDraftConsistency.valid) {
+          await persistCreateDraftSnapshot(pre, quotedDraftConsistency.sanitizedSlots);
+          finalText = quotedDraftConsistency.message;
+          return {
+            finalText,
+            nextCategory: "reservation",
+            nextSlots: { ...quotedDraftConsistency.sanitizedSlots },
+            needsSupervision,
+            graphResult,
+          };
+        }
+        if (!isCreateStateReadyForQuote(quotedDraftConsistency.sanitizedSlots)) {
+          const missingField = getNextCreateFlowMissingField(quotedDraftConsistency.sanitizedSlots);
+          await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);
+          finalText = missingField
+            ? buildCreateFlowPrompt(pre.lang, missingField)
+            : buildQuotedCreateConfirmClarification(pre.lang);
+          return {
+            finalText,
+            nextCategory: "reservation",
+            nextSlots: quotedDraftConsistency.sanitizedSlots,
+            needsSupervision,
+            graphResult,
+          };
+        }
+
+        const requoteCheckIn = quotedDraftConsistency.sanitizedSlots.checkIn;
+        const requoteCheckOut = quotedDraftConsistency.sanitizedSlots.checkOut;
+        if (hasQuotedProposalDateCorrection && requoteCheckIn && requoteCheckOut) {
+          const requoteCoherence = assessReservationDateCoherence(requoteCheckIn, requoteCheckOut);
+          if (requoteCoherence && !requoteCoherence.ok) {
+            finalText = buildInvalidReservationDatesReply(pre.lang, requoteCoherence.reason);
+            return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+          }
+          const requoteResult = await runAvailabilityCheck(
+            pre,
+            quotedDraftConsistency.sanitizedSlots,
+            requoteCheckIn,
+            requoteCheckOut
+          );
+          const requotedSnapshot = {
+            ...mergeReservationSlots(pre.st?.reservationSlots, requoteResult.nextSlots, quotedDraftConsistency.sanitizedSlots),
+            locale: pre.lang,
+          } as ReservationSlotsStrict;
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            reservationSlots: requotedSnapshot,
+            lastProposal: {
+              text: requoteResult.finalText,
+              available: true,
+            },
+            conversationFocus: buildConversationFocus("create"),
+            activeReservationContext: buildDraftReservationContext("quoted"),
+            activeFlow: "reservation",
+            desiredAction: "create",
+            salesStage: "quote",
+            conversationStage: "reservation_quoted",
+            pendingAvailabilityVerification: null,
+            lastCategory: "reservation",
+            updatedBy: "ai",
+          } as any);
+          finalText = requoteResult.finalText;
+          nextSlots = requotedSnapshot;
+          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+        }
+
+        await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);
+        nextSlots = quotedDraftConsistency.sanitizedSlots;
+      }
+    }
+  }
   if (
     looksExplicitNewReservation &&
     !hasConfirmedBookingContext &&
