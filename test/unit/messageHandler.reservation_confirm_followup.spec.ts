@@ -201,6 +201,85 @@ describe("messageHandler reservation confirm follow-up", () => {
     }
   );
 
+  it("con proposal activa de fin de semana, 'confirmar mañana' no entra a date-flow ni modifica fechas", async () => {
+    currentState = {
+      ...currentState,
+      reservationSlots: {
+        guestName: "Ana Gomez",
+        roomType: "double",
+        checkIn: "2026-04-25",
+        checkOut: "2026-04-26",
+        numGuests: "2",
+      },
+      lastProposal: {
+        text: "Tengo doble disponible. Tarifa por noche: 100 USD. Total 1 noche: 100 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+        available: true,
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("confirmar mañana"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).toMatch(/respond[eé] solo .?confirmar.?|si quer[eé]s confirmar la reserva/i);
+    expect(lastReply(sendReply)).not.toMatch(/check-?out|fecha de salida|fecha de check-?out/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      guestName: "Ana Gomez",
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+    expect(currentState?.salesStage).toBe("quote");
+    expect(currentState?.lastProposal?.available).toBe(true);
+  });
+
+  it("e2e realista: proposal generada en turno 1 mantiene governance ante 'confirmar mañana' en turno 2", async () => {
+    process.env.USE_CHRONO_LAYER = "1";
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+    currentState = null;
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble del sábado al domingo para 2 a nombre de Ana Gomez", "conv-proposal-e2e-1"),
+      { mode: "automatic", sendReply }
+    );
+
+    const firstReply = String(sendReply.mock.calls.at(-1)?.[0] || "");
+    expect(firstReply).toMatch(/confirm[aá]s la reserva|respond[eé].*confirmar/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      guestName: "Ana Gomez",
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+    expect(currentState?.salesStage).toBe("quote");
+    expect(currentState?.lastProposal?.available).toBe(true);
+
+    await handleIncomingMessage(
+      msg("confirmar mañana", "conv-proposal-e2e-1"),
+      { mode: "automatic", sendReply }
+    );
+
+    const secondReply = String(sendReply.mock.calls.at(-1)?.[0] || "");
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(secondReply).toMatch(/respond[eé] solo .?confirmar.?|si quer[eé]s confirmar la reserva/i);
+    expect(secondReply).not.toMatch(/check-?out|fecha de salida|fecha de check-?out/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      guestName: "Ana Gomez",
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+    expect(currentState?.salesStage).toBe("quote");
+    expect(currentState?.lastProposal?.available).toBe(true);
+    vi.useRealTimers();
+    delete process.env.USE_CHRONO_LAYER;
+  });
+
   it.each(["sí", "ok"])(
     "no confirma con afirmativo débil en proposal activa: %s",
     async (userInput) => {

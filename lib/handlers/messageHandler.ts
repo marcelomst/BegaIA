@@ -2173,6 +2173,25 @@ function buildQuotedCreateProposalPausedReply(lang: "es" | "en" | "pt"): string 
       : "Understood, I will not confirm this proposal. If you want to change dates, room type, or guests, tell me.";
 }
 
+function isPendingCreateProposalContext(
+  pre: Pick<PreLLMResult, "inModifyMode" | "lang" | "lcHistory" | "st">,
+  text: string
+): boolean {
+  const quotedProposalStatusQuery = isAskAvailabilityStatusQuery(text, pre.lang);
+  const quotedProposalTimeConfirmSide = askedToConfirmCheckTime(pre.lcHistory, pre.lang);
+  return Boolean(
+    !pre.inModifyMode &&
+    !quotedProposalStatusQuery &&
+    !(quotedProposalTimeConfirmSide && isPureAffirmative(text, pre.lang)) &&
+    (
+      askedToConfirmReservation(pre.lcHistory) ||
+      pre.st?.lastProposal ||
+      pre.st?.salesStage === "quote" ||
+      pre.st?.conversationStage === "reservation_quoted"
+    )
+  );
+}
+
 function hasStrongReservationDomainExitIntent(text: string): boolean {
   const normalized = normalizeReferenceText(text || "");
   const normalizedIntent = normalizeReservationIntent(text || "");
@@ -4250,6 +4269,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // pedimos la fecha faltante inmediatamente sin invocar el grafo pesado.
   try {
     const userTxtFast = String(pre.msg.content || "");
+    const normalizedUserTxtFast = normalizeReferenceText(userTxtFast);
+    const pendingCreateProposalFast = isPendingCreateProposalContext(pre, userTxtFast);
+    const ambiguousQuotedProposalConfirmationFast =
+      pendingCreateProposalFast &&
+      !isStrictCreateProposalConfirmation(userTxtFast) &&
+      /\b(confirmar|confirmo|confirm)\b/.test(normalizedUserTxtFast);
+    if (ambiguousQuotedProposalConfirmationFast) {
+      return {
+        finalText: buildQuotedCreateConfirmClarification(pre.lang),
+        nextCategory: "reservation",
+        nextSlots,
+        needsSupervision,
+        graphResult: null,
+      };
+    }
     const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);
     const relativeWeekdayRangeFast = extractRelativeWeekdayRange(userTxtFast);
     const relativeWeekdayDrFast = extractRelativeWeekdayDate(userTxtFast);
@@ -5890,19 +5924,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     };
   }
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
-  const quotedProposalStatusQuery = isAskAvailabilityStatusQuery(userTxtRaw, pre.lang);
-  const quotedProposalTimeConfirmSide = askedToConfirmCheckTime(pre.lcHistory, pre.lang);
-  const pendingCreateProposal = Boolean(
-    !pre.inModifyMode &&
-    !quotedProposalStatusQuery &&
-    !(quotedProposalTimeConfirmSide && isPureAffirmative(userTxtRaw, pre.lang)) &&
-    (
-      askedToConfirmReservation(pre.lcHistory) ||
-      pre.st?.lastProposal ||
-      pre.st?.salesStage === "quote" ||
-      pre.st?.conversationStage === "reservation_quoted"
-    )
-  );
+  const pendingCreateProposal = isPendingCreateProposalContext(pre, userTxtRaw);
   if (pendingCreateProposal && !modifyExecutionActive) {
     const trimmedQuotedReply = String(pre.msg.content || "").trim();
     const normalizedQuotedReply = normalizeReferenceText(trimmedQuotedReply);
