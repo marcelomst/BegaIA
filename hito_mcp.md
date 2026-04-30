@@ -7586,3 +7586,38 @@ Impacto:
 - refuerza una única semántica de confirmación para proposals pendientes
 - evita desvíos erróneos hacia parsing temporal durante el tramo de confirmación
 - preserva el alcance acotado a un fix local con cobertura unitaria y e2e
+
+### DOC-HITO-DISCIPLINA-PLANTILLAS-Y-APERTURA-CHAT-41
+
+Estado: COMPLETADO  
+Fecha: 2026-04-30  
+Commit: fd36f7334de724d60936690c2fd70b0965f72b59
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se formaliza la disciplina documental y de apertura de chats mediante una
+regla explícita de orquestación low-token en la cápsula operativa, una guía
+de continuidad entre chats y la creación de `HITO_TEMPLATE_V1` como plantilla
+obligatoria para definición de hitos por parte de AGPT.
+
+Archivos afectados:
+
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/abrir_chat_nuevo.md`
+- `docs/development/hito_template.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- evidencia reconstruida desde commit real y diff documental
+- `roadmap_impact: none`
+- no requiere actualización de roadmap
+- introduce disciplina reusable sin modificar runtime ni código de producto
+
+Impacto:
+
+- explicita que AGPT debe transportar estado operativo mínimo y no reasoning
+- normaliza el flujo `chat viejo -> cápsula -> chat nuevo`
+- vuelve obligatorio `HITO_TEMPLATE_V1` para nuevos hitos
+- fortalece la trazabilidad y reduce ambigüedad operativa entre agentes
