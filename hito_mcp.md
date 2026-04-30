@@ -7621,3 +7621,35 @@ Impacto:
 - normaliza el flujo `chat viejo -> cápsula -> chat nuevo`
 - vuelve obligatorio `HITO_TEMPLATE_V1` para nuevos hitos
 - fortalece la trazabilidad y reduce ambigüedad operativa entre agentes
+
+### DOC-PRESENTATION-NARRATIVE-BASE-42
+
+Estado: COMPLETADO  
+Fecha: 2026-04-30  
+Commit: d2387d2928af4c4b49e728e2573572d98fb4000f
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se crea la narrativa base draft para futuras piezas no técnicas de Begasist,
+separando posicionamiento, claims seguros, claims prudentes, claims prohibidos
+y guardrails de uso comercial, sin tocar runtime ni arquitectura operativa.
+
+Archivos afectados:
+
+- `docs/product/presentation_narrative_base.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene explícitamente el naming como no cerrado
+
+Impacto:
+
+- concentra la narrativa comercial base en un único documento draft
+- evita claims paralelos o inconsistentes entre deck, one-pager y demo
+- explicita guardrails de uso comercial y claims prohibidos
+- fortalece la gobernanza documental sin alterar runtime ni arquitectura
