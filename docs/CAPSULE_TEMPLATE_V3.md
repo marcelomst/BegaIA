@@ -160,6 +160,39 @@ REGLA:
 - AGPT orquesta
 - los agentes ejecutan
 - si hay conflicto operativo, prevalece `system_operating_model.md`
+  REGLA:
+
+- AGPT orquesta
+- los agentes ejecutan
+- si hay conflicto operativo, prevalece `system_operating_model.md`
+
+### REGLA DE ORQUESTACIÓN LOW-TOKEN (INVARIANTE)
+
+- AGPT NO debe transportar reasoning completo entre aentes.
+
+DEBE transportar únicamente estado operativo mínimo:
+
+- hito actual
+- agent_target
+- flow_position
+- objetivo (1 línea)
+- archivos afectados (si aplica)
+- resultado del agente anterior (resumen corto)
+- evidencia mínima (hash, diff resumido, etc.)
+- próximo paso
+
+PROHIBIDO:
+
+- copiar reasoning completo de agentes
+- repetir system prompts
+- duplicar reglas de `config.toml`
+- incluir contexto histórico innecesario
+- pegar diffs completos sin necesidad
+- expandir explicaciones técnicas largas
+
+PRINCIPIO:
+
+> Los agentes ya conocen las reglas. AGPT solo transporta estado.
 
 ---
 
