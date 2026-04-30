@@ -7653,3 +7653,37 @@ Impacto:
 - evita claims paralelos o inconsistentes entre deck, one-pager y demo
 - explicita guardrails de uso comercial y claims prohibidos
 - fortalece la gobernanza documental sin alterar runtime ni arquitectura
+
+### DOC-PRESENTATION-CAPABILITY-MAP-43
+
+Estado: COMPLETADO  
+Fecha: 2026-04-30  
+Commit: 66724edc737f73f0b69b2c8832b3ce8cf2b1acc0
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se crea un mapa draft de capacidades reales y presentables de Begasist para
+materiales no técnicos, separando capacidades por estado documental y
+operativo, wording comercial seguro, claims pendientes y límites explícitos,
+sin tocar runtime ni código.
+
+Archivos afectados:
+
+- `docs/product/presentation_capability_map.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene abierto el naming comercial
+
+Impacto:
+
+- centraliza la traducción comercial de capacidades reales en un único draft
+- evita claims paralelos, inflados o inconsistentes
+- separa explícitamente qué puede presentarse, qué requiere validación y qué
+  no debe prometerse
+- fortalece la gobernanza documental comercial sin alterar runtime ni código
