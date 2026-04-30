@@ -7552,3 +7552,37 @@ Impacto:
 - una negación explícita pausa la proposal y rompe el loop de confirmación
 - correcciones válidas invalidan la proposal previa y fuerzan recomputación
   coherente sin contaminar `guestName` u otros slots no corregidos
+
+### FIX-PENDING-PROPOSAL-CONFIRMATION-WITH-TEMPORAL-MODIFIER-40
+
+Estado: COMPLETADO  
+Fecha: 2026-04-30  
+Commit: 1c021baad49231a1725dd6d3f101617bd2b71531
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se endurece la gobernanza de confirmación de proposals activas para evitar que
+mensajes ambiguos con modificador temporal como `confirmar mañana` disparen una
+confirmación inválida o entren por error al flujo de fechas, extrayendo además
+un helper reutilizable para el contexto de proposal pendiente.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada reconstruida desde el commit real y su diff
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene la lógica de gobernanza dentro de `messageHandler`
+
+Impacto:
+
+- evita confirmar proposals activas ante `confirmar` con modificador temporal
+- refuerza una única semántica de confirmación para proposals pendientes
+- evita desvíos erróneos hacia parsing temporal durante el tramo de confirmación
+- preserva el alcance acotado a un fix local con cobertura unitaria y e2e
