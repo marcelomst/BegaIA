@@ -358,6 +358,8 @@ describe("messageHandler slot ingestion", () => {
   });
 
   it("no toma 'nombre de la empresa ...' como guestName ni degrada otros slots", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-30T12:00:00.000Z"));
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
@@ -374,6 +376,7 @@ describe("messageHandler slot ingestion", () => {
       numGuests: "2",
     });
     expect(currentState?.reservationSlots?.guestName).toBeUndefined();
+    vi.useRealTimers();
   });
 
   it("en modify absorbe intención + campo + nuevo valor en el mismo turno sin repregunta redundante", async () => {

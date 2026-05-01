@@ -602,22 +602,27 @@ export async function runAvailabilityCheck(
         const currency = String(opt.currency || "").toUpperCase();
         const total = perNight != null ? perNight * nights : undefined;
         const rtLocalized = localizeRoomType(opt.roomType || snapshot.roomType, pre.lang as any);
-        const guestFirstName = String(snapshot.guestName || "").trim().split(/\s+/).filter(Boolean)[0] || "";
-        const withNamePrefix = (text: string) => guestFirstName ? `${guestFirstName}, ${text.charAt(0).toLowerCase()}${text.slice(1)}` : text;
+        const reservationHolderName = isSafeGuestName(String(snapshot.guestName || "")) ? String(snapshot.guestName || "").trim() : "";
+        const holderSuffix =
+            reservationHolderName
+                ? pre.lang === "es"
+                    ? ` para ${reservationHolderName}`
+                    : pre.lang === "pt"
+                        ? ` para ${reservationHolderName}`
+                        : ` for ${reservationHolderName}`
+                : "";
         if (perNight != null) {
             base = pre.lang === "es"
-                ? `Tengo ${rtLocalized} disponible. Tarifa por noche: ${perNight} ${currency}. Total ${nights} noches: ${total} ${currency}.`
+                ? `Tengo ${rtLocalized} disponible${holderSuffix}. Tarifa por noche: ${perNight} ${currency}. Total ${nights} noches: ${total} ${currency}.`
                 : pre.lang === "pt"
-                    ? `Tenho ${rtLocalized} disponível. Tarifa por noite: ${perNight} ${currency}. Total ${nights} noites: ${total} ${currency}.`
-                    : `I have a ${rtLocalized} available. Rate per night: ${perNight} ${currency}. Total ${nights} nights: ${total} ${currency}.`;
-            base = withNamePrefix(base);
+                    ? `Tenho ${rtLocalized} disponível${holderSuffix}. Tarifa por noite: ${perNight} ${currency}. Total ${nights} noites: ${total} ${currency}.`
+                    : `I have a ${rtLocalized} available${holderSuffix}. Rate per night: ${perNight} ${currency}. Total ${nights} nights: ${total} ${currency}.`;
         } else {
             base = pre.lang === "es"
-                ? `Hay disponibilidad para ${rtLocalized}.`
+                ? `Hay disponibilidad para ${rtLocalized}${reservationHolderName ? ` a nombre de ${reservationHolderName}` : ""}.`
                 : pre.lang === "pt"
-                    ? `Há disponibilidade para ${rtLocalized}.`
-                    : `Availability for ${rtLocalized}.`;
-            base = withNamePrefix(base);
+                    ? `Há disponibilidade para ${rtLocalized}${reservationHolderName ? ` em nome de ${reservationHolderName}` : ""}.`
+                    : `Availability for ${rtLocalized}${reservationHolderName ? ` under ${reservationHolderName}` : ""}.`;
         }
     }
 

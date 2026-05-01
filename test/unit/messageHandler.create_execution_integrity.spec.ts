@@ -150,6 +150,8 @@ describe("messageHandler create execution integrity", () => {
     await handleIncomingMessage(msg("confirmar"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).toHaveBeenCalledTimes(1);
+    expect(lastReply(sendReply)).toMatch(/reserva confirmada para|reserva a nombre de/i);
+    expect(lastReply(sendReply)).not.toMatch(/gracias,\s*ana/i);
     expect(currentState?.reservationHistory).toHaveLength(1);
     expect(currentState?.lastReservation).toMatchObject({
       reservationId: "R-NEW-01",

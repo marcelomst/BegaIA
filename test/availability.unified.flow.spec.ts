@@ -58,6 +58,8 @@ describe('availability unified flow', () => {
         const pre = preBase('es');
         const res = await availabilityPipeline.runAvailabilityCheck(pre as any, snapshotBase as any, snapshotBase.checkIn, snapshotBase.checkOut);
         expect(res.finalText).toMatch(/Tarifa por noche: 100/i);
+        expect(res.finalText).toMatch(/para Juan Perez/i);
+        expect(res.finalText).not.toMatch(/^Juan\b/i);
         expect(upsertSpy).toHaveBeenCalled();
     });
 

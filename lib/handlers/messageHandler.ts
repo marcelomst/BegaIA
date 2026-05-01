@@ -487,21 +487,17 @@ function buildPersistedReservationRecord(
   status: LastReservation["status"],
   channel: LastReservation["channel"]
 ): LastReservation {
-  const canonicalRecord = buildReservationCanonicalState(state).byId.get(reservationId);
-  const reservationSlots =
-    state?.lastReservation?.reservationId === reservationId
-      ? state?.reservationSlots
-      : undefined;
+  const canonicalRecord = getCanonicalReservationRecordById(state, reservationId);
   return {
     reservationId,
     status,
     createdAt: safeNowISO(),
     channel,
-    guestName: canonicalRecord?.guestName || reservationSlots?.guestName,
-    roomType: canonicalRecord?.roomType || reservationSlots?.roomType,
-    checkIn: canonicalRecord?.checkIn || reservationSlots?.checkIn,
-    checkOut: canonicalRecord?.checkOut || reservationSlots?.checkOut,
-    numGuests: canonicalRecord?.numGuests || reservationSlots?.numGuests,
+    guestName: canonicalRecord?.guestName,
+    roomType: canonicalRecord?.roomType,
+    checkIn: canonicalRecord?.checkIn,
+    checkOut: canonicalRecord?.checkOut,
+    numGuests: canonicalRecord?.numGuests,
   };
 }
 
@@ -1334,6 +1330,41 @@ function buildCanonicalReservationRecords(state: any): CanonicalReservationRecor
   return buildReservationCanonicalState(state).records;
 }
 
+function getCanonicalReservationRecordById(
+  state: any,
+  reservationId?: string | null
+): CanonicalReservationRecord | undefined {
+  if (!reservationId) return undefined;
+  return buildReservationCanonicalState(state).byId.get(reservationId);
+}
+
+function buildCanonicalReservationTarget(
+  state: any,
+  reservationId?: string | null,
+  source: ReservationReferenceTarget["source"] = "history"
+): ReservationReferenceTarget | null {
+  if (!reservationId) return null;
+  const record = getCanonicalReservationRecordById(state, reservationId);
+  if (!record) {
+    return {
+      kind: "reservation",
+      reservationId,
+      source,
+    };
+  }
+  return {
+    kind: "reservation",
+    reservationId: record.reservationId,
+    reservationStatus: record.canonicalStatus === "active" ? "created" : record.canonicalStatus,
+    guestName: record.guestName,
+    roomType: record.roomType,
+    numGuests: record.numGuests,
+    checkIn: record.checkIn,
+    checkOut: record.checkOut,
+    source,
+  };
+}
+
 function resolveConfirmedReservationFollowupSnapshot(
   pre: PreLLMResult,
   selectedOrActiveReservationTarget?: { reservationId?: string } | null
@@ -1347,17 +1378,17 @@ function resolveConfirmedReservationFollowupSnapshot(
     pre.st?.lastReservation?.reservationId ||
     resolveSingleActionableReservationTarget(pre.st)?.reservationId;
   const record = reservationId
-    ? buildReservationCanonicalState(pre.st).byId.get(reservationId)
+    ? getCanonicalReservationRecordById(pre.st, reservationId)
     : buildCanonicalReservationRecords(pre.st).find((item) => item.status !== "cancelled");
   return {
     reservationId: reservationId || record?.reservationId,
     status: (record?.status || pre.st?.lastReservation?.status) as LastReservation["status"] | undefined,
     slots: {
-      guestName: record?.guestName || pre.st?.reservationSlots?.guestName,
-      roomType: record?.roomType || pre.st?.reservationSlots?.roomType,
-      numGuests: record?.numGuests || pre.st?.reservationSlots?.numGuests,
-      checkIn: record?.checkIn || pre.st?.reservationSlots?.checkIn,
-      checkOut: record?.checkOut || pre.st?.reservationSlots?.checkOut,
+      guestName: record?.guestName || (!reservationId ? pre.st?.reservationSlots?.guestName : undefined),
+      roomType: record?.roomType || (!reservationId ? pre.st?.reservationSlots?.roomType : undefined),
+      numGuests: record?.numGuests || (!reservationId ? pre.st?.reservationSlots?.numGuests : undefined),
+      checkIn: record?.checkIn || (!reservationId ? pre.st?.reservationSlots?.checkIn : undefined),
+      checkOut: record?.checkOut || (!reservationId ? pre.st?.reservationSlots?.checkOut : undefined),
       locale: pre.lang,
     } as ReservationSlotsStrict,
   };
@@ -1418,18 +1449,8 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
       source: "active",
     });
   } else if (active?.kind === "reservation" && active.reservationId) {
-    const activeRecord = buildCanonicalReservationRecords(state).find((item) => item.reservationId === active.reservationId);
-    candidates.push({
-      kind: "reservation",
-      reservationId: active.reservationId,
-      reservationStatus: activeRecord?.canonicalStatus === "active" ? "created" : activeRecord?.canonicalStatus,
-      guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : activeRecord?.guestName,
-      roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : activeRecord?.roomType,
-      numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : activeRecord?.numGuests,
-      checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : activeRecord?.checkIn,
-      checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : activeRecord?.checkOut,
-      source: "active",
-    });
+    const activeTarget = buildCanonicalReservationTarget(state, active.reservationId, "active");
+    if (activeTarget) candidates.push(activeTarget);
   }
 
   for (const item of buildCanonicalReservationRecords(state)) {
@@ -1684,6 +1705,10 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   }
 
   if (mentionsThat && active) {
+    const activeReservationTarget =
+      active.kind === "reservation"
+        ? buildCanonicalReservationTarget(state, active.reservationId, "active")
+        : null;
     return {
       status: "resolved",
       target:
@@ -1697,16 +1722,11 @@ function resolveReservationReference(state: any, userText: string): ReservationR
             checkOut: state?.reservationSlots?.checkOut,
             source: "active",
           }
-          : {
+          : (activeReservationTarget || {
             kind: "reservation",
             reservationId: active.reservationId || undefined,
-            guestName: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.guestName : undefined,
-            roomType: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.roomType : undefined,
-            numGuests: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.numGuests : undefined,
-            checkIn: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkIn : undefined,
-            checkOut: state?.lastReservation?.reservationId === active.reservationId ? state?.reservationSlots?.checkOut : undefined,
             source: "active",
-          },
+          }),
     };
   }
 
@@ -5472,7 +5492,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const nextGuestCount = rawGuestCount || numericGuestCount || reservationGuests;
     const nextRoomType = nextSlots.roomType || pre.currSlots.roomType || pre.st?.reservationSlots?.roomType;
     const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);
-    const baseGuestName = baseModifyTarget?.guestName || pre.st?.reservationSlots?.guestName;
+    const baseModifyCanonicalRecord = getCanonicalReservationRecordById(pre.st, codeFromModifySubstate);
+    const baseGuestName = baseModifyCanonicalRecord?.guestName || baseModifyTarget?.guestName;
     const baseRoomType = baseModifyTarget?.roomType || nextRoomType;
     const baseGuests = reservationGuests || baseModifyTarget?.numGuests;
     const baseCheckIn = baseModifyTarget?.checkIn || reservationCheckIn;
@@ -7286,10 +7307,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
         finalText = result.ok && hasReservationId
           ? (pre.lang === "es"
-            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`
+            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** huésped(es)` : ""}${replySnapshot.guestName ? ` · Reserva a nombre de **${replySnapshot.guestName}**.` : "."}`
             : pre.lang === "pt"
-              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`
-              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** guest(s)` : ""}. Thank you, ${String(replySnapshot.guestName).trim().split(/\s+/)[0] || replySnapshot.guestName}!`)
+              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** hóspede(s)` : ""}${replySnapshot.guestName ? ` · Reserva em nome de **${replySnapshot.guestName}**.` : "."}`
+              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** guest(s)` : ""}${replySnapshot.guestName ? ` · Booking under **${replySnapshot.guestName}**.` : "."}`)
           : (result.ok
             ? (pre.lang === "es"
               ? "No pude confirmar la reserva con datos incompletos. Sigamos con el dato faltante."
