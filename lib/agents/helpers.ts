@@ -129,7 +129,7 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     if (looksExplicitCreate) {
       const weekendRange =
         /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|este\s+fim\s+de\s+semana|fim\s+de\s+semana)\b/.test(normalized) ||
-        /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b/.test(normalized);
+        /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b(?:\s+(proximo|next))?/.test(normalized);
       const weekdayMap: Array<[RegExp, number]> = [
         [/\b(domingo|sunday)\b/, 0],
         [/\b(lunes|monday)\b/, 1],

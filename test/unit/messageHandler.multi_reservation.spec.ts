@@ -264,4 +264,93 @@ describe("messageHandler multi reservation", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/actualizada|modificad/i);
   });
+
+  it("otra reserva con rango relativo 'sabado al domingo proximo' ingiere fechas y no vuelve a pedirlas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-BASE-01", phase: "confirmed" },
+      selectedReservationTarget: { reservationId: "RES-BASE-01", source: "active_focus", strength: "weak" },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-5",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el sabado al domingo proximo, una triple, para 3 personas a nombre de Raul Olivera",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-5",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-5",
+      expect.objectContaining({
+        lastCategory: "reservation",
+        reservationSlots: {
+          checkIn: "2026-05-02",
+          checkOut: "2026-05-03",
+          guestName: "Raul Olivera",
+          numGuests: "3",
+          roomType: "triple",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    vi.useRealTimers();
+  });
+
+  it("otra reserva con rango relativo 'sábado al domingo próximo' soporta tildes", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-6",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el sábado al domingo próximo, una triple, para 3 personas a nombre de Raul Olivera",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-6",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-6",
+      expect.objectContaining({
+        reservationSlots: {
+          checkIn: "2026-05-02",
+          checkOut: "2026-05-03",
+          guestName: "Raul Olivera",
+          numGuests: "3",
+          roomType: "triple",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    vi.useRealTimers();
+  });
 });

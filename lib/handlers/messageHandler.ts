@@ -2729,7 +2729,7 @@ function extractRelativeWeekendDateRange(
   const mentionsWeekend =
     /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|este\s+fim\s+de\s+semana|fim\s+de\s+semana)\b/.test(normalized);
   const mentionsSaturdayToSunday =
-    /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b/.test(normalized);
+    /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b(?:\s+(proximo|next))?/.test(normalized);
   if (!mentionsWeekend && !mentionsSaturdayToSunday) return {};
 
   const anchor = new Date(baseDate.getTime());
@@ -6961,14 +6961,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (wantsAdditionalReservation(userTxtRaw, pre.st)) {
     const freshTurnSlots = toStrictSlots(extractSlotsFromText(String(pre.msg.content || ""), pre.lang));
-    nextSlots = { ...freshTurnSlots };
+    const additionalReservationDraft = validateCreateDraftConsistency(pre.lang, freshTurnSlots).sanitizedSlots;
+    nextSlots = { ...additionalReservationDraft };
     const preservedHistory = mergeReservationHistory(
       (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
       (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
     );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       reservationHistory: preservedHistory,
-      reservationSlots: freshTurnSlots as any,
+      reservationSlots: additionalReservationDraft as any,
       lastProposal: null,
       pendingAvailabilityVerification: null,
       selectedReservationTarget: null,
@@ -6982,8 +6983,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       updatedBy: "ai",
     } as any);
 
-    const hasCheckIn = Boolean(freshTurnSlots.checkIn);
-    const hasCheckOut = Boolean(freshTurnSlots.checkOut);
+    const hasCheckIn = Boolean(additionalReservationDraft.checkIn);
+    const hasCheckOut = Boolean(additionalReservationDraft.checkOut);
     if (hasCheckIn && !hasCheckOut) {
       finalText = pre.lang === "es"
         ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
@@ -6998,6 +6999,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : pre.lang === "pt"
           ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
           : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`;
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (hasCheckIn && hasCheckOut) {
+      const missingField = getNextCreateFlowMissingField(additionalReservationDraft);
+      if (missingField) {
+        finalText = pre.lang === "es"
+          ? `Perfecto, mantenemos la reserva actual y abrimos una nueva. ${buildCreateFlowPrompt(pre.lang, missingField)}`
+          : pre.lang === "pt"
+            ? `Perfeito, mantemos a reserva atual e abrimos uma nova. ${buildCreateFlowPrompt(pre.lang, missingField)}`
+            : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField)}`;
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+      finalText = pre.lang === "es"
+        ? "Perfecto, mantenemos la reserva actual y abrimos una nueva."
+        : pre.lang === "pt"
+          ? "Perfeito, mantemos a reserva atual e abrimos uma nova."
+          : "Perfect, we will keep the current booking and open a new one.";
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
 

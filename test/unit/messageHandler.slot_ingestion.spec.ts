@@ -615,6 +615,28 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("en primer turno create absorbe 'sábado al domingo próximo' sin repreguntar fechas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar una doble del sábado al domingo próximo para 2"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/check-?in|check-?out|fecha de entrada|fecha de salida/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-04-25",
+      checkOut: "2026-04-26",
+      numGuests: "2",
+    });
+  });
+
   it("cuando create espera check-out y recibe fecha explícita no vuelve a repreguntar la salida", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
