@@ -7687,3 +7687,45 @@ Impacto:
 - separa explícitamente qué puede presentarse, qué requiere validación y qué
   no debe prometerse
 - fortalece la gobernanza documental comercial sin alterar runtime ni código
+
+### FIX-GUEST-RESERVATION-HOLDER-FALLBACK-GOVERNANCE-44
+
+Estado: COMPLETADO  
+Fecha: 2026-05-01  
+Commit: 63d804ebddc2deaa9bf280467f2163e5ff5e1594
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la gobernanza de identidad en replies y fallbacks de reservas para
+que el titular canónico de una reserva confirmada con `reservationId`
+prevalezca sobre `reservationSlots.guestName`, y se elimina el vocativo
+nominal en proposals de availability para expresar correctamente `para
+<titular>` o `reserva a nombre de <titular>`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/availability.unified.flow.spec.ts`
+- `test/integration/recotizacion.planner_only.test.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- consolida una regla explícita de dominio sobre identidad de titular
+
+Impacto:
+
+- elimina el fallback incorrecto desde `reservationSlots` para reservas
+  confirmadas
+- refuerza el uso del registro canónico por `reservationId`
+- separa interlocutor conversacional de titular de reserva en replies y
+  proposals
+- evita una fuente paralela de identidad sin mover lógica fuera del runtime
