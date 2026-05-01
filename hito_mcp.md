@@ -7729,3 +7729,41 @@ Impacto:
 - separa interlocutor conversacional de titular de reserva en replies y
   proposals
 - evita una fuente paralela de identidad sin mover lógica fuera del runtime
+
+### FIX-CREATE-RELATIVE-RANGE-ANOTHER-RESERVATION-45
+
+Estado: COMPLETADO  
+Fecha: 2026-05-01  
+Commit: 1be8a6279c6c18734c59cba3521c8f61c1374839
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la detección e ingestión de rangos relativos tipo
+`sábado/sabado al domingo próximo/proximo` en `create`, incluyendo el contexto
+de `otra reserva`, evitando repreguntar fechas cuando `checkIn` y `checkOut`
+ya fueron absorbidos y sin mezclar la deuda UX separada de confirmación de
+nuevas fechas.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva `messageHandler` como runtime vigente
+
+Impacto:
+
+- extiende los parsers existentes de fechas relativas sin introducir lógica
+  paralela
+- evita perder slots ya ingeridos en el branch de `otra reserva`
+- deja de repreguntar fechas cuando el rango ya fue absorbido
+- mantiene fuera de scope la deuda UX separada de confirmación de nuevas fechas
