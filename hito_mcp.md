@@ -7767,3 +7767,44 @@ Impacto:
 - evita perder slots ya ingeridos en el branch de `otra reserva`
 - deja de repreguntar fechas cuando el rango ya fue absorbido
 - mantiene fuera de scope la deuda UX separada de confirmación de nuevas fechas
+
+### FIX-CREATE-AVAILABILITY-SEQUENCING-UX-46
+
+Estado: COMPLETADO  
+Fecha: 2026-05-04  
+Commit: 9ae3467831f82a287ff07012efc134df1ba706c4
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el sequencing y la UX entre `create` y `availability inquiry` para
+que un `create` explícito completo cotice directamente sin pasar por el turno
+intermedio `Anoté nuevas fechas...`, mantenga el pedido de faltantes reales en
+`create` incompleto y preserve la frontera donde `availability inquiry` puro
+no abre `create` ni pide `guestName`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- refuerza la frontera operativa entre `availability inquiry` y `create`
+
+Impacto:
+
+- elimina el sequencing intermedio `Anoté nuevas fechas...` del camino correcto
+- hace que `create` explícito completo cotice directamente
+- mantiene el pedido de faltantes reales cuando `create` está incompleto
+- preserva que `availability inquiry` puro no abra `create` ni pida
+  `guestName`
