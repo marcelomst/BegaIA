@@ -7808,3 +7808,43 @@ Impacto:
 - mantiene el pedido de faltantes reales cuando `create` está incompleto
 - preserva que `availability inquiry` puro no abra `create` ni pida
   `guestName`
+
+### FIX-CREATE-RELATIVE-WEEKDAY-RANGE-GENERALIZATION-47
+
+Estado: COMPLETADO  
+Fecha: 2026-05-04  
+Commit: 2e0253963756a1e5d4c0d6b2ac3b10c65824f0d3
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se generaliza la detección de rangos relativos consecutivos de weekdays en
+`create` para expresiones como `domingo al lunes próximo` y `martes hasta el
+miércoles próximo`, incluyendo variantes con conectores `al`, `a`, `y`,
+`and`, `hasta`, `hasta el` y `hasta la`, manteniendo alineados
+`extractSlotsFromText` y el extractor relativo de `messageHandler` sin mezclar
+sequencing ni `availability inquiry`.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva `messageHandler` como runtime vigente
+
+Impacto:
+
+- extiende extractores existentes en lugar de crear parsers paralelos
+- amplía la capacidad real de `create` sobre lenguaje natural relativo
+- mantiene una única vía coherente para resolver rangos relativos consecutivos
+  de weekdays
+- deja fuera de scope cambios de sequencing o `availability inquiry`
