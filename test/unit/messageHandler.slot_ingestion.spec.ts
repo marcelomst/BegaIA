@@ -642,6 +642,70 @@ describe("messageHandler slot ingestion", () => {
     });
   });
 
+  it("en primer turno create absorbe 'domingo al lunes proximo' y no repregunta check-out", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el domingo al lunes proximo, una simple, para 1 personas a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("en primer turno create absorbe 'domingo al lunes próximo' con tildes", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el domingo al lunes próximo, una simple, para 1 personas a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("en primer turno create absorbe 'martes hasta el miercoles proximo' y no repregunta check-out", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el martes hasta el miercoles proximo, una doble para 2 personas, a nombre de Marcelo Martinez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("en primer turno create absorbe 'martes hasta el miércoles próximo' con tildes", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el martes hasta el miércoles próximo, una doble para 2 personas, a nombre de Marcelo Martinez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
   it("cuando create espera check-out y recibe fecha explícita no vuelve a repreguntar la salida", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));

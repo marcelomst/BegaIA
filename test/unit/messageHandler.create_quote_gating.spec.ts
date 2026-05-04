@@ -204,6 +204,56 @@ describe("messageHandler create quote gating", () => {
     });
   });
 
+  it("con turno rico completo y rango relativo domingo a lunes cotiza normalmente", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el domingo al lunes proximo, una simple, para 1 personas a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido|check-?in|check-?out/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-05-03",
+      checkOut: "2026-05-04",
+      numGuests: "1",
+      roomType: "single",
+      guestName: "Ana Gomez",
+    });
+  });
+
+  it("con turno rico completo y conector 'hasta el' cotiza normalmente", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el martes hasta el miercoles proximo, una doble para 2 personas, a nombre de Marcelo Martinez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/todav[ií]a no tengo una propuesta lista para confirmar/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido|check-?in|check-?out/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-05-05",
+      checkOut: "2026-05-06",
+      numGuests: "2",
+      roomType: "double",
+      guestName: "Marcelo Martinez",
+    });
+  });
+
   it("con create activo + fechas + 'sí' no cotiza y mantiene create sin contaminar modify", async () => {
     const sendReply = vi.fn(async () => {});
 

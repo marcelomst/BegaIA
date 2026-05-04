@@ -127,9 +127,41 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       /\b(reserv(?:ar|a|o|emos)?|book(?:ing)?)\b/i.test(normalized) &&
       !/\b(modific|cambi|alter|change|update|cancel|anul)\b/i.test(normalized);
     if (looksExplicitCreate) {
+      const weekdayIndex: Record<string, number> = {
+        domingo: 0,
+        sunday: 0,
+        lunes: 1,
+        monday: 1,
+        martes: 2,
+        tuesday: 2,
+        miercoles: 3,
+        wednesday: 3,
+        jueves: 4,
+        thursday: 4,
+        viernes: 5,
+        friday: 5,
+        sabado: 6,
+        saturday: 6,
+      };
+      const resolveWeekdayOnOrAfter = (baseDate: Date, weekday: number) => {
+        const candidate = new Date(baseDate.getTime());
+        const delta = (weekday - candidate.getUTCDay() + 7) % 7;
+        candidate.setUTCDate(candidate.getUTCDate() + delta);
+        return candidate;
+      };
+      const resolveWeekdayStrictlyAfter = (baseDate: Date, weekday: number) => {
+        const candidate = new Date(baseDate.getTime());
+        let delta = (weekday - candidate.getUTCDay() + 7) % 7;
+        if (delta === 0) delta = 7;
+        candidate.setUTCDate(candidate.getUTCDate() + delta);
+        return candidate;
+      };
       const weekendRange =
         /\b(este\s+finde|este\s+fin\s+de\s+semana|this\s+weekend|este\s+fim\s+de\s+semana|fim\s+de\s+semana)\b/.test(normalized) ||
         /\b(sabado|saturday)\b.*\b(al|a|y|and)\b.*\b(domingo|sunday)\b(?:\s+(proximo|next))?/.test(normalized);
+      const weekdayRangeMatch = normalized.match(
+        /\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b\s*(?:al|a|y|and|hasta(?:\s+el|\s+la)?)\s*\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b(?:\s+(proximo|next))?/
+      );
       const weekdayMap: Array<[RegExp, number]> = [
         [/\b(domingo|sunday)\b/, 0],
         [/\b(lunes|monday)\b/, 1],
@@ -141,7 +173,16 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       ];
       const base = new Date();
       base.setUTCHours(0, 0, 0, 0);
-      if (weekendRange) {
+      if (weekdayRangeMatch) {
+        const startWeekday = weekdayIndex[weekdayRangeMatch[1]];
+        const endWeekday = weekdayIndex[weekdayRangeMatch[2]];
+        if (typeof startWeekday === "number" && typeof endWeekday === "number") {
+          const checkInDate = resolveWeekdayOnOrAfter(base, startWeekday);
+          const checkOutDate = resolveWeekdayStrictlyAfter(checkInDate, endWeekday);
+          out.checkIn = checkInDate.toISOString().slice(0, 10);
+          out.checkOut = checkOutDate.toISOString().slice(0, 10);
+        }
+      } else if (weekendRange) {
         const weekday = base.getUTCDay();
         const saturdayDelta = weekday === 6 ? 0 : weekday === 0 ? 6 : 6 - weekday;
         base.setUTCDate(base.getUTCDate() + saturdayDelta);

@@ -374,4 +374,110 @@ describe("messageHandler multi reservation", () => {
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();
   });
+
+  it("otra reserva con rango relativo 'domingo al lunes proximo' ingiere fechas y no vuelve a pedirlas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-BASE-01", phase: "confirmed" },
+      selectedReservationTarget: { reservationId: "RES-BASE-01", source: "active_focus", strength: "weak" },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-7",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el domingo al lunes proximo, una triple, para 3 personas a nombre de Raul Olivera",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-7",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-7",
+      expect.objectContaining({
+        lastCategory: "reservation",
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
+        reservationSlots: {
+          checkIn: "2026-05-03",
+          checkOut: "2026-05-04",
+          guestName: "Raul Olivera",
+          numGuests: "3",
+          roomType: "triple",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|check-?out|salida/i);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    vi.useRealTimers();
+  });
+
+  it("otra reserva con rango relativo 'martes hasta el miercoles proximo' ingiere fechas y no vuelve a pedirlas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-BASE-01", phase: "confirmed" },
+      selectedReservationTarget: { reservationId: "RES-BASE-01", source: "active_focus", strength: "weak" },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-8",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el martes hasta el miercoles proximo, una doble para 2 personas, a nombre de Marcelo Martinez",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-8",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-8",
+      expect.objectContaining({
+        lastCategory: "reservation",
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
+        reservationSlots: {
+          checkIn: "2026-05-05",
+          checkOut: "2026-05-06",
+          guestName: "Marcelo Martinez",
+          numGuests: "2",
+          roomType: "double",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|check-?out|salida/i);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    vi.useRealTimers();
+  });
 });

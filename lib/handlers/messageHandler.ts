@@ -2774,7 +2774,7 @@ function extractRelativeWeekdayRange(
     saturday: 6,
   };
   const match = normalized.match(
-    /\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b\s*(?:al|a|y|and)\s*\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b/
+    /\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b\s*(?:al|a|y|and|hasta(?:\s+el|\s+la)?)\s*\b(domingo|sunday|lunes|monday|martes|tuesday|miercoles|wednesday|jueves|thursday|viernes|friday|sabado|saturday)\b/
   );
   if (!match) return {};
   const startWeekday = weekdayIndex[match[1]];
@@ -4108,6 +4108,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const rawDr0 = extractRawOrderedDateRange(userTxt0);
     const lightDr0 = extractDateRangeFromTextLight(userTxt0);
     const relativeWeekendDr0 = extractRelativeWeekendDateRange(userTxt0);
+    const relativeWeekdayRangeDr0 = extractRelativeWeekdayRange(userTxt0);
     const turnCreateSlots0 = extractSlotsFromText(userTxt0, pre.lang);
     const anchoredCreateDr0 = anchorCreateDayRangeToDraft(pre, userTxt0, nextSlots);
     const explicitCreateIntent0 = isExplicitCreateReservationIntent(userTxt0);
@@ -4126,6 +4127,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const relativeWeekendDr0Valid =
       Boolean(relativeWeekendDr0.checkIn && relativeWeekendDr0.checkOut) &&
       assessReservationDateCoherence(relativeWeekendDr0.checkIn, relativeWeekendDr0.checkOut)?.ok === true;
+    const relativeWeekdayRangeDr0Valid =
+      Boolean(relativeWeekdayRangeDr0.checkIn && relativeWeekdayRangeDr0.checkOut) &&
+      assessReservationDateCoherence(relativeWeekdayRangeDr0.checkIn, relativeWeekdayRangeDr0.checkOut)?.ok === true;
     const anchoredCreateDr0Valid =
       Boolean(anchoredCreateDr0.checkIn && anchoredCreateDr0.checkOut) &&
       assessReservationDateCoherence(anchoredCreateDr0.checkIn, anchoredCreateDr0.checkOut)?.ok === true;
@@ -4138,13 +4142,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             ? lightDr0
             : relativeWeekendDr0Valid
               ? relativeWeekendDr0
-            : anchoredCreateDr0Valid
-              ? anchoredCreateDr0
-              : explicitDr0.checkIn || explicitDr0.checkOut
-                ? explicitDr0
-                : hasNumericDateRangeWithoutYear(userTxt0)
-                  ? lightDr0
-                  : anchoredCreateDr0;
+              : relativeWeekdayRangeDr0Valid
+                ? relativeWeekdayRangeDr0
+                : anchoredCreateDr0Valid
+                  ? anchoredCreateDr0
+                  : explicitDr0.checkIn || explicitDr0.checkOut
+                    ? explicitDr0
+                    : hasNumericDateRangeWithoutYear(userTxt0)
+                      ? lightDr0
+                      : anchoredCreateDr0;
     const hasCompleteRichCreatePayloadInTurn0 = Boolean(
       explicitCreateIntent0 &&
       turnCreateSlots0.checkIn &&
