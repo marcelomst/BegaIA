@@ -29,6 +29,7 @@ const preBase = (lang: 'es' | 'en' | 'pt' = 'es') => ({
     st: {},
     msg: { hotelId: 'hotel999' },
     conversationId: 'hotel999-web-guest',
+    guest: undefined as any,
 });
 
 const snapshotBase = {
@@ -61,6 +62,46 @@ describe('availability unified flow', () => {
         expect(res.finalText).toMatch(/para Juan Perez/i);
         expect(res.finalText).not.toMatch(/^Juan\b/i);
         expect(upsertSpy).toHaveBeenCalled();
+    });
+
+    it('usa vocativo solo desde guest canónico y mantiene titular de reserva en el proposal', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'usd' }],
+            proposal: 'Tengo disponibilidad para doble.'
+        } as any);
+
+        const pre = {
+            ...preBase('es'),
+            guest: { guestId: 'g1', hotelId: 'hotel999', name: 'Marcelo Martinez' },
+        };
+        const snapshot = {
+            ...snapshotBase,
+            guestName: 'Ana Gomez',
+        };
+
+        const res = await availabilityPipeline.runAvailabilityCheck(pre as any, snapshot as any, snapshot.checkIn, snapshot.checkOut);
+        expect(res.finalText).toMatch(/^Marcelo,\s+tengo doble disponible para Ana Gomez\./i);
+        expect(res.finalText).not.toMatch(/^Ana,\s+tengo/i);
+    });
+
+    it('sin guest canónico mantiene tono neutro y no usa el titular como vocativo', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'usd' }],
+            proposal: 'Tengo disponibilidad para doble.'
+        } as any);
+
+        const snapshot = {
+            ...snapshotBase,
+            guestName: 'Ana Gomez',
+        };
+
+        const res = await availabilityPipeline.runAvailabilityCheck(preBase('es') as any, snapshot as any, snapshot.checkIn, snapshot.checkOut);
+        expect(res.finalText).toMatch(/^Tengo doble disponible para Ana Gomez\./i);
+        expect(res.finalText).not.toMatch(/^Ana,\s+tengo/i);
     });
 
     it('graph reservation path uses runAvailabilityCheck downstream (slots complete)', async () => {

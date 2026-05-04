@@ -100,6 +100,7 @@ vi.mock("@langchain/openai", () => ({
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { agentGraph } from "@/lib/agents";
 import { getConvState } from "@/lib/db/convState";
+import { getGuest } from "@/lib/db/guests";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { modifyReservation } from "@/lib/agents/reservations";
 
@@ -479,5 +480,41 @@ describe("messageHandler multi reservation", () => {
     expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();
+  });
+
+  it("en multi-reserva usa vocativo solo desde guest canónico y conserva el titular nuevo", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Marcelo Martinez",
+      firstName: "Marcelo",
+    });
+    const sendReply = vi.fn(async () => {});
+    (getConvState as any).mockResolvedValue({
+      ...confirmedState,
+      reservationSlots: { ...confirmedState.reservationSlots },
+      lastReservation: { ...confirmedState.lastReservation },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      activeReservationContext: { kind: "reservation", reservationId: "RES-BASE-01", phase: "confirmed" },
+      selectedReservationTarget: { reservationId: "RES-BASE-01", source: "active_focus", strength: "weak" },
+    });
+
+    await handleIncomingMessage({
+      messageId: "multi-9",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el dia 01/07/2026 al 10/07/2026, habitacion single, para 1 persona, a nombre de Ana Gomez",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-9",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Marcelo,\s+tengo simple disponible para Ana Gomez\./i);
+    expect(replyText).not.toMatch(/^Ana,\s+tengo/i);
   });
 });

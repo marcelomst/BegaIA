@@ -246,7 +246,7 @@ describe("messageHandler reservation confirm follow-up", () => {
       { mode: "automatic", sendReply }
     );
 
-    const firstReply = String(sendReply.mock.calls.at(-1)?.[0] || "");
+    const firstReply = lastReply(sendReply);
     expect(firstReply).toMatch(/confirm[aá]s la reserva|respond[eé].*confirmar/i);
     expect(currentState?.reservationSlots).toMatchObject({
       guestName: "Ana Gomez",
@@ -263,7 +263,7 @@ describe("messageHandler reservation confirm follow-up", () => {
       { mode: "automatic", sendReply }
     );
 
-    const secondReply = String(sendReply.mock.calls.at(-1)?.[0] || "");
+    const secondReply = lastReply(sendReply);
     expect(confirmAndCreate).not.toHaveBeenCalled();
     expect(secondReply).toMatch(/respond[eé] solo .?confirmar.?|si quer[eé]s confirmar la reserva/i);
     expect(secondReply).not.toMatch(/check-?out|fecha de salida|fecha de check-?out/i);

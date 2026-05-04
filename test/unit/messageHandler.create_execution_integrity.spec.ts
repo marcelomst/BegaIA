@@ -95,6 +95,7 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
+import { getGuest } from "@/lib/db/guests";
 
 function msg(content: string) {
   return {
@@ -122,6 +123,12 @@ describe("messageHandler create execution integrity", () => {
   });
 
   it("el branch de availability intermedio no persiste reservas y solo crea al confirmar explícitamente", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Marcelo Martinez",
+      firstName: "Marcelo",
+    });
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
@@ -145,7 +152,9 @@ describe("messageHandler create execution integrity", () => {
 
     expect(confirmAndCreate).toHaveBeenCalledTimes(1);
     expect(lastReply(sendReply)).toMatch(/reserva confirmada para|reserva a nombre de/i);
+    expect(lastReply(sendReply)).toMatch(/ana gomez/i);
     expect(lastReply(sendReply)).not.toMatch(/gracias,\s*ana/i);
+    expect(lastReply(sendReply)).not.toMatch(/^ana,/i);
     expect(currentState?.reservationHistory).toHaveLength(1);
     expect(currentState?.lastReservation).toMatchObject({
       reservationId: "R-NEW-01",

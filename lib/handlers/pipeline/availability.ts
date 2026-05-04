@@ -2,6 +2,7 @@ import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { askAvailability } from "@/lib/agents/reservations";
 import { upsertConvState } from "@/lib/db/convState";
 import { localizeRoomType, isSafeGuestName } from "@/lib/agents/helpers";
+import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
 export type ReservationSlotsLike = {
     guestName?: string;
@@ -18,9 +19,23 @@ export interface PreLike {
     st?: any;
     msg: { hotelId: string; channel?: string };
     conversationId: string;
+    guest?: { name?: string; firstName?: string; lastName?: string };
 }
 
 function safeNowISO() { return new Date().toISOString(); }
+
+function applyConversationalVocative(
+    base: string,
+    lang: "es" | "en" | "pt",
+    conversationalDisplayName?: string
+): string {
+    const cleanName = String(conversationalDisplayName || "").trim();
+    if (!cleanName) return base;
+    if (!base) return cleanName;
+    const needsLowercaseLead = lang !== "en" && /^[A-ZÁÉÍÓÚÑ]/.test(base);
+    const normalizedBase = needsLowercaseLead ? `${base.charAt(0).toLowerCase()}${base.slice(1)}` : base;
+    return `${cleanName}, ${normalizedBase}`;
+}
 
 export function isoToDDMMYYYY(iso?: string): string | undefined {
     if (!iso) return undefined;
@@ -625,6 +640,8 @@ export async function runAvailabilityCheck(
                     : `Availability for ${rtLocalized}${reservationHolderName ? ` under ${reservationHolderName}` : ""}.`;
         }
     }
+    const conversationalDisplayName = getConversationalDisplayName(pre.guest);
+    base = applyConversationalVocative(base, pre.lang, conversationalDisplayName);
 
     const needsGuests = !snapshot.numGuests;
     const needsName = !isSafeGuestName(snapshot.guestName || "");

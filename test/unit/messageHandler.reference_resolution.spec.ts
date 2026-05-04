@@ -91,6 +91,7 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation } from "@/lib/agents/reservations";
+import { getGuest } from "@/lib/db/guests";
 
 function msg(content: string, conversationId: string) {
   return {
@@ -420,6 +421,59 @@ describe("messageHandler reference resolution", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/28\/03\/2026 → 30\/03\/2026|double/i);
     expect(replyText).not.toMatch(/abrimos una nueva|check-in y check-out/i);
+  });
+
+  it("en snapshot usa el titular correcto sin convertirlo en vocativo conversacional", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Marcelo Martinez",
+      firstName: "Marcelo",
+    });
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-snapshot-holder-1";
+    stateByConversation.set(
+      conversationId,
+      baseSingleReservationState({
+        reservationSlots: {
+          guestName: "Ana Gomez",
+          roomType: "double",
+          checkIn: "2026-03-28",
+          checkOut: "2026-03-30",
+          numGuests: "2",
+        },
+        lastReservation: {
+          reservationId: "RES-ONLY-01",
+          status: "created",
+          createdAt: "2026-03-22T10:00:00.000Z",
+          channel: "web",
+          guestName: "Ana Gomez",
+          roomType: "double",
+          checkIn: "2026-03-28",
+          checkOut: "2026-03-30",
+          numGuests: "2",
+        },
+        reservationHistory: [
+          {
+            reservationId: "RES-ONLY-01",
+            status: "created",
+            createdAt: "2026-03-22T10:00:00.000Z",
+            channel: "web",
+            guestName: "Ana Gomez",
+            roomType: "double",
+            checkIn: "2026-03-28",
+            checkOut: "2026-03-30",
+            numGuests: "2",
+          },
+        ],
+      })
+    );
+
+    await handleIncomingMessage(msg("mostrame mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/nombre:\s+ana gomez/i);
+    expect(replyText).not.toMatch(/^ana,/i);
   });
 
   it("lista 'mis reservas' con orden estable", async () => {
