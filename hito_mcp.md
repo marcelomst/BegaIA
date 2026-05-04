@@ -7848,3 +7848,42 @@ Impacto:
 - mantiene una única vía coherente para resolver rangos relativos consecutivos
   de weekdays
 - deja fuera de scope cambios de sequencing o `availability inquiry`
+
+### IMPLEMENT-CONVERSATIONAL-DISPLAY-NAME-READPATH-GOVERNANCE-49
+
+Estado: COMPLETADO  
+Fecha: 2026-05-04  
+Commit: e4a8ae84b4cee416b1b4089b21b427884552f1a2
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se introduce un read-path seguro de `conversationalDisplayName` desde el guest
+canónico para usar vocativo conversacional solo cuando exista identidad guest
+confiable, manteniendo `reservationHolderName` como dato transaccional de
+reserva y evitando reutilizar `guestName` de reserva como interlocutor.
+
+Archivos afectados:
+
+- `lib/utils/conversationalDisplayName.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/availability.unified.flow.spec.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene `reservationHolderName` dentro del dominio transaccional de reserva
+
+Impacto:
+
+- toma el nombre conversacional solo desde guest canónico
+- evita persistir identidad conversacional en `conv_state`
+- preserva `reservationHolderName` como dato transaccional separado
+- bloquea que `guestName` de reserva vuelva a funcionar como vocativo
