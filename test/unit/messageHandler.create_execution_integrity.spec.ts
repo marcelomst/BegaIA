@@ -129,14 +129,8 @@ describe("messageHandler create execution integrity", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(lastReply(sendReply)).toMatch(/Anot[eé] nuevas fechas: 01\/05\/2026 → 05\/05\/2026/i);
-    expect(currentState?.lastReservation).toBeUndefined();
-    expect(currentState?.reservationHistory).toBeUndefined();
-
-    await handleIncomingMessage(msg("sí"), { mode: "automatic", sendReply });
-
     expect(lastReply(sendReply)).toMatch(/verifico disponibilidad|tarifa por noche|confirm[aá]s la reserva/i);
-    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).not.toMatch(/Anot[eé] nuevas fechas/i);
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();
 

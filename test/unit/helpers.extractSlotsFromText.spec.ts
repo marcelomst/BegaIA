@@ -5,13 +5,13 @@ import { extractSlotsFromText } from "@/lib/agents/helpers";
 describe("extractSlotsFromText", () => {
   it("extrae guestName inline con patron 'a nombre de X' dentro de un turno rico", () => {
     const slots = extractSlotsFromText(
-      "quiero reservar del 1 al 5 de mayo de 2026 para 2 personas en una doble a nombre de Ana Gomez",
+      "quiero reservar del 1 al 5 de octubre de 2026 para 2 personas en una doble a nombre de Ana Gomez",
       "es"
     );
 
     expect(slots).toMatchObject({
-      checkIn: "2026-05-01",
-      checkOut: "2026-05-05",
+      checkIn: "2026-10-01",
+      checkOut: "2026-10-05",
       numGuests: "2",
       roomType: "double",
       guestName: "Ana Gomez",
@@ -20,13 +20,13 @@ describe("extractSlotsFromText", () => {
 
   it("extrae guestName inline con patron 'nombre X' dentro de un turno rico", () => {
     const slots = extractSlotsFromText(
-      "quiero reservar del 1 al 5 de mayo de 2026, nombre Ana Gomez, doble para 2 personas",
+      "quiero reservar del 1 al 5 de octubre de 2026, nombre Ana Gomez, doble para 2 personas",
       "es"
     );
 
     expect(slots).toMatchObject({
-      checkIn: "2026-05-01",
-      checkOut: "2026-05-05",
+      checkIn: "2026-10-01",
+      checkOut: "2026-10-05",
       numGuests: "2",
       roomType: "double",
       guestName: "Ana Gomez",
@@ -44,13 +44,13 @@ describe("extractSlotsFromText", () => {
 
   it("no captura falsos positivos como 'nombre de la empresa Acme'", () => {
     const slots = extractSlotsFromText(
-      "quiero reservar del 1 al 5 de mayo de 2026, nombre de la empresa Acme, doble para 2",
+      "quiero reservar del 1 al 5 de octubre de 2026, nombre de la empresa Acme, doble para 2",
       "es"
     );
 
     expect(slots).toMatchObject({
-      checkIn: "2026-05-01",
-      checkOut: "2026-05-05",
+      checkIn: "2026-10-01",
+      checkOut: "2026-10-05",
       numGuests: "2",
       roomType: "double",
     });

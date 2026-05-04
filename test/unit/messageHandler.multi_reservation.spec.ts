@@ -59,6 +59,16 @@ vi.mock("@/lib/agents", () => ({
 vi.mock("@/lib/agents/reservations", () => ({
   modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
   confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-NEW-99", message: "ok" })),
+  askAvailability: vi.fn(async (_hotelId: string, snapshot: any) => ({
+    ok: true,
+    available: true,
+    proposal: "Tengo disponibilidad.",
+    options: [{
+      roomType: snapshot.roomType || "double",
+      pricePerNight: snapshot.roomType === "triple" ? 150 : snapshot.roomType === "single" ? 81 : 120,
+      currency: "USD",
+    }],
+  })),
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async () => {}),
@@ -248,10 +258,10 @@ describe("messageHandler multi reservation", () => {
       "conv-multi-4",
       expect.objectContaining({
         lastCategory: "reservation",
-        pendingAvailabilityVerification: {
-          checkIn: "2026-07-01",
-          checkOut: "2026-07-10",
-        },
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
         reservationSlots: {
           checkIn: "2026-07-01",
           checkOut: "2026-07-10",
@@ -262,7 +272,8 @@ describe("messageHandler multi reservation", () => {
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/actualizada|modificad/i);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|actualizada|modificad/i);
   });
 
   it("otra reserva con rango relativo 'sabado al domingo proximo' ingiere fechas y no vuelve a pedirlas", async () => {
@@ -298,6 +309,10 @@ describe("messageHandler multi reservation", () => {
       "conv-multi-5",
       expect.objectContaining({
         lastCategory: "reservation",
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
         reservationSlots: {
           checkIn: "2026-05-02",
           checkOut: "2026-05-03",
@@ -309,6 +324,7 @@ describe("messageHandler multi reservation", () => {
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out/i);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();
   });
@@ -339,6 +355,10 @@ describe("messageHandler multi reservation", () => {
       "hotel999",
       "conv-multi-6",
       expect.objectContaining({
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
         reservationSlots: {
           checkIn: "2026-05-02",
           checkOut: "2026-05-03",
@@ -350,6 +370,7 @@ describe("messageHandler multi reservation", () => {
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out/i);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();
   });

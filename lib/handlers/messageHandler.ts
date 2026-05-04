@@ -746,7 +746,12 @@ function isAvailabilityInquiryIntent(text: string): boolean {
   const normalizedText = normalizeReferenceText(text || "");
   if (!normalizedText) return false;
   if (isExplicitCreateReservationIntent(text)) return false;
+  const mentionsAvailability = /\b(disponibil\w*|disponible|availability|available)\b/.test(normalizedText);
+  const mentionsReservationInventory =
+    /\b(habitacion|room|quarto|single|doble|double|triple|suite|cuadruple|quadruple|check-?in|check-?out|sabado|domingo|lunes|martes|miercoles|jueves|viernes)\b/.test(normalizedText) ||
+    /\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/.test(normalizedText);
   return (
+    (mentionsAvailability && mentionsReservationInventory) ||
     /\b(disponibil\w*|availability)\b/.test(normalizedText) ||
     /\b(hay|tienen?|have|is there|do you have)\b.*\b(lugar|place|room|habitacion|habitacion)\b/.test(normalizedText)
   );
@@ -4142,7 +4147,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                   : anchoredCreateDr0;
     const hasCompleteRichCreatePayloadInTurn0 = Boolean(
       explicitCreateIntent0 &&
-      !hasNumericStyleRange0 &&
       turnCreateSlots0.checkIn &&
       turnCreateSlots0.checkOut &&
       turnCreateSlots0.roomType &&
@@ -4174,12 +4178,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
       const shouldBypassRichCreateFastPath =
         fastPathSubFlow === "create" &&
-        hasCompleteCreatePayloadInTurn &&
-        !hasNumericStyleRange0 &&
-        (
-          relativeWeekendDr0Valid ||
-          (explicitDr0Valid && !rawDr0Valid && !lightDr0Valid)
-        );
+        hasCompleteCreatePayloadInTurn;
       nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
       if (shouldBypassRichCreateFastPath) {
         // Let the normal create quote-gating path own rich first-turn create payloads.
@@ -7011,12 +7010,39 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField)}`;
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
-      finalText = pre.lang === "es"
-        ? "Perfecto, mantenemos la reserva actual y abrimos una nueva."
-        : pre.lang === "pt"
-          ? "Perfeito, mantemos a reserva atual e abrimos uma nova."
-          : "Perfect, we will keep the current booking and open a new one.";
-      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      const availabilityResult = await runAvailabilityCheck(
+        pre,
+        additionalReservationDraft,
+        additionalReservationDraft.checkIn!,
+        additionalReservationDraft.checkOut!,
+        { persistConvState: false }
+      );
+      nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
+      finalText = availabilityResult.finalText;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationHistory: preservedHistory,
+        reservationSlots: availabilityResult.nextSlots as any,
+        lastProposal: {
+          text: availabilityResult.finalText,
+          available: !availabilityResult.needsHandoff,
+        },
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext("quoted"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: availabilityResult.needsHandoff ? "followup" : "quote",
+        conversationStage: availabilityResult.needsHandoff ? pre.st?.conversationStage : "reservation_quoted",
+        pendingAvailabilityVerification: null,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      return {
+        finalText,
+        nextCategory: "reservation",
+        nextSlots,
+        needsSupervision: needsSupervision || availabilityResult.needsHandoff,
+        graphResult,
+      };
     }
 
     finalText = pre.lang === "es"
@@ -8180,13 +8206,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
       );
     const currentTurnRelativeWeekendRange = extractRelativeWeekendDateRange(String(pre.msg.content || ""));
+    const currentTurnCreateSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+    const currentTurnCreatePayloadComplete = Boolean(
+      currentTurnCreateSlots.checkIn &&
+      currentTurnCreateSlots.checkOut &&
+      currentTurnCreateSlots.roomType &&
+      currentTurnCreateSlots.numGuests &&
+      isSafeGuestName(currentTurnCreateSlots.guestName || "")
+    );
     const currentTurnCreateRangeResolved =
-      !hasAnyDateToken &&
       looksExplicitNewReservation &&
-      Boolean(
-        mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots).checkIn &&
-        mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots).checkOut
-      );
+      currentTurnCreatePayloadComplete &&
+      pre.st?.salesStage !== "quote" &&
+      pre.st?.conversationStage !== "reservation_quoted";
     const createQuoteReadyOnCurrentTurn =
       (
         Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||

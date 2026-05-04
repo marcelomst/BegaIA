@@ -140,7 +140,7 @@ describe("messageHandler create quote gating", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("quiero reservar del 1 al 5 de mayo de 2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      msg("quiero reservar del 1 al 5 de octubre de 2026 para 2 personas en una doble a nombre de Ana Gomez"),
       { mode: "automatic", sendReply }
     );
 
@@ -150,11 +150,32 @@ describe("messageHandler create quote gating", () => {
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(currentState?.lastProposal?.available).toBe(true);
     expect(currentState?.reservationSlots).toMatchObject({
-      checkIn: "2026-05-01",
-      checkOut: "2026-05-05",
+      checkIn: "2026-10-01",
+      checkOut: "2026-10-05",
       numGuests: "2",
       roomType: "double",
       guestName: "Ana Gomez",
+    });
+  });
+
+  it("con payload completo y fechas absolutas numéricas cotiza sin pasar por 'Anoté nuevas fechas'", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero hacer una reserva para el 03/05/2026 al 05/05/2026, una doble, para 2 personas a nombre de Marcelo Martinez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      checkIn: "2026-05-03",
+      checkOut: "2026-05-05",
+      numGuests: "2",
+      roomType: "double",
+      guestName: "Marcelo Martinez",
     });
   });
 

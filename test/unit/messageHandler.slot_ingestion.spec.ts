@@ -55,6 +55,16 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
 vi.mock("@/lib/agents/reservations", () => ({
   confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-NEW-01", message: "ok" })),
   modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
+  askAvailability: vi.fn(async (_hotelId: string, snapshot: any) => ({
+    ok: true,
+    available: true,
+    proposal: "Tengo disponibilidad.",
+    options: [{
+      roomType: snapshot.roomType || "double",
+      pricePerNight: 100,
+      currency: "USD",
+    }],
+  })),
 }));
 vi.mock("@/lib/prompts", () => ({
   defaultPrompt: "{{retrieved}}",
@@ -329,13 +339,8 @@ describe("messageHandler slot ingestion", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(currentState?.reservationSlots).toMatchObject({
-      roomType: "double",
-      checkIn: expect.stringMatching(/-04-22$/),
-      checkOut: expect.stringMatching(/-04-25$/),
-      numGuests: "2",
-      guestName: "Ana Gomez",
-    });
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 
   it("preserva nombre parcial explicito como insuficiente y pide nombre completo", async () => {

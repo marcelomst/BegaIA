@@ -144,6 +144,30 @@ describe("messageHandler availability inquiry policy", () => {
     expect(currentState?.desiredAction).toBeUndefined();
   });
 
+  it("availability inquiry puro con habitación + fechas no pide guestName ni abre create", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("tenes doble disponible del 03/05/2026 al 05/05/2026?"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+    expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-05-03",
+      checkOut: "2026-05-05",
+    });
+    expect(currentState?.lastProposal ?? null).toBeNull();
+    expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
+    expect(currentState?.lastCategory).toBe("availability_inquiry");
+    expect(currentState?.desiredAction).toBeUndefined();
+  });
+
   it("después de responder disponibilidad solo entra en create si el usuario expresa intención de reservar", async () => {
     const sendReply = vi.fn(async () => {});
 
