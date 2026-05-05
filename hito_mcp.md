@@ -7931,3 +7931,38 @@ Impacto:
 - reconstruye lectura mínima desde `conversations` cuando `guests` está vacío
 - permite cargar conversaciones y perfil desde perspectiva canónica sin crear
   write-path nuevo ni guest graph completo
+
+### FIX-ADMIN-GUESTS-CONSOLIDATION-ACTIONS-51
+
+Estado: COMPLETADO  
+Fecha: 2026-05-05  
+Commit: 6e497edda46799467cfa64b8eccdf3f72690054d
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la acción real de consolidación de huéspedes en Admin para tolerar
+merges donde el guest primario o secundario provienen de filas derivadas desde
+`conversations` y todavía no existen en `guests`, creando registros mínimos
+antes de consolidar y preservando la migración de aliases, conversaciones y
+mensajes hacia el guest canónico.
+
+Archivos afectados:
+
+- `lib/db/guestMerge.ts`
+- `test/integration/api_admin_guests_merge.test.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene una única consolidación canónica sobre `guestId` primario
+
+Impacto:
+
+- tolera merges sobre filas derivadas que aún no existen en `guests`
+- crea documentos mínimos antes de consolidar sin expandir el modelo global
+- preserva aliases absorbidos y la migración de conversaciones y mensajes
+- evita fallos por ausencia de documentos base en la acción real de merge
