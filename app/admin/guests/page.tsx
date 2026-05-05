@@ -28,6 +28,19 @@ type ConversationSummary = {
   status?: string;
 };
 
+type GuestProfile = {
+  guestId: string;
+  guest: {
+    guestId: string;
+    name?: string | null;
+    mode?: string | null;
+  } | null;
+  aliases: string[];
+  channels: string[];
+  conversationCount: number;
+  lastActivityAt: string | null;
+};
+
 function fmtDate(v: string | null | undefined): string {
   if (!v) return "-";
   const t = Date.parse(v);
@@ -48,6 +61,7 @@ export default function AdminGuestsPage() {
   const [guests, setGuests] = useState<GuestRow[]>([]);
   const [selectedGuestId, setSelectedGuestId] = useState<string>("");
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [guestProfile, setGuestProfile] = useState<GuestProfile | null>(null);
   const [search, setSearch] = useState("");
   const [mergeSecondaryGuestId, setMergeSecondaryGuestId] = useState("");
   const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<string[]>([]);
@@ -83,21 +97,37 @@ export default function AdminGuestsPage() {
   useEffect(() => {
     if (!user?.hotelId || !selectedGuestId) {
       setConversations([]);
+      setGuestProfile(null);
       return;
     }
     (async () => {
       try {
-        const res = await fetch(
-          `/api/admin/conversations?hotelId=${encodeURIComponent(user.hotelId)}&guestId=${encodeURIComponent(selectedGuestId)}`,
-          { credentials: "same-origin" },
-        );
-        if (!res.ok) {
+        const [profileRes, conversationsRes] = await Promise.all([
+          fetch(
+            `/api/admin/guest-profile?hotelId=${encodeURIComponent(user.hotelId)}&guestId=${encodeURIComponent(selectedGuestId)}`,
+            { credentials: "same-origin" },
+          ),
+          fetch(
+            `/api/admin/conversations?hotelId=${encodeURIComponent(user.hotelId)}&guestId=${encodeURIComponent(selectedGuestId)}`,
+            { credentials: "same-origin" },
+          ),
+        ]);
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setGuestProfile(profileData as GuestProfile);
+        } else {
+          setGuestProfile(null);
+        }
+
+        if (!conversationsRes.ok) {
           setConversations([]);
           return;
         }
-        const data = await res.json();
+        const data = await conversationsRes.json();
         setConversations(Array.isArray(data?.conversations) ? data.conversations : []);
       } catch {
+        setGuestProfile(null);
         setConversations([]);
       }
     })();
@@ -118,6 +148,15 @@ export default function AdminGuestsPage() {
     () => guests.find((g) => g.guestId === selectedGuestId) || null,
     [guests, selectedGuestId],
   );
+  const selectedGuestName = guestProfile?.guest?.name || selectedGuest?.name || null;
+  const selectedGuestMode = guestProfile?.guest?.mode || selectedGuest?.mode || null;
+  const selectedGuestAliases = guestProfile?.aliases?.length ? guestProfile.aliases : (selectedGuest?.aliases || []);
+  const selectedGuestChannels = guestProfile?.channels?.length ? guestProfile.channels : (selectedGuest?.channels || []);
+  const selectedGuestConversationCount =
+    typeof guestProfile?.conversationCount === "number"
+      ? guestProfile.conversationCount
+      : (selectedGuest?.conversationCount || 0);
+  const selectedGuestLastActivityAt = guestProfile?.lastActivityAt ?? selectedGuest?.lastActivityAt ?? null;
 
   const mergeCandidates = useMemo(
     () => guests.filter((g) => g.guestId !== selectedGuestId && !g.absorbed),
@@ -412,12 +451,12 @@ export default function AdminGuestsPage() {
             <>
               <div>
                 <div className="text-base font-semibold">
-                  {getGuestDisplayName({
-                    guestId: selectedGuest.guestId,
-                    name: selectedGuest.name,
-                    aliases: selectedGuest.aliases,
-                    channel: selectedGuest.channels[0] || null,
-                  })}
+                        {getGuestDisplayName({
+                          guestId: selectedGuest.guestId,
+                          name: selectedGuestName,
+                          aliases: selectedGuestAliases,
+                          channel: selectedGuestChannels[0] || null,
+                        })}
                 </div>
                 <div className="font-mono text-xs text-muted-foreground">
                   guestId: {compactGuestId(selectedGuest.guestId)}
@@ -425,12 +464,12 @@ export default function AdminGuestsPage() {
               </div>
               <div className="text-sm">
                 <div><span className="font-semibold">Guest ID:</span> <span className="font-mono">{selectedGuest.guestId}</span></div>
-                <div><span className="font-semibold">Nombre:</span> {selectedGuest.name || "-"}</div>
-                <div><span className="font-semibold">Modo:</span> {selectedGuest.mode || "-"}</div>
-                <div><span className="font-semibold">Identidades del huésped:</span> {selectedGuest.aliases.length ? selectedGuest.aliases.join(", ") : "-"}</div>
-                <div><span className="font-semibold">Canales de contacto:</span> {selectedGuest.channels.length ? selectedGuest.channels.join(", ") : "-"}</div>
-                <div><span className="font-semibold">Conversaciones:</span> {selectedGuest.conversationCount}</div>
-                <div><span className="font-semibold">Última actividad:</span> {fmtDate(selectedGuest.lastActivityAt)}</div>
+                <div><span className="font-semibold">Nombre:</span> {selectedGuestName || "-"}</div>
+                <div><span className="font-semibold">Modo:</span> {selectedGuestMode || "-"}</div>
+                <div><span className="font-semibold">Identidades del huésped:</span> {selectedGuestAliases.length ? selectedGuestAliases.join(", ") : "-"}</div>
+                <div><span className="font-semibold">Canales de contacto:</span> {selectedGuestChannels.length ? selectedGuestChannels.join(", ") : "-"}</div>
+                <div><span className="font-semibold">Conversaciones:</span> {selectedGuestConversationCount}</div>
+                <div><span className="font-semibold">Última actividad:</span> {fmtDate(selectedGuestLastActivityAt)}</div>
                 <div><span className="font-semibold">Creado:</span> {fmtDate(selectedGuest.createdAt)}</div>
                 <div><span className="font-semibold">Actualizado:</span> {fmtDate(selectedGuest.updatedAt)}</div>
               </div>

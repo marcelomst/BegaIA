@@ -84,6 +84,44 @@ function guestIdVariants(raw: string): string[] {
   return unique(out);
 }
 
+function guestCompletenessScore(guest: Guest): number {
+  const aliases = Array.isArray(guest.aliases) ? guest.aliases.filter(Boolean).length : 0;
+  const mergedIds = Array.isArray(guest.mergedIds) ? guest.mergedIds.filter(Boolean).length : 0;
+  const tags = Array.isArray(guest.tags) ? guest.tags.filter(Boolean).length : 0;
+  const identifiers = guest.identifiers
+    ? Object.values(guest.identifiers).filter(Boolean).length
+    : 0;
+  const history = Array.isArray(guest.identifiersHistory) ? guest.identifiersHistory.length : 0;
+
+  return [
+    guest.name ? 100 : 0,
+    guest.firstName ? 40 : 0,
+    guest.lastName ? 20 : 0,
+    guest.mode ? 10 : 0,
+    aliases * 5,
+    mergedIds * 3,
+    tags,
+    identifiers * 2,
+    history,
+  ].reduce((sum, value) => sum + value, 0);
+}
+
+function pickBestGuestCandidate(candidates: Guest[]): Guest | null {
+  if (!candidates.length) return null;
+
+  return [...candidates].sort((left, right) => {
+    const scoreDiff = guestCompletenessScore(right) - guestCompletenessScore(left);
+    if (scoreDiff !== 0) return scoreDiff;
+
+    const updatedDiff =
+      Date.parse(right.updatedAt || right.createdAt || "") -
+      Date.parse(left.updatedAt || left.createdAt || "");
+    if (Number.isFinite(updatedDiff) && updatedDiff !== 0) return updatedDiff;
+
+    return 0;
+  })[0] ?? null;
+}
+
 /** Búsqueda directa por (hotelId, guestId) */
 export async function getGuest(hotelId: string, guestId: string): Promise<Guest | null> {
   const col = getGuestsCollection();
@@ -101,6 +139,26 @@ export async function getGuest(hotelId: string, guestId: string): Promise<Guest 
   }
 
   return null;
+}
+
+export async function findBestGuestByGuestId(hotelId: string, guestId: string): Promise<Guest | null> {
+  const col = getGuestsCollection();
+  const normalizedGuestId = norm(guestId);
+  if (!hotelId || !normalizedGuestId) return null;
+
+  const variants = guestIdVariants(normalizedGuestId);
+  const candidates: Guest[] = [];
+
+  for (const candidate of variants) {
+    const matches = await col.find({ hotelId, guestId: candidate }).toArray();
+    candidates.push(...(Array.isArray(matches) ? matches : []));
+  }
+
+  const uniqueCandidates = Array.from(
+    new Map(candidates.map((guest) => [`${guest.hotelId}:${guest.guestId}:${guest.createdAt || guest.updatedAt || ""}:${guest.name || ""}`, guest])).values(),
+  );
+
+  return pickBestGuestCandidate(uniqueCandidates);
 }
 
 export async function createGuest(guest: Guest): Promise<Guest> {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGuest } from "@/lib/db/guests";
+import { findBestGuestByGuestId } from "@/lib/db/guests";
 import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
 import { getConversationsForGuestPerspective } from "@/lib/db/conversations";
 import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     }
 
     const [guest, aliasRecords] = await Promise.all([
-      getGuest(hotelId, guestId),
+      findBestGuestByGuestId(hotelId, guestId),
       getGuestAliasesByGuestId({ hotelId, guestId }).catch((error) => {
         console.warn("[admin/guest-profile] guest aliases reverse lookup unavailable; using guest document fallback", {
           hotelId,

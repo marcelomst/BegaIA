@@ -236,4 +236,51 @@ describe("/api/admin/guests (integration)", () => {
 
     guestsSpy.mockRestore();
   });
+
+  it("prioriza name, mode y aliases del documento real cuando hay filas mínimas o duplicadas", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-rich-1",
+      hotelId: "hotel999",
+      createdAt: "2026-03-09T16:00:00.000Z",
+      updatedAt: "2026-03-09T16:01:00.000Z",
+      mode: "automatic",
+    });
+    await guestCol.insertOne({
+      guestId: "guest-rich-1",
+      hotelId: "hotel999",
+      name: "Marcelo",
+      aliases: ["web:guest-rich-1"],
+      createdAt: "2026-03-09T16:02:00.000Z",
+      updatedAt: "2026-03-09T16:03:00.000Z",
+      mode: "automatic",
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-rich-1",
+      hotelId: "hotel999",
+      channel: "web",
+      guestId: "guest-rich-1",
+      startedAt: "2026-03-09T16:05:00.000Z",
+      lastUpdatedAt: "2026-03-09T16:06:00.000Z",
+      lang: "es",
+      status: "active",
+    });
+
+    const r = await adminGuestsGET(makeReq({ hotelId: "hotel999" }));
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    const row = Array.isArray(json?.guests)
+      ? json.guests.find((guest: any) => guest.guestId === "guest-rich-1")
+      : null;
+
+    expect(row).toBeTruthy();
+    expect(row.name).toBe("Marcelo");
+    expect(row.mode).toBe("automatic");
+    expect(row.aliases).toEqual(expect.arrayContaining(["web:guest-rich-1"]));
+    expect(row.conversationCount).toBe(1);
+  });
 });

@@ -191,4 +191,59 @@ describe("/api/admin/guests/merge (integration)", () => {
     });
     expect(primaryGuest?.aliases).toEqual(expect.arrayContaining(["web:session_only"]));
   });
+
+  it("preserva name, mode y aliases del guest canónico al consolidar", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-primary-name-1",
+      hotelId: "hotel999",
+      name: "Marcelo",
+      aliases: ["web:guest-primary-name-1"],
+      createdAt: "2026-03-09T12:00:00.000Z",
+      updatedAt: "2026-03-09T12:00:00.000Z",
+      mode: "automatic",
+    });
+    await guestCol.insertOne({
+      guestId: "guest-secondary-name-1",
+      hotelId: "hotel999",
+      aliases: ["web:guest-secondary-name-1"],
+      createdAt: "2026-03-09T12:01:00.000Z",
+      updatedAt: "2026-03-09T12:01:00.000Z",
+      mode: "automatic",
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-name-merge-1",
+      hotelId: "hotel999",
+      guestId: "guest-secondary-name-1",
+      channel: "web",
+      startedAt: "2026-03-09T12:02:00.000Z",
+      lastUpdatedAt: "2026-03-09T12:03:00.000Z",
+      lang: "es",
+      status: "active",
+    });
+
+    const r = await mergeGuestsPOST(
+      makeReq({
+        hotelId: "hotel999",
+        primaryGuestId: "guest-primary-name-1",
+        secondaryGuestId: "guest-secondary-name-1",
+        mergedBy: "qa@begasist",
+      }),
+    );
+
+    expect(r.ok).toBe(true);
+
+    const primaryGuest = await guestCol.findOne({
+      hotelId: "hotel999",
+      guestId: "guest-primary-name-1",
+    });
+    expect(primaryGuest?.name).toBe("Marcelo");
+    expect(primaryGuest?.mode).toBe("automatic");
+    expect(primaryGuest?.aliases).toEqual(
+      expect.arrayContaining(["web:guest-primary-name-1", "web:guest-secondary-name-1"]),
+    );
+  });
 });

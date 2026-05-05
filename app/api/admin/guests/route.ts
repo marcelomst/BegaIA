@@ -92,6 +92,53 @@ function buildGuestRowsFromConversations(hotelId: string, conversations: Array<R
   return Array.from(byGuestId.values());
 }
 
+function mergeGuestRows(rows: GuestLikeRow[]): GuestLikeRow[] {
+  const byGuestId = new Map<string, GuestLikeRow>();
+
+  for (const row of rows) {
+    const guestId = normalizeText(row.guestId);
+    if (!guestId) continue;
+
+    const current = byGuestId.get(guestId);
+    if (!current) {
+      byGuestId.set(guestId, {
+        ...row,
+        aliases: Array.isArray(row.aliases) ? Array.from(new Set(row.aliases.filter(Boolean))) : [],
+        mergedIds: Array.isArray(row.mergedIds) ? Array.from(new Set(row.mergedIds.filter(Boolean))) : [],
+        tags: Array.isArray(row.tags) ? Array.from(new Set(row.tags.filter(Boolean))) : [],
+      });
+      continue;
+    }
+
+    current.name = normalizeText(current.name) || normalizeText(row.name) || current.name;
+    current.firstName = normalizeText(current.firstName) || normalizeText(row.firstName) || current.firstName;
+    current.lastName = normalizeText(current.lastName) || normalizeText(row.lastName) || current.lastName;
+    current.mode = normalizeText(current.mode) || normalizeText(row.mode) || current.mode;
+    current.updatedAt = normalizeText(row.updatedAt) || current.updatedAt;
+    current.createdAt = normalizeText(current.createdAt) || normalizeText(row.createdAt) || row.createdAt;
+    current.aliases = Array.from(
+      new Set([
+        ...(Array.isArray(current.aliases) ? current.aliases.filter(Boolean) : []),
+        ...(Array.isArray(row.aliases) ? row.aliases.filter(Boolean) : []),
+      ]),
+    );
+    current.mergedIds = Array.from(
+      new Set([
+        ...(Array.isArray(current.mergedIds) ? current.mergedIds.filter(Boolean) : []),
+        ...(Array.isArray(row.mergedIds) ? row.mergedIds.filter(Boolean) : []),
+      ]),
+    );
+    current.tags = Array.from(
+      new Set([
+        ...(Array.isArray(current.tags) ? current.tags.filter(Boolean) : []),
+        ...(Array.isArray(row.tags) ? row.tags.filter(Boolean) : []),
+      ]),
+    );
+  }
+
+  return Array.from(byGuestId.values());
+}
+
 const GUESTS_LIST_TIMEOUT_MS = 3000;
 const GUEST_CONVERSATIONS_TIMEOUT_MS = 2500;
 
@@ -149,7 +196,7 @@ export async function GET(req: NextRequest) {
     const includeAbsorbed = normalizeText(url.searchParams.get("includeAbsorbed")) === "1";
     console.info("[admin/guests] request_started", { hotelId, includeAbsorbed });
 
-    let guests = await safeFindGuestsByHotel(hotelId);
+    let guests = mergeGuestRows(await safeFindGuestsByHotel(hotelId));
     console.info("[admin/guests] guests_loaded", {
       hotelId,
       guestCount: guests.length,

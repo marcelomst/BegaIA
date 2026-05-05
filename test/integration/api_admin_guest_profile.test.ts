@@ -229,4 +229,35 @@ describe("/api/admin/guest-profile (integration)", () => {
 
     aliasSpy.mockRestore();
   });
+
+  it("prioriza el documento real más completo cuando existen duplicados con el mismo guestId", async () => {
+    const guestCol = getCollection("guests");
+
+    await guestCol.insertOne({
+      guestId: "guest-dup-1",
+      hotelId: "hotel999",
+      createdAt: "2026-03-06T05:00:00.000Z",
+      updatedAt: "2026-03-06T05:01:00.000Z",
+      mode: "automatic",
+    });
+
+    await guestCol.insertOne({
+      guestId: "guest-dup-1",
+      hotelId: "hotel999",
+      name: "Marcelo",
+      aliases: ["web:guest-1"],
+      createdAt: "2026-03-06T05:02:00.000Z",
+      updatedAt: "2026-03-06T05:03:00.000Z",
+      mode: "automatic",
+    });
+
+    const r = await adminGuestProfileGET(makeReq({ hotelId: "hotel999", guestId: "guest-dup-1" }));
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(json.guest?.guestId).toBe("guest-dup-1");
+    expect(json.guest?.name).toBe("Marcelo");
+    expect(json.guest?.mode).toBe("automatic");
+    expect(json.aliases).toEqual(expect.arrayContaining(["web:guest-1"]));
+  });
 });
