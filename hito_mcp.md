@@ -7887,3 +7887,47 @@ Impacto:
 - evita persistir identidad conversacional en `conv_state`
 - preserva `reservationHolderName` como dato transaccional separado
 - bloquea que `guestName` de reserva vuelva a funcionar como vocativo
+
+### FIX-ADMIN-GUESTS-CONVERSATION-LOAD-50
+
+Estado: COMPLETADO  
+Fecha: 2026-05-05  
+Commit: 720856d226bc3bb252a427617cc225b02a259c11
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se restaura el read-path Admin/API de guests y conversaciones para que
+`/api/admin/guests` responda sin `pending` indefinido, degrade a `200` ante
+fuentes lentas o fallidas, reconstruya filas mínimas desde `conversations`
+cuando la colección `guests` esté vacía y permita cargar
+conversaciones/perfil desde la perspectiva del guest canónico usando `guestId`
+y aliases de solo lectura.
+
+Archivos afectados:
+
+- `app/api/admin/guests/route.ts`
+- `app/api/admin/conversations/route.ts`
+- `app/api/admin/guest-profile/route.ts`
+- `lib/db/conversations.ts`
+- `lib/utils/guestReadAliases.ts`
+- `test/integration/api_admin_guests_list.test.ts`
+- `test/integration/api_admin_conversations.test.ts`
+- `test/integration/api_admin_guest_profile.test.ts`
+- `test/mocks/db_conversations.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene el runtime conversacional intacto y el read-path en modo derivado
+
+Impacto:
+
+- evita depender de una sola fuente frágil para el listado Admin de guests
+- degrada defensivamente a `200` ante fuentes lentas o fallidas
+- reconstruye lectura mínima desde `conversations` cuando `guests` está vacío
+- permite cargar conversaciones y perfil desde perspectiva canónica sin crear
+  write-path nuevo ni guest graph completo
