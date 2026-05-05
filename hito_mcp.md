@@ -7966,3 +7966,43 @@ Impacto:
 - crea documentos mínimos antes de consolidar sin expandir el modelo global
 - preserva aliases absorbidos y la migración de conversaciones y mensajes
 - evita fallos por ausencia de documentos base en la acción real de merge
+
+### FIX-ADMIN-GUESTS-PROFILE-NAME-READPATH-52
+
+Estado: COMPLETADO  
+Fecha: 2026-05-05  
+Commit: 38779d323d332bb2ef33892f5d82cc5208b0fc9f
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el read-path de `/admin/guests` y guest profile para priorizar el
+documento canónico más completo del guest cuando existen filas mínimas o
+duplicadas con el mismo `guestId`, mostrando correctamente `name`, `mode`,
+`aliases` e indicadores derivados sin alterar el runtime conversacional ni el
+modelo global.
+
+Archivos afectados:
+
+- `app/admin/guests/page.tsx`
+- `app/api/admin/guest-profile/route.ts`
+- `app/api/admin/guests/route.ts`
+- `lib/db/guests.ts`
+- `test/integration/api_admin_guest_profile.test.ts`
+- `test/integration/api_admin_guests_list.test.ts`
+- `test/integration/api_admin_guests_merge.test.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva el fallback defensivo existente del read-path Admin
+
+Impacto:
+
+- prioriza explícitamente el documento más completo por `guestId`
+- evita pérdida visual de identidad canónica por filas mínimas derivadas
+- conserva `mode`, `aliases` e indicadores derivados correctos en UI y backend
+- no introduce edición ni write-path nuevo en Admin/profile
