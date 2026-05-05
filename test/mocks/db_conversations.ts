@@ -1,8 +1,78 @@
 // Path: /root/begasist/test/mocks/db_conversations.ts
 import type { Conversation, Channel } from "@/types/channel";
 import { getCollection } from "./astra";
+import { normalizeGuestAlias } from "@/lib/db/guestAliases";
 
 const col = () => getCollection("conversations");
+
+function normalizeConversationGuestLookupKey(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  if (raw.includes(":")) return normalizeGuestAlias(raw);
+  if (raw.includes("@")) return raw.toLowerCase();
+  return raw;
+}
+
+function addLookupVariants(target: Set<string>, rawValue: unknown) {
+  const normalized = normalizeConversationGuestLookupKey(rawValue);
+  if (!normalized) return;
+  target.add(normalized);
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith("whatsapp:")) {
+    const withoutPrefix = normalized.slice("whatsapp:".length).trim();
+    if (withoutPrefix) target.add(withoutPrefix);
+    return;
+  }
+
+  if (lower.startsWith("email:")) {
+    const withoutPrefix = normalized.slice("email:".length).trim().toLowerCase();
+    if (withoutPrefix) target.add(withoutPrefix);
+    return;
+  }
+
+  if (lower.startsWith("web:")) {
+    const withoutPrefix = normalized.slice("web:".length).trim();
+    if (withoutPrefix) target.add(withoutPrefix);
+    return;
+  }
+
+  if (!normalized.includes(":")) {
+    if (normalized.includes("@")) {
+      target.add(`email:${normalized.toLowerCase()}`);
+      return;
+    }
+
+    target.add(`whatsapp:${normalized}`);
+    target.add(`web:${normalized}`);
+  }
+}
+
+export function buildConversationGuestLookupKeys(input: {
+  guestId: string;
+  aliases?: string[];
+}): string[] {
+  const keys = new Set<string>();
+  addLookupVariants(keys, input.guestId);
+  (Array.isArray(input.aliases) ? input.aliases : []).forEach((alias) => addLookupVariants(keys, alias));
+  return Array.from(keys);
+}
+
+export function filterConversationsForGuestPerspective(
+  conversations: Conversation[],
+  input: {
+    guestId: string;
+    aliases?: string[];
+  },
+): Conversation[] {
+  const lookup = new Set(buildConversationGuestLookupKeys(input));
+  if (lookup.size === 0) return [];
+
+  return conversations.filter((conv) => {
+    const key = normalizeConversationGuestLookupKey(conv.guestId);
+    return key ? lookup.has(key) : false;
+  });
+}
 
 /**
  * Crea una conversación nueva.
@@ -125,6 +195,22 @@ export async function getConversationsByGuestId(input: {
     const aTs = Date.parse(a.lastUpdatedAt || a.startedAt || "");
     const bTs = Date.parse(b.lastUpdatedAt || b.startedAt || "");
     return bTs - aTs;
+  });
+}
+
+export async function getConversationsForGuestPerspective(input: {
+  hotelId: string;
+  guestId: string;
+  aliases?: string[];
+}): Promise<Conversation[]> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  if (!hotelId || !guestId) return [];
+
+  const all = (await getAllConversationsForHotel(hotelId)) as Conversation[];
+  return filterConversationsForGuestPerspective(all, {
+    guestId,
+    aliases: input.aliases,
   });
 }
 

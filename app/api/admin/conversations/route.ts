@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getConversationsByGuestId,
+  getConversationsForGuestPerspective,
   getConversationsByHotelAndChannel,
   getConversationById,
   getAllConversationsForHotel,
 } from "@/lib/db/conversations";
+import { getGuest } from "@/lib/db/guests";
 import { getMessagesByConversation } from "@/lib/db/messages";
+import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
+import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 import { ALL_CHANNELS, type Channel } from "@/types/channel";
 
 type ConversationSummaryItem = {
@@ -84,7 +87,22 @@ export async function GET(req: NextRequest) {
     }
 
     if (guestId) {
-      const convs = await getConversationsByGuestId({ hotelId, guestId });
+      const [guest, aliasRowsResult] = await Promise.all([
+        getGuest(hotelId, guestId),
+        getGuestAliasesByGuestId({ hotelId, guestId }).catch((error) => {
+          console.warn("[admin/conversations] guest aliases reverse lookup unavailable; using guest document fallback", {
+            hotelId,
+            guestId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return [];
+        }),
+      ]);
+      const aliases = deriveGuestReadAliases(
+        guest,
+        aliasRowsResult.map((row) => normalizeText(row.alias)).filter(Boolean),
+      );
+      const convs = await getConversationsForGuestPerspective({ hotelId, guestId, aliases });
       const filtered = channel ? convs.filter((c) => c.channel === channel) : convs;
       const summaries = await Promise.all(filtered.map((c) => toSummaryItem(c)));
       return NextResponse.json({ guestId, conversations: summaries });

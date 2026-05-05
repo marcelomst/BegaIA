@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGuest } from "@/lib/db/guests";
 import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
-import { getConversationsByGuestId } from "@/lib/db/conversations";
+import { getConversationsForGuestPerspective } from "@/lib/db/conversations";
+import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 import type { Guest } from "@/types/channel";
 
 type GuestProfileResponse = {
@@ -41,15 +42,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "guestId required" }, { status: 400 });
     }
 
-    const [guest, aliasRecords, conversations] = await Promise.all([
+    const [guest, aliasRecords] = await Promise.all([
       getGuest(hotelId, guestId),
-      getGuestAliasesByGuestId({ hotelId, guestId }),
-      getConversationsByGuestId({ hotelId, guestId }),
+      getGuestAliasesByGuestId({ hotelId, guestId }).catch((error) => {
+        console.warn("[admin/guest-profile] guest aliases reverse lookup unavailable; using guest document fallback", {
+          hotelId,
+          guestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return [];
+      }),
     ]);
 
-    const aliases = aliasRecords
-      .map((a) => normalizeText(a.alias))
-      .filter(Boolean);
+    const aliases = deriveGuestReadAliases(
+      guest,
+      aliasRecords.map((a) => normalizeText(a.alias)).filter(Boolean),
+    );
+    const conversations = await getConversationsForGuestPerspective({
+      hotelId,
+      guestId,
+      aliases,
+    });
 
     const channels = new Set<string>();
     aliases.forEach((alias) => {

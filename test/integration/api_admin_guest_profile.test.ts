@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { GET as adminGuestProfileGET } from "@/app/api/admin/guest-profile/route";
 import { getCollection } from "../mocks/astra";
+import * as guestAliasesDb from "@/lib/db/guestAliases";
 
 function makeReq(params: Record<string, string>) {
   const sp = new URLSearchParams(params);
@@ -140,5 +141,92 @@ describe("/api/admin/guest-profile (integration)", () => {
     expect(json.channels).toEqual([]);
     expect(json.conversationCount).toBe(0);
     expect(json.lastActivityAt).toBeNull();
+  });
+
+  it("cuenta conversaciones históricas guardadas bajo aliases del guest canónico", async () => {
+    const guestCol = getCollection("guests");
+    const aliasByGuestCol = getCollection("guest_aliases_by_guest");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-historical-1",
+      hotelId: "hotel999",
+      name: "Marcelo Martinez",
+      createdAt: "2026-03-06T07:00:00.000Z",
+      updatedAt: "2026-03-06T07:10:00.000Z",
+      mode: "automatic",
+    });
+
+    await aliasByGuestCol.insertOne({
+      hotelid: "hotel999",
+      guestid: "guest-historical-1",
+      alias: "web:session_xyz",
+      createdat: "2026-03-06T07:01:00.000Z",
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-historical-1",
+      hotelId: "hotel999",
+      channel: "web",
+      guestId: "web:session_xyz",
+      startedAt: "2026-03-06T07:30:00.000Z",
+      lastUpdatedAt: "2026-03-06T07:45:00.000Z",
+      lang: "es",
+      status: "active",
+    });
+
+    const r = await adminGuestProfileGET(
+      makeReq({ hotelId: "hotel999", guestId: "guest-historical-1" }),
+    );
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(json.guestId).toBe("guest-historical-1");
+    expect(json.conversationCount).toBe(1);
+    expect(json.lastActivityAt).toBe("2026-03-06T07:45:00.000Z");
+    expect(json.channels).toEqual(expect.arrayContaining(["web"]));
+  });
+
+  it("usa aliases embebidos del guest cuando falla guest_aliases_by_guest", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-profile-fallback-1",
+      hotelId: "hotel999",
+      name: "Ana Gomez",
+      createdAt: "2026-03-06T06:00:00.000Z",
+      updatedAt: "2026-03-06T06:10:00.000Z",
+      mode: "automatic",
+      aliases: ["email:ana@example.com"],
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-profile-fallback-1",
+      hotelId: "hotel999",
+      channel: "email",
+      guestId: "email:ana@example.com",
+      startedAt: "2026-03-06T06:15:00.000Z",
+      lastUpdatedAt: "2026-03-06T06:20:00.000Z",
+      lang: "es",
+      status: "active",
+    });
+
+    const aliasSpy = vi
+      .spyOn(guestAliasesDb, "getGuestAliasesByGuestId")
+      .mockRejectedValueOnce(new Error("metadata unavailable"));
+
+    const r = await adminGuestProfileGET(
+      makeReq({ hotelId: "hotel999", guestId: "guest-profile-fallback-1" }),
+    );
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(json.aliases).toEqual(expect.arrayContaining(["email:ana@example.com"]));
+    expect(json.conversationCount).toBe(1);
+    expect(json.lastActivityAt).toBe("2026-03-06T06:20:00.000Z");
+    expect(json.channels).toEqual(expect.arrayContaining(["email"]));
+
+    aliasSpy.mockRestore();
   });
 });
