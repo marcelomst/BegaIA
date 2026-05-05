@@ -119,4 +119,76 @@ describe("/api/admin/guests/merge (integration)", () => {
     const tags = Array.isArray(secondaryGuest?.tags) ? secondaryGuest.tags : [];
     expect(tags).toEqual(expect.arrayContaining(["merged", "merged-into:guest-primary-1"]));
   });
+
+  it("tolera guests derivados desde conversations creando registros mínimos para consolidar", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+    const msgCol = getCollection("messages");
+
+    await guestCol.insertOne({
+      guestId: "guest-primary-derived-1",
+      hotelId: "hotel999",
+      createdAt: "2026-03-09T11:00:00.000Z",
+      updatedAt: "2026-03-09T11:00:00.000Z",
+      mode: "automatic",
+      aliases: ["email:primary@example.com"],
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-derived-1",
+      hotelId: "hotel999",
+      guestId: "web:session_only",
+      channel: "web",
+      startedAt: "2026-03-09T11:02:00.000Z",
+      lastUpdatedAt: "2026-03-09T11:03:00.000Z",
+      lang: "es",
+      status: "active",
+    });
+    await msgCol.insertOne({
+      _id: "msg-derived-1",
+      messageId: "msg-derived-1",
+      hotelId: "hotel999",
+      guestId: "web:session_only",
+      conversationId: "conv-derived-1",
+      channel: "web",
+      role: "user",
+      content: "hola desde guest derivado",
+      timestamp: "2026-03-09T11:03:10.000Z",
+    });
+
+    const r = await mergeGuestsPOST(
+      makeReq({
+        hotelId: "hotel999",
+        primaryGuestId: "guest-primary-derived-1",
+        secondaryGuestId: "web:session_only",
+        mergedBy: "qa@begasist",
+      }),
+    );
+
+    expect(r.ok).toBe(true);
+    const json = await r.json();
+    expect(json.ok).toBe(true);
+    expect(json.result.primaryGuestId).toBe("guest-primary-derived-1");
+    expect(json.result.secondaryGuestId).toBe("web:session_only");
+
+    const convMoved = await convCol.findOne({ conversationId: "conv-derived-1" });
+    expect(convMoved?.guestId).toBe("guest-primary-derived-1");
+
+    const msgMoved = await msgCol.findOne({ _id: "msg-derived-1" });
+    expect(msgMoved?.guestId).toBe("guest-primary-derived-1");
+
+    const derivedSecondaryGuest = await guestCol.findOne({
+      hotelId: "hotel999",
+      guestId: "web:session_only",
+    });
+    expect(derivedSecondaryGuest).toBeTruthy();
+    const tags = Array.isArray(derivedSecondaryGuest?.tags) ? derivedSecondaryGuest.tags : [];
+    expect(tags).toEqual(expect.arrayContaining(["merged", "merged-into:guest-primary-derived-1"]));
+
+    const primaryGuest = await guestCol.findOne({
+      hotelId: "hotel999",
+      guestId: "guest-primary-derived-1",
+    });
+    expect(primaryGuest?.aliases).toEqual(expect.arrayContaining(["web:session_only"]));
+  });
 });

@@ -1,7 +1,7 @@
 // Path: /root/begasist/lib/db/guestMerge.ts
 
 import { getAstraDB } from "@/lib/astra/connection";
-import { getGuest, updateGuest } from "@/lib/db/guests";
+import { createGuest, getGuest, updateGuest } from "@/lib/db/guests";
 import {
   getGuestAliasesByGuestId,
   reassignGuestAlias,
@@ -35,6 +35,14 @@ function unique(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
+function aliasCandidatesFromGuestId(guestId: string): string[] {
+  const normalized = normalizeText(guestId);
+  if (!normalized) return [];
+  if (normalized.includes(":")) return [normalized];
+  if (normalized.includes("@")) return [normalized.toLowerCase(), `email:${normalized.toLowerCase()}`];
+  return [];
+}
+
 async function findAllByFilter(col: any, filter: Record<string, unknown>): Promise<any[]> {
   if (typeof col?.find === "function") {
     const cursor = await col.find(filter);
@@ -56,6 +64,39 @@ function isMergedGuest(guest: Guest | null): boolean {
   });
 }
 
+async function ensureGuestExists(input: {
+  hotelId: string;
+  guestId: string;
+  existing: Guest | null;
+}): Promise<Guest> {
+  if (input.existing) return input.existing;
+
+  const now = new Date().toISOString();
+  const aliases = aliasCandidatesFromGuestId(input.guestId).filter((alias) => alias !== input.guestId);
+  const guest: Guest = {
+    hotelId: input.hotelId,
+    guestId: input.guestId,
+    createdAt: now,
+    updatedAt: now,
+    mode: "supervised",
+    aliases,
+  };
+  await createGuest(guest);
+  return guest;
+}
+
+async function safeGetAliasesByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<string[]> {
+  try {
+    const rows = await getGuestAliasesByGuestId(input);
+    return rows.map((a) => normalizeText(a.alias)).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeGuestsResult> {
   const hotelId = normalizeText(input.hotelId);
   const primaryGuestId = normalizeText(input.primaryGuestId);
@@ -66,27 +107,42 @@ export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeG
   if (!primaryGuestId || !secondaryGuestId) throw new Error("primaryGuestId and secondaryGuestId are required");
   if (primaryGuestId === secondaryGuestId) throw new Error("primaryGuestId and secondaryGuestId must be different");
 
-  const [primary, secondary] = await Promise.all([
+  const [primaryRaw, secondaryRaw] = await Promise.all([
     getGuest(hotelId, primaryGuestId),
     getGuest(hotelId, secondaryGuestId),
   ]);
 
-  if (!primary) throw new Error("primary guest not found");
-  if (!secondary) throw new Error("secondary guest not found");
-  if (isMergedGuest(secondary)) throw new Error("secondary guest is already merged");
-
-  const [primaryAliasRows, secondaryAliasRows] = await Promise.all([
-    getGuestAliasesByGuestId({ hotelId, guestId: primaryGuestId }),
-    getGuestAliasesByGuestId({ hotelId, guestId: secondaryGuestId }),
+  const [primary, secondary] = await Promise.all([
+    ensureGuestExists({ hotelId, guestId: primaryGuestId, existing: primaryRaw }),
+    ensureGuestExists({ hotelId, guestId: secondaryGuestId, existing: secondaryRaw }),
   ]);
 
-  const primaryAliasSet = new Set(primaryAliasRows.map((a) => normalizeText(a.alias)).filter(Boolean));
-  const secondaryAliases = secondaryAliasRows.map((a) => normalizeText(a.alias)).filter(Boolean);
+  if (isMergedGuest(secondary)) throw new Error("secondary guest is already merged");
+
+  const [primaryAliasesFromTable, secondaryAliasesFromTable] = await Promise.all([
+    safeGetAliasesByGuestId({ hotelId, guestId: primaryGuestId }),
+    safeGetAliasesByGuestId({ hotelId, guestId: secondaryGuestId }),
+  ]);
+
+  const primaryAliasSet = new Set([
+    ...primaryAliasesFromTable,
+    ...(Array.isArray(primary.aliases) ? primary.aliases.map((a) => normalizeText(a)).filter(Boolean) : []),
+    ...aliasCandidatesFromGuestId(primaryGuestId),
+  ]);
+  const secondaryAliases = unique([
+    ...secondaryAliasesFromTable,
+    ...(Array.isArray(secondary.aliases) ? secondary.aliases.map((a) => normalizeText(a)).filter(Boolean) : []),
+    ...aliasCandidatesFromGuestId(secondaryGuestId),
+  ]);
 
   let movedAliases = 0;
   for (const alias of secondaryAliases) {
-    await reassignGuestAlias({ hotelId, alias, guestId: primaryGuestId });
-    await removeGuestAliasFromReverseLookup({ hotelId, guestId: secondaryGuestId, alias });
+    try {
+      await reassignGuestAlias({ hotelId, alias, guestId: primaryGuestId });
+      await removeGuestAliasFromReverseLookup({ hotelId, guestId: secondaryGuestId, alias });
+    } catch {
+      // El read-path admin debe seguir consolidando aunque la proyección CQL falle.
+    }
     if (!primaryAliasSet.has(alias)) movedAliases += 1;
     primaryAliasSet.add(alias);
   }
