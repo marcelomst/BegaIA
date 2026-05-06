@@ -33,16 +33,21 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
   const actual = await vi.importActual<typeof import("@/lib/handlers/pipeline/availability")>("@/lib/handlers/pipeline/availability");
   return {
     ...actual,
-    runAvailabilityCheck: vi.fn(async (_pre: any, slots: any, ciISO: string, coISO: string) => ({
-      finalText: "Tengo doble disponible. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-      nextSlots: {
-        ...slots,
-        checkIn: ciISO,
-        checkOut: coISO,
-        roomType: slots.roomType || "double",
-      },
-      needsHandoff: false,
-    })),
+    runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => {
+      const holder = String(slots.guestName || "").trim();
+      const guestName = String(pre?.guest?.name || "").trim();
+      const vocative = guestName ? `${guestName}, ` : "";
+      return {
+        finalText: `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+        nextSlots: {
+          ...slots,
+          checkIn: ciISO,
+          checkOut: coISO,
+          roomType: slots.roomType || "double",
+        },
+        needsHandoff: false,
+      };
+    }),
   };
 });
 vi.mock("@/lib/agents", () => ({
@@ -50,12 +55,18 @@ vi.mock("@/lib/agents", () => ({
     invoke: vi.fn(async (input: any) => {
       const text = String(input?.normalizedMessage || "").toLowerCase();
       const isTriple = /triple/.test(text);
+      const normalizedMessage = String(input?.normalizedMessage || "").trim();
+      const holder = String(
+        input?.reservationSlots?.guestName ||
+        (/^[A-Za-zÁÉÍÓÚáéíóúÑñ'’. -]{5,}$/.test(normalizedMessage) ? normalizedMessage : "")
+      ).trim();
+      const holderSuffix = holder ? ` para ${holder}` : "";
       return {
         messages: [{
           role: "assistant",
           content: isTriple
-            ? "Tengo triple disponible. Tarifa por noche: 130 USD. Total 4 noches: 520 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
-            : "Tengo doble disponible. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+            ? `Tengo triple disponible${holderSuffix}. Tarifa por noche: 130 USD. Total 4 noches: 520 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`
+            : `Tengo doble disponible${holderSuffix}. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
         }],
         category: "reservation",
         meta: {},
@@ -126,8 +137,8 @@ describe("messageHandler create execution integrity", () => {
     (getGuest as any).mockResolvedValue({
       guestId: "g1",
       hotelId: "hotel999",
-      name: "Marcelo Martinez",
-      firstName: "Marcelo",
+      name: "Geronimo",
+      firstName: "Geronimo",
     });
     const sendReply = vi.fn(async () => {});
 
@@ -136,7 +147,7 @@ describe("messageHandler create execution integrity", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(lastReply(sendReply)).toMatch(/verifico disponibilidad|tarifa por noche|confirm[aá]s la reserva/i);
+    expect(lastReply(sendReply)).toMatch(/Geronimo,\s+tengo doble disponible para Ana Gomez/i);
     expect(lastReply(sendReply)).not.toMatch(/Anot[eé] nuevas fechas/i);
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();
@@ -171,6 +182,27 @@ describe("messageHandler create execution integrity", () => {
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/R-NEW-01/);
     expect(replyText).not.toMatch(/sin fecha → sin fecha/i);
+  });
+
+  it("create incremental usa vocativo desde guest canónico y conserva el titular transaccional", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      firstName: "Geronimo",
+    });
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("6/5/2026 al 7/5/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo Martinez"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Geronimo,\s+tengo doble disponible para Marcelo Martinez\./i);
+    expect(replyText).toMatch(/¿Confirmás la reserva\?/i);
+    expect(replyText).not.toMatch(/^Marcelo,\s+tengo/i);
   });
 
   it("ignora residuos activos sin materializar al consolidar el history final del create", async () => {

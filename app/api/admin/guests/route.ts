@@ -30,6 +30,14 @@ function normalizeText(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+function normalizeGuestMode(value: unknown): Guest["mode"] {
+  const normalized = normalizeText(value).toLowerCase();
+  if (normalized === "automatic" || normalized === "supervised") {
+    return normalized;
+  }
+  return undefined;
+}
+
 function channelFromAlias(alias: string): string | null {
   const idx = alias.indexOf(":");
   if (idx <= 0) return null;
@@ -113,7 +121,7 @@ function mergeGuestRows(rows: GuestLikeRow[]): GuestLikeRow[] {
     current.name = normalizeText(current.name) || normalizeText(row.name) || current.name;
     current.firstName = normalizeText(current.firstName) || normalizeText(row.firstName) || current.firstName;
     current.lastName = normalizeText(current.lastName) || normalizeText(row.lastName) || current.lastName;
-    current.mode = normalizeText(current.mode) || normalizeText(row.mode) || current.mode;
+    current.mode = normalizeGuestMode(current.mode) || normalizeGuestMode(row.mode) || current.mode;
     current.updatedAt = normalizeText(row.updatedAt) || current.updatedAt;
     current.createdAt = normalizeText(current.createdAt) || normalizeText(row.createdAt) || row.createdAt;
     current.aliases = Array.from(

@@ -47,6 +47,7 @@ import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, locali
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
+import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 // askAvailability moved to pipeline/availability via runAvailabilityCheck
 import {
   runAvailabilityCheck,
@@ -304,6 +305,23 @@ function combineModes(a?: ChannelMode, b?: ChannelMode): ChannelMode {
 function isSafeAutosendCategory(cat?: string | null): boolean {
   if (!cat) return false;
   return CONFIG.SAFE_AUTOSEND_CATEGORIES.has(cat as any);
+}
+
+function applyConversationalProposalVocative(
+  text: string,
+  lang: "es" | "en" | "pt",
+  guest?: { name?: string; firstName?: string; lastName?: string } | null
+): string {
+  const base = String(text || "").trim();
+  const conversationalDisplayName = String(getConversationalDisplayName(guest) || "").trim();
+  if (!base || !conversationalDisplayName) return base;
+
+  const escapedName = conversationalDisplayName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (new RegExp(`^${escapedName},\\s+`, "i").test(base)) return base;
+
+  const needsLowercaseLead = lang !== "en" && /^[A-ZÁÉÍÓÚÑ]/.test(base);
+  const normalizedBase = needsLowercaseLead ? `${base.charAt(0).toLowerCase()}${base.slice(1)}` : base;
+  return `${conversationalDisplayName}, ${normalizedBase}`;
 }
 
 type RoutingDecisionLog = {
@@ -8754,6 +8772,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         finalText = buildCreateFlowPrompt(pre.lang, missingField);
       }
     }
+  }
+  if (
+    !modifyExecutionActive &&
+    isQuoteOrConfirmText(String(finalText || ""), pre.lang) &&
+    quotedReservationSnapshot.roomType &&
+    quotedReservationSnapshot.checkIn &&
+    quotedReservationSnapshot.checkOut &&
+    quotedReservationSnapshot.numGuests &&
+    isSafeGuestName(quotedReservationSnapshot.guestName || "")
+  ) {
+    finalText = applyConversationalProposalVocative(String(finalText || ""), pre.lang, pre.guest);
   }
   if (
     !modifyExecutionActive &&

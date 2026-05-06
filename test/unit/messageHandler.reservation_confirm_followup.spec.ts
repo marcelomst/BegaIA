@@ -108,6 +108,7 @@ import { confirmAndCreate } from "@/lib/agents/reservations";
 import { getConvState } from "@/lib/db/convState";
 import { getMessagesByConversation } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
+import { getGuest } from "@/lib/db/guests";
 
 function msg(content: string, conversationId = "conv-confirm-1") {
   return {
@@ -159,6 +160,12 @@ describe("messageHandler reservation confirm follow-up", () => {
     "CONFIRMAR",
     "confirmar",
   ])("cierra la reserva solo con confirmación limpia: %s", async (userInput) => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      firstName: "Geronimo",
+    });
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(msg(userInput), { mode: "automatic", sendReply });
@@ -184,7 +191,9 @@ describe("messageHandler reservation confirm follow-up", () => {
     );
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/Reserva confirmada|R-0001/i);
+    expect(replyText).toMatch(/Reserva a nombre de \*\*Marcelo Martinez\*\*/i);
     expect(replyText).not.toContain("contenido generico");
+    expect(replyText).not.toMatch(/^Marcelo,/i);
   });
 
   it.each(["confirmar?", "confirmar mañana"])(

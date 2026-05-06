@@ -228,6 +228,33 @@ describe("messageHandler multi reservation", () => {
     expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
   });
 
+  it("multi-reserva completa usa vocativo desde guest canónico y conserva el titular de la nueva reserva", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      firstName: "Geronimo",
+      mode: "automatic",
+    });
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "multi-3b",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el domingo al lunes próximo, una triple, para 3 personas a nombre de Marcelo Martinez",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-3b",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Geronimo,\s+tengo triple disponible para Marcelo Martinez\./i);
+    expect(replyText).not.toMatch(/^Marcelo,\s+tengo/i);
+  });
+
   it("create explícito con payload suficiente rompe continuidad de modify y no actualiza la reserva previa", async () => {
     const sendReply = vi.fn(async () => {});
     (getConvState as any).mockResolvedValue({

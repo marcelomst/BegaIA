@@ -126,19 +126,26 @@ function pickBestGuestCandidate(candidates: Guest[]): Guest | null {
 export async function getGuest(hotelId: string, guestId: string): Promise<Guest | null> {
   const col = getGuestsCollection();
   const normalizedGuestId = norm(guestId);
+  if (!hotelId || !normalizedGuestId) return null;
 
-  // 1) Mantener comportamiento actual: match exacto primero
-  const exact = await col.findOne({ hotelId, guestId: normalizedGuestId });
-  if (exact) return exact;
+  const variants = guestIdVariants(normalizedGuestId);
+  const candidates: Guest[] = [];
 
-  // 2) Compatibilidad WhatsApp: whatsapp:+598... <-> +598...
-  for (const candidate of guestIdVariants(normalizedGuestId)) {
-    if (candidate === normalizedGuestId) continue;
-    const match = await col.findOne({ hotelId, guestId: candidate });
-    if (match) return match;
+  for (const candidate of variants) {
+    const matches = await col.find({ hotelId, guestId: candidate }).toArray();
+    candidates.push(...(Array.isArray(matches) ? matches : []));
   }
 
-  return null;
+  const uniqueCandidates = Array.from(
+    new Map(
+      candidates.map((guest) => [
+        `${guest.hotelId}:${guest.guestId}:${guest.createdAt || guest.updatedAt || ""}:${guest.name || ""}:${(guest.aliases || []).join("|")}`,
+        guest,
+      ])
+    ).values()
+  );
+
+  return pickBestGuestCandidate(uniqueCandidates);
 }
 
 export async function findBestGuestByGuestId(hotelId: string, guestId: string): Promise<Guest | null> {

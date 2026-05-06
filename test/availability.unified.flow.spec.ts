@@ -64,7 +64,7 @@ describe('availability unified flow', () => {
         expect(upsertSpy).toHaveBeenCalled();
     });
 
-    it('usa vocativo solo desde guest canónico y mantiene titular de reserva en el proposal', async () => {
+    it('create completo usa vocativo solo desde guest canónico y mantiene titular de reserva en el proposal', async () => {
         vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
             ok: true,
             available: true,
@@ -74,16 +74,16 @@ describe('availability unified flow', () => {
 
         const pre = {
             ...preBase('es'),
-            guest: { guestId: 'g1', hotelId: 'hotel999', name: 'Marcelo Martinez' },
+            guest: { guestId: 'g1', hotelId: 'hotel999', name: 'Geronimo' },
         };
         const snapshot = {
             ...snapshotBase,
-            guestName: 'Ana Gomez',
+            guestName: 'Marcelo Martinez',
         };
 
         const res = await availabilityPipeline.runAvailabilityCheck(pre as any, snapshot as any, snapshot.checkIn, snapshot.checkOut);
-        expect(res.finalText).toMatch(/^Marcelo,\s+tengo doble disponible para Ana Gomez\./i);
-        expect(res.finalText).not.toMatch(/^Ana,\s+tengo/i);
+        expect(res.finalText).toMatch(/^Geronimo,\s+tengo doble disponible para Marcelo Martinez\./i);
+        expect(res.finalText).not.toMatch(/^Marcelo,\s+tengo/i);
     });
 
     it('sin guest canónico mantiene tono neutro y no usa el titular como vocativo', async () => {
