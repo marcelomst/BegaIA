@@ -48,6 +48,7 @@ import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
+import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 // askAvailability moved to pipeline/availability via runAvailabilityCheck
 import {
   runAvailabilityCheck,
@@ -1360,6 +1361,20 @@ function buildCanonicalReservationRecords(state: any): CanonicalReservationRecor
   return buildReservationCanonicalState(state).records;
 }
 
+function collectPersistedReservationRecords(state: any): LastReservation[] {
+  const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
+  const records = [...history];
+  if (shouldPreserveLastReservationRecord(history, state?.lastReservation)) records.push(state.lastReservation);
+  return records.filter((item) => item?.reservationId);
+}
+
+function getMergedIntoGuestId(guest: { tags?: unknown } | null | undefined): string | undefined {
+  const tags = Array.isArray(guest?.tags) ? guest.tags : [];
+  const mergedIntoTag = tags.find((tag) => typeof tag === "string" && tag.startsWith("merged-into:"));
+  const candidate = typeof mergedIntoTag === "string" ? mergedIntoTag.slice("merged-into:".length).trim() : "";
+  return candidate || undefined;
+}
+
 function getCanonicalReservationRecordById(
   state: any,
   reservationId?: string | null
@@ -1426,10 +1441,18 @@ function resolveConfirmedReservationFollowupSnapshot(
 
 function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
-  reservations: CanonicalReservationRecord[]
+  reservations: CanonicalReservationRecord[],
+  scope: "conversation" | "guest" = "conversation"
 ): string {
   const visibleReservations = reservations.filter((item) => isCanonicalReservationRecordEligible(item));
   if (!visibleReservations.length) {
+    if (scope === "guest") {
+      return lang === "pt"
+        ? "Não encontrei reservas associadas a este hóspede."
+        : lang === "en"
+          ? "I couldn't find any bookings associated with this guest."
+          : "No encontré reservas asociadas a este huésped.";
+    }
     return lang === "pt"
       ? "Não encontrei reservas para mostrar nesta conversa."
       : lang === "en"
@@ -1457,12 +1480,92 @@ function buildReservationListAnswer(
   });
 
   const title =
-    lang === "pt"
-      ? "Estas são as reservas desta conversa:"
-      : lang === "en"
-        ? "These are the bookings on this conversation:"
-        : "Estas son las reservas de esta conversación:";
+    scope === "guest"
+      ? lang === "pt"
+        ? "Estas são as reservas associadas a este hóspede:"
+        : lang === "en"
+          ? "These are the bookings associated with this guest:"
+          : "Estas son las reservas asociadas a este huésped:"
+      : lang === "pt"
+        ? "Estas são as reservas desta conversa:"
+        : lang === "en"
+          ? "These are the bookings on this conversation:"
+          : "Estas son las reservas de esta conversación:";
   return [title, ...lines].join("\n");
+}
+
+async function safeFindGuestByAnyId(hotelId: string, rawId: string) {
+  try {
+    const guestsDb = await import("@/lib/db/guests");
+    if (typeof (guestsDb as any).findGuestByAnyId !== "function") return null;
+    return await (guestsDb as any).findGuestByAnyId(hotelId, rawId);
+  } catch {
+    return null;
+  }
+}
+
+async function safeGetConversationsForGuestPerspective(input: {
+  hotelId: string;
+  guestId: string;
+  aliases?: string[];
+}) {
+  try {
+    const conversationsDb = await import("@/lib/db/conversations");
+    if (typeof (conversationsDb as any).getConversationsForGuestPerspective !== "function") return [];
+    return await (conversationsDb as any).getConversationsForGuestPerspective(input);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveReservationListSource(pre: PreLLMResult): Promise<{
+  reservations: CanonicalReservationRecord[];
+  scope: "conversation" | "guest";
+}> {
+  const localReservations = buildCanonicalReservationRecords(pre.st);
+  if (localReservations.some((item) => isCanonicalReservationRecordEligible(item))) {
+    return { reservations: localReservations, scope: "conversation" };
+  }
+
+  const rawCurrentGuestId = String(pre.guest?.guestId || pre.msg.guestId || "").trim();
+  const mergedIntoGuestId = getMergedIntoGuestId(pre.guest);
+  const canonicalGuest =
+    (mergedIntoGuestId ? await getGuest(pre.msg.hotelId, mergedIntoGuestId) : null) ||
+    (mergedIntoGuestId ? await safeFindGuestByAnyId(pre.msg.hotelId, mergedIntoGuestId) : null) ||
+    pre.guest ||
+    (rawCurrentGuestId ? await safeFindGuestByAnyId(pre.msg.hotelId, rawCurrentGuestId) : null);
+  const canonicalGuestId = String(canonicalGuest?.guestId || mergedIntoGuestId || rawCurrentGuestId).trim();
+  if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation" };
+
+  const aliases = deriveGuestReadAliases(canonicalGuest as any, [
+    pre.msg.guestId,
+    rawCurrentGuestId,
+    pre.guest?.guestId,
+  ]);
+  const conversations = await safeGetConversationsForGuestPerspective({
+    hotelId: pre.msg.hotelId,
+    guestId: canonicalGuestId,
+    aliases,
+  });
+  if (!Array.isArray(conversations) || conversations.length === 0) {
+    return { reservations: [], scope: "guest" };
+  }
+
+  const reservationRecords: LastReservation[] = [...collectPersistedReservationRecords(pre.st)];
+  const seenConversationIds = new Set<string>([pre.conversationId]);
+  for (const conversation of conversations) {
+    const conversationId = String((conversation as any)?.conversationId || "").trim();
+    if (!conversationId || seenConversationIds.has(conversationId)) continue;
+    seenConversationIds.add(conversationId);
+    const state = await getConvState(pre.msg.hotelId, conversationId);
+    reservationRecords.push(...collectPersistedReservationRecords(state));
+  }
+
+  const reservations = buildReservationCanonicalState({ reservationHistory: reservationRecords }).records;
+  return {
+    reservations,
+    scope: reservations.some((item) => isCanonicalReservationRecordEligible(item)) ? "guest" : "guest",
+  };
 }
 
 function buildReservationReferenceCandidates(state: any): ReservationReferenceTarget[] {
@@ -5331,8 +5434,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   if (effectiveSnapshotQueryKind === "list") {
-    const canonicalReservations = buildCanonicalReservationRecords(pre.st);
-    finalText = buildReservationListAnswer(pre.lang, canonicalReservations);
+    const reservationListSource = await resolveReservationListSource(pre);
+    finalText = buildReservationListAnswer(
+      pre.lang,
+      reservationListSource.reservations,
+      reservationListSource.scope
+    );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       selectedReservationTarget: null,
       modifyState: null,

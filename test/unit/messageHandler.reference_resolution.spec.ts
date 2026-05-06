@@ -9,11 +9,13 @@ vi.mock("@/lib/db/messages", () => ({
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
   appendConversationReplyTrace: vi.fn(async () => {}),
+  getConversationsForGuestPerspective: vi.fn(async () => []),
 }));
 vi.mock("@/lib/db/guests", () => ({
   getGuest: vi.fn(async () => null),
   createGuest: vi.fn(async () => {}),
   updateGuest: vi.fn(async () => {}),
+  findGuestByAnyId: vi.fn(async () => null),
 }));
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async (_hotelId: string, conversationId: string) => stateByConversation.get(conversationId) ?? null),
@@ -91,7 +93,8 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation } from "@/lib/agents/reservations";
-import { getGuest } from "@/lib/db/guests";
+import { getConversationsForGuestPerspective } from "@/lib/db/conversations";
+import { findGuestByAnyId, getGuest } from "@/lib/db/guests";
 
 function msg(content: string, conversationId: string) {
   return {
@@ -270,6 +273,9 @@ describe("messageHandler reference resolution", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-23T12:00:00.000Z"));
     stateByConversation.clear();
+    (getGuest as any).mockResolvedValue(null);
+    (findGuestByAnyId as any).mockResolvedValue(null);
+    (getConversationsForGuestPerspective as any).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -488,6 +494,118 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).toMatch(/1\.\s+RES-OLD-01/i);
     expect(replyText).toMatch(/2\.\s+RES-MID-02/i);
     expect(replyText).toMatch(/3\.\s+RES-NEW-03/i);
+  });
+
+  it("si la conversación actual no tiene reservas, usa el guest canónico consolidado para listar reservas absorbidas", async () => {
+    const sendReply = vi.fn(async () => {});
+    const currentConversationId = "conv-ref-list-merged-current-1";
+    const absorbedConversationId = "conv-ref-list-merged-absorbed-1";
+
+    stateByConversation.set(currentConversationId, {
+      hotelId: "hotel999",
+      conversationId: currentConversationId,
+      updatedAt: "2026-05-06T12:00:00.000Z",
+    });
+    stateByConversation.set(absorbedConversationId, {
+      hotelId: "hotel999",
+      conversationId: absorbedConversationId,
+      updatedAt: "2026-05-06T12:01:00.000Z",
+      reservationHistory: [
+        {
+          reservationId: "RES-274B9C",
+          status: "created",
+          createdAt: "2026-05-01T10:00:00.000Z",
+          channel: "web",
+          guestName: "Raul Olivera",
+          roomType: "double",
+          checkIn: "2026-05-07",
+          checkOut: "2026-05-08",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-274B9C",
+        status: "created",
+        createdAt: "2026-05-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-07",
+        checkOut: "2026-05-08",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    });
+
+    (getGuest as any).mockImplementation(async (_hotelId: string, guestId: string) => {
+      if (guestId === "guest-secondary-merged-1") {
+        return {
+          guestId,
+          hotelId: "hotel999",
+          tags: ["merged", "merged-into:guest-primary-merged-1"],
+          aliases: ["web:guest-secondary-merged-1"],
+        };
+      }
+      if (guestId === "guest-primary-merged-1") {
+        return {
+          guestId,
+          hotelId: "hotel999",
+          name: "Geronimo",
+          aliases: ["web:guest-secondary-merged-1", "web:guest-primary-merged-1"],
+          mode: "automatic",
+        };
+      }
+      return null;
+    });
+    (findGuestByAnyId as any).mockResolvedValue(null);
+    (getConversationsForGuestPerspective as any).mockResolvedValue([
+      { conversationId: currentConversationId, hotelId: "hotel999", guestId: "guest-primary-merged-1", channel: "web" },
+      { conversationId: absorbedConversationId, hotelId: "hotel999", guestId: "guest-primary-merged-1", channel: "web" },
+    ]);
+
+    await handleIncomingMessage(
+      {
+        ...msg("mostrame mis reservas", currentConversationId),
+        guestId: "guest-secondary-merged-1",
+      },
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).toMatch(/RES-274B9C/i);
+    expect(replyText).toMatch(/a nombre de Raul Olivera/i);
+    expect(replyText).not.toMatch(/esta conversación/i);
+    expect(replyText).not.toMatch(/^Raul,/i);
+  });
+
+  it("si no hay reservas en la conversación ni en el guest consolidado, responde fallback honesto", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-merged-empty-1";
+    stateByConversation.set(conversationId, {
+      hotelId: "hotel999",
+      conversationId,
+      updatedAt: "2026-05-06T12:05:00.000Z",
+    });
+
+    (getGuest as any).mockResolvedValue({
+      guestId: "guest-primary-empty-1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      aliases: ["web:guest-empty-1"],
+      mode: "automatic",
+    });
+    (findGuestByAnyId as any).mockResolvedValue(null);
+    (getConversationsForGuestPerspective as any).mockResolvedValue([
+      { conversationId, hotelId: "hotel999", guestId: "guest-primary-empty-1", channel: "web" },
+    ]);
+
+    await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/no encontr[eé] reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).not.toMatch(/esta conversación/i);
   });
 
   it("resuelve 'la tercera' después de listar reservas", async () => {
