@@ -8086,3 +8086,42 @@ Impacto:
   disponibilidad
 - mantiene intacta la frontera entre inquiry, modify y create
 - deja fuera de scope la deuda de wording posterior
+
+### FIX-RUNTIME-GUEST-RESERVATION-SNAPSHOT-AFTER-MERGE-55
+
+Estado: COMPLETADO  
+Fecha: 2026-05-06  
+Commit: 72e9d2ae9a4589208dc6e69f6826257b7954e0fb
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el runtime para que consultas de snapshot/listado como
+`mostrame mis reservas` puedan resolver reservas asociadas al guest canónico
+consolidado después de un merge en Admin cuando la conversación actual no
+tiene `reservationHistory` o `lastReservation`, preservando prioridad del
+snapshot local y usando fallback de solo lectura sobre conversaciones
+asociadas al guest consolidado.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva prioridad del snapshot local y `reservationHolderName` como dato
+  transaccional
+
+Impacto:
+
+- agrega fallback de lectura por guest canónico solo cuando corresponde
+- deduplica por `reservationId` al reconstruir snapshots post-merge
+- permite resolver reservas consolidadas sin depender solo de la conversación
+  actual
+- no usa titulares de reserva como interlocutores ni altera el runtime
+  conversacional
