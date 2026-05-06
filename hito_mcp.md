@@ -8049,3 +8049,40 @@ Impacto:
 - mantiene tono neutro cuando no existe guest conocido
 - evita reutilizar `reservationHolderName` como interlocutor
 - absorbe un ajuste mínimo de tipado `GuestMode` sin expandir el alcance
+
+### FIX-AVAILABILITY-INQUIRY-AFTER-RESERVATION-CONTEXT-54
+
+Estado: COMPLETADO  
+Fecha: 2026-05-06  
+Commit: c18e9e43862c6ad9a5b14538bacbdbe9428bc8a1
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la precedencia contextual para que una consulta pura de
+disponibilidad después de una reserva activa o confirmada siga el flujo de
+`availability inquiry` y no sea tratada como modificación, recotización ni
+cambio de fechas de la reserva previa, preservando los paths explícitos de
+`modify` y `create`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva los paths explícitos de `modify` y `create`
+
+Impacto:
+
+- refuerza una única semántica para `availability inquiry` puro con contexto de
+  reserva confirmada
+- evita desvíos a `modify` o `date-flow` cuando la intención es solo consultar
+  disponibilidad
+- mantiene intacta la frontera entre inquiry, modify y create
+- deja fuera de scope la deuda de wording posterior
