@@ -775,6 +775,13 @@ function isAvailabilityInquiryIntent(text: string): boolean {
   );
 }
 
+function isExplicitPureAvailabilityInquiryIntent(text: string): boolean {
+  const normalizedIntent = normalizeReservationIntent(text || "");
+  if (normalizedIntent.kind === "modify" || normalizedIntent.kind === "cancel") return false;
+  if (isExplicitCreateReservationIntent(text)) return false;
+  return isAvailabilityInquiryIntent(text);
+}
+
 function isAvailabilityInquiryActive(pre: Pick<PreLLMResult, "st" | "prevCategory">): boolean {
   if (pre.st?.salesStage === "quote" || pre.st?.salesStage === "close") return false;
   return pre.prevCategory === "availability_inquiry" || pre.st?.lastCategory === "availability_inquiry";
@@ -5035,6 +5042,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const availabilityInquiryCreateHandoff =
     !hasConfirmedBookingContext &&
     shouldStartCreateFromAvailabilityInquiry(pre, userTxtRaw);
+  const explicitPureAvailabilityInquiry = isExplicitPureAvailabilityInquiryIntent(userTxtRaw);
   const availabilityInquiryAmbiguousAdvance =
     !hasConfirmedBookingContext &&
     !availabilityInquiryCreateHandoff &&
@@ -5087,6 +5095,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   if (
     !activeModifyField &&
     modifyFocusActiveEarly &&
+    !explicitPureAvailabilityInquiry &&
     !(normalizedReservationIntent.kind === "cancel" || looksExplicitNewReservation || looksNonReservationDomainTurn)
   ) {
     const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
@@ -5852,12 +5861,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     isAvailabilityInquiryActive(pre) &&
     !looksExplicitNewReservation;
   const availabilityInquiryIntent =
-    !hasConfirmedBookingContext &&
     !looksExplicitNewReservation &&
-    isAvailabilityInquiryIntent(userTxtRaw);
+    explicitPureAvailabilityInquiry;
   const shouldHandleAvailabilityInquiry =
     !modifyContinuityActive &&
-    !hasConfirmedBookingContext &&
     !availabilityInquiryAmbiguousAdvance &&
     !availabilityInquiryCreateHandoff &&
     (availabilityInquiryActive || availabilityInquiryIntent);
@@ -8229,6 +8236,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         isPureConfirm(String(pre.msg.content || "")) ||
         isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang)
       );
+    const explicitPureAvailabilityInquiryTurn = isExplicitPureAvailabilityInquiryIntent(String(pre.msg.content || ""));
     const currentTurnRelativeWeekendRange = extractRelativeWeekendDateRange(String(pre.msg.content || ""));
     const currentTurnCreateSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
     const currentTurnCreatePayloadComplete = Boolean(
@@ -8250,6 +8258,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ) &&
       (isCreateContextActive(pre) || looksExplicitNewReservation);
     const triggerDateFlow =
+      !explicitPureAvailabilityInquiryTurn &&
       !awaitingAvailabilityFollowup &&
       !createQuoteReadyOnCurrentTurn &&
       !timeQ &&

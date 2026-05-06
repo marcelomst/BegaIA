@@ -82,6 +82,7 @@ vi.mock("@langchain/openai", () => ({
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
 import { getMessagesByConversation } from "@/lib/db/messages";
+import { getGuest } from "@/lib/db/guests";
 
 function msg(content: string) {
   return {
@@ -166,6 +167,128 @@ describe("messageHandler availability inquiry policy", () => {
     expect(currentState?.pendingAvailabilityVerification ?? null).toBeNull();
     expect(currentState?.lastCategory).toBe("availability_inquiry");
     expect(currentState?.desiredAction).toBeUndefined();
+  });
+
+  it("availability inquiry después de reserva activa domina sobre modify y no dice 'Anoté nuevas fechas'", async () => {
+    const sendReply = vi.fn(async () => {});
+    currentState = {
+      reservationSlots: {
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-12",
+        numGuests: "2",
+      },
+      lastReservation: {
+        reservationId: "RES-BASE-01",
+        status: "created",
+        createdAt: "2026-05-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-12",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "reservation",
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-BASE-01",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
+    await handleIncomingMessage(
+      msg("tenes doble disponible del 14/05/2026 al 15/05/2026?"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(currentState?.lastCategory).toBe("availability_inquiry");
+    expect(currentState?.desiredAction).toBeUndefined();
+  });
+
+  it("availability inquiry después de reserva activa puede usar vocativo canónico sin modificar la reserva previa", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      firstName: "Geronimo",
+      mode: "automatic",
+    });
+    const sendReply = vi.fn(async () => {});
+    currentState = {
+      reservationSlots: {
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-12",
+        numGuests: "2",
+      },
+      lastReservation: {
+        reservationId: "RES-BASE-02",
+        status: "created",
+        createdAt: "2026-05-01T10:00:00.000Z",
+        channel: "web",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "reservation",
+    };
+
+    await handleIncomingMessage(
+      msg("tenes doble disponible del 14/05/2026 al 15/05/2026?"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Geronimo,\s+tengo doble disponible/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(currentState?.lastCategory).toBe("availability_inquiry");
+  });
+
+  it("modify explícito sigue entrando al flujo de modificación con reserva activa", async () => {
+    const sendReply = vi.fn(async () => {});
+    currentState = {
+      reservationSlots: {
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-12",
+        numGuests: "2",
+      },
+      lastReservation: {
+        reservationId: "RES-BASE-03",
+        status: "created",
+        createdAt: "2026-05-01T10:00:00.000Z",
+        channel: "web",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "reservation",
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-BASE-03",
+        phase: "confirmed",
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
+    await handleIncomingMessage(
+      msg("quiero cambiar mi reserva al 14/05/2026 al 15/05/2026"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|check-?out|nueva fecha/i);
+    expect(replyText).not.toMatch(/si quer[eé]s reservar, despu[eé]s puedo ayudarte/i);
   });
 
   it("después de responder disponibilidad solo entra en create si el usuario expresa intención de reservar", async () => {
