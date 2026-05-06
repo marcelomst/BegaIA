@@ -8006,3 +8006,46 @@ Impacto:
 - evita pérdida visual de identidad canónica por filas mínimas derivadas
 - conserva `mode`, `aliases` e indicadores derivados correctos en UI y backend
 - no introduce edición ni write-path nuevo en Admin/profile
+
+### FIX-RUNTIME-CONVERSATIONAL-DISPLAY-NAME-PROPOSAL-PATHS-53
+
+Estado: COMPLETADO  
+Fecha: 2026-05-06  
+Commit: d6c2bd23bec3f3f27de38eec5bc60eebf48e557f
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se asegura que `conversationalDisplayName` leído desde el guest canónico se
+aplique en proposal paths seguros de disponibilidad y `create`, incluyendo
+`create` incremental, `create` completo y multi-reserva completa, manteniendo
+tono neutro cuando no existe guest conocido y preservando
+`reservationHolderName` solo como dato transaccional. Incluye además un fix
+mínimo de tipado en Admin/guests para normalizar `GuestMode` sin alterar
+comportamiento de dominio.
+
+Archivos afectados:
+
+- `app/api/admin/guests/route.ts`
+- `lib/db/guests.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/availability.unified.flow.spec.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene `reservationHolderName` como dato transaccional separado
+
+Impacto:
+
+- aplica el vocativo conversacional solo desde guest canónico en proposal paths
+  seguros
+- mantiene tono neutro cuando no existe guest conocido
+- evita reutilizar `reservationHolderName` como interlocutor
+- absorbe un ajuste mínimo de tipado `GuestMode` sin expandir el alcance
