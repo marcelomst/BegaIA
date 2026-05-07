@@ -8125,3 +8125,40 @@ Impacto:
   actual
 - no usa titulares de reserva como interlocutores ni altera el runtime
   conversacional
+
+### FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56
+
+Estado: COMPLETADO  
+Fecha: 2026-05-07  
+Commit: 57bf0f245272a8adb6ff1b1055a20a4b62069b9f
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se implementa una captura conversacional mínima de `guest.name` en el saludo
+inicial de un guest nuevo, persistiendo el nombre sobre el guest canónico
+resuelto, usando `hotelConfig.hotelName` cuando está disponible y manteniendo
+fallback seguro. Además asegura que el `create` explícito completo post-
+handshake siga el path correcto de proposal sin caer en
+`verify/snapshot/fallback`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `test/unit/messageHandler.stable_intents_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- preserva `messageHandler` como runtime único
+
+Impacto:
+
+- captura `guest.name` solo en un handshake inicial controlado
+- persiste el nombre sobre el guest canónico sin contaminar titulares de reserva
+- usa `hotelConfig.hotelName` cuando está disponible y mantiene fallback seguro
+- conserva el path correcto de proposal para `create` explícito completo
