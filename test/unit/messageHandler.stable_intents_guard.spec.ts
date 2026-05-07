@@ -225,7 +225,7 @@ describe("messageHandler stable intents guard", () => {
 
   it("sin guest_state explícito, wifi básico mantiene fallback actual si faltan notas directas", async () => {
     const conversationId = "conv-stable-wifi-no-state-fallback-1";
-    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({ amenities: {} }));
+    getHotelConfigMock.mockResolvedValue(makeHotelConfig({ amenities: {} }));
 
     await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
 
@@ -242,7 +242,7 @@ describe("messageHandler stable intents guard", () => {
       guestState: "in_house",
       updatedAt: new Date().toISOString(),
     });
-    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({ amenities: {} }));
+    getHotelConfigMock.mockResolvedValue(makeHotelConfig({ amenities: {} }));
 
     await handleIncomingMessage(msg("wifi?", conversationId), { mode: "automatic", sendReply });
 
@@ -447,7 +447,7 @@ describe("messageHandler stable intents guard", () => {
       },
       updatedAt: new Date().toISOString(),
     });
-    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
+    getHotelConfigMock.mockResolvedValue(makeHotelConfig({
       amenities: {
         wifiNotes: "Wi-Fi gratis en todo el hotel. La clave se entrega al hacer check-in.",
       },

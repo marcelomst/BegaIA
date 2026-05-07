@@ -43,7 +43,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -325,6 +325,85 @@ function applyConversationalProposalVocative(
   return `${conversationalDisplayName}, ${normalizedBase}`;
 }
 
+const CONVERSATIONAL_NAME_DECLINE_RE =
+  /^(?:prefiero no decirlo|prefiero no decir(?: mi nombre|te)?|no quiero decirlo|no quiero decir(?: mi nombre|te)?|sin nombre|paso|mejor no|no gracias|ninguno|ningun nombre|ningún nombre)$/i;
+const CONVERSATIONAL_NAME_PROMPT_RE =
+  /(?:como|cómo)\s+(?:preferis|preferís|prefieres|queres|querés|quieres)\s+que\s+te\s+llame|how would you like me to call you|como voce prefere que eu te chame|como você prefere que eu te chame/i;
+
+function buildConversationalGreetingNamePrompt(
+  lang: "es" | "en" | "pt",
+  hotelName?: string | null,
+): string {
+  const cleanHotelName = String(hotelName || "").trim();
+  if (cleanHotelName) {
+    if (lang === "pt") return `Olá, sou a BegaIA, a assistente hoteleira digital de ${cleanHotelName}. Como você prefere que eu te chame?`;
+    if (lang === "en") return `Hello, I'm BegaIA, the digital hospitality assistant for ${cleanHotelName}. What would you like me to call you?`;
+    return `Hola, soy BegaIA, el asistente hotelero digital de ${cleanHotelName}. ¿Cómo preferís que te llame?`;
+  }
+  if (lang === "pt") return "Olá, sou a BegaIA, a assistente hoteleira digital do hotel. Como você prefere que eu te chame?";
+  if (lang === "en") return "Hello, I'm BegaIA, the hotel's digital hospitality assistant. What would you like me to call you?";
+  return "Hola, soy BegaIA, el asistente hotelero digital del hotel. ¿Cómo preferís que te llame?";
+}
+
+function buildConversationalGreetingKnownGuest(lang: "es" | "en" | "pt", displayName: string): string {
+  if (lang === "pt") return `Olá, ${displayName}. Como posso te ajudar hoje?`;
+  if (lang === "en") return `Hello, ${displayName}. How can I help you today?`;
+  return `Hola, ${displayName}. ¿En qué puedo ayudarte hoy?`;
+}
+
+function buildConversationalNameCapturedReply(lang: "es" | "en" | "pt", displayName: string): string {
+  if (lang === "pt") return `Prazer, ${displayName}. Como posso te ajudar hoje?`;
+  if (lang === "en") return `Nice to meet you, ${displayName}. How can I help you today?`;
+  return `Encantado, ${displayName}. ¿En qué puedo ayudarte hoy?`;
+}
+
+function buildConversationalNameDeclinedReply(lang: "es" | "en" | "pt"): string {
+  if (lang === "pt") return "Sem problema. Como posso te ajudar hoje?";
+  if (lang === "en") return "No problem. How can I help you today?";
+  return "No hay problema. ¿En qué puedo ayudarte hoy?";
+}
+
+function wasConversationalNameRequested(
+  lcHistory: (HumanMessage | AIMessage)[],
+): boolean {
+  const lastAi = [...lcHistory].reverse().find((message) => message instanceof AIMessage) as AIMessage | undefined;
+  const lastAiText = String(lastAi?.content || "").trim();
+  return CONVERSATIONAL_NAME_PROMPT_RE.test(lastAiText);
+}
+
+function hasRecentConversationalNameHandshake(
+  lcHistory: (HumanMessage | AIMessage)[],
+): boolean {
+  const recentAiTexts = [...lcHistory]
+    .reverse()
+    .filter((message) => message instanceof AIMessage)
+    .slice(0, 3)
+    .map((message) => String(message.content || "").trim());
+  return recentAiTexts.some((text) =>
+    CONVERSATIONAL_NAME_PROMPT_RE.test(text) ||
+    /^(Encantado|Prazer|Nice to meet you),\s+/i.test(text)
+  );
+}
+
+function isConversationalNameDecline(text: string): boolean {
+  return CONVERSATIONAL_NAME_DECLINE_RE.test(String(text || "").trim());
+}
+
+function isPureConversationalGreeting(text: string): boolean {
+  return /^(hola|buenas|buenos dias|buenos días|buen día|buen dia|hello|hi|hey|ola|olá|oi)$/i.test(
+    String(text || "").trim()
+  );
+}
+
+function hasPriorConversationTurns(lcHistory: (HumanMessage | AIMessage)[], currentUserText: string): boolean {
+  const currentTrimmed = String(currentUserText || "").trim();
+  return lcHistory.some((message) => {
+    const content = String(message.content || "").trim();
+    if (message instanceof AIMessage) return Boolean(content);
+    return Boolean(content) && content !== currentTrimmed;
+  });
+}
+
 type RoutingDecisionLog = {
   decision_layer: string;
   route_source: string;
@@ -448,9 +527,18 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   }
   const currSlots = mergeReservationSlots(prevSlotsStrict, turnSlots);
   console.log('[DEBUG-numGuests] currSlots:', JSON.stringify(currSlots));
-  return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, currSlots };
+  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
+  return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, currSlots, hotelConfig };
 }
 function safeNowISO() { return new Date().toISOString(); }
+
+async function getHotelConfigSafe(hotelId: string) {
+  try {
+    return await Promise.resolve(getHotelConfig(hotelId));
+  } catch {
+    return null;
+  }
+}
 
 function computeInModifyMode(
   st: any,
@@ -3247,7 +3335,7 @@ async function tryStructuredAnalyze(params: {
     if (!FORCE_GENERATION && (isTestEnv || !process.env.OPENAI_API_KEY)) {
       return null;
     }
-    const hotel = await getHotelConfig(params.hotelId).catch(() => null);
+    const hotel = await getHotelConfigSafe(params.hotelId);
     const model = new ChatOpenAI({
       model: CONFIG.STRUCTURED_MODEL,
       temperature: 0.2,
@@ -3379,6 +3467,7 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
 // ===== Agent: InputNormalizer (preLLM) =====
 type PreLLMResult = {
   lang: "es" | "en" | "pt";
+  hotelConfig?: { hotelName?: string } | null;
   currSlots: ReservationSlotsStrict;
   prevCategory: string | null;
   prevSlotsStrict: ReservationSlotsStrict;
@@ -3475,7 +3564,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const confirmedBooking = hasConfirmed ? { code: "-" } : null;
   const stateForPlaybook: ConversationState = { draft: draftExists ? { ...currSlots } : null, confirmedBooking, locale: lang };
   const intent = detectIntent(String(msg.content || ""), stateForPlaybook);
-  const hotelConfig = await getHotelConfig(msg.hotelId).catch(() => null);
+  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
 
   // --- NUEVO: modo modificación persistente reforzado ---
   const normalizedReservationIntent = normalizeReservationIntent(String(msg.content || ""));
@@ -3570,6 +3659,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
 
   return {
     lang,
+    hotelConfig,
     currSlots,
     prevCategory,
     prevSlotsStrict,
@@ -3681,6 +3771,96 @@ function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState):
     decision_layer: "bodyLLM",
     route_source: "test_greeting_fastpath",
     route_match: "ENABLE_TEST_FASTPATH:greeting",
+    early_return: true,
+    used_llm_classifier: false,
+    classifier_source: "heuristic",
+    final_category: state.nextCategory,
+    final_prompt_key: null,
+  });
+  return true;
+}
+
+async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {
+  const guestDisplayName = String(getConversationalDisplayName(pre.guest) || "").trim();
+  const userText = String(pre.msg.content || "").trim();
+  if (!userText) return false;
+
+  const requestedNameLastTurn =
+    !guestDisplayName &&
+    wasConversationalNameRequested(pre.lcHistory);
+
+  if (requestedNameLastTurn) {
+    if (isConversationalNameDecline(userText)) {
+      state.finalText = buildConversationalNameDeclinedReply(pre.lang);
+      state.nextCategory = "retrieval_based";
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "bodyLLM",
+        route_source: "conversational_guest_name_capture",
+        route_match: "declined_name_capture",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: state.nextCategory,
+        final_prompt_key: null,
+      });
+      return true;
+    }
+
+    if (looksLikeName(userText)) {
+      const normalizedName = normalizeNameCase(userText);
+      const firstName = normalizedName.split(/\s+/)[0] || normalizedName;
+      await updateGuest(pre.msg.hotelId, pre.msg.guestId || pre.guest?.guestId || "guest", {
+        name: normalizedName,
+        firstName,
+      });
+      pre.guest = {
+        ...(pre.guest || {}),
+        name: normalizedName,
+        firstName,
+      };
+      state.finalText = buildConversationalNameCapturedReply(pre.lang, firstName);
+      state.nextCategory = "retrieval_based";
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "bodyLLM",
+        route_source: "conversational_guest_name_capture",
+        route_match: "captured_name",
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: state.nextCategory,
+        final_prompt_key: null,
+      });
+      return true;
+    }
+  }
+
+  if (!isPureConversationalGreeting(userText) || pre.inModifyMode) return false;
+
+  const hasPriorTurns = hasPriorConversationTurns(pre.lcHistory, userText);
+  if (guestDisplayName) {
+    state.finalText = buildConversationalGreetingKnownGuest(pre.lang, guestDisplayName);
+    state.nextCategory = "retrieval_based";
+    emitRoutingDecision(pre.msg, {
+      decision_layer: "bodyLLM",
+      route_source: "conversational_guest_name_capture",
+      route_match: "known_guest_greeting",
+      early_return: true,
+      used_llm_classifier: false,
+      classifier_source: "heuristic",
+      final_category: state.nextCategory,
+      final_prompt_key: null,
+    });
+    return true;
+  }
+
+  if (hasPriorTurns) return false;
+
+  state.finalText = buildConversationalGreetingNamePrompt(pre.lang, pre.hotelConfig?.hotelName);
+  state.nextCategory = "retrieval_based";
+  emitRoutingDecision(pre.msg, {
+    decision_layer: "bodyLLM",
+    route_source: "conversational_guest_name_capture",
+    route_match: "new_guest_greeting",
     early_return: true,
     used_llm_classifier: false,
     classifier_source: "heuristic",
@@ -4155,7 +4335,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (dominantTurnDomain.dominant === "reservation" || dominantTurnDomain.dominant === "pricing")
     )
   ) {
-    const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+    const hotel = await getHotelConfigSafe(pre.msg.hotelId);
     const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
     finalText = buildEarlyCheckinResponse(pre.lang, guestState, {
       checkInTime: confCheckIn,
@@ -6081,8 +6261,57 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       graphResult,
     };
   }
+  const hasConversationalGuestName =
+    isSafeGuestName(String(pre.guest?.name || "")) ||
+    hasRecentConversationalNameHandshake(pre.lcHistory);
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
   const pendingCreateProposal = isPendingCreateProposalContext(pre, userTxtRaw);
+  if (
+    hasConversationalGuestName &&
+    looksExplicitNewReservation &&
+    !modifyExecutionActive &&
+    !hasConfirmedBookingContext &&
+    !pendingCreateProposal &&
+    !nextCreateMissingField &&
+    isCreateStateReadyForQuote(createDraftConsistency.sanitizedSlots)
+  ) {
+    const readyCreateCheckIn = createDraftConsistency.sanitizedSlots.checkIn;
+    const readyCreateCheckOut = createDraftConsistency.sanitizedSlots.checkOut;
+    const readyCreateDateCoherence = assessReservationDateCoherence(readyCreateCheckIn, readyCreateCheckOut);
+    if (readyCreateDateCoherence && !readyCreateDateCoherence.ok) {
+      finalText = buildInvalidReservationDatesReply(pre.lang, readyCreateDateCoherence.reason);
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+    const readyCreateResult = await runAvailabilityCheck(
+      pre,
+      createDraftConsistency.sanitizedSlots,
+      readyCreateCheckIn!,
+      readyCreateCheckOut!
+    );
+    const readyCreateSnapshot = {
+      ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, createDraftConsistency.sanitizedSlots),
+      locale: pre.lang,
+    } as ReservationSlotsStrict;
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationSlots: readyCreateSnapshot,
+      lastProposal: {
+        text: readyCreateResult.finalText,
+        available: true,
+      },
+      conversationFocus: buildConversationFocus("create"),
+      activeReservationContext: buildDraftReservationContext("quoted"),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      pendingAvailabilityVerification: null,
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+    finalText = readyCreateResult.finalText;
+    nextSlots = readyCreateSnapshot;
+    return { finalText, nextCategory: "reservation", nextSlots, needsSupervision: needsSupervision || readyCreateResult.needsHandoff, graphResult };
+  }
   if (pendingCreateProposal && !modifyExecutionActive) {
     const trimmedQuotedReply = String(pre.msg.content || "").trim();
     const normalizedQuotedReply = normalizeReferenceText(trimmedQuotedReply);
@@ -7066,7 +7295,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   if (offeredTimeSide && isPureAffirmative(userTxtRaw, pre.lang)) {
     // Intentar leer horario exacto desde la configuración del hotel; si no existe, responder sin inventar
     try {
-      const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+      const hotel = await getHotelConfigSafe(pre.msg.hotelId);
       const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
       const time = offeredTimeSide === "checkin" ? confCheckIn : confCheckOut;
       if (time && typeof time === "string") {
@@ -7524,6 +7753,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     void started;
     Object.assign(state, { finalText, nextCategory, nextSlots, needsSupervision, graphResult, explicitRich });
     try {
+      if (await tryConversationalGuestNameCapture(pre, state)) {
+        return toBodyLLMResult(state);
+      }
       // Frontera 1: shortcut de test aislado del razonamiento semántico
       if (!tryBodyLLMTestGreetingFastpath(pre, state)) {
         finalText = state.finalText;
@@ -7623,7 +7855,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
         }
         if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {
-          const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+          const hotel = await getHotelConfigSafe(pre.msg.hotelId);
           const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
           finalText = buildEarlyCheckinResponse(pre.lang, kbGuestState, {
             checkInTime: confCheckIn,
@@ -7634,7 +7866,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
         if (postBookingTimeQ && hasConfirmedBookingContext) {
           try {
-            const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+            const hotel = await getHotelConfigSafe(pre.msg.hotelId);
             const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
             const asksCheckOut = detectDateSideFromText(kbUserText) === "checkOut" || /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(kbUserText);
             const time = asksCheckOut ? confCheckOut : confCheckIn;
@@ -8378,7 +8610,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       nextCategory = "checkout_info";
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     } else if (earlyCheckinQ) {
-      const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+      const hotel = await getHotelConfigSafe(pre.msg.hotelId);
       const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);
       finalText = buildEarlyCheckinResponse(pre.lang, guestState, {
         checkInTime: confCheckIn,
@@ -8393,7 +8625,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
       if (hasConfirmedBookingContext) {
         try {
-          const hotel = await getHotelConfig(pre.msg.hotelId).catch(() => null);
+          const hotel = await getHotelConfigSafe(pre.msg.hotelId);
           const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);
           const asksCheckOut = detectDateSideFromText(String(pre.msg.content || "")) === "checkOut" || /check\s*-?out|salida|egreso|retirada|partida|sa[ií]da/i.test(String(pre.msg.content || ""));
           const time = asksCheckOut ? confCheckOut : confCheckIn;
@@ -9448,6 +9680,7 @@ export async function handleIncomingMessage(
       const inModifyModeFallback = computeInModifyMode(ctx.st, ctx.currSlots, String(msg.content || ""));
       pre = options?.preLLMInput || {
         lang: ctx.lang,
+        hotelConfig: ctx.hotelConfig,
         currSlots: ctx.currSlots,
         prevCategory: ctx.prevCategory,
         prevSlotsStrict: ctx.prevSlotsStrict,
