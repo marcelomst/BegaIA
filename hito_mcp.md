@@ -8199,3 +8199,43 @@ Impacto:
 - evita que typos mínimos degraden a `create`
 - alinea `messageHandler` con `pipeline/intent` sin fuzzy matching global
 - mantiene explícito y acotado el conjunto de variantes toleradas
+
+### FEAT-HOTEL-ASSISTANT-BRANDING-CONFIG-58
+
+Estado: COMPLETADO  
+Fecha: 2026-05-07  
+Commit: a55fc61ea67dc132e407998716815655312a35a7
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se agrega configuración básica y opcional de branding textual del asistente
+por hotel mediante `assistantBranding`, permitiendo definir `displayName` y
+`roleLabel` con fallback seguro a `BegaIA` y `el asistente hotelero digital`,
+usando `hotelName` cuando está disponible y preservando la separación entre
+identidad del asistente, guest conversacional y titular transaccional de
+reserva.
+
+Archivos afectados:
+
+- `types/channel.ts`
+- `lib/config/hotelConfig.server.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `scripts/set-assistant-branding.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- centraliza la identidad textual del asistente en `hotelConfig`
+
+Impacto:
+
+- permite branding textual básico por hotel con configuración opcional
+- reduce hardcodes en runtime con fallback seguro a `BegaIA`
+- usa `hotelName` cuando está disponible para contextualizar la identidad
+- preserva la separación entre asistente, guest conversacional y titular de
+  reserva
