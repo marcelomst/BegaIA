@@ -8162,3 +8162,40 @@ Impacto:
 - persiste el nombre sobre el guest canónico sin contaminar titulares de reserva
 - usa `hotelConfig.hotelName` cuando está disponible y mantiene fallback seguro
 - conserva el path correcto de proposal para `create` explícito completo
+
+### FIX-AVAILABILITY-INQUIRY-TYPO-TOLERANCE-57
+
+Estado: COMPLETADO  
+Fecha: 2026-05-07  
+Commit: a8a0c044db91e81d73ec27cea2dd365f11947a2f
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se agrega tolerancia mínima y explícita a typos frecuentes de disponibilidad
+en `availability inquiry`, corrigiendo variantes puntuales como
+`diponible`, `disponiblidad` y `disponivilidad` para que sigan el flujo de
+consulta de disponibilidad sin abrir `create` ni pedir
+`reservationHolderName` cuando el usuario solo consulta.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/intent.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene una sola semántica de `availability inquiry`
+
+Impacto:
+
+- tolera errores razonables del usuario en consultas de disponibilidad
+- evita que typos mínimos degraden a `create`
+- alinea `messageHandler` con `pipeline/intent` sin fuzzy matching global
+- mantiene explícito y acotado el conjunto de variantes toleradas
