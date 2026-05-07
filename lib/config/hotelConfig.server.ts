@@ -64,6 +64,16 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
     iso3to1: doc.iso3to1 ?? undefined,
     verification: doc.verification ?? undefined,
     retrievalSettings: doc.retrievalSettings ?? undefined,
+    assistantBranding: doc.assistantBranding
+      ? {
+        displayName: typeof doc.assistantBranding.displayName === "string"
+          ? doc.assistantBranding.displayName
+          : undefined,
+        roleLabel: typeof doc.assistantBranding.roleLabel === "string"
+          ? doc.assistantBranding.roleLabel
+          : undefined,
+      }
+      : undefined,
     country: doc.country,
     city: doc.city,
     address: doc.address,

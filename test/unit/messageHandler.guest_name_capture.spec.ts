@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let currentState: any = null;
 let guestRecord: any = null;
+let hotelConfigRecord: any = null;
 const storedMessages: any[] = [];
 
 vi.mock("@/lib/db/messages", () => ({
@@ -103,16 +104,7 @@ vi.mock("@/lib/prompts", () => ({
   curatedPrompts: {},
 }));
 vi.mock("@/lib/config/hotelConfig.server", () => ({
-  getHotelConfig: vi.fn(async () => ({
-    hotelId: "hotel999",
-    hotelName: "Hotel Demo",
-    defaultLanguage: "es",
-    timezone: "UTC",
-    channelConfigs: {},
-    users: [],
-    lastUpdated: new Date().toISOString(),
-    reservations: {},
-  })),
+  getHotelConfig: vi.fn(async () => hotelConfigRecord),
 }));
 vi.mock("@/lib/web/eventBus", () => ({ emitToConversation: vi.fn(() => {}) }));
 vi.mock("@/lib/utils/debugLog", () => ({ debugLog: vi.fn() }));
@@ -153,8 +145,47 @@ describe("messageHandler guest conversational name capture", () => {
   beforeEach(() => {
     currentState = null;
     guestRecord = null;
+    hotelConfigRecord = {
+      hotelId: "hotel999",
+      hotelName: "Hotel Demo",
+      defaultLanguage: "es",
+      timezone: "UTC",
+      channelConfigs: {},
+      users: [],
+      lastUpdated: new Date().toISOString(),
+      reservations: {},
+    };
     storedMessages.length = 0;
     vi.clearAllMocks();
+  });
+
+  it("saludo sin branding mantiene fallback actual con hotelName", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Hola, soy BegaIA, el asistente hotelero digital de Hotel Demo. ¿Cómo preferís que te llame?");
+  });
+
+  it("saludo con branding configurado usa assistantBranding del hotel", async () => {
+    hotelConfigRecord.assistantBranding = {
+      displayName: "Vera",
+      roleLabel: "la asistente hotelera digital",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Hola, soy Vera, la asistente hotelera digital de Hotel Demo. ¿Cómo preferís que te llame?");
+  });
+
+  it("saludo sin hotelName usa fallback seguro del hotel", async () => {
+    hotelConfigRecord.hotelName = undefined;
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Hola, soy BegaIA, el asistente hotelero digital del hotel. ¿Cómo preferís que te llame?");
   });
 
   it("pide nombre en saludo inicial puro de guest nuevo y luego lo persiste", async () => {
@@ -198,9 +229,14 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("saludo + captura + create explícito completo domina sobre verify y conserva vocativo + titular", async () => {
+    hotelConfigRecord.assistantBranding = {
+      displayName: "Vera",
+      roleLabel: "la asistente hotelera digital",
+    };
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    expect(lastReply(sendReply)).toBe("Hola, soy Vera, la asistente hotelera digital de Hotel Demo. ¿Cómo preferís que te llame?");
     await handleIncomingMessage(msg("Ana"), { mode: "automatic", sendReply });
     await handleIncomingMessage(
       msg("quiero hacer una reserva para el dia 8/5/2026 al 10/5/2026, una triple, para 3 personas, a nombre de Raul Olivera"),

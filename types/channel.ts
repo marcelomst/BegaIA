@@ -175,6 +175,10 @@ export type HotelConfig = {
   users?: HotelUser[];
   verification?: { baseUrl?: string };
   retrievalSettings?: { useAstra: boolean; fallbackUrl?: string };
+  assistantBranding?: {
+    displayName?: string;
+    roleLabel?: string;
+  };
   /** Banderas globales del flujo de reservas del hotel */
   reservations?: ReservationsFlags;
   /** Gobernanza semántica incremental por hotel */

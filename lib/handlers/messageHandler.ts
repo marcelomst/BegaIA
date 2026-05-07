@@ -332,17 +332,32 @@ const CONVERSATIONAL_NAME_PROMPT_RE =
 
 function buildConversationalGreetingNamePrompt(
   lang: "es" | "en" | "pt",
-  hotelName?: string | null,
+  hotelConfig?: {
+    hotelName?: string | null;
+    assistantBranding?: {
+      displayName?: string | null;
+      roleLabel?: string | null;
+    } | null;
+  } | null,
 ): string {
-  const cleanHotelName = String(hotelName || "").trim();
+  const cleanHotelName = String(hotelConfig?.hotelName || "").trim();
+  const displayName = String(hotelConfig?.assistantBranding?.displayName || "BegaIA").trim() || "BegaIA";
+  const roleLabelEs = String(hotelConfig?.assistantBranding?.roleLabel || "el asistente hotelero digital").trim()
+    || "el asistente hotelero digital";
+  const roleLabelPt = roleLabelEs === "el asistente hotelero digital"
+    ? "a assistente hoteleira digital"
+    : roleLabelEs;
+  const roleLabelEn = roleLabelEs === "el asistente hotelero digital"
+    ? "the digital hospitality assistant"
+    : roleLabelEs;
   if (cleanHotelName) {
-    if (lang === "pt") return `Olá, sou a BegaIA, a assistente hoteleira digital de ${cleanHotelName}. Como você prefere que eu te chame?`;
-    if (lang === "en") return `Hello, I'm BegaIA, the digital hospitality assistant for ${cleanHotelName}. What would you like me to call you?`;
-    return `Hola, soy BegaIA, el asistente hotelero digital de ${cleanHotelName}. ¿Cómo preferís que te llame?`;
+    if (lang === "pt") return `Olá, sou ${displayName}, ${roleLabelPt} de ${cleanHotelName}. Como você prefere que eu te chame?`;
+    if (lang === "en") return `Hello, I'm ${displayName}, ${roleLabelEn} for ${cleanHotelName}. What would you like me to call you?`;
+    return `Hola, soy ${displayName}, ${roleLabelEs} de ${cleanHotelName}. ¿Cómo preferís que te llame?`;
   }
-  if (lang === "pt") return "Olá, sou a BegaIA, a assistente hoteleira digital do hotel. Como você prefere que eu te chame?";
-  if (lang === "en") return "Hello, I'm BegaIA, the hotel's digital hospitality assistant. What would you like me to call you?";
-  return "Hola, soy BegaIA, el asistente hotelero digital del hotel. ¿Cómo preferís que te llame?";
+  if (lang === "pt") return `Olá, sou ${displayName}, ${roleLabelPt} do hotel. Como você prefere que eu te chame?`;
+  if (lang === "en") return `Hello, I'm ${displayName}, ${roleLabelEn} for the hotel. What would you like me to call you?`;
+  return `Hola, soy ${displayName}, ${roleLabelEs} del hotel. ¿Cómo preferís que te llame?`;
 }
 
 function buildConversationalGreetingKnownGuest(lang: "es" | "en" | "pt", displayName: string): string {
@@ -3474,7 +3489,13 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
 // ===== Agent: InputNormalizer (preLLM) =====
 type PreLLMResult = {
   lang: "es" | "en" | "pt";
-  hotelConfig?: { hotelName?: string } | null;
+  hotelConfig?: {
+    hotelName?: string;
+    assistantBranding?: {
+      displayName?: string;
+      roleLabel?: string;
+    } | null;
+  } | null;
   currSlots: ReservationSlotsStrict;
   prevCategory: string | null;
   prevSlotsStrict: ReservationSlotsStrict;
@@ -3862,7 +3883,7 @@ async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyL
 
   if (hasPriorTurns) return false;
 
-  state.finalText = buildConversationalGreetingNamePrompt(pre.lang, pre.hotelConfig?.hotelName);
+  state.finalText = buildConversationalGreetingNamePrompt(pre.lang, pre.hotelConfig);
   state.nextCategory = "retrieval_based";
   emitRoutingDecision(pre.msg, {
     decision_layer: "bodyLLM",
