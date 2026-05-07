@@ -22,8 +22,16 @@ const RE_CANCEL = /(cancel|anul|cance(lar)?)/i;
 const RE_AVAIL = /(disponibil|availability|hay\s+disponibilidad|tienen\s+disponibilidad|have\s+availability)/i;
 const RE_SUPPORT = /(wifi|wi[- ]?fi|internet|estacionamiento|parking|spa|pileta|piscina|pool|desayuno|breakfast)/i;
 
+function normalizeAvailabilityTypos(text: string): string {
+    return String(text || '')
+        .toLowerCase()
+        .replace(/\bdiponible\b/g, 'disponible')
+        .replace(/\bdisponiblidad\b/g, 'disponibilidad')
+        .replace(/\bdisponivilidad\b/g, 'disponibilidad');
+}
+
 export function detectIntentRich(textRaw: string, _opts?: DetectIntentOptions): RichIntentResult {
-    const text = String(textRaw || '').toLowerCase();
+    const text = normalizeAvailabilityTypos(textRaw || '');
     const reasons: string[] = [];
     if (RE_MODIFY.test(text)) { reasons.push('modify:RE_MODIFY'); return { raw: 'modify_reservation', normalized: 'modify', reasons }; }
     if (RE_RESERVATION.test(text)) { reasons.push('reservation:RE_RESERVATION'); return { raw: 'reservation', normalized: 'reservation', reasons }; }

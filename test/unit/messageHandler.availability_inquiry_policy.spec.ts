@@ -169,6 +169,26 @@ describe("messageHandler availability inquiry policy", () => {
     expect(currentState?.desiredAction).toBeUndefined();
   });
 
+  it("availability inquiry con typo en disponible y fecha absoluta sigue sin pedir titular ni confirmación", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("tiene diponible una doble del 08/05/2026 al 10/05/2026"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-05-08",
+      checkOut: "2026-05-10",
+    });
+    expect(currentState?.lastCategory).toBe("availability_inquiry");
+  });
+
   it("availability inquiry después de reserva activa domina sobre modify y no dice 'Anoté nuevas fechas'", async () => {
     const sendReply = vi.fn(async () => {});
     currentState = {
@@ -482,6 +502,19 @@ describe("messageHandler availability inquiry policy", () => {
 
     expect(lastReply(sendReply)).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(currentState?.lastCategory).toBe("reservation");
+  });
+
+  it("no crea falso positivo de availability inquiry solo por roomType", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero una doble"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).not.toMatch(/disponible|disponibilidad|tarifa por noche/i);
+    expect(currentState?.lastCategory).not.toBe("availability_inquiry");
   });
 
   it("regresión: confirmación explícita sigue funcionando en create quoted", async () => {

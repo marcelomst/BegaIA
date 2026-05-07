@@ -229,4 +229,25 @@ describe("messageHandler guest conversational name capture", () => {
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
   });
+
+  it("saludo + captura + availability inquiry con typo conserva inquiry y no pide titular", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(
+      msg("tiene diponible una doble para este fin de semana"),
+      { mode: "automatic", sendReply }
+    );
+
+    const firstReply = lastReply(sendReply);
+    if (/cu[aá]ntos hu[eé]spedes/i.test(firstReply)) {
+      await handleIncomingMessage(msg("2"), { mode: "automatic", sendReply });
+    }
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Marcelo,\s+tengo doble disponible\./i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+  });
 });

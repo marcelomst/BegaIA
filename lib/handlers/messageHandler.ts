@@ -849,8 +849,15 @@ function isExplicitCreateReservationIntent(text: string): boolean {
   );
 }
 
+function normalizeAvailabilityInquiryText(text: string): string {
+  return normalizeReferenceText(text || "")
+    .replace(/\bdiponible\b/g, "disponible")
+    .replace(/\bdisponiblidad\b/g, "disponibilidad")
+    .replace(/\bdisponivilidad\b/g, "disponibilidad");
+}
+
 function isAvailabilityInquiryIntent(text: string): boolean {
-  const normalizedText = normalizeReferenceText(text || "");
+  const normalizedText = normalizeAvailabilityInquiryText(text || "");
   if (!normalizedText) return false;
   if (isExplicitCreateReservationIntent(text)) return false;
   const mentionsAvailability = /\b(disponibil\w*|disponible|availability|available)\b/.test(normalizedText);
