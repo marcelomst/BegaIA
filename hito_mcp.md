@@ -8278,3 +8278,47 @@ Impacto:
 - valida y rechaza valores inválidos de forma consistente entre UI y API
 - permite limpiar branding a fallback seguro mediante `assistantBranding null`
 - preserva separación entre runtime, branding textual y capa Admin/UI
+
+### FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60
+
+Estado: COMPLETADO  
+Fecha: 2026-05-08  
+Commit: 249ca2ca2f36f11915645f8baa5486bdc2e171cc
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se extiende `assistantBranding` con `acknowledgementLabel` como campo
+controlado de copy para confirmar cómo el asistente llamará al huésped
+después del saludo inicial, usando una lista cerrada de opciones, fallback
+seguro a `Encantado` y una regla canónica de limpieza total que elimina
+`assistantBranding` completo cuando `displayName` y `roleLabel` quedan
+vacíos.
+
+Archivos afectados:
+
+- `types/channel.ts`
+- `lib/config/hotelConfig.server.ts`
+- `lib/config/assistantBranding.ts`
+- `lib/handlers/messageHandler.ts`
+- `components/admin/EditHotelForm.tsx`
+- `test/unit/hotels.update.assistant_branding.route.spec.ts`
+- `test/frontend/editHotelForm.assistantBranding.spec.tsx`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- runtime, API y Admin comparten helper y contrato de branding
+
+Impacto:
+
+- agrega `acknowledgementLabel` como copy configurable con lista cerrada
+- mantiene fallback seguro a `Encantado`
+- aplica una limpieza canónica que elimina `assistantBranding` completo al
+  vaciar `displayName` y `roleLabel`
+- evita inferencia gramatical frágil y mezcla con `guest.name` o
+  `reservationHolderName`
