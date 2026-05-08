@@ -8322,3 +8322,39 @@ Impacto:
   vaciar `displayName` y `roleLabel`
 - evita inferencia gramatical frágil y mezcla con `guest.name` o
   `reservationHolderName`
+
+### DOC-DEMO-PRESENTATION-RESYNC-BEGAIA-61
+
+Estado: COMPLETADO  
+Fecha: 2026-05-08  
+Commit: fda64cc150c3432b58d0ac982e4b2a16b0bd44f4
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se resincronizan los documentos existentes de presentación/demo para usar
+`BegaIA` como branding externo, mantener `Begasist` como nombre
+interno/histórico y actualizar la narrativa y el mapa de capacidades con el
+estado real validado hasta `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`,
+usando la línea reciente `51–60` como contexto prudente de demo sin inflar
+claims productivos.
+
+Archivos afectados:
+
+- `docs/product/presentation_narrative_base.md`
+- `docs/product/presentation_capability_map.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene alineados narrativa comercial y capability map con el estado real
+
+Impacto:
+
+- centraliza `BegaIA` como naming externo en materiales de demo
+- preserva `Begasist` como referencia interna e histórica
+- actualiza claims seguros según el estado real validado hasta el hito 60
+- evita abrir documentos paralelos o prometer capacidades no validadas
