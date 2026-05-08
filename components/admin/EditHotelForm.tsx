@@ -5,6 +5,11 @@ import { Country, City } from "country-state-city";
 import TagSelect from "@/components/ui/TagSelect";
 import { normalizeAmenityTags, amenityLabel } from "@/lib/taxonomy/amenities";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
+import {
+  ASSISTANT_BRANDING_LIMITS,
+  buildAssistantGreetingNamePrompt,
+  normalizeAssistantBrandingInput,
+} from "@/lib/config/assistantBranding";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { suggestRoomIcon } from "@/lib/rooms/roomIcons";
 import type { HotelConfig, Channel, ChannelConfigMap, WhatsAppConfig } from "@/types/channel";
@@ -211,6 +216,7 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   const [t, setT] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [updateWarnings, setUpdateWarnings] = useState<string[]>([]);
   const [iconManual, setIconManual] = useState<Record<number, boolean>>({});
   const [attractionsBusy, setAttractionsBusy] = useState(false);
@@ -307,6 +313,7 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
 
         setHotel({
           ...cfg,
+          assistantBranding: isPlainObject((cfg as any).assistantBranding) ? (cfg as any).assistantBranding : undefined,
           amenities,
           reservations: isPlainObject(cfg.reservations) ? cfg.reservations : {},
           channelConfigs: isPlainObject(cfg.channelConfigs) ? cfg.channelConfigs : {},
@@ -348,6 +355,16 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!hotel) return;
+    const brandingValidation = normalizeAssistantBrandingInput(hotel.assistantBranding);
+    if (brandingValidation.error) {
+      if (brandingValidation.error === "assistant_branding_display_name_too_long") {
+        setError(`El nombre del asistente no puede superar ${ASSISTANT_BRANDING_LIMITS.displayName} caracteres.`);
+      } else {
+        setError(`El rol o presentación no puede superar ${ASSISTANT_BRANDING_LIMITS.roleLabel} caracteres.`);
+      }
+      setSuccessMessage(null);
+      return;
+    }
     const waCfg: any = hotel.channelConfigs?.whatsapp;
     if (waCfg?.provider === "twilio") {
       const twilioNum = String(waCfg?.twilioWhatsAppNumber ?? waCfg?.twilioFrom ?? "").trim();
@@ -370,12 +387,19 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     }
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
     try {
-      const res = await fetch("/api/hotels/update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hotelId, updates: hotel }) });
+      const updates = {
+        ...hotel,
+        assistantBranding: brandingValidation.value,
+      };
+      const res = await fetch("/api/hotels/update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hotelId, updates }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Error");
-      onSaved?.(hotel);
+      setHotel((current) => current ? { ...current, assistantBranding: brandingValidation.value ?? undefined } : current);
+      onSaved?.({ ...hotel, assistantBranding: brandingValidation.value ?? undefined });
       setUpdateWarnings(Array.isArray(json.warnings) ? json.warnings : []);
+      setSuccessMessage("Configuración guardada correctamente.");
     } catch (err: any) {
       setError(err.message || "Error guardando");
     } finally {
@@ -384,7 +408,6 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
   }
 
   if (loading) return <div className="mt-10 text-center">Cargando…</div>;
-  if (error) return <div className="mt-10 text-center text-red-600">{error}</div>;
   if (!hotel || !t) return <div className="mt-10 text-center">Sin datos</div>;
 
   // Validación de horarios (HH:mm o HH:mm a HH:mm)
@@ -401,6 +424,18 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     Object.entries(hotel.amenities?.schedules || {}).map(([k, v]) => [k, !isValidTimeOrRange(v)])
   );
   const hasScheduleErrors = Object.values(scheduleErrors).some(Boolean) || Object.values(amenScheduleErrors).some(Boolean);
+  const assistantGreetingPreview = buildAssistantGreetingNamePrompt({
+    lang: "es",
+    hotelName: hotel.hotelName,
+    assistantBranding: hotel.assistantBranding,
+  });
+  const brandingValidation = normalizeAssistantBrandingInput(hotel.assistantBranding);
+  const brandingError =
+    brandingValidation.error === "assistant_branding_display_name_too_long"
+      ? `Máximo ${ASSISTANT_BRANDING_LIMITS.displayName} caracteres para el nombre del asistente.`
+      : brandingValidation.error === "assistant_branding_role_label_too_long"
+        ? `Máximo ${ASSISTANT_BRANDING_LIMITS.roleLabel} caracteres para el rol o presentación.`
+        : null;
 
   const channelConfigs = hotel.channelConfigs || EMPTY_CHANNEL_CONFIGS;
 
@@ -432,6 +467,52 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
               <span className="font-semibold text-sm">{t.hotelEdit.name || "Nombre"}</span>
               <input className="border p-2 rounded w-full mt-1" value={hotel.hotelName ?? ""} onChange={e => setHotel(h => h ? { ...h, hotelName: e.target.value } : h)} required />
             </label>
+            <div className="p-3 border rounded bg-white/60 dark:bg-zinc-900/40">
+              <h2 className="font-semibold mb-2 text-sm">Branding del asistente</h2>
+              <div className="grid gap-2">
+                <label className="text-xs">
+                  <span className="font-medium">Nombre del asistente</span>
+                  <input
+                    aria-label="Nombre del asistente"
+                    className="border p-2 rounded w-full mt-1"
+                    placeholder="Vera"
+                    maxLength={60}
+                    value={hotel.assistantBranding?.displayName ?? ""}
+                    onChange={e => setHotel(h => h ? ({
+                      ...h,
+                      assistantBranding: {
+                        ...(h.assistantBranding ?? {}),
+                        displayName: e.target.value,
+                      },
+                    }) : h)}
+                  />
+                </label>
+                <label className="text-xs">
+                  <span className="font-medium">Rol o presentación del asistente</span>
+                  <input
+                    aria-label="Rol o presentación del asistente"
+                    className="border p-2 rounded w-full mt-1"
+                    placeholder="la asistente hotelera digital"
+                    maxLength={120}
+                    value={hotel.assistantBranding?.roleLabel ?? ""}
+                    onChange={e => setHotel(h => h ? ({
+                      ...h,
+                      assistantBranding: {
+                        ...(h.assistantBranding ?? {}),
+                        roleLabel: e.target.value,
+                      },
+                    }) : h)}
+                  />
+                </label>
+                {brandingError && (
+                  <div className="text-xs text-red-600">{brandingError}</div>
+                )}
+                <div className="rounded border bg-slate-50 p-3 text-xs text-slate-700">
+                  <div className="font-medium mb-1">Vista previa del saludo</div>
+                  <div>{assistantGreetingPreview}</div>
+                </div>
+              </div>
+            </div>
             <div className="p-3 border rounded bg-white/60 dark:bg-zinc-900/40">
               <h2 className="font-semibold mb-2 text-sm">Perfil del hotel</h2>
               <div className="grid gap-2">
@@ -866,15 +947,25 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
 
       <div className="mt-6 flex items-center justify-between">
         {hasScheduleErrors && (<div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">Corrige horarios inválidos antes de guardar.</div>)}
-        <button type="submit" form="hotel-edit-form" disabled={loading || hasScheduleErrors} className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50">
+        <button type="submit" form="hotel-edit-form" disabled={loading || hasScheduleErrors || Boolean(brandingError)} className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50">
           {loading ? 'Guardando…' : hasScheduleErrors ? 'Corrige horarios' : 'Guardar configuración'}
         </button>
       </div>
 
+      {error && (
+        <div className="mt-4 p-3 border rounded bg-red-50 text-xs text-red-700">
+          {error}
+        </div>
+      )}
       {updateWarnings.length > 0 && (
         <div className="mt-4 p-3 border rounded bg-yellow-50 text-xs text-yellow-800">
           <strong>Advertencias:</strong>
           <ul className="list-disc ml-4 mt-1">{updateWarnings.map((w,i) => <li key={i}>{w}</li>)}</ul>
+        </div>
+      )}
+      {successMessage && (
+        <div className="mt-4 p-3 border rounded bg-green-50 text-xs text-green-800">
+          {successMessage}
         </div>
       )}
     </div>

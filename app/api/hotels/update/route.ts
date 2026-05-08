@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getHotelConfig, updateHotelConfig } from "@/lib/config/hotelConfig.server";
 import { resolveEmailCredentials } from "@/lib/email/resolveEmailCredentials";
+import { normalizeAssistantBrandingInput } from "@/lib/config/assistantBranding";
 
 function normalizeText(v: string) {
   return String(v || "")
@@ -51,6 +52,14 @@ export async function POST(req: NextRequest) {
   // ⚠️ No cambiar nombre del hotel system
   if (hotelId === "system" && updates.hotelName) {
     return NextResponse.json({ error: "No se puede cambiar el nombre del hotel system" }, { status: 400 });
+  }
+
+  if ("assistantBranding" in updates) {
+    const normalizedBranding = normalizeAssistantBrandingInput(updates.assistantBranding);
+    if (normalizedBranding?.error) {
+      return NextResponse.json({ error: normalizedBranding.error }, { status: 400 });
+    }
+    updates.assistantBranding = normalizedBranding?.value ?? null;
   }
 
   // Sanitización / reglas para channelConfigs.email

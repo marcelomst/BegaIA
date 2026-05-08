@@ -30,6 +30,7 @@ import crypto from "crypto";
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
 import { ChatOpenAI } from "@langchain/openai";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import { buildAssistantGreetingNamePrompt } from "@/lib/config/assistantBranding";
 
 // Playbooks de sistema
 import {
@@ -340,24 +341,11 @@ function buildConversationalGreetingNamePrompt(
     } | null;
   } | null,
 ): string {
-  const cleanHotelName = String(hotelConfig?.hotelName || "").trim();
-  const displayName = String(hotelConfig?.assistantBranding?.displayName || "BegaIA").trim() || "BegaIA";
-  const roleLabelEs = String(hotelConfig?.assistantBranding?.roleLabel || "el asistente hotelero digital").trim()
-    || "el asistente hotelero digital";
-  const roleLabelPt = roleLabelEs === "el asistente hotelero digital"
-    ? "a assistente hoteleira digital"
-    : roleLabelEs;
-  const roleLabelEn = roleLabelEs === "el asistente hotelero digital"
-    ? "the digital hospitality assistant"
-    : roleLabelEs;
-  if (cleanHotelName) {
-    if (lang === "pt") return `Olá, sou ${displayName}, ${roleLabelPt} de ${cleanHotelName}. Como você prefere que eu te chame?`;
-    if (lang === "en") return `Hello, I'm ${displayName}, ${roleLabelEn} for ${cleanHotelName}. What would you like me to call you?`;
-    return `Hola, soy ${displayName}, ${roleLabelEs} de ${cleanHotelName}. ¿Cómo preferís que te llame?`;
-  }
-  if (lang === "pt") return `Olá, sou ${displayName}, ${roleLabelPt} do hotel. Como você prefere que eu te chame?`;
-  if (lang === "en") return `Hello, I'm ${displayName}, ${roleLabelEn} for the hotel. What would you like me to call you?`;
-  return `Hola, soy ${displayName}, ${roleLabelEs} del hotel. ¿Cómo preferís que te llame?`;
+  return buildAssistantGreetingNamePrompt({
+    lang,
+    hotelName: hotelConfig?.hotelName,
+    assistantBranding: hotelConfig?.assistantBranding,
+  });
 }
 
 function buildConversationalGreetingKnownGuest(lang: "es" | "en" | "pt", displayName: string): string {
