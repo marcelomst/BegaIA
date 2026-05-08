@@ -30,7 +30,10 @@ import crypto from "crypto";
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
 import { ChatOpenAI } from "@langchain/openai";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
-import { buildAssistantGreetingNamePrompt } from "@/lib/config/assistantBranding";
+import {
+  buildAssistantAcknowledgementReply,
+  buildAssistantGreetingNamePrompt,
+} from "@/lib/config/assistantBranding";
 
 // Playbooks de sistema
 import {
@@ -338,6 +341,7 @@ function buildConversationalGreetingNamePrompt(
     assistantBranding?: {
       displayName?: string | null;
       roleLabel?: string | null;
+      acknowledgementLabel?: "Encantado" | "Encantada" | "Un gusto" | null;
     } | null;
   } | null,
 ): string {
@@ -354,10 +358,20 @@ function buildConversationalGreetingKnownGuest(lang: "es" | "en" | "pt", display
   return `Hola, ${displayName}. ¿En qué puedo ayudarte hoy?`;
 }
 
-function buildConversationalNameCapturedReply(lang: "es" | "en" | "pt", displayName: string): string {
-  if (lang === "pt") return `Prazer, ${displayName}. Como posso te ajudar hoje?`;
-  if (lang === "en") return `Nice to meet you, ${displayName}. How can I help you today?`;
-  return `Encantado, ${displayName}. ¿En qué puedo ayudarte hoy?`;
+function buildConversationalNameCapturedReply(
+  lang: "es" | "en" | "pt",
+  displayName: string,
+  assistantBranding?: {
+    displayName?: string | null;
+    roleLabel?: string | null;
+    acknowledgementLabel?: "Encantado" | "Encantada" | "Un gusto" | null;
+  } | null,
+): string {
+  return buildAssistantAcknowledgementReply({
+    lang,
+    guestDisplayName: displayName,
+    assistantBranding,
+  });
 }
 
 function buildConversationalNameDeclinedReply(lang: "es" | "en" | "pt"): string {
@@ -384,7 +398,7 @@ function hasRecentConversationalNameHandshake(
     .map((message) => String(message.content || "").trim());
   return recentAiTexts.some((text) =>
     CONVERSATIONAL_NAME_PROMPT_RE.test(text) ||
-    /^(Encantado|Prazer|Nice to meet you),\s+/i.test(text)
+    /^(Encantado|Encantada|Un gusto|Prazer|Nice to meet you),\s+/i.test(text)
   );
 }
 
@@ -3482,6 +3496,7 @@ type PreLLMResult = {
     assistantBranding?: {
       displayName?: string;
       roleLabel?: string;
+      acknowledgementLabel?: "Encantado" | "Encantada" | "Un gusto";
     } | null;
   } | null;
   currSlots: ReservationSlotsStrict;
@@ -3834,7 +3849,11 @@ async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyL
         name: normalizedName,
         firstName,
       };
-      state.finalText = buildConversationalNameCapturedReply(pre.lang, firstName);
+      state.finalText = buildConversationalNameCapturedReply(
+        pre.lang,
+        firstName,
+        pre.hotelConfig?.assistantBranding,
+      );
       state.nextCategory = "retrieval_based";
       emitRoutingDecision(pre.msg, {
         decision_layer: "bodyLLM",

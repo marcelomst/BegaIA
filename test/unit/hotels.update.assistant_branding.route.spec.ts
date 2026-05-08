@@ -51,6 +51,7 @@ describe("hotels update route assistant branding", () => {
           assistantBranding: {
             displayName: "  Vera  ",
             roleLabel: "  la asistente hotelera digital  ",
+            acknowledgementLabel: " Encantada ",
           },
         },
       }),
@@ -62,6 +63,7 @@ describe("hotels update route assistant branding", () => {
       assistantBranding: {
         displayName: "Vera",
         roleLabel: "la asistente hotelera digital",
+        acknowledgementLabel: "Encantada",
       },
     });
   });
@@ -76,6 +78,29 @@ describe("hotels update route assistant branding", () => {
           assistantBranding: {
             displayName: "   ",
             roleLabel: "",
+          },
+        },
+      }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.ok).toBe(true);
+    expect(updateHotelConfig).toHaveBeenCalledWith("hotel999", {
+      assistantBranding: null,
+    });
+  });
+
+  it("si displayName y roleLabel quedan vacíos, limpia también acknowledgementLabel", async () => {
+    const req = new Request("http://localhost/api/hotels/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotelId: "hotel999",
+        updates: {
+          assistantBranding: {
+            displayName: "   ",
+            roleLabel: "",
+            acknowledgementLabel: "Un gusto",
           },
         },
       }),
@@ -127,6 +152,55 @@ describe("hotels update route assistant branding", () => {
     const res = await POST(req as any);
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toEqual({ error: "assistant_branding_role_label_too_long" });
+    expect(updateHotelConfig).not.toHaveBeenCalled();
+  });
+
+  it("acepta acknowledgementLabel dentro de la lista cerrada", async () => {
+    const req = new Request("http://localhost/api/hotels/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotelId: "hotel999",
+        updates: {
+          assistantBranding: {
+            displayName: "Vera",
+            roleLabel: "la asistente hotelera digital",
+            acknowledgementLabel: "Un gusto",
+          },
+        },
+      }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.ok).toBe(true);
+    expect(updateHotelConfig).toHaveBeenCalledWith("hotel999", {
+      assistantBranding: {
+        displayName: "Vera",
+        roleLabel: "la asistente hotelera digital",
+        acknowledgementLabel: "Un gusto",
+      },
+    });
+  });
+
+  it("rechaza acknowledgementLabel inválido y no persiste cambios", async () => {
+    const req = new Request("http://localhost/api/hotels/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotelId: "hotel999",
+        updates: {
+          assistantBranding: {
+            displayName: "Vera",
+            roleLabel: "la asistente hotelera digital",
+            acknowledgementLabel: "Encantade",
+          },
+        },
+      }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "assistant_branding_acknowledgement_label_invalid" });
     expect(updateHotelConfig).not.toHaveBeenCalled();
   });
 });

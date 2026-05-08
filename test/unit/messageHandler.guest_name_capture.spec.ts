@@ -202,6 +202,44 @@ describe("messageHandler guest conversational name capture", () => {
     expect(updateGuest).toHaveBeenCalledWith("hotel999", "g1", expect.objectContaining({ name: "Geronimo" }));
   });
 
+  it("usa Encantada cuando acknowledgementLabel está configurado", async () => {
+    hotelConfigRecord.assistantBranding = {
+      displayName: "Vera",
+      roleLabel: "la asistente hotelera digital",
+      acknowledgementLabel: "Encantada",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Encantada, Marcelo. ¿En qué puedo ayudarte hoy?");
+  });
+
+  it("usa Un gusto cuando acknowledgementLabel está configurado", async () => {
+    hotelConfigRecord.assistantBranding = {
+      displayName: "BegaIA",
+      roleLabel: "el agente digital",
+      acknowledgementLabel: "Un gusto",
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Un gusto, Marcelo. ¿En qué puedo ayudarte hoy?");
+  });
+
+  it("sin assistantBranding el acknowledgement vuelve al fallback Encantado", async () => {
+    hotelConfigRecord.assistantBranding = null;
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Marcelo"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Encantado, Marcelo. ¿En qué puedo ayudarte hoy?");
+  });
+
   it("guest conocido no vuelve a pedir nombre cuando saluda", async () => {
     guestRecord = {
       guestId: "g1",
@@ -232,12 +270,14 @@ describe("messageHandler guest conversational name capture", () => {
     hotelConfigRecord.assistantBranding = {
       displayName: "Vera",
       roleLabel: "la asistente hotelera digital",
+      acknowledgementLabel: "Encantada",
     };
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
     expect(lastReply(sendReply)).toBe("Hola, soy Vera, la asistente hotelera digital de Hotel Demo. ¿Cómo preferís que te llame?");
     await handleIncomingMessage(msg("Ana"), { mode: "automatic", sendReply });
+    expect(lastReply(sendReply)).toBe("Encantada, Ana. ¿En qué puedo ayudarte hoy?");
     await handleIncomingMessage(
       msg("quiero hacer una reserva para el dia 8/5/2026 al 10/5/2026, una triple, para 3 personas, a nombre de Raul Olivera"),
       { mode: "automatic", sendReply }

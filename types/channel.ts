@@ -178,6 +178,7 @@ export type HotelConfig = {
   assistantBranding?: {
     displayName?: string;
     roleLabel?: string;
+    acknowledgementLabel?: "Encantado" | "Encantada" | "Un gusto";
   };
   /** Banderas globales del flujo de reservas del hotel */
   reservations?: ReservationsFlags;

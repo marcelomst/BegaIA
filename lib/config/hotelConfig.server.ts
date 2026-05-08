@@ -72,6 +72,12 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
         roleLabel: typeof doc.assistantBranding.roleLabel === "string"
           ? doc.assistantBranding.roleLabel
           : undefined,
+        acknowledgementLabel:
+          doc.assistantBranding.acknowledgementLabel === "Encantado" ||
+          doc.assistantBranding.acknowledgementLabel === "Encantada" ||
+          doc.assistantBranding.acknowledgementLabel === "Un gusto"
+            ? doc.assistantBranding.acknowledgementLabel
+            : undefined,
       }
       : undefined,
     country: doc.country,

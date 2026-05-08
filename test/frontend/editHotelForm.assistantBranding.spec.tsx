@@ -49,6 +49,7 @@ describe("EditHotelForm assistant branding", () => {
         assistantBranding: {
           displayName: "Vera",
           roleLabel: "la asistente hotelera digital",
+          acknowledgementLabel: "Encantada",
         },
       },
     });
@@ -60,11 +61,17 @@ describe("EditHotelForm assistant branding", () => {
     await screen.findByDisplayValue("Vera");
     expect(screen.getByDisplayValue("la asistente hotelera digital")).toBeInTheDocument();
     expect(screen.getByText("Hola, soy Vera, la asistente hotelera digital de Hotel Demo. ¿Cómo preferís que te llame?")).toBeInTheDocument();
+    expect(screen.getByText("Encantada, Marcelo. ¿En qué puedo ayudarte hoy?")).toBeInTheDocument();
+    expect(screen.getByLabelText("Encantado")).toBeInTheDocument();
+    expect(screen.getByLabelText("Encantada")).toBeInTheDocument();
+    expect(screen.getByLabelText("Un gusto")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Nombre del asistente"), { target: { value: "BegaIA" } });
     fireEvent.change(screen.getByLabelText("Rol o presentación del asistente"), { target: { value: "el asistente hotelero digital" } });
+    fireEvent.click(screen.getByLabelText("Encantado"));
 
     expect(screen.getByText("Hola, soy BegaIA, el asistente hotelero digital de Hotel Demo. ¿Cómo preferís que te llame?")).toBeInTheDocument();
+    expect(screen.getByText("Encantado, Marcelo. ¿En qué puedo ayudarte hoy?")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
 
@@ -97,6 +104,7 @@ describe("EditHotelForm assistant branding", () => {
         assistantBranding: {
           displayName: "Vera",
           roleLabel: "la asistente hotelera digital",
+          acknowledgementLabel: "Encantada",
         },
       },
     });
@@ -134,6 +142,7 @@ describe("EditHotelForm assistant branding", () => {
         assistantBranding: {
           displayName: "Vera",
           roleLabel: "la asistente hotelera digital",
+          acknowledgementLabel: "Encantada",
         },
       },
     });
@@ -146,6 +155,7 @@ describe("EditHotelForm assistant branding", () => {
     fireEvent.change(screen.getByLabelText("Rol o presentación del asistente"), { target: { value: "" } });
 
     expect(screen.getByText("Hola, soy BegaIA, el asistente hotelero digital de Hotel Demo. ¿Cómo preferís que te llame?")).toBeInTheDocument();
+    expect(screen.getByText("Encantado, Marcelo. ¿En qué puedo ayudarte hoy?")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
 

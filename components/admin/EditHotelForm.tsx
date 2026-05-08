@@ -6,7 +6,9 @@ import TagSelect from "@/components/ui/TagSelect";
 import { normalizeAmenityTags, amenityLabel } from "@/lib/taxonomy/amenities";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
 import {
+  ASSISTANT_ACKNOWLEDGEMENT_OPTIONS,
   ASSISTANT_BRANDING_LIMITS,
+  buildAssistantAcknowledgementReply,
   buildAssistantGreetingNamePrompt,
   normalizeAssistantBrandingInput,
 } from "@/lib/config/assistantBranding";
@@ -356,6 +358,9 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     e.preventDefault();
     if (!hotel) return;
     const brandingValidation = normalizeAssistantBrandingInput(hotel.assistantBranding);
+    const shouldClearAssistantBranding =
+      !String(hotel.assistantBranding?.displayName ?? "").trim() &&
+      !String(hotel.assistantBranding?.roleLabel ?? "").trim();
     if (brandingValidation.error) {
       if (brandingValidation.error === "assistant_branding_display_name_too_long") {
         setError(`El nombre del asistente no puede superar ${ASSISTANT_BRANDING_LIMITS.displayName} caracteres.`);
@@ -391,13 +396,14 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     try {
       const updates = {
         ...hotel,
-        assistantBranding: brandingValidation.value,
+        assistantBranding: shouldClearAssistantBranding ? null : brandingValidation.value,
       };
       const res = await fetch("/api/hotels/update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hotelId, updates }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Error");
-      setHotel((current) => current ? { ...current, assistantBranding: brandingValidation.value ?? undefined } : current);
-      onSaved?.({ ...hotel, assistantBranding: brandingValidation.value ?? undefined });
+      const nextAssistantBranding = shouldClearAssistantBranding ? undefined : brandingValidation.value ?? undefined;
+      setHotel((current) => current ? { ...current, assistantBranding: nextAssistantBranding } : current);
+      onSaved?.({ ...hotel, assistantBranding: nextAssistantBranding });
       setUpdateWarnings(Array.isArray(json.warnings) ? json.warnings : []);
       setSuccessMessage("Configuración guardada correctamente.");
     } catch (err: any) {
@@ -429,12 +435,19 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     hotelName: hotel.hotelName,
     assistantBranding: hotel.assistantBranding,
   });
+  const assistantAcknowledgementPreview = buildAssistantAcknowledgementReply({
+    lang: "es",
+    guestDisplayName: "Marcelo",
+    assistantBranding: hotel.assistantBranding,
+  });
   const brandingValidation = normalizeAssistantBrandingInput(hotel.assistantBranding);
   const brandingError =
     brandingValidation.error === "assistant_branding_display_name_too_long"
       ? `Máximo ${ASSISTANT_BRANDING_LIMITS.displayName} caracteres para el nombre del asistente.`
       : brandingValidation.error === "assistant_branding_role_label_too_long"
         ? `Máximo ${ASSISTANT_BRANDING_LIMITS.roleLabel} caracteres para el rol o presentación.`
+        : brandingValidation.error === "assistant_branding_acknowledgement_label_invalid"
+          ? "Seleccioná un texto válido para confirmar el nombre."
         : null;
 
   const channelConfigs = hotel.channelConfigs || EMPTY_CHANNEL_CONFIGS;
@@ -504,12 +517,45 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                     }) : h)}
                   />
                 </label>
+                <fieldset className="text-xs">
+                  <legend className="font-medium">Texto al confirmar el nombre</legend>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Texto usado después de que el huésped indica cómo prefiere que lo llamen.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {ASSISTANT_ACKNOWLEDGEMENT_OPTIONS.map((option) => {
+                      const checked = (hotel.assistantBranding?.acknowledgementLabel ?? "Encantado") === option;
+                      return (
+                        <label
+                          key={option}
+                          className={`inline-flex items-center gap-2 rounded border px-3 py-2 ${checked ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-700"}`}
+                        >
+                          <input
+                            type="radio"
+                            name="assistant-acknowledgement-label"
+                            value={option}
+                            checked={checked}
+                            onChange={() => setHotel(h => h ? ({
+                              ...h,
+                              assistantBranding: {
+                                ...(h.assistantBranding ?? {}),
+                                acknowledgementLabel: option,
+                              },
+                            }) : h)}
+                          />
+                          <span>{option}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
                 {brandingError && (
                   <div className="text-xs text-red-600">{brandingError}</div>
                 )}
                 <div className="rounded border bg-slate-50 p-3 text-xs text-slate-700">
                   <div className="font-medium mb-1">Vista previa del saludo</div>
                   <div>{assistantGreetingPreview}</div>
+                  <div className="mt-2">{assistantAcknowledgementPreview}</div>
                 </div>
               </div>
             </div>
