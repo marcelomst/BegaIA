@@ -8358,3 +8358,36 @@ Impacto:
 - preserva `Begasist` como referencia interna e histórica
 - actualiza claims seguros según el estado real validado hasta el hito 60
 - evita abrir documentos paralelos o prometer capacidades no validadas
+
+### DOC-PRESENTATION-USE-CASES-DEMO-SELECTION-BEGAIA-62
+
+Estado: COMPLETADO  
+Fecha: 2026-05-08  
+Commit: e90402f18ac12bf376f42d4082e0f917ffb15e69
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se crea el documento fuente draft para selección de casos de uso y recorridos
+de demo no técnica de `BegaIA`, alineando branding externo, referencia interna
+a `Begasist`, secuencias de demo prudentes, claims seguros y límites
+comerciales explícitos sin tocar runtime ni código.
+
+Archivos afectados:
+
+- `docs/product/presentation_use_cases_demo_selection.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- completa la base documental junto con narrativa y capability map
+
+Impacto:
+
+- centraliza la selección de demos en un único documento draft
+- alinea branding externo `BegaIA` con referencia interna `Begasist`
+- formula recorridos y claims de demo con prudencia explícita
+- evita claims paralelos o inflados sobre PMS, CRM, pricing o comprensión libre
