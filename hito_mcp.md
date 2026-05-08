@@ -8239,3 +8239,42 @@ Impacto:
 - usa `hotelName` cuando está disponible para contextualizar la identidad
 - preserva la separación entre asistente, guest conversacional y titular de
   reserva
+
+### FEAT-ADMIN-ASSISTANT-BRANDING-UI-59
+
+Estado: COMPLETADO  
+Fecha: 2026-05-08  
+Commit: e7bc0c32a7f0466254c8ddbe6e25e00a33cebeb1
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se agrega mantenimiento operativo desde la UI canónica de edición de hotel
+para `assistantBranding`, con validación centralizada, preview compartido con
+runtime, guardado seguro vía `POST /api/hotels/update`, rechazo de valores
+inválidos, y limpieza a fallback mediante `assistantBranding null` sin abrir
+theme visual ni branding avanzado.
+
+Archivos afectados:
+
+- `lib/config/assistantBranding.ts`
+- `app/api/hotels/update/route.ts`
+- `components/admin/EditHotelForm.tsx`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/hotels.update.assistant_branding.route.spec.ts`
+- `test/frontend/editHotelForm.assistantBranding.spec.tsx`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- centraliza validación y preview en helper compartido
+
+Impacto:
+
+- habilita mantenimiento operativo de branding textual desde la UI Admin
+- valida y rechaza valores inválidos de forma consistente entre UI y API
+- permite limpiar branding a fallback seguro mediante `assistantBranding null`
+- preserva separación entre runtime, branding textual y capa Admin/UI
