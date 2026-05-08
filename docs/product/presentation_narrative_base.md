@@ -1,8 +1,8 @@
-# DRAFT — Begasist Presentation Narrative Base
+# DRAFT — BegaIA Presentation Narrative Base
 
 ## 1. Propósito del documento
 
-Este documento es la base narrativa para futuras piezas no técnicas de Begasist:
+Este documento es la base narrativa para futuras piezas no técnicas de BegaIA:
 
 - deck comercial
 - one-pager
@@ -11,6 +11,11 @@ Este documento es la base narrativa para futuras piezas no técnicas de Begasist
 No es la presentación final.
 No redefine producto ni arquitectura.
 Consolida la narrativa ya alineada en la documentación existente.
+
+Nota de naming:
+
+- `BegaIA` = branding externo recomendado para demo/presentación
+- `Begasist` = nombre interno/histórico del sistema
 
 ---
 
@@ -30,13 +35,18 @@ Uso no permitido:
 - agregar promesas no validadas
 - usarlo como fuente para claims técnicos no documentados
 
+Recorte de resincronización actual:
+
+- alineado hasta `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`
+- incorpora como contexto demo la línea reciente 51–60
+
 ---
 
 ## 3. Narrativa base
 
-Begasist no debe presentarse como un chatbot genérico.
+BegaIA no debe presentarse como un chatbot genérico.
 
-Begasist debe presentarse como el Concierge Digital del hotel:
+BegaIA debe presentarse como el Concierge Digital del hotel:
 
 - conversacional
 - multicanal
@@ -49,7 +59,7 @@ La idea central es ampliar su capacidad operativa.
 
 Relato corto recomendado:
 
-> Begasist es el Concierge Digital del hotel. Atiende consultas, acompaña reservas y ayuda a operar la conversación con huéspedes a través de múltiples canales, combinando automatización con control humano.
+> BegaIA es el Concierge Digital del hotel. Atiende consultas, acompaña reservas y ayuda a operar la conversación con huéspedes a través de múltiples canales, combinando automatización con control humano.
 
 ---
 
@@ -80,7 +90,7 @@ Estas audiencias deben confirmarse antes de armar el deck final.
 
 ---
 
-## 5. Problema que Begasist ayuda a resolver
+## 5. Problema que BegaIA ayuda a resolver
 
 Los hoteles reciben conversaciones repetitivas y operativas por distintos canales.
 
@@ -92,7 +102,7 @@ Eso genera presión sobre recepción:
 - pérdida de continuidad entre turnos
 - dificultad para sostener atención consistente
 
-Begasist se posiciona como una capa conversacional para ordenar esa interacción sin quitar control al hotel.
+BegaIA se posiciona como una capa conversacional para ordenar esa interacción sin quitar control al hotel.
 
 ---
 
@@ -100,7 +110,7 @@ Begasist se posiciona como una capa conversacional para ordenar esa interacción
 
 ### 6.1 Qué es
 
-Begasist es:
+BegaIA es:
 
 - un sistema SaaS conversacional para hotelería
 - un Concierge Digital del hotel
@@ -108,7 +118,7 @@ Begasist es:
 
 ### 6.2 Qué no es
 
-Begasist no es:
+BegaIA no es:
 
 - un chatbot genérico
 - un bot diseñado para reemplazar recepción
@@ -126,13 +136,13 @@ El problema es sostener una conversación útil, consistente y operable.
 
 ### 7.2 Cambio de marco
 
-Begasist no propone “poner un bot”.
+BegaIA no propone “poner un bot”.
 Propone crear un Concierge Digital del hotel.
 
 ### 7.3 Diferencia estratégica
 
 Un bot tradicional intenta responder todo.
-Begasist combina:
+BegaIA combina:
 
 - automatización para lo repetitivo
 - contexto conversacional
@@ -141,7 +151,7 @@ Begasist combina:
 
 ### 7.4 Valor operativo
 
-Begasist ayuda a:
+BegaIA ayuda a:
 
 - responder consultas operativas
 - acompañar flujos de reserva
@@ -151,7 +161,21 @@ Begasist ayuda a:
 ### 7.5 Cierre
 
 La hospitalidad sigue siendo del hotel.
-Begasist amplifica su capacidad para atender, responder y convertir conversaciones en una operación más ordenada.
+BegaIA amplifica su capacidad para atender, responder y convertir conversaciones en una operación más ordenada.
+
+### 7.6 Estado demo actual
+
+Para materiales de demo, la narrativa debe asumir como base validada y reciente:
+
+- consolidación de guests en Admin
+- priorización del guest profile canónico
+- snapshot/listado post-merge sobre guest consolidado
+- captura conversacional de `guest.name` en saludo inicial
+- tolerancia mínima a typos frecuentes en `availability inquiry`
+- branding textual del asistente por hotel mediante `assistantBranding`
+- copy controlado de acknowledgement mediante `acknowledgementLabel`
+
+Estos puntos deben presentarse como robustecimientos concretos de demo, no como promesa de automatización total.
 
 ---
 
@@ -159,16 +183,17 @@ Begasist amplifica su capacidad para atender, responder y convertir conversacion
 
 Estos claims pueden usarse en materiales base porque están alineados con documentación existente.
 
-- Begasist es un sistema SaaS conversacional para hotelería.
-- Begasist debe presentarse como Concierge Digital del hotel.
-- Begasist no debe entenderse como un chatbot genérico.
-- Begasist opera de forma multicanal.
-- Begasist puede responder consultas operativas e informativas.
-- Begasist puede guiar flujos de reserva.
-- Begasist puede soportar follow-ups sobre reservas.
-- Begasist combina automatización con control humano cuando corresponde.
+- BegaIA es un sistema SaaS conversacional para hotelería.
+- BegaIA debe presentarse como Concierge Digital del hotel.
+- BegaIA no debe entenderse como un chatbot genérico.
+- BegaIA opera de forma multicanal.
+- BegaIA puede responder consultas operativas e informativas.
+- BegaIA puede guiar flujos de reserva.
+- BegaIA puede soportar follow-ups sobre reservas.
+- BegaIA combina automatización con control humano cuando corresponde.
 - La IA no reemplaza a recepción.
-- Begasist crea un nuevo canal digital de reservas y concierge.
+- BegaIA crea un nuevo canal digital de reservas y concierge.
+- En demo, BegaIA ya puede sostener saludo con branding del asistente y captura básica del nombre conversacional del huésped.
 
 ---
 
@@ -176,19 +201,19 @@ Estos claims pueden usarse en materiales base porque están alineados con docume
 
 Estos claims pueden aparecer solo con formulación prudente o marcados como pendientes de validación comercial.
 
-- Begasist ayuda a ordenar la operación conversacional del hotel.
+- BegaIA ayuda a ordenar la operación conversacional del hotel.
   Estado: formulación prudente permitida.
 
-- Begasist puede mejorar tiempos de respuesta en conversaciones repetitivas.
+- BegaIA puede mejorar tiempos de respuesta en conversaciones repetitivas.
   Estado: pendiente de validación comercial con evidencia específica.
 
-- Begasist puede ayudar a capturar más oportunidades de reserva por canales conversacionales.
+- BegaIA puede ayudar a capturar más oportunidades de reserva por canales conversacionales.
   Estado: pendiente de validación comercial.
 
-- Begasist puede habilitar upselling de servicios o recomendaciones.
+- BegaIA puede habilitar upselling de servicios o recomendaciones.
   Estado: permitido solo como capacidad posible del modelo de producto, no como resultado garantizado.
 
-- Begasist puede integrarse con operación asistida por humanos cuando la automatización total no corresponde.
+- BegaIA puede integrarse con operación asistida por humanos cuando la automatización total no corresponde.
   Estado: claim seguro a nivel conceptual; no prometer alcance de integración comercial no documentado.
 
 ---
@@ -197,14 +222,14 @@ Estos claims pueden aparecer solo con formulación prudente o marcados como pend
 
 Estos claims no deben usarse en deck, one-pager ni demo comercial.
 
-- “Begasist reemplaza a recepción.”
-- “Begasist opera solo, sin supervisión.”
-- “Begasist garantiza más reservas.”
-- “Begasist garantiza aumento de ingresos.”
-- “Begasist entiende cualquier caso sin errores.”
-- “Begasist ya integra cualquier sistema hotelero.”
-- “Begasist elimina por completo la intervención humana.”
-- “Begasist es un bot de atención automática genérico.”
+- “BegaIA reemplaza a recepción.”
+- “BegaIA opera solo, sin supervisión.”
+- “BegaIA garantiza más reservas.”
+- “BegaIA garantiza aumento de ingresos.”
+- “BegaIA entiende cualquier caso sin errores.”
+- “BegaIA ya integra cualquier sistema hotelero.”
+- “BegaIA elimina por completo la intervención humana.”
+- “BegaIA es un bot de atención automática genérico.”
 
 ---
 
@@ -238,6 +263,7 @@ Usar esta secuencia:
 1. problema operativo
 2. cambio de marco: no bot, sí concierge digital
 3. qué hace Begasist
+   Usar `BegaIA` como branding externo en la pieza final.
 4. cómo combina IA + humano
 5. casos de uso conversacionales
 6. cierre con valor operativo
@@ -247,6 +273,7 @@ Usar esta secuencia:
 Usar:
 
 - definición corta de Begasist
+  Usar `BegaIA` como nombre visible y `Begasist` solo si hace falta referencia interna.
 - 3 a 5 claims seguros
 - diferenciación frente a chatbot genérico
 - cierre con propuesta de valor prudente
@@ -257,7 +284,10 @@ Mostrar:
 
 - consulta operativa
 - flujo de reserva
+- saludo con captura de nombre conversacional
+- continuidad entre interlocutor conversacional y titular transaccional
 - momento de asistencia humana o control operativo
+- branding configurable del asistente con fallback seguro
 
 La demo no debe depender de promesas comerciales no validadas.
 
@@ -274,4 +304,4 @@ La demo no debe depender de promesas comerciales no validadas.
 
 ## 14. Versión corta lista para reutilizar
 
-> Begasist es el Concierge Digital del hotel. Es un sistema SaaS conversacional para hotelería que ayuda a atender consultas, acompañar reservas y sostener conversaciones operativas a través de múltiples canales. No busca reemplazar a recepción, sino ampliar su capacidad con automatización e intervención humana cuando corresponde.
+> BegaIA es el Concierge Digital del hotel. Es un sistema SaaS conversacional para hotelería que ayuda a atender consultas, acompañar reservas y sostener conversaciones operativas a través de múltiples canales. No busca reemplazar a recepción, sino ampliar su capacidad con automatización e intervención humana cuando corresponde.

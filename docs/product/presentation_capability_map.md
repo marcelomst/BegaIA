@@ -1,8 +1,8 @@
-# DRAFT — Begasist Presentation Capability Map
+# DRAFT — BegaIA Presentation Capability Map
 
 ## 1. Propósito del documento
 
-Este documento consolida un mapa inicial de capacidades reales y presentables de Begasist para futuras piezas no técnicas:
+Este documento consolida un mapa inicial de capacidades reales y presentables de BegaIA para futuras piezas no técnicas:
 
 - deck comercial
 - one-pager
@@ -11,6 +11,11 @@ Este documento consolida un mapa inicial de capacidades reales y presentables de
 No es una presentación final.
 No redefine arquitectura ni producto.
 No autoriza claims no validados.
+
+Nota de naming:
+
+- `BegaIA` = branding externo recomendado para demo/presentación
+- `Begasist` = nombre interno/histórico del sistema
 
 ---
 
@@ -30,13 +35,18 @@ Uso no permitido:
 - presentar límites actuales como capacidades productizadas
 - agregar métricas o integraciones no verificadas
 
+Recorte de resincronización actual:
+
+- alineado hasta `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`
+- incorpora el estado demo reciente 51–60 sin redefinir roadmap completo
+
 ---
 
 ## 3. Mapa de capacidades
 
 | Capacidad | Estado | Evidencia documental | Wording comercial seguro | Riesgo de sobrepromesa |
 | --- | --- | --- | --- | --- |
-| Concierge conversacional hotelero | Actual | `README.md` define Begasist como SaaS conversacional para hotelería y concierge digital multicanal. | “Begasist actúa como una capa conversacional especializada para hoteles.” | Bajo |
+| Concierge conversacional hotelero | Actual | `README.md` define Begasist como SaaS conversacional para hotelería y concierge digital multicanal. | “BegaIA actúa como una capa conversacional especializada para hoteles.” | Bajo |
 | Consultas operativas e informativas | Actual | `README.md` incluye responder consultas operativas e informativas. | “Puede asistir consultas frecuentes del huésped sobre operación e información del hotel.” | Medio si se dice “cualquier consulta”. |
 | Flujos de reserva | Actual / validada documentalmente | `README.md` indica que puede guiar flujos de reserva. | “Guía conversaciones vinculadas a reservas.” | Alto si se dice “automatiza todo el booking”. |
 | Follow-ups de reserva: snapshot, modify, cancel | Actual | `README.md` menciona snapshot, modify y cancel como follow-ups soportados. | “Permite continuar conversaciones sobre reservas: consultar, modificar o cancelar según contexto.” | Medio si se presenta como PMS completo. |
@@ -48,6 +58,10 @@ Uso no permitido:
 | Multi-canalidad | Documentada | `README.md` menciona web, WhatsApp, email e integraciones externas conectadas cuando corresponda. | “Diseñado para operar en canales como web, WhatsApp, email e integraciones.” | Medio: separar “soportado/documentado” de “productizado”. |
 | FAQ / amenities frecuentes | Actual | `docs/architecture/message_pipeline.md` documenta `stableIntentsGuard` para horarios, amenities y extensiones como desayuno, wifi o parking. | “Puede resolver consultas frecuentes del hotel como horarios o servicios.” | Medio si se dice que todo FAQ es determinístico. |
 | Availability inquiry | Actual / endurecido recientemente | Cápsulas e hitos recientes documentan flujo de availability inquiry, respuesta de disponibilidad y handoff gobernado a reserva. | “Puede manejar consultas de disponibilidad y derivar hacia una reserva cuando el huésped lo expresa.” | Medio: validar wording antes del deck final. |
+| Guest consolidation + canonical profile | Actual / endurecido recientemente | Hitos 51, 52 y 55 documentan consolidación de guests, priorización de perfil canónico y snapshot/listado post-merge. | “En demo, conserva mejor la continuidad del huésped aun cuando hubo consolidación de identidad.” | Medio si se presenta como CRM completo. |
+| Greeting name capture | Actual / endurecido recientemente | Hito 56 documenta captura mínima de `guest.name` en saludo inicial y uso posterior como vocativo conversacional. | “Puede capturar cómo prefiere ser llamado el huésped y usarlo luego en la conversación.” | Bajo |
+| Typo tolerance acotada en disponibilidad | Actual / endurecido recientemente | Hito 57 documenta tolerancia mínima a typos frecuentes en `availability inquiry`. | “Tolera algunos errores razonables de tipeo en consultas de disponibilidad.” | Medio si se exagera como comprensión libre. |
+| Assistant branding textual | Actual / endurecido recientemente | Hitos 58, 59 y 60 documentan `assistantBranding` y `acknowledgementLabel` con fallback seguro. | “El asistente puede presentarse con branding textual del hotel dentro de la demo.” | Bajo |
 | Reference resolution | Actual / validada documentalmente | Roadmap e hitos del dominio reservation documentan reference resolution con existence y sufficiency validation. | “Puede manejar referencias contextuales a reservas sin actuar si falta claridad.” | Alto si se dice “entiende cualquier referencia”. |
 | Ambiguity gating | Consolidada | Roadmap e hitos documentan detección de múltiples targets, bloqueo sin claridad y solicitud de aclaración. | “Ante ambigüedad, pide aclaración en lugar de ejecutar una acción riesgosa.” | Bajo |
 | Range guards | Consolidada | Roadmap e hitos documentan validación de ordinal fuera de rango, bloqueo de ejecución inválida y aclaración. | “Evita ejecutar acciones sobre una reserva inexistente o mal referida.” | Bajo |
@@ -111,24 +125,24 @@ Sí pueden traducirse a lenguaje ejecutivo:
 ### 6.1 Versión corta
 
 ```text
-Begasist para hoteles es un concierge conversacional que ayuda a responder consultas, guiar reservas y sostener continuidad con huéspedes, combinando automatización gobernada y operación asistida cuando hace falta.
+BegaIA para hoteles es un concierge conversacional que ayuda a responder consultas, guiar reservas y sostener continuidad con huéspedes, combinando automatización gobernada y operación asistida cuando hace falta.
 ```
 
 ### 6.2 Versión más conservadora
 
 ```text
-Begasist es una capa conversacional especializada para hoteles, diseñada para asistir conversaciones reales con huéspedes y gobernar flujos como consultas, reservas y seguimiento de reservas.
+BegaIA es una capa conversacional especializada para hoteles, diseñada para asistir conversaciones reales con huéspedes y gobernar flujos como consultas, reservas y seguimiento de reservas.
 ```
 
 ### 6.3 Versión para inversores
 
 ```text
-Begasist combina conversación, estado persistido y ejecución por dominio para resolver casos operativos reales de hotelería, empezando por atención conversacional y flujos vinculados a reservas.
+BegaIA combina conversación, estado persistido y ejecución por dominio para resolver casos operativos reales de hotelería, empezando por atención conversacional y flujos vinculados a reservas.
 ```
 
 Nota:
-Usar `Begasist` como nombre interno actual.
-No cerrar naming comercial en este documento.
+Usar `BegaIA` como nombre visible en materiales externos.
+Mantener `Begasist` solo como referencia interna o histórica cuando haga falta.
 
 ---
 
@@ -144,6 +158,7 @@ Estos claims pueden usarse con seguridad razonable en materiales base:
 - Puede resolver consultas frecuentes del hotel.
 - Pide aclaración cuando el contexto no alcanza para actuar.
 - Convive con operación humana cuando la automatización total no corresponde.
+- En demo, ya puede usar branding textual del asistente y acknowledgement configurable con fallback seguro.
 
 ---
 
@@ -166,6 +181,9 @@ Estos claims requieren revisión puntual antes de quedar en una presentación:
 - “Reserva confirmada automáticamente.”
   Estado: confirmar si aplica o si corresponde a demo o simulación.
 
+- “Tolera errores de tipeo en cualquier mensaje.”
+  Estado: no usar. La tolerancia actual es mínima y acotada a casos concretos de disponibilidad.
+
 - “Listo para onboarding de hoteles.”
   Estado: requiere validación comercial y operativa.
 
@@ -184,6 +202,8 @@ Estos claims no deben aparecer en deck, one-pager ni demo comercial:
 - Entiende cualquier referencia o contexto libre.
 - Hace pricing real por tarifa.
 - Está migrado a graph como runtime principal.
+- Tiene CRM completo de huésped.
+- Tiene personalización comercial completa por hotel más allá del branding textual validado.
 
 ---
 
