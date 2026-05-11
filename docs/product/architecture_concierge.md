@@ -1,13 +1,32 @@
-# BEGASIST — Arquitectura Conceptual
+# BEGAIA — Arquitectura Conceptual
+
+Nota de naming:
+
+- `BegaIA` = branding externo recomendado para materiales de producto y presentación
+- `Begasist` = nombre interno/histórico del sistema
 
 ## Bot vs Concierge Digital
 
 ### 1. Introducción
 
-Begasist no debe concebirse como un **chatbot tradicional**.
+BegaIA no debe concebirse como un **chatbot tradicional**.
 El sistema se diseña como un **Concierge Digital del hotel**.
 
 La diferencia es estratégica.
+
+Antes de hablar de un concierge digital, conviene recordar qué hace un concierge hotelero tradicional.
+
+El concierge no se limita a responder preguntas.
+Su función es orientar, asistir, resolver y actuar como puente entre el huésped y la operación del hotel.
+
+Eso implica:
+
+- continuidad en la atención
+- criterio para entender qué necesita el huésped
+- coordinación con servicios o áreas del hotel
+- derivación operativa cuando el caso no debe resolverse en forma automática
+
+El valor del concierge está en acompañar la experiencia, no solo en contestar.
 
 ---
 
@@ -32,9 +51,48 @@ Problemas típicos:
 
 ---
 
-## 3. Concierge Digital (modelo Begasist)
+## 3. Concierge Digital
 
-Begasist adopta un modelo **asistido humano + IA**.
+Un concierge digital amplía la capacidad operativa del hotel por canales digitales.
+
+No reemplaza la hospitalidad humana.
+La extiende.
+
+Opera sobre conversaciones reales del huésped y combina:
+
+- automatización para lo repetitivo
+- contexto conversacional
+- continuidad entre turnos
+- criterio de derivación
+- control humano cuando corresponde
+
+La idea no es responder todo “como sea”.
+La idea es sostener una experiencia conversacional útil, prudente y operable.
+
+---
+
+## 4. BegaIA como Concierge Digital
+
+BegaIA materializa ese modelo como una capa conversacional hotelera.
+
+En términos conceptuales, BegaIA combina:
+
+- operación asistida por IA
+- continuidad conversacional
+- consultas operativas
+- flujos vinculados a reservas
+- control humano cuando hace falta
+
+La multicanalidad debe entenderse aquí como orientación de producto y arquitectura conceptual.
+En esta documentación puede nombrarse como:
+
+- Web
+- WhatsApp
+- Email
+
+sin convertir esa enumeración en promesa comercial cerrada sobre todos los canales.
+
+BegaIA adopta un modelo **asistido humano + IA**.
 
 Arquitectura conceptual:
 
@@ -42,7 +100,7 @@ Cliente
 ↓
 WhatsApp / Web / Email / Channel Manager
 ↓
-Begasist Concierge Engine
+BegaIA Concierge Engine
 ↓
 Decisión operativa
 
@@ -52,7 +110,7 @@ Recepción responde asistida por IA
 
 ---
 
-## 4. Principio fundamental
+## 5. Principio fundamental
 
 La IA **no reemplaza a recepción**.
 
@@ -60,15 +118,15 @@ La IA:
 
 - responde lo repetitivo
 - propone respuestas
-- consulta sistemas
-- automatiza reservas
+- sostiene contexto conversacional
+- acompaña consultas y reservas
 - escala a humano cuando corresponde
 
 ---
 
-## 5. Modo operativo
+## 6. Modo operativo
 
-Begasist define dos modos principales:
+BegaIA define dos modos principales:
 
 ### Automatic Mode
 
@@ -77,7 +135,6 @@ El sistema responde directamente.
 Ejemplos:
 
 - disponibilidad de habitaciones
-- precios
 - amenities
 - horarios
 - información turística
@@ -92,7 +149,7 @@ Ejemplo de flujo:
 
 Cliente pregunta
 ↓
-Begasist genera respuesta sugerida
+BegaIA genera respuesta sugerida
 ↓
 Recepción revisa
 ↓
@@ -102,23 +159,31 @@ Esto genera confianza operativa.
 
 ---
 
-## 6. Beneficio para el hotel
+## 7. Beneficio para el hotel
 
-Begasist crea un **nuevo canal digital de reservas y concierge**.
+BegaIA crea una capa conversacional para ordenar mejor la interacción entre huésped y hotel.
 
 Ejemplos:
 
 - QR en habitaciones
 - WhatsApp concierge
-- reservas automáticas
+- reserva guiada
 - upselling de servicios
 - recomendaciones turísticas
 
+Esto no implica:
+
+- PMS real
+- pricing real por tarifa como claim general
+- automatización total
+- reemplazo de recepción
+- CRM completo de huéspedes
+
 ---
 
-## 7. Canal WhatsApp como Concierge
+## 8. Canal WhatsApp como Concierge
 
-En el modelo Begasist:
+En el modelo BegaIA:
 
 1 hotel = 1 número WhatsApp concierge.
 
@@ -136,36 +201,36 @@ WhatsApp
 ↓
 Twilio
 ↓
-Begasist
+BegaIA
 ↓
 Motor conversacional
 
 ---
 
-## 8. Filosofía de producto
+## 9. Filosofía de producto
 
-Begasist no es un bot.
+BegaIA no es un bot.
 
-Begasist es:
+BegaIA es:
 
 **El Concierge Digital del hotel.**
 
 ---
 
-## 9. Principios de diseño
+## 10. Principios de diseño
 
 1. Humano siempre tiene control
 2. Automatizar solo lo repetitivo
 3. Conversación contextual
-4. Integración con sistemas del hotel
+4. Derivación prudente cuando el contexto no alcanza
 5. Multi-canal
 6. Multi-hotel (SaaS)
 
 ---
 
-## 10. Conclusión
+## 11. Conclusión
 
-El éxito de Begasist depende de mantener el equilibrio:
+El éxito de BegaIA depende de mantener el equilibrio:
 
 IA + Recepción
 
