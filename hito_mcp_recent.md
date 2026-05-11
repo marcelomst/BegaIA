@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. DOC-DEMO-MULTICHANNEL-PARITY-VALIDATION-BEGAIA-64
+## 1. FIX-WHATSAPP-CHANNELMESSAGE-IDENTITY-PARITY-65
+
+- Identificador: `FIX-WHATSAPP-CHANNELMESSAGE-IDENTITY-PARITY-65`
+- Nombre: `FIX-WHATSAPP-CHANNELMESSAGE-IDENTITY-PARITY-65`
+- Commit message: `FIX-WHATSAPP-CHANNELMESSAGE-IDENTITY-PARITY-65`
+- Hash: `42cc3b69c4e75dbe21bc4d1945654cdce5a125c4`
+- Descripción breve: Se corrige la paridad mínima de identidad en WhatsApp para preservar `guestId` en `UniversalEvent` y `ChannelMessage`, dejando deuda residual explícita por el fallback canal-específico.
+
+## 2. DOC-DEMO-MULTICHANNEL-PARITY-VALIDATION-BEGAIA-64
 
 - Identificador: `DOC-DEMO-MULTICHANNEL-PARITY-VALIDATION-BEGAIA-64`
 - Nombre: `DOC-DEMO-MULTICHANNEL-PARITY-VALIDATION-BEGAIA-64`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `df2a3780146104f7972498f674428289e22c92b9`
 - Descripción breve: Se crea el documento draft versionable de validación multicanal de demo para `BegaIA`, con resultado prudente `Web aligned`, `Email aligned` y `WhatsApp partial`.
 
-## 2. DOC-ARCHITECTURE-CONCIERGE-BEGAIA-63
+## 3. DOC-ARCHITECTURE-CONCIERGE-BEGAIA-63
 
 - Identificador: `DOC-ARCHITECTURE-CONCIERGE-BEGAIA-63`
 - Nombre: `DOC-ARCHITECTURE-CONCIERGE-BEGAIA-63`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `172e516f0f3e0a562c8137561fa7520ac7014234`
 - Descripción breve: Se actualiza la arquitectura conceptual para presentar a `BegaIA` como materialización del concierge digital y explicitar límites comerciales prudentes.
 
-## 3. DOC-PRESENTATION-USE-CASES-DEMO-SELECTION-BEGAIA-62
+## 4. DOC-PRESENTATION-USE-CASES-DEMO-SELECTION-BEGAIA-62
 
 - Identificador: `DOC-PRESENTATION-USE-CASES-DEMO-SELECTION-BEGAIA-62`
 - Nombre: `DOC-PRESENTATION-USE-CASES-DEMO-SELECTION-BEGAIA-62`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `e90402f18ac12bf376f42d4082e0f917ffb15e69`
 - Descripción breve: Se crea el documento fuente draft para selección de casos de uso y recorridos de demo no técnica de `BegaIA`, con claims seguros y límites comerciales explícitos.
 
-## 4. DOC-DEMO-PRESENTATION-RESYNC-BEGAIA-61
+## 5. DOC-DEMO-PRESENTATION-RESYNC-BEGAIA-61
 
 - Identificador: `DOC-DEMO-PRESENTATION-RESYNC-BEGAIA-61`
 - Nombre: `DOC-DEMO-PRESENTATION-RESYNC-BEGAIA-61`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `fda64cc150c3432b58d0ac982e4b2a16b0bd44f4`
 - Descripción breve: Se resincronizan los documentos de presentación/demo para usar `BegaIA` como branding externo y actualizar narrativa y capability map al estado real validado hasta el hito 60.
 
-## 5. FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60
+## 6. FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60
 
 - Identificador: `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`
 - Nombre: `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `249ca2ca2f36f11915645f8baa5486bdc2e171cc`
 - Descripción breve: Se extiende `assistantBranding` con `acknowledgementLabel` como copy controlado, fallback seguro a `Encantado` y limpieza canónica completa al vaciar branding base.
 
-## 6. FEAT-ADMIN-ASSISTANT-BRANDING-UI-59
+## 7. FEAT-ADMIN-ASSISTANT-BRANDING-UI-59
 
 - Identificador: `FEAT-ADMIN-ASSISTANT-BRANDING-UI-59`
 - Nombre: `FEAT-ADMIN-ASSISTANT-BRANDING-UI-59`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `e7bc0c32a7f0466254c8ddbe6e25e00a33cebeb1`
 - Descripción breve: Se agrega mantenimiento operativo desde la UI canónica de edición de hotel para `assistantBranding`, con validación centralizada, preview compartido con runtime y fallback seguro.
 
-## 7. FEAT-HOTEL-ASSISTANT-BRANDING-CONFIG-58
+## 8. FEAT-HOTEL-ASSISTANT-BRANDING-CONFIG-58
 
 - Identificador: `FEAT-HOTEL-ASSISTANT-BRANDING-CONFIG-58`
 - Nombre: `FEAT-HOTEL-ASSISTANT-BRANDING-CONFIG-58`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `a55fc61ea67dc132e407998716815655312a35a7`
 - Descripción breve: Se agrega configuración básica y opcional de branding textual del asistente por hotel mediante `assistantBranding`, con fallback seguro a `BegaIA` y `el asistente hotelero digital`.
 
-## 8. FIX-AVAILABILITY-INQUIRY-TYPO-TOLERANCE-57
+## 9. FIX-AVAILABILITY-INQUIRY-TYPO-TOLERANCE-57
 
 - Identificador: `FIX-AVAILABILITY-INQUIRY-TYPO-TOLERANCE-57`
 - Nombre: `FIX-AVAILABILITY-INQUIRY-TYPO-TOLERANCE-57`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `a8a0c044db91e81d73ec27cea2dd365f11947a2f`
 - Descripción breve: Se agrega tolerancia mínima y explícita a typos frecuentes de disponibilidad para que sigan el flujo de `availability inquiry` sin abrir `create`.
 
-## 9. FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56
+## 10. FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56
 
 - Identificador: `FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56`
 - Nombre: `FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56`
 - Commit message: `FEAT-RUNTIME-GUEST-NAME-CAPTURE-ON-GREETING-56`
 - Hash: `57bf0f245272a8adb6ff1b1055a20a4b62069b9f`
 - Descripción breve: Se implementa una captura mínima de `guest.name` en el saludo inicial de un guest nuevo, persistiéndolo sobre el guest canónico y preservando el path correcto de `create` explícito.
-
-## 10. FIX-RUNTIME-GUEST-RESERVATION-SNAPSHOT-AFTER-MERGE-55
-
-- Identificador: `FIX-RUNTIME-GUEST-RESERVATION-SNAPSHOT-AFTER-MERGE-55`
-- Nombre: `FIX-RUNTIME-GUEST-RESERVATION-SNAPSHOT-AFTER-MERGE-55`
-- Commit message: `FIX-RUNTIME-GUEST-RESERVATION-SNAPSHOT-AFTER-MERGE-55`
-- Hash: `72e9d2ae9a4589208dc6e69f6826257b7954e0fb`
-- Descripción breve: Se agrega un fallback de solo lectura para snapshot/listado de reservas post-merge usando el guest canónico consolidado cuando la conversación actual no tiene historial local.

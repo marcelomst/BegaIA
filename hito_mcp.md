@@ -8461,3 +8461,39 @@ Impacto:
 - distingue soporte documentado de validación efectiva
 - deja explícita la brecha `WhatsApp partial` como deuda separada
 - evita declarar paridad multicanal completa como claim comercial
+
+### FIX-WHATSAPP-CHANNELMESSAGE-IDENTITY-PARITY-65
+
+Estado: COMPLETADO  
+Fecha: 2026-05-11  
+Commit: 42cc3b69c4e75dbe21bc4d1945654cdce5a125c4
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige la paridad mínima de identidad en el canal WhatsApp para que el
+`UniversalEvent` y el `ChannelMessage` preserven `guestId` además de
+`conversationId` y `sourceMsgId` al converger al runtime vigente, sin
+rediseñar el canal ni duplicar lógica de dominio.
+
+Archivos afectados:
+
+- `types/events.ts`
+- `lib/services/whatsapp.ts`
+- `lib/handlers/universalChannelEventHandler.ts`
+- `test/unit/universalChannelEventHandler.whatsapp_identity.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- fija una mejora real pero deja deuda residual explícita de canonicidad
+
+Impacto:
+
+- preserva `guestId` en la convergencia WhatsApp hacia el runtime
+- mejora la paridad mínima con Web y Email sin duplicar lógica de dominio
+- evita perder identidad resuelta aguas arriba en `ChannelMessage`
+- deja riesgo residual por el fallback `guestId || senderJid`
