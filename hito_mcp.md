@@ -8497,3 +8497,40 @@ Impacto:
 - mejora la paridad mínima con Web y Email sin duplicar lógica de dominio
 - evita perder identidad resuelta aguas arriba en `ChannelMessage`
 - deja riesgo residual por el fallback `guestId || senderJid`
+
+### FIX-WHATSAPP-LEGACY-GUEST-ALIAS-RESOLUTION-67
+
+Estado: COMPLETADO  
+Fecha: 2026-05-11  
+Commit: e59f490911209bc0178a33210f0c6ece8e6ffe8a
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se corrige el path legacy de WhatsApp para que deje de usar `senderJid` como
+`guestId` operativo cuando existe resolución canónica, reutilizando
+`resolveGuestIdentity` antes de entrar al runtime, preservando `senderJid` y
+`guestAlias` solo como metadata técnica y manteniendo `conversationId` y
+`sourceMsgId` con semántica compatible hacia atrás.
+
+Archivos afectados:
+
+- `lib/services/whatsapp.ts`
+- `lib/handlers/universalChannelEventHandler.ts`
+- `test/unit/universalChannelEventHandler.whatsapp_identity.spec.ts`
+- `test/unit/whatsapp.legacyIdentityResolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- reutiliza la lógica central de identidad sin abrir una fuente paralela
+
+Impacto:
+
+- elimina el uso de `senderJid` como sustituto operativo de `guestId`
+- separa alias técnico de guest canónico en WhatsApp legacy
+- preserva `sourceMsgId` y compatibilidad legacy de `conversationId`
+- mejora la convergencia al runtime sin rediseño mayor del canal
