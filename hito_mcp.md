@@ -8391,3 +8391,39 @@ Impacto:
 - alinea branding externo `BegaIA` con referencia interna `Begasist`
 - formula recorridos y claims de demo con prudencia explícita
 - evita claims paralelos o inflados sobre PMS, CRM, pricing o comprensión libre
+
+### DOC-ARCHITECTURE-CONCIERGE-BEGAIA-63
+
+Estado: COMPLETADO  
+Fecha: 2026-05-11  
+Commit: 172e516f0f3e0a562c8137561fa7520ac7014234
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se actualiza la arquitectura conceptual de producto para reforzar el paso
+desde concierge hotelero tradicional hacia concierge digital y presentar a
+`BegaIA` como materialización del modelo, manteniendo `Begasist` como
+referencia interna/histórica y explicitando límites comerciales prudentes
+sobre PMS, pricing real, automatización total, reemplazo de recepción y CRM
+completo.
+
+Archivos afectados:
+
+- `docs/product/architecture_concierge.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- mantiene consistente el framing conceptual con branding y límites reales
+
+Impacto:
+
+- clarifica la secuencia concierge tradicional -> concierge digital -> `BegaIA`
+- preserva `Begasist` como naming interno e histórico
+- mantiene la multicanalidad como orientación conceptual y no como promesa
+  cerrada
+- evita claims inflados sobre canales, PMS, pricing o automatización total
