@@ -17,6 +17,7 @@ import { startChannelHeartbeat } from "@/lib/services/heartbeat";
 import { normalizePhone } from "@/lib/config/hotelPhoneMap";
 import { shouldIngestWaMessageOnce } from "@/lib/utils/waIdempotency";
 import { debugLog } from "@/lib/utils/debugLog";
+import { resolveGuestIdentity } from "@/lib/pipeline/resolveGuestIdentity";
 import type { ChannelMessage } from "@/types/channel";
 
 // Logs recortados
@@ -187,11 +188,19 @@ export function startWhatsAppBot({
         guestId: senderJid,
       });
 
+      const resolvedIdentity = await resolveGuestIdentity({
+        hotelId,
+        channel: "whatsapp",
+        rawGuestId: senderJid,
+      });
+      const canonicalGuestId =
+        String(resolvedIdentity?.guestId || "").trim() || parsed.guestId || senderJid;
+
       const rawEvent: ChannelMessage & Record<string, any> = {
         ...parsed,
         channel: "whatsapp",
         hotelId,
-        guestId: parsed.guestId || senderJid,
+        guestId: canonicalGuestId,
         sender: parsed.sender || senderJid,
         messageId: parsed.messageId || srcMsgId,
         content: parsed.content ?? body,
@@ -217,17 +226,21 @@ export function startWhatsAppBot({
 
       // Handler universal (IA + supervisado)
 // arma el UniversalEvent desde rawEvent/source
-    const evt = {
+      const evt = {
       hotelId,
       conversationId: rawEvent.conversationId!,
       channel: "whatsapp" as const,
-      guestId: rawEvent.guestId || senderJid,
+      guestId: canonicalGuestId,
       from: "guest" as const,
       content: rawEvent.content || body,
       sourceMsgId: srcMsgId, // id del proveedor → dedupe
       timestamp: (message as any).timestamp
         ? (message as any).timestamp * 1000
         : Date.now(),
+      meta: {
+        senderJid,
+        guestAlias: resolvedIdentity?.guestAlias,
+      },
     };
 
     await universalChannelEventHandler(evt, {

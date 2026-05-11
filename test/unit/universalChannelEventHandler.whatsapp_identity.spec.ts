@@ -33,11 +33,15 @@ describe("universalChannelEventHandler whatsapp identity parity", () => {
         hotelId: "hotel999",
         channel: "whatsapp",
         conversationId: "hotel999-whatsapp-5491100000000@s.whatsapp.net",
-        guestId: "5491100000000@s.whatsapp.net",
+        guestId: "guest-canonical-1",
         sourceMsgId: "wamid.HBgLM...",
         content: "hola",
         from: "guest",
         timestamp: 1715410000000,
+        meta: {
+          senderJid: "5491100000000@s.whatsapp.net",
+          guestAlias: "whatsapp:5491100000000@s.whatsapp.net",
+        },
       },
       {
         mode: "automatic",
@@ -56,9 +60,13 @@ describe("universalChannelEventHandler whatsapp identity parity", () => {
       expect.objectContaining({
         hotelId: "hotel999",
         channel: "whatsapp",
-        guestId: "5491100000000@s.whatsapp.net",
+        guestId: "guest-canonical-1",
         conversationId: "hotel999-whatsapp-5491100000000@s.whatsapp.net",
         sourceMsgId: "wamid.HBgLM...",
+        meta: {
+          senderJid: "5491100000000@s.whatsapp.net",
+          guestAlias: "whatsapp:5491100000000@s.whatsapp.net",
+        },
       }),
       {
         mode: "automatic",

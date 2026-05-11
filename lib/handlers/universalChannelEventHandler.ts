@@ -54,9 +54,8 @@ export async function universalChannelEventHandler(
       role: evt.from === "guest" ? "user" : "ai",
       content: evt.content ?? "",
       timestamp: timestampIso,
-      // subject/meta si quieres pasarlos:
-      // subject: evt.subject,
-      // meta: evt.meta,
+      subject: evt.subject,
+      meta: evt.meta,
     };
 
     // 3) Delegar (mapeando modo correctamente)
