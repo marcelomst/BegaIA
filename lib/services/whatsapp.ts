@@ -221,6 +221,7 @@ export function startWhatsAppBot({
       hotelId,
       conversationId: rawEvent.conversationId!,
       channel: "whatsapp" as const,
+      guestId: rawEvent.guestId || senderJid,
       from: "guest" as const,
       content: rawEvent.content || body,
       sourceMsgId: srcMsgId, // id del proveedor → dedupe

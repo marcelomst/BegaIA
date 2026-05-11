@@ -17,7 +17,7 @@ export async function universalChannelEventHandler(
   evt: UniversalEvent,
   opts?: HandlerOpts
 ): Promise<UniversalResult> {
-  const { hotelId, conversationId, sourceMsgId } = evt;
+  const { hotelId, conversationId, guestId, sourceMsgId } = evt;
 
   try {
     // 1) Idempotencia por sourceMsgId (solo para huésped entrante)
@@ -49,6 +49,7 @@ export async function universalChannelEventHandler(
         crypto.randomUUID(),
       sourceMsgId,
       sender: evt.from === "guest" ? "guest" : "assistant",
+      guestId,
       direction: evt.from === "guest" ? "in" : "out",
       role: evt.from === "guest" ? "user" : "ai",
       content: evt.content ?? "",

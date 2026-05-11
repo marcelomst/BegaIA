@@ -5,6 +5,7 @@ export type UniversalEvent = {
   hotelId: string;
   channel: Channel;
   conversationId: string;
+  guestId?: string;
   sourceMsgId?: string;
   content: string;
   from: "guest" | "assistant";
