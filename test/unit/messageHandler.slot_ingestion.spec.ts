@@ -104,6 +104,8 @@ describe("messageHandler slot ingestion", () => {
   beforeEach(() => {
     currentState = null;
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
   });
 
   afterEach(() => {

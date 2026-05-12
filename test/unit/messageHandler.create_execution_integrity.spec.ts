@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let currentState: any = null;
 let createdCount = 0;
@@ -131,6 +131,12 @@ describe("messageHandler create execution integrity", () => {
     currentState = null;
     createdCount = 0;
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("el branch de availability intermedio no persiste reservas y solo crea al confirmar explícitamente", async () => {
