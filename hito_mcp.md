@@ -8534,3 +8534,40 @@ Impacto:
 - separa alias técnico de guest canónico en WhatsApp legacy
 - preserva `sourceMsgId` y compatibilidad legacy de `conversationId`
 - mejora la convergencia al runtime sin rediseño mayor del canal
+
+### DOC-ADR-WHATSAPP-TRANSPORT-TARGET-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-12  
+Commit: 974ccb3db7f8f419479969501b386ebb7e31c1bc
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se materializa el ADR `ADR-WHATSAPP-TRANSPORT-TARGET-01` como documento
+arquitectónico versionable para formalizar WhatsApp como transporte multicanal
+especializado, fijando contratos explícitos de identidad canónica, alias
+técnico, `senderJid`, `guest_aliases`, `conversationId`, `sourceMsgId`,
+`providerMessageId`, inbound, outbound/delivery, dedupe/idempotencia y
+coexistencia legacy + Twilio, sin modificar runtime ni abrir fixes técnicos en
+este hito.
+
+Archivos afectados:
+
+- `docs/architecture/ADR-WHATSAPP-TRANSPORT-TARGET.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- alcance estrictamente documental validado
+- `roadmap_impact: none`
+- no modifica runtime, `messageHandler` ni blueprint técnico
+- alinea WhatsApp con el nivel de explicitud arquitectónica ya documentado
+  para Email
+
+Impacto:
+
+- explicita que `guestId` es identidad canónica de dominio
+- formaliza `senderJid` y equivalentes como alias/delivery técnico
+- evita que outbound vuelva a contaminar identidad
+- fija un contrato objetivo común para legacy y Twilio sin rediseño prematuro
