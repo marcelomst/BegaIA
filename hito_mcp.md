@@ -8571,3 +8571,39 @@ Impacto:
 - formaliza `senderJid` y equivalentes como alias/delivery técnico
 - evita que outbound vuelva a contaminar identidad
 - fija un contrato objetivo común para legacy y Twilio sin rediseño prematuro
+
+### TEST-MULTICHANNEL-CANONICAL-GUEST-E2E-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-12  
+Commit: 30bd88bd9f0b7b18307cc1d508d6a2b101593350
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agrega cobertura E2E multicanal para validar continuidad e identidad
+canónica entre Web, Email, WhatsApp Twilio-style, WhatsApp legacy y
+`guest_aliases`/Admin identity model, y se estabilizan dos specs frágiles con
+reloj determinístico sin modificar runtime ni semántica de parsing.
+
+Archivos afectados:
+
+- `test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance limitado a cobertura y estabilización temporal de tests
+
+Impacto:
+
+- agrega evidencia multicanal sobre `guestId` canónico, `conversationId` y
+  `sourceMsgId`
+- congela la separación alias técnico vs guest canónico en la suite
+- preserva compatibilidad con el ADR de WhatsApp
+- vuelve determinísticos dos tests que dependían del reloj real
