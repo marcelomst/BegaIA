@@ -178,4 +178,50 @@ describe("whatsapp legacy guest alias resolution", () => {
       }),
     );
   });
+
+  it("ignora mensajes de grupos cuando ignoreGroups=true", async () => {
+    let inboundHandler: ((message: any) => Promise<void>) | undefined;
+    clientOnMock.mockImplementation((event: string, handler: (...args: any[]) => any) => {
+      if (event === "message") inboundHandler = handler as (message: any) => Promise<void>;
+    });
+
+    startWhatsAppBot({ hotelId: "hotel999", hotelPhone: "+59811111111" });
+
+    await inboundHandler?.({
+      fromMe: false,
+      from: "120363400000000000@g.us",
+      body: "hola grupo",
+      timestamp: 1715410000,
+      id: { _serialized: "wamid.group-1" },
+      reply: vi.fn(),
+    });
+
+    expect(parseWhatsAppToChannelMessageMock).not.toHaveBeenCalled();
+    expect(resolveGuestIdentityMock).not.toHaveBeenCalled();
+    expect(saveMessageIdempotentMock).not.toHaveBeenCalled();
+    expect(universalChannelEventHandlerMock).not.toHaveBeenCalled();
+  });
+
+  it("preserva procesamiento de chats directos aun con ignoreGroups=true", async () => {
+    let inboundHandler: ((message: any) => Promise<void>) | undefined;
+    clientOnMock.mockImplementation((event: string, handler: (...args: any[]) => any) => {
+      if (event === "message") inboundHandler = handler as (message: any) => Promise<void>;
+    });
+
+    startWhatsAppBot({ hotelId: "hotel999", hotelPhone: "+59811111111" });
+
+    await inboundHandler?.({
+      fromMe: false,
+      from: "5491100000000@c.us",
+      body: "hola directo",
+      timestamp: 1715410001,
+      id: { _serialized: "wamid.direct-1" },
+      reply: vi.fn(),
+    });
+
+    expect(parseWhatsAppToChannelMessageMock).toHaveBeenCalled();
+    expect(resolveGuestIdentityMock).toHaveBeenCalled();
+    expect(saveMessageIdempotentMock).toHaveBeenCalled();
+    expect(universalChannelEventHandlerMock).toHaveBeenCalled();
+  });
 });
