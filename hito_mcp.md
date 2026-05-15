@@ -8607,3 +8607,39 @@ Impacto:
 - congela la separación alias técnico vs guest canónico en la suite
 - preserva compatibilidad con el ADR de WhatsApp
 - vuelve determinísticos dos tests que dependían del reloj real
+
+### FIX-WHATSAPP-LEGACY-IGNORE-GROUPS-EXPLICIT-CONFIG-68
+
+Estado: COMPLETADO  
+Fecha: 2026-05-15  
+Commit: 7521b4d51248980d4bec9558b75c7f75990db874
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se hace explícita y testeable la configuración
+`channelConfigs.whatsapp.ignoreGroups` para WhatsApp legacy vía script
+operativo y cobertura unitaria del adapter, manteniendo default seguro
+`true`, evitando que grupos `@g.us` entren al pipeline conversacional legacy y
+preservando el comportamiento normal de chats directos sin tocar runtime
+conversacional ni Twilio.
+
+Archivos afectados:
+
+- `scripts/enable-whatsapp.ts`
+- `test/unit/whatsapp.legacyIdentityResolution.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance limitado a configuración operativa y cobertura del adapter legacy
+
+Impacto:
+
+- vuelve explícita una configuración antes implícita
+- evita la entrada accidental de grupos al pipeline legacy
+- preserva el comportamiento normal de chats directos
+- no altera identidad canónica, `conversationId` ni el runtime conversacional
