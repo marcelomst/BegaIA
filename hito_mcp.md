@@ -8680,3 +8680,39 @@ Impacto:
 - ordena la relación entre producto, operación y transporte técnico
 - mantiene `guestId` como identidad canónica frente a teléfono/provider como
   alias técnico
+
+### SEC-IGNORE-LOCAL-WWEBJS-SESSIONS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-18  
+Commit: 761fabe3da1cdad4263a609231c2e3a89366a079
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se agregan reglas explícitas de ignore para sesiones y caches locales de
+WhatsApp Web bajo `.local`, y se remueven del índice los archivos previamente
+trackeados de `.local/wwebjs_auth` para evitar que material sensible de
+autenticación legacy vuelva a versionarse, sin borrar por requisito la sesión
+física local ni tocar runtime.
+
+Archivos afectados:
+
+- `.gitignore`
+- `.local/wwebjs_auth/...`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance limitado a higiene de repo y seguridad operacional
+
+Impacto:
+
+- evita versionar credenciales o sesiones locales de WhatsApp Web
+- corrige una brecha concreta sin tocar runtime
+- mantiene legacy congelado y separa esta limpieza de índice de la rotación de
+  secretos
+- preserva la sesión física local por requisito operativo
