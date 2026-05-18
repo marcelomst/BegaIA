@@ -8643,3 +8643,40 @@ Impacto:
 - evita la entrada accidental de grupos al pipeline legacy
 - preserva el comportamiento normal de chats directos
 - no altera identidad canónica, `conversationId` ni el runtime conversacional
+
+### DOC-WHATSAPP-NUMBER-ONBOARDING-STRATEGY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-18  
+Commit: 617d3ded7abcd3429a951645aab0149356a1cf3a
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se crea la fuente canónica de estrategia de onboarding de números WhatsApp
+para BegaIA/Begasist, separando demo, piloto, producción, migración,
+coexistencia, Twilio y Meta Cloud API con wording prudente, y agregando
+referencias mínimas en documentos de producto existentes sin duplicar el ADR
+técnico de transporte.
+
+Archivos afectados:
+
+- `docs/product/whatsapp_number_onboarding_strategy.md`
+- `docs/product/architecture_concierge.md`
+- `docs/product/presentation_narrative_base.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni modificación del ADR técnico
+- alcance estrictamente documental y prudente sobre onboarding WhatsApp
+
+Impacto:
+
+- crea una fuente canónica donde antes había fragmentos dispersos
+- reduce riesgo de sobrepromesa comercial en WhatsApp
+- ordena la relación entre producto, operación y transporte técnico
+- mantiene `guestId` como identidad canónica frente a teléfono/provider como
+  alias técnico
