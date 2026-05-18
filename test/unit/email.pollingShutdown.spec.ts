@@ -78,6 +78,54 @@ describe("email polling shutdown helpers", () => {
     expect(criteria).toContainEqual(["SINCE", "11-Mar-2026"]);
   });
 
+  it("no rompe el canal si el proveedor rechaza la keyword custom y conserva \\Seen", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const connection = {
+      addFlags: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("Unable to parse flag \\RAGBOT_PROCESSED"))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error("Unable to parse flag \\RAGBOT_PROCESSED")),
+    };
+
+    await expect(markEmailProcessed(connection, 77)).resolves.toBeUndefined();
+
+    expect(connection.addFlags).toHaveBeenNthCalledWith(1, 77, ["\\Seen", "RAGBOT_PROCESSED"]);
+    expect(connection.addFlags).toHaveBeenNthCalledWith(2, 77, "\\Seen");
+    expect(connection.addFlags).toHaveBeenNthCalledWith(3, 77, "RAGBOT_PROCESSED");
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[email] Keyword IMAP no soportada para UID 77. Se conserva fallback con \\Seen.",
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("no traga errores genericos sin referencia a RAGBOT_PROCESSED", async () => {
+    const connection = {
+      addFlags: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("array flags not supported"))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error("invalid arguments")),
+    };
+
+    await expect(markEmailProcessed(connection, 88)).rejects.toThrow("invalid arguments");
+    expect(connection.addFlags).toHaveBeenNthCalledWith(3, 88, "RAGBOT_PROCESSED");
+  });
+
+  it("no traga errores de conexion aunque mencionen flag de forma inespecifica", async () => {
+    const connection = {
+      addFlags: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("array flags not supported"))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error("connection failed while setting flag")),
+    };
+
+    await expect(markEmailProcessed(connection, 99)).rejects.toThrow("connection failed while setting flag");
+    expect(connection.addFlags).toHaveBeenNthCalledWith(3, 99, "RAGBOT_PROCESSED");
+  });
+
   it("limita mensajes legacy al subconjunto mas reciente", () => {
     const messages = [
       { attributes: { uid: 10 } },

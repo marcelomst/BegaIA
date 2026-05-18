@@ -18,6 +18,7 @@ import { redis } from "@/lib/services/redis";
 const MAX_UID_ERRORS = 3;
 const EMAIL_LOOP_INTERVAL_MS = 15000;
 const EMAIL_BOT_LOCK_TTL_SEC = 120;
+const EMAIL_PROCESSED_KEYWORD = "RAGBOT_PROCESSED";
 const EMAIL_LEGACY_SAFE_MODE_DEFAULT = process.env.EMAIL_LEGACY_SAFE_MODE !== "0";
 const EMAIL_LEGACY_LOOKBACK_DAYS_DEFAULT = Math.max(0, Number(process.env.EMAIL_LEGACY_LOOKBACK_DAYS ?? 1) || 1);
 const EMAIL_LEGACY_MAX_MESSAGES_DEFAULT = Math.max(1, Number(process.env.EMAIL_LEGACY_MAX_MESSAGES ?? 10) || 10);
@@ -90,7 +91,7 @@ export function getEmailLegacyContainmentConfig(): EmailLegacyContainmentConfig 
 }
 
 export function buildEmailLegacySearchCriteria(now = new Date(), cfg = getEmailLegacyContainmentConfig()): any[] {
-  const criteria: any[] = ["UNSEEN", ["UNKEYWORD", "RAGBOT_PROCESSED"]];
+  const criteria: any[] = ["UNSEEN", ["UNKEYWORD", EMAIL_PROCESSED_KEYWORD]];
   if (cfg.safeMode && cfg.lookbackDays > 0) {
     const since = new Date(now.getTime() - cfg.lookbackDays * 24 * 60 * 60 * 1000);
     criteria.push(["SINCE", formatImapDate(since)]);
@@ -141,13 +142,35 @@ export async function releaseEmailBotLock(hotelId: string, lockToken: string): P
   }
 }
 
+function isUnsupportedImapKeywordError(err: unknown): boolean {
+  const msg = String((err as any)?.message || err || "").toLowerCase();
+  const mentionsProcessedKeyword = msg.includes(EMAIL_PROCESSED_KEYWORD.toLowerCase());
+  if (!mentionsProcessedKeyword) return false;
+  return (
+    msg.includes("unable to parse flag") ||
+    msg.includes("unsupported") ||
+    msg.includes("not supported") ||
+    msg.includes("invalid flag") ||
+    msg.includes("invalid keyword")
+  );
+}
+
 export async function markEmailProcessed(connection: any, uid: number): Promise<void> {
   try {
-    await connection.addFlags(uid, ["\\Seen", "RAGBOT_PROCESSED"]);
+    await connection.addFlags(uid, ["\\Seen", EMAIL_PROCESSED_KEYWORD]);
     return;
   } catch {
     await connection.addFlags(uid, "\\Seen");
-    await connection.addFlags(uid, "RAGBOT_PROCESSED");
+  }
+
+  try {
+    await connection.addFlags(uid, EMAIL_PROCESSED_KEYWORD);
+  } catch (err) {
+    if (isUnsupportedImapKeywordError(err)) {
+      console.warn(`[email] Keyword IMAP no soportada para UID ${uid}. Se conserva fallback con \\Seen.`);
+      return;
+    }
+    throw err;
   }
 }
 
