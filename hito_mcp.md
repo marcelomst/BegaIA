@@ -8716,3 +8716,38 @@ Impacto:
 - mantiene legacy congelado y separa esta limpieza de índice de la rotación de
   secretos
 - preserva la sesión física local por requisito operativo
+
+### FIX-EMAIL-IMAP-PROCESSED-FLAG-COMPAT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-18  
+Commit: eee569f3e8100d9b17eed5286f0d79c92927f954
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la compatibilidad del post-processing IMAP del canal Email para que
+la marca estándar `\\Seen` siga siendo obligatoria y la keyword custom
+`RAGBOT_PROCESSED` quede como best-effort opcional sin romper el flujo cuando
+el proveedor rechaza esa keyword, manteniendo intactos `guestId`,
+`conversationId`, `sourceMsgId` y el runtime central.
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance limitado al adapter Email y su post-processing IMAP
+
+Impacto:
+
+- mantiene `\\Seen` como marca obligatoria de compatibilidad mínima
+- degrada `RAGBOT_PROCESSED` a best-effort opcional
+- evita que una incompatibilidad IMAP rompa el pipeline
+- preserva `sourceMsgId` como base de trazabilidad e idempotencia
