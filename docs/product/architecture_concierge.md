@@ -1,3 +1,5 @@
+// Path: docs/product/architecture_concierge.md
+
 # BEGAIA — Arquitectura Conceptual
 
 Nota de naming:
@@ -186,6 +188,8 @@ Esto no implica:
 En el modelo BegaIA:
 
 1 hotel = 1 número WhatsApp concierge.
+
+> Nota: la estrategia de onboarding de números WhatsApp —número nuevo, número actual del hotel, migración, coexistencia y límites de proveedor— se define en `docs/product/whatsapp_number_onboarding_strategy.md`. La frase “1 hotel = 1 número WhatsApp concierge” no implica que conservar el número actual sea siempre inmediato o sin impacto operativo.
 
 Este número puede ser:
 

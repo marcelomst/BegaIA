@@ -1,3 +1,5 @@
+// Path: docs/product/presentation_narrative_base.md
+
 # DRAFT — BegaIA Presentation Narrative Base
 
 ## 1. Propósito del documento
@@ -200,6 +202,10 @@ Estos claims pueden usarse en materiales base porque están alineados con docume
 ## 9. Claims prudentes
 
 Estos claims pueden aparecer solo con formulación prudente o marcados como pendientes de validación comercial.
+
+Para WhatsApp, la formulación prudente es: “Podemos iniciar sin tocar el WhatsApp actual del hotel. Si luego quieren conservar su número principal, se evalúa migración o coexistencia según elegibilidad de Meta/proveedor.”
+
+No afirmar que la telefónica puede redirigir WhatsApp de un número a otro, ni que WhatsApp Business App y API coexistirán siempre con el mismo número sin validación previa.
 
 - BegaIA ayuda a ordenar la operación conversacional del hotel.
   Estado: formulación prudente permitida.
