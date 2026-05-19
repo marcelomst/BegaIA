@@ -8790,3 +8790,37 @@ Impacto:
 - preserva el runtime central y la lógica de dominio fuera de la UI
 - mejora la observabilidad operativa por canal sin cambiar contratos de
   identidad
+
+### FIX-RESERVATION-COMPLETE-SLOTS-EMPTY-MISSING-PROMPT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-19  
+Commit: 033e6619876b3308c42e1a2ed81ec0dabb6a0e93
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige el nodo de reserva para que cuando el turno ya trae slots
+transaccionales completos no pueda emitir una pregunta vacía de faltantes, y
+para que exija `guestName` válido antes de pasar a disponibilidad/propuesta,
+pidiendo nombre y apellido si falta ese dato seguro.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance acotado a lógica de reserva con cobertura unitaria específica
+
+Impacto:
+
+- evita preguntas vacías de faltantes cuando los slots ya están completos
+- exige `guestName` válido antes de disponibilidad o propuesta
+- mantiene separada la propuesta de la confirmación final
+- preserva el gating explícito de acción sin mover lógica a canales
