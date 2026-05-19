@@ -128,4 +128,50 @@ describe("graph create confirm guard", () => {
     expect(confirmAndCreateMock).not.toHaveBeenCalled();
     expect(String(result?.messages?.[0]?.content || "")).toMatch(/respond[eé].*confirmar/i);
   });
+
+  it("cuando el LLM falla pero el turno ya trae todos los slots, cotiza y no emite pregunta vacía", async () => {
+    fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage:
+        "Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas, a nombre de Pedro Picapiedra",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-complete-slots-fallback",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [new HumanMessage("Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas, a nombre de Pedro Picapiedra")],
+      meta: { channel: "email" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/confirm[aá]s la reserva|CONFIRMAR/i);
+    expect(text).not.toContain("¿me pasás ?");
+    expect(text).toMatch(/disponibilidad|disponible/i);
+  });
+
+  it("cuando faltan datos reales, pregunta un faltante concreto en vez de una agregada vacía", async () => {
+    fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
+    getConvStateMock.mockResolvedValueOnce(null);
+    getConvStateMock.mockResolvedValueOnce(null);
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage:
+        "Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-missing-guestname",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [new HumanMessage("Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas")],
+      meta: { channel: "email" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/tipo de habitaci[oó]n|a nombre de qui[eé]n|nombre y apellido/i);
+    expect(text).not.toContain("¿me pasás ?");
+    expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+  });
 });

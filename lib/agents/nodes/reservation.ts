@@ -1,6 +1,7 @@
 
 import { AIMessage } from "@langchain/core/messages";
 import { runAvailabilityCheck } from "@/lib/handlers/pipeline/availability";
+import { buildAskGuestName } from "@/lib/handlers/pipeline/availability";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { fillSlotsWithLLM, confirmAndCreate } from "@/lib/agents/reservations";
@@ -166,6 +167,22 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     // Nota: Config forceCanonicalQuestion existe, pero usamos la constante FORCE_CANONICAL_QUESTION en este flujo.
     const lang2 = (detectedLanguage || "es").slice(0, 2) as "es" | "en" | "pt";
     const locale = lang2;
+    const askGuestNameAndPersist = async (snapshot: SlotMap) => {
+        await upsertConvState(hotelId, conversationId || "", {
+            reservationSlots: {
+                ...snapshot,
+                numGuests: toInt((snapshot as any).numGuests),
+            },
+            salesStage: "qualify",
+            updatedBy: "ai",
+        });
+        return {
+            messages: [new AIMessage(buildAskGuestName(lang2))],
+            reservationSlots: snapshot,
+            category: "reservation",
+            salesStage: "qualify" as const,
+        };
+    };
 
     // Normalizador: fuerza número válido o undefined (evita NaN)
     const toInt = (v: unknown) => {
@@ -302,6 +319,52 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     } catch {
         console.timeLog("fillSlotsWithLLM");
         const missing = QUOTE_REQUIRED_SLOTS.filter((k) => !merged[k]);
+        if (missing.length === 0) {
+            const completeSnapshot = { ...merged, locale };
+            if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
+                return askGuestNameAndPersist(completeSnapshot);
+            }
+            try {
+                const res = await runAvailabilityCheck(
+                    {
+                        lang: lang2,
+                        lcHistory: state.messages as any,
+                        st: await getConvState(hotelId, conversationId || ""),
+                        msg: { hotelId },
+                        conversationId: conversationId || "",
+                    } as any,
+                    completeSnapshot as any,
+                    completeSnapshot.checkIn!,
+                    completeSnapshot.checkOut!
+                );
+                const confirmLine = buildReservationConfirmLine(lang2);
+                return {
+                    messages: [
+                        new AIMessage(
+                            res.finalText + ((res.needsHandoff || res.finalText.includes("CONFIRMAR") || !shouldAppendReservationConfirm(completeSnapshot)) ? "" : confirmLine)
+                        ),
+                    ],
+                    reservationSlots: completeSnapshot,
+                    category: "reservation",
+                    salesStage: "quote",
+                };
+            } catch {
+                return {
+                    messages: [
+                        new AIMessage(
+                            lang2 === "es"
+                                ? "Perdón, tuve un problema al consultar la disponibilidad. ¿Podés intentar nuevamente?"
+                                : lang2 === "pt"
+                                    ? "Desculpe, tive um problema ao verificar a disponibilidade. Pode tentar novamente?"
+                                    : "Sorry, I had a problem checking availability. Could you try again?"
+                        ),
+                    ],
+                    reservationSlots: completeSnapshot,
+                    category: "reservation",
+                    salesStage: "followup",
+                };
+            }
+        }
         const q = ONE_QUESTION_PER_TURN && missing.length
             ? buildSingleSlotQuestion(missing[0], lang2)
             : buildAggregatedQuestion(missing, lang2);
@@ -411,6 +474,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     // Si ya está todo, saltamos disponibilidad
     const haveAllNow = QUOTE_REQUIRED_SLOTS.every((k) => !!merged[k]);
     if (haveAllNow) {
+        if (!isSafeGuestName(String(merged.guestName || ""))) {
+            return askGuestNameAndPersist({ ...merged, locale });
+        }
         const ci = new Date(merged.checkIn!);
         const co = new Date(merged.checkOut!);
         if (
@@ -556,6 +622,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         if (missing.length === 0) {
             // Todos los datos presentes: persistir y consultar disponibilidad como en el camino de slots completos
             const completeSnapshot = { ...nextSnapshot };
+            if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
+                return askGuestNameAndPersist(completeSnapshot);
+            }
             const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
             if (coherenceQuestion) {
                 await upsertConvState(hotelId, conversationId || "", {
@@ -707,6 +776,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         numGuests: toInt((completed as any).guests ?? (completed as any).numGuests),
         locale: completed.locale || locale,
     };
+    if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
+        return askGuestNameAndPersist(completeSnapshot as unknown as SlotMap);
+    }
     const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
     if (coherenceQuestion) {
         await upsertConvState(hotelId, conversationId || "", {
