@@ -8751,3 +8751,42 @@ Impacto:
 - degrada `RAGBOT_PROCESSED` a best-effort opcional
 - evita que una incompatibilidad IMAP rompa el pipeline
 - preserva `sourceMsgId` como base de trazabilidad e idempotencia
+
+### FIX-ADMIN-CHANNEL-UI-PER-CHANNEL-STATE-AND-INBOX-02
+
+Estado: COMPLETADO  
+Fecha: 2026-05-19  
+Commit: 8155db31f9b4994a5a2f8fce40d1cda2ac68f177
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la UI/Admin de canales para que cada `ChannelPanel` lea
+correctamente la config envuelta devuelta por `fetchHotelConfig` y muestre el
+modo real por canal, y para que el inbox consulte conversaciones filtradas
+explícitamente por `channel` en `/api/admin/conversations` sin mezclar Web,
+Email o WhatsApp.
+
+Archivos afectados:
+
+- `components/admin/ChannelPanel.tsx`
+- `utils/fetchAndOrderConversations.ts`
+- `test/frontend/channelPanel.perChannelState.spec.tsx`
+- `test/unit/fetchAndOrderConversations.test.ts`
+- `test/integration/api_admin_conversations.test.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance acotado a observabilidad/admin sin tocar runtime
+
+Impacto:
+
+- alinea la UI con el estado real de `hotel_config` por canal
+- evita mezclar conversaciones de canales distintos en inbox Admin
+- preserva el runtime central y la lógica de dominio fuera de la UI
+- mejora la observabilidad operativa por canal sin cambiar contratos de
+  identidad
