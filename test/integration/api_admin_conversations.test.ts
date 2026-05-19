@@ -101,6 +101,44 @@ describe("/api/admin/conversations (integration)", () => {
     expect(json.conversations?.[0]?.conversationId).toBe("conv-explicit-1");
   });
 
+  it("filters conversations by channel when channel query param is present", async () => {
+    const convCol = getCollection("conversations");
+    const hotelId = "hotel-filter-channel";
+
+    await convCol.insertOne({
+      conversationId: "conv-email-only",
+      hotelId,
+      channel: "email",
+      guestId: "guest-email-1",
+      startedAt: "2026-03-06T11:10:00.000Z",
+      lastUpdatedAt: "2026-03-06T11:11:00.000Z",
+      lang: "es",
+      status: "active",
+      subject: "Email thread",
+    });
+
+    await convCol.insertOne({
+      conversationId: "conv-web-only",
+      hotelId,
+      channel: "web",
+      guestId: "guest-web-1",
+      startedAt: "2026-03-06T11:12:00.000Z",
+      lastUpdatedAt: "2026-03-06T11:13:00.000Z",
+      lang: "es",
+      status: "active",
+      subject: "Web thread",
+    });
+
+    const r = await adminConversationsGET(makeReq({ hotelId, channel: "email" }));
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(Array.isArray(json.conversations)).toBe(true);
+    expect(json.conversations.length).toBe(1);
+    expect(json.conversations[0]?.conversationId).toBe("conv-email-only");
+    expect(json.conversations[0]?.channel).toBe("email");
+  });
+
   it("resolves guest conversations through aliases from the canonical guest perspective", async () => {
     const aliasByGuestCol = getCollection("guest_aliases_by_guest");
     const convCol = getCollection("conversations");

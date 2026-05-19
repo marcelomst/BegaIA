@@ -24,8 +24,7 @@ export async function fetchAllConversationsByChannel(
   hotelId: string,
   channel: string
 ): Promise<ConversationSummary[]> {
-  const _channel = channel; // se mantiene firma por compatibilidad con llamados existentes
-  const url = `/api/admin/conversations?hotelId=${hotelId}`;
+  const url = `/api/admin/conversations?hotelId=${encodeURIComponent(hotelId)}&channel=${encodeURIComponent(channel)}`;
   const res = await fetch(url);
   const data = await res.json();
   console.log(" 🎆fetchAllConversationsByChannel", data);

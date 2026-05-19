@@ -1,6 +1,7 @@
 // Path: /root/begasist/components/admin/ChannelPanel.tsx
 "use client";
 
+import React from "react";
 import { RefreshCcw } from "lucide-react";
 import ChannelInbox from "@/components/admin/ChannelInbox";
 import { useCurrentUser } from "@/lib/context/UserContext";
@@ -30,8 +31,9 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
 
   async function refreshFromServer(hotelId: string) {
     const cfg = await fetchHotelConfig(hotelId);
-    if (cfg?.channelConfigs && channel in cfg.channelConfigs) {
-      const chCfg: any = (cfg.channelConfigs as any)[channel];
+    const hotelCfg = (cfg as any)?.hotel ?? cfg;
+    if (hotelCfg?.channelConfigs && channel in hotelCfg.channelConfigs) {
+      const chCfg: any = (hotelCfg.channelConfigs as any)[channel];
       setMode(chCfg?.mode ?? "automatic");
       setForceCanonical(Boolean(chCfg?.reservations?.forceCanonicalQuestion));
       if (channel === "email") {
@@ -75,7 +77,8 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
     setLoading(true);
     try {
       const full = await fetchHotelConfig(user.hotelId);
-      const prevCh: any = full?.channelConfigs?.[channel] ?? {};
+      const hotelCfg = (full as any)?.hotel ?? full;
+      const prevCh: any = hotelCfg?.channelConfigs?.[channel] ?? {};
       const nextCh = {
         ...prevCh,
         reservations: { ...(prevCh.reservations ?? {}), forceCanonicalQuestion: newVal },
