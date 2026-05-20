@@ -8861,3 +8861,40 @@ Impacto:
   completos
 - evita reintroducir prompts vacíos de faltantes
 - preserva el alcance fuera de Email quoted-thread y runtime multicanal
+
+### FIX-EMAIL-REPLY-CONFIRM-INTENT-QUOTED-THREAD-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-20  
+Commit: e07e3680528a5f4036525533341f8981ba31354d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se corrige la normalización del canal Email para que los quoted threads típicos
+de Gmail/Outlook se recorten antes de invocar el pipeline, evitando que texto
+citado contamine la intención nueva del huésped en replies de confirmación,
+mientras se reutiliza la gobernanza central ya existente para confirmar
+reservas.
+
+Archivos afectados:
+
+- `lib/utils/emailCleanup.ts`
+- `test/unit/email.pipelineIdentity.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance acotado a frontera de normalización del canal Email
+
+Impacto:
+
+- recorta quoted threads antes de entrar al pipeline
+- evita que ruido estructural del proveedor contamine la intención nueva
+- preserva la gobernanza central de confirmación de reservas
+- no introduce cambios sobre `guestId`, `conversationId`, `sourceMsgId` o
+  contratos multicanal
