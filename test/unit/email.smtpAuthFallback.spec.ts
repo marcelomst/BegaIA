@@ -122,4 +122,40 @@ describe("email SMTP auth fallback", () => {
       delete process.env.EMAIL_SENDING_ENABLED;
     }
   });
+
+  it("auto-activa el polling operacional al arrancar en modo watch con canal habilitado", async () => {
+    const intervalSpy = vi.spyOn(global, "setInterval").mockImplementation(() => 1 as any);
+    const connection = {
+      openBox: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      imap: { end: vi.fn() },
+    };
+    connectMock.mockResolvedValueOnce(connection);
+    createTransportMock.mockReturnValueOnce({ sendMail: vi.fn() });
+    process.env.EMAIL_WORKER_MODE = "watch";
+
+    try {
+      const { startEmailBot } = await import("@/lib/services/email");
+
+      await startEmailBot({
+        hotelId: "hotel-watch-polling-1",
+        emailConf: {
+          dirEmail: "hotel@example.com",
+          imapHost: "imap.gmail.com",
+          imapPort: 993,
+          smtpHost: "smtp.gmail.com",
+          smtpPort: 587,
+          secure: false,
+          password: "inline-legacy-pass",
+          enabled: true,
+          mode: "automatic",
+        } as any,
+      });
+
+      expect(redisStore.get("email_polling:hotel-watch-polling-1")).toBe("true");
+    } finally {
+      intervalSpy.mockRestore();
+      delete process.env.EMAIL_WORKER_MODE;
+    }
+  });
 });

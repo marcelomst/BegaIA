@@ -10,7 +10,7 @@ import type { EmailConfig } from "@/types/channel";
 import { resolveEmailCredentials, EMAIL_SENDING_ENABLED, emailSecretEnvVarName } from "@/lib/email/resolveEmailCredentials";
 import { standardCleanup } from "@/lib/utils/emailCleanup";
 import { disableEmailPolling } from "@/lib/services/emailPollControl";
-import { getEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
+import { getEmailPollingState, setEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
 import { getMessageByOriginalIdScoped } from "@/lib/db/messages"; // Idempotencia
 import { debugLog } from "@/lib/utils/debugLog";
 import { redis } from "@/lib/services/redis";
@@ -126,6 +126,13 @@ export function getEmailWorkerMode(): EmailWorkerMode {
 
 export function shouldKeepEmailRuntimeAliveAfterBatch(mode = getEmailWorkerMode()): boolean {
   return mode === "watch";
+}
+
+export function shouldAutoEnableEmailPollingOnStartup(
+  mode = getEmailWorkerMode(),
+  emailEnabled = true,
+): boolean {
+  return mode === "watch" && emailEnabled !== false;
 }
 
 function newEmailBotLockToken(hotelId: string): string {
@@ -376,7 +383,12 @@ export async function startEmailBot({
       console.warn('[email] EMAIL_SENDING_ENABLED=false: se inicia polling IMAP pero no se enviarán respuestas automáticas.');
     }
     const workerMode = getEmailWorkerMode();
-    console.log("[email] Runtime mode", { hotelId, workerMode });
+    const channelEnabled = emailConf.enabled !== false;
+    console.log("[email] Runtime mode", { hotelId, workerMode, channelEnabled });
+    if (shouldAutoEnableEmailPollingOnStartup(workerMode, channelEnabled)) {
+      await setEmailPollingState(hotelId, true);
+      console.log(`[email] Runtime watch DEV: polling operacional activado para hotel ${hotelId}.`);
+    }
 
     // Para IMAP y SMTP usamos la misma credencial efectiva del runtime legacy.
     let effectiveEmailPass = creds.pass || inlinePassword;

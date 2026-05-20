@@ -31,6 +31,7 @@ import {
   buildEmailLegacySearchCriteria,
   getEmailWorkerMode,
   limitLegacyMessages,
+  shouldAutoEnableEmailPollingOnStartup,
   shouldKeepEmailRuntimeAliveAfterBatch,
   refreshEmailBotLock,
   releaseEmailBotLock,
@@ -93,9 +94,15 @@ describe("email polling shutdown helpers", () => {
     try {
       expect(getEmailWorkerMode()).toBe("watch");
       expect(shouldKeepEmailRuntimeAliveAfterBatch()).toBe(true);
+      expect(shouldAutoEnableEmailPollingOnStartup()).toBe(true);
     } finally {
       delete process.env.EMAIL_WORKER_MODE;
     }
+  });
+
+  it("no auto-activa polling en once ni cuando el canal email esta deshabilitado", () => {
+    expect(shouldAutoEnableEmailPollingOnStartup("once", true)).toBe(false);
+    expect(shouldAutoEnableEmailPollingOnStartup("watch", false)).toBe(false);
   });
 
   it("no rompe el canal si el proveedor rechaza la keyword custom y conserva \\Seen", async () => {
