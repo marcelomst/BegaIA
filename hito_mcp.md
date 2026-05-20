@@ -8934,3 +8934,41 @@ Impacto:
 - evita comportamiento híbrido ambiguo en `dev:email`
 - mantiene protecciones anti-loop y el heartbeat en el worker real
 - no altera `guestId`, `conversationId`, `sourceMsgId` ni la lógica central
+
+### FIX-EMAIL-WATCH-POLLING-STATE-DEV-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-20  
+Commit: e47350fd783e2159b607e7cb92a93cf37e94c7ba
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea el runtime DEV del worker Email en modo `watch` con el polling state
+operacional persistido en Redis, auto-activando `email_polling:<hotelId>` al
+arranque solo cuando `EMAIL_WORKER_MODE=watch` y el canal Email no está
+deshabilitado, sin alterar el default `once` ni el comportamiento productivo
+por omisión.
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+- `test/unit/email.smtpAuthFallback.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance acotado al worker Email y estado operacional Redis
+
+Impacto:
+
+- explicita la diferencia entre configuración estable del canal y estado
+  operacional de polling
+- evita que un flag Redis viejo bloquee `dev:email` en modo `watch`
+- preserva locks y protecciones anti-loop
+- no altera `guestId`, `conversationId`, `sourceMsgId` ni la lógica
+  conversacional central
