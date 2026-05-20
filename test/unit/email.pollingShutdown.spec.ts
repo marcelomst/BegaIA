@@ -29,7 +29,9 @@ vi.mock("@/lib/services/redis", () => ({
 import {
   acquireEmailBotLock,
   buildEmailLegacySearchCriteria,
+  getEmailWorkerMode,
   limitLegacyMessages,
+  shouldKeepEmailRuntimeAliveAfterBatch,
   refreshEmailBotLock,
   releaseEmailBotLock,
   markEmailProcessed,
@@ -76,6 +78,24 @@ describe("email polling shutdown helpers", () => {
     expect(criteria).toContain("UNSEEN");
     expect(criteria).toContainEqual(["UNKEYWORD", "RAGBOT_PROCESSED"]);
     expect(criteria).toContainEqual(["SINCE", "11-Mar-2026"]);
+  });
+
+  it("mantiene modo once por defecto para no cambiar runtime productivo", () => {
+    delete process.env.EMAIL_WORKER_MODE;
+
+    expect(getEmailWorkerMode()).toBe("once");
+    expect(shouldKeepEmailRuntimeAliveAfterBatch()).toBe(false);
+  });
+
+  it("permite modo watch para dev:email sin apagar polling tras cada batch", () => {
+    process.env.EMAIL_WORKER_MODE = "watch";
+
+    try {
+      expect(getEmailWorkerMode()).toBe("watch");
+      expect(shouldKeepEmailRuntimeAliveAfterBatch()).toBe(true);
+    } finally {
+      delete process.env.EMAIL_WORKER_MODE;
+    }
   });
 
   it("no rompe el canal si el proveedor rechaza la keyword custom y conserva \\Seen", async () => {

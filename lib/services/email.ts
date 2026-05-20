@@ -14,6 +14,7 @@ import { getEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ 
 import { getMessageByOriginalIdScoped } from "@/lib/db/messages"; // Idempotencia
 import { debugLog } from "@/lib/utils/debugLog";
 import { redis } from "@/lib/services/redis";
+import { startChannelHeartbeat, stopChannelHeartbeat } from "@/lib/services/heartbeat";
 
 const MAX_UID_ERRORS = 3;
 const EMAIL_LOOP_INTERVAL_MS = 15000;
@@ -23,6 +24,7 @@ const EMAIL_LEGACY_SAFE_MODE_DEFAULT = process.env.EMAIL_LEGACY_SAFE_MODE !== "0
 const EMAIL_LEGACY_LOOKBACK_DAYS_DEFAULT = Math.max(0, Number(process.env.EMAIL_LEGACY_LOOKBACK_DAYS ?? 1) || 1);
 const EMAIL_LEGACY_MAX_MESSAGES_DEFAULT = Math.max(1, Number(process.env.EMAIL_LEGACY_MAX_MESSAGES ?? 10) || 10);
 const failedUids: Record<number, number> = {};
+type EmailWorkerMode = "once" | "watch";
 const emailBotRuntimes = new Map<string, {
   hotelId: string;
   lockToken: string;
@@ -116,6 +118,16 @@ function buildEmailBotLockKey(hotelId: string): string {
   return `email_bot_lock:${hotelId}`;
 }
 
+export function getEmailWorkerMode(): EmailWorkerMode {
+  const raw = String(process.env.EMAIL_WORKER_MODE ?? "").trim().toLowerCase();
+  if (raw === "watch" || raw === "daemon" || raw === "continuous") return "watch";
+  return "once";
+}
+
+export function shouldKeepEmailRuntimeAliveAfterBatch(mode = getEmailWorkerMode()): boolean {
+  return mode === "watch";
+}
+
 function newEmailBotLockToken(hotelId: string): string {
   return `${hotelId}:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -195,6 +207,7 @@ async function stopEmailBotRuntime(hotelId: string, reason: string, lockToken: s
   }
 
   emailBotRuntimes.delete(hotelId);
+  stopChannelHeartbeat("email", hotelId);
   await releaseEmailBotLock(hotelId, lockToken).catch((err) => {
     console.warn(`[email] No se pudo liberar lock (${hotelId}) tras ${reason}:`, err);
   });
@@ -362,6 +375,8 @@ export async function startEmailBot({
     if (!EMAIL_SENDING_ENABLED) {
       console.warn('[email] EMAIL_SENDING_ENABLED=false: se inicia polling IMAP pero no se enviarán respuestas automáticas.');
     }
+    const workerMode = getEmailWorkerMode();
+    console.log("[email] Runtime mode", { hotelId, workerMode });
 
     // Para IMAP y SMTP usamos la misma credencial efectiva del runtime legacy.
     let effectiveEmailPass = creds.pass || inlinePassword;
@@ -441,6 +456,7 @@ export async function startEmailBot({
       connection,
       stopping: false,
     });
+    startChannelHeartbeat("email", hotelId);
     const legacyContainment = getEmailLegacyContainmentConfig();
     console.log("[email][legacy] containment", {
       hotelId,
@@ -473,6 +489,10 @@ export async function startEmailBot({
 
         if (!selectedMessages.length) {
           console.log("📭 [email] No hay mensajes no leídos.");
+          if (shouldKeepEmailRuntimeAliveAfterBatch(workerMode)) {
+            console.log(`[email] Runtime watch activo para hotel ${hotelId}. Se mantiene polling tras inbox vacío.`);
+            return;
+          }
           disableEmailPolling(hotelId);
           await stopEmailBotRuntime(hotelId, "empty_inbox", runtimeLockToken);
           return;
@@ -597,6 +617,10 @@ export async function startEmailBot({
           }
         }
 
+        if (shouldKeepEmailRuntimeAliveAfterBatch(workerMode)) {
+          console.log(`[email] Runtime watch activo para hotel ${hotelId}. Batch completado; se mantiene polling habilitado.`);
+          return;
+        }
         disableEmailPolling(hotelId);
         await stopEmailBotRuntime(hotelId, "batch_completed", runtimeLockToken);
         console.log("🛑 [email] Polling desactivado después de procesar mensajes.");
