@@ -183,6 +183,34 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             salesStage: "qualify" as const,
         };
     };
+    const interruptForDateCoherenceIfNeeded = async (snapshot: SlotMap) => {
+        const coherenceQuestion = getDateCoherenceInterruption(
+            lang2,
+            normalizedMessage,
+            st,
+            state.messages as any,
+            snapshot
+        );
+        if (!coherenceQuestion) return null;
+        await upsertConvState(hotelId, conversationId || "", {
+            reservationSlots: {
+                ...snapshot,
+                numGuests: toInt((snapshot as any).numGuests),
+            },
+            dateCoherencePending: {
+                checkIn: snapshot.checkIn!,
+                checkOut: snapshot.checkOut!,
+            },
+            salesStage: "qualify",
+            updatedBy: "ai",
+        });
+        return {
+            messages: [new AIMessage(coherenceQuestion)],
+            reservationSlots: snapshot,
+            category: "reservation",
+            salesStage: "qualify" as const,
+        };
+    };
 
     // Normalizador: fuerza número válido o undefined (evita NaN)
     const toInt = (v: unknown) => {
@@ -474,9 +502,6 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     // Si ya está todo, saltamos disponibilidad
     const haveAllNow = QUOTE_REQUIRED_SLOTS.every((k) => !!merged[k]);
     if (haveAllNow) {
-        if (!isSafeGuestName(String(merged.guestName || ""))) {
-            return askGuestNameAndPersist({ ...merged, locale });
-        }
         const ci = new Date(merged.checkIn!);
         const co = new Date(merged.checkOut!);
         if (
@@ -498,26 +523,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             };
         }
         const completeSnapshot = { ...merged, locale };
-        const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
-        if (coherenceQuestion) {
-            await upsertConvState(hotelId, conversationId || "", {
-                reservationSlots: {
-                    ...completeSnapshot,
-                    numGuests: toInt((completeSnapshot as any).numGuests),
-                },
-                dateCoherencePending: {
-                    checkIn: completeSnapshot.checkIn!,
-                    checkOut: completeSnapshot.checkOut!,
-                },
-                salesStage: "qualify",
-                updatedBy: "ai",
-            });
-            return {
-                messages: [new AIMessage(coherenceQuestion)],
-                reservationSlots: completeSnapshot,
-                category: "reservation",
-                salesStage: "qualify",
-            };
+        const coherenceInterruption = await interruptForDateCoherenceIfNeeded(completeSnapshot);
+        if (coherenceInterruption) return coherenceInterruption;
+        if (!isSafeGuestName(String(merged.guestName || ""))) {
+            return askGuestNameAndPersist({ ...merged, locale });
         }
         await upsertConvState(hotelId, conversationId || "", {
                 reservationSlots: {
@@ -622,29 +631,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         if (missing.length === 0) {
             // Todos los datos presentes: persistir y consultar disponibilidad como en el camino de slots completos
             const completeSnapshot = { ...nextSnapshot };
+            const coherenceInterruption = await interruptForDateCoherenceIfNeeded(completeSnapshot);
+            if (coherenceInterruption) return coherenceInterruption;
             if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
                 return askGuestNameAndPersist(completeSnapshot);
-            }
-            const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
-            if (coherenceQuestion) {
-                await upsertConvState(hotelId, conversationId || "", {
-                    reservationSlots: {
-                        ...completeSnapshot,
-                        numGuests: toInt((completeSnapshot as any).numGuests),
-                    },
-                    dateCoherencePending: {
-                        checkIn: completeSnapshot.checkIn!,
-                        checkOut: completeSnapshot.checkOut!,
-                    },
-                    salesStage: "qualify",
-                    updatedBy: "ai",
-                });
-                return {
-                    messages: [new AIMessage(coherenceQuestion)],
-                    reservationSlots: completeSnapshot,
-                    category: "reservation",
-                    salesStage: "qualify",
-                };
             }
             await upsertConvState(hotelId, conversationId || "", {
                 reservationSlots: completeSnapshot,
@@ -776,29 +766,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         numGuests: toInt((completed as any).guests ?? (completed as any).numGuests),
         locale: completed.locale || locale,
     };
+    const coherenceInterruption = await interruptForDateCoherenceIfNeeded(completeSnapshot as unknown as SlotMap);
+    if (coherenceInterruption) return coherenceInterruption;
     if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
         return askGuestNameAndPersist(completeSnapshot as unknown as SlotMap);
-    }
-    const coherenceQuestion = getDateCoherenceInterruption(lang2, normalizedMessage, st, state.messages as any, completeSnapshot);
-    if (coherenceQuestion) {
-        await upsertConvState(hotelId, conversationId || "", {
-            reservationSlots: {
-                ...completeSnapshot,
-                numGuests: toInt((completeSnapshot as any).numGuests),
-            },
-            dateCoherencePending: {
-                checkIn: completeSnapshot.checkIn!,
-                checkOut: completeSnapshot.checkOut!,
-            },
-            salesStage: "qualify",
-            updatedBy: "ai",
-        });
-        return {
-            messages: [new AIMessage(coherenceQuestion)],
-            reservationSlots: completeSnapshot,
-            category: "reservation",
-            salesStage: "qualify",
-        };
     }
     await upsertConvState(hotelId, conversationId || "", {
         reservationSlots: completeSnapshot,

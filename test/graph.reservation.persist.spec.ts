@@ -227,7 +227,7 @@ describe("reservation handler - persistencia en conv_state", () => {
     );
   });
 
-  it("cotiza antes del nombre pero no ofrece confirmar mientras falta guestName", async () => {
+  it("si solo falta guestName, pide titular y no cotiza ni ofrece confirmar", async () => {
     (fillSlotsWithLLM as any).mockResolvedValue({
       need: "question",
       partial: {
@@ -256,9 +256,10 @@ describe("reservation handler - persistencia en conv_state", () => {
     });
 
     const text = String(res.messages?.[0]?.content || "");
-    expect(text).toMatch(/Tarifa por noche/i);
     expect(text).toMatch(/A nombre de quién|nombre y apellido|nombre completo/i);
     expect(text).not.toMatch(/CONFIRMAR/i);
+    expect(text).not.toMatch(/Tarifa por noche/i);
+    expect((askAvailability as any)).not.toHaveBeenCalled();
   });
 
   it("si el contexto previo era de fin de semana y el rango nuevo es anómalo, pide confirmación reforzada antes de cotizar", async () => {
