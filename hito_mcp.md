@@ -8824,3 +8824,40 @@ Impacto:
 - exige `guestName` válido antes de disponibilidad o propuesta
 - mantiene separada la propuesta de la confirmación final
 - preserva el gating explícito de acción sin mover lógica a canales
+
+### ALIGN-RESERVATION-GUESTNAME-QUOTE-GATING-CONTRACT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-20  
+Commit: b7f609bc6dd5ece109ce56c1c524ff25bd5df473
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se alinea el contrato de `reservation.create` para mantener `guestName` como
+gating de `availability`/`quote`/`proposal`/`CONFIRMAR`, pero priorizando la
+validación de coherencia temporal fuerte cuando ya existen slots
+transaccionales completos, sin mezclar cambios de Email quoted-thread ni tocar
+runtime multicanal.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `test/graph.reservation.persist.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- working tree limpio validado en `main...origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+
+Impacto:
+
+- mantiene `guestName` como gating explícito antes de `availability`, `quote`,
+  `proposal` y `CONFIRMAR`
+- prioriza coherencia temporal fuerte cuando los slots transaccionales ya están
+  completos
+- evita reintroducir prompts vacíos de faltantes
+- preserva el alcance fuera de Email quoted-thread y runtime multicanal
