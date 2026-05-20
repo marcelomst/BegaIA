@@ -110,11 +110,11 @@ import { getMessagesByConversation } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { getGuest } from "@/lib/db/guests";
 
-function msg(content: string, conversationId = "conv-confirm-1") {
+function msg(content: string, conversationId = "conv-confirm-1", channel = "web") {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
     hotelId: "hotel999",
-    channel: "web",
+    channel,
     sender: "guest",
     content,
     timestamp: new Date().toISOString(),
@@ -194,6 +194,32 @@ describe("messageHandler reservation confirm follow-up", () => {
     expect(replyText).toMatch(/Reserva a nombre de \*\*Marcelo Martinez\*\*/i);
     expect(replyText).not.toContain("contenido generico");
     expect(replyText).not.toMatch(/^Marcelo,/i);
+  });
+
+  it("mantiene el cierre de reserva en canal email con confirmación limpia", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Geronimo",
+      firstName: "Geronimo",
+    });
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Confirmar", "conv-confirm-email-1", "email"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-confirm-email-1",
+      expect.objectContaining({
+        salesStage: "close",
+        lastReservation: expect.objectContaining({
+          reservationId: "R-0001",
+          status: "created",
+        }),
+      })
+    );
+    expect(lastReply(sendReply)).toMatch(/Reserva confirmada|R-0001/i);
   });
 
   it.each(["confirmar?", "confirmar mañana"])(
