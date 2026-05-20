@@ -8898,3 +8898,39 @@ Impacto:
 - preserva la gobernanza central de confirmación de reservas
 - no introduce cambios sobre `guestId`, `conversationId`, `sourceMsgId` o
   contratos multicanal
+
+### DEV-EMAIL-WORKER-POLLING-RUNTIME-STABILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-20  
+Commit: 511d9ce1c1e97f5ada5afdfcd1e7f3d6070e8781
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se estabiliza el runtime DEV del worker Email separando explícitamente modo
+daemon `watch` y modo batch `once`, para que `dev:email` permanezca vivo tras
+inbox vacío o batch completado sin exigir reinicio manual, manteniendo el
+default interno `once` y sin cambiar contratos conversacionales ni
+comportamiento productivo por omisión.
+
+Archivos afectados:
+
+- `package.json`
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- alcance acotado al worker Email en modo DEV
+
+Impacto:
+
+- explicita la diferencia entre batch y daemon
+- evita comportamiento híbrido ambiguo en `dev:email`
+- mantiene protecciones anti-loop y el heartbeat en el worker real
+- no altera `guestId`, `conversationId`, `sourceMsgId` ni la lógica central
