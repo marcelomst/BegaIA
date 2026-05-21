@@ -9020,3 +9020,43 @@ Observaciones:
 - apareció un posible artefacto visual de Gmail/language UI, pero los logs
   muestran que el contenido real enviado por el pipeline fue la confirmación de
   reserva
+
+### FIX-WHATSAPP-LEGACY-READY-EVENT-COMPAT-WEB-INJECTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-21  
+Commit: c09a33b55149ac42b0e8781bdd28ec33df7bc4b1
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Hito de diagnóstico y hardening técnico sobre WhatsApp legacy con
+`whatsapp-web.js`. Agrega instrumentación de browser/page lifecycle, endurece
+`LocalAuth`/cache/webVersion y fija `whatsapp-web.js@1.34.4` para validar
+compatibilidad, pero confirma que el canal sigue en
+`authenticated/CONNECTED/hasSynced` sin `ready` ni inbound, por lo que no es
+apto para demo actualmente.
+
+Archivos afectados:
+
+- `lib/services/whatsapp.ts`
+- `lib/services/whatsappClient.ts`
+- `package.json`
+- `pnpm-lock.yaml`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no toca `messageHandler`, Email, Twilio/Meta, Admin UI ni contratos
+  multicanal
+- no introduce `fake ready` ni workarounds frágiles
+
+Impacto:
+
+- agrega instrumentación y hardening de compatibilidad en `wwebjs legacy`
+- justifica fijación de `whatsapp-web.js@1.34.4` como parte del diagnóstico
+- confirma resultado funcional negativo sin disfrazarlo como éxito
+- deja conclusión operativa explícita: `wwebjs legacy no apto para demo
+  actualmente`
