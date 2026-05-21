@@ -23,6 +23,60 @@ import type { ChannelMessage } from "@/types/channel";
 // Logs recortados
 const preview = (s: string, n = 120) => (s || "").replace(/\s+/g, " ").trim().slice(0, n);
 
+function attachWhatsAppBrowserDiagnostics(hotelId: string) {
+  const page = (client as any).pupPage;
+  const browser = (client as any).pupBrowser;
+  if (!page || (page as any).__begasistDiagnosticsAttached) return;
+  (page as any).__begasistDiagnosticsAttached = true;
+
+  console.log(`[whatsapp][diag] browser diagnostics attached hotelId=${hotelId}`);
+  page.on("pageerror", (err: Error) => {
+    console.error(`[whatsapp][pageerror] hotelId=${hotelId}:`, err?.message || err);
+    debugLog("[wa.lifecycle]", { event: "pageerror", hotelId, error: String(err?.message || err) }, "error");
+  });
+  page.on("requestfailed", (req: any) => {
+    const failure = req.failure?.();
+    console.warn(`[whatsapp][requestfailed] hotelId=${hotelId} ${req.method?.() || ""} ${req.url?.() || ""}`, failure || "");
+    debugLog("[wa.lifecycle]", {
+      event: "requestfailed",
+      hotelId,
+      url: String(req.url?.() || ""),
+      error: String(failure?.errorText || ""),
+    }, "warn");
+  });
+  page.on("console", (msg: any) => {
+    const type = String(msg.type?.() || "log");
+    if (!["error", "warning"].includes(type)) return;
+    console.warn(`[whatsapp][browser:${type}] hotelId=${hotelId}: ${msg.text?.() || ""}`);
+  });
+  browser?.on?.("disconnected", () => {
+    console.warn(`[whatsapp][browser] disconnected hotelId=${hotelId}`);
+    debugLog("[wa.lifecycle]", { event: "browser_disconnected", hotelId }, "warn");
+  });
+}
+
+async function dumpWhatsAppPageState(hotelId: string, reason: string) {
+  try {
+    const page = (client as any).pupPage;
+    if (!page) return;
+    const state = await page.evaluate(() => ({
+      href: location.href,
+      readyState: document.readyState,
+      title: document.title,
+      hasStore: typeof (window as any).Store !== "undefined",
+      hasWWebJS: typeof (window as any).WWebJS !== "undefined",
+      hasAuthStore: typeof (window as any).AuthStore !== "undefined",
+      debugVersion: (window as any).Debug?.VERSION || null,
+      appState: (window as any).AuthStore?.AppState?.state || null,
+      hasSynced: (window as any).AuthStore?.AppState?.hasSynced || null,
+    }));
+    console.log(`[whatsapp][diag] state hotelId=${hotelId} reason=${reason}`, state);
+    debugLog("[wa.lifecycle]", { event: "page_state", hotelId, reason, state });
+  } catch (err) {
+    console.warn(`[whatsapp][diag] state failed hotelId=${hotelId} reason=${reason}:`, err);
+  }
+}
+
 /**
  * Nota: el control de grupos ahora es por hotel desde hotel_config.channelConfigs.whatsapp.ignoreGroups
  * (por defecto true si no está definido).
@@ -89,6 +143,13 @@ export function startWhatsAppBot({
   client.on("authenticated", () => {
     console.log(`🔐 [whatsapp] authenticated hotelId=${hotelId}`);
     debugLog("[wa.lifecycle]", { event: "authenticated", hotelId });
+    attachWhatsAppBrowserDiagnostics(hotelId);
+    setTimeout(() => {
+      void dumpWhatsAppPageState(hotelId, "authenticated+15s");
+    }, 15_000);
+    setTimeout(() => {
+      void dumpWhatsAppPageState(hotelId, "authenticated+60s");
+    }, 60_000);
   });
 
   client.on("loading_screen", (percent: number, message: string) => {
@@ -115,6 +176,8 @@ export function startWhatsAppBot({
   client.on("ready", async () => {
     console.log(`✅ [whatsapp] Bot listo para hotelId=${hotelId}`);
     debugLog("[wa.lifecycle]", { event: "ready", hotelId });
+    attachWhatsAppBrowserDiagnostics(hotelId);
+    await dumpWhatsAppPageState(hotelId, "ready");
     try {
       await clearQR(hotelId);
       await setWhatsAppState(hotelId, "connected");
@@ -316,7 +379,10 @@ export function startWhatsAppBot({
   try {
     const init = (client as any).initialize?.();
     if (init && typeof init.then === "function") {
-      init.catch((err: unknown) => {
+      init.then(() => {
+        attachWhatsAppBrowserDiagnostics(hotelId);
+        void dumpWhatsAppPageState(hotelId, "initialize_resolved");
+      }).catch((err: unknown) => {
         const error = String((err as any)?.message || err || "");
         console.error("⛔ [whatsapp] Error async en initialize():", err);
         debugLog("[wa.lifecycle]", { event: "initialize_failed_async", hotelId, error }, "error");
