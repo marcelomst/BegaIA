@@ -8972,3 +8972,51 @@ Impacto:
 - preserva locks y protecciones anti-loop
 - no altera `guestId`, `conversationId`, `sourceMsgId` ni la lógica
   conversacional central
+
+### MANUAL-EMAIL-RESERVATION-CONFIRMATION-E2E-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-21  
+Commit: none
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Se documenta una validación manual end-to-end exitosa del canal Email para
+reservas, cubriendo inbound Email, generación de propuesta, respuesta del
+huésped por Gmail con quoted thread, limpieza correcta del quoted thread,
+confirmación de reserva, outbound Email, worker Email en modo `watch`
+operativo, polling persistente y dedupe por `Message-ID` funcionando.
+
+Archivos afectados:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- validación manual real ejecutada con `pnpm run dev` y
+  `HOTEL_ID=hotel999 pnpm run dev:email`
+- `code_commit_required: no`
+- `roadmap_impact: none`
+- no requiere actualización de roadmap ni documentación arquitectónica
+- no modifica runtime, UI/Admin ni contratos multicanal
+
+Impacto:
+
+- confirma que Email opera end-to-end como canal real de reservas
+- valida limpieza de quoted thread en replies Gmail/Outlook típicos
+- confirma outbound SMTP, polling `watch` persistente y dedupe por
+  `Message-ID`/`sourceMsgId`
+- preserva la lógica conversacional central sin contaminar dominio ni
+  transporte multicanal
+
+Observaciones:
+
+- `RAGBOT_PROCESSED` quedó best-effort no soportado por este proveedor IMAP;
+  fallback con `\\Seen` + dedupe funcionó correctamente
+- un correo duplicado reapareció como candidato una vez, pero fue detectado y
+  no se persistió nuevamente
+- apareció un posible artefacto visual de Gmail/language UI, pero los logs
+  muestran que el contenido real enviado por el pipeline fue la confirmación de
+  reserva
