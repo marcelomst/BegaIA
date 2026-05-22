@@ -1,4 +1,33 @@
 // Path: /root/begasist/scripts/wipe-conversations-and-messages.ts
+/**
+ * Script destructivo. Usar solo de forma manual/controlada en entornos de desarrollo o test.
+ * No usar como parte del runtime conversacional ni de flujos automáticos.
+ *
+ * Fuera de scope de este wipe:
+ *   - reservations
+ *   - cualquier otro estado de dominio no listado abajo
+ *
+ * Uso principal:
+ *   pnpm run runtime:wipe
+ *
+ * Atajos:
+ *   pnpm run runtime:wipe:hotel999
+ *   pnpm run runtime:wipe:hotel999:force
+ *
+ * Dry-run por hotel:
+ *   pnpm run runtime:wipe -- --hotel=hotel999
+ *
+ * Borrado real por hotel:
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --force
+ *
+ * Borrado parcial con --only:
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=messages --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=conversations --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=conv_state --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guests --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guest_aliases --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guest_aliases_by_guest --force
+ */
 import * as dotenv from "dotenv";
 dotenv.config();
 
