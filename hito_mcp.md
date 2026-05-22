@@ -9095,3 +9095,36 @@ Impacto:
 - Web/WhatsApp mantienen sequencing incremental previo
 - `buildReservationMissingQuestion(...)` queda como helper de render visible
 - no introduce nueva fuente de verdad ni altera el runtime común
+
+### CHORE-WIPE-CONVERSATIONAL-STATE-SCRIPT-DOC-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-22  
+Commit: eab23b24051046f36dcabe5a66f31f40c4365965
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Formaliza la documentación operativa del script de wipe conversacional,
+explicitando uso manual destructivo solo en dev/test y aclarando que
+`reservations` y otros estados no listados quedan fuera de scope, sin
+modificar la lógica de borrado.
+
+Archivos afectados:
+
+- `scripts/wipe-conversations-and-messages.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- el commit real contiene solo `scripts/wipe-conversations-and-messages.ts`
+- no modifica `--force`, `--only`, filtros, colecciones objetivo ni `dry-run`
+
+Impacto:
+
+- agrega advertencia explícita de script destructivo
+- restringe el uso a ejecución manual y controlada en dev/test
+- excluye explícitamente `reservations` y otros estados no listados
+- no altera runtime, contratos de dominio ni comportamiento destructivo
