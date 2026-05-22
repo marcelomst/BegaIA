@@ -9060,3 +9060,38 @@ Impacto:
 - confirma resultado funcional negativo sin disfrazarlo como éxito
 - deja conclusión operativa explícita: `wwebjs legacy no apto para demo
   actualmente`
+
+### FIX-EMAIL-RESERVATION-ASK-POLICY-02
+
+Estado: COMPLETADO  
+Fecha: 2026-05-22  
+Commit: 72fa0368b9e5ddb39f2906f5926c5be62fa9aff5
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Email agrupa faltantes de reserva cuando faltan múltiples slots, mientras
+Web/WhatsApp preservan sequencing incremental, sin alterar extracción ni
+runtime común.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/agents/nodes/reservation.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- no toca transporte, parser Email, runtime paralelo, Admin UI ni contratos
+  multicanal
+- la extracción y merge de slots sigue siendo común y oportunista
+
+Impacto:
+
+- Email agrupa faltantes cuando hay `2+` slots faltantes
+- Web/WhatsApp mantienen sequencing incremental previo
+- `buildReservationMissingQuestion(...)` queda como helper de render visible
+- no introduce nueva fuente de verdad ni altera el runtime común
