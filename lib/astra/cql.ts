@@ -12,15 +12,30 @@ function required(name: string) {
   return v;
 }
 
+function resolveBundlePath() {
+  const bundle =
+    process.env.ASTRA_DB_BUNDLE_PATH ||
+    process.env.ASTRA_DB_SECURE_BUNDLE ||
+    process.env.ASTRA_DB_SECURE_CONNECT_BUNDLE;
+
+  if (!bundle) {
+    throw new Error(
+      "[Astra CQL] Falta env ASTRA_DB_BUNDLE_PATH o ASTRA_DB_SECURE_BUNDLE"
+    );
+  }
+
+  return bundle;
+}
+
 export function getCqlClient(): Client {
   if (_client) return _client;
 
-  const bundle = required("ASTRA_DB_BUNDLE_PATH");
+  const bundle = resolveBundlePath();
   const token  = required("ASTRA_DB_APPLICATION_TOKEN");
   const keyspace = required("ASTRA_DB_KEYSPACE");
 
   if (!fs.existsSync(bundle)) {
-    throw new Error(`[Astra CQL] ASTRA_DB_BUNDLE_PATH no existe: ${bundle}`);
+    throw new Error(`[Astra CQL] Secure bundle no existe: ${bundle}`);
   }
 
   _client = new Client({

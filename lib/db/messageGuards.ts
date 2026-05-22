@@ -36,8 +36,8 @@ export async function guardOnce({
           INSERT INTO message_guards (
             hotel_id, conversation_id, direction, source_msg_id, created_at
           ) VALUES (?, ?, ?, ?, toTimestamp(now()))
-          USING TTL ?
           IF NOT EXISTS
+          USING TTL ?
         `;
       }
       const res = await session.execute(preparedQuery, [hotelId, conversationId, direction, sourceMsgId, ttlSec], { prepare: true });
@@ -57,8 +57,8 @@ export async function guardOnce({
     INSERT INTO message_guards (
       hotel_id, conversation_id, direction, source_msg_id, created_at
     ) VALUES (?, ?, ?, ?, toTimestamp(now()))
-    USING TTL ${Math.max(1, Math.floor(ttlSec))}
     IF NOT EXISTS
+    USING TTL ${Math.max(1, Math.floor(ttlSec))}
   `;
   const res = await session.execute(q, [hotelId, conversationId, direction, sourceMsgId], { prepare: true });
   const applied = typeof res.wasApplied === "function"
@@ -73,11 +73,16 @@ export async function guardInboundOnce(args: Omit<GuardArgs, "direction">) {
 }
 
 /** (Opcional) util de test para limpiar un guard */
-export async function clearGuardForTest(hotelId: string, conversationId: string, sourceMsgId: string, direction: "in" | "out" = "in") {
+export async function clearGuard(hotelId: string, conversationId: string, sourceMsgId: string, direction: "in" | "out" = "in") {
   const session = await getCassandraSession();
   await session.execute(
     `DELETE FROM message_guards WHERE hotel_id=? AND conversation_id=? AND direction=? AND source_msg_id=?`,
     [hotelId, conversationId, direction, sourceMsgId],
     { prepare: true }
   );
+}
+
+/** Alias histórico para tests */
+export async function clearGuardForTest(hotelId: string, conversationId: string, sourceMsgId: string, direction: "in" | "out" = "in") {
+  return clearGuard(hotelId, conversationId, sourceMsgId, direction);
 }

@@ -11,10 +11,25 @@ function requiredEnv(name: string): string {
   return v;
 }
 
+function resolveSecureConnectBundle(): string {
+  const bundle =
+    process.env.ASTRA_DB_BUNDLE_PATH ||
+    process.env.ASTRA_DB_SECURE_BUNDLE ||
+    process.env.ASTRA_DB_SECURE_CONNECT_BUNDLE;
+
+  if (!bundle) {
+    throw new Error(
+      "[Cassandra] Falta env ASTRA_DB_BUNDLE_PATH o ASTRA_DB_SECURE_BUNDLE"
+    );
+  }
+
+  return bundle;
+}
+
 export async function getCassandraSession(): Promise<Client> {
   if (client) return client;
 
-  const secureConnectBundle = requiredEnv("ASTRA_DB_BUNDLE_PATH"); // .zip
+  const secureConnectBundle = resolveSecureConnectBundle(); // .zip
   const username = "token";
   const password = requiredEnv("ASTRA_DB_APPLICATION_TOKEN");
   const keyspace = requiredEnv("ASTRA_DB_KEYSPACE");

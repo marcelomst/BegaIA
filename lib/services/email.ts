@@ -12,6 +12,7 @@ import { standardCleanup } from "@/lib/utils/emailCleanup";
 import { disableEmailPolling } from "@/lib/services/emailPollControl";
 import { getEmailPollingState, setEmailPollingState } from "@/lib/services/emailPollingState"; // ✅ path absoluto correcto
 import { getMessageByOriginalIdScoped } from "@/lib/db/messages"; // Idempotencia
+import { clearGuard, guardInboundOnce } from "@/lib/db/messageGuards";
 import { debugLog } from "@/lib/utils/debugLog";
 import { redis } from "@/lib/services/redis";
 import { startChannelHeartbeat, stopChannelHeartbeat } from "@/lib/services/heartbeat";
@@ -267,6 +268,20 @@ export async function processInboundEmailMessage(args: {
     originalMessageId = hashVal;
   }
   channelMsg.originalMessageId = originalMessageId;
+  const senderEmail = String(channelMsg.sender || "").trim().toLowerCase();
+  const inboundDedupeKey = channelMsg.originalMessageId ?? channelMsg.messageId;
+  const inboundGuardConversationId =
+    String(channelMsg.conversationId || `${hotelId}:email:${senderEmail || "guest"}`).trim();
+
+  const inboundGuard = await guardInboundOnce({
+    hotelId,
+    conversationId: inboundGuardConversationId,
+    sourceMsgId: inboundDedupeKey,
+  });
+  if (!inboundGuard.applied) {
+    console.log(`[email] 🔁 dedupe inbound/reply → ignorado ${inboundDedupeKey}`);
+    return { deduped: true as const, channelMsg };
+  }
 
   const IGNORE_IDEMPOTENCY = process.env.EMAIL_BOT_IGNORE_IDEMPOTENCY === "true";
   if (!IGNORE_IDEMPOTENCY) {
@@ -282,44 +297,46 @@ export async function processInboundEmailMessage(args: {
   channelMsg.content = cleaned;
   channelMsg.suggestion = channelMsg.suggestion ?? "";
   console.log(`🧹 [email] Texto limpiado:`, cleaned);
-
-  const senderEmail = String(channelMsg.sender || "").trim().toLowerCase();
-
-  const result = await handleChannelMessage({
-    query: cleaned,
-    hotelId,
-    channel: "email",
-    guestId: senderEmail,
-    sender: senderEmail || "guest",
-    sourceMsgId: channelMsg.originalMessageId ?? channelMsg.messageId,
-    mode,
-    subject: channelMsg.subject,
-    recipient: channelMsg.recipient,
-    cc: channelMsg.cc,
-    bcc: channelMsg.bcc,
-    attachments: channelMsg.attachments,
-    references: channelMsg.references,
-    inReplyTo: channelMsg.inReplyTo,
-    originalMessageId: channelMsg.originalMessageId,
-    isForwarded: channelMsg.isForwarded,
-    sourceProvider: "email",
-    meta: {
-      ...(channelMsg.meta || {}),
-      emailFrom: senderEmail || undefined,
-      emailTo: channelMsg.recipient || undefined,
-    },
-  });
-
-  if (result.status === "sent" && result.response.trim()) {
-    await sendReply({
-      to: senderEmail || parsed.from?.text || emailUser,
-      subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
-      text: result.response,
+  try {
+    const result = await handleChannelMessage({
+      query: cleaned,
+      hotelId,
+      channel: "email",
+      guestId: senderEmail,
+      sender: senderEmail || "guest",
+      sourceMsgId: inboundDedupeKey,
+      mode,
+      subject: channelMsg.subject,
+      recipient: channelMsg.recipient,
+      cc: channelMsg.cc,
+      bcc: channelMsg.bcc,
+      attachments: channelMsg.attachments,
+      references: channelMsg.references,
+      inReplyTo: channelMsg.inReplyTo,
+      originalMessageId: channelMsg.originalMessageId,
+      isForwarded: channelMsg.isForwarded,
+      sourceProvider: "email",
+      meta: {
+        ...(channelMsg.meta || {}),
+        emailFrom: senderEmail || undefined,
+        emailTo: channelMsg.recipient || undefined,
+      },
     });
-    console.log(`📤 [email] Respuesta enviada a ${senderEmail || parsed.from?.text}`);
-  }
 
-  return { deduped: false as const, channelMsg, result };
+    if (result.status === "sent" && result.response.trim()) {
+      await sendReply({
+        to: senderEmail || parsed.from?.text || emailUser,
+        subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
+        text: result.response,
+      });
+      console.log(`📤 [email] Respuesta enviada a ${senderEmail || parsed.from?.text}`);
+    }
+
+    return { deduped: false as const, channelMsg, result };
+  } catch (err) {
+    await clearGuard(hotelId, inboundGuardConversationId, inboundDedupeKey, "in").catch(() => {});
+    throw err;
+  }
 }
 
 export async function startEmailBot({

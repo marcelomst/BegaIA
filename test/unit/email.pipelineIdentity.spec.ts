@@ -4,10 +4,14 @@ const {
   handleChannelMessageMock,
   parseEmailToChannelMessageMock,
   getMessageByOriginalIdScopedMock,
+  guardInboundOnceMock,
+  clearGuardMock,
 } = vi.hoisted(() => ({
   handleChannelMessageMock: vi.fn(),
   parseEmailToChannelMessageMock: vi.fn(),
   getMessageByOriginalIdScopedMock: vi.fn(),
+  guardInboundOnceMock: vi.fn(),
+  clearGuardMock: vi.fn(),
 }));
 
 vi.mock("@/lib/pipeline/handleChannelMessage", () => ({
@@ -22,12 +26,19 @@ vi.mock("@/lib/db/messages", () => ({
   getMessageByOriginalIdScoped: getMessageByOriginalIdScopedMock,
 }));
 
+vi.mock("@/lib/db/messageGuards", () => ({
+  guardInboundOnce: guardInboundOnceMock,
+  clearGuard: clearGuardMock,
+}));
+
 import { processInboundEmailMessage } from "@/lib/services/email";
 
 describe("email pipeline identity", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getMessageByOriginalIdScopedMock.mockResolvedValue(null);
+    guardInboundOnceMock.mockResolvedValue({ applied: true });
+    clearGuardMock.mockResolvedValue(undefined);
     handleChannelMessageMock.mockResolvedValue({
       response: "respuesta automatica",
       status: "sent",
@@ -264,5 +275,72 @@ describe("email pipeline identity", () => {
     expect(result.deduped).toBe(true);
     expect(handleChannelMessageMock).not.toHaveBeenCalled();
     expect(sendReply).not.toHaveBeenCalled();
+  });
+
+  it("deduplica un segundo intento del mismo inbound y evita doble SMTP", async () => {
+    const sendReply = vi.fn(async () => {});
+    guardInboundOnceMock
+      .mockResolvedValueOnce({ applied: true })
+      .mockResolvedValueOnce({ applied: false });
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Consulta",
+        messageId: "<msg-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply,
+    });
+
+    const second = await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Consulta",
+        messageId: "<msg-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply,
+    });
+
+    expect(second.deduped).toBe(true);
+    expect(handleChannelMessageMock).toHaveBeenCalledTimes(1);
+    expect(sendReply).toHaveBeenCalledTimes(1);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[email] 🔁 dedupe inbound/reply → ignorado <msg-1@example.com>",
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  it("libera el guard si el procesamiento falla para permitir retry legitimo", async () => {
+    handleChannelMessageMock.mockRejectedValueOnce(new Error("pipeline boom"));
+
+    await expect(processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Consulta",
+        messageId: "<msg-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply: vi.fn(async () => {}),
+    })).rejects.toThrow("pipeline boom");
+
+    expect(clearGuardMock).toHaveBeenCalledWith(
+      "hotel-email-1",
+      "hotel-email-1-email-legacy@example.com",
+      "<msg-1@example.com>",
+      "in",
+    );
   });
 });
