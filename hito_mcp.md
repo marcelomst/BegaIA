@@ -9128,3 +9128,42 @@ Impacto:
 - restringe el uso a ejecución manual y controlada en dev/test
 - excluye explícitamente `reservations` y otros estados no listados
 - no altera runtime, contratos de dominio ni comportamiento destructivo
+
+### FIX-EMAIL-INBOUND-DEDUPLICATE-REPLY-03
+
+Estado: COMPLETADO  
+Fecha: 2026-05-22  
+Commit: a164dba7f9be0ee878fa8e6e210baeb4aaee4a63
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Agrega un guard idempotente efectivo en Email inbound antes del pipeline y
+antes del SMTP para evitar replies duplicados sobre un mismo inbound real,
+manteniendo retry legítimo ante error y sin cambiar la lógica conversacional
+ni el ask agrupado existente.
+
+Archivos afectados:
+
+- `lib/services/email.ts`
+- `lib/db/messageGuards.ts`
+- `lib/astra/cassandra.ts`
+- `lib/astra/cql.ts`
+- `test/unit/email.pipelineIdentity.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- el guard idempotente entra antes de `handleChannelMessage()` y antes del
+  SMTP
+- un segundo intento del mismo inbound no duplica pipeline ni reply
+- si el procesamiento falla, el guard se libera para permitir retry legítimo
+
+Impacto:
+
+- protege Email inbound contra doble procesamiento del mismo mensaje real
+- evita doble reply SMTP sobre el mismo inbound
+- mantiene retry legítimo ante error sin endurecer falsamente el canal
+- no toca `messageHandler`, Web, WhatsApp, Admin/CRM ni el copy conversacional
