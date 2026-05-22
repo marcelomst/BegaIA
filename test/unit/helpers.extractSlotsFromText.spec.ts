@@ -1,8 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { extractSlotsFromText } from "@/lib/agents/helpers";
 
 describe("extractSlotsFromText", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-22T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("extrae guestName inline con patron 'a nombre de X' dentro de un turno rico", () => {
     const slots = extractSlotsFromText(
       "quiero reservar del 1 al 5 de octubre de 2026 para 2 personas en una doble a nombre de Ana Gomez",
@@ -140,5 +149,17 @@ describe("extractSlotsFromText", () => {
   it("no resuelve contradicciones de roomType como 'doble twin'", () => {
     const slots = extractSlotsFromText("quiero una doble twin", "es");
     expect(slots.roomType).toBeUndefined();
+  });
+
+  it("usa el año actual para rangos con mes nombrado sin rollover silencioso", () => {
+    const slots = extractSlotsFromText("quiero reservar una habitación doble del 21 de mayo al 25 de mayo", "es");
+    expect(slots.checkIn).toBe("2026-05-21");
+    expect(slots.checkOut).toBe("2026-05-25");
+  });
+
+  it("preserva el año explícito en rangos con mes nombrado", () => {
+    const slots = extractSlotsFromText("quiero reservar del 21 de mayo de 2028 al 25 de mayo de 2028", "es");
+    expect(slots.checkIn).toBe("2028-05-21");
+    expect(slots.checkOut).toBe("2028-05-25");
   });
 });

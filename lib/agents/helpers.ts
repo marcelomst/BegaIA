@@ -102,9 +102,10 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     };
     const monthRange = t.match(/(?:del?\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
     if (monthRange) {
+      const nowYear = new Date().getFullYear();
       const day1 = parseInt(monthRange[1], 10);
       const month1 = months[monthRange[2]] || months[monthRange[5]];
-      const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : undefined;
+      const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : nowYear;
       const day2 = parseInt(monthRange[4], 10);
       const month2 = months[monthRange[5]] || month1;
       const year2 = monthRange[6] ? parseInt(monthRange[6], 10) : year1;
@@ -115,9 +116,10 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     } else {
       const singleMonth = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?/i);
       if (singleMonth) {
+        const nowYear = new Date().getFullYear();
         const day = parseInt(singleMonth[1], 10);
         const month = months[singleMonth[2]];
-        const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : undefined;
+        const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : nowYear;
         if (month) out.checkIn = toISOFromParts(day, month, year);
       }
     }

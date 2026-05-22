@@ -1,5 +1,5 @@
 // Path: /root/begasist/test/unit/inputNormalizerAgent.basic.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { runInputNormalizer } from '@/lib/agents/inputNormalizerAgent';
 
 const baseMsg = {
@@ -16,6 +16,15 @@ const baseMsg = {
 } as any;
 
 describe('runInputNormalizer (mínimo)', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-05-22T12:00:00Z'));
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it('produce NormalizedContext con lang y currSlots básicos', async () => {
         const norm = await runInputNormalizer({ msg: baseMsg });
         expect(norm.lang).toBe('es');
@@ -65,6 +74,16 @@ describe('runInputNormalizer (mínimo)', () => {
         };
         const norm = await runInputNormalizer({ msg });
         expect(norm.currSlots.roomType).toBe('double');
+        expect(norm.currSlots.checkIn).toBe('2026-05-21');
+        expect(norm.currSlots.checkOut).toBe('2026-05-25');
+    });
+
+    it('no hace rollover automático al año siguiente para mes nombrado sin año', async () => {
+        const msg = {
+            ...baseMsg,
+            content: 'quiero reservar una habitación doble del 21 de mayo al 25 de mayo',
+        };
+        const norm = await runInputNormalizer({ msg });
         expect(norm.currSlots.checkIn).toBe('2026-05-21');
         expect(norm.currSlots.checkOut).toBe('2026-05-25');
     });
