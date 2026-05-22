@@ -13,7 +13,7 @@ import {
     hasCreateExecutionContext,
     isExplicitCreateCommitSignal,
 } from "@/lib/agents/confirmationGovernance";
-import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
+import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, buildReservationMissingQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
 import type { GraphState } from "../graphState";
 
@@ -393,9 +393,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                 };
             }
         }
-        const q = ONE_QUESTION_PER_TURN && missing.length
-            ? buildSingleSlotQuestion(missing[0], lang2)
-            : buildAggregatedQuestion(missing, lang2);
+        const q = buildReservationMissingQuestion(missing, lang2, channel, ONE_QUESTION_PER_TURN);
         await upsertConvState(hotelId, conversationId || "", {
             reservationSlots: {
                 ...merged,
@@ -683,7 +681,9 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             }
         } else {
             const k = missing[0];
-            if (ONE_QUESTION_PER_TURN) {
+            if (channel === "email" && missing.length >= 2) {
+                questionText = buildAggregatedQuestion(missing, lang2);
+            } else if (ONE_QUESTION_PER_TURN) {
                 const single = buildSingleSlotQuestion(k, lang2);
                 // En etapa de cotización priorizamos una sola pregunta canónica por slot transaccional.
                 // Esto evita asks combinados pobres del LLM antes de consultar disponibilidad.

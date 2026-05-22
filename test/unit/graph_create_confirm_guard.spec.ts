@@ -174,4 +174,73 @@ describe("graph create confirm guard", () => {
     expect(text).not.toContain("¿me pasás ?");
     expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
   });
+
+  it("en email con varios faltantes agrupa la repregunta", async () => {
+    fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
+    getConvStateMock.mockResolvedValueOnce(null);
+    getConvStateMock.mockResolvedValueOnce(null);
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage: "quiero reservar",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-email-grouped-ask",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [new HumanMessage("quiero reservar")],
+      meta: { channel: "email" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/para avanzar,.*fecha de check-in/i);
+    expect(text).toMatch(/fecha de check-out/i);
+    expect(text).toMatch(/tipo de habitaci[oó]n/i);
+  });
+
+  it("en web con varios faltantes mantiene la pregunta incremental", async () => {
+    fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
+    getConvStateMock.mockResolvedValueOnce(null);
+    getConvStateMock.mockResolvedValueOnce(null);
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage: "quiero reservar",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-web-incremental-ask",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [new HumanMessage("quiero reservar")],
+      meta: { channel: "web" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/tipo de habitaci[oó]n/i);
+    expect(text).not.toMatch(/fecha de check-out/i);
+    expect(text).not.toMatch(/fecha de check-in/i);
+  });
+
+  it("en whatsapp con varios faltantes mantiene la pregunta incremental", async () => {
+    fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
+    getConvStateMock.mockResolvedValueOnce(null);
+    getConvStateMock.mockResolvedValueOnce(null);
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage: "quiero reservar",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-whatsapp-incremental-ask",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [new HumanMessage("quiero reservar")],
+      meta: { channel: "whatsapp" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/tipo de habitaci[oó]n/i);
+    expect(text).not.toMatch(/fecha de check-out/i);
+    expect(text).not.toMatch(/fecha de check-in/i);
+  });
 });

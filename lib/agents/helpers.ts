@@ -288,6 +288,33 @@ export function buildAggregatedQuestion(missing: string[], lang2: "es" | "en" | 
       : `To proceed, could you share ${parts.join(", ")}?`;
 }
 
+function buildSingleReservationSlotQuestion(slot: string, lang2: "es" | "en" | "pt") {
+  const label = labelSlot(slot, lang2);
+  if (lang2 === "en") return `What is the ${label}?`;
+  if (lang2 === "pt") {
+    const article = slot === "checkIn" || slot === "checkOut" ? "a" : "o";
+    return `Qual é ${article} ${label}?`;
+  }
+  const article = slot === "checkIn" || slot === "checkOut" ? "la" : "el";
+  return `¿Cuál es ${article} ${label}?`;
+}
+
+export function buildReservationMissingQuestion(
+  missing: string[],
+  lang2: "es" | "en" | "pt",
+  channel: "web" | "email" | "whatsapp" | "channelManager",
+  preferSingleTurn: boolean
+) {
+  if (missing.length === 0) return "";
+  if (channel === "email" && missing.length >= 2) {
+    return buildAggregatedQuestion(missing, lang2);
+  }
+  if (missing.length === 1 || preferSingleTurn) {
+    return buildSingleReservationSlotQuestion(missing[0], lang2);
+  }
+  return buildAggregatedQuestion(missing, lang2);
+}
+
 // mentionsLocale: Detecta si el texto menciona el locale
 export function mentionsLocale(q: string) {
   return /locale|c[oó]digo\s+de\s+idioma|language\s*code|ISO\s*639-1/i.test(q || "");
