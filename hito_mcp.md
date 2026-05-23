@@ -9167,3 +9167,42 @@ Impacto:
 - evita doble reply SMTP sobre el mismo inbound
 - mantiene retry legítimo ante error sin endurecer falsamente el canal
 - no toca `messageHandler`, Web, WhatsApp, Admin/CRM ni el copy conversacional
+
+### FIX-EMAIL-RESERVATION-FOLLOWUP-GROUPED-MISSING-SLOTS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-23  
+Commit: 5119f31ff44277386baa12db35b1822ae0ec70a1
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige la continuidad del create flow por Email para que, tras una respuesta
+parcial, los faltantes reales restantes sigan formulándose de manera agrupada,
+mientras Web y WhatsApp preservan su sequencing incremental, sin relajar
+gating ni alterar transporte.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- Email mantiene la pregunta agrupada cuando siguen faltando varios campos
+  reales tras una respuesta parcial
+- Web y WhatsApp preservan su sequencing incremental previo
+- no relaja gating ni altera transporte
+
+Impacto:
+
+- preserva continuidad agrupada del follow-up de reserva en Email
+- mantiene incrementalidad previa en Web y WhatsApp
+- no reabre otros frentes de extracción, transporte ni runtime común
+- no modifica la lógica conversacional central fuera del ajuste de continuidad
