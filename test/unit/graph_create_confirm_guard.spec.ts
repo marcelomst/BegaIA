@@ -243,4 +243,93 @@ describe("graph create confirm guard", () => {
     expect(text).not.toMatch(/fecha de check-out/i);
     expect(text).not.toMatch(/fecha de check-in/i);
   });
+
+  it("en email, después de un follow-up parcial, mantiene agrupados los faltantes reales restantes", async () => {
+    fillSlotsWithLLMMock.mockResolvedValueOnce({
+      need: "question",
+      question: "¿Cuántos huéspedes se alojarán?",
+      partial: {
+        checkIn: "2026-05-23",
+        checkOut: "2026-05-25",
+      },
+    });
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {},
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {},
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage: "del 23/5/2026 al 25/05/2026",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-email-followup-grouped-ask",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [
+        new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
+        new HumanMessage("del 23/5/2026 al 25/05/2026"),
+      ],
+      meta: { channel: "email" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/nombre (?:completo|del huésped|del huesped)/i);
+    expect(text).toMatch(/tipo de habitaci[oó]n/i);
+    expect(text).toMatch(/n[uú]mero de hu[eé]spedes/i);
+    expect(text).not.toMatch(/^¿Cuántos huéspedes se alojarán\?$/i);
+    expect(result?.reservationSlots).toEqual(
+      expect.objectContaining({
+        checkIn: "2026-05-23",
+        checkOut: "2026-05-25",
+      })
+    );
+  });
+
+  it("en web, después de un follow-up parcial, mantiene la política incremental", async () => {
+    fillSlotsWithLLMMock.mockResolvedValueOnce({
+      need: "question",
+      question: "¿Cuántos huéspedes se alojarán?",
+      partial: {
+        checkIn: "2026-05-23",
+        checkOut: "2026-05-25",
+      },
+    });
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {},
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {},
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {},
+      normalizedMessage: "del 23/5/2026 al 25/05/2026",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-web-followup-incremental-ask",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [
+        new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
+        new HumanMessage("del 23/5/2026 al 25/05/2026"),
+      ],
+      meta: { channel: "web" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/tipo de habitaci[oó]n/i);
+    expect(text).not.toMatch(/nombre (?:completo|del huésped|del huesped)/i);
+    expect(text).not.toMatch(/n[uú]mero de hu[eé]spedes/i);
+  });
 });

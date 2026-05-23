@@ -167,6 +167,8 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     // Nota: Config forceCanonicalQuestion existe, pero usamos la constante FORCE_CANONICAL_QUESTION en este flujo.
     const lang2 = (detectedLanguage || "es").slice(0, 2) as "es" | "en" | "pt";
     const locale = lang2;
+    const askMissingOrder: RequiredSlot[] =
+        channel === "email" ? REQUIRED_SLOTS : QUOTE_REQUIRED_SLOTS;
     const askGuestNameAndPersist = async (snapshot: SlotMap) => {
         await upsertConvState(hotelId, conversationId || "", {
             reservationSlots: {
@@ -346,7 +348,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         });
     } catch {
         console.timeLog("fillSlotsWithLLM");
-        const missing = QUOTE_REQUIRED_SLOTS.filter((k) => !merged[k]);
+        const missing = askMissingOrder.filter((k) => !merged[k]);
         if (missing.length === 0) {
             const completeSnapshot = { ...merged, locale };
             if (!isSafeGuestName(String(completeSnapshot.guestName || ""))) {
@@ -621,7 +623,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
                 if (typeof cl === "number") nextSnapshot.numGuests = cl;
             }
         }
-        const missingOrder: RequiredSlot[] = QUOTE_REQUIRED_SLOTS;
+        const missingOrder: RequiredSlot[] = askMissingOrder;
         const missing = missingOrder.filter((k) => !nextSnapshot[k]);
         const rawQ = (filled.question || "").trim();
         let questionText = stripLocaleRequests(rawQ);

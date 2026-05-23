@@ -1,7 +1,7 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { askAvailability } from "@/lib/agents/reservations";
 import { upsertConvState } from "@/lib/db/convState";
-import { localizeRoomType, isSafeGuestName } from "@/lib/agents/helpers";
+import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion } from "@/lib/agents/helpers";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
 export type ReservationSlotsLike = {
@@ -644,6 +644,7 @@ export async function runAvailabilityCheck(
     base = applyConversationalVocative(base, pre.lang, conversationalDisplayName);
 
     const needsGuests = !snapshot.numGuests;
+    const needsRoomType = !snapshot.roomType;
     const needsName = !isSafeGuestName(snapshot.guestName || "");
     const hasPartialName = !!snapshot.guestName && !isSafeGuestName(snapshot.guestName || "");
     const askLastNameOnly =
@@ -652,8 +653,15 @@ export async function runAvailabilityCheck(
             : pre.lang === "pt"
                 ? "Qual é o seu sobrenome?"
                 : "What's your last name?";
+    const emailMissing = [
+        ...(needsGuests ? ["numGuests"] : []),
+        ...(needsRoomType ? ["roomType"] : []),
+        ...(needsName ? ["guestName"] : []),
+    ];
     const actionLine = mode === "proposal" && availability.available
-        ? (needsGuests
+        ? (pre.msg.channel === "email" && emailMissing.length >= 2
+            ? `\n\n${buildReservationMissingQuestion(emailMissing, pre.lang, "email", false)}`
+            : (needsGuests
             ? `\n\n${buildAskGuests(pre.lang)}`
             : (needsName
                 ? `\n\n${hasPartialName ? askLastNameOnly : buildAskGuestName(pre.lang)}`
@@ -661,7 +669,7 @@ export async function runAvailabilityCheck(
                     ? "\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”."
                     : pre.lang === "pt"
                         ? "\n\nConfirma a reserva respondendo “CONFIRMAR”."
-                        : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm).")))
+                        : "\n\nDo you confirm the booking? Reply “CONFIRMAR” (confirm)."))))
         : "";
 
     let handoffLine = "";

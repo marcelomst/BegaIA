@@ -86,11 +86,11 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 
-function msg(content: string) {
+function msg(content: string, channel = "web") {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
     hotelId: "hotel999",
-    channel: "web",
+    channel,
     sender: "guest",
     content,
     timestamp: new Date().toISOString(),
@@ -156,6 +156,27 @@ describe("messageHandler domain lock de reservation", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/check-in|fecha/i);
     expect(replyText).not.toMatch(/whatsapp|email|turismo/i);
+  });
+
+  it("en email mantiene agrupados los faltantes restantes del create flow", async () => {
+    currentState = {
+      activeFlow: "reservation",
+      desiredAction: "create",
+      lastCategory: "reservation",
+      reservationSlots: {
+        checkIn: "2026-05-23",
+        checkOut: "2026-05-25",
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Del 23/5/2026 al 25/05/2026", "email"), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/tipo de habitaci[oó]n/i);
+    expect(replyText).toMatch(/n[uú]mero de hu[eé]spedes/i);
+    expect(replyText).toMatch(/nombre completo|nombre del hu[eé]sped/i);
+    expect(replyText).not.toMatch(/^¿Cuántos huéspedes se alojarán\?$/i);
   });
 
   it("mantiene modify flow para '2 personas' y no vuelve al fallback", async () => {

@@ -47,7 +47,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange } from "@/lib/agents/helpers";
+import { extractSlotsFromText, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange, buildReservationMissingQuestion } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -752,7 +752,28 @@ function getNextCreateFlowMissingField(slots: ReservationSlotsStrict): CreateFlo
   return null;
 }
 
-function buildCreateFlowPrompt(lang: "es" | "en" | "pt", missingField: CreateFlowMissingField): string {
+function getCreateFlowMissingFields(slots: ReservationSlotsStrict): CreateFlowMissingField[] {
+  const missing: CreateFlowMissingField[] = [];
+  if (!slots.checkIn) missing.push("checkIn");
+  if (!slots.checkOut) missing.push("checkOut");
+  if (!slots.numGuests) missing.push("numGuests");
+  if (!slots.roomType) missing.push("roomType");
+  if (!isSafeGuestName(slots.guestName || "")) missing.push("guestName");
+  return missing;
+}
+
+function buildCreateFlowPrompt(
+  lang: "es" | "en" | "pt",
+  missingField: CreateFlowMissingField,
+  channel: ChannelMessage["channel"] = "web",
+  slots?: ReservationSlotsStrict
+): string {
+  if (channel === "email" && slots) {
+    const missing = getCreateFlowMissingFields(slots).filter((slot): slot is Exclude<CreateFlowMissingField, null> => Boolean(slot));
+    if (missing.length >= 2) {
+      return buildReservationMissingQuestion(missing, lang, "email", false);
+    }
+  }
   if (missingField === "checkIn" || missingField === "checkOut") return buildAskMissingDate(lang, missingField, "create");
   if (missingField === "numGuests") return buildAskGuests(lang);
   if (missingField === "guestName") return buildAskGuestName(lang);
@@ -1063,7 +1084,7 @@ function buildFocusContinuationPrompt(
     const knownSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
     const missingField = getNextCreateFlowMissingField(knownSlots);
     if (!missingField) return null;
-    const prompt = buildCreateFlowPrompt(pre.lang, missingField);
+    const prompt = buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, knownSlots as ReservationSlotsStrict);
     return pre.lang === "es"
       ? `Para seguir con la reserva, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
       : pre.lang === "pt"
@@ -2642,6 +2663,10 @@ function buildReservationDomainLockReply(
         ? "Seguimos nessa reserva. Me diga se você quer vê-la, alterá-la ou cancelá-la."
         : "We are still on that booking. Tell me if you want to view, modify, or cancel it.";
   }
+  const createMissingField = getNextCreateFlowMissingField(knownSlots);
+  if (createMissingField && pre.msg.channel === "email") {
+    return buildCreateFlowPrompt(pre.lang, createMissingField, pre.msg.channel, knownSlots as ReservationSlotsStrict);
+  }
   if (!knownSlots.checkIn) return buildAskMissingDate(pre.lang, "checkIn");
   if (!knownSlots.checkOut) return buildAskMissingDate(pre.lang, "checkOut");
   if (!knownSlots.numGuests) return buildAskGuests(pre.lang);
@@ -2852,6 +2877,13 @@ function buildReservationLocalFallbackReply(
           : pre.lang === "pt"
             ? "Seguimos com a sua reserva. Que tipo de quarto você quer?"
             : "We are still working on your booking. Which room type do you want?",
+    };
+  }
+  const createMissingField = getNextCreateFlowMissingField(knownSlots as ReservationSlotsStrict);
+  if (createMissingField && pre.msg.channel === "email") {
+    return {
+      nextCategory: "reservation",
+      finalText: buildCreateFlowPrompt(pre.lang, createMissingField, pre.msg.channel, knownSlots as ReservationSlotsStrict),
     };
   }
   if (!knownSlots.numGuests) return { nextCategory: "reservation", finalText: buildAskGuests(pre.lang) };
@@ -4598,7 +4630,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         if (missingField) {
           await persistCreateDraft(pre, fastPathSlots);
           return {
-            finalText: buildCreateFlowPrompt(pre.lang, missingField),
+            finalText: buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, fastPathSlots),
             nextCategory: "reservation",
             nextSlots,
             needsSupervision,
@@ -4820,7 +4852,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           await persistCreateDraft(pre, normalizedFastPathSlots);
           if (missingField) {
             return {
-              finalText: buildCreateFlowPrompt(pre.lang, missingField),
+              finalText: buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, normalizedFastPathSlots),
               nextCategory: "reservation",
               nextSlots,
               needsSupervision,
@@ -4939,7 +4971,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           if (missingField) {
             await persistCreateDraft(pre, fastPathSlots);
             return {
-              finalText: buildCreateFlowPrompt(pre.lang, missingField),
+              finalText: buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, fastPathSlots),
               nextCategory: "reservation",
               nextSlots,
               needsSupervision,
@@ -6482,7 +6514,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           const missingField = getNextCreateFlowMissingField(quotedDraftConsistency.sanitizedSlots);
           await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);
           finalText = missingField
-            ? buildCreateFlowPrompt(pre.lang, missingField)
+            ? buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, quotedDraftConsistency.sanitizedSlots)
             : buildQuotedCreateConfirmClarification(pre.lang);
           return {
             finalText,
@@ -6551,7 +6583,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
     return {
-      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftConsistency.sanitizedSlots),
       nextCategory,
       nextSlots,
       needsSupervision,
@@ -6581,7 +6613,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
     return {
-      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftConsistency.sanitizedSlots),
       nextCategory,
       nextSlots,
       needsSupervision,
@@ -6599,7 +6631,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);
     nextCategory = "reservation";
     return {
-      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftSlots),
       nextCategory,
       nextSlots,
       needsSupervision,
@@ -7406,10 +7438,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const missingField = getNextCreateFlowMissingField(additionalReservationDraft);
       if (missingField) {
         finalText = pre.lang === "es"
-          ? `Perfecto, mantenemos la reserva actual y abrimos una nueva. ${buildCreateFlowPrompt(pre.lang, missingField)}`
+          ? `Perfecto, mantenemos la reserva actual y abrimos una nueva. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
           : pre.lang === "pt"
-            ? `Perfeito, mantemos a reserva atual e abrimos uma nova. ${buildCreateFlowPrompt(pre.lang, missingField)}`
-            : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField)}`;
+            ? `Perfeito, mantemos a reserva atual e abrimos uma nova. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
+            : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`;
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
       const availabilityResult = await runAvailabilityCheck(
@@ -7464,7 +7496,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await persistCreateDraft(pre, createDraftSlots);
     nextCategory = "reservation";
     return {
-      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField),
+      finalText: buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftSlots),
       nextCategory,
       nextSlots,
       needsSupervision,
@@ -7500,7 +7532,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
       if (activeCreateFlow && nextCreateMissingField) {
         await persistCreateDraft(pre, createDraftSlots);
-        finalText = buildCreateFlowPrompt(pre.lang, nextCreateMissingField);
+        finalText = buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftSlots);
       } else {
         finalText = pre.lang === "es"
           ? "Todavía no tengo una propuesta lista para confirmar. Decime fechas (check-in y check-out) y tipo de habitación para avanzar."
@@ -7511,6 +7543,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!hasGuests) {
+      if (activeCreateFlow && pre.msg.channel === "email" && nextCreateMissingField) {
+        await persistCreateDraft(pre, createDraftSlots);
+        finalText = buildCreateFlowPrompt(pre.lang, nextCreateMissingField, pre.msg.channel, createDraftSlots);
+        return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+      }
       finalText = buildAskGuests(pre.lang);
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
@@ -7672,7 +7709,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const missingField = getNextCreateFlowMissingField(snapshot as ReservationSlotsStrict);
         if (missingField) {
           await persistCreateDraft(pre, snapshot as ReservationSlotsStrict);
-          finalText = buildCreateFlowPrompt(pre.lang, missingField);
+          finalText = buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, snapshot as ReservationSlotsStrict);
           return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
         }
       }
@@ -8343,7 +8380,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     if (createFlowActive && createMissingField === "guestName" && nextCategory === "reservation") {
       await persistCreateDraft(pre, createGatingSlots);
       nextCategory = "reservation";
-      finalText = buildCreateFlowPrompt(pre.lang, "guestName");
+      finalText = buildCreateFlowPrompt(pre.lang, "guestName", pre.msg.channel, createGatingSlots);
     }
   }
   const reservationLocalFallbackNeeded = shouldUseReservationLocalFallback(pre, nextCategory, finalText, reservationDomainLock);
@@ -8892,9 +8929,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
       const missingField = getNextCreateFlowMissingField(createQuoteSlots);
-      if (missingField && (missingField === "checkIn" || missingField === "checkOut" || missingField === "roomType")) {
+      if (missingField && (pre.msg.channel === "email" || missingField === "checkIn" || missingField === "checkOut" || missingField === "roomType")) {
         await persistCreateDraft(pre, createQuoteSlots);
-        finalText = buildCreateFlowPrompt(pre.lang, missingField);
+        finalText = buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, createQuoteSlots as ReservationSlotsStrict);
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
     }
@@ -9012,9 +9049,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
       if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {
         const missingField = getNextCreateFlowMissingField(createQuoteSlots);
-        if (missingField) {
+        if (missingField && (pre.msg.channel === "email" || missingField === "checkIn" || missingField === "checkOut" || missingField === "roomType")) {
           await persistCreateDraft(pre, createQuoteSlots);
-          finalText = buildCreateFlowPrompt(pre.lang, missingField);
+          finalText = buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, createQuoteSlots as ReservationSlotsStrict);
           return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
         }
       }
@@ -9152,7 +9189,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       if (missingField) {
         await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);
         nextCategory = "reservation";
-        finalText = buildCreateFlowPrompt(pre.lang, missingField);
+        finalText = buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, quotedReservationSnapshot as ReservationSlotsStrict);
       }
     }
   }
