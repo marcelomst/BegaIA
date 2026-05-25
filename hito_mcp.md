@@ -9206,3 +9206,42 @@ Impacto:
 - mantiene incrementalidad previa en Web y WhatsApp
 - no reabre otros frentes de extracción, transporte ni runtime común
 - no modifica la lógica conversacional central fuera del ajuste de continuidad
+
+### RECOVER-RESERVATION-GRAPH-TYPING-FIXTURE-STABILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-25  
+Commit: 2bf062dd3154d0c59300225d6a4f368aa8f2a67c
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Reclasifica el commit real `2bf062d` según su scope efectivo como
+recuperación menor de estabilidad, limitado a una corrección de tipado en
+`reservation.ts` y a estabilización de fixtures/mocks en
+`graph_create_confirm_guard.spec.ts`, dejando diferido el fix funcional amplio
+de Email/create flow.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- el commit real contiene solo `reservation.ts` y
+  `graph_create_confirm_guard.spec.ts`
+- no toca `messageHandler.ts`, Email SMTP/IMAP, dedupe, polling/watch, Web,
+  WhatsApp, Admin/UI, `guestId`, `conversationId` ni `sourceMsgId`
+- la evidencia de `tsc` y suite completa en verde es consistente con un hito
+  de recuperación y estabilización
+
+Impacto:
+
+- corrige tipado para no pasar `locale` dentro de un `SlotMap`
+- estabiliza fixtures, mocks y fechas hardcodeadas del spec
+- no introduce nueva policy funcional ni reabre routing amplio
+- mantiene diferido el fix funcional original de Email/create flow
