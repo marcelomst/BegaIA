@@ -526,7 +526,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
         const coherenceInterruption = await interruptForDateCoherenceIfNeeded(completeSnapshot);
         if (coherenceInterruption) return coherenceInterruption;
         if (!isSafeGuestName(String(merged.guestName || ""))) {
-            return askGuestNameAndPersist({ ...merged, locale });
+            return askGuestNameAndPersist({ ...merged });
         }
         await upsertConvState(hotelId, conversationId || "", {
                 reservationSlots: {

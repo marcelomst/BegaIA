@@ -249,10 +249,10 @@ describe("graph create confirm guard", () => {
       need: "question",
       question: "¿Cuántos huéspedes se alojarán?",
       partial: {
-        checkIn: "2026-05-23",
-        checkOut: "2026-05-25",
+        checkIn: "2026-06-23",
+        checkOut: "2026-06-25",
       },
-    });
+    } as any);
     getConvStateMock.mockResolvedValueOnce({
       reservationSlots: {},
       salesStage: "qualify",
@@ -267,14 +267,14 @@ describe("graph create confirm guard", () => {
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage: "del 23/5/2026 al 25/05/2026",
+      normalizedMessage: "del 23/6/2026 al 25/06/2026",
       hotelId: "hotel999",
       conversationId: "conv-graph-email-followup-grouped-ask",
       salesStage: "qualify",
       desiredAction: "create",
       messages: [
         new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
-        new HumanMessage("del 23/5/2026 al 25/05/2026"),
+        new HumanMessage("del 23/6/2026 al 25/06/2026"),
       ],
       meta: { channel: "email" },
     } as any);
@@ -286,8 +286,8 @@ describe("graph create confirm guard", () => {
     expect(text).not.toMatch(/^¿Cuántos huéspedes se alojarán\?$/i);
     expect(result?.reservationSlots).toEqual(
       expect.objectContaining({
-        checkIn: "2026-05-23",
-        checkOut: "2026-05-25",
+        checkIn: "2026-06-23",
+        checkOut: "2026-06-25",
       })
     );
   });
@@ -297,10 +297,10 @@ describe("graph create confirm guard", () => {
       need: "question",
       question: "¿Cuántos huéspedes se alojarán?",
       partial: {
-        checkIn: "2026-05-23",
-        checkOut: "2026-05-25",
+        checkIn: "2026-06-23",
+        checkOut: "2026-06-25",
       },
-    });
+    } as any);
     getConvStateMock.mockResolvedValueOnce({
       reservationSlots: {},
       salesStage: "qualify",
@@ -315,14 +315,14 @@ describe("graph create confirm guard", () => {
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage: "del 23/5/2026 al 25/05/2026",
+      normalizedMessage: "del 23/6/2026 al 25/06/2026",
       hotelId: "hotel999",
       conversationId: "conv-graph-web-followup-incremental-ask",
       salesStage: "qualify",
       desiredAction: "create",
       messages: [
         new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
-        new HumanMessage("del 23/5/2026 al 25/05/2026"),
+        new HumanMessage("del 23/6/2026 al 25/06/2026"),
       ],
       meta: { channel: "web" },
     } as any);
