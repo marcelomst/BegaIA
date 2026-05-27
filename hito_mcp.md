@@ -9245,3 +9245,45 @@ Impacto:
 - estabiliza fixtures, mocks y fechas hardcodeadas del spec
 - no introduce nueva policy funcional ni reabre routing amplio
 - mantiene diferido el fix funcional original de Email/create flow
+
+### FIX-RESERVATION-CREATE-PAST-CHECKIN-GATING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-27  
+Commit: e7afd760950eeab1c7618c3d647b4db598b9eb4a
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bloquea centralmente en `reservation.create` cualquier draft con `checkIn`
+pasado antes de `availability`, `quote`, `proposal`, `CONFIRMAR` o
+`confirmAndCreate`, limpiando el rango inválido y preservando slots seguros
+como `guestName`, `roomType` y `numGuests`, sin reabrir routing transversal ni
+transporte.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- impide que `reservation.create` con `checkIn` pasado llegue a
+  `availability`, `quote`, `proposal`, `CONFIRMAR` o `confirmAndCreate`
+- limpia `checkIn/checkOut` para evitar rangos mixtos y preserva slots seguros
+  cuando corresponde
+- no reintroduce routing transversal ni toca transporte Email, IMAP/SMTP,
+  dedupe, polling/watch, WhatsApp, Admin/UI, CRM ni identidad multicanal
+
+Impacto:
+
+- agrega gating central de fechas pasadas en `reservation.create`
+- evita availability/proposal/confirm sobre rangos temporalmente inválidos
+- preserva `guestName`, `roomType` y `numGuests` cuando el resto del draft es
+  seguro
+- no altera transporte, routing multicanal ni contratos de `guestId`,
+  `conversationId` o `sourceMsgId`
