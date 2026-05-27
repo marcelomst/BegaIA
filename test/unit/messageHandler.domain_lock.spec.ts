@@ -129,8 +129,8 @@ describe("messageHandler domain lock de reservation", () => {
       lastCategory: "reservation",
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-04-21",
-        checkOut: "2026-04-25",
+        checkIn: "2026-06-21",
+        checkOut: "2026-06-25",
       },
     };
     const sendReply = vi.fn(async () => {});
@@ -164,13 +164,13 @@ describe("messageHandler domain lock de reservation", () => {
       desiredAction: "create",
       lastCategory: "reservation",
       reservationSlots: {
-        checkIn: "2026-05-23",
-        checkOut: "2026-05-25",
+        checkIn: "2026-06-23",
+        checkOut: "2026-06-25",
       },
     };
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("Del 23/5/2026 al 25/05/2026", "email"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Del 23/6/2026 al 25/06/2026", "email"), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/tipo de habitaci[oó]n/i);
@@ -296,8 +296,8 @@ describe("messageHandler domain lock de reservation", () => {
       conversationStage: "reservation_quoted",
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-04-21",
-        checkOut: "2026-04-25",
+        checkIn: "2026-06-21",
+        checkOut: "2026-06-25",
         numGuests: "2",
         guestName: "Marcelo Martinez",
       },

@@ -737,11 +737,11 @@ type CreateFlowMissingField = "checkIn" | "checkOut" | "numGuests" | "roomType" 
 type CreateDraftConsistencyResult =
   | { valid: true; sanitizedSlots: ReservationSlotsStrict }
   | {
-    valid: false;
-    reason: "room_capacity" | "date_coherence";
-    sanitizedSlots: ReservationSlotsStrict;
-    message: string;
-  };
+      valid: false;
+      reason: "room_capacity" | "date_coherence" | "past_checkin";
+      sanitizedSlots: ReservationSlotsStrict;
+      message: string;
+    };
 
 function getNextCreateFlowMissingField(slots: ReservationSlotsStrict): CreateFlowMissingField {
   if (!slots.checkIn) return "checkIn";
@@ -824,6 +824,17 @@ function validateCreateDraftConsistency(
   slots: ReservationSlotsStrict
 ): CreateDraftConsistencyResult {
   const sanitizedSlots = { ...slots };
+  if (slots.checkIn && isPastReservationCheckInISO(slots.checkIn)) {
+    const rejectedCheckIn = slots.checkIn;
+    delete sanitizedSlots.checkIn;
+    delete sanitizedSlots.checkOut;
+    return {
+      valid: false,
+      reason: "past_checkin",
+      sanitizedSlots,
+      message: buildPastReservationCheckInPrompt(lang, rejectedCheckIn),
+    };
+  }
   const dateCoherence = assessReservationDateCoherence(slots.checkIn, slots.checkOut);
   if (dateCoherence && !dateCoherence.ok) {
     delete sanitizedSlots.checkIn;
@@ -1562,11 +1573,11 @@ function resolveConfirmedReservationFollowupSnapshot(
     reservationId: reservationId || record?.reservationId,
     status: (record?.status || pre.st?.lastReservation?.status) as LastReservation["status"] | undefined,
     slots: {
-      guestName: record?.guestName || (!reservationId ? pre.st?.reservationSlots?.guestName : undefined),
-      roomType: record?.roomType || (!reservationId ? pre.st?.reservationSlots?.roomType : undefined),
-      numGuests: record?.numGuests || (!reservationId ? pre.st?.reservationSlots?.numGuests : undefined),
-      checkIn: record?.checkIn || (!reservationId ? pre.st?.reservationSlots?.checkIn : undefined),
-      checkOut: record?.checkOut || (!reservationId ? pre.st?.reservationSlots?.checkOut : undefined),
+      guestName: record?.guestName || pre.st?.reservationSlots?.guestName,
+      roomType: record?.roomType || pre.st?.reservationSlots?.roomType,
+      numGuests: record?.numGuests || pre.st?.reservationSlots?.numGuests,
+      checkIn: record?.checkIn || pre.st?.reservationSlots?.checkIn,
+      checkOut: record?.checkOut || pre.st?.reservationSlots?.checkOut,
       locale: pre.lang,
     } as ReservationSlotsStrict,
   };
@@ -4928,6 +4939,36 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         };
       }
       const isConfirmedBooking = pre.st?.salesStage === "close";
+      if (
+        fastPathSubFlow === "create" &&
+        drFast.checkIn &&
+        !isConfirmedBooking &&
+        isPastReservationCheckInISO(drFast.checkIn)
+      ) {
+        const rejectedTurnSlots = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
+        const sanitizedCreateSlots = mergeReservationSlots(
+          pre.st?.reservationSlots,
+          nextSlots,
+          rejectedTurnSlots
+        );
+        delete sanitizedCreateSlots.checkOut;
+        if (
+          sanitizedCreateSlots.checkIn &&
+          isPastReservationCheckInISO(sanitizedCreateSlots.checkIn)
+        ) {
+          delete sanitizedCreateSlots.checkIn;
+        }
+        nextSlots = { ...sanitizedCreateSlots } as ReservationSlotsStrict;
+        await persistCreateDraftSnapshot(pre, sanitizedCreateSlots);
+        finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);
+        return {
+          finalText,
+          nextCategory: "reservation",
+          nextSlots,
+          needsSupervision,
+          graphResult: null,
+        };
+      }
       if (drFast.checkIn && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {
         finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);
         const { checkIn: _dropInvalidCheckIn, ...restNextSlots } = nextSlots;
@@ -5624,12 +5665,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     nextCategory = "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
+  const confirmedSnapshotFallback =
+    effectiveSnapshotQueryKind && hasConfirmedBookingContext
+      ? resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget)
+      : null;
   const resolvedSnapshotTarget =
     effectiveSnapshotQueryKind === "list"
       ? null
       : effectiveSnapshotQueryKind && resolvedReferenceReservationTarget
         ? resolvedReferenceReservationTarget
-        : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
+        : explicitIdReservationTarget ||
+          explicitOrdinalReservationTarget ||
+          selectedOrActiveReservationTarget ||
+          (confirmedSnapshotFallback?.reservationId
+            ? {
+                kind: "reservation" as const,
+                reservationId: confirmedSnapshotFallback.reservationId,
+                reservationStatus: confirmedSnapshotFallback.status,
+                guestName: confirmedSnapshotFallback.slots.guestName,
+                roomType: confirmedSnapshotFallback.slots.roomType,
+                numGuests: confirmedSnapshotFallback.slots.numGuests,
+                checkIn: confirmedSnapshotFallback.slots.checkIn,
+                checkOut: confirmedSnapshotFallback.slots.checkOut,
+                source: "lastReservation" as const,
+              }
+            : null);
   const normalizedSnapshotInput = normalizeReferenceText(userTxtRaw);
   const hasActionIntent =
     normalizedReservationIntent.kind === "cancel" ||
@@ -6298,6 +6358,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const currentFocus = getConversationFocus(pre.st);
   const modifyExecutionActive = isModifyExecutionActive(pre) && !createOverridesModify;
   const activeCreateFlow =
+    !effectiveSnapshotQueryKind &&
     !modifyContinuityActive &&
     !hasConfirmedBookingContext &&
     (looksExplicitNewReservation ||
@@ -6306,6 +6367,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.desiredAction === "create" ||
       pre.prevCategory === "reservation");
   const quoteGatedCreateFlow =
+    !effectiveSnapshotQueryKind &&
     !modifyContinuityActive &&
     !hasConfirmedBookingContext &&
     (
