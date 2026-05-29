@@ -9287,3 +9287,44 @@ Impacto:
   seguro
 - no altera transporte, routing multicanal ni contratos de `guestId`,
   `conversationId` o `sourceMsgId`
+
+### RECOVER-SUITE-TEMPORAL-FIXTURES-AFTER-PAST-CHECKIN-GUARD-01
+
+Estado: COMPLETADO  
+Fecha: 2026-05-29  
+Commit: ff41f7db4725c24e3aa200602db2796242c3baae
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Recupera la suite completa tras el guard vigente de `past_checkin` ajustando
+únicamente fixtures y expectativas temporales en specs afectadas, sin tocar
+runtime ni `messageHandler` y dejando fuera de scope el bug funcional de
+`date-repair UX`.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `test/unit/messageHandler.focus_governance.spec.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.no_context_reservation_guards.spec.ts`
+- `test/unit/messageHandler.reservation_confirm_followup.spec.ts`
+- `test/unit/messageHandler.vamos_a_ingresar_followup.test.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de HDOC validada como fuente primaria
+- `roadmap_impact: none`
+- el commit real contiene solo las 7 specs auditadas
+- no toca runtime ni `messageHandler.ts`
+- el diff es consistente con recuperación por fixtures temporales, sin cambios
+  de lógica
+
+Impacto:
+
+- mueve fechas históricas a futuro en specs afectadas
+- alinea expectativas con el contrato temporal vigente
+- recupera suite completa sin mezclar el bug funcional de `date-repair UX`
+- no modifica runtime, transporte ni lógica conversacional

@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-RESERVATION-CREATE-PAST-CHECKIN-GATING-01
+## 1. RECOVER-SUITE-TEMPORAL-FIXTURES-AFTER-PAST-CHECKIN-GUARD-01
+
+- Identificador: `RECOVER-SUITE-TEMPORAL-FIXTURES-AFTER-PAST-CHECKIN-GUARD-01`
+- Nombre: `RECOVER-SUITE-TEMPORAL-FIXTURES-AFTER-PAST-CHECKIN-GUARD-01`
+- Commit message: `RECOVER-SUITE-TEMPORAL-FIXTURES-AFTER-PAST-CHECKIN-GUARD-01`
+- Hash: `ff41f7db4725c24e3aa200602db2796242c3baae`
+- Descripción breve: Se recupera la suite completa tras el guard de `past_checkin` ajustando solo fixtures y expectativas temporales en specs afectadas, sin tocar runtime ni `messageHandler`.
+
+## 2. FIX-RESERVATION-CREATE-PAST-CHECKIN-GATING-01
 
 - Identificador: `FIX-RESERVATION-CREATE-PAST-CHECKIN-GATING-01`
 - Nombre: `FIX-RESERVATION-CREATE-PAST-CHECKIN-GATING-01`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `e7afd760950eeab1c7618c3d647b4db598b9eb4a`
 - Descripción breve: Se bloquea centralmente en `reservation.create` cualquier draft con `checkIn` pasado antes de availability, quote, proposal o confirmación, limpiando el rango inválido y preservando slots seguros.
 
-## 2. RECOVER-RESERVATION-GRAPH-TYPING-FIXTURE-STABILITY-01
+## 3. RECOVER-RESERVATION-GRAPH-TYPING-FIXTURE-STABILITY-01
 
 - Identificador: `RECOVER-RESERVATION-GRAPH-TYPING-FIXTURE-STABILITY-01`
 - Nombre: `RECOVER-RESERVATION-GRAPH-TYPING-FIXTURE-STABILITY-01`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `2bf062dd3154d0c59300225d6a4f368aa8f2a67c`
 - Descripción breve: Se reclasifica el commit real `2bf062d` como recuperación menor de estabilidad, acotada a una corrección de tipado en `reservation.ts` y estabilización de fixtures/mocks del spec, dejando diferido el fix funcional amplio de Email/create flow.
 
-## 3. FIX-EMAIL-RESERVATION-FOLLOWUP-GROUPED-MISSING-SLOTS-01
+## 4. FIX-EMAIL-RESERVATION-FOLLOWUP-GROUPED-MISSING-SLOTS-01
 
 - Identificador: `FIX-EMAIL-RESERVATION-FOLLOWUP-GROUPED-MISSING-SLOTS-01`
 - Nombre: `FIX-EMAIL-RESERVATION-FOLLOWUP-GROUPED-MISSING-SLOTS-01`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `5119f31ff44277386baa12db35b1822ae0ec70a1`
 - Descripción breve: Se corrige la continuidad del create flow por Email para que, tras una respuesta parcial, los faltantes reales restantes sigan formulándose de manera agrupada, mientras Web y WhatsApp preservan sequencing incremental.
 
-## 4. FIX-EMAIL-INBOUND-DEDUPLICATE-REPLY-03
+## 5. FIX-EMAIL-INBOUND-DEDUPLICATE-REPLY-03
 
 - Identificador: `FIX-EMAIL-INBOUND-DEDUPLICATE-REPLY-03`
 - Nombre: `FIX-EMAIL-INBOUND-DEDUPLICATE-REPLY-03`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `a164dba7f9be0ee878fa8e6e210baeb4aaee4a63`
 - Descripción breve: Se agrega un guard idempotente efectivo en Email inbound antes del pipeline y antes del SMTP para evitar replies duplicados sobre un mismo inbound real, manteniendo retry legítimo ante error.
 
-## 5. CHORE-WIPE-CONVERSATIONAL-STATE-SCRIPT-DOC-01
+## 6. CHORE-WIPE-CONVERSATIONAL-STATE-SCRIPT-DOC-01
 
 - Identificador: `CHORE-WIPE-CONVERSATIONAL-STATE-SCRIPT-DOC-01`
 - Nombre: `CHORE-WIPE-CONVERSATIONAL-STATE-SCRIPT-DOC-01`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `eab23b24051046f36dcabe5a66f31f40c4365965`
 - Descripción breve: Se formaliza la documentación operativa del script de wipe conversacional, explicitando uso destructivo manual solo en dev/test y dejando `reservations` y otros estados no listados fuera de scope.
 
-## 6. ALIGN-NAMED-MONTH-DATE-INFERENCE-WITH-RUNTIME-01
+## 7. ALIGN-NAMED-MONTH-DATE-INFERENCE-WITH-RUNTIME-01
 
 - Identificador: `ALIGN-NAMED-MONTH-DATE-INFERENCE-WITH-RUNTIME-01`
 - Nombre: `ALIGN-NAMED-MONTH-DATE-INFERENCE-WITH-RUNTIME-01`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `65f18430736909682dfcb84fa16399d020857d61`
 - Descripción breve: Se alinea la inferencia de fechas con mes nombrado y sin año explícito para conservar el año actual, evitando rollover silencioso al siguiente año.
 
-## 7. FIX-EMAIL-RESERVATION-ASK-POLICY-02
+## 8. FIX-EMAIL-RESERVATION-ASK-POLICY-02
 
 - Identificador: `FIX-EMAIL-RESERVATION-ASK-POLICY-02`
 - Nombre: `FIX-EMAIL-RESERVATION-ASK-POLICY-02`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `72fa0368b9e5ddb39f2906f5926c5be62fa9aff5`
 - Descripción breve: Email agrupa faltantes de reserva cuando faltan múltiples slots, mientras Web/WhatsApp preservan sequencing incremental, sin alterar extracción ni runtime común.
 
-## 8. FIX-WHATSAPP-LEGACY-READY-EVENT-COMPAT-WEB-INJECTION-01
+## 9. FIX-WHATSAPP-LEGACY-READY-EVENT-COMPAT-WEB-INJECTION-01
 
 - Identificador: `FIX-WHATSAPP-LEGACY-READY-EVENT-COMPAT-WEB-INJECTION-01`
 - Nombre: `FIX-WHATSAPP-LEGACY-READY-EVENT-COMPAT-WEB-INJECTION-01`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `c09a33b55149ac42b0e8781bdd28ec33df7bc4b1`
 - Descripción breve: Se documenta el hardening/diagnóstico de `whatsapp-web.js` legacy que confirma que el canal sigue sin `ready` ni inbound y no es apto para demo actualmente.
 
-## 9. MANUAL-EMAIL-RESERVATION-CONFIRMATION-E2E-01
+## 10. MANUAL-EMAIL-RESERVATION-CONFIRMATION-E2E-01
 
 - Identificador: `MANUAL-EMAIL-RESERVATION-CONFIRMATION-E2E-01`
 - Nombre: `MANUAL-EMAIL-RESERVATION-CONFIRMATION-E2E-01`
 - Commit message: `none`
 - Hash: `none`
 - Descripción breve: Se registra una validación manual end-to-end exitosa del canal Email para reservas, incluyendo proposal, reply con quoted thread, confirmación, outbound SMTP, polling `watch` persistente y dedupe por `Message-ID`.
-
-## 10. FIX-EMAIL-WATCH-POLLING-STATE-DEV-01
-
-- Identificador: `FIX-EMAIL-WATCH-POLLING-STATE-DEV-01`
-- Nombre: `FIX-EMAIL-WATCH-POLLING-STATE-DEV-01`
-- Commit message: `FIX-EMAIL-WATCH-POLLING-STATE-DEV-01`
-- Hash: `e47350fd783e2159b607e7cb92a93cf37e94c7ba`
-- Descripción breve: Se alinea `dev:email` en modo `watch` con el polling state en Redis, auto-activando `email_polling:<hotelId>` al arranque cuando el canal Email está habilitado.
