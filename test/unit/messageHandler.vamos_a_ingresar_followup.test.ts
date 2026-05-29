@@ -48,7 +48,7 @@ function msg(content: string) {
     };
 }
 
-describe("messageHandler: follow-up 'vamos a ingresar 03/10/2025' → luego '05/10/2025' consolida y no deriva", () => {
+describe("messageHandler: follow-up 'vamos a ingresar 03/10/2026' → luego '05/10/2026' consolida y no deriva", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         (getConvState as any).mockResolvedValue({
@@ -57,8 +57,8 @@ describe("messageHandler: follow-up 'vamos a ingresar 03/10/2025' → luego '05/
             reservationSlots: {
                 guestName: "Marcelo Martinez",
                 roomType: "double",
-                checkIn: "2025-10-02",
-                checkOut: "2025-10-04",
+                checkIn: "2026-10-02",
+                checkOut: "2026-10-04",
                 numGuests: "2",
             },
             salesStage: "close",
@@ -66,23 +66,23 @@ describe("messageHandler: follow-up 'vamos a ingresar 03/10/2025' → luego '05/
         });
     });
 
-    it("pide check-out y luego confirma 03/10/2025 → 05/10/2025 sin retrieval", async () => {
+    it("pide check-out y luego confirma 03/10/2026 → 05/10/2026 sin retrieval", async () => {
         // Paso 1: usuario da solo el check-in (frase exacta del reporte)
-        await handleIncomingMessage(msg("vamos a ingresar el 03/10/2025"), { mode: "automatic", sendReply });
+        await handleIncomingMessage(msg("vamos a ingresar el 03/10/2026"), { mode: "automatic", sendReply });
         let all = await getCollection("messages").findMany({ hotelId, conversationId });
         let lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
         let txt = String(lastAi?.content || lastAi?.suggestion || "").toLowerCase();
         expect(txt).toMatch(/check-?out|salida/);
 
         // Paso 2: usuario responde con la fecha de check-out
-        await handleIncomingMessage(msg("05/10/2025"), { mode: "automatic", sendReply });
+        await handleIncomingMessage(msg("05/10/2026"), { mode: "automatic", sendReply });
         all = await getCollection("messages").findMany({ hotelId, conversationId });
         lastAi = all.filter((m: any) => m.sender === "assistant").at(-1);
         txt = String(lastAi?.content || lastAi?.suggestion || "");
 
         // Debe consolidar el rango y no desviarse a retrieval
-        expect(txt).toMatch(/03\/10\/2025/);
-        expect(txt).toMatch(/05\/10\/2025/);
+        expect(txt).toMatch(/03\/10\/2026/);
+        expect(txt).toMatch(/05\/10\/2026/);
         expect(txt.toLowerCase()).toMatch(/verifique disponibilidad|verificar a disponibilidade|check availability/);
         expect(txt.toLowerCase()).not.toMatch(/no tengo información|hotel dem[oó]/);
     });

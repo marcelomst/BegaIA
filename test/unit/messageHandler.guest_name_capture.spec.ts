@@ -279,7 +279,7 @@ describe("messageHandler guest conversational name capture", () => {
     await handleIncomingMessage(msg("Ana"), { mode: "automatic", sendReply });
     expect(lastReply(sendReply)).toBe("Encantada, Ana. ¿En qué puedo ayudarte hoy?");
     await handleIncomingMessage(
-      msg("quiero hacer una reserva para el dia 8/5/2026 al 10/5/2026, una triple, para 3 personas, a nombre de Raul Olivera"),
+      msg("quiero hacer una reserva para el dia 8/5/2027 al 10/5/2027, una triple, para 3 personas, a nombre de Raul Olivera"),
       { mode: "automatic", sendReply }
     );
 
@@ -296,7 +296,7 @@ describe("messageHandler guest conversational name capture", () => {
     await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
     await handleIncomingMessage(msg("Sofia"), { mode: "automatic", sendReply });
     await handleIncomingMessage(
-      msg("tiene disponible una doble para el dia 08/05/2026 al 10/05/2026"),
+      msg("tiene disponible una doble para el dia 08/05/2027 al 10/05/2027"),
       { mode: "automatic", sendReply }
     );
 

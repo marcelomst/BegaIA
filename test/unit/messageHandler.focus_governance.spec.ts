@@ -158,7 +158,7 @@ describe("messageHandler focus governance", () => {
   it("persiste focus create y continúa el flujo con datos válidos", async () => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("quiero reservar del 10 al 15 de mayo de 2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("quiero reservar del 10 al 15 de mayo de 2027"), { mode: "automatic", sendReply });
 
     expect(currentState?.conversationFocus).toMatchObject({
       domain: "reservation",
@@ -180,7 +180,7 @@ describe("messageHandler focus governance", () => {
   it("permite una interrupción lateral de amenities sin perder el foco create", async () => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("quiero reservar del 10 al 15 de mayo de 2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("quiero reservar del 10 al 15 de mayo de 2027"), { mode: "automatic", sendReply });
     await handleIncomingMessage(msg("¿tienen pileta?"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/pileta|piscina|pool/i);
@@ -204,7 +204,7 @@ describe("messageHandler focus governance", () => {
   it("lateral en create no dispara continuidad y luego reengancha el faltante", async () => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo para 2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo de 2027 para 2 personas"), { mode: "automatic", sendReply });
     vi.mocked(agentGraph.invoke).mockResolvedValueOnce({
       messages: [{ role: "assistant", content: "¿Cuál es el tipo de habitación?" }],
       category: "reservation",
@@ -234,7 +234,7 @@ describe("messageHandler focus governance", () => {
   it("lateral puro en create usa failsafe si KB falla y bloquea graph transaccional", async () => {
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo para 2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("quiero reservar del 1 al 5 de mayo de 2027 para 2 personas"), { mode: "automatic", sendReply });
     vi.mocked(agentGraph.invoke).mockClear();
     vi.mocked(answerWithKnowledge).mockRejectedValueOnce(new Error("kb down"));
     vi.mocked(agentGraph.invoke).mockResolvedValueOnce({
@@ -264,8 +264,8 @@ describe("messageHandler focus governance", () => {
     const sendReply = vi.fn(async () => {});
     currentState = {
       reservationSlots: {
-        checkIn: "2026-05-10",
-        checkOut: "2026-05-15",
+        checkIn: "2027-05-10",
+        checkOut: "2027-05-15",
         numGuests: "2",
       },
       conversationFocus: {
@@ -316,8 +316,8 @@ describe("messageHandler focus governance", () => {
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
-        checkIn: "2026-05-10",
-        checkOut: "2026-05-15",
+        checkIn: "2027-05-10",
+        checkOut: "2027-05-15",
         numGuests: "2",
       },
       conversationFocus: {
@@ -373,8 +373,8 @@ describe("messageHandler focus governance", () => {
     const sendReply = vi.fn(async () => {});
     currentState = {
       reservationSlots: {
-        checkIn: "2026-05-10",
-        checkOut: "2026-05-15",
+        checkIn: "2027-05-10",
+        checkOut: "2027-05-15",
         numGuests: "2",
         roomType: "double",
       },
@@ -411,8 +411,8 @@ describe("messageHandler focus governance", () => {
     const sendReply = vi.fn(async () => {});
     currentState = {
       reservationSlots: {
-        checkIn: "2026-05-10",
-        checkOut: "2026-05-15",
+        checkIn: "2027-05-10",
+        checkOut: "2027-05-15",
       },
       conversationFocus: {
         domain: "reservation",

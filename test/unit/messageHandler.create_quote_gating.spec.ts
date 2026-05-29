@@ -93,7 +93,7 @@ describe("messageHandler create quote gating", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("quiero reservar del 10 al 15 de mayo de 2026"),
+      msg("quiero reservar del 10 al 15 de mayo de 2027"),
       { mode: "automatic", sendReply }
     );
 
@@ -107,7 +107,7 @@ describe("messageHandler create quote gating", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("quiero reservar una doble del 10 al 15 de mayo de 2026 para 2 adultos"),
+      msg("quiero reservar una doble del 10 al 15 de mayo de 2027 para 2 adultos"),
       { mode: "automatic", sendReply }
     );
 
@@ -121,7 +121,7 @@ describe("messageHandler create quote gating", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("quiero reservar una doble del 10 al 15 de mayo de 2026 para 2 adultos"),
+      msg("quiero reservar una doble del 10 al 15 de mayo de 2027 para 2 adultos"),
       { mode: "automatic", sendReply }
     );
     expect(lastReply(sendReply)).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
@@ -162,7 +162,7 @@ describe("messageHandler create quote gating", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("quiero hacer una reserva para el 03/05/2026 al 05/05/2026, una doble, para 2 personas a nombre de Marcelo Martinez"),
+      msg("quiero hacer una reserva para el 03/05/2027 al 05/05/2027, una doble, para 2 personas a nombre de Marcelo Martinez"),
       { mode: "automatic", sendReply }
     );
 
@@ -171,8 +171,8 @@ describe("messageHandler create quote gating", () => {
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     expect(currentState?.lastProposal?.available).toBe(true);
     expect(currentState?.reservationSlots).toMatchObject({
-      checkIn: "2026-05-03",
-      checkOut: "2026-05-05",
+      checkIn: "2027-05-03",
+      checkOut: "2027-05-05",
       numGuests: "2",
       roomType: "double",
       guestName: "Marcelo Martinez",

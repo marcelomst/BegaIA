@@ -18,8 +18,8 @@ const confirmedState = {
   reservationSlots: {
     guestName: "Marcelo Martinez",
     roomType: "double",
-    checkIn: "2026-04-10",
-    checkOut: "2026-04-12",
+    checkIn: "2027-04-10",
+    checkOut: "2027-04-12",
     numGuests: "2",
   },
   salesStage: "close",

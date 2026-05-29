@@ -135,8 +135,8 @@ describe("messageHandler reservation confirm follow-up", () => {
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
-        checkIn: "2026-03-21",
-        checkOut: "2026-03-25",
+        checkIn: "2027-03-21",
+        checkOut: "2027-03-25",
         numGuests: "2",
       },
       salesStage: "quote",
@@ -178,8 +178,8 @@ describe("messageHandler reservation confirm follow-up", () => {
         reservationSlots: expect.objectContaining({
           guestName: "Marcelo Martinez",
           roomType: "double",
-          checkIn: "2026-03-21",
-          checkOut: "2026-03-25",
+          checkIn: "2027-03-21",
+          checkOut: "2027-03-25",
           numGuests: "2",
         }),
         salesStage: "close",
@@ -380,8 +380,8 @@ describe("messageHandler reservation confirm follow-up", () => {
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
-        checkIn: "2026-03-21",
-        checkOut: "2026-03-25",
+        checkIn: "2027-03-21",
+        checkOut: "2027-03-25",
         numGuests: "2",
       },
       reservationHistory: [
@@ -392,8 +392,8 @@ describe("messageHandler reservation confirm follow-up", () => {
           channel: "web",
           guestName: "Marcelo Martinez",
           roomType: "double",
-          checkIn: "2026-03-21",
-          checkOut: "2026-03-25",
+          checkIn: "2027-03-21",
+          checkOut: "2027-03-25",
           numGuests: "2",
         },
       ],
@@ -404,8 +404,8 @@ describe("messageHandler reservation confirm follow-up", () => {
         channel: "web",
         guestName: "Marcelo Martinez",
         roomType: "double",
-        checkIn: "2026-03-21",
-        checkOut: "2026-03-25",
+        checkIn: "2027-03-21",
+        checkOut: "2027-03-25",
         numGuests: "2",
       },
       salesStage: "close",
@@ -453,8 +453,8 @@ describe("messageHandler reservation confirm follow-up", () => {
     const sendReply = vi.fn(async () => {});
     (getConvState as any).mockResolvedValueOnce({
       reservationSlots: {
-        checkIn: "2026-03-21",
-        checkOut: "2026-03-25",
+        checkIn: "2027-03-21",
+        checkOut: "2027-03-25",
         roomType: "double",
       },
       salesStage: "quote",
@@ -503,8 +503,8 @@ describe("messageHandler reservation confirm follow-up", () => {
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "suite",
-        checkIn: "2026-04-01",
-        checkOut: "2026-04-04",
+        checkIn: "2027-04-01",
+        checkOut: "2027-04-04",
         numGuests: "2",
       },
       salesStage: "quote",
