@@ -9328,3 +9328,41 @@ Impacto:
 - alinea expectativas con el contrato temporal vigente
 - recupera suite completa sin mezclar el bug funcional de `date-repair UX`
 - no modifica runtime, transporte ni lógica conversacional
+
+### DOC-RUNTIME-MAP-V1-HITOS-CAPSULAS-GOVERNANCE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-02  
+Commit: 3b52700df47e8a513642314000ea19801a902cb8
+Clasificacion documental: HITO_PLUS_EVOLUTION
+
+Descripcion:
+
+Se integra formalmente Runtime Map V1 al flujo operativo de cápsulas, hitos y
+gobernanza central, reforzando `system_operating_model.md` como contrato
+operativo y explicitando la disciplina entre AGPT, agentes, Repo Guardian y
+HDOC sin introducir runtime paralelo ni cambios de comportamiento.
+
+Archivos afectados:
+
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/development/hito_template.md`
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `ready_for_hdoc: yes`
+- `roadmap_impact: none_direct`
+- no requiere refresh documental de Runtime Map V1 con rangos recalculados
+- el alcance es de gobernanza documental y contrato operativo, sin código ni
+  cambios runtime
+
+Impacto:
+
+- integra Runtime Map V1 al flujo operativo de cápsulas e hitos
+- refuerza una única disciplina documental entre `CAPSULE_TEMPLATE_V3`,
+  `hito_template` y `system_operating_model.md`
+- consolida la trazabilidad del flujo `AGPT -> agentes -> Guardian -> HDOC`
+- fortalece canonicidad sin crear arquitectura funcional paralela
