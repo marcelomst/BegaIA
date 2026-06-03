@@ -9366,3 +9366,50 @@ Impacto:
   `hito_template` y `system_operating_model.md`
 - consolida la trazabilidad del flujo `AGPT -> agentes -> Guardian -> HDOC`
 - fortalece canonicidad sin crear arquitectura funcional paralela
+
+### RECOVER-FIX-CREATE-EXPLICIT-CHECKOUT-SLOT-ATTRIBUTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-03  
+Commit: 280a214d82510a5b51bcaf6a9f19af241cbd22a9
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige en `reservation.create` la atribución errónea de un `checkOut`
+explícito como si fuera `checkIn`, preserva `checkIn` y `numGuests` ante
+`checkOut` inválido, bloquea cotización o confirmación sobre rango inválido y
+repregunta `checkOut` en lugar de reiniciar el slot correcto.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservation.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none_direct`
+- `runtime_boxes_audit.verdict: valid`
+- `runtime_boxes_audit.parity_tests.status: present`
+- `runtime_map_refresh.required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas: `availabilityInquiry`, `reservation.modify`,
+  `graphClassifierPolicy`, `fallbackLocal`
+
+Impacto:
+
+- preserva precedencia correcta entre marcador explícito `check out` y repair
+  temporal
+- evita cotización y confirmación con rango inválido en create flow
+- preserva estado canónico del draft sin crear fuentes paralelas
+- deja actualizado Runtime Map V1 a commit real y marca `needs_refresh` donde
+  Guardian no entregó rangos finos nuevos
