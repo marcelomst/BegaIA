@@ -84,3 +84,5 @@ docs/Capsula_documentacion.md
 .runtime-analysis/*
 !.runtime-analysis/**/
 !.runtime-analysis/**/*.md
+.runtime-analysis/bodyLLM_internal_scan.md
+.runtime-analysis/messageHandler_function_size_map.md
