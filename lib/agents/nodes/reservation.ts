@@ -83,6 +83,27 @@ function buildPastCheckInQuestion(lang2: "es" | "en" | "pt", checkIn?: string) {
     return `La fecha de check-in ${ci} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
 }
 
+function buildInvalidCheckOutQuestion(lang2: "es" | "en" | "pt") {
+    if (lang2 === "pt") {
+        return "A data de check-out deve ser posterior ao check-in. Qual seria a nova data de check-out? (dd/mm/aaaa)";
+    }
+    if (lang2 === "en") {
+        return "The check-out date must be after check-in. What would be the new check-out date? (dd/mm/yyyy)";
+    }
+    return "La fecha de check-out debe ser posterior al check-in. ¿Cuál sería la nueva fecha de check-out? (dd/mm/aaaa)";
+}
+
+function detectExplicitTemporalSide(text: string): "checkIn" | "checkOut" | undefined {
+    const t = (text || "").toLowerCase();
+    if (/(check\s*-?in\b|ingreso\b|inreso\b|entrada\b|arribo\b|arrival\b)/i.test(t) && !/(check\s*-?out|salida|egreso|retirada|partida|sa[ií]da|departure)/i.test(t)) {
+        return "checkIn";
+    }
+    if (/(check\s*-?out\b|salida\b|egreso\b|retirada\b|partida\b|sa[ií]da\b|departure\b)/i.test(t) && !/(check\s*-?in|ingreso|inreso|entrada|arrival|arribo)/i.test(t)) {
+        return "checkOut";
+    }
+    return undefined;
+}
+
 function hasShortStayContext(messages: unknown[]) {
     const shortStayCue =
         /\b(fin de semana|este fin de semana|finde|weekend|this weekend|una noche|two nights|dos noches|one night|overnight)\b/i;
@@ -169,6 +190,7 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     const locale = lang2;
     const askMissingOrder: RequiredSlot[] =
         channel === "email" ? REQUIRED_SLOTS : QUOTE_REQUIRED_SLOTS;
+    const explicitTemporalSide = detectExplicitTemporalSide(normalizedMessage);
     const askGuestNameAndPersist = async (snapshot: SlotMap) => {
         await upsertConvState(hotelId, conversationId || "", {
             reservationSlots: {
@@ -509,6 +531,29 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             !(co instanceof Date && !isNaN(co.valueOf())) ||
             ci >= co
         ) {
+            if (
+                explicitTemporalSide === "checkOut" &&
+                expectedSlot === "checkOut" &&
+                merged.checkIn &&
+                merged.checkOut
+            ) {
+                const correctedSnapshot = { ...merged };
+                delete (correctedSnapshot as Record<string, unknown>).checkOut;
+                await upsertConvState(hotelId, conversationId || "", {
+                    reservationSlots: {
+                        ...correctedSnapshot,
+                        numGuests: toInt((correctedSnapshot as any).numGuests),
+                    },
+                    salesStage: "qualify",
+                    updatedBy: "ai",
+                });
+                return {
+                    messages: [new AIMessage(buildInvalidCheckOutQuestion(lang2))],
+                    reservationSlots: correctedSnapshot,
+                    category: "reservation",
+                    salesStage: "qualify",
+                };
+            }
             const text =
                 lang2 === "es"
                     ? "Las fechas parecen inválidas. ¿Podés confirmar check-in (dd/mm/aaaa) y check-out (dd/mm/aaaa)?"
@@ -584,6 +629,15 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     if (filled.need === "question") {
         const partialRaw = filled.partial ?? {};
         const partial = sanitizePartial(normalizeSlots(partialRaw), merged, normalizedMessage);
+        if (
+            explicitTemporalSide === "checkOut" &&
+            expectedSlot === "checkOut" &&
+            partial.checkIn &&
+            !partial.checkOut
+        ) {
+            partial.checkOut = partial.checkIn;
+            delete (partial as Record<string, unknown>).checkIn;
+        }
         const nextSnapshot: Record<string, any> = {
             ...merged,
             ...(partial.guestName ? { guestName: partial.guestName } : {}),
@@ -593,6 +647,33 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             ...(partial.checkOut ? { checkOut: partial.checkOut } : {}),
             locale,
         };
+        if (
+            explicitTemporalSide === "checkOut" &&
+            expectedSlot === "checkOut" &&
+            partial.checkOut &&
+            merged.checkIn
+        ) {
+            const ciTime = new Date(String(merged.checkIn)).getTime();
+            const coTime = new Date(String(partial.checkOut)).getTime();
+            if (Number.isFinite(ciTime) && Number.isFinite(coTime) && coTime <= ciTime) {
+                const correctedSnapshot = { ...nextSnapshot };
+                delete correctedSnapshot.checkOut;
+                await upsertConvState(hotelId, conversationId || "", {
+                    reservationSlots: {
+                        ...correctedSnapshot,
+                        numGuests: toInt((correctedSnapshot as any).numGuests),
+                    },
+                    salesStage: "qualify",
+                    updatedBy: "ai",
+                });
+                return {
+                    messages: [new AIMessage(buildInvalidCheckOutQuestion(lang2))],
+                    reservationSlots: correctedSnapshot,
+                    category: "reservation",
+                    salesStage: "qualify",
+                };
+            }
+        }
         if (partial.checkIn && isPastCheckInDate(String(partial.checkIn), hotelTz)) {
             const correctedSnapshot = { ...nextSnapshot };
             delete correctedSnapshot.checkIn;

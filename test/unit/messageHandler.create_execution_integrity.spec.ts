@@ -333,25 +333,11 @@ describe("messageHandler create execution integrity", () => {
 
     const invalidReply = lastReply(sendReply);
     expect(invalidReply).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
-    expect(invalidReply).toMatch(/check-?in|fecha/i);
+    expect(invalidReply).toMatch(/check-?out|fecha de check-out/i);
+    expect(invalidReply).not.toMatch(/check-?in|fecha de check-in/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
       guestName: "Ana Gomez",
-      numGuests: "2",
-    });
-    expect(currentState?.reservationSlots?.checkIn).toBeUndefined();
-    expect(currentState?.reservationSlots?.checkOut).toBeUndefined();
-
-    await handleIncomingMessage(msgEmail("27/05/2026"), { mode: "automatic", sendReply });
-
-    const followupReply = lastReply(sendReply);
-    expect(followupReply).toMatch(/check-?out|fecha de check-out/i);
-    expect(followupReply).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
-    expect(currentState?.reservationSlots).toMatchObject({
-      roomType: "double",
-      guestName: "Ana Gomez",
-      numGuests: "2",
-      checkIn: "2026-05-27",
     });
     expect(currentState?.reservationSlots?.checkOut).toBeUndefined();
     expect(confirmAndCreate).not.toHaveBeenCalled();
@@ -405,4 +391,47 @@ describe("messageHandler create execution integrity", () => {
     expect(currentState?.reservationSlots?.checkIn).toBeUndefined();
     expect(currentState?.reservationSlots?.checkOut).toBeUndefined();
   });
+
+  it("si create espera checkOut, un 'check out' explícito inválido repregunta checkOut y no checkIn", async () => {
+    vi.setSystemTime(new Date("2026-05-29T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+
+    currentState = {
+      reservationSlots: {
+        roomType: "double",
+        guestName: "Ana Gomez",
+        checkIn: "2026-05-30",
+      },
+      salesStage: "qualify",
+      activeFlow: "reservation",
+      desiredAction: "create",
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "create",
+        active: true,
+        updatedAt: new Date().toISOString(),
+      },
+      activeReservationContext: {
+        kind: "draft",
+        phase: "collecting",
+        updatedAt: new Date().toISOString(),
+      },
+      lastCategory: "reservation",
+    };
+
+    await handleIncomingMessage(msg("check out 25/5/2026, 2 personas"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/check-?out|fecha de check-out/i);
+    expect(replyText).not.toMatch(/check-?in|fecha de check-in/i);
+    expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      guestName: "Ana Gomez",
+      checkIn: "2026-05-30",
+    });
+    expect(currentState?.reservationSlots?.checkOut).toBeUndefined();
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
 });

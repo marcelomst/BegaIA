@@ -332,4 +332,65 @@ describe("graph create confirm guard", () => {
     expect(text).not.toMatch(/nombre (?:completo|del huésped|del huesped)/i);
     expect(text).not.toMatch(/n[uú]mero de hu[eé]spedes/i);
   });
+
+  it("si create espera checkOut y el turno dice 'check out' explícito inválido, repregunta checkOut y no checkIn", async () => {
+    fillSlotsWithLLMMock.mockResolvedValueOnce({
+      need: "question",
+      question: "¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)",
+      partial: {
+        checkIn: "2026-05-25",
+        numGuests: 2,
+      },
+    } as any);
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-05-30",
+      },
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+    getConvStateMock.mockResolvedValueOnce({
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-05-30",
+      },
+      salesStage: "qualify",
+      conversationStage: "reservation_collecting",
+    });
+
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {
+        roomType: "double",
+        checkIn: "2026-05-30",
+        checkOut: "2026-05-25",
+        numGuests: "2",
+      },
+      normalizedMessage: "check out 25/5/2026, 2 personas",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-explicit-checkout-invalid",
+      salesStage: "qualify",
+      desiredAction: "create",
+      messages: [
+        new AIMessage("Perfecto. ¿Podés confirmarme también la fecha de check-out? (formato dd/mm/aaaa)"),
+        new HumanMessage("check out 25/5/2026, 2 personas"),
+      ],
+      meta: { channel: "web" },
+    } as any);
+
+    const text = String(result?.messages?.[0]?.content || "");
+    expect(text).toMatch(/check-?out|fecha de check-out/i);
+    expect(text).not.toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
+    expect(result?.reservationSlots).toEqual(
+      expect.objectContaining({
+        roomType: "double",
+        checkIn: "2026-05-30",
+        numGuests: "2",
+      })
+    );
+    expect(result?.reservationSlots?.checkOut).toBeUndefined();
+    expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+    expect(confirmAndCreateMock).not.toHaveBeenCalled();
+  });
 });
