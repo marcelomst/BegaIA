@@ -79,3 +79,8 @@ docs/Capsula_contexto.md
 docs/Arquitectura_canal_whatsapp.md
 tsconfig.tsbuildinfo
 docs/Capsula_documentacion.md
+
+# runtime analysis
+.runtime-analysis/*
+!.runtime-analysis/**/
+!.runtime-analysis/**/*.md
