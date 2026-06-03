@@ -115,6 +115,15 @@ function isPastReservationCheckInISO(iso?: string) {
   return inDate.getTime() < today.getTime();
 }
 
+function isPastReservationDateISO(iso?: string) {
+  if (!iso) return false;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getTime() < today.getTime();
+}
+
 function askedToConfirmReservation(lcHistory: (HumanMessage | AIMessage)[]): boolean {
   const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
   const lastText = String(lastAi?.content || "").toLowerCase();
@@ -3252,6 +3261,7 @@ function anchorCreateRelativeDateToContext(
 ): { checkIn?: string; checkOut?: string } {
   const contextualMissingSide = resolveCreateDatesContextualMissingSide(pre, slots);
   if (!contextualMissingSide) return temporalDates;
+  const explicitTemporalSide = detectModifyTemporalSideIntent(text, temporalDates);
   const knownSlots = {
     ...(pre.st?.reservationSlots || {}),
     ...(slots || {}),
@@ -3265,6 +3275,9 @@ function anchorCreateRelativeDateToContext(
     return temporalDates;
   }
   if (contextualMissingSide === "checkIn" && !knownSlots.checkIn) {
+    if (explicitTemporalSide === "checkOut" && (temporalDates.checkIn || temporalDates.checkOut)) {
+      return { checkOut: temporalDates.checkOut || temporalDates.checkIn };
+    }
     if (temporalDates.checkIn || temporalDates.checkOut) {
       return { checkIn: temporalDates.checkIn || temporalDates.checkOut };
     }
@@ -4727,6 +4740,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.desiredAction === "modify" ||
       getConversationFocus(pre.st)?.subFlow === "modify";
     const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
+    const explicitTurnSlotsFast = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
+    const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
+    const explicitCheckOutFast =
+      fastTemporalSideIntent === "checkOut" ||
+      Boolean(explicitTurnSlotsFast.checkOut && !explicitTurnSlotsFast.checkIn);
     const contextualMissingSideFast = resolveModifyDatesContextualMissingSide(pre, nextSlots);
     const inquiryKnownFastSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots);
     const createContextualMissingSideFastBase = resolveCreateDatesContextualMissingSide(pre, nextSlots);
@@ -4744,8 +4762,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const inquiryMissingSideFast = availabilityInquiryPolicyFast
       ? getNextAvailabilityInquiryMissingField(inquiryKnownFastSlots)
       : null;
+    const createCheckOutRepairContextFast =
+      fastPathSubFlow === "create" &&
+      explicitCheckOutFast &&
+      Boolean(pre.st?.reservationSlots?.checkIn || nextSlots.checkIn) &&
+      !Boolean(pre.st?.reservationSlots?.checkOut);
     const reservationContextualMissingSideFastRaw =
       contextualMissingSideFast ||
+      (createCheckOutRepairContextFast ? "checkOut" : undefined) ||
       createContextualMissingSideFast ||
       (inquiryMissingSideFast === "checkIn" || inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);
     const reservationContextualMissingSideFast =
@@ -4767,11 +4791,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         !!pre.st?.reservationSlots ||
         (fastPathSubFlow === "create" && explicitCreateIntentFast)
       );
-    const explicitTurnSlotsFast = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
-    const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
-    const explicitCheckOutFast =
-      fastTemporalSideIntent === "checkOut" ||
-      Boolean(explicitTurnSlotsFast.checkOut && !explicitTurnSlotsFast.checkIn);
     const hasCompleteModifyDatesFast =
       activeModifyFieldFast === "dates" &&
       Boolean((pre.st?.reservationSlots?.checkIn || nextSlots.checkIn) && (pre.st?.reservationSlots?.checkOut || nextSlots.checkOut));
@@ -4782,14 +4801,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       !fastTemporalSideIntent;
     if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {
       if (singleFastISO && reservationContextualMissingSideFast) {
-        const contextualFastDates = reservationContextualMissingSideFast === "checkIn"
+        const createSingleDateSideFast =
+          fastPathSubFlow === "create" && explicitCheckOutFast
+            ? "checkOut"
+            : reservationContextualMissingSideFast;
+        const contextualFastDates = createSingleDateSideFast === "checkIn"
           ? { checkIn: singleFastISO }
           : { checkOut: singleFastISO };
         const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, explicitTurnSlotsFast, contextualFastDates);
         const normalizedFastPathSlots = { ...fastPathSlots } as ReservationSlotsStrict;
         if (
           fastPathSubFlow === "create" &&
-          reservationContextualMissingSideFast === "checkOut" &&
+          createSingleDateSideFast === "checkOut" &&
           explicitCheckOutFast
         ) {
           const explicitCheckOutSlots = mergeReservationSlots(pre.currSlots, normalizedFastPathSlots);
@@ -4802,7 +4825,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
         if (
           fastPathSubFlow === "create" &&
-          reservationContextualMissingSideFast === "checkIn" &&
+          createSingleDateSideFast === "checkIn" &&
           drFast.checkIn &&
           !drFast.checkOut &&
           normalizedFastPathSlots.checkIn &&
@@ -4820,13 +4843,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const coISO = normalizedFastPathSlots.checkOut;
         if (
           fastPathSubFlow === "create" &&
-          reservationContextualMissingSideFast === "checkOut" &&
+          createSingleDateSideFast === "checkOut" &&
           explicitCheckOutFast &&
           ciISO &&
           coISO
         ) {
           const checkOutCoherence = assessReservationDateCoherence(ciISO, coISO);
-          if (checkOutCoherence && !checkOutCoherence.ok) {
+          if (isPastReservationDateISO(coISO) || (checkOutCoherence && !checkOutCoherence.ok)) {
             const sanitizedCreateSlots = mergeReservationSlots(
               pre.st?.reservationSlots,
               normalizedFastPathSlots,

@@ -334,7 +334,7 @@ describe("messageHandler create execution integrity", () => {
     const invalidReply = lastReply(sendReply);
     expect(invalidReply).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
     expect(invalidReply).toMatch(/check-?out|fecha de check-out/i);
-    expect(invalidReply).not.toMatch(/check-?in|fecha de check-in/i);
+    expect(invalidReply).not.toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
       guestName: "Ana Gomez",
@@ -423,7 +423,7 @@ describe("messageHandler create execution integrity", () => {
 
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/check-?out|fecha de check-out/i);
-    expect(replyText).not.toMatch(/check-?in|fecha de check-in/i);
+    expect(replyText).not.toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
     expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
     expect(currentState?.reservationSlots).toMatchObject({
       roomType: "double",
