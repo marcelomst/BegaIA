@@ -21,10 +21,10 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 280a214
-messageHandler_lines: 10134
+commit_base: fb83bcf
+messageHandler_lines: 10157
 working_tree_status: clean
-analysis_scope: commit_280a214d82510a5b51bcaf6a9f19af241cbd22a9
+analysis_scope: commit_fb83bcf21794297c44a762ab71e75f8be10b40b1
 suite_status_reported: green
 suite_reported:
   test_files: 159
@@ -40,9 +40,9 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
@@ -55,13 +55,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 280a214
-    messageHandler_lines: 10134
+    commit: fb83bcf
+    messageHandler_lines: 10157
     functions:
-      preLLM: L3572-L3763
-      bodyLLM: L4314-L9367
-      posLLM: L9764-L9805
-      handleIncomingMessage: L9809-L9817
+      preLLM: L3585-L3776
+      bodyLLM: L4327-L9390
+      posLLM: L9787-L9828
+      handleIncomingMessage: L9832-L9840
 ```
 
 ---
@@ -78,10 +78,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      |
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      |
-| `preLLM`                             | L3572-L3763 |    192 | high      |
-| `bodyLLM`                            | L4314-L9367 |   5054 | high      |
-| `posLLM`                             | L9764-L9805 |     42 | high      |
-| `handleIncomingMessage`              | L9809-L9817 |      9 | high      |
+| `preLLM`                             | L3585-L3776 |    192 | high      |
+| `bodyLLM`                            | L4327-L9390 |   5064 | high      |
+| `posLLM`                             | L9787-L9828 |     42 | high      |
+| `handleIncomingMessage`              | L9832-L9840 |      9 | high      |
 
 ---
 
@@ -90,8 +90,8 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10134 líneas
-bodyLLM:                5054 líneas
+messageHandler.ts total: 10157 líneas
+bodyLLM:                5064 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -470,7 +470,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10133
+    range: L1-L10157
     confidence: high
 ```
 
@@ -483,7 +483,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3572-L3763
+    range: L3585-L3776
     confidence: high
 ```
 
@@ -502,7 +502,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4314-L9367
+    range: L4327-L9390
     confidence: high
 ```
 
@@ -521,7 +521,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9764-L9805
+    range: L9787-L9828
     confidence: high
 ```
 
@@ -540,7 +540,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9809-L9817
+    range: L9832-L9840
     confidence: high
 ```
 

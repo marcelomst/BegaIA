@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 280a214
-messageHandler_lines: 10134
+commit_base: fb83bcf
+messageHandler_lines: 10157
 working_tree_status: clean
-analysis_scope: commit_280a214d82510a5b51bcaf6a9f19af241cbd22a9
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied
+analysis_scope: commit_fb83bcf21794297c44a762ab71e75f8be10b40b1
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v2
 known_manual_bug: none
 ```
 
@@ -59,9 +59,9 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
@@ -148,7 +148,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10133
+        range: L1-L10157
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -176,7 +176,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9809-L9817
+        range: L9832-L9840
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -206,7 +206,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3572-L3763
+        range: L3585-L3776
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -241,7 +241,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4314-L9367
+        range: L4327-L9390
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -320,7 +320,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4314-L9367
+        range: L4327-L9390
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -355,7 +355,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4314-L9367
+        range: L4327-L9390
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -811,7 +811,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9764-L9805
+        range: L9787-L9828
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

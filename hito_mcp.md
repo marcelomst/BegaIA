@@ -9413,3 +9413,50 @@ Impacto:
 - preserva estado canónico del draft sin crear fuentes paralelas
 - deja actualizado Runtime Map V1 a commit real y marca `needs_refresh` donde
   Guardian no entregó rangos finos nuevos
+
+### FIX-CREATE-TEMPORAL-REPAIR-PRESERVE-DRAFT-STATE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-03  
+Commit: fb83bcf21794297c44a762ab71e75f8be10b40b1
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige en `reservation.create` la reatribución de `checkOut` explícito como
+`checkIn` durante el repair temporal, evita pérdida de draft válido en
+`conv_state`, preserva `checkIn`, `roomType` y `numGuests` cuando el
+`checkOut` explícito es inválido y mantiene bloqueadas la cotización y la
+confirmación hasta recibir un `checkOut` válido.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none_direct`
+- `runtime_boxes_audit.verdict: valid`
+- `runtime_boxes_audit.parity_tests.status: present`
+- `runtime_map_refresh.required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas: `preLLM`, `persistenceReply`, `availabilityInquiry`,
+  `fallbackLocal`
+
+Impacto:
+
+- preserva precedencia correcta de `checkOut` explícito sobre repair genérico
+  de `checkIn`
+- evita pérdida de draft válido en `conv_state`
+- preserva `checkIn`, `roomType` y `numGuests` mientras el `checkOut` sigue
+  inválido
+- mantiene bloqueadas quote y confirm hasta recibir `checkOut` válido
