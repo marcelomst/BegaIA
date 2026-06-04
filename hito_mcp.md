@@ -9460,3 +9460,48 @@ Impacto:
 - preserva `checkIn`, `roomType` y `numGuests` mientras el `checkOut` sigue
   inválido
 - mantiene bloqueadas quote y confirm hasta recibir `checkOut` válido
+
+### FIX-CREATE-PAST-CHECKIN-PRESERVE-INLINE-GUESTNAME-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-04  
+Commit: 026fc30002084203336a3ce8154f387187372a49
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Preserva `guestName` inline cuando un turno de create trae `checkIn` pasado
+inválido, mantiene `roomType` y `guestName` en el draft saneado, evita
+persistir `checkIn` inválido y mantiene bloqueadas la cotización y la
+confirmación en ese turno inválido.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none_direct`
+- `runtime_boxes_audit.verdict: valid`
+- `runtime_boxes_audit.parity_tests.status: present`
+- `runtime_map_refresh.required: true` aplicado en Runtime Map V1
+- residual fuera de alcance explícito:
+  `FIX-CREATE-COMPLETE-DRAFT-AUTOQUOTE-SEQUENCING-01`
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas: `preLLM`, `persistenceReply`, `availabilityInquiry`,
+  `reservation.modify`, `fallbackLocal`
+
+Impacto:
+
+- preserva estado válido del draft sin crear fuentes paralelas
+- acota `guestName` inline a una heurística local, estricta y segura
+- evita pérdida de progreso útil durante el saneamiento de `checkIn` inválido
+- no cotiza ni confirma mientras el turno siga temporalmente inválido

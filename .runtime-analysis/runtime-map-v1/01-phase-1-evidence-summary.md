@@ -21,10 +21,10 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: fb83bcf
-messageHandler_lines: 10157
+commit_base: 026fc30
+messageHandler_lines: 10172
 working_tree_status: clean
-analysis_scope: commit_fb83bcf21794297c44a762ab71e75f8be10b40b1
+analysis_scope: commit_026fc30002084203336a3ce8154f387187372a49
 suite_status_reported: green
 suite_reported:
   test_files: 159
@@ -43,25 +43,33 @@ runtime_boxes_audit:
     - runtime.messageHandler.preLLM
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
+    details:
+      - preservacion de guestName validada
+      - preservacion de roomType validada
+      - no persistencia de checkIn invalido validada
+      - no quote/no confirm en turno invalido validado
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
+  residual_out_of_scope:
+    - FIX-CREATE-COMPLETE-DRAFT-AUTOQUOTE-SEQUENCING-01
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: fb83bcf
-    messageHandler_lines: 10157
+    commit: 026fc30
+    messageHandler_lines: 10172
     functions:
-      preLLM: L3585-L3776
-      bodyLLM: L4327-L9390
-      posLLM: L9787-L9828
-      handleIncomingMessage: L9832-L9840
+      preLLM: L3596-L3787
+      bodyLLM: L4338-L9405
+      posLLM: L9802-L9843
+      handleIncomingMessage: L9847-L9855
 ```
 
 ---
@@ -78,10 +86,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      |
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      |
-| `preLLM`                             | L3585-L3776 |    192 | high      |
-| `bodyLLM`                            | L4327-L9390 |   5064 | high      |
-| `posLLM`                             | L9787-L9828 |     42 | high      |
-| `handleIncomingMessage`              | L9832-L9840 |      9 | high      |
+| `preLLM`                             | L3596-L3787 |    192 | high      |
+| `bodyLLM`                            | L4338-L9405 |   5068 | high      |
+| `posLLM`                             | L9802-L9843 |     42 | high      |
+| `handleIncomingMessage`              | L9847-L9855 |      9 | high      |
 
 ---
 
@@ -90,8 +98,8 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10157 líneas
-bodyLLM:                5064 líneas
+messageHandler.ts total: 10172 líneas
+bodyLLM:                5068 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -470,7 +478,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10157
+    range: L1-L10172
     confidence: high
 ```
 
@@ -483,7 +491,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3585-L3776
+    range: L3596-L3787
     confidence: high
 ```
 
@@ -502,7 +510,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4327-L9390
+    range: L4338-L9405
     confidence: high
 ```
 
@@ -521,7 +529,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9787-L9828
+    range: L9802-L9843
     confidence: high
 ```
 
@@ -540,7 +548,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9832-L9840
+    range: L9847-L9855
     confidence: high
 ```
 
