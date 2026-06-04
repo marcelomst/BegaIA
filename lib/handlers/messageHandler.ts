@@ -143,6 +143,17 @@ function buildPastReservationCheckInPrompt(lang: string, iso?: string) {
   return `La fecha de check-in ${ciTxt} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
 }
 
+function extractSafeCreateTemporalLeadGuestName(text: string): string | undefined {
+  const match = String(text || "").match(
+    /^\s*([\p{L}][\p{L}'’. -]{1,58}?)\s*,\s*(?:check\s*-?in|check\s*-?out|ingreso|entrada|arribo|arrival|salida|egreso|retirada|departure)\b/iu
+  );
+  const candidate = match?.[1]
+    ?.trim()
+    .replace(/\s{2,}/g, " ");
+  if (!candidate || !looksLikeName(candidate) || !isSafeGuestName(candidate)) return undefined;
+  return normalizeNameCase(candidate);
+}
+
 function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: string } {
   return {
     checkIn:
@@ -4741,6 +4752,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       getConversationFocus(pre.st)?.subFlow === "modify";
     const fastPathSubFlow = resolveReservationFastPathSubFlow(pre, userTxtFast);
     const explicitTurnSlotsFast = toStrictSlots(extractSlotsFromText(userTxtFast, pre.lang));
+    if (fastPathSubFlow === "create" && !explicitTurnSlotsFast.guestName) {
+      const safeLeadGuestName = extractSafeCreateTemporalLeadGuestName(userTxtFast);
+      if (safeLeadGuestName) explicitTurnSlotsFast.guestName = safeLeadGuestName;
+    }
     const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
     const explicitCheckOutFast =
       fastTemporalSideIntent === "checkOut" ||

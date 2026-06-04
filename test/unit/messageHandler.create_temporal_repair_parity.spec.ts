@@ -291,7 +291,10 @@ describe("messageHandler create temporal repair parity", () => {
     const turn3Reply = lastReply();
     expect(turn3Reply).toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
     const stAfterTurn3 = currentState();
-    expect(stAfterTurn3?.reservationSlots?.roomType).toBe("double");
+    expect(stAfterTurn3?.reservationSlots).toMatchObject({
+      roomType: "double",
+      guestName: "Ana Gomez",
+    });
     expect(stAfterTurn3?.reservationSlots?.checkIn).toBeUndefined();
     expect(stAfterTurn3?.reservationSlots?.checkOut).toBeUndefined();
 
@@ -302,6 +305,7 @@ describe("messageHandler create temporal repair parity", () => {
     const stAfterTurn4 = currentState();
     expect(stAfterTurn4?.reservationSlots).toMatchObject({
       roomType: "double",
+      guestName: "Ana Gomez",
       checkIn: "2026-06-04",
     });
     expect(stAfterTurn4?.reservationSlots?.checkOut).toBeUndefined();
@@ -316,6 +320,7 @@ describe("messageHandler create temporal repair parity", () => {
     const stAfterTurn5 = currentState();
     expect(stAfterTurn5?.reservationSlots).toMatchObject({
       roomType: "double",
+      guestName: "Ana Gomez",
       checkIn: "2026-06-04",
       numGuests: "2",
     });
@@ -323,5 +328,23 @@ describe("messageHandler create temporal repair parity", () => {
     expect(stAfterTurn5?.lastProposal).toBeUndefined();
     expect(runAvailabilityCheck).not.toHaveBeenCalled();
     expect(confirmAndCreate).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("05/06/2026"), { mode: "automatic", sendReply });
+
+    const turn6Reply = lastReply();
+    expect(turn6Reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(turn6Reply).not.toMatch(/la fecha de check-in .* ya pas[oó]/i);
+    expect(turn6Reply).not.toMatch(/cu[aá]l ser[ií]a la nueva fecha de check-?in/i);
+    expect(turn6Reply).not.toMatch(/confirm[aá]s la reserva|CONFIRMAR/i);
+    expect(turn6Reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+
+    const stAfterTurn6 = currentState();
+    expect(stAfterTurn6?.reservationSlots).toMatchObject({
+      roomType: "double",
+      guestName: "Ana Gomez",
+      checkIn: "2026-06-04",
+      checkOut: "2026-06-05",
+      numGuests: "2",
+    });
   });
 });
