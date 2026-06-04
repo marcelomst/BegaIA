@@ -9505,3 +9505,49 @@ Impacto:
 - acota `guestName` inline a una heurística local, estricta y segura
 - evita pérdida de progreso útil durante el saneamiento de `checkIn` inválido
 - no cotiza ni confirma mientras el turno siga temporalmente inválido
+
+### FIX-CREATE-COMPLETE-DRAFT-AUTOQUOTE-SEQUENCING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-04  
+Commit: 2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Restaura el sequencing canónico de `reservation.create` cuando el draft queda
+completo tras el repair temporal, avanza a availability/cotización normal al
+cerrar un rango válido, evita re-preguntas incorrectas de `checkOut` o
+`checkIn` después del repair y mantiene el `confirmation gating` hasta
+confirmación explícita.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_execution_integrity.spec.ts`
+- `test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none_direct`
+- `runtime_boxes_audit.verdict: valid`
+- `runtime_boxes_audit.parity_tests.status: present`
+- `runtime_map_refresh.required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas: `persistenceReply`, `availabilityInquiry`,
+  `reservation.modify`, `fallbackLocal`
+
+Impacto:
+
+- restaura la secuencia canónica de create cuando el draft queda completo y
+  coherente
+- evita repreguntas erróneas que degradaban progreso válido del draft
+- permite availability/cotización normal al cerrar rango válido
+- mantiene confirmation gating hasta proposal válida y confirmación explícita

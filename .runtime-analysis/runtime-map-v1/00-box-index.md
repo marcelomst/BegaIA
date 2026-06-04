@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 026fc30
-messageHandler_lines: 10172
+commit_base: 2efa9a7
+messageHandler_lines: 10260
 working_tree_status: clean
-analysis_scope: commit_026fc30002084203336a3ce8154f387187372a49
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v3
+analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v4
 known_manual_bug: none
 ```
 
@@ -59,7 +59,6 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
-    - runtime.messageHandler.preLLM
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
@@ -69,14 +68,12 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - preservacion de guestName validada
-      - preservacion de roomType validada
-      - no persistencia de checkIn invalido validada
-      - no quote/no confirm en turno invalido validado
+      - execution integrity valida autoquote al completar draft tras repair temporal
+      - temporal repair parity valida replay manual sin repregunta de fechas
+      - se mantiene confirmation gating sin proposal valida y confirmacion explicita
+      - retries invalidos de checkOut siguen sin cotizacion ni confirmacion
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
-  residual_out_of_scope:
-    - FIX-CREATE-COMPLETE-DRAFT-AUTOQUOTE-SEQUENCING-01
   verdict: valid
 ```
 
@@ -156,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10172
+        range: L1-L10260
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -184,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9847-L9855
+        range: L9935-L9943
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -249,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9405
+        range: L4338-L9493
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -328,7 +325,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9405
+        range: L4338-L9493
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -363,7 +360,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9405
+        range: L4338-L9493
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -819,7 +816,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9802-L9843
+        range: L9890-L9931
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

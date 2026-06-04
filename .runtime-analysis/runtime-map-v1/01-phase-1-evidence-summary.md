@@ -21,10 +21,10 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 026fc30
-messageHandler_lines: 10172
+commit_base: 2efa9a7
+messageHandler_lines: 10260
 working_tree_status: clean
-analysis_scope: commit_026fc30002084203336a3ce8154f387187372a49
+analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
 suite_status_reported: green
 suite_reported:
   test_files: 159
@@ -40,7 +40,6 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
-    - runtime.messageHandler.preLLM
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
@@ -50,26 +49,24 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - preservacion de guestName validada
-      - preservacion de roomType validada
-      - no persistencia de checkIn invalido validada
-      - no quote/no confirm en turno invalido validado
+      - execution integrity valida autoquote al completar draft tras repair temporal
+      - temporal repair parity valida replay manual sin repregunta de fechas
+      - se mantiene confirmation gating sin proposal valida y confirmacion explicita
+      - retries invalidos de checkOut siguen sin cotizacion ni confirmacion
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
-  residual_out_of_scope:
-    - FIX-CREATE-COMPLETE-DRAFT-AUTOQUOTE-SEQUENCING-01
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 026fc30
-    messageHandler_lines: 10172
+    commit: 2efa9a7
+    messageHandler_lines: 10260
     functions:
       preLLM: L3596-L3787
-      bodyLLM: L4338-L9405
-      posLLM: L9802-L9843
-      handleIncomingMessage: L9847-L9855
+      bodyLLM: L4338-L9493
+      posLLM: L9890-L9931
+      handleIncomingMessage: L9935-L9943
 ```
 
 ---
@@ -87,9 +84,9 @@ runtime_map_refresh:
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      |
 | `preLLM`                             | L3596-L3787 |    192 | high      |
-| `bodyLLM`                            | L4338-L9405 |   5068 | high      |
-| `posLLM`                             | L9802-L9843 |     42 | high      |
-| `handleIncomingMessage`              | L9847-L9855 |      9 | high      |
+| `bodyLLM`                            | L4338-L9493 |   5156 | high      |
+| `posLLM`                             | L9890-L9931 |     42 | high      |
+| `handleIncomingMessage`              | L9935-L9943 |      9 | high      |
 
 ---
 
@@ -98,8 +95,8 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10172 líneas
-bodyLLM:                5068 líneas
+messageHandler.ts total: 10260 líneas
+bodyLLM:                5156 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -478,7 +475,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10172
+    range: L1-L10260
     confidence: high
 ```
 
@@ -510,7 +507,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4338-L9405
+    range: L4338-L9493
     confidence: high
 ```
 
@@ -529,7 +526,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9802-L9843
+    range: L9890-L9931
     confidence: high
 ```
 
@@ -548,7 +545,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9847-L9855
+    range: L9935-L9943
     confidence: high
 ```
 

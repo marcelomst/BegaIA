@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `026fc30`, Guardian confirmó:
+Para el hito `2efa9a7`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -56,11 +56,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 026fc30
-messageHandler_lines: 10172
+commit_base: 2efa9a7
+messageHandler_lines: 10260
 working_tree_status: clean
-analysis_scope: commit_026fc30002084203336a3ce8154f387187372a49
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v3
+analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v4
 known_manual_bug: none
 ```
 
@@ -77,9 +77,9 @@ Nota:
 
 ```text
 La suite verde no implica ausencia de bugs funcionales.
-Este refresh preserva fixes previos y agrega la heurística local para conservar
-`guestName` inline seguro durante saneamiento de `checkIn` inválido, pero no
-elimina el riesgo de futuros bugs funcionales fuera de cobertura.
+Este refresh preserva fixes previos y restaura la secuencia canónica de
+autoquote cuando `reservation.create` queda completo tras el repair temporal,
+pero no elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 ```
 
 ---
@@ -100,7 +100,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 10172
+total_lines: 10260
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -109,7 +109,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`026fc30`.
+`2efa9a7`.
 ```
 
 ---
@@ -127,9 +127,9 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L3596-L3787 |    192 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L4338-L9405 |   5068 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L9802-L9843 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L9847-L9855 |      9 | high      | Entrypoint público del runtime             |
+| `bodyLLM`                            | L4338-L9493 |   5156 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L9890-L9931 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L9935-L9943 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -139,7 +139,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L9847-L9855
+range: L9935-L9943
 lines: 9
 confidence: high
 role: public_entrypoint
@@ -180,8 +180,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L4338-L9405
-lines: 5068
+range: L4338-L9493
+lines: 5156
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -210,7 +210,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L9802-L9843
+range: L9890-L9931
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -403,8 +403,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L4338-L9405
-bodyLLM_lines: 5068
+bodyLLM_range: L4338-L9493
+bodyLLM_lines: 5156
 bucket_size: 250
 confidence: high_for_full_range
 ```
