@@ -434,4 +434,37 @@ describe("messageHandler create execution integrity", () => {
     expect(confirmAndCreate).not.toHaveBeenCalled();
   });
 
+  it("cuando create completa el draft tras reparación temporal, cotiza y no vuelve a pedir fechas", async () => {
+    vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("una doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Ana Gomez, check in 24/5/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("05/06/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("check out 25/5/2026, 2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("05/05/2026"), { mode: "automatic", sendReply });
+
+    const invalidRetryReply = lastReply(sendReply);
+    expect(invalidRetryReply).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|CONFIRMAR/i);
+
+    await handleIncomingMessage(msg("06/06/2026"), { mode: "automatic", sendReply });
+
+    const finalReply = lastReply(sendReply);
+    expect(finalReply).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(finalReply).not.toMatch(/fecha de check-?in|nueva fecha de check-?in/i);
+    expect(finalReply).not.toMatch(/fecha de check-?out|nueva fecha de check-?out/i);
+    expect(finalReply).not.toMatch(/anot[eé] nuevas fechas|posibles diferencias/i);
+    expect(finalReply).not.toMatch(/reserva confirmada/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "double",
+      guestName: "Ana Gomez",
+      checkIn: "2026-06-05",
+      checkOut: "2026-06-06",
+      numGuests: "2",
+    });
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
 });

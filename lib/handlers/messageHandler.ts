@@ -4787,12 +4787,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (createCheckOutRepairContextFast ? "checkOut" : undefined) ||
       createContextualMissingSideFast ||
       (inquiryMissingSideFast === "checkIn" || inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);
-    const reservationContextualMissingSideFast =
+    const createCheckInRepairContextFast =
       fastPathSubFlow === "create" &&
-      explicitCreateIntentFast &&
+      !explicitCheckOutFast &&
       drFast.checkIn &&
       !drFast.checkOut &&
-      !pre.st?.reservationSlots?.checkIn &&
+      !pre.st?.reservationSlots?.checkIn;
+    const reservationContextualMissingSideFast =
+      createCheckInRepairContextFast &&
       reservationContextualMissingSideFastRaw === "checkOut"
         ? "checkIn"
         : reservationContextualMissingSideFastRaw;
@@ -4859,7 +4861,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         if (
           fastPathSubFlow === "create" &&
           createSingleDateSideFast === "checkOut" &&
-          explicitCheckOutFast &&
+          Boolean(pre.st?.reservationSlots?.checkIn) &&
           ciISO &&
           coISO
         ) {
@@ -4940,6 +4942,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
         }
         if (fastPathSubFlow === "create") {
+          const hasConfirmedBookingContextFast = Boolean(
+            pre.st?.lastReservation?.reservationId || pre.st?.salesStage === "close"
+          );
+          const canAutoQuoteCreateFast =
+            !hasConfirmedBookingContextFast &&
+            isCreateContextActive(pre);
           const createDraftConsistency = validateCreateDraftConsistency(pre.lang, normalizedFastPathSlots);
           if (!createDraftConsistency.valid) {
             await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
@@ -4959,6 +4967,43 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               nextCategory: "reservation",
               nextSlots,
               needsSupervision,
+              graphResult: null,
+            };
+          }
+          if (canAutoQuoteCreateFast && isCreateStateReadyForQuote(normalizedFastPathSlots) && ciISO && coISO) {
+            const readyCreateResult = await runAvailabilityCheck(
+              pre,
+              normalizedFastPathSlots,
+              ciISO,
+              coISO
+            );
+            const readyCreateSnapshot = {
+              ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, normalizedFastPathSlots),
+              locale: pre.lang,
+            } as ReservationSlotsStrict;
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              reservationSlots: readyCreateSnapshot,
+              lastProposal: {
+                text: readyCreateResult.finalText,
+                available: true,
+              },
+              conversationFocus: buildConversationFocus("create"),
+              activeReservationContext: buildDraftReservationContext("quoted"),
+              activeFlow: "reservation",
+              desiredAction: "create",
+              salesStage: "quote",
+              conversationStage: "reservation_quoted",
+              pendingAvailabilityVerification: null,
+              lastCategory: "reservation",
+              updatedBy: "ai",
+            } as any);
+            finalText = readyCreateResult.finalText;
+            nextSlots = readyCreateSnapshot;
+            return {
+              finalText,
+              nextCategory: "reservation",
+              nextSlots,
+              needsSupervision: needsSupervision || readyCreateResult.needsHandoff,
               graphResult: null,
             };
           }
@@ -5089,6 +5134,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         });
         nextSlots = { ...fastPathSlots } as ReservationSlotsStrict;
         if (fastPathSubFlow === "create") {
+          const hasConfirmedBookingContextFast = Boolean(
+            pre.st?.lastReservation?.reservationId || pre.st?.salesStage === "close"
+          );
+          const canAutoQuoteCreateFast =
+            !hasConfirmedBookingContextFast &&
+            isCreateContextActive(pre);
           const createDraftConsistency = validateCreateDraftConsistency(pre.lang, fastPathSlots);
           if (!createDraftConsistency.valid) {
             await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
@@ -5108,6 +5159,43 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               nextCategory: "reservation",
               nextSlots,
               needsSupervision,
+              graphResult: null,
+            };
+          }
+          if (canAutoQuoteCreateFast) {
+            const readyCreateResult = await runAvailabilityCheck(
+              pre,
+              fastPathSlots,
+              ciISO,
+              coISO
+            );
+            const readyCreateSnapshot = {
+              ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, fastPathSlots),
+              locale: pre.lang,
+            } as ReservationSlotsStrict;
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              reservationSlots: readyCreateSnapshot,
+              lastProposal: {
+                text: readyCreateResult.finalText,
+                available: true,
+              },
+              conversationFocus: buildConversationFocus("create"),
+              activeReservationContext: buildDraftReservationContext("quoted"),
+              activeFlow: "reservation",
+              desiredAction: "create",
+              salesStage: "quote",
+              conversationStage: "reservation_quoted",
+              pendingAvailabilityVerification: null,
+              lastCategory: "reservation",
+              updatedBy: "ai",
+            } as any);
+            finalText = readyCreateResult.finalText;
+            nextSlots = readyCreateSnapshot;
+            return {
+              finalText,
+              nextCategory: "reservation",
+              nextSlots,
+              needsSupervision: needsSupervision || readyCreateResult.needsHandoff,
               graphResult: null,
             };
           }

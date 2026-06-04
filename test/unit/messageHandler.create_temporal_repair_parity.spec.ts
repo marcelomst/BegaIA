@@ -332,11 +332,11 @@ describe("messageHandler create temporal repair parity", () => {
     await handleIncomingMessage(msg("05/06/2026"), { mode: "automatic", sendReply });
 
     const turn6Reply = lastReply();
+    expect(turn6Reply).toMatch(/tarifa por noche|confirm[aá]s la reserva|CONFIRMAR/i);
+    expect(turn6Reply).not.toMatch(/anot[eé] nuevas fechas|posibles diferencias/i);
     expect(turn6Reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(turn6Reply).not.toMatch(/la fecha de check-in .* ya pas[oó]/i);
     expect(turn6Reply).not.toMatch(/cu[aá]l ser[ií]a la nueva fecha de check-?in/i);
-    expect(turn6Reply).not.toMatch(/confirm[aá]s la reserva|CONFIRMAR/i);
-    expect(turn6Reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
 
     const stAfterTurn6 = currentState();
     expect(stAfterTurn6?.reservationSlots).toMatchObject({
@@ -346,5 +346,6 @@ describe("messageHandler create temporal repair parity", () => {
       checkOut: "2026-06-05",
       numGuests: "2",
     });
+    expect(stAfterTurn6?.lastProposal?.available).toBe(true);
   });
 });
