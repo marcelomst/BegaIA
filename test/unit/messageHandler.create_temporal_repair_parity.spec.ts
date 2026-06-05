@@ -348,4 +348,137 @@ describe("messageHandler create temporal repair parity", () => {
     });
     expect(stAfterTurn6?.lastProposal?.available).toBe(true);
   });
+
+  it("captura nombre personal seguro antes del cue temporal y rechaza amenities como guestName", async () => {
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Un doble"), { mode: "automatic", sendReply });
+
+    await handleIncomingMessage(msg("Ana Gomez, check in 24/5/2026"), { mode: "automatic", sendReply });
+
+    let reply = lastReply();
+    expect(reply).toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
+    let st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      guestName: "Ana Gomez",
+    });
+    expect(st?.reservationSlots?.checkIn).toBeUndefined();
+
+    convStateStore.clear();
+    sendReply.mockClear();
+
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Un doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Piscina climatizada, check in 24/5/2026"), { mode: "automatic", sendReply });
+
+    reply = lastReply();
+    expect(reply).toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
+    st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+    });
+    expect(st?.reservationSlots?.guestName).toBeUndefined();
+    expect(st?.reservationSlots?.checkIn).toBeUndefined();
+    expect(st?.lastProposal).toBeUndefined();
+    expect(runAvailabilityCheck).not.toHaveBeenCalled();
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
+  it("preserva numGuests y no convierte cantidades en guestName antes del cue temporal", async () => {
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Un doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Para 2 personas, check in 24/5/2026"), { mode: "automatic", sendReply });
+
+    const reply = lastReply();
+    expect(reply).toMatch(/ya pas[oó].*check-?in|nueva fecha de check-?in/i);
+
+    const st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      numGuests: "2",
+    });
+    expect(st?.reservationSlots?.guestName).toBeUndefined();
+    expect(st?.reservationSlots?.checkIn).toBeUndefined();
+    expect(st?.lastProposal).toBeUndefined();
+  });
+
+  it("distingue texto suelto tras check out inválido de nombre explícito con 'a nombre de'", async () => {
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Un doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("06/06/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("2 personas"), { mode: "automatic", sendReply });
+
+    let st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-06-06",
+      numGuests: "2",
+    });
+    expect(st?.reservationSlots?.guestName).toBeUndefined();
+
+    await handleIncomingMessage(msg("check out 25/5/2026, Marcelo Martinez"), { mode: "automatic", sendReply });
+
+    let reply = lastReply();
+    expect(reply).toMatch(/check-?out|fecha de check-out/i);
+    expect(reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-06-06",
+      numGuests: "2",
+    });
+    expect(st?.reservationSlots?.guestName).toBeUndefined();
+    expect(st?.reservationSlots?.checkOut).toBeUndefined();
+
+    await handleIncomingMessage(msg("07/06/2026"), { mode: "automatic", sendReply });
+
+    reply = lastReply();
+    expect(reply).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    expect(reply).not.toMatch(/tarifa por noche|confirm[aá]s la reserva|CONFIRMAR/i);
+    st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-06-06",
+      checkOut: "2026-06-07",
+      numGuests: "2",
+    });
+    expect(st?.reservationSlots?.guestName).toBeUndefined();
+
+    convStateStore.clear();
+    sendReply.mockClear();
+    runAvailabilityCheck.mockClear();
+    vi.clearAllMocks();
+
+    await handleIncomingMessage(msg("Quiero hacer una reserva"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Un doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("06/06/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("check out 25/5/2026, a nombre de Marcelo Martinez"), { mode: "automatic", sendReply });
+
+    reply = lastReply();
+    expect(reply).toMatch(/check-?out|fecha de check-out/i);
+    st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-06-06",
+      numGuests: "2",
+      guestName: "Marcelo Martinez",
+    });
+    expect(st?.reservationSlots?.checkOut).toBeUndefined();
+
+    await handleIncomingMessage(msg("07/06/2026"), { mode: "automatic", sendReply });
+
+    reply = lastReply();
+    expect(reply).toMatch(/tarifa por noche|confirm[aá]s la reserva|CONFIRMAR/i);
+    expect(reply).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+    st = currentState();
+    expect(st?.reservationSlots).toMatchObject({
+      roomType: "double",
+      checkIn: "2026-06-06",
+      checkOut: "2026-06-07",
+      numGuests: "2",
+      guestName: "Marcelo Martinez",
+    });
+    expect(st?.lastProposal?.available).toBe(true);
+  });
 });

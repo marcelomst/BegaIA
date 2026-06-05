@@ -143,6 +143,49 @@ function buildPastReservationCheckInPrompt(lang: string, iso?: string) {
   return `La fecha de check-in ${ciTxt} ya pasó. ¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)`;
 }
 
+const SAFE_CREATE_TEMPORAL_LEAD_NAME_CONNECTORS = new Set([
+  "da",
+  "das",
+  "de",
+  "del",
+  "di",
+  "do",
+  "dos",
+  "la",
+  "las",
+  "los",
+  "van",
+  "von",
+]);
+
+const SAFE_CREATE_TEMPORAL_LEAD_NAME_BLOCK_RE =
+  /\b(piscina|climatizad[oa]s?|desayun[oa]s?|spa|jacuzzi|hidromasaje|wifi|wi[-\s]?fi|parking|garage|garaje|cochera|estacionamiento|mascotas?|pet(?:s)?|aire|acondicionado|balc[oó]n|terraza|patio|vista|mar|jard[ií]n|parrilla|asador)\b/iu;
+
+function isSafeCreateTemporalLeadGuestNameCandidate(candidate: string): boolean {
+  const trimmed = String(candidate || "").trim().replace(/\s{2,}/g, " ");
+  if (!trimmed || !looksLikeName(trimmed) || !isSafeGuestName(trimmed)) return false;
+  if (/[0-9]/.test(trimmed)) return false;
+  const normalized = trimmed
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  if (/^para\s+\d{1,2}\b/.test(normalized)) return false;
+  if (/\b\d{1,2}\s*(personas|huespedes|hospedes|guests|pessoas)\b/.test(normalized)) return false;
+  if (SAFE_CREATE_TEMPORAL_LEAD_NAME_BLOCK_RE.test(trimmed)) return false;
+
+  const tokens = trimmed.split(/\s+/);
+  let significantTokens = 0;
+  for (const token of tokens) {
+    const clean = token.replace(/^[.'’-]+|[.'’-]+$/g, "");
+    if (!clean) return false;
+    const lower = clean.toLowerCase();
+    if (SAFE_CREATE_TEMPORAL_LEAD_NAME_CONNECTORS.has(lower)) continue;
+    significantTokens += 1;
+    if (!/^\p{Lu}/u.test(clean)) return false;
+  }
+  return significantTokens >= 2;
+}
+
 function extractSafeCreateTemporalLeadGuestName(text: string): string | undefined {
   const match = String(text || "").match(
     /^\s*([\p{L}][\p{L}'’. -]{1,58}?)\s*,\s*(?:check\s*-?in|check\s*-?out|ingreso|entrada|arribo|arrival|salida|egreso|retirada|departure)\b/iu
@@ -150,7 +193,7 @@ function extractSafeCreateTemporalLeadGuestName(text: string): string | undefine
   const candidate = match?.[1]
     ?.trim()
     .replace(/\s{2,}/g, " ");
-  if (!candidate || !looksLikeName(candidate) || !isSafeGuestName(candidate)) return undefined;
+  if (!candidate || !isSafeCreateTemporalLeadGuestNameCandidate(candidate)) return undefined;
   return normalizeNameCase(candidate);
 }
 
