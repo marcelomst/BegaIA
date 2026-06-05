@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `2efa9a7`, Guardian confirmó:
+Para el hito `0d9bd70`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -56,11 +56,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 2efa9a7
-messageHandler_lines: 10260
+commit_base: 0d9bd70
+messageHandler_lines: 10303
 working_tree_status: clean
-analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v4
+analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v5
 known_manual_bug: none
 ```
 
@@ -77,9 +77,9 @@ Nota:
 
 ```text
 La suite verde no implica ausencia de bugs funcionales.
-Este refresh preserva fixes previos y restaura la secuencia canónica de
-autoquote cuando `reservation.create` queda completo tras el repair temporal,
-pero no elimina el riesgo de futuros bugs funcionales fuera de cobertura.
+Este refresh preserva fixes previos y endurece la captura inline de `guestName`
+para aceptar solo nombres personales seguros antes del cue temporal, pero no
+elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 ```
 
 ---
@@ -100,7 +100,7 @@ pero no elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 10260
+total_lines: 10303
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -109,7 +109,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`2efa9a7`.
+`0d9bd70`.
 ```
 
 ---
@@ -126,10 +126,10 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L3596-L3787 |    192 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L4338-L9493 |   5156 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L9890-L9931 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L9935-L9943 |      9 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L3639-L3830 |    192 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L4381-L9536 |   5156 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L9933-L9974 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L9978-L9986 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -139,7 +139,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L9935-L9943
+range: L9978-L9986
 lines: 9
 confidence: high
 role: public_entrypoint
@@ -158,7 +158,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L3596-L3787
+range: L3639-L3830
 lines: 192
 confidence: high
 role: context_preparation
@@ -180,7 +180,7 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L4338-L9493
+range: L4381-L9536
 lines: 5156
 confidence: high
 role: dominant_sub_runtime
@@ -210,7 +210,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L9890-L9931
+range: L9933-L9974
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -403,7 +403,7 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L4338-L9493
+bodyLLM_range: L4381-L9536
 bodyLLM_lines: 5156
 bucket_size: 250
 confidence: high_for_full_range

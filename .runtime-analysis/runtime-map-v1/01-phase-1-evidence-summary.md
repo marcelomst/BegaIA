@@ -21,10 +21,10 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 2efa9a7
-messageHandler_lines: 10260
+commit_base: 0d9bd70
+messageHandler_lines: 10303
 working_tree_status: clean
-analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
+analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
 suite_status_reported: green
 suite_reported:
   test_files: 159
@@ -42,17 +42,17 @@ runtime_boxes_audit:
   reviewed:
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - execution integrity valida autoquote al completar draft tras repair temporal
-      - temporal repair parity valida replay manual sin repregunta de fechas
-      - se mantiene confirmation gating sin proposal valida y confirmacion explicita
-      - retries invalidos de checkOut siguen sin cotizacion ni confirmacion
+      - la captura inline queda restringida a nombres personales seguros dentro de create
+      - se rechazan amenities, servicios y cantidades como guestName
+      - se preserva el caso valido 'Ana Gomez, check in ...'
+      - se preserva captura explicita con 'a nombre de ...'
+      - los tests cubren los 5 casos de paridad declarados sin reabrir autoquote/sequencing
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -60,13 +60,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 2efa9a7
-    messageHandler_lines: 10260
+    commit: 0d9bd70
+    messageHandler_lines: 10303
     functions:
-      preLLM: L3596-L3787
-      bodyLLM: L4338-L9493
-      posLLM: L9890-L9931
-      handleIncomingMessage: L9935-L9943
+      preLLM: L3639-L3830
+      bodyLLM: L4381-L9536
+      posLLM: L9933-L9974
+      handleIncomingMessage: L9978-L9986
 ```
 
 ---
@@ -83,10 +83,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      |
 | `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      |
 | `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      |
-| `preLLM`                             | L3596-L3787 |    192 | high      |
-| `bodyLLM`                            | L4338-L9493 |   5156 | high      |
-| `posLLM`                             | L9890-L9931 |     42 | high      |
-| `handleIncomingMessage`              | L9935-L9943 |      9 | high      |
+| `preLLM`                             | L3639-L3830 |    192 | high      |
+| `bodyLLM`                            | L4381-L9536 |   5156 | high      |
+| `posLLM`                             | L9933-L9974 |     42 | high      |
+| `handleIncomingMessage`              | L9978-L9986 |      9 | high      |
 
 ---
 
@@ -95,7 +95,7 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10260 líneas
+messageHandler.ts total: 10303 líneas
 bodyLLM:                5156 líneas
 ```
 
@@ -475,7 +475,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10260
+    range: L1-L10303
     confidence: high
 ```
 
@@ -488,7 +488,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3596-L3787
+    range: L3639-L3830
     confidence: high
 ```
 
@@ -507,7 +507,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4338-L9493
+    range: L4381-L9536
     confidence: high
 ```
 
@@ -526,7 +526,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9890-L9931
+    range: L9933-L9974
     confidence: high
 ```
 
@@ -545,7 +545,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9935-L9943
+    range: L9978-L9986
     confidence: high
 ```
 

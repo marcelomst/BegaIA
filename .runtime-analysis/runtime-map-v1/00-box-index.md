@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 2efa9a7
-messageHandler_lines: 10260
+commit_base: 0d9bd70
+messageHandler_lines: 10303
 working_tree_status: clean
-analysis_scope: commit_2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v4
+analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v5
 known_manual_bug: none
 ```
 
@@ -61,17 +61,17 @@ runtime_boxes_audit:
   reviewed:
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - execution integrity valida autoquote al completar draft tras repair temporal
-      - temporal repair parity valida replay manual sin repregunta de fechas
-      - se mantiene confirmation gating sin proposal valida y confirmacion explicita
-      - retries invalidos de checkOut siguen sin cotizacion ni confirmacion
+      - la captura inline queda restringida a nombres personales seguros dentro de create
+      - se rechazan amenities, servicios y cantidades como guestName
+      - se preserva el caso valido 'Ana Gomez, check in ...'
+      - se preserva captura explicita con 'a nombre de ...'
+      - los tests cubren los 5 casos de paridad declarados sin reabrir autoquote/sequencing
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -153,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10260
+        range: L1-L10303
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -181,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9935-L9943
+        range: L9978-L9986
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -211,7 +211,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3596-L3787
+        range: L3639-L3830
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -246,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9493
+        range: L4381-L9536
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -325,7 +325,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9493
+        range: L4381-L9536
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -360,7 +360,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4338-L9493
+        range: L4381-L9536
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -816,7 +816,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9890-L9931
+        range: L9933-L9974
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

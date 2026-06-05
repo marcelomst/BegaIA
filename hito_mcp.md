@@ -9551,3 +9551,45 @@ Impacto:
 - evita repreguntas erróneas que degradaban progreso válido del draft
 - permite availability/cotización normal al cerrar rango válido
 - mantiene confirmation gating hasta proposal válida y confirmación explícita
+
+### FIX-CREATE-INLINE-GUESTNAME-SAFE-PERSON-CAPTURE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-05  
+Commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Endurece la captura inline de `guestName` en `reservation.create` para aceptar
+solo nombres personales seguros antes del cue temporal, rechazar amenities,
+servicios, cantidades y texto ambiguo como identidad, y preservar el slot
+ingestion válido sin reabrir sequencing ni autoquote.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none_direct`
+- `runtime_boxes_audit.verdict: valid`
+- `runtime_boxes_audit.parity_tests.status: present`
+- `runtime_map_refresh.required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas: `persistenceReply`, `availabilityInquiry`, `fallbackLocal`
+
+Impacto:
+
+- reduce captura semántica incorrecta en `guestName`
+- preserva slots válidos sin convertir texto lateral en identidad
+- mantiene la heurística local y estricta, evitando expansión probabilística
+- no reabre sequencing ni autoquote fuera del corredor create
