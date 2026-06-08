@@ -1,6 +1,12 @@
 // Path: /root/begasist/lib/channels/whatsapp/twilioSendMessage.ts
 import { getTwilioClientForHotel } from "@/lib/channels/whatsapp/getTwilioClientForHotel";
 
+export function toTwilioWhatsAppAddress(value: string): string {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  return trimmed.startsWith("whatsapp:") ? trimmed : `whatsapp:${trimmed}`;
+}
+
 export async function twilioSendWhatsAppMessage(input: {
   hotelId: string;
   to: string;
@@ -10,10 +16,11 @@ export async function twilioSendWhatsAppMessage(input: {
   const { client, from } = await getTwilioClientForHotel(input.hotelId);
   const accountSid = client.accountSid;
   const authToken = client.authToken;
-  const fromToUse = input.fromOverride?.trim() || from;
+  const fromToUse = toTwilioWhatsAppAddress(input.fromOverride?.trim() || from);
+  const to = toTwilioWhatsAppAddress(input.to);
 
   const form = new URLSearchParams();
-  form.set("To", input.to);
+  form.set("To", to);
   form.set("From", fromToUse);
   form.set("Body", input.body);
   if (process.env.TWILIO_STATUS_CALLBACK_URL?.trim()) {
