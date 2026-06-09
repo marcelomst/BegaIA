@@ -9633,3 +9633,45 @@ Impacto:
 - preserva el contrato canónico del panel en E.164
 - evita formatos mixtos `From/To` en Twilio/WhatsApp
 - no toca runtime conversacional principal ni Runtime Map V1
+
+### FIX-WHATSAPP-TWILIO-SUPERVISED-APPROVAL-DELIVERY-ADDRESS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-09  
+Commit: 92d4631ec416bcb224b34bd24cb1fab3ec574c59
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige el flujo supervisado/Admin de entrega outbound por WhatsApp/Twilio
+para que la aprobación manual resuelva la dirección técnica real de entrega
+desde fuentes válidas de canal y aliases, evitando usar `guestId` UUID como
+destino `To`.
+
+Archivos afectados:
+
+- `app/api/messages/route.ts`
+- `test/api.messages.route.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/api.messages.route.spec.ts`
+  `pnpm vitest run test/api.messages.route.spec.ts test/unit/twilioSendMessage.spec.ts`
+- validación manual requerida:
+  aprobar y enviar pendiente WhatsApp desde Admin en modo supervisado
+  verificar que Twilio ya no reciba `guestId` UUID como `To`
+  verificar que no aparezca error `21211`
+  verificar entrega exitosa del mensaje en WhatsApp
+
+Impacto:
+
+- separa identidad canónica interna del huésped de la dirección técnica real
+  de entrega
+- evita usar `guestId` UUID como destino Twilio
+- resuelve el address desde fuentes válidas de canal y aliases
+- no toca runtime conversacional principal ni Runtime Map V1
