@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `0d9bd70`, Guardian confirmó:
+Para el hito `8a015c5`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -56,11 +56,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0d9bd70
-messageHandler_lines: 10303
+commit_base: 8a015c5
+messageHandler_lines: 10335
 working_tree_status: clean
-analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v5
+analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
 known_manual_bug: none
 ```
 
@@ -69,17 +69,18 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-Test Files  159 passed (159)
-Tests       791 passed (791)
+pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
+pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
+pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
 ```
 
 Nota:
 
 ```text
-La suite verde no implica ausencia de bugs funcionales.
-Este refresh preserva fixes previos y endurece la captura inline de `guestName`
-para aceptar solo nombres personales seguros antes del cue temporal, pero no
-elimina el riesgo de futuros bugs funcionales fuera de cobertura.
+Los tests dirigidos en verde no implican ausencia de bugs funcionales.
+Este refresh documenta un fix de precedencia entre create y el ACK temporal
+compartido, pero no elimina el riesgo de futuros bugs funcionales fuera de
+cobertura.
 ```
 
 ---
@@ -100,7 +101,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 10303
+total_lines: 10335
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -109,7 +110,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`0d9bd70`.
+`8a015c5`.
 ```
 
 ---
@@ -118,18 +119,18 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
-| `buildReservationCanonicalState`     | L1465-L1502 |     38 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L1929-L2036 |    108 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L2262-L2321 |     60 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L2546-L2581 |     36 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L2718-L2769 |     52 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      | Análisis estructurado semántico            |
+| `buildReservationCanonicalState`     | L1528-L1565 |     38 | high      | Proyección canónica de estado de reserva   |
+| `resolveReservationReference`        | L1992-L2099 |    108 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L2325-L2384 |     60 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L2609-L2644 |     36 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L2781-L2832 |     52 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L2834-L2969 |    136 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L2971-L2984 |     14 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L3451-L3578 |    128 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L3639-L3830 |    192 | high      | Preparación de contexto y estado           |
 | `bodyLLM`                            | L4381-L9536 |   5156 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L9933-L9974 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L9978-L9986 |      9 | high      | Entrypoint público del runtime             |
+| `posLLM`                             | L9966-L10007 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L10011-L10019 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -139,7 +140,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L9978-L9986
+range: L10011-L10019
 lines: 9
 confidence: high
 role: public_entrypoint
@@ -210,7 +211,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L9933-L9974
+range: L9966-L10007
 lines: 42
 confidence: high
 role: post_runtime_verification

@@ -21,14 +21,16 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0d9bd70
-messageHandler_lines: 10303
+commit_base: 8a015c5
+messageHandler_lines: 10335
 working_tree_status: clean
-analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
-suite_status_reported: green
+analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+suite_status_reported: targeted_green
 suite_reported:
-  test_files: 159
-  tests: 791
+  commands:
+    - pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
+    - pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
 known_manual_bug: none
 ```
 
@@ -41,18 +43,18 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la captura inline queda restringida a nombres personales seguros dentro de create
-      - se rechazan amenities, servicios y cantidades como guestName
-      - se preserva el caso valido 'Ana Gomez, check in ...'
-      - se preserva captura explicita con 'a nombre de ...'
-      - los tests cubren los 5 casos de paridad declarados sin reabrir autoquote/sequencing
+      - create activo con draft completo por follow-up temporal cotiza como create
+      - no se usa copy de modify `Anoté nuevas fechas`
+      - no se usa copy de modify `posibles diferencias`
+      - no se introduce parche específico sobre parser de Email
+      - no se rompe modify legítimo según el alcance auditado
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -60,13 +62,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 0d9bd70
-    messageHandler_lines: 10303
+    commit: 8a015c5
+    messageHandler_lines: 10335
     functions:
       preLLM: L3639-L3830
       bodyLLM: L4381-L9536
-      posLLM: L9933-L9974
-      handleIncomingMessage: L9978-L9986
+      posLLM: L9966-L10007
+      handleIncomingMessage: L10011-L10019
 ```
 
 ---
@@ -75,18 +77,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1465-L1502 |     38 | high      |
-| `resolveReservationReference`        | L1929-L2036 |    108 | high      |
-| `detectDominantTurnDomain`           | L2262-L2321 |     60 | high      |
-| `getReservationDomainLockSignal`     | L2546-L2581 |     36 | high      |
-| `shouldUseReservationLocalFallback`  | L2718-L2769 |     52 | high      |
-| `buildReservationLocalFallbackReply` | L2771-L2906 |    136 | high      |
-| `assessReservationDateCoherence`     | L2908-L2921 |     14 | high      |
-| `tryStructuredAnalyze`               | L3384-L3511 |    128 | high      |
+| `buildReservationCanonicalState`     | L1528-L1565 |     38 | high      |
+| `resolveReservationReference`        | L1992-L2099 |    108 | high      |
+| `detectDominantTurnDomain`           | L2325-L2384 |     60 | high      |
+| `getReservationDomainLockSignal`     | L2609-L2644 |     36 | high      |
+| `shouldUseReservationLocalFallback`  | L2781-L2832 |     52 | high      |
+| `buildReservationLocalFallbackReply` | L2834-L2969 |    136 | high      |
+| `assessReservationDateCoherence`     | L2971-L2984 |     14 | high      |
+| `tryStructuredAnalyze`               | L3451-L3578 |    128 | high      |
 | `preLLM`                             | L3639-L3830 |    192 | high      |
 | `bodyLLM`                            | L4381-L9536 |   5156 | high      |
-| `posLLM`                             | L9933-L9974 |     42 | high      |
-| `handleIncomingMessage`              | L9978-L9986 |      9 | high      |
+| `posLLM`                             | L9966-L10007 |     42 | high      |
+| `handleIncomingMessage`              | L10011-L10019 |      9 | high      |
 
 ---
 
@@ -95,7 +97,7 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10303 líneas
+messageHandler.ts total: 10335 líneas
 bodyLLM:                5156 líneas
 ```
 
@@ -475,7 +477,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10303
+    range: L1-L10335
     confidence: high
 ```
 
@@ -526,7 +528,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9933-L9974
+    range: L9966-L10007
     confidence: high
 ```
 
@@ -545,7 +547,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9978-L9986
+    range: L10011-L10019
     confidence: high
 ```
 

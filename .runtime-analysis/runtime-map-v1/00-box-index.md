@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0d9bd70
-messageHandler_lines: 10303
+commit_base: 8a015c5
+messageHandler_lines: 10335
 working_tree_status: clean
-analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v5
+analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
 known_manual_bug: none
 ```
 
@@ -60,18 +60,18 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la captura inline queda restringida a nombres personales seguros dentro de create
-      - se rechazan amenities, servicios y cantidades como guestName
-      - se preserva el caso valido 'Ana Gomez, check in ...'
-      - se preserva captura explicita con 'a nombre de ...'
-      - los tests cubren los 5 casos de paridad declarados sin reabrir autoquote/sequencing
+      - create activo con draft completo por follow-up temporal cotiza como create
+      - no se usa copy de modify `Anoté nuevas fechas`
+      - no se usa copy de modify `posibles diferencias`
+      - no se introduce parche específico sobre parser de Email
+      - no se rompe modify legítimo según el alcance auditado
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -153,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10303
+        range: L1-L10335
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -181,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9978-L9986
+        range: L10011-L10019
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -816,7 +816,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9933-L9974
+        range: L9966-L10007
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

@@ -9675,3 +9675,60 @@ Impacto:
 - evita usar `guestId` UUID como destino Twilio
 - resuelve el address desde fuentes válidas de canal y aliases
 - no toca runtime conversacional principal ni Runtime Map V1
+
+### FIX-CREATE-DATE-FOLLOWUP-PRECEDENCE-OVER-TEMPORAL-ACK-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-09  
+Commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige una regresión de precedencia dentro de `reservation.create` para que,
+si existe draft activo y un follow-up temporal completa el estado por fechas,
+el flujo cotice como create y no caiga en el ACK temporal compartido ni en copy
+de modify/recotización por canal email.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas relacionadas revisadas: `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`,
+  `runtime.messageHandler.persistenceReply`,
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts`
+  `pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts`
+- validación manual requerida:
+  create email completo en un solo turno
+  create incompleto mas follow-up de fechas
+  verificar ausencia de copy `Anoté nuevas fechas`
+  verificar ausencia de copy `posibles diferencias`
+
+Impacto:
+
+- restituye la precedencia canónica de `reservation.create` frente al ACK
+  temporal compartido
+- permite cotizar como create cuando el draft activo queda completo por
+  follow-up de fechas
+- suprime contaminación de copy de modify/recotización dentro del corredor
+  create por email
+- mantiene separado create de modify y evita expandir el fix a corredores no
+  declarados

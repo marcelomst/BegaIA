@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0d9bd70
-messageHandler_lines: 10303
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v5
+commit_base: 8a015c5
+messageHandler_lines: 10335
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_0d9bd70535427cec6db7f2fa95da25e201c284a6
+analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 ```
 
 ---
@@ -29,8 +29,9 @@ clean
 ## Suite local informada
 
 ```text
-Test Files  159 passed (159)
-Tests       791 passed (791)
+pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
+pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
+pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
 ```
 
 ---
@@ -44,18 +45,17 @@ hardening_followup_commit: fb83bcf21794297c44a762ab71e75f8be10b40b1
 guestname_preservation_followup_commit: 026fc30002084203336a3ce8154f387187372a49
 autoquote_sequencing_followup_commit: 2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
 safe_person_guestname_followup_commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
+date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- atribuir 25/05/2026 a checkOut por marcador explícito "check out"
-- rechazarlo como checkOut inválido
-- preservar numGuests = 2
-- pedir nuevo checkOut
-- no pedir nuevo checkIn
-- no cotizar
-- no confirmar
+- si create tiene draft activo y el follow-up temporal completa fechas, cotizar como create
+- no responder con copy de modify: "Anoté nuevas fechas"
+- no responder con copy de modify: "posibles diferencias"
+- mantener separado el corredor create del corredor modify
+- no introducir parche específico sobre parser de Email
 ```
 
 ---
@@ -63,7 +63,7 @@ safe_person_guestname_followup_commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`0d9bd70`.
+`8a015c5`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -80,7 +80,7 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `0d9bd70`
+1. Snapshot base a commit real `8a015c5`
 2. Rangos top-level recalculados de preLLM / bodyLLM / posLLM / handleIncomingMessage
 3. Evidence summary refrescado
 4. code index refrescado
