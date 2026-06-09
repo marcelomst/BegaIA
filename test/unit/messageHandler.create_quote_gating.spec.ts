@@ -28,6 +28,27 @@ vi.mock("@/lib/db/convState", () => ({
     return undefined;
   }),
 }));
+vi.mock("@/lib/handlers/pipeline/availability", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/handlers/pipeline/availability")>("@/lib/handlers/pipeline/availability");
+  return {
+    ...actual,
+    runAvailabilityCheck: vi.fn(async (_pre: any, slots: any, ciISO: string, coISO: string) => {
+      const roomType = String(slots.roomType || "double");
+      const guestName = String(slots.guestName || "").trim();
+      const roomLabel = roomType === "triple" ? "triple" : roomType === "single" ? "simple" : "doble";
+      return {
+        finalText: `Tengo ${roomLabel} disponible${guestName ? ` para ${guestName}` : ""}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+        nextSlots: {
+          ...slots,
+          checkIn: ciISO,
+          checkOut: coISO,
+          roomType,
+        },
+        needsHandoff: false,
+      };
+    }),
+  };
+});
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
     invoke: vi.fn(async () => ({
@@ -76,6 +97,13 @@ function msg(content: string) {
     conversationId: "conv-create-quote-gating-1",
     guestId: "g1",
     detectedLanguage: "es",
+  } as any;
+}
+
+function msgWithChannel(content: string, channel: "web" | "email" | "whatsapp") {
+  return {
+    ...msg(content),
+    channel,
   } as any;
 }
 
@@ -177,6 +205,42 @@ describe("messageHandler create quote gating", () => {
       roomType: "double",
       guestName: "Marcelo Martinez",
     });
+  });
+
+  it("con create activo y follow-up de fechas completas prioriza cotización sobre ACK temporal compartido", async () => {
+    const sendReply = vi.fn(async () => {});
+    currentState = {
+      reservationSlots: {
+        roomType: "triple",
+        numGuests: "3",
+        guestName: "Marcelo Martinez",
+        locale: "es",
+      },
+      activeFlow: "reservation",
+      desiredAction: "create",
+      conversationFocus: {
+        domain: "reservation",
+        subFlow: "create",
+        active: true,
+        updatedAt: new Date().toISOString(),
+      },
+      salesStage: "qualify",
+      lastCategory: "reservation",
+    };
+
+    await handleIncomingMessage(
+      msgWithChannel("ingreso 10/6/2026 hasta el 12/6/2026", "email"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(replyText).toMatch(/Marcelo Martinez|reserva/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/posibles diferencias/i);
+    expect(currentState?.modifyState ?? null).toBeNull();
+    expect(currentState?.desiredAction).toBe("create");
+    expect(currentState?.lastProposal?.available).toBe(true);
   });
 
   it("con turno rico completo y rango relativo de fin de semana cotiza normalmente", async () => {

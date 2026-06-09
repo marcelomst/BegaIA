@@ -5780,6 +5780,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     pre.currSlots.guestName ||
     pre.st?.reservationSlots?.guestName;
   const turnCreateSlots = extractSlotsFromText(String(pre.msg.content || ""), pre.lang);
+  const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
+  const createDraftRawOrderedDates = extractRawOrderedDateRange(userTxtRaw);
+  const createDraftRelativeWeekendRange = extractRelativeWeekendDateRange(userTxtRaw);
+  const createDraftCheckIn =
+    reservationCheckIn ||
+    createDraftTemporalDates.checkIn ||
+    createDraftRawOrderedDates?.checkIn ||
+    createDraftRelativeWeekendRange.checkIn;
+  const createDraftCheckOut =
+    reservationCheckOut ||
+    createDraftTemporalDates.checkOut ||
+    createDraftRawOrderedDates?.checkOut ||
+    createDraftRelativeWeekendRange.checkOut;
   const createOverridesModify =
     pre.inModifyMode &&
     looksExplicitNewReservation &&
@@ -6488,8 +6501,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   const createDraftSlots = mergeReservationSlots(pre.st?.reservationSlots, {
     roomType: reservationRoomType,
-    checkIn: reservationCheckIn,
-    checkOut: reservationCheckOut,
+    checkIn: createDraftCheckIn,
+    checkOut: createDraftCheckOut,
     numGuests: reservationGuests ? String(reservationGuests) : undefined,
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
@@ -6616,11 +6629,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const hasConversationalGuestName =
     isSafeGuestName(String(pre.guest?.name || "")) ||
     hasRecentConversationalNameHandshake(pre.lcHistory);
+  const hasCreateDraftGuestName = isSafeGuestName(createDraftConsistency.sanitizedSlots.guestName || "");
+  const createFollowupCarriesDateProgress = Boolean(
+    createDraftTemporalDates.checkIn ||
+    createDraftTemporalDates.checkOut ||
+    createDraftRawOrderedDates?.checkIn ||
+    createDraftRawOrderedDates?.checkOut ||
+    createDraftRelativeWeekendRange.checkIn ||
+    createDraftRelativeWeekendRange.checkOut
+  );
+  const createQuoteTurnEligible =
+    looksExplicitNewReservation ||
+    (activeCreateFlow && createFollowupCarriesDateProgress);
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
   const pendingCreateProposal = isPendingCreateProposalContext(pre, userTxtRaw);
   if (
-    hasConversationalGuestName &&
-    looksExplicitNewReservation &&
+    (hasConversationalGuestName || hasCreateDraftGuestName) &&
+    createQuoteTurnEligible &&
     !modifyExecutionActive &&
     !hasConfirmedBookingContext &&
     !pendingCreateProposal &&
@@ -8942,11 +8967,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       currentTurnCreateSlots.numGuests &&
       isSafeGuestName(currentTurnCreateSlots.guestName || "")
     );
+    const currentTurnCarriesDateProgress = Boolean(
+      hasAnyDateToken ||
+      userDates.checkIn ||
+      userDates.checkOut ||
+      currentTurnRelativeWeekendRange.checkIn ||
+      currentTurnRelativeWeekendRange.checkOut
+    );
     const currentTurnCreateRangeResolved =
-      looksExplicitNewReservation &&
+      currentTurnCarriesDateProgress &&
       currentTurnCreatePayloadComplete &&
       pre.st?.salesStage !== "quote" &&
-      pre.st?.conversationStage !== "reservation_quoted";
+      pre.st?.conversationStage !== "reservation_quoted" &&
+      (isCreateContextActive(pre) || looksExplicitNewReservation);
     const createQuoteReadyOnCurrentTurn =
       (
         Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||
