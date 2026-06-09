@@ -9593,3 +9593,43 @@ Impacto:
 - preserva slots válidos sin convertir texto lateral en identidad
 - mantiene la heurística local y estricta, evitando expansión probabilística
 - no reabre sequencing ni autoquote fuera del corredor create
+
+### FIX-WHATSAPP-TWILIO-ADMIN-APPROVAL-CHANNEL-ADDRESS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-09  
+Commit: 24b73b583bbcd9fc657029329a042ae2d351e813
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige el transporte outbound de WhatsApp/Twilio para aprobaciones manuales
+desde Admin, centralizando la normalización de direcciones de canal en el punto
+final de envío y evitando formatos mixtos `From/To` que disparaban errores
+`21910`.
+
+Archivos afectados:
+
+- `lib/channels/whatsapp/twilioSendMessage.ts`
+- `test/unit/twilioSendMessage.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/twilioSendMessage.spec.ts test/api.messages.route.spec.ts`
+- validación manual requerida:
+  aprobar y enviar pendiente WhatsApp desde Admin
+  verificar que Twilio ya no devuelva `21910`
+  verificar recepción del mensaje en WhatsApp
+
+Impacto:
+
+- refuerza consistencia del address de canal para approval/admin outbound
+  WhatsApp
+- preserva el contrato canónico del panel en E.164
+- evita formatos mixtos `From/To` en Twilio/WhatsApp
+- no toca runtime conversacional principal ni Runtime Map V1
