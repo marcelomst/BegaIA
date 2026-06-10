@@ -9732,3 +9732,41 @@ Impacto:
   create por email
 - mantiene separado create de modify y evita expandir el fix a corredores no
   declarados
+
+### FIX-TEST-TYPES-TWILIO-AND-TEMPORAL-REPAIR-SPECS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-10  
+Commit: f20aa54ae7022f96caddb99a0adac0fccc1c253f
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Ajusta higiene de tipos en specs de temporal repair y en el spec del transporte
+Twilio para resolver errores TypeScript sobre mocks y acceso a llamadas
+grabadas, manteniendo casts locales, controlados y explícitos sin tocar
+comportamiento productivo.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+- `test/unit/twilioSendMessage.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_temporal_repair_parity.spec.ts`
+  `pnpm vitest run test/unit/twilioSendMessage.spec.ts`
+  `pnpm ts-check`
+- validación manual requerida: no
+
+Impacto:
+
+- mejora la higiene estática del suite sin aflojar asserts
+- mantiene casts controlados, locales y explícitos
+- evita bypasses globales de tipado
+- no toca runtime conversacional, contratos de canal ni arquitectura viva
