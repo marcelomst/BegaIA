@@ -235,7 +235,8 @@ function currentState() {
 }
 
 function lastReply() {
-  return String(sendReply.mock.calls.at(-1)?.[0] || "");
+  const lastCall = sendReply.mock.calls.at(-1) as unknown[] | undefined;
+  return String(lastCall?.[0] ?? "");
 }
 
 describe("messageHandler create temporal repair parity", () => {

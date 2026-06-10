@@ -24,7 +24,7 @@ describe("twilioSendWhatsAppMessage", () => {
       ok: true,
       text: async () => JSON.stringify({ sid: "SM_OUT_1" }),
     }));
-    vi.stubGlobal("fetch", fetchMock as typeof fetch);
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const { twilioSendWhatsAppMessage } = await import("@/lib/channels/whatsapp/twilioSendMessage");
 
@@ -35,7 +35,8 @@ describe("twilioSendWhatsAppMessage", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const [, init] = firstCall;
     const body = new URLSearchParams(String(init.body || ""));
 
     expect(body.get("From")).toBe("whatsapp:+14155238886");
@@ -47,7 +48,7 @@ describe("twilioSendWhatsAppMessage", () => {
       ok: true,
       text: async () => JSON.stringify({ sid: "SM_OUT_2" }),
     }));
-    vi.stubGlobal("fetch", fetchMock as typeof fetch);
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const { twilioSendWhatsAppMessage } = await import("@/lib/channels/whatsapp/twilioSendMessage");
 
@@ -59,7 +60,8 @@ describe("twilioSendWhatsAppMessage", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const [, init] = firstCall;
     const body = new URLSearchParams(String(init.body || ""));
 
     expect(body.get("From")).toBe("whatsapp:+14155238886");
