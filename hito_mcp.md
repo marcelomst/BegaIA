@@ -9908,3 +9908,52 @@ Impacto:
 - preserva la identidad visible de la conversación canónica multicanal
 - evita que `message.channel` descarte turnos reales del mismo hilo
 - no toca runtime conversacional, delivery de canales ni arquitectura viva
+
+### FIX-MULTICHANNEL-CANONICAL-GUEST-CONVERSATION-ROUTING-BY-CHANNEL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-11  
+Commit: 7da63cff84e7e90d7b775df49dfc428cb3e73373
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige el binding entre guest canónico y conversación activa por canal para
+evitar reutilización incorrecta de `conversationId` cross-channel, manteniendo
+`guestId` canónico pero exigiendo que el `conversationId` reutilizado sea
+compatible con el canal del turno entrante.
+
+Archivos afectados:
+
+- `lib/db/conversations.ts`
+- `lib/pipeline/handleChannelMessage.ts`
+- `test/mocks/db_conversations.ts`
+- `test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+  `pnpm vitest run test/integration/api_admin_conversations.test.ts`
+- validación manual requerida:
+  consolidar guest WhatsApp + Email
+  desde WhatsApp enviar: `me muestras mis reservas`
+  verificar respuesta por WhatsApp
+  revisar messages: `channel=whatsapp`
+  revisar messages: `conversationId=conversación WhatsApp del guest canónico`
+  revisar messages: `guestId=guest canónico`
+  abrir Admin
+  confirmar que el turno aparece como último mensaje visible en la conversación
+  WhatsApp o vista consolidada esperada
+  confirmar que guest mantiene canales `whatsapp,email`
+
+Impacto:
+
+- refuerza la regla canónica `guestId` siempre canónico
+- asegura `conversationId` compatible con el canal del turno entrante
+- evita colapsar Web, Email y WhatsApp en una sola conversación arbitraria
+- no toca runtime conversacional, arquitectura viva ni delivery final de canales
