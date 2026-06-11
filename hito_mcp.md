@@ -9829,3 +9829,39 @@ Impacto:
 - preserva deduplicación por `reservationId` en snapshot/listado
 - mantiene comportamiento local normal cuando no hay señales guest-wide
 - evita contaminar snapshot deíctico/local, modify y cancel
+
+### FIX-RESERVATION-TEST-DATES-RELATIVE-FUTURE-HELPERS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-11  
+Commit: e27be9327af4e5bc116e63991e5095de281ccf0e
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Ajusta la higiene temporal del fixture en `create quote gating` para reemplazar
+fechas absolutas vencibles por helpers de fechas futuras dinámicas,
+estabilizando el spec de precedencia create sin tocar runtime productivo.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts`
+  `pnpm test`
+  resumen reportado: `161 passed, 801 passed`
+- validación manual requerida: no
+
+Impacto:
+
+- mantiene la intención canónica del test frente al reloj real
+- evita falsos negativos por fechas absolutas vencibles
+- no afloja asserts ni encubre regresiones funcionales
+- no toca runtime productivo, contratos de canal ni arquitectura viva
