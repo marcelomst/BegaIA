@@ -107,6 +107,30 @@ function msgWithChannel(content: string, channel: "web" | "email" | "whatsapp") 
   } as any;
 }
 
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatDateDDMMYYYY(date: Date) {
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function futureDateRange(daysFromToday = 1) {
+  const checkIn = addDays(new Date(), daysFromToday);
+  const checkOut = addDays(checkIn, 1);
+  return {
+    checkIn,
+    checkOut,
+    checkInText: formatDateDDMMYYYY(checkIn),
+    checkOutText: formatDateDDMMYYYY(checkOut),
+  };
+}
+
 function lastReply(sendReply: any): string {
   return String(sendReply.mock.calls.at(-1)?.[0] || "");
 }
@@ -209,6 +233,7 @@ describe("messageHandler create quote gating", () => {
 
   it("con create activo y follow-up de fechas completas prioriza cotización sobre ACK temporal compartido", async () => {
     const sendReply = vi.fn(async () => {});
+    const { checkInText, checkOutText } = futureDateRange(1);
     currentState = {
       reservationSlots: {
         roomType: "triple",
@@ -229,7 +254,7 @@ describe("messageHandler create quote gating", () => {
     };
 
     await handleIncomingMessage(
-      msgWithChannel("ingreso 10/6/2026 hasta el 12/6/2026", "email"),
+      msgWithChannel(`ingreso ${checkInText} hasta el ${checkOutText}`, "email"),
       { mode: "automatic", sendReply }
     );
 
