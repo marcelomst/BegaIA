@@ -9865,3 +9865,46 @@ Impacto:
 - evita falsos negativos por fechas absolutas vencibles
 - no afloja asserts ni encubre regresiones funcionales
 - no toca runtime productivo, contratos de canal ni arquitectura viva
+
+### FIX-ADMIN-MULTICHANNEL-CONVERSATION-MESSAGE-VISIBILITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-11  
+Commit: f35fd40da591eaccdf4e1ccffefa06137a8c141d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige el read-path de Admin conversations para evitar que un filtro por
+`channel` oculte mensajes válidos dentro de una conversación canónica
+multicanal, preservando la política `conversationId-first` sobre el hilo
+visible del guest canónico.
+
+Archivos afectados:
+
+- `app/api/admin/conversations/route.ts`
+- `test/integration/api_admin_conversations.test.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/integration/api_admin_conversations.test.ts`
+  `pnpm vitest run test/integration/api_admin_guest_profile.test.ts`
+- validación manual requerida:
+  consolidar guest WhatsApp + Email
+  desde WhatsApp pedir: `me muestras mis reservas`
+  abrir Admin
+  verificar que el turno aparece en la conversación visible del guest canónico
+  verificar que siguen visibles canales `whatsapp,email`
+  verificar que conversaciones asociadas siguen visibles
+
+Impacto:
+
+- refuerza la política `conversationId-first` en Admin
+- preserva la identidad visible de la conversación canónica multicanal
+- evita que `message.channel` descarte turnos reales del mismo hilo
+- no toca runtime conversacional, delivery de canales ni arquitectura viva
