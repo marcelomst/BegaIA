@@ -76,6 +76,53 @@ describe("/api/admin/conversations (integration)", () => {
     expect(web?.lastMessage).toBe("hola web");
   });
 
+  it("no oculta el último mensaje cuando message.channel difiere de conversation.channel", async () => {
+    const convCol = getCollection("conversations");
+    const msgCol = getCollection("messages");
+
+    await convCol.insertOne({
+      conversationId: "conv-cross-channel-1",
+      hotelId: "hotel999",
+      channel: "email",
+      guestId: "guest-cross-1",
+      startedAt: "2026-03-06T12:00:00.000Z",
+      lastUpdatedAt: "2026-03-06T12:05:00.000Z",
+      lang: "es",
+      status: "active",
+      subject: "Canonical merged thread",
+    });
+
+    await msgCol.insertOne({
+      _id: "m-cross-email-1",
+      messageId: "m-cross-email-1",
+      hotelId: "hotel999",
+      conversationId: "conv-cross-channel-1",
+      channel: "email",
+      content: "hola desde email",
+      timestamp: "2026-03-06T12:01:00.000Z",
+    });
+
+    await msgCol.insertOne({
+      _id: "m-cross-wa-2",
+      messageId: "m-cross-wa-2",
+      hotelId: "hotel999",
+      conversationId: "conv-cross-channel-1",
+      channel: "whatsapp",
+      content: "me muestras mis reservas",
+      timestamp: "2026-03-06T12:05:00.000Z",
+    });
+
+    const r = await adminConversationsGET(makeReq({ hotelId: "hotel999", guestId: "guest-cross-1" }));
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(Array.isArray(json.conversations)).toBe(true);
+    expect(json.conversations.length).toBe(1);
+    expect(json.conversations[0]?.conversationId).toBe("conv-cross-channel-1");
+    expect(json.conversations[0]?.channel).toBe("email");
+    expect(json.conversations[0]?.lastMessage).toBe("me muestras mis reservas");
+  });
+
   it("keeps compatibility for explicit conversationId query", async () => {
     const convCol = getCollection("conversations");
 

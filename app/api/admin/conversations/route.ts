@@ -46,7 +46,6 @@ async function toSummaryItem(conv: any): Promise<ConversationSummaryItem> {
   const msgs = await getMessagesByConversation({
     hotelId: conv.hotelId,
     conversationId: conv.conversationId,
-    channel: conv.channel,
     limit: 10,
   });
   return {
