@@ -580,6 +580,130 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/^Raul,/i);
   });
 
+  it("con guest consolidado y reservas en WhatsApp + Email lista ambas y deduplica por reservationId", async () => {
+    const sendReply = vi.fn(async () => {});
+    const currentConversationId = "conv-ref-list-merged-whatsapp-1";
+    const emailConversationId = "conv-ref-list-merged-email-1";
+
+    stateByConversation.set(currentConversationId, {
+      hotelId: "hotel999",
+      conversationId: currentConversationId,
+      updatedAt: "2026-06-11T10:00:00.000Z",
+      reservationHistory: [
+        {
+          reservationId: "RES-WA-001",
+          status: "created",
+          createdAt: "2026-06-01T10:00:00.000Z",
+          channel: "whatsapp",
+          guestName: "Raul Sanchez",
+          roomType: "double",
+          checkIn: "2026-06-11",
+          checkOut: "2026-06-12",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-WA-001",
+        status: "created",
+        createdAt: "2026-06-01T10:00:00.000Z",
+        channel: "whatsapp",
+        guestName: "Raul Sanchez",
+        roomType: "double",
+        checkIn: "2026-06-11",
+        checkOut: "2026-06-12",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    });
+    stateByConversation.set(emailConversationId, {
+      hotelId: "hotel999",
+      conversationId: emailConversationId,
+      updatedAt: "2026-06-11T10:05:00.000Z",
+      reservationHistory: [
+        {
+          reservationId: "RES-EMAIL-002",
+          status: "created",
+          createdAt: "2026-06-02T09:00:00.000Z",
+          channel: "email",
+          guestName: "Pedro Picapiedra",
+          roomType: "triple",
+          checkIn: "2026-06-13",
+          checkOut: "2026-06-14",
+          numGuests: "3",
+        },
+        {
+          reservationId: "RES-WA-001",
+          status: "created",
+          createdAt: "2026-06-01T10:00:00.000Z",
+          channel: "whatsapp",
+          guestName: "Raul Sanchez",
+          roomType: "double",
+          checkIn: "2026-06-11",
+          checkOut: "2026-06-12",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-EMAIL-002",
+        status: "created",
+        createdAt: "2026-06-02T09:00:00.000Z",
+        channel: "email",
+        guestName: "Pedro Picapiedra",
+        roomType: "triple",
+        checkIn: "2026-06-13",
+        checkOut: "2026-06-14",
+        numGuests: "3",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    });
+
+    (getGuest as any).mockImplementation(async (_hotelId: string, guestId: string) => {
+      if (guestId === "guest-whatsapp-merged-1") {
+        return {
+          guestId,
+          hotelId: "hotel999",
+          tags: ["merged", "merged-into:guest-canonical-merged-1"],
+          aliases: ["whatsapp:+59898835914"],
+        };
+      }
+      if (guestId === "guest-canonical-merged-1") {
+        return {
+          guestId,
+          hotelId: "hotel999",
+          name: "Asistencial",
+          aliases: ["whatsapp:+59898835914", "email:marcelomst1@gmail.com"],
+          mode: "automatic",
+        };
+      }
+      return null;
+    });
+    (findGuestByAnyId as any).mockResolvedValue(null);
+    (getConversationsForGuestPerspective as any).mockResolvedValue([
+      { conversationId: currentConversationId, hotelId: "hotel999", guestId: "guest-canonical-merged-1", channel: "whatsapp" },
+      { conversationId: emailConversationId, hotelId: "hotel999", guestId: "guest-canonical-merged-1", channel: "email" },
+    ]);
+
+    await handleIncomingMessage(
+      {
+        ...msg("me muestras mis reservas", currentConversationId),
+        channel: "whatsapp",
+        guestId: "guest-whatsapp-merged-1",
+      },
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).toMatch(/RES-WA-001/i);
+    expect(replyText).toMatch(/RES-EMAIL-002/i);
+    expect(replyText).toMatch(/Raul Sanchez/i);
+    expect(replyText).toMatch(/Pedro Picapiedra/i);
+    expect(replyText).not.toMatch(/esta conversación/i);
+    expect(replyText.match(/RES-WA-001/g)?.length).toBe(1);
+  });
+
   it("si no hay reservas en la conversación ni en el guest consolidado, responde fallback honesto", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-list-merged-empty-1";

@@ -1730,9 +1730,7 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   scope: "conversation" | "guest";
 }> {
   const localReservations = buildCanonicalReservationRecords(pre.st);
-  if (localReservations.some((item) => isCanonicalReservationRecordEligible(item))) {
-    return { reservations: localReservations, scope: "conversation" };
-  }
+  const hasLocalEligibleReservations = localReservations.some((item) => isCanonicalReservationRecordEligible(item));
 
   const rawCurrentGuestId = String(pre.guest?.guestId || pre.msg.guestId || "").trim();
   const mergedIntoGuestId = getMergedIntoGuestId(pre.guest);
@@ -1754,8 +1752,21 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
     guestId: canonicalGuestId,
     aliases,
   });
+  const canonicalMergedIntoGuestId = getMergedIntoGuestId(canonicalGuest as any);
+  const hasGuestWideSignals = Boolean(
+    mergedIntoGuestId ||
+    canonicalMergedIntoGuestId ||
+    aliases.length > 1 ||
+    (Array.isArray(conversations) && conversations.length > 1)
+  );
+  if (!hasGuestWideSignals && hasLocalEligibleReservations) {
+    return { reservations: localReservations, scope: "conversation" };
+  }
   if (!Array.isArray(conversations) || conversations.length === 0) {
-    return { reservations: [], scope: "guest" };
+    return {
+      reservations: hasGuestWideSignals ? localReservations : [],
+      scope: "guest",
+    };
   }
 
   const reservationRecords: LastReservation[] = [...collectPersistedReservationRecords(pre.st)];
