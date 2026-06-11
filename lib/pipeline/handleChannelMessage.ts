@@ -121,6 +121,7 @@ export async function handleChannelMessage(input: {
     const existingConversation = await findActiveConversationByGuestId({
       hotelId,
       guestId,
+      channel,
     });
     conversationId = normText(existingConversation?.conversationId, 120);
   }

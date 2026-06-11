@@ -181,14 +181,18 @@ export async function getConversationsForGuestPerspective(input: {
 export async function findActiveConversationByGuestId(input: {
   hotelId: string;
   guestId: string;
+  channel?: Channel;
 }): Promise<Conversation | null> {
   const hotelId = String(input.hotelId ?? "").trim();
   const guestId = String(input.guestId ?? "").trim();
   if (!hotelId || !guestId) return null;
+  const channel = typeof input.channel === "string" ? input.channel.trim() : "";
 
   const collection = getConversationsCollection();
+  const query: Record<string, unknown> = { hotelId, guestId };
+  if (channel) query.channel = channel;
   const candidates = await collection
-    .find({ hotelId, guestId }, { sort: { lastUpdatedAt: -1 }, limit: 20 })
+    .find(query, { sort: { lastUpdatedAt: -1 }, limit: 20 })
     .toArray();
 
   return (

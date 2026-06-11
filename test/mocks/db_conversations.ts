@@ -225,12 +225,15 @@ export async function getConversationsByUser(hotelId: string, id: string): Promi
 export async function findActiveConversationByGuestId(input: {
   hotelId: string;
   guestId: string;
+  channel?: Channel;
 }): Promise<Conversation | null> {
   const hotelId = String(input.hotelId ?? "").trim();
   const guestId = String(input.guestId ?? "").trim();
   if (!hotelId || !guestId) return null;
+  const channel = typeof input.channel === "string" ? input.channel.trim() : "";
 
-  const candidates = (await col().findMany({ hotelId, guestId })) as Conversation[];
+  const query = channel ? { hotelId, guestId, channel } : { hotelId, guestId };
+  const candidates = (await col().findMany(query)) as Conversation[];
   const sorted = [...candidates].sort((a, b) => {
     const aTs = Date.parse(a.lastUpdatedAt || a.startedAt || "");
     const bTs = Date.parse(b.lastUpdatedAt || b.startedAt || "");

@@ -121,9 +121,7 @@ describe("multichannel canonical guest contract", () => {
     });
     getMessagesByConversationServiceMock.mockResolvedValue([]);
     detectLanguageMock.mockResolvedValue("es");
-    findActiveConversationByGuestIdMock.mockResolvedValue({
-      conversationId: "conv-canonical-1",
-    });
+    findActiveConversationByGuestIdMock.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -132,7 +130,7 @@ describe("multichannel canonical guest contract", () => {
     delete (globalThis as any).__WA_POLLERS__;
   });
 
-  it("reuses the same canonical guest and conversation across Web, Email, and Twilio-style WhatsApp inputs", async () => {
+  it("reuses the same canonical guest while preserving channel-compatible conversations", async () => {
     resolveGuestIdentityMock.mockImplementation(async ({ hotelId, channel, rawGuestId }) => {
       const raw = String(rawGuestId || "");
       if (hotelId !== "hotel999") return {};
@@ -146,6 +144,13 @@ describe("multichannel canonical guest contract", () => {
         return { guestId: "guest-canonical-1", guestAlias: "whatsapp:+59899123456" };
       }
       return {};
+    });
+
+    findActiveConversationByGuestIdMock.mockImplementation(async ({ channel }) => {
+      if (channel === "web") return { conversationId: "conv-web-1" };
+      if (channel === "email") return { conversationId: "conv-email-1" };
+      if (channel === "whatsapp") return { conversationId: "conv-whatsapp-1" };
+      return null;
     });
 
     const { handleChannelMessage } = await import("@/lib/pipeline/handleChannelMessage");
@@ -180,21 +185,24 @@ describe("multichannel canonical guest contract", () => {
       sourceProvider: "whatsapp.twilio",
     });
 
-    expect(web.conversationId).toBe("conv-canonical-1");
-    expect(email.conversationId).toBe("conv-canonical-1");
-    expect(twilio.conversationId).toBe("conv-canonical-1");
+    expect(web.conversationId).toBe("conv-web-1");
+    expect(email.conversationId).toBe("conv-email-1");
+    expect(twilio.conversationId).toBe("conv-whatsapp-1");
 
     expect(findActiveConversationByGuestIdMock).toHaveBeenNthCalledWith(1, {
       hotelId: "hotel999",
       guestId: "guest-canonical-1",
+      channel: "web",
     });
     expect(findActiveConversationByGuestIdMock).toHaveBeenNthCalledWith(2, {
       hotelId: "hotel999",
       guestId: "guest-canonical-1",
+      channel: "email",
     });
     expect(findActiveConversationByGuestIdMock).toHaveBeenNthCalledWith(3, {
       hotelId: "hotel999",
       guestId: "guest-canonical-1",
+      channel: "whatsapp",
     });
 
     expect(handleIncomingMessageMock).toHaveBeenCalledTimes(3);
@@ -203,7 +211,7 @@ describe("multichannel canonical guest contract", () => {
       expect.objectContaining({
         channel: "web",
         guestId: "guest-canonical-1",
-        conversationId: "conv-canonical-1",
+        conversationId: "conv-web-1",
         sourceMsgId: "web-msg-1",
         sourceProvider: "web",
       }),
@@ -214,7 +222,7 @@ describe("multichannel canonical guest contract", () => {
       expect.objectContaining({
         channel: "email",
         guestId: "guest-canonical-1",
-        conversationId: "conv-canonical-1",
+        conversationId: "conv-email-1",
         sourceMsgId: "<msg-1@example.com>",
         sourceProvider: "email.imap",
       }),
@@ -225,7 +233,7 @@ describe("multichannel canonical guest contract", () => {
       expect.objectContaining({
         channel: "whatsapp",
         guestId: "guest-canonical-1",
-        conversationId: "conv-canonical-1",
+        conversationId: "conv-whatsapp-1",
         sourceMsgId: "SM123",
         sourceProvider: "whatsapp.twilio",
       }),
