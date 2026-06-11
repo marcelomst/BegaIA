@@ -21,16 +21,15 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 8a015c5
-messageHandler_lines: 10335
+commit_base: dfaeb4d
+messageHandler_lines: 10346
 working_tree_status: clean
-analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
-    - pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+  detail: 65 passed
 known_manual_bug: none
 ```
 
@@ -40,21 +39,21 @@ known_manual_bug: none
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   reviewed:
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create activo con draft completo por follow-up temporal cotiza como create
-      - no se usa copy de modify `Anoté nuevas fechas`
-      - no se usa copy de modify `posibles diferencias`
-      - no se introduce parche específico sobre parser de Email
-      - no se rompe modify legítimo según el alcance auditado
+      - un guest consolidado con reservas en WhatsApp y Email lista ambas reservas
+      - el listado no queda limitado a "esta conversación"
+      - `RES-WA-001` aparece una sola vez por deduplicación de `reservationId`
+      - snapshot deíctico/local queda fuera del cambio
+      - modify y cancel no se expanden con este fix
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -62,13 +61,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 8a015c5
-    messageHandler_lines: 10335
+    commit: dfaeb4d
+    messageHandler_lines: 10346
     functions:
-      preLLM: L3639-L3830
-      bodyLLM: L4381-L9536
-      posLLM: L9966-L10007
-      handleIncomingMessage: L10011-L10019
+      preLLM: L3650-L3841
+      bodyLLM: L4392-L9547
+      posLLM: L9977-L10018
+      handleIncomingMessage: L10022-L10030
 ```
 
 ---
@@ -78,17 +77,17 @@ runtime_map_refresh:
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
 | `buildReservationCanonicalState`     | L1528-L1565 |     38 | high      |
-| `resolveReservationReference`        | L1992-L2099 |    108 | high      |
-| `detectDominantTurnDomain`           | L2325-L2384 |     60 | high      |
-| `getReservationDomainLockSignal`     | L2609-L2644 |     36 | high      |
-| `shouldUseReservationLocalFallback`  | L2781-L2832 |     52 | high      |
-| `buildReservationLocalFallbackReply` | L2834-L2969 |    136 | high      |
-| `assessReservationDateCoherence`     | L2971-L2984 |     14 | high      |
-| `tryStructuredAnalyze`               | L3451-L3578 |    128 | high      |
-| `preLLM`                             | L3639-L3830 |    192 | high      |
-| `bodyLLM`                            | L4381-L9536 |   5156 | high      |
-| `posLLM`                             | L9966-L10007 |     42 | high      |
-| `handleIncomingMessage`              | L10011-L10019 |      9 | high      |
+| `resolveReservationReference`        | L2003-L2110 |    108 | high      |
+| `detectDominantTurnDomain`           | L2336-L2395 |     60 | high      |
+| `getReservationDomainLockSignal`     | L2620-L2655 |     36 | high      |
+| `shouldUseReservationLocalFallback`  | L2792-L2843 |     52 | high      |
+| `buildReservationLocalFallbackReply` | L2845-L2980 |    136 | high      |
+| `assessReservationDateCoherence`     | L2982-L2995 |     14 | high      |
+| `tryStructuredAnalyze`               | L3462-L3589 |    128 | high      |
+| `preLLM`                             | L3650-L3841 |    192 | high      |
+| `bodyLLM`                            | L4392-L9547 |   5156 | high      |
+| `posLLM`                             | L9977-L10018 |     42 | high      |
+| `handleIncomingMessage`              | L10022-L10030 |      9 | high      |
 
 ---
 
@@ -97,7 +96,7 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10335 líneas
+messageHandler.ts total: 10346 líneas
 bodyLLM:                5156 líneas
 ```
 
@@ -477,7 +476,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10335
+    range: L1-L10346
     confidence: high
 ```
 
@@ -490,7 +489,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3639-L3830
+    range: L3650-L3841
     confidence: high
 ```
 
@@ -509,7 +508,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4381-L9536
+    range: L4392-L9547
     confidence: high
 ```
 
@@ -528,7 +527,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9966-L10007
+    range: L9977-L10018
     confidence: high
 ```
 
@@ -547,7 +546,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10011-L10019
+    range: L10022-L10030
     confidence: high
 ```
 

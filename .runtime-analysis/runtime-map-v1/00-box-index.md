@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 8a015c5
-messageHandler_lines: 10335
+commit_base: dfaeb4d
+messageHandler_lines: 10346
 working_tree_status: clean
-analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
+analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v7
 known_manual_bug: none
 ```
 
@@ -57,21 +57,21 @@ known_manual_bug: none
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   reviewed:
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create activo con draft completo por follow-up temporal cotiza como create
-      - no se usa copy de modify `Anoté nuevas fechas`
-      - no se usa copy de modify `posibles diferencias`
-      - no se introduce parche específico sobre parser de Email
-      - no se rompe modify legítimo según el alcance auditado
+      - un guest consolidado con reservas en WhatsApp y Email lista ambas reservas
+      - el listado no queda limitado a "esta conversación"
+      - `RES-WA-001` aparece una sola vez por deduplicación de `reservationId`
+      - snapshot deíctico/local queda fuera del cambio
+      - modify y cancel no se expanden con este fix
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -153,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10335
+        range: L1-L10346
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -181,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10011-L10019
+        range: L10022-L10030
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -211,7 +211,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3639-L3830
+        range: L3650-L3841
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -246,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4381-L9536
+        range: L4392-L9547
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -325,7 +325,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4381-L9536
+        range: L4392-L9547
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -360,7 +360,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4381-L9536
+        range: L4392-L9547
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -816,7 +816,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9966-L10007
+        range: L9977-L10018
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

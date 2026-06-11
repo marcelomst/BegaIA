@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `8a015c5`, Guardian confirmó:
+Para el hito `dfaeb4d`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -56,11 +56,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 8a015c5
-messageHandler_lines: 10335
+commit_base: dfaeb4d
+messageHandler_lines: 10346
 working_tree_status: clean
-analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
+analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v7
 known_manual_bug: none
 ```
 
@@ -69,18 +69,17 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
-pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
-pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+detail: 65 passed
 ```
 
 Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un fix de precedencia entre create y el ACK temporal
-compartido, pero no elimina el riesgo de futuros bugs funcionales fuera de
-cobertura.
+Este refresh documenta un fix del read-path de `mis reservas` para huéspedes
+canónicos consolidados, pero no elimina el riesgo de futuros bugs funcionales
+fuera de cobertura.
 ```
 
 ---
@@ -101,7 +100,7 @@ cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 10335
+total_lines: 10346
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -110,7 +109,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`8a015c5`.
+`dfaeb4d`.
 ```
 
 ---
@@ -120,17 +119,17 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
 | `buildReservationCanonicalState`     | L1528-L1565 |     38 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L1992-L2099 |    108 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L2325-L2384 |     60 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L2609-L2644 |     36 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L2781-L2832 |     52 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L2834-L2969 |    136 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L2971-L2984 |     14 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L3451-L3578 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L3639-L3830 |    192 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L4381-L9536 |   5156 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L9966-L10007 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L10011-L10019 |      9 | high      | Entrypoint público del runtime             |
+| `resolveReservationReference`        | L2003-L2110 |    108 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L2336-L2395 |     60 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L2620-L2655 |     36 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L2792-L2843 |     52 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L2845-L2980 |    136 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L2982-L2995 |     14 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L3462-L3589 |    128 | high      | Análisis estructurado semántico            |
+| `preLLM`                             | L3650-L3841 |    192 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L4392-L9547 |   5156 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L9977-L10018 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L10022-L10030 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -140,7 +139,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L10011-L10019
+range: L10022-L10030
 lines: 9
 confidence: high
 role: public_entrypoint
@@ -159,7 +158,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L3639-L3830
+range: L3650-L3841
 lines: 192
 confidence: high
 role: context_preparation
@@ -181,7 +180,7 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L4381-L9536
+range: L4392-L9547
 lines: 5156
 confidence: high
 role: dominant_sub_runtime
@@ -211,7 +210,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L9966-L10007
+range: L9977-L10018
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -404,7 +403,7 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L4381-L9536
+bodyLLM_range: L4392-L9547
 bodyLLM_lines: 5156
 bucket_size: 250
 confidence: high_for_full_range

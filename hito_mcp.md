@@ -9770,3 +9770,62 @@ Impacto:
 - mantiene casts controlados, locales y explícitos
 - evita bypasses globales de tipado
 - no toca runtime conversacional, contratos de canal ni arquitectura viva
+
+### FIX-CANONICAL-GUEST-RESERVATION-SNAPSHOT-GUEST-FIRST-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-11  
+Commit: dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige el read-path del listado/snapshot de reservas para `mis reservas` y
+`me muestras mis reservas`, priorizando resolución guest-first cuando existen
+señales reales de huésped canónico consolidado con aliases o múltiples
+conversaciones, sin alterar snapshot deíctico/local ni corredores ajenos.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- cajas relacionadas revisadas: `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel`,
+  `runtime.messageHandler.persistenceReply`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  detalle reportado: `65 passed`
+- validación manual requerida: no
+- fuera de alcance confirmado:
+  visibilidad Admin cross-channel
+  modify
+  cancel
+  selectedReservationTarget
+  create
+  WhatsApp delivery
+  Email parser
+  guest merge manual
+  Admin endpoints/UI
+
+Impacto:
+
+- alinea `mis reservas` con identidad canónica guest-wide cuando hay señales
+  reales de consolidación
+- preserva deduplicación por `reservationId` en snapshot/listado
+- mantiene comportamiento local normal cuando no hay señales guest-wide
+- evita contaminar snapshot deíctico/local, modify y cancel

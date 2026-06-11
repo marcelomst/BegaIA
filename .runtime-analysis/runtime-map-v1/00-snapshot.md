@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 8a015c5
-messageHandler_lines: 10335
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v6
+commit_base: dfaeb4d
+messageHandler_lines: 10346
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v7
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
 ```
 
 ---
@@ -29,9 +29,8 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
-pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
-pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+detail: 65 passed
 ```
 
 ---
@@ -46,16 +45,18 @@ guestname_preservation_followup_commit: 026fc30002084203336a3ce8154f387187372a49
 autoquote_sequencing_followup_commit: 2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
 safe_person_guestname_followup_commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
 date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
+canonical_guest_snapshot_guest_first_commit: dfaeb4dd358915a6aadb264500d94e2ba065f1e5
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- si create tiene draft activo y el follow-up temporal completa fechas, cotizar como create
-- no responder con copy de modify: "Anoté nuevas fechas"
-- no responder con copy de modify: "posibles diferencias"
-- mantener separado el corredor create del corredor modify
-- no introducir parche específico sobre parser de Email
+- si el guest canónico tiene aliases o múltiples conversaciones, `mis reservas`
+  debe listar reservas guest-wide
+- no limitar el listado a `scope: conversation` cuando existan señales guest-first
+- preservar deduplicación por `reservationId` en snapshot/listado
+- mantener snapshot deíctico/local fuera del cambio
+- no contaminar modify, cancel ni visibilidad Admin cross-channel
 ```
 
 ---
@@ -63,7 +64,7 @@ date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`8a015c5`.
+`dfaeb4d`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -80,7 +81,7 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `8a015c5`
+1. Snapshot base a commit real `dfaeb4d`
 2. Rangos top-level recalculados de preLLM / bodyLLM / posLLM / handleIncomingMessage
 3. Evidence summary refrescado
 4. code index refrescado
