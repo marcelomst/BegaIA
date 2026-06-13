@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: dfaeb4d
-messageHandler_lines: 10346
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v7
+commit_base: d94c055
+messageHandler_lines: 10387
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v8
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+analysis_scope: commit_d94c05545b5eae0736b7e2756dafb3b39a9aeb74
 ```
 
 ---
@@ -29,8 +29,9 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-detail: 65 passed
+pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
+pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts
+pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
 ```
 
 ---
@@ -46,17 +47,18 @@ autoquote_sequencing_followup_commit: 2efa9a7e3cb989fda0faa4d63e8b9093e783dec4
 safe_person_guestname_followup_commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
 date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 canonical_guest_snapshot_guest_first_commit: dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+second_create_reset_draft_before_quote_commit: d94c05545b5eae0736b7e2756dafb3b39a9aeb74
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- si el guest canónico tiene aliases o múltiples conversaciones, `mis reservas`
-  debe listar reservas guest-wide
-- no limitar el listado a `scope: conversation` cuando existan señales guest-first
-- preservar deduplicación por `reservationId` en snapshot/listado
-- mantener snapshot deíctico/local fuera del cambio
-- no contaminar modify, cancel ni visibilidad Admin cross-channel
+- una segunda reserva explícita sobre contexto confirmado debe abrir draft limpio
+  o cotizar la nueva reserva según el payload del turno
+- no recotizar la reserva previa
+- no responder con `Anoté nuevas fechas`
+- no responder con `posibles diferencias`
+- preservar listados consolidados Email + WhatsApp fuera del fix
 ```
 
 ---
@@ -64,7 +66,7 @@ canonical_guest_snapshot_guest_first_commit: dfaeb4dd358915a6aadb264500d94e2ba06
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`dfaeb4d`.
+`d94c055`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -81,7 +83,7 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `dfaeb4d`
+1. Snapshot base a commit real `d94c055`
 2. Rangos top-level recalculados de preLLM / bodyLLM / posLLM / handleIncomingMessage
 3. Evidence summary refrescado
 4. code index refrescado

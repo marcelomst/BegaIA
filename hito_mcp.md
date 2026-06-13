@@ -9957,3 +9957,67 @@ Impacto:
 - asegura `conversationId` compatible con el canal del turno entrante
 - evita colapsar Web, Email y WhatsApp en una sola conversación arbitraria
 - no toca runtime conversacional, arquitectura viva ni delivery final de canales
+
+### FIX-SECOND-CREATE-RESET-DRAFT-BEFORE-QUOTE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-13  
+Commit: d94c05545b5eae0736b7e2756dafb3b39a9aeb74
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige la apertura de una segunda reserva luego de una reserva confirmada para
+forzar un draft limpio antes de cotizar, evitar herencia indebida de
+`reservationSlots`, adelantar el branch específico de multi-reserva y bloquear
+recotización de la reserva previa o caída en el ACK temporal compartido.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+- `test/unit/messageHandler.create_quote_gating.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas relacionadas revisadas: `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`,
+  `runtime.messageHandler.persistenceReply`,
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts`
+- validación manual requerida:
+  email: primera reserva confirmada, luego "quiero hacer otra reserva", luego
+  payload completo, luego confirmar
+  whatsapp: primera reserva confirmada, luego "ok, quiero hacer otra reserva",
+  luego payload completo, luego confirmar
+  verificar que no recotiza la reserva anterior
+  verificar que no aparece `Anoté nuevas fechas`
+  verificar que no aparece `posibles diferencias`
+  verificar que la nueva quote incluye confirmación correcta
+  consolidación Email + WhatsApp: `me muestras mis reservas` sigue listando
+  ambas historias
+- observación no bloqueante fuera de alcance:
+  formato Markdown en confirmaciones WhatsApp
+  hito sugerido: `FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01`
+
+Impacto:
+
+- restituye la política canónica de multi-reserva sobre contexto confirmado
+- abre draft limpio o cotiza la nueva reserva según el payload del turno
+- evita recotizar la reserva previa y evita contaminación con copy de
+  modify/ACK temporal
+- preserva compatibilidad con listados consolidados Email + WhatsApp

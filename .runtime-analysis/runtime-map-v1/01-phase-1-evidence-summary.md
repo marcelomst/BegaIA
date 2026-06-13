@@ -21,15 +21,16 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: dfaeb4d
-messageHandler_lines: 10346
+commit_base: d94c055
+messageHandler_lines: 10387
 working_tree_status: clean
-analysis_scope: commit_dfaeb4dd358915a6aadb264500d94e2ba065f1e5
+analysis_scope: commit_d94c05545b5eae0736b7e2756dafb3b39a9aeb74
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-  detail: 65 passed
+    - pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
+    - pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
 known_manual_bug: none
 ```
 
@@ -39,21 +40,21 @@ known_manual_bug: none
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - un guest consolidado con reservas en WhatsApp y Email lista ambas reservas
-      - el listado no queda limitado a "esta conversación"
-      - `RES-WA-001` aparece una sola vez por deduplicación de `reservationId`
-      - snapshot deíctico/local queda fuera del cambio
-      - modify y cancel no se expanden con este fix
+      - una segunda reserva explícita abre draft limpio o cotiza la nueva reserva
+      - no recotiza la reserva previa
+      - no aparece `Anoté nuevas fechas`
+      - no aparece `posibles diferencias`
+      - la quote nueva incluye confirmación correcta
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -61,13 +62,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: dfaeb4d
-    messageHandler_lines: 10346
+    commit: d94c055
+    messageHandler_lines: 10387
     functions:
       preLLM: L3650-L3841
       bodyLLM: L4392-L9547
-      posLLM: L9977-L10018
-      handleIncomingMessage: L10022-L10030
+      posLLM: L10018-L10059
+      handleIncomingMessage: L10063-L10071
 ```
 
 ---
@@ -86,8 +87,8 @@ runtime_map_refresh:
 | `tryStructuredAnalyze`               | L3462-L3589 |    128 | high      |
 | `preLLM`                             | L3650-L3841 |    192 | high      |
 | `bodyLLM`                            | L4392-L9547 |   5156 | high      |
-| `posLLM`                             | L9977-L10018 |     42 | high      |
-| `handleIncomingMessage`              | L10022-L10030 |      9 | high      |
+| `posLLM`                             | L10018-L10059 |     42 | high      |
+| `handleIncomingMessage`              | L10063-L10071 |      9 | high      |
 
 ---
 
@@ -96,7 +97,7 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10346 líneas
+messageHandler.ts total: 10387 líneas
 bodyLLM:                5156 líneas
 ```
 
@@ -476,7 +477,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10346
+    range: L1-L10387
     confidence: high
 ```
 
@@ -527,7 +528,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L9977-L10018
+    range: L10018-L10059
     confidence: high
 ```
 
@@ -546,7 +547,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10022-L10030
+    range: L10063-L10071
     confidence: high
 ```
 
