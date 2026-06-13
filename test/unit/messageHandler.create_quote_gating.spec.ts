@@ -375,6 +375,58 @@ describe("messageHandler create quote gating", () => {
     expect(currentState?.lastProposal ?? null).toBeNull();
   });
 
+  it("con 'otra reserva' y payload completo cotiza directo sin caer en ACK temporal compartido", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-12T12:00:00.000Z"));
+    const { checkInText, checkOutText } = futureDateRange(1);
+    const sendReply = vi.fn(async () => {});
+
+    currentState = {
+      lastReservation: {
+        reservationId: "RES-BASE-1",
+        status: "confirmed",
+        createdAt: "2026-06-10T12:00:00.000Z",
+        channel: "whatsapp",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-BASE-1",
+        phase: "confirmed",
+        updatedAt: "2026-06-10T12:00:00.000Z",
+      },
+    };
+
+    await handleIncomingMessage(
+      msgWithChannel("quiero hacer otra reserva", "whatsapp"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).toMatch(/mantenemos la reserva actual y abrimos una nueva/i);
+
+    await handleIncomingMessage(
+      msgWithChannel(
+        `seria para el ${checkInText} hasta el ${checkOutText}, para 3 personas, una triple a nombre de Pablo Roca`,
+        "whatsapp"
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/triple disponible|tarifa por noche|confirm[aá]s la reserva/i);
+    expect(replyText).toMatch(/Pablo Roca/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/posibles diferencias/i);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.conversationFocus?.subFlow).toBe("create");
+    expect(currentState?.reservationSlots).toMatchObject({
+      roomType: "triple",
+      numGuests: "3",
+      guestName: "Pablo Roca",
+    });
+  });
+
   it("bloquea draft inconsistente single + 3 huéspedes sin cotizar ni salir del create", async () => {
     const sendReply = vi.fn(async () => {});
 

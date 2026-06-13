@@ -142,6 +142,11 @@ describe("messageHandler multi reservation", () => {
         desiredAction: "create",
         salesStage: "qualify",
         lastCategory: "reservation",
+        reservationSlots: {},
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        selectedReservationTarget: null,
+        modifyState: null,
         reservationHistory: [
           expect.objectContaining({
             reservationId: "RES-BASE-01",
@@ -153,6 +158,39 @@ describe("messageHandler multi reservation", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
     expect(replyText).toMatch(/check-in y check-out|fechas/i);
+    expect(replyText).not.toMatch(/tarifa por noche|confirm[aá]s la reserva/i);
+  });
+
+  it("con reserva confirmada, 'quiero hacer otra reserva' por whatsapp abre draft limpio y no recotiza la anterior", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "multi-1-wa",
+      hotelId: "hotel999",
+      channel: "whatsapp",
+      sender: "guest",
+      content: "quiero hacer otra reserva",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-1-wa",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-1-wa",
+      expect.objectContaining({
+        reservationSlots: {},
+        lastProposal: null,
+        desiredAction: "create",
+        activeFlow: "reservation",
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/mantenemos la reserva actual|abrimos una nueva/i);
+    expect(replyText).toMatch(/check-in y check-out|fechas/i);
+    expect(replyText).not.toMatch(/Marcelo Martinez|tarifa por noche|confirm[aá]s la reserva/i);
   });
 
   it("con reserva confirmada, 'quiero reservar otra habitación' abre un draft nuevo y preserva la reserva previa", async () => {
@@ -253,6 +291,45 @@ describe("messageHandler multi reservation", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/^Geronimo,\s+tengo triple disponible para Marcelo Martinez\./i);
     expect(replyText).not.toMatch(/^Marcelo,\s+tengo/i);
+  });
+
+  it("otra reserva con payload completo en el mismo turno por email cotiza la nueva y no reutiliza la anterior", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "multi-3c",
+      hotelId: "hotel999",
+      channel: "email",
+      sender: "guest",
+      content: "quiero hacer otra reserva para el dia 01/07/2026 al 03/07/2026, una triple, para 3 personas a nombre de Pablo Roca",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-multi-3c",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(updateConversationState).toHaveBeenCalledWith(
+      "hotel999",
+      "conv-multi-3c",
+      expect.objectContaining({
+        lastCategory: "reservation",
+        lastProposal: expect.objectContaining({
+          available: true,
+        }),
+        salesStage: "quote",
+        reservationSlots: {
+          checkIn: "2026-07-01",
+          checkOut: "2026-07-03",
+          guestName: "Pablo Roca",
+          numGuests: "3",
+          roomType: "triple",
+        },
+      })
+    );
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/Pablo Roca/i);
+    expect(replyText).toMatch(/triple|tarifa por noche|confirm[aá]s la reserva/i);
+    expect(replyText).not.toMatch(/Marcelo Martinez|anot[eé] nuevas fechas|posibles diferencias/i);
   });
 
   it("create explícito con payload suficiente rompe continuidad de modify y no actualiza la reserva previa", async () => {

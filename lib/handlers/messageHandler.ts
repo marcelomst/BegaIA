@@ -5794,6 +5794,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
   const createDraftRawOrderedDates = extractRawOrderedDateRange(userTxtRaw);
   const createDraftRelativeWeekendRange = extractRelativeWeekendDateRange(userTxtRaw);
+  const additionalReservationIntent = wantsAdditionalReservation(userTxtRaw, pre.st);
+  const additionalReservationTurnHasNewData = Boolean(
+    turnCreateSlots.checkIn ||
+    turnCreateSlots.checkOut ||
+    turnCreateSlots.roomType ||
+    turnCreateSlots.numGuests ||
+    isSafeGuestName(turnCreateSlots.guestName || "") ||
+    createDraftTemporalDates.checkIn ||
+    createDraftTemporalDates.checkOut ||
+    createDraftRawOrderedDates?.checkIn ||
+    createDraftRawOrderedDates?.checkOut ||
+    createDraftRelativeWeekendRange.checkIn ||
+    createDraftRelativeWeekendRange.checkOut
+  );
   const createDraftCheckIn =
     reservationCheckIn ||
     createDraftTemporalDates.checkIn ||
@@ -6510,13 +6524,114 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
   }
-  const createDraftSlots = mergeReservationSlots(pre.st?.reservationSlots, {
+  const createDraftBaseSlots =
+    hasConfirmedBookingContext && additionalReservationIntent
+      ? undefined
+      : pre.st?.reservationSlots;
+  const createDraftSlots = mergeReservationSlots(createDraftBaseSlots, {
     roomType: reservationRoomType,
     checkIn: createDraftCheckIn,
     checkOut: createDraftCheckOut,
     numGuests: reservationGuests ? String(reservationGuests) : undefined,
     guestName: isSafeGuestName(reservationGuestName || "") ? reservationGuestName : undefined,
   });
+  if (additionalReservationIntent && hasConfirmedBookingContext) {
+    const freshTurnSlots = toStrictSlots(extractSlotsFromText(String(pre.msg.content || ""), pre.lang));
+    const additionalReservationDraft = validateCreateDraftConsistency(pre.lang, freshTurnSlots).sanitizedSlots;
+    nextSlots = { ...additionalReservationDraft };
+    const preservedHistory = mergeReservationHistory(
+      (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
+      (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+    );
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationHistory: preservedHistory,
+      reservationSlots: additionalReservationDraft as any,
+      lastProposal: null,
+      pendingAvailabilityVerification: null,
+      selectedReservationTarget: null,
+      modifyState: null,
+      conversationFocus: buildConversationFocus("create"),
+      activeReservationContext: buildDraftReservationContext(
+        additionalReservationTurnHasNewData ? "quoted" : "collecting"
+      ),
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: additionalReservationTurnHasNewData ? undefined : "qualify",
+      conversationStage: additionalReservationTurnHasNewData ? undefined : pre.st?.conversationStage,
+      lastCategory: "reservation",
+      updatedBy: "ai",
+    } as any);
+
+    const hasCheckIn = Boolean(additionalReservationDraft.checkIn);
+    const hasCheckOut = Boolean(additionalReservationDraft.checkOut);
+    if (hasCheckIn && !hasCheckOut) {
+      finalText = pre.lang === "es"
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
+        : pre.lang === "pt"
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`;
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (!hasCheckIn && hasCheckOut) {
+      finalText = pre.lang === "es"
+        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
+        : pre.lang === "pt"
+          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
+          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`;
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (hasCheckIn && hasCheckOut) {
+      const missingField = getNextCreateFlowMissingField(additionalReservationDraft);
+      if (missingField) {
+        finalText = pre.lang === "es"
+          ? `Perfecto, mantenemos la reserva actual y abrimos una nueva. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
+          : pre.lang === "pt"
+            ? `Perfeito, mantemos a reserva atual e abrimos uma nova. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
+            : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`;
+        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const availabilityResult = await runAvailabilityCheck(
+        pre,
+        additionalReservationDraft,
+        additionalReservationDraft.checkIn!,
+        additionalReservationDraft.checkOut!,
+        { persistConvState: false }
+      );
+      nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
+      finalText = availabilityResult.finalText;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationHistory: preservedHistory,
+        reservationSlots: availabilityResult.nextSlots as any,
+        lastProposal: {
+          text: availabilityResult.finalText,
+          available: !availabilityResult.needsHandoff,
+        },
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext("quoted"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: availabilityResult.needsHandoff ? "followup" : "quote",
+        conversationStage: availabilityResult.needsHandoff ? pre.st?.conversationStage : "reservation_quoted",
+        pendingAvailabilityVerification: null,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      return {
+        finalText,
+        nextCategory: "reservation",
+        nextSlots,
+        needsSupervision: needsSupervision || availabilityResult.needsHandoff,
+        graphResult,
+      };
+    }
+
+    finalText = pre.lang === "es"
+      ? "Perfecto, mantenemos la reserva actual y abrimos una nueva. Decime las fechas de check-in y check-out para esta otra reserva."
+      : pre.lang === "pt"
+        ? "Perfeito, mantemos a reserva atual e abrimos uma nova. Me diga as datas de check-in e check-out desta outra reserva."
+        : "Perfect, we will keep the current booking and open a new one. Please share the check-in and check-out dates for this additional booking.";
+    return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+  }
   const availabilityInquiryActive =
     !hasConfirmedBookingContext &&
     isAvailabilityInquiryActive(pre) &&
@@ -6604,23 +6719,43 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   const currentFocus = getConversationFocus(pre.st);
   const modifyExecutionActive = isModifyExecutionActive(pre) && !createOverridesModify;
-  const activeCreateFlow =
-    !effectiveSnapshotQueryKind &&
-    !modifyContinuityActive &&
-    !hasConfirmedBookingContext &&
-    (looksExplicitNewReservation ||
-      currentFocus?.subFlow === "create" ||
-      pre.st?.activeFlow === "reservation" ||
-      pre.st?.desiredAction === "create" ||
-      pre.prevCategory === "reservation");
-  const quoteGatedCreateFlow =
-    !effectiveSnapshotQueryKind &&
-    !modifyContinuityActive &&
-    !hasConfirmedBookingContext &&
+  const additionalReservationCreateFlow =
+    hasConfirmedBookingContext &&
     (
       looksExplicitNewReservation ||
       currentFocus?.subFlow === "create" ||
+      pre.st?.activeFlow === "reservation" ||
       pre.st?.desiredAction === "create"
+    );
+  const activeCreateFlow =
+    !effectiveSnapshotQueryKind &&
+    !modifyContinuityActive &&
+    (
+      additionalReservationCreateFlow ||
+      (
+        !hasConfirmedBookingContext &&
+        (
+          looksExplicitNewReservation ||
+          currentFocus?.subFlow === "create" ||
+          pre.st?.activeFlow === "reservation" ||
+          pre.st?.desiredAction === "create" ||
+          pre.prevCategory === "reservation"
+        )
+      )
+    );
+  const quoteGatedCreateFlow =
+    !effectiveSnapshotQueryKind &&
+    !modifyContinuityActive &&
+    (
+      additionalReservationCreateFlow ||
+      (
+        !hasConfirmedBookingContext &&
+        (
+          looksExplicitNewReservation ||
+          currentFocus?.subFlow === "create" ||
+          pre.st?.desiredAction === "create"
+        )
+      )
     );
   const createDraftConsistency =
     activeCreateFlow || quoteGatedCreateFlow || looksExplicitNewReservation
@@ -6658,7 +6793,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (hasConversationalGuestName || hasCreateDraftGuestName) &&
     createQuoteTurnEligible &&
     !modifyExecutionActive &&
-    !hasConfirmedBookingContext &&
+    (!hasConfirmedBookingContext || additionalReservationCreateFlow) &&
     !pendingCreateProposal &&
     !nextCreateMissingField &&
     isCreateStateReadyForQuote(createDraftConsistency.sanitizedSlots)
@@ -7712,100 +7847,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";
       return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
     }
-  }
-  if (wantsAdditionalReservation(userTxtRaw, pre.st)) {
-    const freshTurnSlots = toStrictSlots(extractSlotsFromText(String(pre.msg.content || ""), pre.lang));
-    const additionalReservationDraft = validateCreateDraftConsistency(pre.lang, freshTurnSlots).sanitizedSlots;
-    nextSlots = { ...additionalReservationDraft };
-    const preservedHistory = mergeReservationHistory(
-      (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
-      (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
-    );
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationHistory: preservedHistory,
-      reservationSlots: additionalReservationDraft as any,
-      lastProposal: null,
-      pendingAvailabilityVerification: null,
-      selectedReservationTarget: null,
-      modifyState: null,
-      conversationFocus: buildConversationFocus("create"),
-      activeReservationContext: buildDraftReservationContext("collecting"),
-      activeFlow: "reservation",
-      desiredAction: "create",
-      salesStage: "qualify",
-      lastCategory: "reservation",
-      updatedBy: "ai",
-    } as any);
-
-    const hasCheckIn = Boolean(additionalReservationDraft.checkIn);
-    const hasCheckOut = Boolean(additionalReservationDraft.checkOut);
-    if (hasCheckIn && !hasCheckOut) {
-      finalText = pre.lang === "es"
-        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
-        : pre.lang === "pt"
-          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`
-          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut", "create")}`;
-      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
-    }
-    if (!hasCheckIn && hasCheckOut) {
-      finalText = pre.lang === "es"
-        ? `Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
-        : pre.lang === "pt"
-          ? `Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`
-          : `Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}`;
-      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
-    }
-    if (hasCheckIn && hasCheckOut) {
-      const missingField = getNextCreateFlowMissingField(additionalReservationDraft);
-      if (missingField) {
-        finalText = pre.lang === "es"
-          ? `Perfecto, mantenemos la reserva actual y abrimos una nueva. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
-          : pre.lang === "pt"
-            ? `Perfeito, mantemos a reserva atual e abrimos uma nova. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`
-            : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`;
-        return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
-      }
-      const availabilityResult = await runAvailabilityCheck(
-        pre,
-        additionalReservationDraft,
-        additionalReservationDraft.checkIn!,
-        additionalReservationDraft.checkOut!,
-        { persistConvState: false }
-      );
-      nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
-      finalText = availabilityResult.finalText;
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        reservationHistory: preservedHistory,
-        reservationSlots: availabilityResult.nextSlots as any,
-        lastProposal: {
-          text: availabilityResult.finalText,
-          available: !availabilityResult.needsHandoff,
-        },
-        conversationFocus: buildConversationFocus("create"),
-        activeReservationContext: buildDraftReservationContext("quoted"),
-        activeFlow: "reservation",
-        desiredAction: "create",
-        salesStage: availabilityResult.needsHandoff ? "followup" : "quote",
-        conversationStage: availabilityResult.needsHandoff ? pre.st?.conversationStage : "reservation_quoted",
-        pendingAvailabilityVerification: null,
-        lastCategory: "reservation",
-        updatedBy: "ai",
-      } as any);
-      return {
-        finalText,
-        nextCategory: "reservation",
-        nextSlots,
-        needsSupervision: needsSupervision || availabilityResult.needsHandoff,
-        graphResult,
-      };
-    }
-
-    finalText = pre.lang === "es"
-      ? "Perfecto, mantenemos la reserva actual y abrimos una nueva. Decime las fechas de check-in y check-out para esta otra reserva."
-      : pre.lang === "pt"
-        ? "Perfeito, mantemos a reserva atual e abrimos uma nova. Me diga as datas de check-in e check-out desta outra reserva."
-        : "Perfect, we will keep the current booking and open a new one. Please share the check-in and check-out dates for this additional booking.";
-    return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
   }
   if (
     activeCreateFlow &&
