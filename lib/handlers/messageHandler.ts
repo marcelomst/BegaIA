@@ -1193,7 +1193,7 @@ function buildFocusContinuationPrompt(
       ? buildModifyFieldPrompt(pre.lang, activeField)
       : buildModifyOptionsMenu(pre.lang, {
         ...menuSlots,
-      } as ReservationSlotsStrict);
+      } as ReservationSlotsStrict, canonicalTargetId);
     return pre.lang === "es"
       ? `Para seguir con la modificación, ${prompt.charAt(0).toLowerCase()}${prompt.slice(1)}`
       : pre.lang === "pt"
@@ -5380,7 +5380,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         );
       }
       await updateConversationState(pre.msg.hotelId, pre.conversationId, modifyMenuPatch as any);
-      finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
+      finalText = buildModifyOptionsMenu(pre.lang, knownSlots, resolvedFastReservationTarget?.reservationId);
       return { finalText, nextCategory: "modify_reservation", nextSlots: knownSlots, needsSupervision, graphResult: null };
     }
   } catch { /* noop */ }
@@ -6008,7 +6008,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       reservationListSource.reservations,
       reservationListSource.scope
     );
+    const persistedListHistory = reservationListSource.reservations.map((item) => ({
+      reservationId: item.reservationId,
+      status: item.status,
+      createdAt: item.createdAt,
+      channel: item.channel,
+      guestName: item.guestName,
+      roomType: item.roomType,
+      checkIn: item.checkIn,
+      checkOut: item.checkOut,
+      numGuests: item.numGuests,
+    })) as LastReservation[];
+    const persistedLastReservation =
+      persistedListHistory.at(-1) ||
+      (shouldPreserveLastReservationRecord(persistedListHistory, pre.st?.lastReservation)
+        ? pre.st?.lastReservation
+        : null);
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      reservationHistory: persistedListHistory,
+      lastReservation: persistedLastReservation,
       selectedReservationTarget: null,
       modifyState: null,
       conversationFocus: null,
@@ -6122,14 +6140,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!hasImmediateModifyValue) {
-      finalText = buildModifyOptionsMenu(pre.lang, {
+      const modifyKnownSlots = {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
         roomType: reservationRoomType || target.roomType,
         numGuests: reservationGuests || target.numGuests,
         checkIn: reservationCheckIn || target.checkIn,
         checkOut: reservationCheckOut || target.checkOut,
-      } as ReservationSlotsStrict);
+      } as ReservationSlotsStrict;
+      finalText = buildModifyOptionsMenu(pre.lang, modifyKnownSlots, target.reservationId);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
   }
@@ -6163,14 +6182,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "modify_reservation",
       updatedBy: "ai",
     } as any);
-    finalText = buildModifyOptionsMenu(pre.lang, {
+    const modifyKnownSlots = {
       ...(pre.st?.reservationSlots || {}),
       guestName: target?.guestName,
       roomType: target?.roomType,
       numGuests: target?.numGuests,
       checkIn: target?.checkIn,
       checkOut: target?.checkOut,
-    } as ReservationSlotsStrict);
+    } as ReservationSlotsStrict;
+    finalText = buildModifyOptionsMenu(pre.lang, modifyKnownSlots, target?.reservationId);
     return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
   }
   if (
@@ -8932,7 +8952,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         nextSlots = knownSlots;
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
-      finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
+      finalText = buildModifyOptionsMenu(pre.lang, knownSlots, resolvedModifyTarget?.reservationId);
       nextSlots = knownSlots;
     }
   }
@@ -8979,7 +8999,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           updatedBy: "ai",
         } as any);
       }
-      finalText = buildModifyOptionsMenu(pre.lang, knownSlots);
+      finalText = buildModifyOptionsMenu(pre.lang, knownSlots, resolvedModifyTarget?.reservationId);
       debugLog("[modify-menu] emitted options", { knownSlots });
       // No interrumpimos: permitimos que el resto del flujo siga si añade más detalles
     }
@@ -9912,41 +9932,95 @@ function wantsGenericModify(text: string, lang: "es" | "en" | "pt"): boolean {
   return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+(?:my\s+)?booking|\s+reservation|$)/i.test(t);
 }
 
-function buildModifyOptionsMenu(lang: "es" | "en" | "pt", slots: ReservationSlotsStrict): string {
+function buildModifyOptionsMenu(
+  lang: "es" | "en" | "pt",
+  slots: ReservationSlotsStrict,
+  reservationId?: string
+): string {
   const hasDates = Boolean(slots.checkIn && slots.checkOut);
+  const selectionIntro = reservationId
+    ? buildModifyReservationSelectionIntro(lang, {
+      kind: "reservation",
+      reservationId,
+      guestName: slots.guestName,
+      roomType: slots.roomType,
+      numGuests: slots.numGuests,
+      checkIn: slots.checkIn,
+      checkOut: slots.checkOut,
+      source: "history",
+    })
+    : "";
   if (lang === "es") {
     const header = hasDates
       ? "Podemos modificar tu reserva confirmada. ¿Qué te gustaría cambiar?"
       : "¿Qué te gustaría cambiar de tu reserva?";
     return [
+      selectionIntro,
       header,
       "- Fechas (check-in y check-out)",
       "- Tipo de habitación",
       "- Cantidad de huéspedes",
       "Respondé: 'cambiar fechas', 'cambiar habitación' o 'cambiar huéspedes'.",
-    ].join("\n");
+    ].filter(Boolean).join("\n");
   }
   if (lang === "pt") {
     const header = hasDates
       ? "Podemos modificar sua reserva confirmada. O que você deseja alterar?"
       : "O que você deseja alterar na sua reserva?";
     return [
+      selectionIntro,
       header,
       "- Datas (check-in e check-out)",
       "- Tipo de quarto",
       "- Quantidade de hóspedes",
       "Responda: 'alterar datas', 'alterar quarto' ou 'alterar hóspedes'.",
-    ].join("\n");
+    ].filter(Boolean).join("\n");
   }
   const header = hasDates
     ? "We can modify your confirmed booking. What would you like to change?"
     : "What would you like to change in your booking?";
   return [
+    selectionIntro,
     header,
     "- Dates (check-in and check-out)",
     "- Room type",
     "- Number of guests",
     "Reply: 'change dates', 'change room', or 'change guests'.",
+  ].filter(Boolean).join("\n");
+}
+
+function buildModifyReservationSelectionIntro(
+  lang: "es" | "en" | "pt",
+  target: ReservationReferenceTarget | null | undefined
+): string {
+  if (!target?.reservationId) return "";
+  const roomType = target.roomType ? localizeRoomType(target.roomType, lang) : undefined;
+  const checkIn = isoToDDMMYYYY(target.checkIn) || target.checkIn || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
+  const checkOut = isoToDDMMYYYY(target.checkOut) || target.checkOut || (lang === "pt" ? "sem data" : lang === "en" ? "no date" : "sin fecha");
+  const statusLabel =
+    target.reservationStatus === "cancelled"
+      ? (lang === "pt" ? "cancelada" : lang === "en" ? "cancelled" : "cancelada")
+      : target.reservationStatus === "error"
+        ? (lang === "pt" ? "com erro" : lang === "en" ? "error" : "con error")
+        : (lang === "pt" ? "ativa" : lang === "en" ? "active" : "activa");
+  if (lang === "pt") {
+    return [
+      "Ok, vamos alterar esta reserva:",
+      `${target.reservationId} · ${statusLabel}${target.guestName ? ` · em nome de ${target.guestName}` : ""}${roomType ? ` · quarto: ${roomType}` : ""} · ${checkIn} → ${checkOut}${target.numGuests ? ` · hóspedes: ${target.numGuests}` : ""}.`,
+      "",
+    ].join("\n");
+  }
+  if (lang === "en") {
+    return [
+      "Ok, we will modify this booking:",
+      `${target.reservationId} · ${statusLabel}${target.guestName ? ` · under ${target.guestName}` : ""}${roomType ? ` · room: ${roomType}` : ""} · ${checkIn} → ${checkOut}${target.numGuests ? ` · guests: ${target.numGuests}` : ""}.`,
+      "",
+    ].join("\n");
+  }
+  return [
+    "Ok, vamos a modificar esta reserva:",
+    `${target.reservationId} · ${statusLabel}${target.guestName ? ` · a nombre de ${target.guestName}` : ""}${roomType ? ` · habitación: ${roomType}` : ""} · ${checkIn} → ${checkOut}${target.numGuests ? ` · huéspedes: ${target.numGuests}` : ""}.`,
+    "",
   ].join("\n");
 }
 
