@@ -86,7 +86,7 @@ export async function handleChannelMessage(input: {
     { getMessagesByConversationService },
     { detectLanguage },
     { resolveGuestIdentity },
-    { findActiveConversationByGuestId },
+    conversationsDb,
   ] =
     await Promise.all([
       import("@/lib/handlers/messageHandler"),
@@ -118,7 +118,7 @@ export async function handleChannelMessage(input: {
   const guestId = normText(resolvedIdentity.guestId, 120) || rawGuestId;
   let conversationId = explicitConversationId;
   if (!conversationId && guestId) {
-    const existingConversation = await findActiveConversationByGuestId({
+    const existingConversation = await conversationsDb.findActiveConversationByGuestId({
       hotelId,
       guestId,
       channel,
@@ -180,6 +180,36 @@ export async function handleChannelMessage(input: {
     opts.sendReply = (reply: string) => adapter.sendReply({ hotelId, conversationId, channel }, reply);
   }
 
+  async function persistConversationBinding() {
+    const getOrCreateConversation =
+      "getOrCreateConversation" in conversationsDb ? (conversationsDb as any).getOrCreateConversation : undefined;
+    const updateConversation =
+      "updateConversation" in conversationsDb ? (conversationsDb as any).updateConversation : undefined;
+
+    if (typeof getOrCreateConversation === "function") {
+      await getOrCreateConversation({
+        conversationId,
+        hotelId,
+        channel,
+        guestId,
+        startedAt: incoming.timestamp,
+        lastUpdatedAt: incoming.timestamp,
+        lang: langResolved,
+        status: "active",
+        subject: "",
+      });
+    }
+
+    if (typeof updateConversation === "function") {
+      await updateConversation(conversationId, {
+        guestId,
+        channel,
+        hotelId,
+        lastUpdatedAt: incoming.timestamp,
+      } as any);
+    }
+  }
+
   if (FAST_ROUTE_MODE) {
     if (sourceMsgId && processedMsgIds.has(sourceMsgId)) {
       return {
@@ -195,8 +225,10 @@ export async function handleChannelMessage(input: {
       };
     }
     processedMsgIds.add(preMessageId);
+    await persistConversationBinding();
   } else {
     await handleIncomingMessage(incoming, opts);
+    await persistConversationBinding();
   }
 
   let responseText: string | undefined;

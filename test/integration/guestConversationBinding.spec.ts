@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createConversation } from "@/lib/db/conversations";
+import { createConversation, getConversationsByGuestId } from "@/lib/db/conversations";
 import { handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 
 const resolveGuestIdentityMock = vi.fn();
@@ -14,8 +14,8 @@ describe("guest conversation binding (integration)", () => {
     resolveGuestIdentityMock.mockResolvedValue({ guestId: "guest-canonical-1" });
   });
 
-  it("reuses active conversation by hotelId + guestId across channels when conversationId is not explicit", async () => {
-    const seeded = await createConversation({
+  it("reuses the active conversation only when it is channel-compatible", async () => {
+    const seededWhatsapp = await createConversation({
       hotelId: "hotel-bind-1",
       channel: "whatsapp",
       lang: "es",
@@ -39,8 +39,27 @@ describe("guest conversation binding (integration)", () => {
       sender: "guest",
     });
 
-    expect(wa.conversationId).toBe(seeded.conversationId);
-    expect(web.conversationId).toBe(seeded.conversationId);
+    const persistedAfterWeb = await getConversationsByGuestId({
+      hotelId: "hotel-bind-1",
+      guestId: "guest-canonical-1",
+    });
+
+    const webFollowup = await handleChannelMessage({
+      hotelId: "hotel-bind-1",
+      channel: "web",
+      query: "seguimos desde web",
+      guestId: "web-def",
+      sender: "guest",
+    });
+
+    expect(wa.conversationId).toBe(seededWhatsapp.conversationId);
+    expect(web.conversationId).not.toBe(seededWhatsapp.conversationId);
+    expect(
+      persistedAfterWeb.some((conversation) =>
+        conversation.channel === "web" && conversation.conversationId === web.conversationId
+      )
+    ).toBe(true);
+    expect(webFollowup.conversationId).toBe(web.conversationId);
   }, 15000);
 
   it("prioritizes explicit conversationId over guest-based binding", async () => {
