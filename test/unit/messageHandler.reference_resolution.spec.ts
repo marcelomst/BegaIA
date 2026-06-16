@@ -1321,6 +1321,98 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
+  it("secuencia roomType y huéspedes cuando el pedido de modify trae múltiples campos sin valores", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-multifield-sequence-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(
+      msg("modificá la primera reserva, tipo de habitación y cantidad de huéspedes", conversationId),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/tipo de habitaci[oó]n|qu[eé] tipo/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+      pendingFields: ["guests"],
+    });
+
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cantidad de hu[eé]spedes/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: [],
+    });
+
+    await handleIncomingMessage(msg("3 personas", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({
+        guestName: "Marcelo Martinez",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+      "web"
+    );
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
+  });
+
+  it("ejecuta modify directo con reservationId cuando el mismo turno trae roomType y huéspedes", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-direct-id-payload-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(
+      msg("modificá RES-ONLY-01 a triple para 3 personas", conversationId),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({
+        guestName: "Marcelo Martinez",
+        roomType: "triple",
+        numGuests: "3",
+        checkIn: "2026-03-28",
+        checkOut: "2026-03-30",
+      }),
+      "web"
+    );
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
+  });
+
+  it("ejecuta modify directo con ordinal cuando el mismo turno trae roomType, huéspedes y fechas", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-direct-ordinal-payload-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(
+      msg("modificá la segunda reserva a triple para 3 personas del 29/03/2026 al 31/03/2026", conversationId),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-NEW-02",
+      expect.objectContaining({
+        guestName: "Marcelo Martinez",
+        roomType: "triple",
+        numGuests: "3",
+        checkIn: "2026-03-29",
+        checkOut: "2026-03-31",
+      }),
+      "web"
+    );
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-new-02/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
+  });
+
   it("persiste subestado de fechas y mantiene continuidad sin volver al menú genérico", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-dates-substate-1";

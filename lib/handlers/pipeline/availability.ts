@@ -490,7 +490,7 @@ export function normalizeReservationIntent(text: string): ReservationIntentNorma
         return { kind: "cancel", executable: true, normalizedText };
     }
 
-    if (/\b(modify|modific(ar|a|alo|ala)?|cambi(ar|a|alo|ala)?|edit(ar|a)?|alter(ar|a)?|change|update)\b/i.test(normalizedText)) {
+    if (/\b(modify|modific(?:ar|a|ame|alo|ala)?|cambi(?:ar|a|ame|alo|ala)?|edit(?:ar|a)?|alter(?:ar|a)?|change|update)\b/i.test(normalizedText)) {
         return { kind: "modify", executable: true, normalizedText };
     }
 
