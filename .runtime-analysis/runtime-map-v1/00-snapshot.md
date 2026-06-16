@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d94c055
-messageHandler_lines: 10387
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v8
+commit_base: 9f472c4
+messageHandler_lines: 10461
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v9
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_d94c05545b5eae0736b7e2756dafb3b39a9aeb74
+analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
 ```
 
 ---
@@ -29,9 +29,8 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
-pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts
-pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+summary: 67 passed
 ```
 
 ---
@@ -48,17 +47,18 @@ safe_person_guestname_followup_commit: 0d9bd70535427cec6db7f2fa95da25e201c284a6
 date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 canonical_guest_snapshot_guest_first_commit: dfaeb4dd358915a6aadb264500d94e2ba065f1e5
 second_create_reset_draft_before_quote_commit: d94c05545b5eae0736b7e2756dafb3b39a9aeb74
+guest_wide_ordinal_modify_reference_commit: 9f472c47a0a63336c6ca7493f43895e070376bcd
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- una segunda reserva explícita sobre contexto confirmado debe abrir draft limpio
-  o cotizar la nueva reserva según el payload del turno
-- no recotizar la reserva previa
-- no responder con `Anoté nuevas fechas`
-- no responder con `posibles diferencias`
-- preservar listados consolidados Email + WhatsApp fuera del fix
+- la lista guest-wide consolidada recién mostrada debe persistirse como fuente
+  referencial inmediata para ordinales posteriores
+- `la segunda reserva` debe resolver contra la misma lista mostrada
+- `la última reserva` debe respetar el orden visible al huésped
+- no responder `Tenés 1 reserva`
+- no responder `No encontré una reserva segunda`
 ```
 
 ---
@@ -66,7 +66,7 @@ second_create_reset_draft_before_quote_commit: d94c05545b5eae0736b7e2756dafb3b39
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`d94c055`.
+`9f472c4`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -83,7 +83,7 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `d94c055`
+1. Snapshot base a commit real `9f472c4`
 2. Rangos top-level recalculados de preLLM / bodyLLM / posLLM / handleIncomingMessage
 3. Evidence summary refrescado
 4. code index refrescado

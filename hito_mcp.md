@@ -10021,3 +10021,65 @@ Impacto:
 - evita recotizar la reserva previa y evita contaminación con copy de
   modify/ACK temporal
 - preserva compatibilidad con listados consolidados Email + WhatsApp
+
+### FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-16  
+Commit: 9f472c47a0a63336c6ca7493f43895e070376bcd
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige la persistencia del listado guest-wide consolidado como contexto
+referencial inmediato para ordinales posteriores de modify, de modo que la
+lista que el bot acaba de mostrar siga siendo la fuente de verdad para
+expresiones como `la segunda reserva` o `la última reserva`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+- cajas relacionadas revisadas: `runtime.messageHandler.persistenceReply`,
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  resumen reportado: `67 passed`
+- validación manual requerida:
+  listar reservas guest-wide consolidadas de múltiples canales
+  luego pedir `quiero modificar la segunda reserva`
+  verificar que resuelva contra la misma lista mostrada
+  verificar que no responda `Tenés 1 reserva`
+  verificar que no responda `No encontré una reserva segunda`
+  luego pedir `quiero modificar la última reserva`
+  verificar que respete el orden mostrado
+  verificar que el menú de modify ancle explícitamente `reservationId`,
+  titular, habitación, fechas y huéspedes
+- cambios no incluidos en el commit:
+  `scripts/wipe-conversations-and-messages.ts`
+
+Impacto:
+
+- reafirma que la lista visible recién mostrada es la fuente de verdad para
+  referencias ordinales inmediatas
+- evita divergencia entre snapshot guest-wide visible y resolución interna de
+  targets para modify
+- preserva el orden mostrado al huésped para ordinales como `segunda` y
+  `última`
+- fortalece el anclaje explícito del target seleccionado en el menú de modify

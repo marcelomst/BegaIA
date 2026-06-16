@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `d94c055`, Guardian confirmó:
+Para el hito `9f472c4`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -56,11 +56,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d94c055
-messageHandler_lines: 10387
+commit_base: 9f472c4
+messageHandler_lines: 10461
 working_tree_status: clean
-analysis_scope: commit_d94c05545b5eae0736b7e2756dafb3b39a9aeb74
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v8
+analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v9
 known_manual_bug: none
 ```
 
@@ -69,17 +69,17 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_quote_gating.spec.ts
-pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts
-pnpm vitest run test/unit/messageHandler.create_execution_integrity.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+summary: 67 passed
 ```
 
 Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un fix de segunda reserva sobre contexto confirmado,
-pero no elimina el riesgo de futuros bugs funcionales fuera de cobertura.
+Este refresh documenta un fix de referencia ordinal de modify sobre snapshot
+guest-wide consolidado, pero no elimina el riesgo de futuros bugs funcionales
+fuera de cobertura.
 ```
 
 ---
@@ -100,7 +100,7 @@ pero no elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 10387
+total_lines: 10461
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -109,7 +109,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`d94c055`.
+`9f472c4`.
 ```
 
 ---
@@ -128,8 +128,8 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | `tryStructuredAnalyze`               | L3462-L3589 |    128 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L3650-L3841 |    192 | high      | Preparación de contexto y estado           |
 | `bodyLLM`                            | L4392-L9547 |   5156 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L10018-L10059 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L10063-L10071 |      9 | high      | Entrypoint público del runtime             |
+| `posLLM`                             | L10092-L10133 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L10137-L10145 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -139,7 +139,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L10063-L10071
+range: L10137-L10145
 lines: 9
 confidence: high
 role: public_entrypoint
@@ -210,7 +210,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L10018-L10059
+range: L10092-L10133
 lines: 42
 confidence: high
 role: post_runtime_verification
