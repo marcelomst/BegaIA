@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9f472c4
-messageHandler_lines: 10461
+commit_base: 23a59cf
+messageHandler_lines: 10983
 working_tree_status: clean
-analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v10
+analysis_scope: commit_23a59cfbf67c8db0b64914e9b6d2b39a310ed857
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v11
 known_manual_bug: none
 ```
 
@@ -56,19 +56,25 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   reviewed:
-    - runtime.messageHandler.preLLM
+    - convState.modify_state
+    - reference_resolution
+    - intent_normalization
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - un follow-up del mismo canal reutiliza el `conversationId` compatible
-      - un canal incompatible no reutiliza la conversación previa del guest canónico
-      - el nuevo hilo del canal compatible queda persistido para el siguiente turno
-      - el `guestId` compartido no autoriza colapso cross-channel arbitrario
-  code_refs_status: fresh
+      - payload inline por `reservationId` ejecuta modify directo
+      - payload inline por ordinal ejecuta modify directo
+      - secuencia multi-field sigue `roomType -> guests -> dates`
+      - la continuidad guiada no cierra tras el primer campo
+      - modify conserva prioridad sobre create en turnos mixtos
+  code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
@@ -149,7 +155,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10461
+        range: L1-L10983
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -167,7 +173,7 @@ boxes:
     parent: runtime.messageHandler
     kind: runtime_stage
     human_summary: >
-      Entrypoint público del runtime conversacional desde handleChannelMessage.
+      Entrypoint público del runtime conversacional.
     responsibilities:
       - recibir entrada normalizada
       - iniciar el flujo interno del runtime
@@ -177,7 +183,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10137-L10145
+        range: L10659-L10983
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -207,7 +213,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3650-L3841
+        range: L3707-L3936
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -242,7 +248,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4392-L9547
+        range: L4449-L10163
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -321,7 +327,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4392-L9547
+        range: L4449-L10163
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -356,7 +362,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4392-L9547
+        range: L4449-L10163
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -812,7 +818,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10092-L10133
+        range: L10614-L10657
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

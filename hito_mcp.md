@@ -10135,3 +10135,61 @@ Impacto:
 - preserva `conversationId` como contexto operativo dependiente del canal
 - evita reutilización arbitraria de una conversación WhatsApp desde Web o Email
 - mantiene continuidad en follow-ups del mismo canal sin tocar `messageHandler.ts`
+
+### FIX-MODIFY-DIRECT-SLOT-PAYLOAD-AND-MULTIFIELD-SEQUENCING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-16  
+Commit: 23a59cfbf67c8db0b64914e9b6d2b39a310ed857
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige el subflujo `modify` para soportar payload directo inline por
+`reservationId` y por ordinal, introducir secuenciación multi-campo
+`roomType -> guests -> dates`, preservar continuidad guiada sin cerrar tras el
+primer campo y mantener prioridad `modify > create` en turnos mixtos.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas relacionadas revisadas:
+  `runtime.messageHandler.persistenceReply`
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+- capas técnicas reforzadas:
+  `convState.modify_state`
+  `reference_resolution`
+  `intent_normalization`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+  resultado reportado: `81 passed`
+  `pnpm test`
+  resultado reportado: `Test Files 161 passed (161) / Tests 810 passed (810)`
+
+Impacto:
+
+- refuerza el contrato de modify separando selección de target, secuenciación de
+  campos y continuidad guiada
+- evita cierres prematuros del subflujo tras el primer campo
+- permite payload inline directo por `reservationId` y por ordinal
+- preserva prioridad `modify > create` cuando el turno mezcla señales

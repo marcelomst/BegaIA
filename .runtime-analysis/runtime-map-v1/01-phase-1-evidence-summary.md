@@ -21,19 +21,19 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9f472c4
-messageHandler_lines: 10461
+commit_base: 23a59cf
+messageHandler_lines: 10983
 working_tree_status: clean
-analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
+analysis_scope: commit_23a59cfbf67c8db0b64914e9b6d2b39a310ed857
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/integration/guestConversationBinding.spec.ts
-    - pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts
-    - pnpm vitest run test/integration/api_chat.test.ts
-    - pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
+  summary: 81 passed
+  full_suite:
     - pnpm test
-  summary: 161 passed / 810 passed
+    - Test Files 161 passed (161)
+    - Tests 810 passed (810)
 known_manual_bug: none
 ```
 
@@ -42,33 +42,38 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   reviewed:
-    - runtime.messageHandler.preLLM
+    - convState.modify_state
+    - reference_resolution
+    - intent_normalization
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - un follow-up WhatsApp reutiliza la conversación WhatsApp ya activa
-      - un follow-up Web no recicla la conversación WhatsApp del mismo guest canónico
-      - el nuevo hilo Web queda persistido y reutilizable en el siguiente turno Web
-      - `guestId` permanece compartido aunque cambie el `conversationId`
-  code_refs_status: fresh
+      - payload inline por `reservationId` ejecuta modify directo
+      - payload inline por ordinal ejecuta modify directo
+      - secuencia multi-field sigue `roomType -> guests -> dates`
+      - la continuidad guiada no cierra tras el primer campo
+      - modify conserva prioridad sobre create en turnos mixtos
+  code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
-  boundary_file_reviewed: lib/pipeline/handleChannelMessage.ts
   current_scan:
-    commit: 9f472c4
-    messageHandler_lines: 10461
+    commit: 23a59cf
+    messageHandler_lines: 10983
     functions:
-      preLLM: L3650-L3841
-      bodyLLM: L4392-L9547
-      posLLM: L10092-L10133
-      handleIncomingMessage: L10137-L10145
+      preLLM: L3707-L3936
+      bodyLLM: L4449-L10163
+      posLLM: L10614-L10657
+      handleIncomingMessage: L10659-L10983
 ```
 
 ---
@@ -77,32 +82,28 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1528-L1565 |     38 | high      |
-| `resolveReservationReference`        | L2003-L2110 |    108 | high      |
-| `detectDominantTurnDomain`           | L2336-L2395 |     60 | high      |
-| `getReservationDomainLockSignal`     | L2620-L2655 |     36 | high      |
-| `shouldUseReservationLocalFallback`  | L2792-L2843 |     52 | high      |
-| `buildReservationLocalFallbackReply` | L2845-L2980 |    136 | high      |
-| `assessReservationDateCoherence`     | L2982-L2995 |     14 | high      |
-| `tryStructuredAnalyze`               | L3462-L3589 |    128 | high      |
-| `preLLM`                             | L3650-L3841 |    192 | high      |
-| `bodyLLM`                            | L4392-L9547 |   5156 | high      |
-| `posLLM`                             | L10092-L10133 |     42 | high      |
-| `handleIncomingMessage`              | L10137-L10145 |      9 | high      |
+| `buildReservationCanonicalState`     | L1585-L1623 |     39 | high      |
+| `resolveReservationReference`        | L2060-L2167 |    108 | high      |
+| `detectDominantTurnDomain`           | L2393-L2452 |     60 | high      |
+| `getReservationDomainLockSignal`     | L2677-L2712 |     36 | high      |
+| `shouldUseReservationLocalFallback`  | L2849-L2900 |     52 | high      |
+| `buildReservationLocalFallbackReply` | L2902-L3037 |    136 | high      |
+| `assessReservationDateCoherence`     | L3039-L3052 |     14 | high      |
+| `tryStructuredAnalyze`               | L3519-L3646 |    128 | high      |
+| `preLLM`                             | L3707-L3936 |    230 | high      |
+| `bodyLLM`                            | L4449-L10163 |   5715 | high      |
+| `posLLM`                             | L10614-L10657 |     44 | high      |
+| `handleIncomingMessage`              | L10659-L10983 |    325 | high      |
 
 ---
 
 ## Observación principal
 
-En este refresh, `messageHandler.ts` conserva sus rangos top-level, pero se
-revalida la frontera pública porque `handleChannelMessage` cambió la política de
-reuse de `conversationId` antes de entregar el turno al runtime principal.
-
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 10461 líneas
-bodyLLM:                5156 líneas
+messageHandler.ts total: 10983 líneas
+bodyLLM:                5715 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -481,7 +482,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L10461
+    range: L1-L10983
     confidence: high
 ```
 
@@ -494,7 +495,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3650-L3841
+    range: L3707-L3936
     confidence: high
 ```
 
@@ -513,7 +514,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4392-L9547
+    range: L4449-L10163
     confidence: high
 ```
 
@@ -532,7 +533,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10092-L10133
+    range: L10614-L10657
     confidence: high
 ```
 
@@ -551,14 +552,14 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10137-L10145
+    range: L10659-L10983
     confidence: high
 ```
 
 Responsabilidad tentativa:
 
 ```text
-Entrada pública al runtime conversacional desde handleChannelMessage.
+Entrada pública al runtime conversacional.
 ```
 
 ---
