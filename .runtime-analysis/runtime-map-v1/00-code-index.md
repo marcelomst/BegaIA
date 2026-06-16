@@ -36,17 +36,18 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `9f472c4`, Guardian confirmó:
+Para el hito `61201fb`, Guardian confirmó:
 
 ```yaml
-code_refs_status: needs_refresh
+code_refs_status: fresh
 runtime_map_refresh_required: true
 ```
 
 Por eso:
 
-- los rangos top-level recalculados en este archivo quedan actualizados
-- las cajas internas tocadas/revisadas sin rangos finos nuevos deben seguir tratándose como `needs_refresh` en `00-box-index.md`
+- los rangos top-level de `messageHandler.ts` siguen vigentes
+- se registra además la revisión de frontera en `handleChannelMessage`
+- la semántica de entrada del runtime queda refrescada sin redefinir arquitectura
 
 ---
 
@@ -59,8 +60,8 @@ base_file: lib/handlers/messageHandler.ts
 commit_base: 9f472c4
 messageHandler_lines: 10461
 working_tree_status: clean
-analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v9
+analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v10
 known_manual_bug: none
 ```
 
@@ -69,17 +70,21 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-summary: 67 passed
+pnpm vitest run test/integration/guestConversationBinding.spec.ts
+pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts
+pnpm vitest run test/integration/api_chat.test.ts
+pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts
+pnpm test
+summary: 161 passed / 810 passed
 ```
 
 Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un fix de referencia ordinal de modify sobre snapshot
-guest-wide consolidado, pero no elimina el riesgo de futuros bugs funcionales
-fuera de cobertura.
+Este refresh documenta un fix de binding conversacional por canal antes del
+runtime principal, pero no elimina el riesgo de futuros bugs funcionales fuera
+de cobertura.
 ```
 
 ---
@@ -109,7 +114,8 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`9f472c4`.
+`61201fb`, aunque el cambio funcional auditado ocurre en la frontera previa
+`handleChannelMessage`.
 ```
 
 ---
@@ -150,6 +156,8 @@ Lectura:
 ```text
 Puerta pública hacia el runtime conversacional.
 Aunque es pequeño, es importante como frontera de entrada.
+El hito `61201fb` vuelve a validar esta frontera porque `handleChannelMessage`
+ajusta qué `conversationId` llega como contexto operativo según el canal.
 ```
 
 ---

@@ -46,8 +46,8 @@ base_file: lib/handlers/messageHandler.ts
 commit_base: 9f472c4
 messageHandler_lines: 10461
 working_tree_status: clean
-analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v9
+analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v10
 known_manual_bug: none
 ```
 
@@ -56,24 +56,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.handleIncomingMessage
   reviewed:
-    - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.preLLM
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la lista guest-wide recién mostrada queda persistida como fuente referencial
-      - `la segunda reserva` resuelve contra la misma lista mostrada
-      - no responde `Tenés 1 reserva`
-      - no responde `No encontré una reserva segunda`
-      - el menú de modify ancla `reservationId`, titular, habitación, fechas y huéspedes
-  code_refs_status: needs_refresh
+      - un follow-up del mismo canal reutiliza el `conversationId` compatible
+      - un canal incompatible no reutiliza la conversación previa del guest canónico
+      - el nuevo hilo del canal compatible queda persistido para el siguiente turno
+      - el `guestId` compartido no autoriza colapso cross-channel arbitrario
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 ```

@@ -24,12 +24,16 @@ base_file: lib/handlers/messageHandler.ts
 commit_base: 9f472c4
 messageHandler_lines: 10461
 working_tree_status: clean
-analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
+analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-  summary: 67 passed
+    - pnpm vitest run test/integration/guestConversationBinding.spec.ts
+    - pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts
+    - pnpm vitest run test/integration/api_chat.test.ts
+    - pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts
+    - pnpm test
+  summary: 161 passed / 810 passed
 known_manual_bug: none
 ```
 
@@ -38,29 +42,25 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.handleIncomingMessage
   reviewed:
-    - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.preLLM
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la lista guest-wide recién mostrada queda persistida como fuente referencial
-      - `la segunda reserva` resuelve contra la misma lista mostrada
-      - no responde `Tenés 1 reserva`
-      - no responde `No encontré una reserva segunda`
-      - el menú de modify ancla `reservationId`, titular, habitación, fechas y huéspedes
-  code_refs_status: needs_refresh
+      - un follow-up WhatsApp reutiliza la conversación WhatsApp ya activa
+      - un follow-up Web no recicla la conversación WhatsApp del mismo guest canónico
+      - el nuevo hilo Web queda persistido y reutilizable en el siguiente turno Web
+      - `guestId` permanece compartido aunque cambie el `conversationId`
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
+  boundary_file_reviewed: lib/pipeline/handleChannelMessage.ts
   current_scan:
     commit: 9f472c4
     messageHandler_lines: 10461
@@ -93,6 +93,10 @@ runtime_map_refresh:
 ---
 
 ## Observación principal
+
+En este refresh, `messageHandler.ts` conserva sus rangos top-level, pero se
+revalida la frontera pública porque `handleChannelMessage` cambió la política de
+reuse de `conversationId` antes de entregar el turno al runtime principal.
 
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 

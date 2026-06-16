@@ -10,10 +10,10 @@ repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 9f472c4
 messageHandler_lines: 10461
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v9
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v10
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
+analysis_scope: commit_61201fb27a168dba4800cb35ac0feadb3f399192
 ```
 
 ---
@@ -21,7 +21,7 @@ analysis_scope: commit_9f472c47a0a63336c6ca7493f43895e070376bcd
 ## Working tree al momento del snapshot
 
 ```text
-clean
+refresh_documental_sobre_hito_runtime_boundary
 ```
 
 ---
@@ -29,8 +29,12 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-summary: 67 passed
+pnpm vitest run test/integration/guestConversationBinding.spec.ts
+pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts
+pnpm vitest run test/integration/api_chat.test.ts
+pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts
+pnpm test
+summary: 161 passed / 810 passed
 ```
 
 ---
@@ -48,6 +52,7 @@ date_followup_precedence_commit: 8a015c5d74752a1ef3e14d31fd5ede8aef4546fc
 canonical_guest_snapshot_guest_first_commit: dfaeb4dd358915a6aadb264500d94e2ba065f1e5
 second_create_reset_draft_before_quote_commit: d94c05545b5eae0736b7e2756dafb3b39a9aeb74
 guest_wide_ordinal_modify_reference_commit: 9f472c47a0a63336c6ca7493f43895e070376bcd
+guest_conversation_binding_cross_channel_reuse_commit: 61201fb27a168dba4800cb35ac0feadb3f399192
 ```
 
 ### Resultado esperado ahora preservado
@@ -66,7 +71,7 @@ guest_wide_ordinal_modify_reference_commit: 9f472c47a0a63336c6ca7493f43895e07037
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`9f472c4`.
+`61201fb`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -78,14 +83,28 @@ code_refs = recalculables
 
 ---
 
+## Seguimiento de frontera runtime
+
+Este snapshot ahora también registra el hito `61201fb`, que no modifica
+`messageHandler.ts` directamente pero sí ajusta la política de binding previa al
+entrypoint público `handleIncomingMessage` desde `handleChannelMessage`.
+
+Resultado esperado adicional:
+
+```text
+- un follow-up del mismo canal debe reutilizar el `conversationId` compatible
+- un follow-up por canal incompatible no debe reciclar la conversación anterior
+- `guestId` permanece canónico aunque cambie el hilo operativo
+```
+
 ## Próximo paso
 
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `9f472c4`
-2. Rangos top-level recalculados de preLLM / bodyLLM / posLLM / handleIncomingMessage
+1. Snapshot base a commit real `61201fb`
+2. Frontera `handleChannelMessage` revisada contra `handleIncomingMessage`
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado con `needs_refresh` en cajas internas sin nuevos rangos finos
+5. box index machine-friendly refrescado para el contrato de reuse por canal
 ```

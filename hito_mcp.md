@@ -10083,3 +10083,55 @@ Impacto:
 - preserva el orden mostrado al huésped para ordinales como `segunda` y
   `última`
 - fortalece el anclaje explícito del target seleccionado en el menú de modify
+
+### FIX-GUEST-CONVERSATION-BINDING-CROSS-CHANNEL-REUSE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-16  
+Commit: 61201fb27a168dba4800cb35ac0feadb3f399192
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige el binding conversacional entre `guestId` canónico y `conversationId`
+operativo al cruzar canales, para que los follow-ups del mismo canal reutilicen
+la conversación correcta y los canales incompatibles creen un nuevo hilo sin
+colapsar contexto cross-channel.
+
+Archivos afectados:
+
+- `lib/pipeline/handleChannelMessage.ts`
+- `test/integration/guestConversationBinding.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- caja tocada: `runtime.messageHandler.handleIncomingMessage`
+- caja relacionada revisada: `runtime.messageHandler.preLLM`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/integration/guestConversationBinding.spec.ts`
+  `pnpm vitest run test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+  `pnpm vitest run test/integration/api_chat.test.ts`
+  `pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts`
+  `pnpm test`
+- working tree fuera de alcance al momento del commit:
+  `lib/db/convState.ts`
+  `lib/handlers/messageHandler.ts`
+  `lib/handlers/pipeline/availability.ts`
+  `test/unit/messageHandler.reference_resolution.spec.ts`
+
+Impacto:
+
+- reafirma que `guestId` es identidad canónica compartida entre canales
+- preserva `conversationId` como contexto operativo dependiente del canal
+- evita reutilización arbitraria de una conversación WhatsApp desde Web o Email
+- mantiene continuidad en follow-ups del mismo canal sin tocar `messageHandler.ts`
