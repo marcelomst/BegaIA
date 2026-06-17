@@ -10307,3 +10307,58 @@ Impacto:
 - preserva el orden textual pedido por el usuario en campos compuestos
 - evita perder guards de capacidad durante el subflujo de modificación
 - alinea el idioma de continuidad y snapshot con el estado conversacional persistido
+
+### FIX-GUEST-RESERVATION-LIST-INTERLOCUTOR-COPY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-17  
+Commit: 7138847c52ce2d9c94decc3f2beba71e7a2f371c
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Mejora el copy conversacional del listado guest-wide de reservas para que el
+header y el empty-state usen el vocativo del interlocutor derivado de
+`canonicalGuest` o `conversationalDisplayName`, preservando `reservation.guestName`
+solo como dato del titular en las líneas de detalle.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- cajas relacionadas revisadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+  `runtime.messageHandler.persistenceReply`
+- capas técnicas reforzadas:
+  `conversational_display_name`
+  `guest_reservation_list`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  resultado reportado: `74 passed`
+  `pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+  resultado reportado: `11 passed`
+  `pnpm test`
+  resultado reportado: `Test Files 161 passed (161) / Tests 814 passed (814)`
+
+Impacto:
+
+- refuerza la separación canónica entre interlocutor y titular de reserva
+- evita vocativos técnicos o impersonales como "este huésped" en listados guest-wide
+- preserva `reservation.guestName` únicamente como dato del holder por reserva
+- mejora snapshot/listado sin abrir arquitectura paralela ni alterar contratos de canal
