@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 23a59cf
-messageHandler_lines: 10983
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v11
+commit_base: b888f73
+messageHandler_lines: 11007
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v12
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_23a59cfbf67c8db0b64914e9b6d2b39a310ed857
+analysis_scope: commit_b888f73f299137cfda97fa628a95b6ce5f86a959
 ```
 
 ---
@@ -29,11 +29,13 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
-result: 81 passed
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+result: 71 passed
+pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
+result: 11 passed
 pnpm test
 Test Files 161 passed (161)
-Tests 810 passed (810)
+Tests 811 passed (811)
 ```
 
 ---
@@ -53,17 +55,16 @@ second_create_reset_draft_before_quote_commit: d94c05545b5eae0736b7e2756dafb3b39
 guest_wide_ordinal_modify_reference_commit: 9f472c47a0a63336c6ca7493f43895e070376bcd
 guest_conversation_binding_cross_channel_reuse_commit: 61201fb27a168dba4800cb35ac0feadb3f399192
 modify_direct_slot_payload_and_multifield_sequencing_commit: 23a59cfbf67c8db0b64914e9b6d2b39a310ed857
+reservation_snapshot_language_stickiness_after_modify_commit: b888f73f299137cfda97fa628a95b6ce5f86a959
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- `modify` debe aceptar payload inline por `reservationId`
-- `modify` debe aceptar payload inline por ordinal
-- la continuidad guiada debe pedir `roomType -> guests -> dates` sin cerrar tras
-  el primer campo
-- no debe perder prioridad `modify > create` en turnos mixtos
-- el target seleccionado debe seguir anclado durante la secuencia multi-campo
+- el snapshot posterior a `modify` debe respetar `reservationSlots.locale` si existe
+- si no hay `locale` persistido, debe usar `hotelConfig.defaultLanguage`
+- `detectedLanguage` ambiguo del turno no debe contaminar el resumen final
+- el hardening debe quedar acotado a los call sites de `buildReservationSnapshotAnswer`
 ```
 
 ---
@@ -71,7 +72,7 @@ modify_direct_slot_payload_and_multifield_sequencing_commit: 23a59cfbf67c8db0b64
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`23a59cf`.
+`b888f73`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -88,9 +89,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `23a59cf`
-2. Corredor `modify` refrescado con payload inline y secuenciación multi-campo
+1. Snapshot base a commit real `b888f73`
+2. Policy de idioma refrescada para snapshot posterior a `modify`
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para continuidad guiada y prioridad modify
+5. box index machine-friendly refrescado para stickiness idiomática en snapshot
 ```

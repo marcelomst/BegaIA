@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 23a59cf
-messageHandler_lines: 10983
+commit_base: b888f73
+messageHandler_lines: 11007
 working_tree_status: clean
-analysis_scope: commit_23a59cfbf67c8db0b64914e9b6d2b39a310ed857
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v11
+analysis_scope: commit_b888f73f299137cfda97fa628a95b6ce5f86a959
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v12
 known_manual_bug: none
 ```
 
@@ -56,24 +56,22 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   reviewed:
-    - convState.modify_state
-    - reference_resolution
-    - intent_normalization
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - language_policy
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - payload inline por `reservationId` ejecuta modify directo
-      - payload inline por ordinal ejecuta modify directo
-      - secuencia multi-field sigue `roomType -> guests -> dates`
-      - la continuidad guiada no cierra tras el primer campo
-      - modify conserva prioridad sobre create en turnos mixtos
+      - el snapshot posterior a `modify` prioriza `reservationSlots.locale`
+      - en ausencia de locale persistido, cae a `hotelConfig.defaultLanguage`
+      - `detectedLanguage` ambiguo no pisa el idioma del resumen
+      - el hardening queda acotado a call sites de `buildReservationSnapshotAnswer`
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -155,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L10983
+        range: L1-L11007
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -183,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10659-L10983
+        range: L10683-L11007
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -213,7 +211,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3707-L3936
+        range: L3728-L3957
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -248,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4449-L10163
+        range: L4470-L10187
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -327,7 +325,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4449-L10163
+        range: L4470-L10187
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -362,7 +360,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4449-L10163
+        range: L4470-L10187
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -818,7 +816,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10614-L10657
+        range: L10638-L10681
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

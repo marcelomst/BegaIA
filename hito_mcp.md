@@ -10193,3 +10193,58 @@ Impacto:
 - evita cierres prematuros del subflujo tras el primer campo
 - permite payload inline directo por `reservationId` y por ordinal
 - preserva prioridad `modify > create` cuando el turno mezcla señales
+
+### FIX-RESERVATION-SNAPSHOT-LANGUAGE-STICKINESS-AFTER-MODIFY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-17  
+Commit: b888f73f299137cfda97fa628a95b6ce5f86a959
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige la persistencia de idioma en el snapshot/resumen posterior a `modify`
+para priorizar `reservationSlots.locale` y `hotelConfig.defaultLanguage` sobre
+`detectedLanguage` ambiguo del turno actual, endureciendo la policy solo en los
+call sites de `buildReservationSnapshotAnswer`.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+- cajas relacionadas revisadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+  `runtime.messageHandler.persistenceReply`
+- capa semántica reforzada:
+  `language_policy`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  resultado reportado: `71 passed`
+  `pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+  resultado reportado: `11 passed`
+  `pnpm test`
+  resultado reportado: `Test Files 161 passed (161) / Tests 811 passed (811)`
+
+Impacto:
+
+- preserva la stickiness idiomática del contexto de reserva luego de `modify`
+- evita contaminar el resumen final con `detectedLanguage` ambiguo del turno
+- mantiene la política canónica de idioma anclada al estado persistido del huésped
+- refuerza snapshot y modify sin abrir arquitectura paralela ni tocar delivery de canal
