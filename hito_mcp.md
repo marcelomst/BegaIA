@@ -10408,3 +10408,44 @@ Impacto:
 - limita el reconocimiento a contexto explícito de `persona(s)` o `huésped(es)`
 - preserva el caso previo con números directos sin abrir regresiones de parser
 - evita repreguntas de huéspedes cuando el correo ya contiene la cantidad en texto
+
+### FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-17  
+Commit: 4bfc49c8591d9b2abf2e1152c70bd424a5604089
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Normaliza el markdown saliente del transporte WhatsApp/Twilio para eliminar
+bold roto o desbalanceado antes del envío, evitando secuencias `**` crudas y
+preservando el contenido completo de confirmación de reserva.
+
+Archivos afectados:
+
+- `lib/channels/whatsapp/twilioSendMessage.ts`
+- `test/unit/twilioSendMessage.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- `runtime_map.refresh_required: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/twilioSendMessage.spec.ts`
+  resultado reportado: `3 passed`
+  `pnpm vitest run test/api.webhooks.whatsapp.twilio.route.spec.ts`
+  resultado reportado: `12 passed`
+- validación manual:
+  requerida y reportada como `pass`
+  aclaración: el bug real era markdown roto/desbalanceado, no ausencia total de markdown
+
+Impacto:
+
+- refuerza la salida canónica del canal WhatsApp/Twilio antes del envío
+- evita asteriscos desbalanceados y secuencias `**` crudas en confirmaciones
+- preserva el contenido completo del mensaje sin alterar la lógica de reservas
+- mantiene el fix acotado al transporte saliente y su test unitario
