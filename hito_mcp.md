@@ -10362,3 +10362,49 @@ Impacto:
 - evita vocativos técnicos o impersonales como "este huésped" en listados guest-wide
 - preserva `reservation.guestName` únicamente como dato del holder por reserva
 - mejora snapshot/listado sin abrir arquitectura paralela ni alterar contratos de canal
+
+### FIX-EMAIL-CREATE-SPELLED-NUMBER-GUESTS-EXTRACTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-17  
+Commit: 6c1b5784099ca0423d9a95f12523c2b1fcf08044
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige la extracción de `numGuests` escrito en palabras dentro de `create`,
+agregando soporte para `una/dos/tres/cuatro/cinco persona(s)/huesped(es)` en
+español y cubriendo parser + `create sequencing` para evitar repreguntas de
+huéspedes cuando la información ya está explícita en el correo.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/messageHandler.create_sequencing.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- `runtime_map.refresh_required: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts`
+  resultado reportado: `24 passed`
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts`
+  resultado reportado: `6 passed`
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  resultado reportado: `74 passed`
+  `pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+  resultado reportado: `11 passed`
+  `pnpm test`
+  resultado reportado: `Test Files 161 passed (161) / Tests 816 passed (816)`
+
+Impacto:
+
+- mejora la extracción canónica de huéspedes en `create` para números escritos
+- limita el reconocimiento a contexto explícito de `persona(s)` o `huésped(es)`
+- preserva el caso previo con números directos sin abrir regresiones de parser
+- evita repreguntas de huéspedes cuando el correo ya contiene la cantidad en texto
