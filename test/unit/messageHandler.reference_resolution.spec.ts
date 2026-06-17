@@ -1361,6 +1361,166 @@ describe("messageHandler reference resolution", () => {
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
   });
 
+  it("recognizes unaccented composite modify request and keeps guests pending until the guest count is provided", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-composite-unaccented-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Pep Guardiola",
+        roomType: "double",
+        checkIn: "2026-06-18",
+        checkOut: "2026-06-20",
+        numGuests: "2",
+        locale: "es",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      reservationHistory: [
+        {
+          reservationId: "RES-2FA6CD",
+          status: "created",
+          createdAt: "2026-06-10T10:00:00.000Z",
+          channel: "web",
+          guestName: "Pedro Picapiedra",
+          roomType: "double",
+          checkIn: "2026-06-18",
+          checkOut: "2026-06-20",
+          numGuests: "2",
+        },
+        {
+          reservationId: "RES-6AE3E6",
+          status: "created",
+          createdAt: "2026-06-11T10:00:00.000Z",
+          channel: "web",
+          guestName: "Raul Carsoglio",
+          roomType: "triple",
+          checkIn: "2026-06-18",
+          checkOut: "2026-06-20",
+          numGuests: "3",
+        },
+        {
+          reservationId: "RES-4BCEA9",
+          status: "created",
+          createdAt: "2026-06-12T10:00:00.000Z",
+          channel: "web",
+          guestName: "Pep Guardiola",
+          roomType: "double",
+          checkIn: "2026-06-18",
+          checkOut: "2026-06-20",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-4BCEA9",
+        status: "created",
+        createdAt: "2026-06-12T10:00:00.000Z",
+        channel: "web",
+        guestName: "Pep Guardiola",
+        roomType: "double",
+        checkIn: "2026-06-18",
+        checkOut: "2026-06-20",
+        numGuests: "2",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-4BCEA9",
+        phase: "confirmed",
+        updatedAt: "2026-06-12T10:00:00.000Z",
+      },
+      updatedAt: "2026-06-12T10:00:00.000Z",
+    });
+
+    await handleIncomingMessage(msg("queria modificar la segunda reserva", conversationId), { mode: "automatic", sendReply });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/RES-6AE3E6/i);
+
+    await handleIncomingMessage(msg("cambiar habitacion y huespedes", conversationId), { mode: "automatic", sendReply });
+
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/tipo de habitaci[oó]n|qu[eé] tipo/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+      pendingFields: ["guests"],
+    });
+
+    await handleIncomingMessage(msg("doble", conversationId), { mode: "automatic", sendReply });
+
+    const afterRoomReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(afterRoomReply).not.toMatch(/reserva actualizada correctamente|modificada/i);
+    expect(afterRoomReply).toMatch(/cantidad de hu[eé]spedes/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: [],
+    });
+
+    await handleIncomingMessage(msg("quiero cambiar a 2 personas", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-6AE3E6",
+      expect.objectContaining({
+        guestName: "Raul Carsoglio",
+        roomType: "double",
+        numGuests: "2",
+      }),
+      "web"
+    );
+    const finalReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(finalReply).toMatch(/modificada res-6ae3e6/i);
+    expect(finalReply).not.toMatch(/check-?out|fecha de check-out|um quarto|quer mudar/i);
+  });
+
+  it("capacity guard after modify preserves Spanish even if the current turn is detected as Portuguese", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-capacity-language-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Raul Carsoglio",
+        roomType: "double",
+        checkIn: "2026-06-18",
+        checkOut: "2026-06-20",
+        numGuests: "3",
+        locale: "es",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-6AE3E6",
+        phase: "confirmed",
+        updatedAt: "2026-06-12T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-6AE3E6",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-06-12T10:00:00.000Z",
+      },
+      modifyState: {
+        activeField: "guests",
+        pendingFields: [],
+        updatedAt: "2026-06-12T10:00:00.000Z",
+      },
+      lastCategory: "modify_reservation",
+      updatedAt: "2026-06-12T10:00:00.000Z",
+    });
+
+    await handleIncomingMessage(
+      {
+        ...msg("4 personas", conversationId),
+        detectedLanguage: "pt",
+      },
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/una habitaci[oó]n doble no admite 4 hu[eé]sped/i);
+    expect(replyText).not.toMatch(/um quarto|quer mudar|h[oó]spede/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+    });
+  });
+
   it("ejecuta modify directo con reservationId cuando el mismo turno trae roomType y huéspedes", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-direct-id-payload-1";

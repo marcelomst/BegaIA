@@ -332,6 +332,14 @@ function resolveReservationSnapshotLanguage(pre: {
   );
 }
 
+function resolveReservationConversationLanguage(pre: {
+  lang: "es" | "en" | "pt";
+  st?: any;
+  hotelConfig?: { defaultLanguage?: string | null } | null;
+}): "es" | "en" | "pt" {
+  return resolveReservationSnapshotLanguage(pre);
+}
+
 export type ReservationSlotsStrict = SlotMap;
 
 // ----------------------
@@ -779,22 +787,53 @@ function resolveRequestedModifyFieldsInOrder(
 ): ModifyField[] {
   const normalized = normalizeReferenceText(text || "");
   const entries: Array<{ field: ModifyField; index: number }> = [];
-  const pushEarliest = (field: ModifyField, patterns: RegExp[]) => {
+  const pushEarliestPhrase = (field: ModifyField, phrases: string[]) => {
     let earliest = Number.POSITIVE_INFINITY;
-    for (const pattern of patterns) {
-      const match = normalized.match(pattern);
-      if (match?.index != null) earliest = Math.min(earliest, match.index);
+    for (const phrase of phrases) {
+      const idx = normalized.indexOf(phrase);
+      if (idx >= 0) earliest = Math.min(earliest, idx);
     }
     if (Number.isFinite(earliest)) entries.push({ field, index: earliest });
   };
   if (requested.roomType) {
-    pushEarliest("roomType", [/\b(habitacion|habitación|tipo de habitacion|tipo de habitación|tipo|room type|room|quarto|tipo de quarto)\b/i]);
+    pushEarliestPhrase("roomType", [
+      "tipo de habitacion",
+      "tipo de habitación",
+      "habitacion",
+      "habitación",
+      "room type",
+      "room",
+      "tipo de quarto",
+      "quarto",
+      "tipo",
+    ]);
   }
   if (requested.guests) {
-    pushEarliest("guests", [/\b(cantidad de huespedes|cantidad de huéspedes|huespedes|huéspedes|personas|guests|pessoas)\b/i]);
+    pushEarliestPhrase("guests", [
+      "cantidad de huespedes",
+      "cantidad de huéspedes",
+      "huespedes",
+      "huéspedes",
+      "personas",
+      "guests",
+      "pessoas",
+    ]);
   }
   if (requested.dates) {
-    pushEarliest("dates", [/\b(fechas|fecha|dates|date|datas|data|check-in|check out|check-out|ingreso|entrada|salida)\b/i]);
+    pushEarliestPhrase("dates", [
+      "check-out",
+      "check out",
+      "check-in",
+      "fechas",
+      "fecha",
+      "dates",
+      "date",
+      "datas",
+      "data",
+      "ingreso",
+      "entrada",
+      "salida",
+    ]);
   }
   entries.sort((a, b) => a.index - b.index);
   return normalizeModifyFieldQueue(entries.map((entry) => entry.field));
@@ -6657,6 +6696,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (pre.inModifyMode || pre.st?.desiredAction === "modify" || pre.prevCategory === "modify_reservation") &&
     !(normalizedReservationIntent.kind === "cancel" || looksExplicitNewReservation || looksNonReservationDomainTurn)
   ) {
+    const modifyLang = resolveReservationConversationLanguage(pre);
     const baseModifyTarget =
       (resolvedModifyTarget?.kind === "reservation" ? resolvedModifyTarget : null) ||
       (selectedReservationTarget?.kind === "reservation" ? selectedReservationTarget : null) ||
@@ -6865,7 +6905,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               ...(pre.st?.reservationSlots || {}),
               roomType: baseRoomType,
               numGuests: String(nextGuestCountNumber),
-              locale: pre.lang,
+              locale: modifyLang,
             },
             modifyState: buildModifyState("roomType"),
             conversationFocus: buildConversationFocus("modify"),
@@ -6874,7 +6914,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             lastCategory: "modify_reservation",
             updatedBy: "ai",
           } as any);
-          finalText = buildCreateDraftCapacityReply(pre.lang, String(baseRoomType), nextGuestCountNumber);
+          finalText = buildCreateDraftCapacityReply(modifyLang, String(baseRoomType), nextGuestCountNumber);
           return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
         }
       }
@@ -6883,7 +6923,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const queuedSlots = {
           ...(pre.st?.reservationSlots || {}),
           numGuests: nextGuestCount,
-          locale: pre.lang,
+          locale: modifyLang,
         } as ReservationSlotsStrict;
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: queuedSlots,
@@ -6894,7 +6934,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           lastCategory: "modify_reservation",
           updatedBy: "ai",
         } as any);
-        finalText = buildModifyFieldPrompt(pre.lang, queuedModifyState.activeField);
+        finalText = buildModifyFieldPrompt(modifyLang, queuedModifyState.activeField);
         nextSlots = queuedSlots;
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
@@ -6905,7 +6945,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         numGuests: nextGuestCount,
         checkIn: nextCheckIn,
         checkOut: nextCheckOut,
-        locale: pre.lang,
+        locale: modifyLang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
       await persistModifyExecutionContext(pre, codeFromModifySubstate, {
@@ -6943,7 +6983,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const queuedSlots = {
           ...(pre.st?.reservationSlots || {}),
           roomType: nextRoomType,
-          locale: pre.lang,
+          locale: modifyLang,
         } as ReservationSlotsStrict;
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: queuedSlots,
@@ -6954,7 +6994,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           lastCategory: "modify_reservation",
           updatedBy: "ai",
         } as any);
-        finalText = buildModifyFieldPrompt(pre.lang, queuedModifyState.activeField);
+        finalText = buildModifyFieldPrompt(modifyLang, queuedModifyState.activeField);
         nextSlots = queuedSlots;
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
@@ -6965,7 +7005,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         numGuests: baseGuests,
         checkIn: baseCheckIn,
         checkOut: baseCheckOut,
-        locale: pre.lang,
+        locale: modifyLang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
       await persistModifyExecutionContext(pre, codeFromModifySubstate, {
@@ -7008,7 +7048,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           ...(pre.st?.reservationSlots || {}),
           checkIn: nextCheckIn,
           checkOut: nextCheckOut,
-          locale: pre.lang,
+          locale: modifyLang,
         } as ReservationSlotsStrict;
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: queuedSlots,
@@ -7019,7 +7059,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           lastCategory: "modify_reservation",
           updatedBy: "ai",
         } as any);
-        finalText = buildModifyFieldPrompt(pre.lang, queuedModifyState.activeField);
+        finalText = buildModifyFieldPrompt(modifyLang, queuedModifyState.activeField);
         nextSlots = queuedSlots;
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
@@ -7030,7 +7070,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         numGuests: baseGuests,
         checkIn: nextCheckIn,
         checkOut: nextCheckOut,
-        locale: pre.lang,
+        locale: modifyLang,
       };
       const mod = await modifyReservation(pre.msg.hotelId, codeFromModifySubstate, snapshot, pre.msg.channel);
       await persistModifyExecutionContext(pre, codeFromModifySubstate, {
@@ -9349,9 +9389,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   {
     const userTxt = String(pre.msg.content || "");
     const normalizedUserTxt = normalizeReferenceText(userTxt);
-    const wantsChangeDates = RE_CHANGE_DATES.test(userTxt) || RE_CHANGE_DATES.test(normalizedUserTxt);
-    const wantsChangeRoom = RE_CHANGE_ROOM.test(userTxt) || RE_CHANGE_ROOM.test(normalizedUserTxt);
-    const wantsChangeGuests = RE_CHANGE_GUESTS.test(userTxt) || RE_CHANGE_GUESTS.test(normalizedUserTxt);
+    const mentionsChangeDates = /\b(fechas|fecha|dates|date|datas|data|check-in|check out|check-out|entrada|salida|ingreso)\b/i.test(normalizedUserTxt);
+    const mentionsChangeRoom = /\b(habitacion|habitación|tipo de habitacion|tipo de habitación|room type|room|quarto|tipo de quarto)\b/i.test(normalizedUserTxt);
+    const mentionsChangeGuests = /\b(cantidad de huespedes|cantidad de huéspedes|huespedes|huéspedes|personas|guests|pessoas)\b/i.test(normalizedUserTxt);
+    const hasModifyVerbQuick = /\b(cambiar|modificar|alterar|change)\b/i.test(normalizedUserTxt);
+    const modifyLang = resolveReservationConversationLanguage(pre);
+    const wantsChangeDates =
+      RE_CHANGE_DATES.test(userTxt) ||
+      RE_CHANGE_DATES.test(normalizedUserTxt) ||
+      (hasModifyVerbQuick && mentionsChangeDates);
+    const wantsChangeRoom =
+      RE_CHANGE_ROOM.test(userTxt) ||
+      RE_CHANGE_ROOM.test(normalizedUserTxt) ||
+      (hasModifyVerbQuick && mentionsChangeRoom);
+    const wantsChangeGuests =
+      RE_CHANGE_GUESTS.test(userTxt) ||
+      RE_CHANGE_GUESTS.test(normalizedUserTxt) ||
+      (hasModifyVerbQuick && mentionsChangeGuests);
     const immediateTurnSlots = toStrictSlots(extractSlotsFromText(userTxt, pre.lang));
     const immediateDateRange = extractRawOrderedDateRange(userTxt);
     const recentModifyRoomType = getRecentModifyRoomTypeCandidate(pre);
@@ -9380,6 +9434,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.st?.desiredAction === "modify" ||
       pre.prevCategory === "modify_reservation" ||
       getConversationFocus(pre.st)?.subFlow === "modify";
+    const requestedChangeDates = wantsChangeDates || (modifyContextActive && mentionsChangeDates);
+    const requestedChangeRoom = wantsChangeRoom || (modifyContextActive && mentionsChangeRoom);
+    const requestedChangeGuests = wantsChangeGuests || (modifyContextActive && mentionsChangeGuests);
     const hasImplicitModifyValueFollowup =
       modifyContextActive &&
       (hasBoundReservationTarget || Boolean(selectedReservationTarget?.reservationId) || Boolean(resolveSingleActionableReservationTarget(pre.st)?.reservationId)) &&
@@ -9411,16 +9468,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       nextSlots = partialModifySlots;
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
-    if (!activeModifyField && (wantsChangeDates || wantsChangeRoom || wantsChangeGuests || hasImplicitModifyValueFollowup)) {
+    if (!activeModifyField && (requestedChangeDates || requestedChangeRoom || requestedChangeGuests || hasImplicitModifyValueFollowup)) {
       if ((pre.inModifyMode || pre.prevCategory === "modify_reservation") && (hasBoundReservationTarget || pre.prevCategory === "modify_reservation")) {
         const requestedFields = resolveRequestedModifyFieldsInOrder(userTxtRaw, {
-          dates: wantsChangeDates || hasImmediateDateValue,
-          guests: wantsChangeGuests || hasImmediateGuestValue,
-          roomType: wantsChangeRoom || hasImmediateRoomValue,
+          dates: requestedChangeDates || hasImmediateDateValue,
+          guests: requestedChangeGuests || hasImmediateGuestValue,
+          roomType: requestedChangeRoom || hasImmediateRoomValue,
         });
         const activeField: ModifyState["activeField"] =
           requestedFields[0] ||
-          (wantsChangeDates || hasImmediateDateValue ? "dates" : wantsChangeGuests || hasImmediateGuestValue ? "guests" : "roomType");
+          (requestedChangeDates || hasImmediateDateValue ? "dates" : requestedChangeGuests || hasImmediateGuestValue ? "guests" : "roomType");
         const immediateFields = normalizeModifyFieldQueue([
           hasImmediateDateValue ? "dates" : null,
           hasImmediateGuestValue ? "guests" : null,
@@ -9437,7 +9494,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             reservationSlots: {
               ...(pre.st?.reservationSlots || {}),
               ...ingestedSlots,
-              locale: pre.lang,
+              locale: modifyLang,
             },
             modifyState: nextQueuedModifyState,
             conversationFocus: buildConversationFocus("modify"),
@@ -9447,25 +9504,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             updatedBy: "ai",
           } as any);
           if (pendingRequestedFields.length > 0) {
-            finalText = buildModifyFieldPrompt(pre.lang, pendingRequestedFields[0]);
+            finalText = buildModifyFieldPrompt(modifyLang, pendingRequestedFields[0]);
             nextSlots = ingestedSlots;
             return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
           }
           finalText = activeField === "dates"
-            ? (pre.lang === "es"
+            ? (modifyLang === "es"
               ? "Perfecto. Tomo esas nuevas fechas para la modificación. ¿Querés cambiar algo más?"
-              : pre.lang === "pt"
+              : modifyLang === "pt"
                 ? "Perfeito. Considero essas novas datas para a alteração. Quer mudar mais alguma coisa?"
                 : "Got it. I will use those new dates for the change. Would you like to change anything else?")
             : activeField === "guests"
-              ? (pre.lang === "es"
+              ? (modifyLang === "es"
                 ? "Perfecto. Tomo esa nueva cantidad de huéspedes para la modificación. ¿Querés cambiar algo más?"
-                : pre.lang === "pt"
+                : modifyLang === "pt"
                   ? "Perfeito. Considero essa nova quantidade de hóspedes na alteração. Quer mudar mais alguma coisa?"
                   : "Got it. I will use that new guest count for the change. Would you like to change anything else?")
-              : (pre.lang === "es"
+              : (modifyLang === "es"
                 ? "Perfecto. Tomo ese nuevo tipo de habitación para la modificación. ¿Querés cambiar algo más?"
-                : pre.lang === "pt"
+                : modifyLang === "pt"
                   ? "Perfeito. Considero esse novo tipo de quarto na alteração. Quer mudar mais alguma coisa?"
                   : "Got it. I will use that new room type for the change. Would you like to change anything else?");
           nextSlots = ingestedSlots;
@@ -9479,18 +9536,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           lastCategory: "modify_reservation",
           updatedBy: "ai",
         } as any);
-        if (wantsChangeDates) {
-          finalText = buildAskNewDates(pre.lang);
-        } else if (wantsChangeGuests) {
-          finalText = pre.lang === "es"
+        if (activeField === "dates") {
+          finalText = buildAskNewDates(modifyLang);
+        } else if (activeField === "guests") {
+          finalText = modifyLang === "es"
             ? "¿Cuál sería la nueva cantidad de huéspedes?"
-            : pre.lang === "pt"
+            : modifyLang === "pt"
               ? "Qual seria a nova quantidade de hóspedes?"
               : "What would be the new number of guests?";
         } else {
-          finalText = pre.lang === "es"
+          finalText = modifyLang === "es"
             ? "¿Qué tipo de habitación querés ahora?"
-            : pre.lang === "pt"
+            : modifyLang === "pt"
               ? "Qual tipo de quarto você quer agora?"
               : "Which room type would you like now?";
         }
