@@ -7,6 +7,14 @@ export function toTwilioWhatsAppAddress(value: string): string {
   return trimmed.startsWith("whatsapp:") ? trimmed : `whatsapp:${trimmed}`;
 }
 
+export function normalizeWhatsAppMarkdown(value: string): string {
+  const text = String(value || "");
+  if (!text) return "";
+
+  const normalizedBold = text.replace(/\*\*([^*\n]+)\*\*/g, "*$1*");
+  return normalizedBold.replace(/\*\*/g, "");
+}
+
 export async function twilioSendWhatsAppMessage(input: {
   hotelId: string;
   to: string;
@@ -22,7 +30,7 @@ export async function twilioSendWhatsAppMessage(input: {
   const form = new URLSearchParams();
   form.set("To", to);
   form.set("From", fromToUse);
-  form.set("Body", input.body);
+  form.set("Body", normalizeWhatsAppMarkdown(input.body));
   if (process.env.TWILIO_STATUS_CALLBACK_URL?.trim()) {
     form.set("StatusCallback", process.env.TWILIO_STATUS_CALLBACK_URL.trim());
   }
