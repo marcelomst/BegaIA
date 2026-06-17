@@ -573,9 +573,12 @@ describe("messageHandler reference resolution", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).toMatch(/Geronimo,\s+estas son tus reservas:/i);
+    expect(replyText).toMatch(/tus reservas/i);
     expect(replyText).toMatch(/RES-274B9C/i);
     expect(replyText).toMatch(/a nombre de Raul Olivera/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped/i);
+    expect(replyText).not.toMatch(/reservas asociadas/i);
     expect(replyText).not.toMatch(/esta conversación/i);
     expect(replyText).not.toMatch(/^Raul,/i);
   });
@@ -695,13 +698,86 @@ describe("messageHandler reference resolution", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).toMatch(/Asistencial,\s+estas son tus reservas:/i);
+    expect(replyText).toMatch(/tus reservas/i);
     expect(replyText).toMatch(/RES-WA-001/i);
     expect(replyText).toMatch(/RES-EMAIL-002/i);
     expect(replyText).toMatch(/Raul Sanchez/i);
     expect(replyText).toMatch(/Pedro Picapiedra/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped/i);
+    expect(replyText).not.toMatch(/reservas asociadas/i);
     expect(replyText).not.toMatch(/esta conversación/i);
     expect(replyText.match(/RES-WA-001/g)?.length).toBe(1);
+  });
+
+  it("guest-wide reservation list falls back to interlocutor copy without a conversational display name", async () => {
+    const sendReply = vi.fn(async () => {});
+    const currentConversationId = "conv-ref-list-merged-no-display-name-1";
+    const absorbedConversationId = "conv-ref-list-merged-no-display-name-2";
+
+    stateByConversation.set(currentConversationId, {
+      hotelId: "hotel999",
+      conversationId: currentConversationId,
+      updatedAt: "2026-05-06T12:00:00.000Z",
+    });
+    stateByConversation.set(absorbedConversationId, {
+      hotelId: "hotel999",
+      conversationId: absorbedConversationId,
+      updatedAt: "2026-05-06T12:01:00.000Z",
+      reservationHistory: [
+        {
+          reservationId: "RES-NONAME-01",
+          status: "created",
+          createdAt: "2026-05-01T10:00:00.000Z",
+          channel: "web",
+          guestName: "Raul Olivera",
+          roomType: "double",
+          checkIn: "2026-05-07",
+          checkOut: "2026-05-08",
+          numGuests: "2",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-NONAME-01",
+        status: "created",
+        createdAt: "2026-05-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Raul Olivera",
+        roomType: "double",
+        checkIn: "2026-05-07",
+        checkOut: "2026-05-08",
+        numGuests: "2",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+    });
+
+    (getGuest as any).mockResolvedValue({
+      guestId: "guest-no-display-name-1",
+      hotelId: "hotel999",
+      aliases: ["web:guest-no-display-name-1"],
+      mode: "automatic",
+    });
+    (findGuestByAnyId as any).mockResolvedValue(null);
+    (getConversationsForGuestPerspective as any).mockResolvedValue([
+      { conversationId: currentConversationId, hotelId: "hotel999", guestId: "guest-no-display-name-1", channel: "web" },
+      { conversationId: absorbedConversationId, hotelId: "hotel999", guestId: "guest-no-display-name-1", channel: "web" },
+    ]);
+
+    await handleIncomingMessage(
+      {
+        ...msg("mostrame mis reservas", currentConversationId),
+        guestId: "guest-no-display-name-1",
+      },
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Estas son tus reservas:/i);
+    expect(replyText).toMatch(/tus reservas/i);
+    expect(replyText).toMatch(/RES-NONAME-01/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped/i);
+    expect(replyText).not.toMatch(/reservas asociadas/i);
   });
 
   it("después de un listado guest-wide consolidado, 'quiero modificar la segunda reserva' usa la misma lista mostrada", async () => {
@@ -944,7 +1020,9 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/no encontr[eé] reservas asociadas a este hu[eé]sped/i);
+    expect(replyText).toMatch(/Geronimo,\s+no encontr[eé] reservas para mostrarte\./i);
+    expect(replyText).not.toMatch(/este hu[eé]sped/i);
+    expect(replyText).not.toMatch(/reservas asociadas/i);
     expect(replyText).not.toMatch(/esta conversación/i);
   });
 

@@ -1766,16 +1766,24 @@ function resolveConfirmedReservationFollowupSnapshot(
 function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
   reservations: CanonicalReservationRecord[],
-  scope: "conversation" | "guest" = "conversation"
+  scope: "conversation" | "guest" = "conversation",
+  conversationalDisplayName?: string | null
 ): string {
   const visibleReservations = reservations.filter((item) => isCanonicalReservationRecordEligible(item));
+  const safeConversationalDisplayName = String(conversationalDisplayName || "").trim();
   if (!visibleReservations.length) {
     if (scope === "guest") {
-      return lang === "pt"
-        ? "Não encontrei reservas associadas a este hóspede."
-        : lang === "en"
-          ? "I couldn't find any bookings associated with this guest."
-          : "No encontré reservas asociadas a este huésped.";
+      return safeConversationalDisplayName
+        ? lang === "pt"
+          ? `${safeConversationalDisplayName}, não encontrei reservas para te mostrar.`
+          : lang === "en"
+            ? `${safeConversationalDisplayName}, I couldn't find any bookings to show you.`
+            : `${safeConversationalDisplayName}, no encontré reservas para mostrarte.`
+        : lang === "pt"
+          ? "Não encontrei reservas para te mostrar."
+          : lang === "en"
+            ? "I couldn't find any bookings to show you."
+            : "No encontré reservas para mostrarte.";
     }
     return lang === "pt"
       ? "Não encontrei reservas para mostrar nesta conversa."
@@ -1805,11 +1813,17 @@ function buildReservationListAnswer(
 
   const title =
     scope === "guest"
-      ? lang === "pt"
-        ? "Estas são as reservas associadas a este hóspede:"
-        : lang === "en"
-          ? "These are the bookings associated with this guest:"
-          : "Estas son las reservas asociadas a este huésped:"
+      ? safeConversationalDisplayName
+        ? lang === "pt"
+          ? `${safeConversationalDisplayName}, estas são suas reservas:`
+          : lang === "en"
+            ? `${safeConversationalDisplayName}, these are your bookings:`
+            : `${safeConversationalDisplayName}, estas son tus reservas:`
+        : lang === "pt"
+          ? "Estas são suas reservas:"
+          : lang === "en"
+            ? "These are your bookings:"
+            : "Estas son tus reservas:"
       : lang === "pt"
         ? "Estas são as reservas desta conversa:"
         : lang === "en"
@@ -1845,6 +1859,7 @@ async function safeGetConversationsForGuestPerspective(input: {
 async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   reservations: CanonicalReservationRecord[];
   scope: "conversation" | "guest";
+  conversationalDisplayName?: string;
 }> {
   const localReservations = buildCanonicalReservationRecords(pre.st);
   const hasLocalEligibleReservations = localReservations.some((item) => isCanonicalReservationRecordEligible(item));
@@ -1857,7 +1872,8 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
     pre.guest ||
     (rawCurrentGuestId ? await safeFindGuestByAnyId(pre.msg.hotelId, rawCurrentGuestId) : null);
   const canonicalGuestId = String(canonicalGuest?.guestId || mergedIntoGuestId || rawCurrentGuestId).trim();
-  if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation" };
+  const conversationalDisplayName = getConversationalDisplayName(canonicalGuest as any);
+  if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
 
   const aliases = deriveGuestReadAliases(canonicalGuest as any, [
     pre.msg.guestId,
@@ -1877,12 +1893,13 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
     (Array.isArray(conversations) && conversations.length > 1)
   );
   if (!hasGuestWideSignals && hasLocalEligibleReservations) {
-    return { reservations: localReservations, scope: "conversation" };
+    return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
   }
   if (!Array.isArray(conversations) || conversations.length === 0) {
     return {
       reservations: hasGuestWideSignals ? localReservations : [],
       scope: "guest",
+      conversationalDisplayName,
     };
   }
 
@@ -1900,6 +1917,7 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   return {
     reservations,
     scope: reservations.some((item) => isCanonicalReservationRecordEligible(item)) ? "guest" : "guest",
+    conversationalDisplayName,
   };
 }
 
@@ -6379,7 +6397,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     finalText = buildReservationListAnswer(
       pre.lang,
       reservationListSource.reservations,
-      reservationListSource.scope
+      reservationListSource.scope,
+      reservationListSource.conversationalDisplayName
     );
     const persistedListHistory = reservationListSource.reservations.map((item) => ({
       reservationId: item.reservationId,
