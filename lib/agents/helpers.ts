@@ -18,6 +18,25 @@ function extractDirectGuestTotal(text: string): number | undefined {
   return undefined;
 }
 
+function extractSpelledGuestTotal(text: string): number | undefined {
+  const t = String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const spanishNumberWords: Record<string, number> = {
+    un: 1,
+    una: 1,
+    uno: 1,
+    dos: 2,
+    tres: 3,
+    cuatro: 4,
+    cinco: 5,
+  };
+  const match = t.match(/\b(un|una|uno|dos|tres|cuatro|cinco)\s+(?:persona|personas|huesped|huespedes)\b/);
+  if (!match?.[1]) return undefined;
+  return spanishNumberWords[match[1]];
+}
+
 function extractComposedGuestTotal(text: string): number | undefined {
   const t = String(text || "").toLowerCase();
   const sumMatches = (rx: RegExp) =>
@@ -204,11 +223,18 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   }
   // Personas / huéspedes: primero total directo, luego composición explícita. Si se contradicen, no resolver.
   const directGuests = extractDirectGuestTotal(t);
+  const spelledGuests = extractSpelledGuestTotal(rawText);
   const composedGuests = extractComposedGuestTotal(t);
-  if (typeof directGuests === "number" && typeof composedGuests === "number") {
-    if (directGuests === composedGuests) out.numGuests = String(directGuests);
-  } else if (typeof directGuests === "number") {
-    out.numGuests = String(directGuests);
+  const normalizedDirectGuests =
+    typeof directGuests === "number"
+      ? directGuests
+      : typeof spelledGuests === "number"
+        ? spelledGuests
+        : undefined;
+  if (typeof normalizedDirectGuests === "number" && typeof composedGuests === "number") {
+    if (normalizedDirectGuests === composedGuests) out.numGuests = String(normalizedDirectGuests);
+  } else if (typeof normalizedDirectGuests === "number") {
+    out.numGuests = String(normalizedDirectGuests);
   } else if (typeof composedGuests === "number") {
     out.numGuests = String(composedGuests);
   }

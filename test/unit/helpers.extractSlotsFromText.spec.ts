@@ -81,6 +81,14 @@ describe("extractSlotsFromText", () => {
     expect(slots.numGuests).toBe("4");
   });
 
+  it("detecta total directo con números escritos en español", () => {
+    expect(extractSlotsFromText("una persona", "es").numGuests).toBe("1");
+    expect(extractSlotsFromText("dos personas", "es").numGuests).toBe("2");
+    expect(extractSlotsFromText("tres personas", "es").numGuests).toBe("3");
+    expect(extractSlotsFromText("dos huéspedes", "es").numGuests).toBe("2");
+    expect(extractSlotsFromText("dos huespedes", "es").numGuests).toBe("2");
+  });
+
   it("detecta composición con '2 adultos y 1 menor'", () => {
     const slots = extractSlotsFromText("2 adultos y 1 menor", "es");
     expect(slots.numGuests).toBe("3");

@@ -32,6 +32,14 @@ vi.mock("@/lib/agents", () => ({
     })),
   },
 }));
+vi.mock("@/lib/agents/reservations", () => ({
+  askAvailability: vi.fn(async (_hotelId: string, snapshot: any) => ({
+    ok: true,
+    available: true,
+    proposal: `Tengo ${snapshot.roomType || "doble"} disponible para ${snapshot.guestName || "el huésped"}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+    options: [{ roomType: snapshot.roomType || "double", pricePerNight: 100, currency: "USD" }],
+  })),
+}));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
@@ -118,6 +126,22 @@ describe("messageHandler create sequencing", () => {
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes|tipo de habitaci[oó]n/i);
+  });
+
+  it("extrae huéspedes escritos en español y cotiza sin repreguntar cantidad", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quiero hacer una reserva, a nombre de Pedro Picapiedra, para el 18/06/2026 al 20/06/2026 una doble para dos personas"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).not.toMatch(/cu[aá]ntos hu[eé]spedes se alojar[aá]n/i);
+    expect(replyText).toMatch(/tengo doble disponible/i);
+    expect(replyText).toMatch(/Pedro Picapiedra/i);
+    expect(replyText).toMatch(/Total 2 noches/i);
+    expect(replyText).toMatch(/confirm[aá]s la reserva|respond[eé]\s+["“]?confirmar["”]?/i);
   });
 
   it("si el sistema espera huéspedes y el usuario responde 'sí', no avanza prematuramente", async () => {
