@@ -2210,6 +2210,83 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/Ana Draft|Raul Olivera/i);
   });
 
+  it("snapshot after modify preserves Spanish language even if the current turn is detected as Portuguese", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-snapshot-language-after-modify-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Marcelo Bielsa",
+        roomType: "triple",
+        checkIn: "2026-06-20",
+        checkOut: "2026-06-21",
+        numGuests: "2",
+        locale: "es",
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "modify_reservation",
+      lastReservation: {
+        reservationId: "RES-C90F5E",
+        status: "updated",
+        createdAt: "2026-06-12T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Bielsa",
+        roomType: "triple",
+        checkIn: "2026-06-20",
+        checkOut: "2026-06-21",
+        numGuests: "2",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES-C90F5E",
+          status: "updated",
+          createdAt: "2026-06-12T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Bielsa",
+          roomType: "triple",
+          checkIn: "2026-06-20",
+          checkOut: "2026-06-21",
+          numGuests: "2",
+        },
+      ],
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-C90F5E",
+        phase: "confirmed",
+        updatedAt: "2026-06-12T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-C90F5E",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-06-12T10:00:00.000Z",
+      },
+      updatedAt: "2026-06-12T10:00:00.000Z",
+    });
+
+    await handleIncomingMessage(
+      {
+        ...msg("mostrame como quedo la reserva modificada", conversationId),
+        detectedLanguage: "pt",
+      },
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toContain("Este es el resumen de tu reserva:");
+    expect(replyText).toContain("- Código: RES-C90F5E");
+    expect(replyText).toContain("- Estado: Activa");
+    expect(replyText).toContain("- Nombre: Marcelo Bielsa");
+    expect(replyText).toContain("- Habitación: triple");
+    expect(replyText).toContain("- Fechas: 20/06/2026 → 21/06/2026");
+    expect(replyText).toContain("- Huéspedes: 2");
+    expect(replyText).not.toContain("Este é");
+    expect(replyText).not.toContain("Quarto");
+    expect(replyText).not.toContain("Datas");
+    expect(replyText).not.toContain("Nome");
+  });
+
   it("modify usa el titular canónico del target y no el guestName residual del draft", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-canonical-holder-modify-1";

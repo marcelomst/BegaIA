@@ -311,6 +311,27 @@ function buildReservationSnapshotAnswer(
   ].filter(Boolean).join("\n");
 }
 
+function normalizeRuntimeLanguage(value: unknown): "es" | "en" | "pt" | null {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw === "es" || raw === "spa") return "es";
+  if (raw === "en" || raw === "eng") return "en";
+  if (raw === "pt" || raw === "por") return "pt";
+  return null;
+}
+
+function resolveReservationSnapshotLanguage(pre: {
+  lang: "es" | "en" | "pt";
+  st?: any;
+  hotelConfig?: { defaultLanguage?: string | null } | null;
+}): "es" | "en" | "pt" {
+  return (
+    normalizeRuntimeLanguage(pre.st?.reservationSlots?.locale) ||
+    normalizeRuntimeLanguage(pre.hotelConfig?.defaultLanguage) ||
+    pre.lang
+  );
+}
+
 export type ReservationSlotsStrict = SlotMap;
 
 // ----------------------
@@ -5998,9 +6019,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     !looksExplicitNewReservation
   ) {
     const confirmedSnapshot = resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget);
+    const snapshotLang = resolveReservationSnapshotLanguage(pre);
     finalText = buildReservationSnapshotAnswer(
       "full",
-      pre.lang,
+      snapshotLang,
       confirmedSnapshot.slots,
       confirmedSnapshot.reservationId,
       confirmedSnapshot.status
@@ -6289,9 +6311,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         : undefined);
     const target = targetId ? getReservationReferenceTargetById(pre.st, targetId) : null;
     if (targetId && target) {
+      const snapshotLang = resolveReservationSnapshotLanguage(pre);
       finalText = buildReservationSnapshotAnswer(
         "full",
-        pre.lang,
+        snapshotLang,
         {
           reservationId: target.reservationId,
           guestName: target.guestName,
@@ -6351,7 +6374,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {
     const target = resolvedSnapshotTarget;
-    finalText = buildReservationSnapshotAnswer(effectiveSnapshotQueryKind, pre.lang, {
+    const snapshotLang = resolveReservationSnapshotLanguage(pre);
+    finalText = buildReservationSnapshotAnswer(effectiveSnapshotQueryKind, snapshotLang, {
       reservationId: target.reservationId,
       guestName: target.guestName,
       roomType: target.roomType,
@@ -8791,7 +8815,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               }) as ReservationSlotsStrict;
             finalText = buildReservationSnapshotAnswer(
               postBookingSnapshotQ,
-              pre.lang,
+              resolveReservationSnapshotLanguage(pre),
               snapshotSlots,
               canonicalReservationId,
               pre.st?.lastReservation?.status
