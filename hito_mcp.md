@@ -10248,3 +10248,62 @@ Impacto:
 - evita contaminar el resumen final con `detectedLanguage` ambiguo del turno
 - mantiene la política canónica de idioma anclada al estado persistido del huésped
 - refuerza snapshot y modify sin abrir arquitectura paralela ni tocar delivery de canal
+
+### REPAIR-MODIFY-COMPOSITE-ROOM-GUESTS-CAPACITY-CONTINUITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-17  
+Commit: 3d7d7c200fa76ee2ad85d0aea08c22eeba239605
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Repara el subflujo `modify` compuesto de habitación + huéspedes para que el
+prompt siga `activeField`, el orden de campos compuestos respete la intención
+textual del usuario, se mantengan los guards de capacidad durante la continuidad
+de `modify` y el idioma conversacional quede unificado con el snapshot posterior.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- cajas relacionadas revisadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.channelCopyCorridor`
+  `runtime.messageHandler.persistenceReply`
+- capas técnicas reforzadas:
+  `modify_state`
+  `modify_target_selection`
+  `language_policy`
+- cajas prohibidas tocadas: ninguna
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  resultado reportado: `73 passed`
+  `pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts`
+  resultado reportado: `11 passed`
+  `pnpm test`
+  resultado reportado: `Test Files 161 passed (161) / Tests 813 passed (813)`
+- validación manual:
+  reportada como positiva en WhatsApp con reservas previas Web y Email y guests consolidados
+
+Impacto:
+
+- refuerza la continuidad de `modify` cuando el cambio mezcla habitación y huéspedes
+- preserva el orden textual pedido por el usuario en campos compuestos
+- evita perder guards de capacidad durante el subflujo de modificación
+- alinea el idioma de continuidad y snapshot con el estado conversacional persistido

@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: b888f73
-messageHandler_lines: 11007
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v12
+commit_base: 3d7d7c2
+messageHandler_lines: 11064
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v13
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_b888f73f299137cfda97fa628a95b6ce5f86a959
+analysis_scope: commit_3d7d7c200fa76ee2ad85d0aea08c22eeba239605
 ```
 
 ---
@@ -30,12 +30,12 @@ clean
 
 ```text
 pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: 71 passed
+result: 73 passed
 pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
 result: 11 passed
 pnpm test
 Test Files 161 passed (161)
-Tests 811 passed (811)
+Tests 813 passed (813)
 ```
 
 ---
@@ -56,15 +56,16 @@ guest_wide_ordinal_modify_reference_commit: 9f472c47a0a63336c6ca7493f43895e07037
 guest_conversation_binding_cross_channel_reuse_commit: 61201fb27a168dba4800cb35ac0feadb3f399192
 modify_direct_slot_payload_and_multifield_sequencing_commit: 23a59cfbf67c8db0b64914e9b6d2b39a310ed857
 reservation_snapshot_language_stickiness_after_modify_commit: b888f73f299137cfda97fa628a95b6ce5f86a959
+repair_modify_composite_room_guests_capacity_continuity_commit: 3d7d7c200fa76ee2ad85d0aea08c22eeba239605
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- el snapshot posterior a `modify` debe respetar `reservationSlots.locale` si existe
-- si no hay `locale` persistido, debe usar `hotelConfig.defaultLanguage`
-- `detectedLanguage` ambiguo del turno no debe contaminar el resumen final
-- el hardening debe quedar acotado a los call sites de `buildReservationSnapshotAnswer`
+- `modify` compuesto debe seguir `activeField` sin cerrar el subflujo antes de tiempo
+- el orden de habitación + huéspedes debe respetar la intención textual del usuario
+- los guards de capacidad deben mantenerse durante la continuidad de `modify`
+- el idioma de continuidad y snapshot debe permanecer alineado con el estado persistido
 ```
 
 ---
@@ -72,7 +73,7 @@ reservation_snapshot_language_stickiness_after_modify_commit: b888f73f299137cfda
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`b888f73`.
+`3d7d7c2`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -89,9 +90,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `b888f73`
-2. Policy de idioma refrescada para snapshot posterior a `modify`
+1. Snapshot base a commit real `3d7d7c2`
+2. Continuidad de `modify` compuesta refrescada con guards de capacidad e idioma unificado
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para stickiness idiomática en snapshot
+5. box index machine-friendly refrescado para continuidad compuesta de `modify`
 ```

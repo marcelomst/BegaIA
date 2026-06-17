@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: b888f73
-messageHandler_lines: 11007
+commit_base: 3d7d7c2
+messageHandler_lines: 11064
 working_tree_status: clean
-analysis_scope: commit_b888f73f299137cfda97fa628a95b6ce5f86a959
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v12
+analysis_scope: commit_3d7d7c200fa76ee2ad85d0aea08c22eeba239605
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v13
 known_manual_bug: none
 ```
 
@@ -56,22 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - modify_state
+    - modify_target_selection
     - language_policy
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - el snapshot posterior a `modify` prioriza `reservationSlots.locale`
-      - en ausencia de locale persistido, cae a `hotelConfig.defaultLanguage`
-      - `detectedLanguage` ambiguo no pisa el idioma del resumen
-      - el hardening queda acotado a call sites de `buildReservationSnapshotAnswer`
+      - el prompt de `modify` sigue `activeField` en continuidad compuesta
+      - habitación + huéspedes respeta el orden textual solicitado
+      - los guards de capacidad continúan activos dentro de `modify`
+      - continuidad y snapshot comparten idioma derivado del estado conversacional
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -181,7 +183,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10683-L11007
+        range: L10740-L11064
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -211,7 +213,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3728-L3957
+        range: L3767-L3996
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -246,7 +248,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4470-L10187
+        range: L4509-L10245
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -325,7 +327,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4470-L10187
+        range: L4509-L10245
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -360,7 +362,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4470-L10187
+        range: L4509-L10245
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -816,7 +818,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10638-L10681
+        range: L10695-L10738
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply
