@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `7138847`, Guardian confirmó:
+Para el hito `ec42e32`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -46,8 +46,8 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se registra el copy conversacional del listado guest-wide de reservas
-- el vocativo del interlocutor prioriza `canonicalGuest` o `conversationalDisplayName`
+- se registra la pluralización visible de huéspedes y noches en copys de reserva
+- el guard mínimo de `modify` queda restaurado para consultas no ejecutables
 
 ---
 
@@ -57,11 +57,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7138847
-messageHandler_lines: 11083
+commit_base: ec42e32
+messageHandler_lines: 11120
 working_tree_status: clean
-analysis_scope: commit_7138847c52ce2d9c94decc3f2beba71e7a2f371c
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v14
+analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v15
 known_manual_bug: none
 ```
 
@@ -70,21 +70,28 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
+pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+result: pass
+pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
+result: pass
 pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: 74 passed
-pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
-result: 11 passed
+result: pass
+pnpm vitest run test/agents.reservations.unit.spec.ts
+result: pass
+pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts
+result: pass
+pnpm run ts-check
+result: pass
 pnpm test
-Test Files 161 passed (161)
-Tests 814 passed (814)
+result: pass
 ```
 
 Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un fix de copy conversacional del listado guest-wide con
-vocativo del interlocutor, pero no elimina el riesgo de futuros bugs funcionales fuera de
+Este refresh documenta un fix de pluralización visible en copys de reserva y un
+repair mínimo del guard de `modify`, pero no elimina el riesgo de futuros bugs funcionales fuera de
 cobertura.
 ```
 
@@ -106,7 +113,7 @@ cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 11083
+total_lines: 11120
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -115,7 +122,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`7138847`.
+`ec42e32`.
 ```
 
 ---
@@ -124,18 +131,18 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
-| `buildReservationCanonicalState`     | L1645-L2137 |    493 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L2138-L2470 |    333 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L2471-L2754 |    284 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L2755-L2926 |    172 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L2927-L2979 |     53 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L2980-L3116 |    137 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L3117-L3596 |    480 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L3597-L3784 |    188 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L3785-L4014 |    230 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L4527-L10264 |   5738 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L10714-L10757 |     44 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L10759-L11083 |    325 | high      | Entrypoint público del runtime             |
+| `buildReservationCanonicalState`     | L1653-L2147 |    495 | high      | Proyección canónica de estado de reserva   |
+| `resolveReservationReference`        | L2148-L2480 |    333 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L2481-L2764 |    284 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L2765-L2936 |    172 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L2937-L2989 |     53 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L2990-L3126 |    137 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L3127-L3606 |    480 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L3607-L3795 |    189 | high      | Análisis estructurado semántico            |
+| `preLLM`                             | L3796-L4034 |    239 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L4547-L10296 |   5750 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L10751-L10794 |     44 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L10796-L11120 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -145,7 +152,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L10759-L11083
+range: L10796-L11120
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -164,7 +171,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L3785-L4014
+range: L3796-L4034
 lines: 230
 confidence: high
 role: context_preparation
@@ -186,8 +193,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L4527-L10264
-lines: 5738
+range: L4547-L10296
+lines: 5750
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -216,7 +223,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L10714-L10757
+range: L10751-L10794
 lines: 44
 confidence: high
 role: post_runtime_verification
@@ -409,8 +416,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L4527-L10264
-bodyLLM_lines: 5738
+bodyLLM_range: L4547-L10296
+bodyLLM_lines: 5750
 bucket_size: 250
 confidence: high_for_full_range
 ```

@@ -21,20 +21,24 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7138847
-messageHandler_lines: 11083
+commit_base: ec42e32
+messageHandler_lines: 11120
 working_tree_status: clean
-analysis_scope: commit_7138847c52ce2d9c94decc3f2beba71e7a2f371c
+analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
 suite_status_reported: targeted_green
 suite_reported:
   commands:
     - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
     - pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
-  summary: 74 passed + 11 passed
+  summary: targeted_green
   full_suite:
+    - pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm vitest run test/agents.reservations.unit.spec.ts
+    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts
+    - pnpm run ts-check
     - pnpm test
-    - Test Files 161 passed (161)
-    - Tests 814 passed (814)
 known_manual_bug: none
 ```
 
@@ -44,22 +48,23 @@ known_manual_bug: none
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - guest_reservation_list
+    - reservation_confirmation
+    - reservation_list
+    - create_quote_copy
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.channelCopyCorridor
-    - conversational_display_name
-    - canonical_guest
+    - modify_intent_guard
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - el header usa `canonicalGuest` o `conversationalDisplayName`
-      - el empty-state mantiene fallback conversacional sin nombre técnico
-      - `reservation.guestName` queda solo en las líneas de holder
-      - snapshot/listado evita vocativos impersonales del tipo "este huésped"
+      - la pluralización visible de huéspedes deja de exponer `huésped(es)`
+      - la cotización visible deja de exponer `1 noches`
+      - confirmación, snapshot y listados comparten copy pluralizado por idioma
+      - el guard mínimo de `modify` no activa sobre consultas no ejecutables
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -67,13 +72,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 7138847
-    messageHandler_lines: 11083
+    commit: ec42e32
+    messageHandler_lines: 11120
     functions:
-      preLLM: L3785-L4014
-      bodyLLM: L4527-L10264
-      posLLM: L10714-L10757
-      handleIncomingMessage: L10759-L11083
+      preLLM: L3796-L4034
+      bodyLLM: L4547-L10296
+      posLLM: L10751-L10794
+      handleIncomingMessage: L10796-L11120
 ```
 
 ---
@@ -82,18 +87,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1645-L2137 |    493 | high      |
-| `resolveReservationReference`        | L2138-L2470 |    333 | high      |
-| `detectDominantTurnDomain`           | L2471-L2754 |    284 | high      |
-| `getReservationDomainLockSignal`     | L2755-L2926 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L2927-L2979 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L2980-L3116 |    137 | high      |
-| `assessReservationDateCoherence`     | L3117-L3596 |    480 | high      |
-| `tryStructuredAnalyze`               | L3597-L3784 |    188 | high      |
-| `preLLM`                             | L3785-L4014 |    230 | high      |
-| `bodyLLM`                            | L4527-L10264 |   5738 | high      |
-| `posLLM`                             | L10714-L10757 |     44 | high      |
-| `handleIncomingMessage`              | L10759-L11083 |    325 | high      |
+| `buildReservationCanonicalState`     | L1653-L2147 |    495 | high      |
+| `resolveReservationReference`        | L2148-L2480 |    333 | high      |
+| `detectDominantTurnDomain`           | L2481-L2764 |    284 | high      |
+| `getReservationDomainLockSignal`     | L2765-L2936 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L2937-L2989 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L2990-L3126 |    137 | high      |
+| `assessReservationDateCoherence`     | L3127-L3606 |    480 | high      |
+| `tryStructuredAnalyze`               | L3607-L3795 |    189 | high      |
+| `preLLM`                             | L3796-L4034 |    239 | high      |
+| `bodyLLM`                            | L4547-L10296 |   5750 | high      |
+| `posLLM`                             | L10751-L10794 |     44 | high      |
+| `handleIncomingMessage`              | L10796-L11120 |    325 | high      |
 
 ---
 
@@ -102,8 +107,8 @@ runtime_map_refresh:
 `bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 11083 líneas
-bodyLLM:                5738 líneas
+messageHandler.ts total: 11120 líneas
+bodyLLM:                5750 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -495,7 +500,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3785-L4014
+    range: L3796-L4034
     confidence: high
 ```
 
@@ -514,7 +519,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4527-L10264
+    range: L4547-L10296
     confidence: high
 ```
 
@@ -533,7 +538,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10714-L10757
+    range: L10751-L10794
     confidence: high
 ```
 
@@ -552,7 +557,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10759-L11083
+    range: L10796-L11120
     confidence: high
 ```
 

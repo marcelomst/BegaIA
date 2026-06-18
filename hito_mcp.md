@@ -10449,3 +10449,65 @@ Impacto:
 - evita asteriscos desbalanceados y secuencias `**` crudas en confirmaciones
 - preserva el contenido completo del mensaje sin alterar la lógica de reservas
 - mantiene el fix acotado al transporte saliente y su test unitario
+
+### FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-18  
+Commit: ec42e3293f09dd52757d095f8690567f44f57bdb
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Corrige la pluralización visible de huéspedes y noches en copys de reserva,
+restaura un guard mínimo de `modify` para consultas no ejecutables y aplica la
+higiene temporal y de tipos necesaria para sostener el hito sin exponer copys
+no canónicos como `huésped(es)` o `1 noches`.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/agents/nodes/reservation.ts`
+- `lib/agents/reservations.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/availability.ts`
+- `lib/i18n/es.ts`
+- `lib/i18n/en.ts`
+- `lib/i18n/pt.ts`
+- `test/agents.reservations.unit.spec.ts`
+- `test/unit/messageHandler.create_sequencing.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+  `reservation_confirmation`
+  `reservation_list`
+  `create_quote_copy`
+- repair tocado:
+  `modify_intent_guard`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm vitest run test/agents.reservations.unit.spec.ts`
+  `pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+
+Impacto:
+
+- elimina copys no canónicos como `huésped(es)` y `1 noches`
+- mejora la legibilidad visible de confirmaciones, snapshots y cotizaciones
+- preserva el corredor `modify` ante consultas no ejecutables evitando activación por regex suelta
+- mantiene el ajuste acotado a copy de reserva, i18n y repair mínimo del guard

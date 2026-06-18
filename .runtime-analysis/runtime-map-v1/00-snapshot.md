@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7138847
-messageHandler_lines: 11083
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v14
+commit_base: ec42e32
+messageHandler_lines: 11120
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v15
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_7138847c52ce2d9c94decc3f2beba71e7a2f371c
+analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
 ```
 
 ---
@@ -29,13 +29,22 @@ clean
 ## Suite local informada
 
 ```text
+pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+result: pass
+pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
+result: pass
 pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: 74 passed
+result: pass
+pnpm vitest run test/agents.reservations.unit.spec.ts
+result: pass
+pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts
+result: pass
+pnpm run ts-check
+result: pass
 pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
-result: 11 passed
+result: pass
 pnpm test
-Test Files 161 passed (161)
-Tests 814 passed (814)
+result: pass
 ```
 
 ---
@@ -58,15 +67,16 @@ modify_direct_slot_payload_and_multifield_sequencing_commit: 23a59cfbf67c8db0b64
 reservation_snapshot_language_stickiness_after_modify_commit: b888f73f299137cfda97fa628a95b6ce5f86a959
 repair_modify_composite_room_guests_capacity_continuity_commit: 3d7d7c200fa76ee2ad85d0aea08c22eeba239605
 guest_reservation_list_interlocutor_copy_commit: 7138847c52ce2d9c94decc3f2beba71e7a2f371c
+reservation_copy_guest_pluralization_commit: ec42e3293f09dd52757d095f8690567f44f57bdb
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- el header del listado guest-wide debe usar `canonicalGuest` o `conversationalDisplayName`
-- el empty-state guest-wide debe usar fallback conversacional sin nombre técnico
-- `reservation.guestName` debe quedar reservado al holder de cada línea de reserva
-- el copy del snapshot/listado no debe usar vocativos impersonales como "este huésped"
+- la salida visible no debe mostrar `huésped(es)` como pluralización literal
+- la cotización no debe mostrar `1 noches`
+- el copy de reserva debe pluralizar correctamente huéspedes y noches por idioma
+- el guard mínimo de `modify` debe evitar activación en consultas no ejecutables
 ```
 
 ---
@@ -74,7 +84,7 @@ guest_reservation_list_interlocutor_copy_commit: 7138847c52ce2d9c94decc3f2beba71
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`7138847`.
+`ec42e32`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -91,9 +101,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `7138847`
-2. Copy conversacional refrescado para listado guest-wide e interlocutor
+1. Snapshot base a commit real `ec42e32`
+2. Copy de reserva refrescado para pluralización visible y quote copy
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para `guest_reservation_list`
+5. box index machine-friendly refrescado para pluralización y repair mínimo de `modify`
 ```
