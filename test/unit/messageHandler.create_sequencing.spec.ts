@@ -149,7 +149,34 @@ describe("messageHandler create sequencing", () => {
     expect(replyText).toMatch(/tengo doble disponible/i);
     expect(replyText).toMatch(/Pedro Picapiedra/i);
     expect(replyText).toMatch(/Total 2 noches/i);
+    expect(replyText).not.toMatch(/Total 2 noche:/i);
     expect(replyText).toMatch(/confirm[aá]s la reserva|respond[eé]\s+["“]?confirmar["”]?/i);
+  });
+
+  it("la cotización activa usa pluralización natural para 1 noche", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quiero hacer una reserva para el 19/07/2027 al 20/07/2027, una doble, para dos personas, a nombre de Pedro Picapiedra"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toContain("Total 1 noche: 100 USD.");
+    expect(replyText).not.toContain("Total 1 noches");
+  });
+
+  it("la cotización activa usa pluralización natural para 1 noche en single", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quiero hacer una reserva para el 21/07/2027 al 22/07/2027, una single, para una persona, a nombre de Ana Perez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toContain("Total 1 noche: 100 USD.");
+    expect(replyText).not.toContain("Total 1 noches");
   });
 
   it("la confirmación usa pluralización natural para 1 huésped", async () => {

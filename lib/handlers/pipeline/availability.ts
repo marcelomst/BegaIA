@@ -1,7 +1,7 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { askAvailability } from "@/lib/agents/reservations";
 import { upsertConvState } from "@/lib/db/convState";
-import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion } from "@/lib/agents/helpers";
+import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion, formatNightCountLabel } from "@/lib/agents/helpers";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
 export type ReservationSlotsLike = {
@@ -628,10 +628,10 @@ export async function runAvailabilityCheck(
                 : "";
         if (perNight != null) {
             base = pre.lang === "es"
-                ? `Tengo ${rtLocalized} disponible${holderSuffix}. Tarifa por noche: ${perNight} ${currency}. Total ${nights} noches: ${total} ${currency}.`
+                ? `Tengo ${rtLocalized} disponible${holderSuffix}. Tarifa por noche: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`
                 : pre.lang === "pt"
-                    ? `Tenho ${rtLocalized} disponível${holderSuffix}. Tarifa por noite: ${perNight} ${currency}. Total ${nights} noites: ${total} ${currency}.`
-                    : `I have a ${rtLocalized} available${holderSuffix}. Rate per night: ${perNight} ${currency}. Total ${nights} nights: ${total} ${currency}.`;
+                    ? `Tenho ${rtLocalized} disponível${holderSuffix}. Tarifa por noite: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`
+                    : `I have a ${rtLocalized} available${holderSuffix}. Rate per night: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`;
         } else {
             base = pre.lang === "es"
                 ? `Hay disponibilidad para ${rtLocalized}${reservationHolderName ? ` a nombre de ${reservationHolderName}` : ""}.`
