@@ -10561,3 +10561,63 @@ Impacto:
 - unifica el render visible con el helper compartido de pluralización ES/PT/EN
 - preserva consistencia entre quote activa, confirmaciones y listados
 - mantiene el repair acotado al path activo de disponibilidad/cotización
+
+### REPAIR-MODIFY-INQUIRY-GUARD-MANUAL-RUNTIME-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-18  
+Commit: 15fe1dca93dae081519f6119acdb68ae86006a5b
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Repair runtime acotado sobre el corredor conversacional de `modify` para agregar
+una respuesta informativa dedicada a `modify_inquiry_intent`, evitar que policy,
+reservation node o `messageHandler` promuevan modify por verbos sueltos y
+endurecer `salesStage=close` para no abrir `modify` legacy por regex suelta.
+
+Archivos afectados:
+
+- `lib/agents/classify/policy.ts`
+- `lib/agents/nodes/reservation.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/graph_create_confirm_guard.spec.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/policy.llmEscalation.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `modify_intent_guard`
+  `fallback_response_governance`
+  `conversation_focus`
+- cajas revisadas:
+  `graph_close_stage_intent_policy`
+  `reservation_node_modify_entry`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm vitest run test/unit/policy.llmEscalation.spec.ts test/unit/graph_create_confirm_guard.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  `quiero saber si puedo modificar`
+  `antes de modificar, ¿me recordás el precio?`
+  `quiero cambiar si hay lugar`
+  `quiero modificar la segunda reserva`
+
+Impacto:
+
+- las consultas consultivas sobre modificar ya no abren `modify` legacy
+- no fuerzan selección de reserva ni seteos espurios de `desiredAction=modify`
+- el runtime responde con copy informativo explícito y consistente con la intención real
+- se preserva el modify ejecutable legítimo cuando el usuario sí referencia una reserva concreta

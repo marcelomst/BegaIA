@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e7f3751
-messageHandler_lines: 11120
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v16
+commit_base: 15fe1dc
+messageHandler_lines: 11173
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v17
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_e7f37514811fbe9d3829689b460a7f664f834220
+analysis_scope: commit_15fe1dca93dae081519f6119acdb68ae86006a5b
 ```
 
 ---
@@ -29,9 +29,9 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
+pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
 result: pass
-pnpm vitest run test/agents.reservations.unit.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+pnpm vitest run test/unit/policy.llmEscalation.spec.ts test/unit/graph_create_confirm_guard.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -61,15 +61,16 @@ repair_modify_composite_room_guests_capacity_continuity_commit: 3d7d7c200fa76ee2
 guest_reservation_list_interlocutor_copy_commit: 7138847c52ce2d9c94decc3f2beba71e7a2f371c
 reservation_copy_guest_pluralization_commit: ec42e3293f09dd52757d095f8690567f44f57bdb
 repair_quote_night_pluralization_active_paths_commit: e7f37514811fbe9d3829689b460a7f664f834220
+repair_modify_inquiry_guard_manual_runtime_commit: 15fe1dca93dae081519f6119acdb68ae86006a5b
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- el path activo de cotización no debe mostrar `Total 1 noches`
-- `1 noche` y `2 noches` deben renderizar correctamente en create sequencing
-- el render activo debe compartir helper de pluralización con confirmaciones y listados
-- el repair debe permanecer acotado a disponibilidad/cotización
+- las consultas consultivas sobre modificar no deben abrir `modify` legacy
+- `modify_inquiry_intent` debe responder con copy informativo dedicado
+- `salesStage=close` no debe promover `modify` por regex suelta
+- el modify ejecutable por referencia concreta debe seguir funcionando
 ```
 
 ---
@@ -77,7 +78,7 @@ repair_quote_night_pluralization_active_paths_commit: e7f37514811fbe9d3829689b46
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`e7f3751`.
+`15fe1dc`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -94,9 +95,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `e7f3751`
-2. Quote copy activo refrescado para pluralización visible de noches
+1. Snapshot base a commit real `15fe1dc`
+2. Guard runtime de `modify` refrescado para inquiries no ejecutables
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para `create_quote_copy`
+5. box index machine-friendly refrescado para `modify_intent_guard`
 ```
