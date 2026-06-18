@@ -8,7 +8,15 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01
+## 1. REPAIR-QUOTE-NIGHT-PLURALIZATION-ACTIVE-PATHS-01
+
+- Identificador: `REPAIR-QUOTE-NIGHT-PLURALIZATION-ACTIVE-PATHS-01`
+- Nombre: `REPAIR-QUOTE-NIGHT-PLURALIZATION-ACTIVE-PATHS-01`
+- Commit message: `REPAIR-QUOTE-NIGHT-PLURALIZATION-ACTIVE-PATHS-01`
+- Hash: `e7f37514811fbe9d3829689b460a7f664f834220`
+- Descripción breve: Repara la pluralización visible de noches en el path activo de cotización/disponibilidad y agrega regresiones de paridad para `1 noche` y `2 noches` en create sequencing.
+
+## 2. FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01
 
 - Identificador: `FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01`
 - Nombre: `FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01`
@@ -16,7 +24,7 @@ No reemplaza el historial completo.
 - Hash: `ec42e3293f09dd52757d095f8690567f44f57bdb`
 - Descripción breve: Corrige pluralización visible de huéspedes y noches en copys de reserva, y restaura un guard mínimo de `modify` para consultas no ejecutables.
 
-## 2. FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01
+## 3. FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01
 
 - Identificador: `FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01`
 - Nombre: `FIX-WHATSAPP-CONFIRMATION-MARKDOWN-FORMATTING-01`
@@ -24,7 +32,7 @@ No reemplaza el historial completo.
 - Hash: `4bfc49c8591d9b2abf2e1152c70bd424a5604089`
 - Descripción breve: Normaliza el markdown saliente en WhatsApp/Twilio para eliminar bold roto o desbalanceado antes del envío, preservando el contenido completo de confirmación.
 
-## 3. FIX-EMAIL-CREATE-SPELLED-NUMBER-GUESTS-EXTRACTION-01
+## 4. FIX-EMAIL-CREATE-SPELLED-NUMBER-GUESTS-EXTRACTION-01
 
 - Identificador: `FIX-EMAIL-CREATE-SPELLED-NUMBER-GUESTS-EXTRACTION-01`
 - Nombre: `FIX-EMAIL-CREATE-SPELLED-NUMBER-GUESTS-EXTRACTION-01`
@@ -32,7 +40,7 @@ No reemplaza el historial completo.
 - Hash: `6c1b5784099ca0423d9a95f12523c2b1fcf08044`
 - Descripción breve: Corrige la extracción de `numGuests` en palabras dentro de `create`, soportando "una/dos/tres/cuatro/cinco persona(s)/huésped(es)" para evitar repreguntas innecesarias.
 
-## 4. FIX-GUEST-RESERVATION-LIST-INTERLOCUTOR-COPY-01
+## 5. FIX-GUEST-RESERVATION-LIST-INTERLOCUTOR-COPY-01
 
 - Identificador: `FIX-GUEST-RESERVATION-LIST-INTERLOCUTOR-COPY-01`
 - Nombre: `FIX-GUEST-RESERVATION-LIST-INTERLOCUTOR-COPY-01`
@@ -40,7 +48,7 @@ No reemplaza el historial completo.
 - Hash: `7138847c52ce2d9c94decc3f2beba71e7a2f371c`
 - Descripción breve: Mejora el copy conversacional del listado guest-wide de reservas, usando `canonicalGuest` o `conversationalDisplayName` para el vocativo y fallback neutro cuando no hay nombre confiable.
 
-## 5. REPAIR-MODIFY-COMPOSITE-ROOM-GUESTS-CAPACITY-CONTINUITY-01
+## 6. REPAIR-MODIFY-COMPOSITE-ROOM-GUESTS-CAPACITY-CONTINUITY-01
 
 - Identificador: `REPAIR-MODIFY-COMPOSITE-ROOM-GUESTS-CAPACITY-CONTINUITY-01`
 - Nombre: `REPAIR-MODIFY-COMPOSITE-ROOM-GUESTS-CAPACITY-CONTINUITY-01`
@@ -48,7 +56,7 @@ No reemplaza el historial completo.
 - Hash: `3d7d7c200fa76ee2ad85d0aea08c22eeba239605`
 - Descripción breve: Repara el subflujo `modify` compuesto habitación + huéspedes, normaliza el orden textual de campos, preserva guards de capacidad y unifica el idioma conversacional con el snapshot posterior.
 
-## 6. FIX-RESERVATION-SNAPSHOT-LANGUAGE-STICKINESS-AFTER-MODIFY-01
+## 7. FIX-RESERVATION-SNAPSHOT-LANGUAGE-STICKINESS-AFTER-MODIFY-01
 
 - Identificador: `FIX-RESERVATION-SNAPSHOT-LANGUAGE-STICKINESS-AFTER-MODIFY-01`
 - Nombre: `FIX-RESERVATION-SNAPSHOT-LANGUAGE-STICKINESS-AFTER-MODIFY-01`
@@ -56,7 +64,7 @@ No reemplaza el historial completo.
 - Hash: `b888f73f299137cfda97fa628a95b6ce5f86a959`
 - Descripción breve: Corrige el idioma del snapshot/resumen posterior a `modify`, priorizando `reservationSlots.locale` y `hotelConfig.defaultLanguage` sobre `detectedLanguage` ambiguo del turno actual.
 
-## 7. FIX-MODIFY-DIRECT-SLOT-PAYLOAD-AND-MULTIFIELD-SEQUENCING-01
+## 8. FIX-MODIFY-DIRECT-SLOT-PAYLOAD-AND-MULTIFIELD-SEQUENCING-01
 
 - Identificador: `FIX-MODIFY-DIRECT-SLOT-PAYLOAD-AND-MULTIFIELD-SEQUENCING-01`
 - Nombre: `FIX-MODIFY-DIRECT-SLOT-PAYLOAD-AND-MULTIFIELD-SEQUENCING-01`
@@ -64,7 +72,7 @@ No reemplaza el historial completo.
 - Hash: `23a59cfbf67c8db0b64914e9b6d2b39a310ed857`
 - Descripción breve: Corrige `modify` con payload inline por `reservationId` y ordinal, agrega secuenciación multi-campo guiada y preserva prioridad `modify > create` sin cierres prematuros.
 
-## 8. FIX-GUEST-CONVERSATION-BINDING-CROSS-CHANNEL-REUSE-01
+## 9. FIX-GUEST-CONVERSATION-BINDING-CROSS-CHANNEL-REUSE-01
 
 - Identificador: `FIX-GUEST-CONVERSATION-BINDING-CROSS-CHANNEL-REUSE-01`
 - Nombre: `FIX-GUEST-CONVERSATION-BINDING-CROSS-CHANNEL-REUSE-01`
@@ -72,18 +80,10 @@ No reemplaza el historial completo.
 - Hash: `61201fb27a168dba4800cb35ac0feadb3f399192`
 - Descripción breve: Persiste el binding conversacional por canal sobre guest canónico para reutilizar el `conversationId` correcto en follow-ups del mismo canal y abrir uno nuevo cuando el canal entrante es incompatible.
 
-## 9. FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01
+## 10. FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01
 
 - Identificador: `FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01`
 - Nombre: `FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01`
 - Commit message: `FIX-GUEST-WIDE-ORDINAL-MODIFY-REFERENCE-AFTER-CONSOLIDATED-SNAPSHOT-01`
 - Hash: `9f472c47a0a63336c6ca7493f43895e070376bcd`
 - Descripción breve: Persiste el snapshot guest-wide consolidado como fuente referencial inmediata para ordinales de modify, respetando el orden mostrado y el target seleccionado.
-
-## 10. FIX-SECOND-CREATE-RESET-DRAFT-BEFORE-QUOTE-01
-
-- Identificador: `FIX-SECOND-CREATE-RESET-DRAFT-BEFORE-QUOTE-01`
-- Nombre: `FIX-SECOND-CREATE-RESET-DRAFT-BEFORE-QUOTE-01`
-- Commit message: `FIX-SECOND-CREATE-RESET-DRAFT-BEFORE-QUOTE-01`
-- Hash: `d94c05545b5eae0736b7e2756dafb3b39a9aeb74`
-- Descripción breve: Corrige la segunda reserva sobre contexto confirmado para resetear draft antes de quote, evitar recotización de la reserva previa y no caer en el ACK temporal compartido.

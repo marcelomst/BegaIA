@@ -10511,3 +10511,53 @@ Impacto:
 - mejora la legibilidad visible de confirmaciones, snapshots y cotizaciones
 - preserva el corredor `modify` ante consultas no ejecutables evitando activación por regex suelta
 - mantiene el ajuste acotado a copy de reserva, i18n y repair mínimo del guard
+
+### REPAIR-QUOTE-NIGHT-PLURALIZATION-ACTIVE-PATHS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-18  
+Commit: e7f37514811fbe9d3829689b460a7f664f834220
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+Parent hito: FIX-RESERVATION-COPY-GUEST-PLURALIZATION-01
+
+Descripcion:
+
+Repair acotado sobre el path activo de cotización/disponibilidad para corregir
+la pluralización visible de noches en el render de quote, unificando el texto
+con el helper compartido de pluralización y agregando regresiones de paridad
+para `1 noche` y `2 noches` dentro de `create sequencing`.
+
+Archivos afectados:
+
+- `lib/handlers/pipeline/availability.ts`
+- `test/unit/messageHandler.create_sequencing.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `create_quote_copy`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts`
+  `pnpm vitest run test/agents.reservations.unit.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  `Total 1 noche` en doble
+  `Total 1 noche` en single
+  `Total 2 noches` en quote activa
+
+Impacto:
+
+- elimina el copy no canónico `Total 1 noches` del path activo de cotización
+- unifica el render visible con el helper compartido de pluralización ES/PT/EN
+- preserva consistencia entre quote activa, confirmaciones y listados
+- mantiene el repair acotado al path activo de disponibilidad/cotización

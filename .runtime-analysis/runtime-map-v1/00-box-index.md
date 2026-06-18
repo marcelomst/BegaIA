@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ec42e32
+commit_base: e7f3751
 messageHandler_lines: 11120
 working_tree_status: clean
-analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v15
+analysis_scope: commit_e7f37514811fbe9d3829689b460a7f664f834220
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v16
 known_manual_bug: none
 ```
 
@@ -56,24 +56,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - reservation_confirmation
-    - reservation_list
     - create_quote_copy
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
-    - modify_intent_guard
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la pluralización visible de huéspedes deja de exponer `huésped(es)`
-      - la cotización visible deja de exponer `1 noches`
-      - confirmación, snapshot y listados comparten copy pluralizado por idioma
-      - el guard mínimo de `modify` no activa sobre consultas no ejecutables
+      - el path activo ya no expone `Total 1 noches`
+      - `1 noche` y `2 noches` conservan paridad en create sequencing
+      - cotización activa comparte helper de pluralización con otros renders
+      - el repair no altera la lógica de negocio de disponibilidad
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid

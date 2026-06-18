@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `ec42e32`, Guardian confirmó:
+Para el hito `e7f3751`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -46,8 +46,8 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se registra la pluralización visible de huéspedes y noches en copys de reserva
-- el guard mínimo de `modify` queda restaurado para consultas no ejecutables
+- se registra la pluralización visible de noches en el path activo de quote
+- el render de disponibilidad/cotización queda alineado con el helper compartido
 
 ---
 
@@ -57,11 +57,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ec42e32
+commit_base: e7f3751
 messageHandler_lines: 11120
 working_tree_status: clean
-analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v15
+analysis_scope: commit_e7f37514811fbe9d3829689b460a7f664f834220
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v16
 known_manual_bug: none
 ```
 
@@ -70,15 +70,9 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
-result: pass
 pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
 result: pass
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: pass
-pnpm vitest run test/agents.reservations.unit.spec.ts
-result: pass
-pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts
+pnpm vitest run test/agents.reservations.unit.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -90,8 +84,8 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un fix de pluralización visible en copys de reserva y un
-repair mínimo del guard de `modify`, pero no elimina el riesgo de futuros bugs funcionales fuera de
+Este refresh documenta un repair de pluralización visible en el path activo de
+cotización, pero no elimina el riesgo de futuros bugs funcionales fuera de
 cobertura.
 ```
 
@@ -122,7 +116,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`ec42e32`.
+`e7f3751`.
 ```
 
 ---

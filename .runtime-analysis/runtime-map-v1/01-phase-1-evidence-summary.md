@@ -21,22 +21,19 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ec42e32
+commit_base: e7f3751
 messageHandler_lines: 11120
 working_tree_status: clean
-analysis_scope: commit_ec42e3293f09dd52757d095f8690567f44f57bdb
+analysis_scope: commit_e7f37514811fbe9d3829689b460a7f664f834220
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/unit/messageHandler.cross_domain_intent_prioritization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
+    - pnpm vitest run test/agents.reservations.unit.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
     - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/agents.reservations.unit.spec.ts
-    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts
+    - pnpm vitest run test/agents.reservations.unit.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
     - pnpm run ts-check
     - pnpm test
 known_manual_bug: none
@@ -47,24 +44,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - reservation_confirmation
-    - reservation_list
     - create_quote_copy
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
-    - modify_intent_guard
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - la pluralización visible de huéspedes deja de exponer `huésped(es)`
-      - la cotización visible deja de exponer `1 noches`
-      - confirmación, snapshot y listados comparten copy pluralizado por idioma
-      - el guard mínimo de `modify` no activa sobre consultas no ejecutables
+      - el path activo ya no expone `Total 1 noches`
+      - `1 noche` y `2 noches` conservan paridad en create sequencing
+      - cotización activa comparte helper de pluralización con otros renders
+      - el repair no altera la lógica de negocio de disponibilidad
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -72,7 +64,7 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: ec42e32
+    commit: e7f3751
     messageHandler_lines: 11120
     functions:
       preLLM: L3796-L4034
