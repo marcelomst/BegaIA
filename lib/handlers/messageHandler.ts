@@ -47,7 +47,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, extractGuests, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange, buildReservationMissingQuestion } from "@/lib/agents/helpers";
+import { extractSlotsFromText, extractGuests, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange, buildReservationMissingQuestion, formatGuestCountLabel } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -274,9 +274,14 @@ function buildReservationSnapshotAnswer(
     return `Tu reserva es para ${checkIn ?? "(sin fecha)"} → ${checkOut ?? "(sin fecha)"}.`;
   }
   if (kind === "guests") {
-    if (lang === "pt") return `Sua reserva está para ${slots.numGuests ?? "(sem dado)"} hóspede(s).`;
-    if (lang === "en") return `Your booking is for ${slots.numGuests ?? "(unknown)"} guest(s).`;
-    return `Tu reserva es para ${slots.numGuests ?? "(sin dato)"} huésped(es).`;
+    if (!slots.numGuests) {
+      if (lang === "pt") return "Sua reserva está para (sem dado).";
+      if (lang === "en") return "Your booking is for (unknown).";
+      return "Tu reserva es para (sin dato).";
+    }
+    if (lang === "pt") return `Sua reserva está para ${formatGuestCountLabel(slots.numGuests, lang)}.`;
+    if (lang === "en") return `Your booking is for ${formatGuestCountLabel(slots.numGuests, lang)}.`;
+    return `Tu reserva es para ${formatGuestCountLabel(slots.numGuests, lang)}.`;
   }
   if (lang === "pt") {
     return [
@@ -323,7 +328,7 @@ function normalizeRuntimeLanguage(value: unknown): "es" | "en" | "pt" | null {
 function resolveReservationSnapshotLanguage(pre: {
   lang: "es" | "en" | "pt";
   st?: any;
-  hotelConfig?: { defaultLanguage?: string | null } | null;
+  hotelConfig?: { defaultLanguage?: string | null; hotelName?: string; assistantBranding?: unknown } | null;
 }): "es" | "en" | "pt" {
   return (
     normalizeRuntimeLanguage(pre.st?.reservationSlots?.locale) ||
@@ -335,12 +340,15 @@ function resolveReservationSnapshotLanguage(pre: {
 function resolveReservationConversationLanguage(pre: {
   lang: "es" | "en" | "pt";
   st?: any;
-  hotelConfig?: { defaultLanguage?: string | null } | null;
+  hotelConfig?: { defaultLanguage?: string | null; hotelName?: string; assistantBranding?: unknown } | null;
 }): "es" | "en" | "pt" {
   return resolveReservationSnapshotLanguage(pre);
 }
 
-export type ReservationSlotsStrict = SlotMap;
+export type ReservationSlotsStrict = Omit<SlotMap, "numGuests"> & {
+  numGuests?: string | number;
+  locale?: string;
+};
 
 // ----------------------
 const CONFIG = {
@@ -981,10 +989,10 @@ function buildCreateDraftCapacityReply(
         } ${lang === "pt" ? "mais de um quarto" : lang === "en" ? "more than one room" : "más de una habitación"}`;
 
   return lang === "pt"
-    ? `Um quarto ${localizedRoom} não comporta ${guests} hóspede(s). Quer mudar para ${suggestionText}?`
+    ? `Um quarto ${localizedRoom} não comporta ${formatGuestCountLabel(guests, lang)}. Quer mudar para ${suggestionText}?`
     : lang === "en"
-      ? `A ${localizedRoom} room does not fit ${guests} guest(s). Do you want to switch to ${suggestionText}?`
-      : `Una habitación ${localizedRoom} no admite ${guests} huésped(es). ¿Querés cambiar a ${suggestionText}?`;
+      ? `A ${localizedRoom} room does not fit ${formatGuestCountLabel(guests, lang)}. Do you want to switch to ${suggestionText}?`
+      : `Una habitación ${localizedRoom} no admite ${formatGuestCountLabel(guests, lang)}. ¿Querés cambiar a ${suggestionText}?`;
 }
 
 function validateCreateDraftConsistency(
@@ -1806,7 +1814,9 @@ function buildReservationListAnswer(
     const owner = guestName
       ? ` · ${lang === "pt" ? "em nome de" : lang === "en" ? "under" : "a nombre de"} ${guestName}`
       : "";
-    const guests = item.numGuests ? ` · ${lang === "pt" ? "hóspedes" : lang === "en" ? "guests" : "huéspedes"}: ${item.numGuests}` : "";
+    const guests = item.numGuests
+      ? ` · ${formatGuestCountLabel(item.numGuests, lang, { includeCount: false })}: ${item.numGuests}`
+      : "";
     const room = roomType ? ` · ${lang === "pt" ? "quarto" : lang === "en" ? "room" : "habitación"}: ${roomType}` : "";
     return `${index + 1}. ${item.reservationId} · ${status}${owner}${room} · ${checkIn} → ${checkOut}${guests}`;
   });
@@ -3756,6 +3766,7 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
 type PreLLMResult = {
   lang: "es" | "en" | "pt";
   hotelConfig?: {
+    defaultLanguage?: string | null;
     hotelName?: string;
     assistantBranding?: {
       displayName?: string;
@@ -3857,7 +3868,16 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const hasConfirmed = !!(st?.reservationSlots && st?.salesStage === "close");
   // confirmedBooking solo acepta { code?: string }
   const confirmedBooking = hasConfirmed ? { code: "-" } : null;
-  const stateForPlaybook: ConversationState = { draft: draftExists ? { ...currSlots } : null, confirmedBooking, locale: lang };
+  const stateForPlaybook: ConversationState = {
+    draft: draftExists
+      ? {
+        ...currSlots,
+        numGuests: currSlots.numGuests != null ? String(currSlots.numGuests) : undefined,
+      }
+      : null,
+    confirmedBooking,
+    locale: lang,
+  };
   const intent = detectIntent(String(msg.content || ""), stateForPlaybook);
   const hotelConfig = await getHotelConfigSafe(msg.hotelId);
 
@@ -5564,11 +5584,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasExplicitModifyTargetFast = Boolean(explicitReservationCodeFast || ordinalReservationTargetFast);
     const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
     const isModifyFollowupContext = pre.prevCategory === "modify_reservation" || pre.prevCategory === "modify";
+    const normalizedUserTxtFast = normalizeReferenceText(userTxt);
+    const normalizedReservationIntentFast = normalizeReservationIntent(userTxt);
     const mentionsReservation = /(reserva|booking)/i.test(tLower);
     const looksGreeting = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/i.test(tLower) || /creo que tengo una reserva|tengo una reserva|i think i have a booking|acho que tenho uma reserva/i.test(tLower);
+    const hasLooseModifyVerbFast = /\b(cambiame|modificame|cambiar|modificar|change|modify|update|alterar)\b/i.test(normalizedUserTxtFast);
+    const isModifyInquiryFast =
+      normalizedReservationIntentFast.kind === "other" &&
+      hasLooseModifyVerbFast;
     const genericModify =
-      wantsGenericModify(userTxt, pre.lang) ||
-      /\b(cambiame|modificame|cambiar|modificar|change|modify|update|alterar)\b/i.test(normalizedUserTxtFast);
+      !isModifyInquiryFast &&
+      (
+        wantsGenericModify(userTxt, pre.lang) ||
+        hasLooseModifyVerbFast
+      );
     const softModifyFollowup = hasConfirmed && isModifyFollowupContext && mentionsReservation && looksGreeting;
     // Evitar menú genérico si el usuario mencionó explícitamente check-in/check-out o fechas
     const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);
@@ -5576,7 +5605,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const hasAnyDateTokenFast = /\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?/.test(userTxt);
     const mentionsDatesFast = /(fecha|fechas|date|dates|data|datas|check\s*-?in|check\s*-?out|ingres(?:o|ar|amos)|inreso|entrada|llegada|arribo|salida|egreso|retirada|partida|sa[ií]da|departure|arrival)/i.test(tLower);
     const isDateTopicFast = Boolean(sideIntentFast || userDatesFast.checkIn || userDatesFast.checkOut || hasAnyDateTokenFast || mentionsDatesFast);
-    const normalizedUserTxtFast = normalizeReferenceText(userTxt);
     const inlineModifyTurnSlotsFast = extractSlotsFromText(userTxt, pre.lang);
     const inlineModifyDateRangeFast = extractRawOrderedDateRange(userTxt);
     const mentionsRoomFieldFast = /\b(habitacion|habitación|tipo de habitacion|tipo de habitación|room type|room|quarto|tipo de quarto)\b/i.test(normalizedUserTxtFast);
@@ -6510,6 +6538,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     !(hasExplicitModifyFieldRequest && (pre.inModifyMode || pre.prevCategory === "modify_reservation"))
   ) {
     const target = resolvedModifyTarget;
+    if (!target?.reservationId) {
+      finalText = buildAskReservationCode(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
     const recentModifyRoomType = getRecentModifyRoomTypeCandidate(pre);
     const directImmediateModifyFields = normalizeModifyFieldQueue([
       rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut ? "dates" : null,
@@ -8752,10 +8784,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         }
         finalText = result.ok && hasReservationId
           ? (pre.lang === "es"
-            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** huésped(es)` : ""}${replySnapshot.guestName ? ` · Reserva a nombre de **${replySnapshot.guestName}**.` : "."}`
+            ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${formatGuestCountLabel(replySnapshot.numGuests, pre.lang)}**` : ""}${replySnapshot.guestName ? ` · Reserva a nombre de **${replySnapshot.guestName}**.` : "."}`
             : pre.lang === "pt"
-              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** hóspede(s)` : ""}${replySnapshot.guestName ? ` · Reserva em nome de **${replySnapshot.guestName}**.` : "."}`
-              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${replySnapshot.numGuests}** guest(s)` : ""}${replySnapshot.guestName ? ` · Booking under **${replySnapshot.guestName}**.` : "."}`)
+              ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${formatGuestCountLabel(replySnapshot.numGuests, pre.lang)}**` : ""}${replySnapshot.guestName ? ` · Reserva em nome de **${replySnapshot.guestName}**.` : "."}`
+              : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGuests ? ` · **${formatGuestCountLabel(replySnapshot.numGuests, pre.lang)}**` : ""}${replySnapshot.guestName ? ` · Booking under **${replySnapshot.guestName}**.` : "."}`)
           : (result.ok
             ? (pre.lang === "es"
               ? "No pude confirmar la reserva con datos incompletos. Sigamos con el dato faltante."
@@ -10544,11 +10576,16 @@ function wantsGenericModify(text: string, lang: "es" | "en" | "pt"): boolean {
   const t = (text || "").toLowerCase();
   if (!t) return false;
   const normalizedReservationIntent = normalizeReservationIntent(text || "");
-  if (normalizedReservationIntent.kind === "modify") return true;
-  if (normalizedReservationIntent.kind !== "other") return false;
-  if (/\b(modificar|cambiar|alterar|mudar|change|edit|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedReservationIntent.normalizedText)) {
+  const normalizedText = normalizedReservationIntent.normalizedText;
+  if (
+    /\b(modificar|cambiar|alterar|mudar|change|edit|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
+    /\b(saber\s+si\s+puedo|know\s+if\s+i\s+can|se\s+posso)\b.*\b(modificar|cambiar|alterar|mudar|change|edit|update)\b/i.test(normalizedText) ||
+    /\b(antes\s+de\s+(modificar|cambiar|alterar|mudar)|before\s+(?:i\s+)?(?:modify|change|edit|update))\b.*\b(precio|price|tarifa)\b/i.test(normalizedText)
+  ) {
     return false;
   }
+  if (normalizedReservationIntent.kind === "modify") return true;
+  if (normalizedReservationIntent.kind !== "other") return false;
   if (lang === "es") return /((quiero|quisiera|deseo)\s+(modificar|cambiar)(la|lo|mi|\b))|\b(modifica|modificá|modificá|cambia|cambiá)\b/i.test(t);
   if (lang === "pt") return /(quero|gostaria de|desejo)\s+(modificar|mudar|alterar)(\s|$)/i.test(t);
   return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+(?:my\s+)?booking|\s+reservation|$)/i.test(t);
@@ -10740,7 +10777,7 @@ async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any;
       roomType: pre.currSlots.roomType,
       checkIn: pre.currSlots.checkIn,
       checkOut: pre.currSlots.checkOut,
-      numGuests: pre.currSlots.numGuests,
+      numGuests: pre.currSlots.numGuests != null ? String(pre.currSlots.numGuests) : undefined,
     });
     verdictInfo = auditVerdict(preInterp, llmInterp);
     const riskyCategory = CONFIG.SENSITIVE_CATEGORIES.has(String(llmInterp.category || ""));

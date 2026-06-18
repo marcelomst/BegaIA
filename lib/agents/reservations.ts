@@ -7,7 +7,7 @@ import {
   type CheckAvailabilityOutput,
 } from "@/lib/tools/mcp";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { chronoExtractDateRange, localizeRoomType } from "./helpers";
+import { chronoExtractDateRange, formatNightCountLabel, localizeRoomType } from "./helpers";
 
 export type FillSlotsResult =
   | { need: "question"; question: string; partial?: Partial<ReservationSlots> }
@@ -121,6 +121,17 @@ type NormalizedSlots = {
   numGuests?: number | string;
   locale?: string;
 };
+
+type ModifyReservationSlots = Partial<{
+  guestName: string;
+  roomType: string;
+  checkIn: string | Date;
+  checkOut: string | Date;
+  numGuests: number | string;
+  guests: number | string;
+  locale: string;
+}>;
+
 function normalizeBookingSlots(slots: InputSlots): NormalizedSlots {
   const out: Record<string, unknown> = { ...(slots || {}) };
   if (out.checkIn) out.checkIn = toIsoDateTime(out.checkIn as string | Date);
@@ -458,10 +469,10 @@ export async function askAvailability(hotelId: string, slots: ReservationSlots) 
       const curr = String(option.currency || '').toUpperCase();
       enrichedText =
         lang2 === 'es'
-          ? `Tengo ${showRt} disponible. Tarifa por noche: ${option.pricePerNight} ${curr}. Total ${nights} noches: ${total} ${curr}.`
+          ? `Tengo ${showRt} disponible. Tarifa por noche: ${option.pricePerNight} ${curr}. Total ${formatNightCountLabel(nights, lang2)}: ${total} ${curr}.`
           : lang2 === 'pt'
-            ? `Tenho ${showRt} disponível. Tarifa por noite: ${option.pricePerNight} ${curr}. Total ${nights} noites: ${total} ${curr}.`
-            : `I have a ${showRt} available. Rate per night: ${option.pricePerNight} ${curr}. Total ${nights} nights: ${total} ${curr}.`;
+            ? `Tenho ${showRt} disponível. Tarifa por noite: ${option.pricePerNight} ${curr}. Total ${formatNightCountLabel(nights, lang2)}: ${total} ${curr}.`
+            : `I have a ${showRt} available. Rate per night: ${option.pricePerNight} ${curr}. Total ${formatNightCountLabel(nights, lang2)}: ${total} ${curr}.`;
     }
     const result: any = {
       ok: true as const,
@@ -539,7 +550,7 @@ type _NormSlotsForModify = ReturnType<typeof normalizeBookingSlots>;
 export async function modifyReservation(
   hotelId: string,
   reservationId: string,
-  slots: ReservationSlots,
+  slots: ModifyReservationSlots,
   channel: string = "web"
 ) {
   let norm: _NormSlotsForModify;

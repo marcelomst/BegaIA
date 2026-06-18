@@ -577,6 +577,9 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).toMatch(/tus reservas/i);
     expect(replyText).toMatch(/RES-274B9C/i);
     expect(replyText).toMatch(/a nombre de Raul Olivera/i);
+    expect(replyText).toMatch(/hu[ée]spedes: 2/i);
+    expect(replyText).not.toContain("huésped(es)");
+    expect(replyText).not.toContain("huesped(es)");
     expect(replyText).not.toMatch(/este hu[eé]sped/i);
     expect(replyText).not.toMatch(/reservas asociadas/i);
     expect(replyText).not.toMatch(/esta conversación/i);

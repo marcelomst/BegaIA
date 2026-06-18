@@ -50,6 +50,46 @@ describe("agents/reservations - tools wrappers", () => {
     expect(out.options?.length).toBeGreaterThan(0);
   });
 
+  it("askAvailability usa pluralización natural para noches en la cotización", async () => {
+    const checkAvailabilityToolMock = vi.mocked(checkAvailabilityTool);
+
+    checkAvailabilityToolMock.mockResolvedValueOnce({
+      ok: true,
+      available: true,
+      options: [{ roomType: "double", pricePerNight: 100, currency: "USD" }],
+    });
+
+    const oneNight = await askAvailability("hotel999", {
+      roomType: "double",
+      guests: 1,
+      checkIn: "2025-10-01",
+      checkOut: "2025-10-02",
+      guestName: "Ana",
+      locale: "es",
+    } as any);
+
+    expect(oneNight.proposal).toContain("Total 1 noche: 100 USD.");
+    expect(oneNight.proposal).not.toContain("Total 1 noches");
+
+    checkAvailabilityToolMock.mockResolvedValueOnce({
+      ok: true,
+      available: true,
+      options: [{ roomType: "double", pricePerNight: 100, currency: "USD" }],
+    });
+
+    const twoNights = await askAvailability("hotel999", {
+      roomType: "double",
+      guests: 2,
+      checkIn: "2025-10-01",
+      checkOut: "2025-10-03",
+      guestName: "Ana",
+      locale: "es",
+    } as any);
+
+    expect(twoNights.proposal).toContain("Total 2 noches: 200 USD.");
+    expect(twoNights.proposal).not.toContain("Total 2 noche:");
+  });
+
   it("canonicaliza 'doble matrimonial' → 'double' al invocar el tool", async () => {
     await askAvailability("hotel999", {
       roomType: "doble matrimonial",

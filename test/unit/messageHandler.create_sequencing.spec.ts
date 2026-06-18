@@ -39,6 +39,11 @@ vi.mock("@/lib/agents/reservations", () => ({
     proposal: `Tengo ${snapshot.roomType || "doble"} disponible para ${snapshot.guestName || "el huésped"}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
     options: [{ roomType: snapshot.roomType || "double", pricePerNight: 100, currency: "USD" }],
   })),
+  confirmAndCreate: vi.fn(async () => ({
+    ok: true,
+    reservationId: "RES-PLURAL-001",
+    message: "created",
+  })),
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
@@ -82,6 +87,9 @@ function msg(content: string) {
 function lastReply(sendReply: any): string {
   return String(sendReply.mock.calls.at(-1)?.[0] || "");
 }
+
+const FUTURE_CHECKIN_TEXT = "18/07/2027";
+const FUTURE_CHECKOUT_TEXT = "20/07/2027";
 
 describe("messageHandler create sequencing", () => {
   beforeEach(() => {
@@ -132,7 +140,7 @@ describe("messageHandler create sequencing", () => {
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("Quiero hacer una reserva, a nombre de Pedro Picapiedra, para el 18/06/2026 al 20/06/2026 una doble para dos personas"),
+      msg(`Quiero hacer una reserva, a nombre de Pedro Picapiedra, para el ${FUTURE_CHECKIN_TEXT} al ${FUTURE_CHECKOUT_TEXT} una doble para dos personas`),
       { mode: "automatic", sendReply }
     );
 
@@ -142,6 +150,22 @@ describe("messageHandler create sequencing", () => {
     expect(replyText).toMatch(/Pedro Picapiedra/i);
     expect(replyText).toMatch(/Total 2 noches/i);
     expect(replyText).toMatch(/confirm[aá]s la reserva|respond[eé]\s+["“]?confirmar["”]?/i);
+  });
+
+  it("la confirmación usa pluralización natural para 1 huésped", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(`Quiero hacer una reserva, a nombre de Ana Perez, para el ${FUTURE_CHECKIN_TEXT} al ${FUTURE_CHECKOUT_TEXT} una doble para 1 persona`),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/Reserva confirmada/i);
+    expect(replyText).toContain("1 huésped");
+    expect(replyText).not.toContain("huésped(es)");
+    expect(replyText).not.toContain("1 huéspedes");
   });
 
   it("si el sistema espera huéspedes y el usuario responde 'sí', no avanza prematuramente", async () => {

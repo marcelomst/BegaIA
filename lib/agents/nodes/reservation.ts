@@ -13,7 +13,7 @@ import {
     hasCreateExecutionContext,
     isExplicitCreateCommitSignal,
 } from "@/lib/agents/confirmationGovernance";
-import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, buildReservationMissingQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName } from "../helpers";
+import { extractGuests, clampGuests, normalizeSlotsToStrings, sanitizePartial, normalizeSlots, extractSlotsFromText, localizeRoomType, chronoExtractDateRange, inferExpectedSlotFromHistory, buildSingleSlotQuestion, buildAggregatedQuestion, buildReservationMissingQuestion, looksLikeName, normalizeNameCase, stripLocaleRequests, mentionsLocale, firstNameOf, extractDateRangeFromText, isConfirmIntentLight, isSafeGuestName, formatGuestCountLabel } from "../helpers";
 import type { RequiredSlot, SlotMap } from "@/types/audit";
 import type { GraphState } from "../graphState";
 
@@ -507,10 +507,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
             const guestFirst = firstNameOf(completeSnapshot.guestName);
             const msg = result.ok
                 ? lang2 === "es"
-                    ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${showRt}**, Fechas **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${completeSnapshot.numGuests}** huésped(es)` : ""}. ¡Gracias, ${guestFirst || completeSnapshot.guestName}!`
+                    ? `✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${showRt}**, Fechas **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${formatGuestCountLabel(completeSnapshot.numGuests, lang2)}**` : ""}. ¡Gracias, ${guestFirst || completeSnapshot.guestName}!`
                     : lang2 === "pt"
-                        ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${showRt}**, Datas **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${completeSnapshot.numGuests}** hóspede(s)` : ""}. Obrigado, ${guestFirst || completeSnapshot.guestName}!`
-                        : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${showRt}**, Dates **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${completeSnapshot.numGuests}** guest(s)` : ""}. Thank you, ${guestFirst || completeSnapshot.guestName}!`
+                        ? `✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${showRt}**, Datas **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${formatGuestCountLabel(completeSnapshot.numGuests, lang2)}**` : ""}. Obrigado, ${guestFirst || completeSnapshot.guestName}!`
+                        : `✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${showRt}**, Dates **${completeSnapshot.checkIn} → ${completeSnapshot.checkOut}**${completeSnapshot.numGuests ? ` · **${formatGuestCountLabel(completeSnapshot.numGuests, lang2)}**` : ""}. Thank you, ${guestFirst || completeSnapshot.guestName}!`
                 : result.message;
             return {
                 messages: [new AIMessage(msg)],

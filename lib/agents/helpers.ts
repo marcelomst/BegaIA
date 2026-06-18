@@ -735,3 +735,37 @@ export function localizeRoomType(rt: string | undefined, lang2: "es" | "en" | "p
   if (!rec) return rt || "";
   return rec[lang2] || rt || "";
 }
+
+export function formatGuestCountLabel(
+  count: number | string | undefined,
+  lang2: "es" | "en" | "pt",
+  opts?: { includeCount?: boolean }
+): string {
+  const includeCount = opts?.includeCount !== false;
+  const parsed = Number.parseInt(String(count ?? ""), 10);
+  const safeCount = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  const noun =
+    lang2 === "pt"
+      ? safeCount === 1 ? "hóspede" : "hóspedes"
+      : lang2 === "en"
+        ? safeCount === 1 ? "guest" : "guests"
+        : safeCount === 1 ? "huésped" : "huéspedes";
+  return includeCount ? `${safeCount} ${noun}` : noun;
+}
+
+export function formatNightCountLabel(
+  count: number | string | undefined,
+  lang2: "es" | "en" | "pt",
+  opts?: { includeCount?: boolean }
+): string {
+  const includeCount = opts?.includeCount !== false;
+  const parsed = Number.parseInt(String(count ?? ""), 10);
+  const safeCount = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  const noun =
+    lang2 === "pt"
+      ? safeCount === 1 ? "noite" : "noites"
+      : lang2 === "en"
+        ? safeCount === 1 ? "night" : "nights"
+        : safeCount === 1 ? "noche" : "noches";
+  return includeCount ? `${safeCount} ${noun}` : noun;
+}

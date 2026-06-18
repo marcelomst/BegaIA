@@ -1,4 +1,6 @@
 // Path: /root/begasist/lib/i18n/es.ts
+import { formatGuestCountLabel } from "@/lib/agents/helpers";
+
 const es = {
   reservation: {
     slotFillingPrompt: (missing: string[]) =>
@@ -7,7 +9,7 @@ const es = {
       const parts: string[] = [];
       if (s?.roomType) parts.push(`**${capitalize(s.roomType)}** con excelente relación precio/calidad`);
       if (s?.checkIn && s?.checkOut) parts.push(`fechas **${s.checkIn} → ${s.checkOut}**`);
-      if (s?.numGuests) parts.push(`${s.numGuests} huésped(es)`);
+      if (s?.numGuests) parts.push(formatGuestCountLabel(s.numGuests, "es"));
       const core = parts.length
         ? `Tengo disponibilidad para ${parts.join(", ")}.`
         : `Puedo ofrecerte muy buena disponibilidad ahora.`;
@@ -31,7 +33,7 @@ const es = {
       `✅ ¡Reserva confirmada! Código **${created?.reservationId ?? "pendiente"}**.\n` +
       `Habitación **${capitalize(s.roomType)}**, ` +
       `Fechas **${s.checkIn} → ${s.checkOut}**` +
-      (s.numGuests ? ` · **${s.numGuests}** huésped(es)` : "") +
+      (s.numGuests ? ` · **${formatGuestCountLabel(s.numGuests, "es")}**` : "") +
       `. ¡Gracias, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
   hotelEdit: {
@@ -249,4 +251,3 @@ function capitalize(str?: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 export default es;
-

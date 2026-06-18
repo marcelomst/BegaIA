@@ -1,4 +1,6 @@
 // Path: /lib/i18n/pt.ts
+import { formatGuestCountLabel } from "@/lib/agents/helpers";
+
 export default {
   hotelEdit: {
     title: "Editar hotel",
@@ -190,7 +192,7 @@ export default {
       const parts: string[] = [];
       if (s?.roomType) parts.push(`**${cap(s.roomType)}** com ótimo custo-benefício`);
       if (s?.checkIn && s?.checkOut) parts.push(`datas **${s.checkIn} → ${s.checkOut}**`);
-      if (s?.numGuests) parts.push(`${s.numGuests} hóspede(s)`);
+      if (s?.numGuests) parts.push(formatGuestCountLabel(s.numGuests, "pt"));
       const core = parts.length
         ? `Tenho disponibilidade para ${parts.join(", ")}.`
         : `Posso oferecer ótima disponibilidade agora.`;
@@ -214,7 +216,7 @@ export default {
       `✅ Reserva confirmada! Código **${created?.reservationId ?? "pendente"}**.\n` +
       `Quarto **${cap(s.roomType)}**, ` +
       `Datas **${s.checkIn} → ${s.checkOut}**` +
-      (s.numGuests ? ` · **${s.numGuests}** hóspede(s)` : "") +
+      (s.numGuests ? ` · **${formatGuestCountLabel(s.numGuests, "pt")}**` : "") +
       `. Obrigado, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
 };

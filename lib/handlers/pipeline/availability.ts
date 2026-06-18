@@ -7,7 +7,7 @@ import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayN
 export type ReservationSlotsLike = {
     guestName?: string;
     roomType?: string;
-    numGuests?: string;
+    numGuests?: string | number;
     checkIn?: string;
     checkOut?: string;
     [k: string]: any;

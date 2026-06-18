@@ -1,5 +1,7 @@
 
 // Path: /lib/i18n/en.ts
+import { formatGuestCountLabel } from "@/lib/agents/helpers";
+
 export default {
   hotelEdit: {
     title: "Edit hotel",
@@ -189,7 +191,7 @@ export default {
       const parts: string[] = [];
       if (s?.roomType) parts.push(`**${cap(s.roomType)}** with great value`);
       if (s?.checkIn && s?.checkOut) parts.push(`dates **${s.checkIn} → ${s.checkOut}**`);
-      if (s?.numGuests) parts.push(`${s.numGuests} guest(s)`);
+      if (s?.numGuests) parts.push(formatGuestCountLabel(s.numGuests, "en"));
       const core = parts.length
         ? `I have availability for ${parts.join(", ")}.`
         : `I can offer you very good availability now.`;
@@ -213,7 +215,7 @@ export default {
       `✅ Booking confirmed! Code **${created?.reservationId ?? "pending"}**.\n` +
       `Room **${cap(s.roomType)}**, ` +
       `Dates **${s.checkIn} → ${s.checkOut}**` +
-      (s.numGuests ? ` · **${s.numGuests}** guest(s)` : "") +
+      (s.numGuests ? ` · **${formatGuestCountLabel(s.numGuests, "en")}**` : "") +
       `. Thank you, ${(() => { const n = String(s.guestName || "").trim(); const p = n.split(/\s+/); return p[0] || n; })()}!`,
   },
 };
@@ -221,4 +223,3 @@ function cap(str?: string) {
   if (!str) return str as any;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
