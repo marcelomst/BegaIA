@@ -10621,3 +10621,55 @@ Impacto:
 - no fuerzan selección de reserva ni seteos espurios de `desiredAction=modify`
 - el runtime responde con copy informativo explícito y consistente con la intención real
 - se preserva el modify ejecutable legítimo cuando el usuario sí referencia una reserva concreta
+
+### IMPROVE-CONVERSATION-LIST-INTERLOCUTOR-COPY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-18  
+Commit: d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Mejora acotada de UX en el encabezado conversation-scoped del listado de
+reservas para usar el vocativo conversacional confiable del interlocutor cuando
+existe, omitirlo cuando no existe y no promover `guestName` o titular de reserva
+como identidad del interlocutor.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `reservation_list`
+  `conversational_display_name`
+  `canonical_guest_readpath`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  `Marcelo, estas son las reservas de esta conversación:`
+  `Estas son las reservas de esta conversación:`
+  `Marcelo, estas son tus reservas:`
+  no usar titulares de reserva como vocativo si el interlocutor es otro
+
+Impacto:
+
+- refuerza la frontera canónica entre interlocutor y titular de reserva
+- el vocativo conversation-scoped usa nombre conversacional confiable solo cuando existe
+- evita inventar nombre cuando no existe y evita promover titulares como interlocutor
+- preserva el comportamiento guest-wide ya validado sin invadir el dominio de holders

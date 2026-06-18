@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 15fe1dc
-messageHandler_lines: 11173
+commit_base: d9ccd72
+messageHandler_lines: 11179
 working_tree_status: clean
-analysis_scope: commit_15fe1dca93dae081519f6119acdb68ae86006a5b
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v17
+analysis_scope: commit_d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v18
 known_manual_bug: none
 ```
 
@@ -56,21 +56,21 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - modify_intent_guard
-    - fallback_response_governance
-    - conversation_focus
+    - reservation_list
+    - conversational_display_name
+    - canonical_guest_readpath
   reviewed:
-    - graph_close_stage_intent_policy
-    - reservation_node_modify_entry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `modify_inquiry_intent` responde con salida informativa dedicada
-      - consultas no ejecutables no abren `modify` ni fuerzan selección de reserva
-      - `salesStage=close` no promueve `modify` por verbos sueltos
-      - el modify ejecutable por referencia concreta preserva comportamiento
+      - conversation-scoped usa vocativo confiable si existe
+      - conversation-scoped sin nombre confiable omite vocativo inventado
+      - guest-wide conserva el vocativo validado para tus reservas
+      - no promueve titulares de reserva como identidad del interlocutor
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -180,7 +180,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10849-L11173
+        range: L10855-L11179
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -210,7 +210,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3801-L4039
+        range: L3807-L4045
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -245,7 +245,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4552-L10314
+        range: L4558-L10320
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -324,7 +324,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4552-L10314
+        range: L4558-L10320
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -359,7 +359,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4552-L10314
+        range: L4558-L10320
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -815,7 +815,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10804-L10847
+        range: L10810-L10853
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply
