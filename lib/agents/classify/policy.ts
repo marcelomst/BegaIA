@@ -1,6 +1,7 @@
 import { detectCheckinCheckoutTimeQuery } from "@/lib/agents/classify/detect";
 import { RE_TRANSPORT, RE_BILLING, RE_SUPPORT, RE_BREAKFAST, RE_AMENITIES, looksGeneralInfo } from "@/lib/agents/classify/keywords";
 import { classifyQuery, isPureGreeting } from "@/lib/classifier";
+import { normalizeReservationIntent } from "@/lib/handlers/pipeline/availability";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { IntentCategory, DesiredAction } from "@/types/audit";
 import { heuristicClassify, looksLikeName, looksRoomInfo, pickNearbyPromptKey } from "../helpers";
@@ -256,6 +257,7 @@ export async function evaluateGraphRoutingPolicy({
 
   if (state.salesStage === "close") {
     const t = (state.normalizedMessage || "").toLowerCase();
+    const normalizedReservationIntent = normalizeReservationIntent(state.normalizedMessage || "");
     if (detectCheckinCheckoutTimeQuery(t)) {
       return withForcedGuardrailLog({
         category: "retrieval_based",
@@ -266,7 +268,7 @@ export async function evaluateGraphRoutingPolicy({
         messages: [],
       }, "heuristic_kb_general", "detectCheckinCheckoutTimeQuery", 0.98);
     }
-    if (/\b(modificar|cambiar|cancelar|anular|cancela|cambio|modifico|modification|change|cancel)\b/.test(t)) {
+    if (normalizedReservationIntent.kind === "modify") {
       return {
         category: "reservation",
         desiredAction: "modify",

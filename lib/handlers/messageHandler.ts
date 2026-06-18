@@ -2124,7 +2124,7 @@ function getAmbiguousReservationAction(
   if (options.explicitIdReservationTarget?.reservationId || options.explicitOrdinalReservationTarget?.reservationId) return null;
   if (options.snapshotQueryKind && options.snapshotQueryKind !== "list") return "snapshot";
   if (options.normalizedReservationIntent.kind === "cancel") return "cancel";
-  if (options.normalizedReservationIntent.kind === "modify" || wantsGenericModify(userText, pre.lang) || options.hasModifyVerb) return "modify";
+  if (isExecutableModifyIntent(userText, pre.lang, options.normalizedReservationIntent)) return "modify";
   return null;
 }
 
@@ -2407,6 +2407,11 @@ function ruleBasedFallback(lang: string, userText: string): string {
         ? "Para prosseguir com a sua reserva preciso: nome do hóspede, tipo de quarto, data de check-in e check-out. Pode me enviar?"
         : "To proceed with your booking I need: guest name, room type, check-in date and check-out date. Could you share them?";
   }
+  const modifyInquiryReply = buildModifyInquiryReply(
+    lang.startsWith("pt") ? "pt" : lang.startsWith("es") ? "es" : "en",
+    userText
+  );
+  if (modifyInquiryReply) return modifyInquiryReply;
   return es ? "¿En qué puedo ayudarte?"
     : pt ? "Em que posso ajudar?"
       : "How can I help you?";
@@ -6017,6 +6022,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       pre.prevCategory === "modify_reservation" ||
       getConversationFocus(pre.st)?.subFlow === "modify");
   const hasModifyVerb = /\b(modific|cambi|alter|mudar|change|edit|update)\w*\b/i.test(normalizeReferenceText(userTxtRaw));
+  const hasExecutableModifyIntent = isExecutableModifyIntent(userTxtRaw, pre.lang, normalizedReservationIntent);
   const snapshotQueryKind = detectReservationSnapshotQuery(userTxtRaw, pre.lang);
   const hasExplicitOrdinalReference = Boolean(extractReservationOrdinalReference(normalizeReferenceText(userTxtRaw)));
   const implicitOrdinalSnapshotFollowup =
@@ -6031,8 +6037,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (pre.prevCategory === "reservation_snapshot" || !hasModifyVerb);
   const effectiveSnapshotQueryKind =
     normalizedReservationIntent.kind === "cancel" ||
-    normalizedReservationIntent.kind === "modify" ||
-    hasModifyVerb
+    hasExecutableModifyIntent
       ? null
       : snapshotQueryKind || (implicitOrdinalSnapshotFollowup ? "full" : null);
   const looksNonReservationDomainTurn =
@@ -6096,6 +6101,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     ) &&
     normalizedReservationIntent.kind !== "modify" &&
     normalizedReservationIntent.kind !== "cancel";
+  const modifyInquiryReply = buildModifyInquiryReply(pre.lang, userTxtRaw);
+  if (
+    modifyInquiryReply &&
+    !activeModifyField &&
+    !modifyFocusActiveEarly &&
+    !looksExplicitNewReservation &&
+    normalizedReservationIntent.kind === "other"
+  ) {
+    return {
+      finalText: modifyInquiryReply,
+      nextCategory: pre.prevCategory,
+      nextSlots,
+      needsSupervision,
+      graphResult,
+    };
+  }
   if (
     hasConfirmedBookingContext &&
     isAskAvailabilityStatusQuery(String(pre.msg.content || ""), pre.lang) &&
@@ -6372,10 +6393,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const normalizedSnapshotInput = normalizeReferenceText(userTxtRaw);
   const hasActionIntent =
     normalizedReservationIntent.kind === "cancel" ||
-    normalizedReservationIntent.kind === "modify" ||
+    hasExecutableModifyIntent ||
     explicitModifyExit ||
-    hasModifyVerb ||
-    wantsGenericModify(userTxtRaw, pre.lang);
+    (hasModifyVerb && normalizedReservationIntent.kind !== "other");
   const hasTargetCorrectionIntent =
     /^\s*no\b/.test(normalizedSnapshotInput) &&
     (Boolean(extractReservationOrdinalReference(normalizedSnapshotInput)) ||
@@ -6525,9 +6545,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(resolvedModifyTarget) &&
     !looksExplicitNewReservation &&
     (
-      normalizedReservationIntent.kind === "modify" ||
-      wantsGenericModify(userTxtRaw, pre.lang) ||
-      hasModifyVerb ||
+      hasExecutableModifyIntent ||
       (
         (pre.inModifyMode || pre.prevCategory === "modify_reservation" || pre.st?.desiredAction === "modify") &&
         (hasExplicitModifyFieldRequest || hasImmediateModifyValue || hasTemporalModifySignal)
@@ -10589,6 +10607,41 @@ function wantsGenericModify(text: string, lang: "es" | "en" | "pt"): boolean {
   if (lang === "es") return /((quiero|quisiera|deseo)\s+(modificar|cambiar)(la|lo|mi|\b))|\b(modifica|modificá|modificá|cambia|cambiá)\b/i.test(t);
   if (lang === "pt") return /(quero|gostaria de|desejo)\s+(modificar|mudar|alterar)(\s|$)/i.test(t);
   return /(i\s+want\s+to\s+)?(modify|change)(\s+it|\s+(?:my\s+)?booking|\s+reservation|$)/i.test(t);
+}
+
+function isExecutableModifyIntent(
+  text: string,
+  lang: "es" | "en" | "pt",
+  normalizedReservationIntent?: ReturnType<typeof normalizeReservationIntent>
+): boolean {
+  const normalizedIntent = normalizedReservationIntent || normalizeReservationIntent(text || "");
+  return normalizedIntent.kind === "modify" || wantsGenericModify(text, lang);
+}
+
+function buildModifyInquiryReply(lang: "es" | "en" | "pt", text: string): string | null {
+  const normalizedIntent = normalizeReservationIntent(text || "");
+  if (normalizedIntent.kind !== "other") return null;
+
+  const normalizedText = normalizedIntent.normalizedText;
+  const asksBeforePrice = /\b(antes\s+de\s+(modificar|cambiar|alterar|mudar)|before\s+(?:i\s+)?(?:modify|change|edit|update))\b.*\b(precio|price|tarifa)\b/i.test(normalizedText);
+  const asksConditionalAvailability = /\b(modificar|cambiar|alterar|mudar|change|edit|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedText);
+  const asksCanModify = /\b(saber\s+si\s+puedo|know\s+if\s+i\s+can|se\s+posso)\b.*\b(modificar|cambiar|alterar|mudar|change|edit|update)\b/i.test(normalizedText);
+
+  if (!(asksBeforePrice || asksConditionalAvailability || asksCanModify)) return null;
+
+  if (lang === "es") {
+    if (asksBeforePrice) return "¿De cuál reserva querés que te recuerde el precio?";
+    if (asksConditionalAvailability) return "¿Qué cambio querés consultar? Decime la habitación, fechas o cantidad de huéspedes para revisar disponibilidad.";
+    return "Sí, podés modificar una reserva activa. Decime qué cambio querés consultar o cuál reserva querés revisar.";
+  }
+  if (lang === "pt") {
+    if (asksBeforePrice) return "De qual reserva você quer que eu relembre o preço?";
+    if (asksConditionalAvailability) return "Qual alteração você quer consultar? Diga o quarto, as datas ou a quantidade de hóspedes para eu verificar a disponibilidade.";
+    return "Sim, você pode alterar uma reserva ativa. Diga qual mudança deseja consultar ou qual reserva quer revisar.";
+  }
+  if (asksBeforePrice) return "Which booking would you like me to remind you of the price for?";
+  if (asksConditionalAvailability) return "What change would you like to check? Tell me the room, dates, or number of guests so I can review availability.";
+  return "Yes, you can modify an active booking. Tell me what change you want to check or which booking you want to review.";
 }
 
 function buildModifyOptionsMenu(

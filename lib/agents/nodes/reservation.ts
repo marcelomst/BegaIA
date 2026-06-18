@@ -2,6 +2,7 @@
 import { AIMessage } from "@langchain/core/messages";
 import { runAvailabilityCheck } from "@/lib/handlers/pipeline/availability";
 import { buildAskGuestName } from "@/lib/handlers/pipeline/availability";
+import { normalizeReservationIntent } from "@/lib/handlers/pipeline/availability";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { fillSlotsWithLLM, confirmAndCreate } from "@/lib/agents/reservations";
@@ -246,9 +247,10 @@ export async function handleReservationNode(state: typeof GraphState.State) {
     if (salesStage === "close") {
         const t = (normalizedMessage || "").toLowerCase();
         const da = state.desiredAction;
+        const normalizedReservationIntent = normalizeReservationIntent(normalizedMessage || "");
         if (
             da === "modify" ||
-            /\b(modificar|cambiar|cancelar|anular|cancela|cambio|modifico|modification|change|cancel)\b/.test(t)
+            normalizedReservationIntent.kind === "modify"
         ) {
             const lang = (detectedLanguage || "es").slice(0, 2);
             const msg =

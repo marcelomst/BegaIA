@@ -197,4 +197,70 @@ describe("policy llm escalation", () => {
       })
     );
   });
+
+  it.each([
+    "quiero saber si puedo modificar",
+    "antes de modificar, ¿me recordás el precio?",
+    "quiero cambiar si hay lugar",
+  ])("en salesStage close no promueve desiredAction modify para consulta no ejecutable: %s", async (text) => {
+    vi.mocked(heuristicClassify).mockReturnValue({
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.99,
+      intentSource: "heuristic",
+    });
+
+    const res = await evaluateGraphRoutingPolicy({
+      state: {
+        normalizedMessage: text,
+        reservationSlots: {},
+        meta: {},
+        category: "other",
+        hotelId: "hotel999",
+        conversationId: "c-close-modify-inquiry",
+        salesStage: "close",
+      },
+      persistedConvState: {
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
+      },
+      debugRouting: true,
+      forceLlmClassifier: false,
+    });
+
+    expect(res.category).not.toBe("reservation");
+    expect(res.desiredAction).toBeUndefined();
+    expect(res.promptKey).not.toBe("modify_reservation");
+  });
+
+  it("en salesStage close mantiene modify ejecutable para 'quiero modificar la segunda reserva'", async () => {
+    vi.mocked(heuristicClassify).mockReturnValue({
+      category: "retrieval_based",
+      desiredAction: undefined,
+      intentConfidence: 0.99,
+      intentSource: "heuristic",
+    });
+
+    const res = await evaluateGraphRoutingPolicy({
+      state: {
+        normalizedMessage: "quiero modificar la segunda reserva",
+        reservationSlots: {},
+        meta: {},
+        category: "other",
+        hotelId: "hotel999",
+        conversationId: "c-close-modify-exec",
+        salesStage: "close",
+      },
+      persistedConvState: {
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
+      },
+      debugRouting: true,
+      forceLlmClassifier: false,
+    });
+
+    expect(res.category).toBe("reservation");
+    expect(res.desiredAction).toBe("modify");
+    expect(res.promptKey).toBe("modify_reservation");
+  });
 });

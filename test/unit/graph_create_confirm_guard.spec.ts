@@ -53,6 +53,28 @@ vi.mock("@/lib/config/hotelConfig.server", () => ({
 
 vi.mock("@/lib/handlers/pipeline/availability", () => ({
   runAvailabilityCheck: runAvailabilityCheckMock,
+  normalizeReservationIntent: (text: string) => {
+    const normalizedText = String(text || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[“”"'`]/g, "")
+      .replace(/[¡!¿?.,;:()]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const isModifyInquiry =
+      /\b(modify|modific(ar)?|cambi(ar)?|edit|change|update)\b.*\b(si|if|se)\b.*\b(hay|have|tem|availability|disponibilidad|lugar)\b/i.test(normalizedText) ||
+      /\b(quiero modificar si hay lugar|quiero cambiar si hay lugar)\b/i.test(normalizedText) ||
+      /\b(quiero saber si puedo|puedo|se puede|can i|can we|posso|da pra)\s+(modify|modificar|cambiar|editar|alterar|change|edit|update|mudar)\b/i.test(normalizedText) ||
+      /\b(before|antes de)\s+(modify|modificar|cambiar|editar|alterar|change|edit|update|mudar)\b/i.test(normalizedText) ||
+      /\bsi\s+(modifico|modificar|cambio|cambiar|edito|editar|altero|alterar|change|edit|update|mudar)\b.*\b(cobran|cobrar|charge|price|precio|policy|politica|penalidad|penalty)\b/i.test(normalizedText) ||
+      /\b(modify|modificar|cambiar|editar|alterar|change|edit|update|mudar)\b.*\b(me recordas|recordas|recordame|recordar|price|precio)\b/i.test(normalizedText);
+    if (isModifyInquiry) return { kind: "other", executable: false, normalizedText };
+    if (/\b(modify|modific(?:ar|a|ame|alo|ala)?|cambi(?:ar|a|ame|alo|ala)?|edit(?:ar|a)?|alter(?:ar|a)?|change|update)\b/i.test(normalizedText)) {
+      return { kind: "modify", executable: true, normalizedText };
+    }
+    return { kind: "other", executable: false, normalizedText };
+  },
 }));
 
 vi.mock("@/lib/agents/retrieval_based", () => ({
@@ -392,5 +414,65 @@ describe("graph create confirm guard", () => {
     expect(result?.reservationSlots?.checkOut).toBeUndefined();
     expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
     expect(confirmAndCreateMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "quiero saber si puedo modificar",
+    "antes de modificar, ¿me recordás el precio?",
+    "quiero cambiar si hay lugar",
+  ])("en salesStage close no abre modify legacy para consulta no ejecutable: %s", async (text) => {
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {
+        guestName: "Ana Gomez",
+        roomType: "double",
+        checkIn: "2026-04-22",
+        checkOut: "2026-04-25",
+        numGuests: "2",
+      },
+      normalizedMessage: text,
+      hotelId: "hotel999",
+      conversationId: "conv-graph-close-modify-inquiry",
+      salesStage: "close",
+      desiredAction: undefined,
+      messages: [
+        new AIMessage("Reserva confirmada."),
+        new HumanMessage(text),
+      ],
+      meta: { channel: "web" },
+    } as any);
+
+    const replyText = String((result as any)?.messages?.[0]?.content || "");
+    expect(replyText).not.toMatch(/¿qué dato de la reserva deseas modificar\?|what detail of the booking would you like to modify\?/i);
+    expect((result as any)?.desiredAction).not.toBe("modify");
+    expect((result as any)?.category).not.toBe("modify_reservation_field");
+  });
+
+  it("en salesStage close mantiene modify ejecutable para 'quiero modificar la segunda reserva'", async () => {
+    const result = await handleReservationNode({
+      detectedLanguage: "es",
+      reservationSlots: {
+        guestName: "Ana Gomez",
+        roomType: "double",
+        checkIn: "2026-04-22",
+        checkOut: "2026-04-25",
+        numGuests: "2",
+      },
+      normalizedMessage: "quiero modificar la segunda reserva",
+      hotelId: "hotel999",
+      conversationId: "conv-graph-close-modify-exec",
+      salesStage: "close",
+      desiredAction: "modify",
+      messages: [
+        new AIMessage("Reserva confirmada."),
+        new HumanMessage("quiero modificar la segunda reserva"),
+      ],
+      meta: { channel: "web" },
+    } as any);
+
+    const replyText = String((result as any)?.messages?.[0]?.content || "");
+    expect(replyText).toMatch(/qué dato de la reserva deseas modificar|what detail of the booking would you like to modify/i);
+    expect((result as any)?.desiredAction).toBe("modify");
+    expect((result as any)?.salesStage).toBe("qualify");
   });
 });

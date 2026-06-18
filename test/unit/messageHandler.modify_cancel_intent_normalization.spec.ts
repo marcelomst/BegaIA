@@ -122,10 +122,7 @@ describe("messageHandler modify/cancel intent normalization", () => {
     "hola, tengo una reserva",
     "reserva",
     "buenas",
-    "quiero saber si puedo modificar",
-    "antes de modificar, ¿me recordás el precio?",
     "si modifico, me cobran?",
-    "quiero cambiar si hay lugar",
   ])("no activa menú genérico de modificación para %s", async (content) => {
     const sendReply = vi.fn(async () => {});
 
@@ -142,6 +139,66 @@ describe("messageHandler modify/cancel intent normalization", () => {
     } as any, { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/qué te gustaría cambiar|podemos modificar tu reserva confirmada/i);
+    expect(replyText).not.toMatch(/qué te gustaría cambiar|podemos modificar tu reserva confirmada|cu[aá]l quer[eé]s modificar/i);
+  });
+
+  it("responde una guía informativa para consulta de factibilidad de modify", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "modify-inquiry-can-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero saber si puedo modificar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-modify-inquiry-can-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qu[eé] dato de la reserva deseas modificar|qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada|cu[aá]l quer[eé]s modificar|en qu[eé] puedo ayudarte/i);
+    expect(replyText).toMatch(/pod[eé]s modificar|reserva activa/i);
+  });
+
+  it("responde una guía informativa para consulta de precio previa a modify", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "modify-inquiry-price-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "antes de modificar, ¿me recordás el precio?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-modify-inquiry-price-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qu[eé] dato de la reserva deseas modificar|qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada|cu[aá]l quer[eé]s modificar|en qu[eé] puedo ayudarte/i);
+    expect(replyText).toMatch(/de cu[aá]l reserva|precio/i);
+  });
+
+  it("responde una guía informativa para consulta condicional de disponibilidad antes de modify", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "modify-inquiry-availability-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "quiero cambiar si hay lugar",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-modify-inquiry-availability-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qu[eé] dato de la reserva deseas modificar|qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada|cu[aá]l quer[eé]s modificar|en qu[eé] puedo ayudarte/i);
+    expect(replyText).toMatch(/qu[eé] cambio quer[eé]s consultar|habitaci[oó]n|fechas|hu[eé]spedes/i);
   });
 });

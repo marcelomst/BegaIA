@@ -2822,4 +2822,46 @@ describe("messageHandler reference resolution", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/varias reservas|cu[aá]l quer[eé]s modificar|la primera o la segunda/i);
   });
+
+  it("con múltiples reservas no abre selección de modify para una consulta de factibilidad", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-multi-modify-inquiry-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({ activeReservationContext: null, selectedReservationTarget: null }));
+
+    await handleIncomingMessage(msg("quiero saber si puedo modificar", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/varias reservas|cu[aá]l quer[eé]s modificar|la primera o la segunda/i);
+    expect(replyText).not.toMatch(/qué te gustaría cambiar|podemos modificar tu reserva confirmada/i);
+    expect(replyText).not.toMatch(/en qu[eé] puedo ayudarte/i);
+    expect(replyText).toMatch(/pod[eé]s modificar|reserva activa/i);
+  });
+
+  it("con reserva ya enfocada no abre el menú de modify para una consulta previa sobre precio", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-selected-modify-price-inquiry-1";
+    stateByConversation.set(conversationId, baseMultiReservationState({
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-NEW-02",
+        reservationStatus: "created",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-NEW-02",
+        source: "ordinal",
+        confidence: "strong",
+      },
+      desiredAction: "view",
+      conversationFocus: { domain: "reservation", subFlow: "snapshot" },
+    }));
+
+    await handleIncomingMessage(msg("antes de modificar, ¿me recordás el precio?", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/qué te gustaría cambiar|podemos modificar tu reserva confirmada|ok, vamos a modificar esta reserva/i);
+    expect(replyText).not.toMatch(/en qu[eé] puedo ayudarte/i);
+    expect(replyText).toMatch(/de cu[aá]l reserva|precio/i);
+  });
 });
