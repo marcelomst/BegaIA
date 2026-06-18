@@ -1832,13 +1832,19 @@ function buildReservationListAnswer(
         : lang === "pt"
           ? "Estas são suas reservas:"
           : lang === "en"
-            ? "These are your bookings:"
+          ? "These are your bookings:"
             : "Estas son tus reservas:"
-      : lang === "pt"
-        ? "Estas são as reservas desta conversa:"
-        : lang === "en"
-          ? "These are the bookings on this conversation:"
-          : "Estas son las reservas de esta conversación:";
+      : safeConversationalDisplayName
+        ? lang === "pt"
+          ? `${safeConversationalDisplayName}, estas são as reservas desta conversa:`
+          : lang === "en"
+            ? `${safeConversationalDisplayName}, these are the bookings on this conversation:`
+            : `${safeConversationalDisplayName}, estas son las reservas de esta conversación:`
+        : lang === "pt"
+          ? "Estas são as reservas desta conversa:"
+          : lang === "en"
+            ? "These are the bookings on this conversation:"
+            : "Estas son las reservas de esta conversación:";
   return [title, ...lines].join("\n");
 }
 

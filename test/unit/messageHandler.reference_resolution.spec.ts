@@ -496,6 +496,79 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).toMatch(/3\.\s+RES-NEW-03/i);
   });
 
+  it("usa vocativo conversacional en listado scoped a conversación cuando existe nombre confiable", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-conversation-vocative-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Marcelo Martinez",
+      firstName: "Marcelo",
+      aliases: [],
+      mode: "automatic",
+    });
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Marcelo,\s+estas son las reservas de esta conversación:/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped|reservas asociadas/i);
+    expect(replyText).not.toMatch(/^Raul|^Pedro|^Marcelo Martinez,/i);
+  });
+
+  it("en listado scoped a conversación sin nombre confiable no inventa vocativo", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-conversation-no-name-1";
+    stateByConversation.set(conversationId, baseThreeReservationState());
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Estas son las reservas de esta conversación:/i);
+    expect(replyText).not.toMatch(/^[A-ZÁÉÍÓÚÑ][^\n]*,\s+estas son las reservas de esta conversación:/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped|reservas asociadas/i);
+  });
+
+  it("no usa el titular de una reserva como vocativo en listado scoped a conversación", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-list-conversation-holder-1";
+    stateByConversation.set(conversationId, baseThreeReservationState({
+      reservationHistory: [
+        {
+          reservationId: "RES-HOLDER-01",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+          guestName: "Oscar Tabarez",
+          roomType: "single",
+          checkIn: "2026-03-24",
+          checkOut: "2026-03-26",
+          numGuests: "1",
+        },
+      ],
+      lastReservation: {
+        reservationId: "RES-HOLDER-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+        guestName: "Oscar Tabarez",
+        roomType: "single",
+        checkIn: "2026-03-24",
+        checkOut: "2026-03-26",
+        numGuests: "1",
+      },
+    }));
+
+    await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/^Estas son las reservas de esta conversación:/i);
+    expect(replyText).toMatch(/a nombre de Oscar Tabarez/i);
+    expect(replyText).not.toMatch(/^Oscar Tabarez,/i);
+    expect(replyText).not.toMatch(/este hu[eé]sped|reservas asociadas/i);
+  });
+
   it("si la conversación actual no tiene reservas, usa el guest canónico consolidado para listar reservas absorbidas", async () => {
     const sendReply = vi.fn(async () => {});
     const currentConversationId = "conv-ref-list-merged-current-1";
