@@ -21,19 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d9ccd72
-messageHandler_lines: 11179
+commit_base: e7add18
+messageHandler_lines: 11673
 working_tree_status: clean
-analysis_scope: commit_d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
+analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.availability_inquiry_policy.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
     - pnpm run ts-check
     - pnpm test
 known_manual_bug: none
@@ -44,21 +43,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - reservation_list
-    - conversational_display_name
-    - canonical_guest_readpath
+    - modify_execution_guard
+    - modify_state
+    - reservation_update_execution
+    - confirmation_gating
+    - availability_quote_to_modify_preview
+    - reference_resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.persistenceReply
+    - reservation_list
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - conversation-scoped usa vocativo confiable si existe
-      - conversation-scoped sin nombre confiable omite vocativo inventado
-      - guest-wide conserva el vocativo validado para tus reservas
-      - no promueve titulares de reserva como identidad del interlocutor
+      - preview visible antes de ejecutar modify con target y patch suficiente
+      - CONFIRMAR ejecuta una sola vez sobre el patch persistido
+      - rechazo del preview limpia pendingPatch y awaitingConfirmation
+      - corrections previas refrescan el preview sin ejecución temprana
+      - modify dates usa preview único con disponibilidad y sin copy legacy
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -66,13 +68,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: d9ccd72
-    messageHandler_lines: 11179
+    commit: e7add18
+    messageHandler_lines: 11673
     functions:
-      preLLM: L3807-L4045
-      bodyLLM: L4558-L10320
-      posLLM: L10810-L10853
-      handleIncomingMessage: L10855-L11179
+      preLLM: L4100-L4338
+      bodyLLM: L4851-L10814
+      posLLM: L11304-L11348
+      handleIncomingMessage: L11349-L11673
 ```
 
 ---
@@ -81,34 +83,34 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1653-L2153 |    501 | high      |
-| `resolveReservationReference`        | L2154-L2491 |    338 | high      |
-| `detectDominantTurnDomain`           | L2492-L2775 |    284 | high      |
-| `getReservationDomainLockSignal`     | L2776-L2947 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L2948-L3000 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3001-L3137 |    137 | high      |
-| `assessReservationDateCoherence`     | L3138-L3617 |    480 | high      |
-| `tryStructuredAnalyze`               | L3618-L3806 |    189 | high      |
-| `preLLM`                             | L3807-L4045 |    239 | high      |
-| `bodyLLM`                            | L4558-L10320 |   5763 | high      |
-| `posLLM`                             | L10810-L10853 |     44 | high      |
-| `handleIncomingMessage`              | L10855-L11179 |    325 | high      |
+| `buildReservationCanonicalState`     | L1946-L2446 |    501 | high      |
+| `resolveReservationReference`        | L2447-L2784 |    338 | high      |
+| `detectDominantTurnDomain`           | L2785-L3068 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3069-L3240 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3241-L3293 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3294-L3430 |    137 | high      |
+| `assessReservationDateCoherence`     | L3431-L3910 |    480 | high      |
+| `tryStructuredAnalyze`               | L3911-L4099 |    189 | high      |
+| `preLLM`                             | L4100-L4338 |    239 | high      |
+| `bodyLLM`                            | L4851-L10814 |   5964 | high      |
+| `posLLM`                             | L11304-L11348 |     45 | high      |
+| `handleIncomingMessage`              | L11349-L11673 |    325 | high      |
 
 ---
 
 ## Observación principal
 
-`bodyLLM` concentra aproximadamente la mitad operativa del archivo `messageHandler.ts`.
+`bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 11179 líneas
-bodyLLM:                5763 líneas
+messageHandler.ts total: 11673 líneas
+bodyLLM:                5964 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
 
 No es simplemente una función grande.
-Es una zona donde conviven:
+Es una zona donde conviven además:
 
 - decisión de turno
 - reparación temporal
@@ -121,6 +123,8 @@ Es una zona donde conviven:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
+- preview transaccional persistido para modify
+- confirmation gating previo a updateReservation
 - early returns
 
 ---
@@ -494,7 +498,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L3807-L4045
+    range: L4100-L4338
     confidence: high
 ```
 
@@ -513,7 +517,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4558-L10320
+    range: L4851-L10814
     confidence: high
 ```
 
@@ -532,7 +536,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10810-L10853
+    range: L11304-L11348
     confidence: high
 ```
 
@@ -551,7 +555,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L10855-L11179
+    range: L11349-L11673
     confidence: high
 ```
 

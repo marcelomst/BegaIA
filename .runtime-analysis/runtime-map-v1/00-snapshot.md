@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d9ccd72
-messageHandler_lines: 11179
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v18
+commit_base: e7add18
+messageHandler_lines: 11673
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v19
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
+analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
 ```
 
 ---
@@ -29,9 +29,9 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
 result: pass
-pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.availability_inquiry_policy.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -63,15 +63,17 @@ reservation_copy_guest_pluralization_commit: ec42e3293f09dd52757d095f8690567f44f
 repair_quote_night_pluralization_active_paths_commit: e7f37514811fbe9d3829689b460a7f664f834220
 repair_modify_inquiry_guard_manual_runtime_commit: 15fe1dca93dae081519f6119acdb68ae86006a5b
 improve_conversation_list_interlocutor_copy_commit: d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
+modify_preview_confirmation_before_execution_commit: e7add187294ba8b3d0f55b245185eecc5febad2f
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- el encabezado conversation-scoped debe usar nombre conversacional confiable cuando existe
-- sin nombre confiable, debe responder sin vocativo inventado
-- el guest-wide debe seguir usando el vocativo ya validado cuando corresponde
-- no debe usar titulares de reserva como identidad del interlocutor
+- modify con target válido + patch suficiente debe mostrar preview antes de ejecutar
+- CONFIRMAR después del preview debe ejecutar una sola vez y responder actualización correcta
+- rechazo del preview no debe ejecutar y debe limpiar pendingPatch/awaitingConfirmation
+- corrección del patch antes de confirmar debe refrescar el preview
+- modify dates no debe mostrar copy legacy ni confirmación de create
 ```
 
 ---
@@ -79,7 +81,7 @@ improve_conversation_list_interlocutor_copy_commit: d9ccd725a9e40a1a5a79f86f001a
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`d9ccd72`.
+`e7add18`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -96,9 +98,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `d9ccd72`
-2. Read-path conversation-scoped refrescado para vocativo confiable
+1. Snapshot base a commit real `e7add18`
+2. Corredor `modify` refrescado para preview persistido y confirmación explícita
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para `reservation_list`
+5. box index machine-friendly refrescado para guards de ejecución y preview
 ```

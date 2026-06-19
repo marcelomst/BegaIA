@@ -10673,3 +10673,71 @@ Impacto:
 - el vocativo conversation-scoped usa nombre conversacional confiable solo cuando existe
 - evita inventar nombre cuando no existe y evita promover titulares como interlocutor
 - preserva el comportamiento guest-wide ya validado sin invadir el dominio de holders
+
+### FIX-MODIFY-PREVIEW-CONFIRMATION-BEFORE-EXECUTION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-19  
+Commit: e7add187294ba8b3d0f55b245185eecc5febad2f
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Hito de seguridad sobre el runtime conversacional de `modify`. El cambio elimina
+ejecuciones directas cuando ya había `target` y slots suficientes, introduce
+preview persistido con `pendingPatch` y `awaitingConfirmation`, exige
+confirmación explícita antes de ejecutar `updateReservation` y unifica el path
+de cambio de fechas hacia un preview único con disponibilidad.
+
+Archivos afectados:
+
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `modify_execution_guard`
+  `modify_state`
+  `reservation_update_execution`
+  `confirmation_gating`
+  `availability_quote_to_modify_preview`
+  `reference_resolution`
+- cajas revisadas:
+  `reservation_list`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.availability_inquiry_policy.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  preview antes de ejecutar con `target` válido y patch suficiente
+  `CONFIRMAR` ejecuta una sola vez y responde con actualización correcta
+  rechazo del preview limpia `pendingPatch` y `awaitingConfirmation`
+  corrección previa a confirmar refresca el preview
+  `modify dates` no debe mostrar `Anoté nuevas fechas`
+  `modify dates` no debe mezclar `¿Confirmás la reserva?` ni doble confirmación
+  `create` confirmado debe seguir funcionando sin regresión
+- bugs diferidos no bloqueantes:
+  `REPAIR-LIST-REQUEST-DURING-MODIFY-AMBIGUITY-01`
+  `REPAIR-CREATE-DATE-CORRECTION-LANGUAGE-STICKINESS-01`
+
+Impacto:
+
+- refuerza la gobernanza canónica de cambios transaccionales en `modify`
+- impide actualizaciones reales sin preview visible y confirmación explícita
+- preserva un único path de preview para cambios de fechas con disponibilidad
+- elimina copy legacy y separación defectuosa entre confirmación de `create` y `modify`

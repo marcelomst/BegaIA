@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d9ccd72
-messageHandler_lines: 11179
+commit_base: e7add18
+messageHandler_lines: 11673
 working_tree_status: clean
-analysis_scope: commit_d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v18
+analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v19
 known_manual_bug: none
 ```
 
@@ -56,21 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - reservation_list
-    - conversational_display_name
-    - canonical_guest_readpath
+    - modify_execution_guard
+    - modify_state
+    - reservation_update_execution
+    - confirmation_gating
+    - availability_quote_to_modify_preview
+    - reference_resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.persistenceReply
+    - reservation_list
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - conversation-scoped usa vocativo confiable si existe
-      - conversation-scoped sin nombre confiable omite vocativo inventado
-      - guest-wide conserva el vocativo validado para tus reservas
-      - no promueve titulares de reserva como identidad del interlocutor
+      - preview visible antes de ejecutar modify con target y patch suficiente
+      - CONFIRMAR ejecuta una sola vez sobre el patch persistido
+      - rechazo del preview limpia pendingPatch y awaitingConfirmation
+      - corrección previa a confirmar refresca preview sin ejecutar
+      - modify dates usa preview único con disponibilidad y sin copy legacy
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -152,7 +155,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L11007
+        range: L1-L11673
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -180,7 +183,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10855-L11179
+        range: L11349-L11673
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -210,7 +213,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L3807-L4045
+        range: L4100-L4338
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -245,7 +248,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4558-L10320
+        range: L4851-L10814
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -284,13 +287,13 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4314-L4813
+        range: L4339-L4850
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L8564-L9367
+        range: L11093-L11240
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L2262-L2921
+        range: L2447-L3240
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors
@@ -324,7 +327,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4558-L10320
+        range: L4851-L10814
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -359,7 +362,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4558-L10320
+        range: L4851-L10814
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -397,13 +400,13 @@ boxes:
       - create_vs_modify_contamination
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6314-L6813
+        range: L1477-L1867
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L4314-L4813
+        range: L4339-L4850
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L8564-L9367
+        range: L4851-L7030
         confidence: needs_refresh
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -424,12 +427,16 @@ boxes:
     kind: operational_corridor
     human_summary: >
       Corredor de modificación de reservas existentes. Requiere target,
-      campo activo, nuevo valor, validación y confirmación según corresponda.
+      compone patch transaccional, persiste preview y exige confirmación
+      explícita antes de ejecutar.
     responsibilities:
       - reference resolution
       - selectedReservationTarget
       - modifyState
       - activeField
+      - pendingPatch
+      - awaitingConfirmation
+      - preview gating
       - date modify repair
       - modify confirmation
     risk_tags:
@@ -438,16 +445,18 @@ boxes:
       - selected_target
       - temporal_repair
       - active_field
+      - confirmation_gating
+      - reservation_update_execution
       - create_vs_modify_contamination
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5064-L6313
+        range: L777-L1813
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L8564-L8813
+        range: L4851-L7030
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L1929-L2036
+        range: L2447-L2556
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -455,6 +464,7 @@ boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     forbidden_assumptions:
       - No modificar sin target claro.
+      - No ejecutar updateReservation antes de preview y confirmación explícita.
       - No aplicar reglas de create sin verificar contexto modify.
       - No perder activeField durante follow-up.
       - No saltarse desambiguación si hay múltiples reservas.
@@ -815,7 +825,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L10810-L10853
+        range: L11304-L11348
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply
