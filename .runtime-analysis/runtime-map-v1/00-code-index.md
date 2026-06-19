@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el estado commiteado analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `e7add18`, Guardian confirmó:
+Para el hito `e67ba49`, Guardian confirmó:
 
 ```yaml
 code_refs_status: needs_refresh
@@ -46,9 +46,9 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se registra el preview persistido de `modify` con `pendingPatch` y `awaitingConfirmation`
-- se documenta la compuerta que impide ejecutar `modify` antes de la confirmación explícita
-- el path de cambio de fechas converge a un preview único con disponibilidad
+- se registra la prioridad de `reservationSlots.locale` sobre `detectedLanguage` en create/date correction
+- se documenta el merge explícito de locale en slots persistidos
+- se preserva la continuidad de idioma entre date correction, quote y confirmación
 
 ---
 
@@ -58,11 +58,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e7add18
-messageHandler_lines: 11673
+commit_base: e67ba49
+messageHandler_lines: 11683
 working_tree_status: clean
-analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v19
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
 known_manual_bug: none
 ```
 
@@ -71,9 +71,7 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
-result: pass
-pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.availability_inquiry_policy.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
+pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -85,7 +83,7 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un gating transaccional nuevo sobre `modify`, pero no
+Este refresh documenta una reparación de precedencia de idioma sobre `create`, pero no
 elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 ```
 
@@ -107,7 +105,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 11673
+total_lines: 11683
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -116,7 +114,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`e7add18`.
+`e67ba49`.
 ```
 
 ---
@@ -125,18 +123,18 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
-| `buildReservationCanonicalState`     | L1946-L2446 |    501 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L2447-L2784 |    338 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L2785-L3068 |    284 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L3069-L3240 |    172 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L3241-L3293 |     53 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L3294-L3430 |    137 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L3431-L3910 |    480 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L3911-L4099 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4100-L4338 |    239 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L4851-L10814 |   5964 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L11304-L11348 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L11349-L11673 |    325 | high      | Entrypoint público del runtime             |
+| `buildReservationCanonicalState`     | L1950-L2450 |    501 | high      | Proyección canónica de estado de reserva   |
+| `resolveReservationReference`        | L2451-L2790 |    340 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L2791-L3074 |    284 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L3075-L3246 |    172 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L3247-L3299 |     53 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L3300-L3436 |    137 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L3437-L3916 |    480 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L3917-L4105 |    189 | high      | Análisis estructurado semántico            |
+| `preLLM`                             | L4106-L4348 |    243 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L4861-L11313 |   6453 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L11314-L11358 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L11359-L11683 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -146,7 +144,7 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 
 ```yaml
 name: handleIncomingMessage
-range: L11349-L11673
+range: L11359-L11683
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -165,8 +163,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4100-L4338
-lines: 239
+range: L4106-L4348
+lines: 243
 confidence: high
 role: context_preparation
 ```
@@ -187,8 +185,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L4851-L10814
-lines: 5964
+range: L4861-L11313
+lines: 6453
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -217,7 +215,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L11304-L11348
+range: L11314-L11358
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -242,7 +240,7 @@ Estos helpers no están dentro del rango físico de `bodyLLM`, pero influyen en 
 
 ```yaml
 name: buildReservationCanonicalState
-range: L1946-L2446
+range: L1950-L2450
 confidence: high
 related_boxes:
   - reservation.snapshot
@@ -263,7 +261,7 @@ Puede ser relevante para snapshot, confirmación, modificación y respuestas pos
 
 ```yaml
 name: resolveReservationReference
-range: L2447-L2784
+range: L2451-L2790
 confidence: high
 related_boxes:
   - reservation.modify
@@ -284,7 +282,7 @@ Crítico para evitar modificar o cancelar la reserva equivocada.
 
 ```yaml
 name: detectDominantTurnDomain
-range: L2785-L3068
+range: L2791-L3074
 confidence: high
 related_boxes:
   - bodyLLM.turnDecision
@@ -303,7 +301,7 @@ No debe confundirse con ejecución del dominio.
 
 ```yaml
 name: getReservationDomainLockSignal
-range: L3069-L3240
+range: L3075-L3246
 confidence: high
 related_boxes:
   - bodyLLM.turnDecision
@@ -324,7 +322,7 @@ Ayuda a conservar o bloquear foco de reserva según el estado conversacional.
 
 ```yaml
 name: shouldUseReservationLocalFallback
-range: L3241-L3293
+range: L3247-L3299
 confidence: high
 related_boxes:
   - fallbackLocal
@@ -344,7 +342,7 @@ Debe ser tratado como compuerta sensible.
 
 ```yaml
 name: buildReservationLocalFallbackReply
-range: L3294-L3430
+range: L3300-L3436
 confidence: high
 related_boxes:
   - fallbackLocal
@@ -365,7 +363,7 @@ Riesgo: puede generar una respuesta plausible desde la ruta equivocada.
 
 ```yaml
 name: assessReservationDateCoherence
-range: L3431-L3910
+range: L3437-L3916
 confidence: high
 related_boxes:
   - temporalRepair
@@ -387,7 +385,7 @@ Es pequeño pero conceptualmente importante para bugs de fechas.
 
 ```yaml
 name: tryStructuredAnalyze
-range: L3911-L4099
+range: L3917-L4105
 confidence: high
 related_boxes:
   - bodyLLM.turnDecision
@@ -410,8 +408,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L4851-L10814
-bodyLLM_lines: 5964
+bodyLLM_range: L4861-L11313
+bodyLLM_lines: 6453
 bucket_size: 250
 confidence: high_for_full_range
 ```

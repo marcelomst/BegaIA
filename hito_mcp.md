@@ -10741,3 +10741,61 @@ Impacto:
 - impide actualizaciones reales sin preview visible y confirmación explícita
 - preserva un único path de preview para cambios de fechas con disponibilidad
 - elimina copy legacy y separación defectuosa entre confirmación de `create` y `modify`
+
+### REPAIR-CREATE-DATE-CORRECTION-LANGUAGE-STICKINESS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-19  
+Commit: e67ba4968d2275211fe63673cf64224bcae07fc8
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Repair acotado sobre el runtime conversacional de `create`. Corrige una fuga de
+idioma en el path activo de corrección de fecha pasada al priorizar el locale ya
+fijado en estado conversacional, persistirlo explícitamente en
+`reservationSlots` y evitar que un follow-up detectado oportunistamente como
+inglés cambie el idioma de la cotización o confirmación posterior.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_sequencing.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.dateCorrection`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.quoteCopy`
+- cajas revisadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify.confirmationGating`
+- `code_refs_status: fresh`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  create en español con fecha pasada debe pedir corrección en español
+  follow-up detectado como `en` no debe cambiar el idioma de la cotización
+  la cotización debe mantener `tengo`, `Tarifa por noche` y `Total 1 noche`
+  la confirmación debe mantener `¿Confirmás la reserva?` y `Respondé CONFIRMAR`
+  no debe aparecer `I have`, `Rate per night`, `Total 1 night` ni `Do you confirm the booking`
+
+Impacto:
+
+- restituye la precedencia canónica del idioma conversacional ya resuelto
+- evita contaminación de idioma por detección oportunista del follow-up
+- preserva consistencia entre date correction, cotización y confirmación de `create`
+- mantiene `modify` fuera del alcance material del fix salvo revisión defensiva de compuertas relacionadas

@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e7add18
-messageHandler_lines: 11673
+commit_base: e67ba49
+messageHandler_lines: 11683
 working_tree_status: clean
-analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v19
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
 known_manual_bug: none
 ```
 
@@ -56,25 +56,23 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - modify_execution_guard
-    - modify_state
-    - reservation_update_execution
-    - confirmation_gating
-    - availability_quote_to_modify_preview
-    - reference_resolution
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.dateCorrection
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.quoteCopy
   reviewed:
-    - reservation_list
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify.confirmationGating
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - preview visible antes de ejecutar modify con target y patch suficiente
-      - CONFIRMAR ejecuta una sola vez sobre el patch persistido
-      - rechazo del preview limpia pendingPatch y awaitingConfirmation
-      - corrección previa a confirmar refresca preview sin ejecutar
-      - modify dates usa preview único con disponibilidad y sin copy legacy
-  code_refs_status: needs_refresh
+      - create con fecha pasada corrige en el idioma ya fijado por la conversación
+      - follow-up detectado como en no cambia el idioma de la cotización
+      - quote posterior mantiene copy en español
+      - confirmación posterior mantiene copy en español
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
@@ -155,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L11673
+        range: L1-L11683
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -183,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11349-L11673
+        range: L11359-L11683
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -213,7 +211,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4100-L4338
+        range: L4106-L4348
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -248,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4851-L10814
+        range: L4861-L11313
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -287,13 +285,13 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4339-L4850
+        range: L4349-L4860
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
         range: L11093-L11240
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L2447-L3240
+        range: L2451-L3246
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors
@@ -327,7 +325,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4851-L10814
+        range: L4861-L11313
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -362,7 +360,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4851-L10814
+        range: L4861-L11313
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -381,19 +379,22 @@ boxes:
     kind: operational_corridor
     human_summary: >
       Corredor de creación de reservas. Completa slots, valida fechas,
-      consulta disponibilidad, genera quote/proposal y permite confirmación
-      explícita si corresponde.
+      consulta disponibilidad, corrige fechas inválidas preservando locale,
+      genera quote/proposal y permite confirmación explícita si corresponde.
     responsibilities:
       - slot ingestion
       - date repair
+      - date correction locale stickiness
       - availability check
       - quote gating
+      - quote copy continuity
       - proposal confirmation
       - confirmAndCreate guard
     risk_tags:
       - create_flow
       - slot_attribution
       - temporal_repair
+      - language_policy
       - quote_gating
       - confirmation_gating
       - availability
@@ -403,10 +404,10 @@ boxes:
         range: L1477-L1867
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L4339-L4850
+        range: L4349-L4860
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L4851-L7030
+        range: L4861-L7068
         confidence: needs_refresh
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -825,7 +826,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11304-L11348
+        range: L11314-L11358
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

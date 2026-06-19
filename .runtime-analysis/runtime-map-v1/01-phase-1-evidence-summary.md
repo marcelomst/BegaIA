@@ -21,18 +21,17 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e7add18
-messageHandler_lines: 11673
+commit_base: e67ba49
+messageHandler_lines: 11683
 working_tree_status: clean
-analysis_scope: commit_e7add187294ba8b3d0f55b245185eecc5febad2f
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.availability_inquiry_policy.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
     - pnpm run ts-check
     - pnpm test
 known_manual_bug: none
@@ -43,38 +42,36 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - modify_execution_guard
-    - modify_state
-    - reservation_update_execution
-    - confirmation_gating
-    - availability_quote_to_modify_preview
-    - reference_resolution
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.dateCorrection
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.quoteCopy
   reviewed:
-    - reservation_list
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify.confirmationGating
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - preview visible antes de ejecutar modify con target y patch suficiente
-      - CONFIRMAR ejecuta una sola vez sobre el patch persistido
-      - rechazo del preview limpia pendingPatch y awaitingConfirmation
-      - corrections previas refrescan el preview sin ejecución temprana
-      - modify dates usa preview único con disponibilidad y sin copy legacy
-  code_refs_status: needs_refresh
+      - create con fecha pasada corrige en el idioma ya fijado por la conversación
+      - follow-up detectado como en no cambia el idioma de la cotización
+      - quote posterior mantiene copy en español
+      - confirmación posterior mantiene copy en español
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: e7add18
-    messageHandler_lines: 11673
+    commit: e67ba49
+    messageHandler_lines: 11683
     functions:
-      preLLM: L4100-L4338
-      bodyLLM: L4851-L10814
-      posLLM: L11304-L11348
-      handleIncomingMessage: L11349-L11673
+      preLLM: L4106-L4348
+      bodyLLM: L4861-L11313
+      posLLM: L11314-L11358
+      handleIncomingMessage: L11359-L11683
 ```
 
 ---
@@ -83,18 +80,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1946-L2446 |    501 | high      |
-| `resolveReservationReference`        | L2447-L2784 |    338 | high      |
-| `detectDominantTurnDomain`           | L2785-L3068 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3069-L3240 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3241-L3293 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3294-L3430 |    137 | high      |
-| `assessReservationDateCoherence`     | L3431-L3910 |    480 | high      |
-| `tryStructuredAnalyze`               | L3911-L4099 |    189 | high      |
-| `preLLM`                             | L4100-L4338 |    239 | high      |
-| `bodyLLM`                            | L4851-L10814 |   5964 | high      |
-| `posLLM`                             | L11304-L11348 |     45 | high      |
-| `handleIncomingMessage`              | L11349-L11673 |    325 | high      |
+| `buildReservationCanonicalState`     | L1950-L2450 |    501 | high      |
+| `resolveReservationReference`        | L2451-L2790 |    340 | high      |
+| `detectDominantTurnDomain`           | L2791-L3074 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3075-L3246 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3247-L3299 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3300-L3436 |    137 | high      |
+| `assessReservationDateCoherence`     | L3437-L3916 |    480 | high      |
+| `tryStructuredAnalyze`               | L3917-L4105 |    189 | high      |
+| `preLLM`                             | L4106-L4348 |    243 | high      |
+| `bodyLLM`                            | L4861-L11313 |   6453 | high      |
+| `posLLM`                             | L11314-L11358 |     45 | high      |
+| `handleIncomingMessage`              | L11359-L11683 |    325 | high      |
 
 ---
 
@@ -103,8 +100,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 11673 líneas
-bodyLLM:                5964 líneas
+messageHandler.ts total: 11683 líneas
+bodyLLM:                6453 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -123,8 +120,8 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- preview transaccional persistido para modify
-- confirmation gating previo a updateReservation
+- preserve locale stickiness dentro de create/date correction
+- merge explícito de locale en slots persistidos
 - early returns
 
 ---
@@ -498,7 +495,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4100-L4338
+    range: L4106-L4348
     confidence: high
 ```
 
@@ -517,7 +514,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4851-L10814
+    range: L4861-L11313
     confidence: high
 ```
 
@@ -536,7 +533,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11304-L11348
+    range: L11314-L11358
     confidence: high
 ```
 
@@ -555,7 +552,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11349-L11673
+    range: L11359-L11683
     confidence: high
 ```
 
