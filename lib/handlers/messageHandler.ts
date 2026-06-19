@@ -621,10 +621,15 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   const prevCategory = st?.lastCategory ?? null;
   const prevSlotsStrict = toStrictSlots(st?.reservationSlots);
   console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
+  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
 
   // === Contexto para el LLM (historial reciente)
-  const rawLang = (msg.detectedLanguage || "es").toLowerCase();
-  const lang = (["es", "en", "pt"].includes(rawLang) ? rawLang : "es") as "es" | "en" | "pt";
+  const lang = (
+    normalizeRuntimeLanguage(prevSlotsStrict?.locale) ||
+    normalizeRuntimeLanguage(msg.detectedLanguage) ||
+    normalizeRuntimeLanguage(hotelConfig?.defaultLanguage) ||
+    "es"
+  ) as "es" | "en" | "pt";
   const recent = await getRecentHistorySafe(msg.hotelId, msg.channel, conversationId, CONFIG.HISTORY_LIMIT);
   const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
   // --- Novedad: slots del turno actual (pre-LLM) → evitar re-preguntas
@@ -644,7 +649,6 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   }
   const currSlots = mergeReservationSlots(prevSlotsStrict, turnSlots);
   console.log('[DEBUG-numGuests] currSlots:', JSON.stringify(currSlots));
-  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
   return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, currSlots, hotelConfig };
 }
 function safeNowISO() { return new Date().toISOString(); }
@@ -2578,6 +2582,7 @@ function toStrictSlots(slots?: DbReservationSlots | null): ReservationSlotsStric
     checkIn: slots?.checkIn,
     checkOut: slots?.checkOut,
     numGuests: slots?.numGuests != null ? String(slots?.numGuests) : undefined,
+    locale: typeof slots?.locale === "string" && slots.locale.trim() ? slots.locale.trim() : undefined,
   };
 }
 
@@ -2592,6 +2597,7 @@ function mergeReservationSlots(
     if (typeof src.checkIn === "string" && src.checkIn.trim()) merged.checkIn = src.checkIn.trim();
     if (typeof src.checkOut === "string" && src.checkOut.trim()) merged.checkOut = src.checkOut.trim();
     if (src.numGuests != null && String(src.numGuests).trim()) merged.numGuests = String(src.numGuests).trim();
+    if (typeof src.locale === "string" && src.locale.trim()) merged.locale = src.locale.trim();
   }
   return merged;
 }
@@ -4140,10 +4146,15 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const prevCategory = st?.lastCategory ?? null;
   const prevSlotsStrict: ReservationSlotsStrict = toStrictSlots(st?.reservationSlots);
   console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
+  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
 
   // === Contexto para el LLM (historial reciente)
-  const rawLang = (msg.detectedLanguage || "es").toLowerCase();
-  const lang = (["es", "en", "pt"].includes(rawLang) ? rawLang : "es") as "es" | "en" | "pt";
+  const lang = (
+    normalizeRuntimeLanguage(prevSlotsStrict?.locale) ||
+    normalizeRuntimeLanguage(msg.detectedLanguage) ||
+    normalizeRuntimeLanguage(hotelConfig?.defaultLanguage) ||
+    "es"
+  ) as "es" | "en" | "pt";
   const recent = await getRecentHistorySafe(msg.hotelId, msg.channel, conversationId, CONFIG.HISTORY_LIMIT);
   const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
 
@@ -4183,7 +4194,6 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
     locale: lang,
   };
   const intent = detectIntent(String(msg.content || ""), stateForPlaybook);
-  const hotelConfig = await getHotelConfigSafe(msg.hotelId);
 
   // --- NUEVO: modo modificación persistente reforzado ---
   const normalizedReservationIntent = normalizeReservationIntent(String(msg.content || ""));

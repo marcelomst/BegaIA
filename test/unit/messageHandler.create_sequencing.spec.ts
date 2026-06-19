@@ -84,6 +84,13 @@ function msg(content: string) {
   } as any;
 }
 
+function msgWithLang(content: string, detectedLanguage: "es" | "en" | "pt") {
+  return {
+    ...msg(content),
+    detectedLanguage,
+  } as any;
+}
+
 function lastReply(sendReply: any): string {
   return String(sendReply.mock.calls.at(-1)?.[0] || "");
 }
@@ -95,6 +102,7 @@ describe("messageHandler create sequencing", () => {
   beforeEach(() => {
     currentState = null;
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("con fechas válidas pero sin huéspedes pregunta huéspedes antes que habitación", async () => {
@@ -223,5 +231,37 @@ describe("messageHandler create sequencing", () => {
 
     await handleIncomingMessage(msg("doble"), { mode: "automatic", sendReply });
     expect(lastReply(sendReply)).toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
+  });
+
+  it("mantiene español en create/date correction aunque el follow-up híbrido llegue detectado como inglés", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-20T12:00:00.000Z"));
+
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Marcelo"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(
+      msg("Quiero reservar una doble del 19/06/2026 al 20/06/2026 para 2 personas a nombre de Lionel Scaloni"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(lastReply(sendReply)).toMatch(/ya pasó/i);
+    expect(lastReply(sendReply)).toMatch(/nueva fecha de check-in/i);
+
+    await handleIncomingMessage(
+      msgWithLang("corrijo check in 21/06/2026 al 22/06/2026", "en"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/tengo doble disponible/i);
+    expect(replyText).toMatch(/Tarifa por noche/i);
+    expect(replyText).toMatch(/Total 1 noche/i);
+    expect(replyText).toMatch(/¿Confirm[aá]s la reserva\?/i);
+    expect(replyText).toMatch(/Respond[eé]\s+[“"]CONFIRMAR[”"]\.?/i);
+    expect(replyText).not.toMatch(/I have/i);
+    expect(replyText).not.toMatch(/Rate per night/i);
+    expect(replyText).not.toMatch(/Total 1 night/i);
+    expect(replyText).not.toMatch(/Do you confirm the booking/i);
   });
 });
