@@ -104,6 +104,15 @@ export type SelectedReservationTarget = {
 export type ModifyState = {
   activeField?: "guests" | "dates" | "roomType";
   pendingFields?: Array<"guests" | "dates" | "roomType">;
+  pendingPatch?: {
+    reservationId: string;
+    guestName?: string;
+    roomType?: string;
+    numGuests?: number | string;
+    checkIn?: string;
+    checkOut?: string;
+  } | null;
+  awaitingConfirmation?: boolean;
   updatedAt: string;
 };
 

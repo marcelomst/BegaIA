@@ -47,6 +47,12 @@ vi.mock("@/lib/db/convState", () => ({
 vi.mock("@/lib/agents", () => ({
   agentGraph: { invoke: vi.fn(async () => ({ messages: [{ role: "assistant", content: "Respuesta base" }], category: "reservation", meta: {} })) },
 }));
+vi.mock("@/lib/agents/reservations", () => ({
+  modifyReservation: vi.fn(async () => ({
+    ok: true,
+    message: "✅ Modificada RES-TEST",
+  })),
+}));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async () => {}),
 }));
@@ -69,6 +75,7 @@ vi.mock("@langchain/openai", () => ({
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+import { modifyReservation } from "@/lib/agents/reservations";
 
 describe("messageHandler modify/cancel intent normalization", () => {
   beforeEach(() => {
@@ -200,5 +207,25 @@ describe("messageHandler modify/cancel intent normalization", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).not.toMatch(/qu[eé] dato de la reserva deseas modificar|qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada|cu[aá]l quer[eé]s modificar|en qu[eé] puedo ayudarte/i);
     expect(replyText).toMatch(/qu[eé] cambio quer[eé]s consultar|habitaci[oó]n|fechas|hu[eé]spedes/i);
+  });
+
+  it("no ejecuta modify con un 'ok' fuera de awaitingConfirmation", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "modify-ok-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "ok",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-modify-ok-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).not.toMatch(/modificada/i);
   });
 });

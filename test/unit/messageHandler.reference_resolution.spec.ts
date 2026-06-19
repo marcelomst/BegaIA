@@ -296,7 +296,11 @@ describe("messageHandler reference resolution", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva res-new-02/i);
+    expect(replyText).toMatch(/fechas: .*24\/03\/2026.*26\/03\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/c[oó]digo de reserva/i);
   });
 
@@ -338,7 +342,11 @@ describe("messageHandler reference resolution", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva res-old-01/i);
+    expect(replyText).toMatch(/fechas: .*24\/03\/2026.*27\/03\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/c[oó]digo de reserva/i);
   });
 
@@ -1432,7 +1440,10 @@ describe("messageHandler reference resolution", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva res-old-01/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/c[oó]digo de reserva/i);
   });
 
@@ -1475,7 +1486,7 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
-  it("secuencia roomType y huéspedes cuando el pedido de modify trae múltiples campos sin valores", async () => {
+  it("secuencia roomType y huéspedes cuando el pedido de modify trae múltiples campos sin valores y exige preview antes de ejecutar", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-multifield-sequence-1";
     stateByConversation.set(conversationId, baseSingleReservationState());
@@ -1501,6 +1512,23 @@ describe("messageHandler reference resolution", () => {
     });
 
     await handleIncomingMessage(msg("3 personas", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*3/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
 
     expect(modifyReservation).toHaveBeenCalledWith(
       "hotel999",
@@ -1608,19 +1636,13 @@ describe("messageHandler reference resolution", () => {
 
     await handleIncomingMessage(msg("quiero cambiar a 2 personas", conversationId), { mode: "automatic", sendReply });
 
-    expect(modifyReservation).toHaveBeenCalledWith(
-      "hotel999",
-      "RES-6AE3E6",
-      expect.objectContaining({
-        guestName: "Raul Carsoglio",
-        roomType: "double",
-        numGuests: "2",
-      }),
-      "web"
-    );
-    const finalReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(finalReply).toMatch(/modificada res-6ae3e6/i);
-    expect(finalReply).not.toMatch(/check-?out|fecha de check-out|um quarto|quer mudar/i);
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/reserva res-6ae3e6/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple.*doble|habitaci[oó]n: .*doble/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*2/i);
+    expect(previewReply).not.toMatch(/check-?out|fecha de check-out|um quarto|quer mudar/i);
   });
 
   it("capacity guard after modify preserves Spanish even if the current turn is detected as Portuguese", async () => {
@@ -1675,7 +1697,7 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
-  it("ejecuta modify directo con reservationId cuando el mismo turno trae roomType y huéspedes", async () => {
+  it("muestra preview con reservationId cuando el mismo turno trae roomType y huéspedes", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-direct-id-payload-1";
     stateByConversation.set(conversationId, baseSingleReservationState());
@@ -1685,23 +1707,15 @@ describe("messageHandler reference resolution", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(modifyReservation).toHaveBeenCalledWith(
-      "hotel999",
-      "RES-ONLY-01",
-      expect.objectContaining({
-        guestName: "Marcelo Martinez",
-        roomType: "triple",
-        numGuests: "3",
-        checkIn: "2026-03-28",
-        checkOut: "2026-03-30",
-      }),
-      "web"
-    );
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/reserva res-only-01/i);
+    expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
+    expect(previewReply).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
   });
 
-  it("ejecuta modify directo con ordinal cuando el mismo turno trae roomType, huéspedes y fechas", async () => {
+  it("muestra preview con ordinal cuando el mismo turno trae roomType, huéspedes y fechas", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-direct-ordinal-payload-1";
     stateByConversation.set(conversationId, baseMultiReservationState());
@@ -1711,20 +1725,12 @@ describe("messageHandler reference resolution", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(modifyReservation).toHaveBeenCalledWith(
-      "hotel999",
-      "RES-NEW-02",
-      expect.objectContaining({
-        guestName: "Marcelo Martinez",
-        roomType: "triple",
-        numGuests: "3",
-        checkIn: "2026-03-29",
-        checkOut: "2026-03-31",
-      }),
-      "web"
-    );
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-new-02/i);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/reserva res-new-02/i);
+    expect(previewReply).toMatch(/fechas: .*29\/03\/2026.*31\/03\/2026/i);
+    expect(previewReply).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
   });
 
   it("persiste subestado de fechas y mantiene continuidad sin volver al menú genérico", async () => {
@@ -1734,14 +1740,22 @@ describe("messageHandler reference resolution", () => {
 
     await handleIncomingMessage(msg("modificá la primera reserva", conversationId), { mode: "automatic", sendReply });
     await handleIncomingMessage(msg("cambiar fechas", conversationId), { mode: "automatic", sendReply });
-    await handleIncomingMessage(msg("24/03/2026 al 26/03/2026", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("25/03/2026 al 27/03/2026", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 24\/03\/2026.*26\/03\/2026.*25\/03\/2026.*27\/03\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/qu[eé] cambio aplico|qu[eé] te gustar[ií]a cambiar/i);
     expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
-      activeField: "dates",
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-OLD-01",
+        checkIn: "2026-03-25",
+        checkOut: "2026-03-27",
+      }),
     });
   });
 
@@ -1770,7 +1784,11 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*16\/04\/2026.*19\/04\/2026/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/check-out|fecha de check-out|salida/i);
     expect(replyText).not.toMatch(/qu[eé] te gustar[ií]a cambiar|cambiar hu[eé]spedes|cambiar habitaci[oó]n/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
@@ -1806,12 +1824,48 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/check-out|fecha de check-out|salida/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-16",
       checkOut: "2026-04-19",
     });
+  });
+
+  it("modify dates muestra preview único sin confirmación intermedia de disponibilidad", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-dates-preview-single-confirm-1";
+    stateByConversation.set(conversationId, baseMultiReservationState());
+
+    await handleIncomingMessage(msg("quiero alterar la primera", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar fechas", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("21/06/2026 al 22/06/2026", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
+    expect(previewReply).toMatch(/24\/03\/2026.*26\/03\/2026.*21\/06\/2026.*22\/06\/2026/i);
+    expect(previewReply).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(previewReply).not.toMatch(/verifique disponibilidad|posibles diferencias/i);
+    expect(previewReply).not.toMatch(/confirm[aá]s la reserva/i);
+    expect(previewReply).not.toMatch(/reserva actualizada correctamente/i);
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-OLD-01",
+      expect.objectContaining({
+        checkIn: "2026-06-21",
+        checkOut: "2026-06-22",
+      }),
+      "web"
+    );
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/reserva actualizada correctamente|modificada/i);
   });
 
   it("consume '18/4/2026' como check-out contextual cuando modify.dates ya espera la salida", async () => {
@@ -1833,7 +1887,11 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("18/4/2026", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*16\/04\/2026.*18\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/check-out|fecha de check-out|salida/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-16",
@@ -1889,7 +1947,11 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
 
     const finalReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(finalReply).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(finalReply).toMatch(/antes de aplicar el cambio/i);
+    expect(finalReply).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*16\/04\/2026.*19\/04\/2026/i);
+    expect(finalReply).toMatch(/confirm[aá]s estos cambios/i);
+    expect(finalReply).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(finalReply).not.toMatch(/confirm[aá]s la reserva/i);
     expect(finalReply).not.toMatch(/check-out|fecha de check-out|salida/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-16",
@@ -1924,7 +1986,10 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("el domingo", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*23\/04\/2026.*26\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-23",
       checkOut: "2026-04-26",
@@ -1958,7 +2023,10 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("el lunes", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*24\/04\/2026.*27\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-24",
       checkOut: "2026-04-27",
@@ -1984,7 +2052,10 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("18/4/2026", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*23\/04\/2026.*18\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-23",
       checkOut: "2026-04-18",
@@ -2018,7 +2089,11 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("no, quise decir el martes", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*23\/04\/2026.*28\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(replyText).not.toMatch(/confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/check-in y check-out|fecha de check-out|salida/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-23",
@@ -2053,7 +2128,10 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("perdón, el martes", conversationId), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/fechas: 28\/03\/2026.*30\/03\/2026.*23\/04\/2026.*28\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas/i);
     expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
       checkIn: "2026-04-23",
       checkOut: "2026-04-28",
@@ -2168,10 +2246,7 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("cambiame la fecha", conversationId), { mode: "automatic", sendReply });
     await handleIncomingMessage(msg("10/04/2026 a 12/04/2026", conversationId), { mode: "automatic", sendReply });
 
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
-
-    await handleIncomingMessage(msg("sí", conversationId), { mode: "automatic", sendReply });
-    const quoteReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(askAvailability).toHaveBeenCalledWith(
       "hotel999",
       expect.objectContaining({
@@ -2182,7 +2257,14 @@ describe("messageHandler reference resolution", () => {
         checkOut: "2026-04-12",
       })
     );
-    expect(quoteReply).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
+    expect(previewReply).toMatch(/tarifa por noche|disponible/i);
+    expect(previewReply).toMatch(/disponibilidad: .*disponible/i);
+    expect(previewReply).not.toMatch(/- tengo .* disponible/i);
+    expect(previewReply).not.toMatch(/anot[eé] nuevas fechas/i);
+    expect(previewReply).not.toMatch(/confirm[aá]s la reserva/i);
+    expect(modifyReservation).not.toHaveBeenCalled();
     expect(stateByConversation.get(conversationId)?.conversationFocus).toMatchObject({ subFlow: "modify" });
     expect(stateByConversation.get(conversationId)?.lastCategory).toBe("modify_reservation");
     expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId: "RES-NEW-02" });
@@ -2211,6 +2293,51 @@ describe("messageHandler reference resolution", () => {
       numGuests: "2",
       checkIn: "2026-04-10",
       checkOut: "2026-04-12",
+    });
+  });
+
+  it("no ejecuta modify si el usuario rechaza el preview", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-preview-reject-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(
+      msg("modificá RES-ONLY-01 a triple para 3 personas", conversationId),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(modifyReservation).not.toHaveBeenCalled();
+    await handleIncomingMessage(msg("no", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/no apliqu[eé] cambios|sigue igual/i);
+    expect(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+  });
+
+  it("permite corregir el patch antes de confirmar y refresca el preview", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-preview-correction-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(
+      msg("modificá RES-ONLY-01 a triple para 3 personas", conversationId),
+      { mode: "automatic", sendReply }
+    );
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("mejor para 2 personas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).not.toMatch(/hu[eé]spedes:/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+      }),
     });
   });
 
@@ -2329,7 +2456,11 @@ describe("messageHandler reference resolution", () => {
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|posibles diferencias/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva res-new-03/i);
+    expect(replyText).toMatch(/fechas: .*31\/03\/2026.*02\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/c[oó]digo de reserva/i);
   });
 
@@ -2659,6 +2790,13 @@ describe("messageHandler reference resolution", () => {
     });
 
     await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/triple/i);
+
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
 
     expect(modifyReservation).toHaveBeenCalledWith(
       "hotel999",

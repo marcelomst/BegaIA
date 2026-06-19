@@ -448,7 +448,11 @@ describe("messageHandler slot ingestion", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).toMatch(/Anot[eé] nuevas fechas|verifique disponibilidad/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva r-123/i);
+    expect(replyText).toMatch(/22\/04\/2026.*25\/04\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(currentState?.activeFlow).toBe("modify_reservation");
     expect(currentState?.desiredAction).toBe("modify");
   });

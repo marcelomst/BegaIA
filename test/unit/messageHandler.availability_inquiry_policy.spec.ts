@@ -307,7 +307,11 @@ describe("messageHandler availability inquiry policy", () => {
     );
 
     const replyText = lastReply(sendReply);
-    expect(replyText).toMatch(/anot[eé] nuevas fechas|verifique disponibilidad|check-?out|nueva fecha/i);
+    expect(replyText).toMatch(/antes de aplicar el cambio/i);
+    expect(replyText).toMatch(/reserva res-base-03/i);
+    expect(replyText).toMatch(/14\/05\/2026.*15\/05\/2026/i);
+    expect(replyText).toMatch(/confirm[aá]s estos cambios/i);
+    expect(replyText).not.toMatch(/anot[eé] nuevas fechas|confirm[aá]s la reserva/i);
     expect(replyText).not.toMatch(/si quer[eé]s reservar, despu[eé]s puedo ayudarte/i);
   });
 
