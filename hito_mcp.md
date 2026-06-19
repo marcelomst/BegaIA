@@ -10799,3 +10799,62 @@ Impacto:
 - evita contaminación de idioma por detección oportunista del follow-up
 - preserva consistencia entre date correction, cotización y confirmación de `create`
 - mantiene `modify` fuera del alcance material del fix salvo revisión defensiva de compuertas relacionadas
+
+### REFRESH-RUNTIME-MAP-HUMAN-FRIENDLY-AND-SCANS-E67BA49-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-19  
+Commit: f7ce5761ea8594ee9d99ecd748dcb90d2aa98a75
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito exclusivamente documental y de análisis runtime. Refresca los mapas
+human-friendly del Runtime Map V1 al baseline `e67ba49`, alinea
+`bodyLLM_internal_scan.md` y `messageHandler_function_size_map.md`, corrige
+referencias activas a baselines viejos dentro del set documental auditado y
+consolida la orientación conceptual de slices sin autorizar refactor.
+
+Archivos afectados:
+
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/runtime-map-v1/00-glossary.md`
+- `.runtime-analysis/runtime-map-v1/00-operating-protocol.md`
+- `.runtime-analysis/runtime-map-v1/00-runtime-map-level-0.md`
+- `.runtime-analysis/runtime-map-v1/01-messagehandler-level-1.md`
+- `.runtime-analysis/runtime-map-v1/02-bodyllm-level-2.md`
+- `.runtime-analysis/runtime-map-v1/03-bodyllm-operational-corridors-level-3.md`
+- `.runtime-analysis/runtime-map-v1/03-bodyllm-turn-decision-level-3.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: false`
+- baseline formal aplicado:
+  `commit_base: e67ba49`
+  `technical_commit: e67ba4968d2275211fe63673cf64224bcae07fc8`
+  `messageHandler_lines: 11683`
+  `bodyLLM_range: L4861-L11313`
+  `bodyLLM_lines: 6453`
+  `known_manual_bug: none`
+- auditoría de baseline viejo:
+  `active_old_refs_remaining: none`
+  histórico explícito permitido solo en:
+  `.runtime-analysis/runtime-map-v1/00-runtime-map-level-0.md`
+  refs: `ba6e4a8`, `10133`
+- auditoría de scans:
+  `bodyLLM_internal_scan: aligned`
+  `messageHandler_function_size_map: aligned_to_formal_sources`
+- tests:
+  `not_required`
+
+Impacto:
+
+- fortalece la coherencia interna del Runtime Map V1 sobre un único baseline formal
+- deja las referencias viejas solo como histórico explícito donde corresponde
+- mejora la legibilidad operativa de slices y scans sin tocar código productivo
+- consolida disciplina documental sin abrir refactor ni arquitectura funcional paralela
