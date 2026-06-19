@@ -313,7 +313,7 @@ Ejemplo:
 ```yaml
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4314-L9367
+    range: L4861-L11313
     confidence: high
 ```
 
@@ -355,7 +355,7 @@ Rango detectado por firma clara de función o evidencia fuerte.
 Ejemplo:
 
 ```text
-bodyLLM: L4314-L9367
+bodyLLM: L4861-L11313
 ```
 
 ### medium

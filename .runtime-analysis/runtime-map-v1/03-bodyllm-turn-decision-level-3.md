@@ -164,12 +164,14 @@ respuesta candidata o siguiente etapa
 ```yaml
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ba6e4a8
-messageHandler_lines: 10133
-working_tree_status: dirty
-baseline_status: suite_green_with_known_manual_bug_and_uncommitted_changes
-bodyLLM_range: L4314-L9367
-bodyLLM_lines: 5054
+commit_base: e67ba49
+messageHandler_lines: 11683
+working_tree_status: clean
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
+bodyLLM_range: L4861-L11313
+bodyLLM_lines: 6453
+known_manual_bug: none
 ```
 
 ---
@@ -184,19 +186,19 @@ Rangos tentativos relacionados:
 
 | Zona                                                        |       Rango | Confianza | Motivo                                                                                        |
 | ----------------------------------------------------------- | ----------: | --------- | --------------------------------------------------------------------------------------------- |
-| Fast paths iniciales / structured analyze / create temporal | L4314-L4813 | medium    | Alta densidad de `date/temporal`, `structured analyze`, `create`, `availability` y decisiones |
-| Late temporal repair / final create cleanup                 | L8564-L9367 | low       | Alta densidad temporal y mezcla de create/modify/cierre                                       |
-| Helpers previos de dominio                                  | L2262-L2921 | high      | Funciones auxiliares detectadas por firma clara                                               |
+| Fast paths iniciales / structured analyze / create temporal | L4861-L5610 | medium    | Alta densidad de `date/temporal`, `structured analyze`, `create`, `availability` y decisiones |
+| Late temporal repair / final create cleanup                 | L9861-L11313 | low      | Alta densidad temporal y mezcla de create/modify/cierre                                       |
+| Helpers previos de dominio                                  | L2791-L3916 | high      | Funciones auxiliares detectadas por firma clara                                               |
 
 Helpers relevantes previos a `bodyLLM`:
 
 ```text
-detectDominantTurnDomain:           L2262-L2321
-getReservationDomainLockSignal:     L2546-L2581
-shouldUseReservationLocalFallback:  L2718-L2769
-buildReservationLocalFallbackReply: L2771-L2906
-assessReservationDateCoherence:     L2908-L2921
-tryStructuredAnalyze:               L3384-L3511
+detectDominantTurnDomain:           L2791-L3074
+getReservationDomainLockSignal:     L3075-L3246
+shouldUseReservationLocalFallback:  L3247-L3299
+buildReservationLocalFallbackReply: L3300-L3436
+assessReservationDateCoherence:     L3437-L3916
+tryStructuredAnalyze:               L3917-L4105
 ```
 
 ---

@@ -4,7 +4,7 @@
 
 ## Propósito
 
-Este mapa explota la caja:
+Este mapa abre la caja:
 
 ```text
 messageHandler.ts
@@ -12,7 +12,7 @@ messageHandler.ts
 
 del Nivel 0.
 
-En este nivel, `messageHandler.ts` deja de verse como caja cerrada y se muestra como el **runtime conversacional principal vigente**.
+En este nivel, `messageHandler.ts` deja de verse como caja cerrada y se muestra como el runtime conversacional principal vigente.
 
 No es un refactor.  
 No es una propuesta de migración.  
@@ -40,15 +40,14 @@ No muestra todavía:
 - cancel
 - snapshot
 - availability inquiry
-- FAQ / Policies / Amenities
-- Billing / Support
-- Graph / Classifier / Policy
-- Fallback local
+- FAQ / billing / support
+- graph / classifier / policy
+- fallback local
 - compuertas internas de bodyLLM
 - corredores internos de bodyLLM
+```
 
 Todo eso pertenece al Nivel 2 o niveles inferiores.
-```
 
 ---
 
@@ -57,29 +56,21 @@ Todo eso pertenece al Nivel 2 o niveles inferiores.
 ```mermaid
 flowchart TD
     A["Entrada desde handleChannelMessage"] --> B["handleIncomingMessage<br/>entrypoint público"]
-
     B --> C["preLLM<br/>contexto + conv_state + historial"]
-
     C --> D["bodyLLM<br/>sub-runtime dominante<br/>caja cerrada"]
-
     D --> E["Persistencia + reply<br/>estado + respuesta candidata"]
-
     E --> F["posLLM<br/>verdict / supervisión / cierre"]
-
     F --> G["Respuesta final al canal"]
 
     click D "./02-bodyllm-level-2.md" "Abrir Nivel 2: bodyLLM"
 
     classDef darkBox fill:#111111,stroke:#d1d5db,stroke-width:1px,color:#ffffff;
-
     class A,B,C,D,E,F,G darkBox;
 ```
 
 ---
 
 ## Lectura del Nivel 1
-
-El flujo interno de `messageHandler.ts` se lee así:
 
 ```text
 handleChannelMessage entrega un mensaje normalizado.
@@ -90,7 +81,7 @@ preLLM prepara contexto, estado conversacional, historial y señales previas.
 
 bodyLLM concentra la decisión operacional dominante del turno.
 
-Persistencia + reply representa la etapa interna donde se actualiza estado
+Persistencia + reply representa la frontera conceptual donde se actualiza estado
 y se prepara la respuesta observable.
 
 posLLM aplica cierre, verdict, supervisión o verificación final.
@@ -106,8 +97,7 @@ La respuesta final vuelve hacia el canal.
 bodyLLM
 ```
 
-En este nivel, `bodyLLM` sigue siendo una caja cerrada.
-
+En este nivel, `bodyLLM` sigue siendo una caja cerrada.  
 Se explota recién en Nivel 2:
 
 ```text
@@ -121,10 +111,12 @@ Se explota recién en Nivel 2:
 ```yaml
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ba6e4a8
-messageHandler_lines: 10133
-working_tree_status: dirty
-baseline_status: suite_green_with_known_manual_bug_and_uncommitted_changes
+commit_base: e67ba49
+messageHandler_lines: 11683
+working_tree_status: clean
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
+known_manual_bug: none
 ```
 
 ---
@@ -132,10 +124,10 @@ baseline_status: suite_green_with_known_manual_bug_and_uncommitted_changes
 ## Rangos actuales detectados
 
 ```text
-preLLM:                L3572-L3763   192 líneas
-bodyLLM:               L4314-L9367   5054 líneas
-posLLM:                L9764-L9805   42 líneas
-handleIncomingMessage: L9809-L9817   9 líneas
+preLLM:                L4106-L4348   243 líneas
+bodyLLM:               L4861-L11313  6453 líneas
+posLLM:                L11314-L11358 45 líneas
+handleIncomingMessage: L11359-L11683 325 líneas
 ```
 
 ---
@@ -143,14 +135,17 @@ handleIncomingMessage: L9809-L9817   9 líneas
 ## Funciones auxiliares relevantes detectadas
 
 ```text
-buildReservationCanonicalState:     L1465-L1502
-resolveReservationReference:        L1929-L2036
-detectDominantTurnDomain:           L2262-L2321
-getReservationDomainLockSignal:     L2546-L2581
-shouldUseReservationLocalFallback:  L2718-L2769
-buildReservationLocalFallbackReply: L2771-L2906
-assessReservationDateCoherence:     L2908-L2921
-tryStructuredAnalyze:               L3384-L3511
+buildReservationCanonicalState:     L1950-L2450
+resolveReservationReference:        L2451-L2790
+detectDominantTurnDomain:           L2791-L3074
+getReservationDomainLockSignal:     L3075-L3246
+shouldUseReservationLocalFallback:  L3247-L3299
+buildReservationLocalFallbackReply: L3300-L3436
+assessReservationDateCoherence:     L3437-L3916
+tryStructuredAnalyze:               L3917-L4105
+getObjectiveContext:                L585-L649
+toStrictSlots:                      L2578-L2588
+mergeReservationSlots:              L2589-L2604
 ```
 
 ---
@@ -160,23 +155,21 @@ tryStructuredAnalyze:               L3384-L3511
 ### handleIncomingMessage
 
 ```text
-Entry point público del runtime conversacional.
+Entrypoint público del runtime conversacional.
 ```
 
 Rango actual:
 
 ```text
-L9809-L9817
+L11359-L11683
 ```
 
 Nota:
 
 ```text
-Aunque es pequeño, es la puerta pública hacia el runtime.
+Aunque ya no es pequeño, sigue siendo la puerta pública hacia el runtime.
 No debe confundirse con bodyLLM ni con handleChannelMessage.
 ```
-
----
 
 ### preLLM
 
@@ -191,16 +184,15 @@ Responsabilidades conceptuales:
 - recuperar estado conversacional
 - preparar historial
 - construir señales previas
+- fijar idioma operativo inicial
 - entregar input enriquecido a bodyLLM
 ```
 
 Rango actual:
 
 ```text
-L3572-L3763
+L4106-L4348
 ```
-
----
 
 ### bodyLLM
 
@@ -222,7 +214,7 @@ Responsabilidades conceptuales:
 Rango actual:
 
 ```text
-L4314-L9367
+L4861-L11313
 ```
 
 Nota:
@@ -231,8 +223,6 @@ Nota:
 bodyLLM no es solamente “la parte LLM”.
 bodyLLM funciona como un sub-runtime operacional.
 ```
-
----
 
 ### Persistencia + reply
 
@@ -256,139 +246,74 @@ Esta caja es conceptual.
 No necesariamente corresponde a una única función física.
 ```
 
----
-
 ### posLLM
 
 ```text
-Etapa posterior de cierre.
+Etapa de cierre y verificación.
 ```
 
 Responsabilidades conceptuales:
 
 ```text
-- verdict
-- supervisión
-- cierre final
-- salida hacia canal
+- aplicar verdict final
+- supervisar o endurecer salida cuando haga falta
+- cerrar el turno antes de devolverlo al canal
 ```
 
 Rango actual:
 
 ```text
-L9764-L9805
+L11314-L11358
 ```
 
 ---
 
-## Diferencia con Nivel 0
-
-En Nivel 0 aparece:
+## Qué no aparece todavía en este nivel
 
 ```text
-Respuesta normalizada al canal
+reservation.create
+reservation.modify
+reservation.cancel
+reservation.snapshot
+availability inquiry
+FAQ / amenities / policies
+billing / support
+graph / classifier / policy
+fallback local
+compuertas internas de bodyLLM
+corredores operacionales de bodyLLM
 ```
 
-Eso representa la salida externa del sistema.
-
-En Nivel 1 aparece:
-
-```text
-Persistencia + reply
-```
-
-Eso representa una frontera interna de `messageHandler.ts`.
-
-La diferencia es:
-
-```text
-Nivel 0:
-sistema completo visto desde fuera
-
-Nivel 1:
-runtime principal visto desde dentro
-```
-
----
-
-## Qué NO aparece en este nivel
-
-Este nivel no muestra:
-
-```text
-Reservation
-Create
-Modify
-Cancel
-Snapshot
-Availability inquiry
-FAQ / Policies / Amenities
-Billing / Support
-Graph / Classifier / Policy
-Fallback local
-date repair
-quote gating
-confirmation gating
-reference resolution
-domain lock
-early returns
-```
-
-Todo eso pertenece al Nivel 2 o niveles inferiores.
+Todo eso pertenece al Nivel 2 y al Nivel 3.
 
 ---
 
 ## Hotspot principal
 
 ```text
-bodyLLM
-```
-
-Evidencia:
-
-```text
-bodyLLM tiene 5054 líneas sobre un archivo total de 10133 líneas.
+bodyLLM tiene 6453 líneas sobre un archivo total de 11683 líneas.
 ```
 
 Lectura:
 
 ```text
-El centro de gravedad del runtime actual está en bodyLLM.
-```
+messageHandler.ts no está repartido de forma homogénea.
 
-Riesgo:
-
-```text
-Los fixes dentro de bodyLLM pueden afectar múltiples corredores,
-porque allí conviven routing, estado, fechas, create, modify, cancel,
-snapshot, graph, fallback y composición de respuesta.
+bodyLLM concentra la mayor parte del comportamiento operacional,
+por eso debe tratarse como sub-runtime dominante y no como helper grande.
 ```
 
 ---
 
 ## Regla operativa del Nivel 1
 
-```text
-No corregir “messageHandler.ts” de forma genérica.
-
-Primero identificar:
-- etapa afectada
-- caja conceptual
-- rango aproximado
-- riesgo
-- tests de paridad
-```
-
-Ejemplo:
+Antes de corregir un bug en `messageHandler.ts`, identificar:
 
 ```text
-Incorrecto:
-Corregir messageHandler.ts.
-
-Correcto:
-Corregir bodyLLM / turnDecision / temporalRepair,
-sin tocar cancel ni snapshot,
-con test de paridad.
+1. si el bug vive en entrypoint, preLLM, bodyLLM o posLLM
+2. si afecta lectura de estado, precedencia o salida observable
+3. si la caja afectada es runtime host o sub-runtime interno
+4. si el cambio toca solo code_refs o también contracts observables
 ```
 
 ---
@@ -400,7 +325,8 @@ Nivel 2:
 Explota bodyLLM.
 
 Ahí aparecen:
-- Decisión de turno
-- Corredores operacionales
-- Resultado bodyLLM
+- decisión de turno
+- corredores operacionales
+- resultado bodyLLM
+- retorno hacia persistencia + reply
 ```

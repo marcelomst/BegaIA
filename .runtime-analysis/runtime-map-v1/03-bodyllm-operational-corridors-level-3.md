@@ -12,9 +12,9 @@ Corredores operacionales
 
 del Nivel 2 de `bodyLLM`.
 
-Los corredores operacionales representan las rutas internas posibles que `bodyLLM` puede activar después de la **Decisión de turno**.
+Los corredores operacionales representan las rutas internas posibles que `bodyLLM` puede activar después de la decisión de turno.
 
-No son todavía funciones extraídas.  
+No son funciones extraídas.  
 No son módulos separados.  
 No son una propuesta inmediata de refactor.
 
@@ -25,7 +25,7 @@ Son fronteras conceptuales para entender qué familias de comportamiento convive
 ## Regla del Nivel 3B
 
 ```text
-Nivel 3B = Corredores operacionales abiertos.
+Nivel 3B = corredores operacionales abiertos.
 
 Muestra:
 - familias de rutas internas
@@ -37,10 +37,11 @@ No muestra todavía:
 - líneas exactas de cada early return
 - helpers concretos
 - tests específicos
-- contratos detallados de cada subflujo
+- contratos detallados por subflujo
+- diseño de primer micro-refactor
+```
 
 Eso corresponde al Nivel 4 o al box-index machine-friendly.
-```
 
 ---
 
@@ -56,13 +57,9 @@ flowchart TD
     B --> B4["Snapshot<br/>estado / resumen"]
 
     A --> C["Availability inquiry<br/>disponibilidad / precio"]
-
     A --> D["FAQ / Policies / Amenities<br/>consultas laterales"]
-
     A --> E["Billing / Support<br/>pagos / soporte"]
-
     A --> F["Graph / Classifier / Policy<br/>capa semántica / policy"]
-
     A --> G["Fallback local<br/>último recurso seguro"]
 
     B1 --> H["Resultado operacional"]
@@ -78,58 +75,7 @@ flowchart TD
     H --> I["Resultado bodyLLM<br/>vuelve a Nivel 2"]
 
     classDef darkBox fill:#111111,stroke:#d1d5db,stroke-width:1px,color:#ffffff;
-
     class A,B,B1,B2,B3,B4,C,D,E,F,G,H,I darkBox;
-```
-
----
-
-## Lectura del Nivel 3B
-
-Después de la **Decisión de turno**, `bodyLLM` puede activar uno de varios corredores operacionales.
-
-Cada corredor representa una familia de comportamiento:
-
-```text
-Reservation
-Availability inquiry
-FAQ / Policies / Amenities
-Billing / Support
-Graph / Classifier / Policy
-Fallback local
-```
-
-Estos corredores no son equivalentes.
-
-Algunos son transaccionales.  
-Otros son informativos.  
-Otros son de interpretación semántica.  
-Otros son de último recurso.
-
-Por eso es riesgoso que compartan lógica parecida sin una frontera clara.
-
----
-
-## Relación con Decisión de turno
-
-Este archivo no decide qué ruta gana.
-
-Eso pertenece a:
-
-```text
-03-bodyllm-turn-decision-level-3.md
-```
-
-Este archivo muestra qué rutas existen una vez que la decisión ya eligió o habilitó un camino.
-
-La separación conceptual es:
-
-```text
-Decisión de turno
-  decide qué ruta domina
-
-Corredores operacionales
-  ejecutan o preparan la resolución del turno
 ```
 
 ---
@@ -139,35 +85,37 @@ Corredores operacionales
 ```yaml
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ba6e4a8
-messageHandler_lines: 10133
-working_tree_status: dirty
-baseline_status: suite_green_with_known_manual_bug_and_uncommitted_changes
-bodyLLM_range: L4314-L9367
-bodyLLM_lines: 5054
+commit_base: e67ba49
+messageHandler_lines: 11683
+working_tree_status: clean
+analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
+bodyLLM_range: L4861-L11313
+bodyLLM_lines: 6453
+known_manual_bug: none
 ```
 
 ---
 
 ## Rangos tentativos relacionados
 
-Estos rangos vienen de FASE 1 y son orientativos.
+Estos rangos vienen del scan actualizado y son orientativos.
 
 ```text
 No son fronteras físicas definitivas.
 No significan que cada corredor exista como módulo separado.
 ```
 
-| Corredor / zona conceptual                                  | Rango tentativo | Confianza |
-| ----------------------------------------------------------- | --------------: | --------- |
-| Fast paths iniciales / structured analyze / create temporal |     L4314-L4813 | medium    |
-| Modify corridor / selected target / reparación temporal     |     L5064-L6313 | medium    |
-| Create / availability / quote / proposal                    |     L6314-L6813 | medium    |
-| Copy corridor / channel-specific replies                    |     L6814-L7313 | medium    |
-| Cancel corridor                                             |     L7064-L7563 | medium    |
-| Snapshot / canonical reply                                  |     L7814-L8063 | medium    |
-| Billing / Support / FAQ / Graph / Fallback                  |     L8064-L8563 | medium    |
-| Late temporal repair / final create cleanup                 |     L8564-L9367 | low       |
+| Corredor / zona conceptual | Rango tentativo | Confianza |
+| --- | ---: | --- |
+| Fast paths iniciales / structured analyze / create temporal | L4861-L5610 | medium |
+| Modify corridor / selected target / reparación temporal | L5861-L7610 | medium |
+| Create / availability / quote / proposal | L7611-L8110 | medium |
+| Copy por canal / replies transversales | L8111-L8610 | medium |
+| Cancel corridor | L8611-L8860 | medium |
+| Snapshot / canonical reply / billing bridge | L8861-L9610 | medium |
+| Graph / classifier / policy / fallback | L9611-L9860 | medium |
+| Late temporal repair / final create cleanup / outbound endings | L9861-L11313 | low |
 
 ---
 
@@ -193,19 +141,6 @@ Resolver acciones y consultas vinculadas a reservas.
 ```text
 Create, modify, cancel y snapshot comparten estado,
 pero no deberían compartir todas las reglas.
-```
-
-Ejemplos:
-
-```text
-Una reparación de fechas en create
-no debería capturar una modificación activa.
-
-Una confirmación de cancelación
-no debería confundirse con confirmación de propuesta de reserva.
-
-Un snapshot post-booking
-no debería abrir create flow.
 ```
 
 ### Estado sensible compartido
@@ -249,26 +184,17 @@ Completar slots mínimos, validar coherencia, consultar disponibilidad y permiti
 ### Rango tentativo principal
 
 ```yaml
-range: L6314-L6813
+range: L7611-L8110
 confidence: medium
 related_ranges:
-  - L4314-L4813
-  - L8564-L9367
+  - L4861-L5610
+  - L9861-L11313
 ```
 
 ### Riesgo principal
 
 ```text
 Create suele ser el corredor que más fácilmente captura otros contextos.
-```
-
-Ejemplos de riesgo:
-
-```text
-Una consulta lateral puede ser tomada como slot faltante.
-Una fecha de modify puede ser tomada como fecha de create.
-Un "sí" genérico puede ser tomado como confirmación.
-Un checkOut explícito puede ser malinterpretado como checkIn.
 ```
 
 ### Riesgos específicos
@@ -280,17 +206,17 @@ quote gating
 confirmation gating
 availability
 create vs modify contamination
+language stickiness
+quote copy
 ```
 
-### Candidatos a Nivel 4
+### Candidate slice orientation
 
-```text
-slot ingestion
-date repair
-availability check
-quote gating
-proposal confirmation
-confirmAndCreate guard
+```yaml
+safer:
+  - reservation.create.quoteCopy
+  - reservation.create.quote_gating
+  - reservation.create.proposal_confirmation
 ```
 
 ---
@@ -317,25 +243,16 @@ Aplicar cambios a una reserva identificada o pedir desambiguación si no hay tar
 ### Rango tentativo principal
 
 ```yaml
-range: L5064-L6313
+range: L5861-L7610
 confidence: medium
 related_ranges:
-  - L8564-L8813
+  - L9861-L10360
 ```
 
 ### Riesgo principal
 
 ```text
 Modify depende mucho de reference resolution y selectedReservationTarget.
-```
-
-Ejemplos de riesgo:
-
-```text
-Modificar la reserva equivocada.
-Tratar una nueva reserva como modificación.
-Aplicar date repair de create dentro de modify.
-Perder el campo activo que se estaba modificando.
 ```
 
 ### Riesgos específicos
@@ -347,17 +264,6 @@ modify state
 date repair
 active field
 create vs modify contamination
-```
-
-### Candidatos a Nivel 4
-
-```text
-reference resolution
-selectedReservationTarget
-modifyState
-activeField
-date modify repair
-modify confirmation
 ```
 
 ---
@@ -383,7 +289,7 @@ Cancelar solo cuando exista target suficiente y confirmación adecuada.
 ### Rango tentativo principal
 
 ```yaml
-range: L7064-L7563
+range: L8611-L8860
 confidence: medium
 ```
 
@@ -394,15 +300,6 @@ Cancel es una acción sensible.
 No debe ejecutarse por ambigüedad.
 ```
 
-Ejemplos de riesgo:
-
-```text
-Cancelar sin target.
-Cancelar la reserva equivocada.
-Interpretar "sí" como cancelación cuando el usuario confirmaba otra cosa.
-Usar fallback para una acción sensible.
-```
-
 ### Riesgos específicos
 
 ```text
@@ -410,16 +307,6 @@ sensitive action
 target resolution
 confirmation gate
 destructive action
-```
-
-### Candidatos a Nivel 4
-
-```text
-cancel target resolution
-pendingCancellation
-cancel confirmation
-cancel execution guard
-post-cancel snapshot
 ```
 
 ---
@@ -445,31 +332,17 @@ Responder consultas de estado sin abrir accidentalmente create, modify o cancel.
 ### Rango tentativo principal
 
 ```yaml
-range: L7814-L8063
+range: L8861-L9610
 confidence: medium
 related_ranges:
-  - L5314-L5813
-  - L6064-L6313
-  - L9314-L9367
+  - L6361-L6610
+  - L11111-L11313
 ```
 
 ### Riesgo principal
 
 ```text
 Snapshot puede ser secuestrado por create o date repair.
-```
-
-Ejemplos de riesgo:
-
-```text
-El usuario pregunta "¿quedó confirmada?"
-y el sistema pide una fecha de check-in.
-
-El usuario pide "mostrame mi reserva"
-y el sistema abre create flow.
-
-El usuario pregunta por late checkout
-y se interpreta como modificación de fechas.
 ```
 
 ### Riesgos específicos
@@ -482,29 +355,11 @@ create capture risk
 date repair contamination
 ```
 
-### Candidatos a Nivel 4
-
-```text
-post-booking semantics
-reservation snapshot
-canonical reply
-reservation history
-reference display
-```
-
 ---
 
 ## Corredor 2 — Availability inquiry
 
 `Availability inquiry` gestiona consultas de disponibilidad que no necesariamente son una reserva activa.
-
-Ejemplos:
-
-```text
-¿Tenés doble para mañana?
-¿Hay disponibilidad para el fin de semana?
-¿Cuánto sale una suite?
-```
 
 ### Responsabilidad conceptual
 
@@ -513,25 +368,17 @@ Responder disponibilidad o precio sin convertir automáticamente toda consulta e
 ### Rango tentativo principal
 
 ```yaml
-range: L6314-L6813
+range: L7611-L8110
 confidence: medium
 related_ranges:
-  - L4564-L4813
-  - L9064-L9313
+  - L5111-L5610
+  - L10361-L10860
 ```
 
 ### Riesgo principal
 
 ```text
 Confundir inquiry con create.
-```
-
-Ejemplo:
-
-```text
-"¿Hay disponibilidad?"
-no siempre significa:
-"Creá un draft de reserva".
 ```
 
 ### Riesgos específicos
@@ -543,35 +390,11 @@ date range extraction
 create capture risk
 ```
 
-### Candidatos a Nivel 4
-
-```text
-availability intent
-date range extraction
-room type extraction
-availability quote
-transition to create
-```
-
 ---
 
 ## Corredor 3 — FAQ / Policies / Amenities
 
 Este corredor resuelve consultas informativas laterales.
-
-Puede incluir:
-
-```text
-desayuno
-wifi
-parking
-mascotas
-check-in policy
-check-out policy
-amenities
-ubicación
-servicios del hotel
-```
 
 ### Responsabilidad conceptual
 
@@ -580,30 +403,16 @@ Responder información del hotel sin romper continuidad conversacional.
 ### Rango tentativo principal
 
 ```yaml
-range: L8064-L8563
-confidence: medium
+range: L4861-L5110
+confidence: low
+related_ranges:
+  - L9611-L9860
 ```
 
 ### Riesgo principal
 
 ```text
 Una consulta lateral durante una reserva activa no debería destruir el foco.
-```
-
-Ejemplo:
-
-```text
-Guest:
-Quiero reservar una doble del 10 al 12.
-
-Bot:
-¿A nombre de quién?
-
-Guest:
-¿El desayuno está incluido?
-
-El sistema debería responder el lateral,
-pero conservar el draft de reserva.
 ```
 
 ### Riesgos específicos
@@ -615,34 +424,11 @@ retrieval
 reservation context contamination
 ```
 
-### Candidatos a Nivel 4
-
-```text
-lateral question detection
-reservation focus preservation
-retrieval-based answer
-policy answer
-amenities answer
-return to active flow
-```
-
 ---
 
 ## Corredor 4 — Billing / Support
 
 Este corredor resuelve consultas de facturación, pago o soporte.
-
-Puede incluir:
-
-```text
-formas de pago
-factura
-cobros
-seña
-reembolso
-problemas técnicos
-contacto con recepción
-```
 
 ### Responsabilidad conceptual
 
@@ -651,8 +437,10 @@ Atender consultas administrativas o de soporte sin confundirse con reserva trans
 ### Rango tentativo principal
 
 ```yaml
-range: L8064-L8563
+range: L9361-L9610
 confidence: medium
+related_ranges:
+  - L10861-L11110
 ```
 
 ### Riesgo principal
@@ -660,16 +448,6 @@ confidence: medium
 ```text
 Billing puede solaparse con reservation cuando el huésped pregunta por precio,
 seña, pago o confirmación.
-```
-
-Ejemplo:
-
-```text
-"¿Cuánto tengo que pagar?"
-puede ser:
-- billing general
-- pregunta sobre una propuesta activa
-- consulta sobre una reserva existente
 ```
 
 ### Riesgos específicos
@@ -681,32 +459,11 @@ payment policy
 supervised escalation
 ```
 
-### Candidatos a Nivel 4
-
-```text
-billing intent
-payment policy
-support handoff
-reservation-related billing
-supervised escalation
-```
-
 ---
 
 ## Corredor 5 — Graph / Classifier / Policy
 
 Este corredor representa la capa semántica/probabilística o de policy.
-
-Puede involucrar:
-
-```text
-classifier
-graph
-policy
-structured analyze
-semantic fallback
-intent inference
-```
 
 ### Responsabilidad conceptual
 
@@ -715,25 +472,17 @@ Resolver ambigüedad, enriquecer interpretación o derivar a una ruta cuando las
 ### Rango tentativo principal
 
 ```yaml
-range: L8314-L8563
+range: L9611-L9860
 confidence: medium
 related_ranges:
-  - L4314-L4563
-  - L9314-L9367
+  - L4861-L5110
+  - L11111-L11313
 ```
 
 ### Riesgo principal
 
 ```text
 La capa semántica no debe pisar contratos deterministas críticos.
-```
-
-Ejemplos de riesgo:
-
-```text
-Graph clasifica como create algo que era snapshot.
-Classifier interpreta "confirmar" fuera del contexto de lastProposal.
-Policy permite una ruta que un guard determinista debía bloquear.
 ```
 
 ### Riesgos específicos
@@ -743,17 +492,6 @@ semantic override
 policy gate
 classifier misroute
 deterministic contract violation
-```
-
-### Candidatos a Nivel 4
-
-```text
-structured analyze
-classifier intent
-graph path
-policy gate
-semantic fallback
-agreement / disagreement
 ```
 
 ---
@@ -769,7 +507,7 @@ Responder de forma segura sin ejecutar acciones sensibles.
 ### Rango tentativo principal
 
 ```yaml
-range: L8314-L8563
+range: L9611-L9860
 confidence: medium
 ```
 
@@ -782,14 +520,6 @@ Fallback no debe cancelar reservas.
 Fallback no debe romper estado activo.
 ```
 
-Ejemplos de riesgo:
-
-```text
-Fallback responde como si hubiera disponibilidad.
-Fallback confirma una reserva sin proposal.
-Fallback pide checkIn cuando el usuario preguntaba por una reserva existente.
-```
-
 ### Riesgos específicos
 
 ```text
@@ -800,40 +530,21 @@ no sensitive action
 domain leak
 ```
 
-### Candidatos a Nivel 4
-
-```text
-safe fallback
-local fallback reply
-domain lock fallback
-reservation fallback
-retrieval fallback
-handoff fallback
-```
-
 ---
 
 ## Corredor transversal — Copy por canal
 
 Aunque no es un dominio de negocio, aparece como corredor transversal dentro de `bodyLLM`.
 
-Puede involucrar:
-
-```text
-email copy
-WhatsApp copy
-mensajes adaptados por canal
-tono de respuesta
-estructura visual
-```
-
 ### Rango tentativo principal
 
 ```yaml
-range: L6814-L7313
+range: L8111-L8610
 confidence: medium
 related_ranges:
-  - L5064-L5563
+  - L6111-L6360
+  - L10861-L11110
+  - L11111-L11313
 ```
 
 ### Riesgo principal
@@ -852,24 +563,14 @@ reply composition
 ux regression
 ```
 
-### Nota
-
-Este corredor debería ser tratado como transversal porque puede cruzar dominios como create, cancel, snapshot o fallback.
-
 ---
 
 ## Riesgos transversales entre corredores
 
 ### 1. Reglas duplicadas
 
-El mismo tipo de problema puede resolverse en más de un corredor.
-
-Ejemplo:
-
 ```text
-date repair en create
-date repair en modify
-date repair en availability inquiry
+date repair aparece en create, modify, availability inquiry y zona final.
 ```
 
 Riesgo:
@@ -878,25 +579,16 @@ Riesgo:
 Se corrige un corredor pero queda otro con lógica vieja.
 ```
 
----
-
 ### 2. Precedencia implícita
 
-Un corredor puede ganar solo porque aparece antes en el flujo.
-
-Riesgo:
-
 ```text
-Un fix mueve el orden y cambia la ruta ganadora.
+Un corredor puede ganar solo porque aparece antes en el flujo.
 ```
-
----
 
 ### 3. Estado compartido
 
-Varios corredores leen o escriben:
-
 ```text
+Varios corredores leen o escriben:
 reservationSlots
 conversationFocus
 selectedReservationTarget
@@ -906,40 +598,14 @@ pendingCancellation
 modifyState
 ```
 
-Riesgo:
-
-```text
-Un corredor actualiza estado de forma válida para sí mismo,
-pero inválida para otro corredor posterior.
-```
-
----
-
 ### 4. Respuestas parecidas
 
-Distintos corredores pueden generar respuestas similares.
-
-Ejemplos:
-
 ```text
-¿Cuál sería la fecha de check-in?
-¿Cuál sería la fecha de check-out?
-¿Deseás que verifique disponibilidad?
-¿Confirmás la reserva?
+Distintos corredores pueden generar respuestas plausibles con copy similar.
+El usuario puede ver una respuesta correcta en tono pero emitida por el corredor equivocado.
 ```
-
-Riesgo:
-
-```text
-El usuario ve una respuesta plausible,
-pero generada por el corredor equivocado.
-```
-
----
 
 ### 5. Acciones sensibles
-
-Algunos corredores pueden ejecutar acciones reales:
 
 ```text
 confirmAndCreate
@@ -953,6 +619,24 @@ Riesgo:
 
 ```text
 Una mala decisión de turno puede terminar en una acción real equivocada.
+```
+
+---
+
+## No-go first slice
+
+Orientación conceptual solamente.
+
+```yaml
+no_go_first_slice:
+  - turnDecision
+  - canonical state
+  - reference resolution
+  - persistencia transversal
+  - graph/classifier/policy
+  - fallback local
+  - date repair
+  - feature-flag-dependent branches
 ```
 
 ---
@@ -974,25 +658,6 @@ Antes de corregir un bug dentro de `bodyLLM`, identificar:
 
 ---
 
-## Regla de lectura
-
-```text
-Identificar cajas no significa extraer cajas.
-```
-
-Antes de extraer un corredor haría falta:
-
-```text
-1. contrato claro
-2. tests de paridad
-3. inventario de estado leído/escrito
-4. control de early returns
-5. snapshot de respuestas observables
-6. validación de precedencia
-```
-
----
-
 ## Vuelve a Nivel 2
 
 ```text
@@ -1000,5 +665,5 @@ Nivel 2:
 bodyLLM abierto
 
 Este Nivel 3B explica la caja:
-Corredores operacionales
+corredores operacionales
 ```

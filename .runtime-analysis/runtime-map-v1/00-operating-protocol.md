@@ -536,8 +536,8 @@ target_file:
 
 runtime_map:
   version: runtime-map-v1
-  baseline_commit: ba6e4a8
-  baseline_status: suite_green_with_known_manual_bug_and_uncommitted_changes
+  baseline_commit: e67ba49
+  baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
 
 runtime_boxes_impacted:
   - runtime.messageHandler.bodyLLM.turnDecision
@@ -556,7 +556,7 @@ risk_tags:
 
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4314-L4813
+    range: L4861-L5610
     confidence: medium
 
 parity_tests_required:
