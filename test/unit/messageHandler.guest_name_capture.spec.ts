@@ -49,7 +49,7 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
     ...actual,
     runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string, options?: any) => {
       const holder = String(slots.guestName || "").trim();
-      const guestName = String(pre?.guest?.name || "").trim();
+      const guestName = String(pre?.guest?.firstName || pre?.guest?.name || "").trim();
       const vocative = guestName ? `${guestName}, ` : "";
       const nights = Math.max(1, Math.round((new Date(coISO).getTime() - new Date(ciISO).getTime()) / (24 * 60 * 60 * 1000)));
       const roomType = String(slots.roomType || "double").toLowerCase();
@@ -123,7 +123,7 @@ vi.mock("@langchain/openai", () => ({
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { updateGuest } from "@/lib/db/guests";
 
-function msg(content: string) {
+function msg(content: string, overrides: Record<string, unknown> = {}) {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
     hotelId: "hotel999",
@@ -134,6 +134,7 @@ function msg(content: string) {
     conversationId: "conv-guest-name-1",
     guestId: "g1",
     detectedLanguage: "es",
+    ...overrides,
   } as any;
 }
 
@@ -325,5 +326,145 @@ describe("messageHandler guest conversational name capture", () => {
     expect(replyText).toMatch(/^Marcelo,\s+tengo doble disponible\./i);
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(replyText).not.toMatch(/confirm[aá]s la reserva|respond[eé]\s+[“"]?confirmar/i);
+  });
+
+  it("captura actor inline 'soy' en web y separa display_name de guestName", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Hola, soy Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/¿Cómo preferís que te llame\?|a nombre de qui[eé]n/i);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(guestRecord?.firstName).toBe("Martín");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+  });
+
+  it("captura actor inline de un solo nombre y lo persiste en el guest canónico visible para Admin", async () => {
+    guestRecord = {
+      guestId: "guest-canonical-1",
+      hotelId: "hotel999",
+      name: "",
+      mode: "automatic",
+      aliases: ["whatsapp:+59891359375"],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        "Hola, soy Martín. Quisiera reservar una triple del 25/07/2026 al 27/07/2026 para tres personas, a nombre de Ana Rodríguez.",
+        { channel: "whatsapp", guestId: "whatsapp:+59891359375", sender: "whatsapp:+59891359375", conversationId: "conv-inline-wa-canonical-es" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(guestRecord?.guestId).toBe("guest-canonical-1");
+    expect(guestRecord?.name).toBe("Martín");
+    expect(guestRecord?.firstName).toBe("Martín");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+    expect(updateGuest).toHaveBeenCalledWith(
+      "hotel999",
+      "guest-canonical-1",
+      expect.objectContaining({ name: "Martín", firstName: "Martín" })
+    );
+    expect(updateGuest).not.toHaveBeenCalledWith(
+      "hotel999",
+      "whatsapp:+59891359375",
+      expect.objectContaining({ name: "Martín" })
+    );
+  });
+
+  it("captura actor inline 'me llamo' en email sin handshake y preserva guestName", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        "Hola, me llamo Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez.",
+        { channel: "email", detectedLanguage: "es", conversationId: "conv-inline-email-es" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/¿Cómo preferís que te llame\?|a nombre de qui[eé]n/i);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+  });
+
+  it("captura actor inline PT y guestName con 'em nome de' en web", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        "Meu nome é Martín P. Gostaria de reservar um quarto triplo para três pessoas, check-in 25/07/2026, check-out 27/07/2026, em nome de Ana Rodríguez.",
+        { channel: "web", detectedLanguage: "pt", conversationId: "conv-inline-web-pt" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/como prefere que eu te chame|em nome de quem/i);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+  });
+
+  it("captura actor inline EN y guestName con 'under the name of' en whatsapp", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        "My name is Martin P. I would like to book a triple room for three people, check-in 25/07/2026, check-out 27/07/2026, under the name of Ana Rodríguez.",
+        { channel: "whatsapp", detectedLanguage: "en", conversationId: "conv-inline-wa-en" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martin,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/what should i call you|what name should i use for the reservation/i);
+    expect(guestRecord?.name).toBe("Martin P.");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+  });
+
+  it("no inventa display_name desde guestName cuando no hay autopresentación explícita", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/^Ana,\s+tengo/i);
+    expect(guestRecord?.name || "").toBe("");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+  });
+
+  it("después de confirmar no promociona guestName a display_name y conserva el actor conversacional", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Hola, soy Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Mostrame mis reservas"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(replyText).toMatch(/^Martín,\s+estas son (?:tus reservas|las reservas de esta conversación):/i);
+    expect(replyText).toMatch(/a nombre de Ana Rodríguez/i);
+    expect(replyText).not.toMatch(/^Ana,\s+/i);
   });
 });

@@ -197,6 +197,99 @@ function extractSafeCreateTemporalLeadGuestName(text: string): string | undefine
   return normalizeNameCase(candidate);
 }
 
+const INLINE_CONVERSATIONAL_ACTOR_RESERVATION_CUE_RE =
+  /\b(a\s+nombre\s+de|em\s+nome\s+de|under\s+the\s+name\s+of|quiero|quisiera|quero|gostaria|reservar|reserva|book|booking|reserve|check\s*-?in|check\s*-?out|checkin|checkout)\b/iu;
+
+function isSafeConversationalActorName(candidate: string): boolean {
+  const trimmed = String(candidate || "").trim();
+  if (!trimmed || !looksLikeName(trimmed)) return false;
+  if (/[0-9?!,:;@/\\]/.test(trimmed)) return false;
+  if (INLINE_CONVERSATIONAL_ACTOR_RESERVATION_CUE_RE.test(trimmed)) return false;
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  if (tokens.length < 1 || tokens.length > 3) return false;
+  return tokens.every((token) => /^[\p{L}][\p{L}'’. -]*\.?$/u.test(token));
+}
+
+function sanitizeInlineConversationalActorCandidate(candidate: string): string | undefined {
+  let trimmed = String(candidate || "")
+    .trim()
+    .replace(/[,;:!?]+$/g, "")
+    .replace(/\s{2,}/g, " ");
+  if (!/(^|\s)\p{L}\.$/u.test(trimmed)) trimmed = trimmed.replace(/\.+$/g, "");
+  if (!isSafeConversationalActorName(trimmed)) return undefined;
+  return normalizeNameCase(trimmed);
+}
+
+function extractInlineConversationalActorFromTail(tail: string): string | undefined {
+  let candidate = String(tail || "").trim();
+  if (!candidate) return undefined;
+
+  candidate = candidate.replace(
+    /\s*,\s*(?=(?:quiero|quisiera|quero|gostaria|i\s+would\s+like|i'd\s+like|i\s+want|book|booking|reserve|reservar|reserva|check\s*-?in|check\s*-?out|a\s+nombre\s+de|em\s+nome\s+de|under\s+the\s+name\s+of)\b).*$/iu,
+    "",
+  ).trim();
+  candidate = candidate.replace(
+    /\s+(?=(?:quiero|quisiera|quero|gostaria|i\s+would\s+like|i'd\s+like|i\s+want|book|booking|reserve|reservar|reserva|check\s*-?in|check\s*-?out|a\s+nombre\s+de|em\s+nome\s+de|under\s+the\s+name\s+of)\b).*$/iu,
+    "",
+  ).trim();
+
+  return sanitizeInlineConversationalActorCandidate(candidate);
+}
+
+function extractExplicitConversationalActorName(text: string): string | undefined {
+  const rawText = String(text || "").trim();
+  if (!rawText) return undefined;
+
+  const patterns = [
+    /^(?:\s*(?:hola|buenas|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches)[,!\s-]*)?(?:soy|me\s+llamo|mi\s+nombre\s+es|ac[aá]|te\s+escribe)\s+(.+)$/iu,
+    /^(?:\s*(?:ol[aá]|oi)[,!\s-]*)?(?:sou|me\s+chamo|meu\s+nome\s+[ée]|aqui\s+[ée]|quem\s+fala\s+[ée])\s+(.+)$/iu,
+    /^(?:\s*(?:hi|hello|hey)[,!\s-]*)?(?:i\s+am|i['’]m|my\s+name\s+is|this\s+is)\s+(.+)$/iu,
+  ];
+
+  for (const pattern of patterns) {
+    const match = rawText.match(pattern);
+    const candidate = extractInlineConversationalActorFromTail(match?.[1] || "");
+    if (candidate) return candidate;
+  }
+
+  const hereMatch = rawText.match(/^(?:\s*(?:hi|hello|hey)[,!\s-]*)?([\p{L}][\p{L}'’. -]{1,58}?)\s+here\b/iu);
+  const hereCandidate = sanitizeInlineConversationalActorCandidate(hereMatch?.[1] || "");
+  if (hereCandidate) return hereCandidate;
+
+  return undefined;
+}
+
+async function applyExplicitConversationalActorToGuest(
+  msg: Pick<ChannelMessage, "hotelId" | "guestId" | "content">,
+  guest: any,
+  guestId: string,
+  now: string,
+): Promise<any> {
+  const explicitConversationalActor = extractExplicitConversationalActorName(String(msg.content || ""));
+  if (!explicitConversationalActor) return guest;
+
+  const currentGuestName = String(guest?.name || "").trim();
+  const currentGuestFirstName = String(guest?.firstName || "").trim();
+  const nextGuestFirstName = explicitConversationalActor.split(/\s+/)[0] || explicitConversationalActor;
+  const targetGuestId = String(guest?.guestId || guestId || "").trim();
+  if (currentGuestName === explicitConversationalActor && currentGuestFirstName === nextGuestFirstName) {
+    return guest;
+  }
+
+  await updateGuest(msg.hotelId, targetGuestId || guestId, {
+    name: explicitConversationalActor,
+    firstName: nextGuestFirstName,
+    updatedAt: now,
+  });
+  return {
+    ...(guest || {}),
+    name: explicitConversationalActor,
+    firstName: nextGuestFirstName,
+    updatedAt: now,
+  };
+}
+
 function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: string } {
   return {
     checkIn:
@@ -622,6 +715,7 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   const prevSlotsStrict = toStrictSlots(st?.reservationSlots);
   console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
   const hotelConfig = await getHotelConfigSafe(msg.hotelId);
+  guest = await applyExplicitConversationalActorToGuest(msg, guest, guestId, now);
 
   // === Contexto para el LLM (historial reciente)
   const lang = (
@@ -4147,6 +4241,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   const prevSlotsStrict: ReservationSlotsStrict = toStrictSlots(st?.reservationSlots);
   console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
   const hotelConfig = await getHotelConfigSafe(msg.hotelId);
+  guest = await applyExplicitConversationalActorToGuest(msg, guest, guestId, now);
 
   // === Contexto para el LLM (historial reciente)
   const lang = (

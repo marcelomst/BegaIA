@@ -4,7 +4,7 @@ import { canonicalizeRoomType, maxGuestsForRoomType } from "@/lib/schemas/reserv
 function extractDirectGuestTotal(text: string): number | undefined {
   const t = String(text || "").toLowerCase();
   const patterns = [
-    /\b(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?)\b/,
+    /\b(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?|people)\b/,
     /\b(?:somos|vamos|seriamos|seríamos|seremos|we are|were)\s+(\d{1,2})\b/,
     /\bpara\s+(\d{1,2})\b(?!\s*(?:adultos?|adults?|mayores?|menor(?:es)?|ninos?|niños?|children|child|kids?|bebes?|bebés?|babies|baby))/,
   ];
@@ -23,18 +23,28 @@ function extractSpelledGuestTotal(text: string): number | undefined {
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
-  const spanishNumberWords: Record<string, number> = {
+  const numberWords: Record<string, number> = {
     un: 1,
     una: 1,
     uno: 1,
+    um: 1,
+    uma: 1,
+    one: 1,
     dos: 2,
+    duas: 2,
+    dois: 2,
+    two: 2,
     tres: 3,
+    three: 3,
     cuatro: 4,
+    quatro: 4,
+    four: 4,
     cinco: 5,
+    five: 5,
   };
-  const match = t.match(/\b(un|una|uno|dos|tres|cuatro|cinco)\s+(?:persona|personas|huesped|huespedes)\b/);
+  const match = t.match(/\b(un|una|uno|um|uma|one|dos|duas|dois|two|tres|three|cuatro|quatro|four|cinco|five)\s+(?:persona|personas|huesped|huespedes|pessoa|pessoas|guest|guests|people)\b/);
   if (!match?.[1]) return undefined;
-  return spanishNumberWords[match[1]];
+  return numberWords[match[1]];
 }
 
 function extractComposedGuestTotal(text: string): number | undefined {
@@ -99,8 +109,8 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
     if (ci && co) { out.checkIn = ci; out.checkOut = co; }
   } else {
     // sueltos: "check in 19/09/2025" "check-out 22/09/2025"
-    const ci = t.match(/check\s*in[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
-    const co = t.match(/check\s*out[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
+    const ci = t.match(/check\s*-?\s*in[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
+    const co = t.match(/check\s*-?\s*out[:\s-]*?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
     if (ci?.[1]) out.checkIn = toISODateDDMMYYYY(ci[1]) || out.checkIn;
     if (co?.[1]) out.checkOut = toISODateDDMMYYYY(co[1]) || out.checkOut;
   }
@@ -242,6 +252,8 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   if (detectedRoomType) out.roomType = detectedRoomType;
   const inlineGuestName =
     rawText.match(/\ba\s+nombre\s+de\b[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu) ||
+    rawText.match(/\bem\s+nome\s+de\b[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu) ||
+    rawText.match(/\bunder\s+the\s+name\s+of\b[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu) ||
     rawText.match(/\bnombre\b(?!\s+de\b)[\s:,-]*([\p{L}][\p{L}'’. -]+(?:\s+[\p{L}][\p{L}'’. -]+){1,2})/iu);
   if (inlineGuestName?.[1]) {
     const candidate = inlineGuestName[1]

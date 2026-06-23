@@ -20,6 +20,7 @@ const ROOM_TYPE_ALIAS_MAP: Record<string, CanonicalRoomType> = {
   doble: "double",
   matrimonial: "double",
   triple: "triple",
+  triplo: "triple",
   quadruple: "quadruple",
   cuadruple: "quadruple",
   familiar: "quadruple",
