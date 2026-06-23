@@ -21,19 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e67ba49
-messageHandler_lines: 11683
+commit_base: bc1113a
+messageHandler_lines: 11778
 working_tree_status: clean
-analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
-suite_status_reported: targeted_green
+analysis_scope: commit_bc1113a7d298208ddec966fd2283ad7314efb63a
+suite_status_reported: scope_pass_with_external_failures
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
-  summary: targeted_green
+    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
+  summary: scope_pass_with_external_failures
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm run ts-check
-    - pnpm test
+    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
+    - pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts
 known_manual_bug: none
 ```
 
@@ -44,34 +43,36 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.dateCorrection
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create.quoteCopy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify.confirmationGating
+    - admin_guest_read_path./api/admin/guests
+    - admin_guest_read_path./api/admin/guest-profile
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create con fecha pasada corrige en el idioma ya fijado por la conversación
-      - follow-up detectado como en no cambia el idioma de la cotización
-      - quote posterior mantiene copy en español
-      - confirmación posterior mantiene copy en español
-  code_refs_status: fresh
+      - actor conversacional inline explícito persiste en guest canónico efectivo
+      - proposal vocative usa actor conversacional y no guestName transaccional
+      - guestName de tercero no contamina display_name ni firstName
+      - soporte ES/PT/EN mínimo mantiene captura multilingüe asociada
+  code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: e67ba49
-    messageHandler_lines: 11683
+    commit: bc1113a
+    messageHandler_lines: 11778
     functions:
-      preLLM: L4106-L4348
-      bodyLLM: L4861-L11313
-      posLLM: L11314-L11358
-      handleIncomingMessage: L11359-L11683
+      preLLM: L4200-L4443
+      bodyLLM: L4956-L11408
+      posLLM: L11409-L11453
+      handleIncomingMessage: L11454-L11778
 ```
 
 ---
@@ -80,18 +81,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L1950-L2450 |    501 | high      |
-| `resolveReservationReference`        | L2451-L2790 |    340 | high      |
-| `detectDominantTurnDomain`           | L2791-L3074 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3075-L3246 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3247-L3299 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3300-L3436 |    137 | high      |
-| `assessReservationDateCoherence`     | L3437-L3916 |    480 | high      |
-| `tryStructuredAnalyze`               | L3917-L4105 |    189 | high      |
-| `preLLM`                             | L4106-L4348 |    243 | high      |
-| `bodyLLM`                            | L4861-L11313 |   6453 | high      |
-| `posLLM`                             | L11314-L11358 |     45 | high      |
-| `handleIncomingMessage`              | L11359-L11683 |    325 | high      |
+| `buildReservationCanonicalState`     | L2044-L2544 |    501 | high      |
+| `resolveReservationReference`        | L2545-L2884 |    340 | high      |
+| `detectDominantTurnDomain`           | L2885-L3168 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3169-L3340 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3341-L3393 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3394-L3530 |    137 | high      |
+| `assessReservationDateCoherence`     | L3531-L4010 |    480 | high      |
+| `tryStructuredAnalyze`               | L4011-L4199 |    189 | high      |
+| `preLLM`                             | L4200-L4443 |    244 | high      |
+| `bodyLLM`                            | L4956-L11408 |   6453 | high      |
+| `posLLM`                             | L11409-L11453 |     45 | high      |
+| `handleIncomingMessage`              | L11454-L11778 |    325 | high      |
 
 ---
 
@@ -100,7 +101,7 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 11683 líneas
+messageHandler.ts total: 11778 líneas
 bodyLLM:                6453 líneas
 ```
 
@@ -120,8 +121,9 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- preserve locale stickiness dentro de create/date correction
-- merge explícito de locale en slots persistidos
+- captura inline multilingüe de actor conversacional
+- persistencia de display_name y firstName sobre guest canónico efectivo
+- separación estricta entre actor conversacional y guestName transaccional
 - early returns
 
 ---
@@ -495,7 +497,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4106-L4348
+    range: L4200-L4443
     confidence: high
 ```
 
@@ -514,7 +516,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4861-L11313
+    range: L4956-L11408
     confidence: high
 ```
 
@@ -533,7 +535,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11314-L11358
+    range: L11409-L11453
     confidence: high
 ```
 
@@ -552,7 +554,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11359-L11683
+    range: L11454-L11778
     confidence: high
 ```
 

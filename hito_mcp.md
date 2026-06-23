@@ -10858,3 +10858,76 @@ Impacto:
 - deja las referencias viejas solo como histórico explícito donde corresponde
 - mejora la legibilidad operativa de slices y scans sin tocar código productivo
 - consolida disciplina documental sin abrir refactor ni arquitectura funcional paralela
+
+### FIX-INLINE-CONVERSATIONAL-ACTOR-MULTILINGUAL-CROSS-CHANNEL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-23  
+Commit: bc1113a7d298208ddec966fd2283ad7314efb63a
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix runtime acotado sobre el flujo conversacional de `create` y la identidad
+visible del interlocutor. El cambio captura señales explícitas de
+autopresentación multilingüe ES/PT/EN dentro del turno, persiste
+`display_name` y `firstName` sobre el guest canónico efectivo y preserva la
+frontera estricta con el titular transaccional `guestName`.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/schemas/reservation.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- `baseline_commit` previo auditado:
+  `e67ba49`
+- `code_refs_status: needs_refresh` resuelto en refresh documental
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- cajas revisadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `admin_guest_read_path: /api/admin/guests`
+  `admin_guest_read_path: /api/admin/guest-profile`
+- cajas no tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy`
+  `confirmation`
+  `word_dates_without_year`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts`
+- tests con fallos externos solamente:
+  `pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts`
+  `5 fallos por fixtures temporales vencidos`
+  `deuda separable: ENFORCE-DYNAMIC-DATE-HELPER-IN-RESERVATION-TESTS-02`
+- validación manual:
+  `web`
+  `Hola, soy Martín. Quisiera reservar una triple del 25/07/2026 al 27/07/2026 para tres personas, a nombre de Ana Rodríguez.`
+  actor conversacional esperado: `Martín`
+  vocativo esperado: `Martín`
+  `guestName` transaccional esperado: `Ana Rodríguez`
+  reserva creada: `true`
+  `guestName_as_displayName: false`
+
+Impacto:
+
+- refuerza la separación canónica entre actor conversacional y titular transaccional
+- evita que `guestName` contamine `display_name` o `firstName`
+- preserva el vocativo visible desde el actor explícito incluso cross-channel y con guestId aliasado
+- mantiene el alcance fuera de `cancel`, `fallbackLocal`, `graphClassifierPolicy` y confirmación

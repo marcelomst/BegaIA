@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e67ba49
-messageHandler_lines: 11683
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v20
+commit_base: bc1113a
+messageHandler_lines: 11778
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v21
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_e67ba4968d2275211fe63673cf64224bcae07fc8
+analysis_scope: commit_bc1113a7d298208ddec966fd2283ad7314efb63a
 ```
 
 ---
@@ -29,12 +29,14 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/unit/availability.reservationIntentNormalization.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
 result: pass
-pnpm run ts-check
-result: pass
-pnpm test
-result: pass
+pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts
+result: external_failures_only
+notes:
+- 5 fallos por fixtures temporales vencidos
+- no causados por este diff
+- deuda separable: ENFORCE-DYNAMIC-DATE-HELPER-IN-RESERVATION-TESTS-02
 ```
 
 ---
@@ -63,15 +65,16 @@ repair_modify_inquiry_guard_manual_runtime_commit: 15fe1dca93dae081519f6119acdb6
 improve_conversation_list_interlocutor_copy_commit: d9ccd725a9e40a1a5a79f86f001a475c5528c0f6
 modify_preview_confirmation_before_execution_commit: e7add187294ba8b3d0f55b245185eecc5febad2f
 create_date_correction_language_stickiness_commit: e67ba4968d2275211fe63673cf64224bcae07fc8
+inline_conversational_actor_multilingual_cross_channel_commit: bc1113a7d298208ddec966fd2283ad7314efb63a
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- create con fecha pasada debe pedir corrección manteniendo el idioma conversacional
-- un follow-up detectado como `en` no debe desplazar `reservationSlots.locale`
-- la cotización posterior debe conservar copy en español
-- la confirmación posterior debe conservar copy en español
+- actor conversacional inline explícito debe persistirse sobre el guest canónico efectivo
+- el vocativo visible debe salir de `display_name` o `firstName`, no de `guestName`
+- `guestName` transaccional a nombre de tercero no debe contaminar el actor conversacional
+- el comportamiento debe sostenerse cross-channel y con guestId aliasado
 ```
 
 ---
@@ -79,7 +82,7 @@ create_date_correction_language_stickiness_commit: e67ba4968d2275211fe63673cf642
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`e67ba49`.
+`bc1113a`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -96,9 +99,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `e67ba49`
-2. Corredor `create/date correction` refrescado para locale stickiness
+1. Snapshot base a commit real `bc1113a`
+2. Corredor `create` refrescado para actor conversacional inline multilingüe
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para precedencia de locale y quote copy
+5. box index machine-friendly refrescado para actor visible y separación con `guestName`
 ```
