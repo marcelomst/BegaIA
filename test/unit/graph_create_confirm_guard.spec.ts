@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { futureReservationDateRange } from "../utils/reservationDates";
 
 const {
   getConvStateMock,
@@ -14,27 +15,43 @@ const {
     reservationId: "R-GRAPH-01",
     message: "ok",
   })),
-  fillSlotsWithLLMMock: vi.fn(async () => ({
-    need: "none",
-    slots: {
-      guestName: "Ana Gomez",
-      roomType: "double",
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
-      numGuests: 2,
-    },
-  })),
-  runAvailabilityCheckMock: vi.fn(async () => ({
-    finalText: "Tengo disponibilidad. ¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-    nextSlots: {
-      guestName: "Ana Gomez",
-      roomType: "double",
-      checkIn: "2026-04-22",
-      checkOut: "2026-04-25",
-      numGuests: "2",
-    },
-    needsHandoff: false,
-  })),
+  fillSlotsWithLLMMock: vi.fn(async () => {
+    const checkIn = new Date();
+    checkIn.setDate(checkIn.getDate() + 30);
+    const checkOut = new Date(checkIn);
+    checkOut.setDate(checkOut.getDate() + 3);
+    const toISO = (date: Date) => date.toISOString().slice(0, 10);
+
+    return {
+      need: "none",
+      slots: {
+        guestName: "Ana Gomez",
+        roomType: "double",
+        checkIn: toISO(checkIn),
+        checkOut: toISO(checkOut),
+        numGuests: 2,
+      },
+    };
+  }),
+  runAvailabilityCheckMock: vi.fn(async () => {
+    const checkIn = new Date();
+    checkIn.setDate(checkIn.getDate() + 30);
+    const checkOut = new Date(checkIn);
+    checkOut.setDate(checkOut.getDate() + 3);
+    const toISO = (date: Date) => date.toISOString().slice(0, 10);
+
+    return {
+      finalText: "Tengo disponibilidad. ¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+      nextSlots: {
+        guestName: "Ana Gomez",
+        roomType: "double",
+        checkIn: toISO(checkIn),
+        checkOut: toISO(checkOut),
+        numGuests: "2",
+      },
+      needsHandoff: false,
+    };
+  }),
 }));
 
 vi.mock("@/lib/db/convState", () => ({
@@ -95,12 +112,13 @@ import { handleReservationConfirmNode } from "@/lib/agents/nodes/reservationConf
 describe("graph create confirm guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const defaultRange = futureReservationDateRange(30, 3);
     getConvStateMock.mockResolvedValue({
       reservationSlots: {
         guestName: "Ana Gomez",
         roomType: "double",
-        checkIn: "2026-04-22",
-        checkOut: "2026-04-25",
+        checkIn: defaultRange.checkInISO,
+        checkOut: defaultRange.checkOutISO,
         numGuests: "2",
         locale: "es",
       },
@@ -114,13 +132,15 @@ describe("graph create confirm guard", () => {
   });
 
   it("no crea reserva con 'si' en reservation node aunque haya draft completo y quote activo", async () => {
+    const range = futureReservationDateRange(30, 3);
+
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {
         guestName: "Ana Gomez",
         roomType: "double",
-        checkIn: "2026-04-22",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "2",
       },
       normalizedMessage: "si",
@@ -152,18 +172,19 @@ describe("graph create confirm guard", () => {
   });
 
   it("cuando el LLM falla pero el turno ya trae todos los slots, cotiza y no emite pregunta vacía", async () => {
+    const range = futureReservationDateRange(35, 1);
+    const request = `Hola, quiero hacer una reserva para el dia ${range.checkInText} hasta ${range.checkOutText}, una doble para 2 personas, a nombre de Pedro Picapiedra`;
     fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
 
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage:
-        "Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas, a nombre de Pedro Picapiedra",
+      normalizedMessage: request,
       hotelId: "hotel999",
       conversationId: "conv-graph-complete-slots-fallback",
       salesStage: "qualify",
       desiredAction: "create",
-      messages: [new HumanMessage("Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas, a nombre de Pedro Picapiedra")],
+      messages: [new HumanMessage(request)],
       meta: { channel: "email" },
     } as any);
 
@@ -174,6 +195,8 @@ describe("graph create confirm guard", () => {
   });
 
   it("cuando faltan datos reales, pregunta un faltante concreto en vez de una agregada vacía", async () => {
+    const range = futureReservationDateRange(36, 1);
+    const request = `Hola, quiero hacer una reserva para el dia ${range.checkInText} hasta ${range.checkOutText}, una doble para 2 personas`;
     fillSlotsWithLLMMock.mockRejectedValueOnce(new Error("slot failure"));
     getConvStateMock.mockResolvedValueOnce(null);
     getConvStateMock.mockResolvedValueOnce(null);
@@ -181,13 +204,12 @@ describe("graph create confirm guard", () => {
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage:
-        "Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas",
+      normalizedMessage: request,
       hotelId: "hotel999",
       conversationId: "conv-graph-missing-guestname",
       salesStage: "qualify",
       desiredAction: "create",
-      messages: [new HumanMessage("Hola, quiero hacer una reserva para el dia 28/05/2026 hasta 29/05/2026, una doble para 2 personas")],
+      messages: [new HumanMessage(request)],
       meta: { channel: "email" },
     } as any);
 
@@ -267,12 +289,14 @@ describe("graph create confirm guard", () => {
   });
 
   it("en email, después de un follow-up parcial, mantiene agrupados los faltantes reales restantes", async () => {
+    const range = futureReservationDateRange(40, 2);
+    const request = `del ${range.rangeText}`;
     fillSlotsWithLLMMock.mockResolvedValueOnce({
       need: "question",
       question: "¿Cuántos huéspedes se alojarán?",
       partial: {
-        checkIn: "2026-06-23",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
       },
     } as any);
     getConvStateMock.mockResolvedValueOnce({
@@ -289,14 +313,14 @@ describe("graph create confirm guard", () => {
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage: "del 23/6/2026 al 25/06/2026",
+      normalizedMessage: request,
       hotelId: "hotel999",
       conversationId: "conv-graph-email-followup-grouped-ask",
       salesStage: "qualify",
       desiredAction: "create",
       messages: [
         new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
-        new HumanMessage("del 23/6/2026 al 25/06/2026"),
+        new HumanMessage(request),
       ],
       meta: { channel: "email" },
     } as any);
@@ -308,19 +332,21 @@ describe("graph create confirm guard", () => {
     expect(text).not.toMatch(/^¿Cuántos huéspedes se alojarán\?$/i);
     expect(result?.reservationSlots).toEqual(
       expect.objectContaining({
-        checkIn: "2026-06-23",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
       })
     );
   });
 
   it("en web, después de un follow-up parcial, mantiene la política incremental", async () => {
+    const range = futureReservationDateRange(42, 2);
+    const request = `del ${range.rangeText}`;
     fillSlotsWithLLMMock.mockResolvedValueOnce({
       need: "question",
       question: "¿Cuántos huéspedes se alojarán?",
       partial: {
-        checkIn: "2026-06-23",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
       },
     } as any);
     getConvStateMock.mockResolvedValueOnce({
@@ -337,14 +363,14 @@ describe("graph create confirm guard", () => {
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {},
-      normalizedMessage: "del 23/6/2026 al 25/06/2026",
+      normalizedMessage: request,
       hotelId: "hotel999",
       conversationId: "conv-graph-web-followup-incremental-ask",
       salesStage: "qualify",
       desiredAction: "create",
       messages: [
         new AIMessage("Para avanzar con tu reserva necesito: nombre del huésped, tipo de habitación, fecha de check-in y fecha de check-out. ¿Me lo compartís?"),
-        new HumanMessage("del 23/6/2026 al 25/06/2026"),
+        new HumanMessage(request),
       ],
       meta: { channel: "web" },
     } as any);
@@ -356,18 +382,21 @@ describe("graph create confirm guard", () => {
   });
 
   it("si create espera checkOut y el turno dice 'check out' explícito inválido, repregunta checkOut y no checkIn", async () => {
+    const currentRange = futureReservationDateRange(45, 1);
+    const invalidCheckOutRange = futureReservationDateRange(44, 1);
+    const request = `check out ${invalidCheckOutRange.checkInText}, 2 personas`;
     fillSlotsWithLLMMock.mockResolvedValueOnce({
       need: "question",
       question: "¿Cuál sería la nueva fecha de check-in? (dd/mm/aaaa)",
       partial: {
-        checkIn: "2026-05-25",
+        checkIn: invalidCheckOutRange.checkInISO,
         numGuests: 2,
       },
     } as any);
     getConvStateMock.mockResolvedValueOnce({
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-05-30",
+        checkIn: currentRange.checkInISO,
       },
       salesStage: "qualify",
       conversationStage: "reservation_collecting",
@@ -375,7 +404,7 @@ describe("graph create confirm guard", () => {
     getConvStateMock.mockResolvedValueOnce({
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-05-30",
+        checkIn: currentRange.checkInISO,
       },
       salesStage: "qualify",
       conversationStage: "reservation_collecting",
@@ -385,18 +414,18 @@ describe("graph create confirm guard", () => {
       detectedLanguage: "es",
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-05-30",
-        checkOut: "2026-05-25",
+        checkIn: currentRange.checkInISO,
+        checkOut: invalidCheckOutRange.checkInISO,
         numGuests: "2",
       },
-      normalizedMessage: "check out 25/5/2026, 2 personas",
+      normalizedMessage: request,
       hotelId: "hotel999",
       conversationId: "conv-graph-explicit-checkout-invalid",
       salesStage: "qualify",
       desiredAction: "create",
       messages: [
         new AIMessage("Perfecto. ¿Podés confirmarme también la fecha de check-out? (formato dd/mm/aaaa)"),
-        new HumanMessage("check out 25/5/2026, 2 personas"),
+        new HumanMessage(request),
       ],
       meta: { channel: "web" },
     } as any);
@@ -407,7 +436,7 @@ describe("graph create confirm guard", () => {
     expect(result?.reservationSlots).toEqual(
       expect.objectContaining({
         roomType: "double",
-        checkIn: "2026-05-30",
+        checkIn: currentRange.checkInISO,
         numGuests: "2",
       })
     );
@@ -421,13 +450,15 @@ describe("graph create confirm guard", () => {
     "antes de modificar, ¿me recordás el precio?",
     "quiero cambiar si hay lugar",
   ])("en salesStage close no abre modify legacy para consulta no ejecutable: %s", async (text) => {
+    const range = futureReservationDateRange(50, 3);
+
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {
         guestName: "Ana Gomez",
         roomType: "double",
-        checkIn: "2026-04-22",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "2",
       },
       normalizedMessage: text,
@@ -449,13 +480,15 @@ describe("graph create confirm guard", () => {
   });
 
   it("en salesStage close mantiene modify ejecutable para 'quiero modificar la segunda reserva'", async () => {
+    const range = futureReservationDateRange(52, 3);
+
     const result = await handleReservationNode({
       detectedLanguage: "es",
       reservationSlots: {
         guestName: "Ana Gomez",
         roomType: "double",
-        checkIn: "2026-04-22",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "2",
       },
       normalizedMessage: "quiero modificar la segunda reserva",

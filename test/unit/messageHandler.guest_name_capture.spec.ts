@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { futureReservationDateRange } from "../utils/reservationDates";
 
 let currentState: any = null;
 let guestRecord: any = null;
@@ -142,6 +143,15 @@ function lastReply(sendReply: any): string {
   return String(sendReply.mock.calls.at(-1)?.[0] || "");
 }
 
+function futureBookingText(daysFromToday = 60, nights = 2) {
+  const range = futureReservationDateRange(daysFromToday, nights);
+  return {
+    ...range,
+    checkInOutText: `check-in ${range.checkInText}, check-out ${range.checkOutText}`,
+    delAlText: `del ${range.rangeText}`,
+  };
+}
+
 describe("messageHandler guest conversational name capture", () => {
   beforeEach(() => {
     currentState = null;
@@ -268,6 +278,7 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("saludo + captura + create explícito completo domina sobre verify y conserva vocativo + titular", async () => {
+    const dates = futureBookingText(60, 2);
     hotelConfigRecord.assistantBranding = {
       displayName: "Vera",
       roleLabel: "la asistente hotelera digital",
@@ -280,7 +291,7 @@ describe("messageHandler guest conversational name capture", () => {
     await handleIncomingMessage(msg("Ana"), { mode: "automatic", sendReply });
     expect(lastReply(sendReply)).toBe("Encantada, Ana. ¿En qué puedo ayudarte hoy?");
     await handleIncomingMessage(
-      msg("quiero hacer una reserva para el dia 8/5/2027 al 10/5/2027, una triple, para 3 personas, a nombre de Raul Olivera"),
+      msg(`quiero hacer una reserva para el dia ${dates.rangeText}, una triple, para 3 personas, a nombre de Raul Olivera`),
       { mode: "automatic", sendReply }
     );
 
@@ -292,12 +303,13 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("saludo + captura + availability inquiry sigue como inquiry y no pide titular ni confirmación", async () => {
+    const dates = futureBookingText(62, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
     await handleIncomingMessage(msg("Sofia"), { mode: "automatic", sendReply });
     await handleIncomingMessage(
-      msg("tiene disponible una doble para el dia 08/05/2027 al 10/05/2027"),
+      msg(`tiene disponible una doble para el dia ${dates.rangeText}`),
       { mode: "automatic", sendReply }
     );
 
@@ -329,10 +341,11 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("captura actor inline 'soy' en web y separa display_name de guestName", async () => {
+    const dates = futureBookingText(70, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("Hola, soy Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      msg(`Hola, soy Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Rodríguez.`),
       { mode: "automatic", sendReply }
     );
 
@@ -345,6 +358,7 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("captura actor inline de un solo nombre y lo persiste en el guest canónico visible para Admin", async () => {
+    const dates = futureBookingText(72, 2);
     guestRecord = {
       guestId: "guest-canonical-1",
       hotelId: "hotel999",
@@ -358,7 +372,7 @@ describe("messageHandler guest conversational name capture", () => {
 
     await handleIncomingMessage(
       msg(
-        "Hola, soy Martín. Quisiera reservar una triple del 25/07/2026 al 27/07/2026 para tres personas, a nombre de Ana Rodríguez.",
+        `Hola, soy Martín. Quisiera reservar una triple ${dates.delAlText} para tres personas, a nombre de Ana Rodríguez.`,
         { channel: "whatsapp", guestId: "whatsapp:+59891359375", sender: "whatsapp:+59891359375", conversationId: "conv-inline-wa-canonical-es" }
       ),
       { mode: "automatic", sendReply }
@@ -383,11 +397,12 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("captura actor inline 'me llamo' en email sin handshake y preserva guestName", async () => {
+    const dates = futureBookingText(74, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
       msg(
-        "Hola, me llamo Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez.",
+        `Hola, me llamo Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Rodríguez.`,
         { channel: "email", detectedLanguage: "es", conversationId: "conv-inline-email-es" }
       ),
       { mode: "automatic", sendReply }
@@ -401,11 +416,12 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("captura actor inline PT y guestName con 'em nome de' en web", async () => {
+    const dates = futureBookingText(76, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
       msg(
-        "Meu nome é Martín P. Gostaria de reservar um quarto triplo para três pessoas, check-in 25/07/2026, check-out 27/07/2026, em nome de Ana Rodríguez.",
+        `Meu nome é Martín P. Gostaria de reservar um quarto triplo para três pessoas, ${dates.checkInOutText}, em nome de Ana Rodríguez.`,
         { channel: "web", detectedLanguage: "pt", conversationId: "conv-inline-web-pt" }
       ),
       { mode: "automatic", sendReply }
@@ -419,11 +435,12 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("captura actor inline EN y guestName con 'under the name of' en whatsapp", async () => {
+    const dates = futureBookingText(78, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
       msg(
-        "My name is Martin P. I would like to book a triple room for three people, check-in 25/07/2026, check-out 27/07/2026, under the name of Ana Rodríguez.",
+        `My name is Martin P. I would like to book a triple room for three people, ${dates.checkInOutText}, under the name of Ana Rodríguez.`,
         { channel: "whatsapp", detectedLanguage: "en", conversationId: "conv-inline-wa-en" }
       ),
       { mode: "automatic", sendReply }
@@ -437,10 +454,11 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("no inventa display_name desde guestName cuando no hay autopresentación explícita", async () => {
+    const dates = futureBookingText(80, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      msg(`Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Rodríguez.`),
       { mode: "automatic", sendReply }
     );
 
@@ -452,10 +470,11 @@ describe("messageHandler guest conversational name capture", () => {
   });
 
   it("después de confirmar no promociona guestName a display_name y conserva el actor conversacional", async () => {
+    const dates = futureBookingText(82, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(
-      msg("Hola, soy Martín P. Quisiera reservar una triple para tres personas, check-in 25/07/2026, check-out 27/07/2026, a nombre de Ana Rodríguez."),
+      msg(`Hola, soy Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Rodríguez.`),
       { mode: "automatic", sendReply }
     );
     await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });

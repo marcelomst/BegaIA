@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { futureReservationDateRange } from "../utils/reservationDates";
 
 let currentState: any = null;
 
@@ -123,14 +124,16 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("mantiene create flow para follow-up corto 'con desayuno'", async () => {
+    const range = futureReservationDateRange(30, 4);
+
     currentState = {
       activeFlow: "reservation",
       desiredAction: "create",
       lastCategory: "reservation",
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-06-21",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
       },
     };
     const sendReply = vi.fn(async () => {});
@@ -159,18 +162,20 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("en email mantiene agrupados los faltantes restantes del create flow", async () => {
+    const range = futureReservationDateRange(35, 2);
+
     currentState = {
       activeFlow: "reservation",
       desiredAction: "create",
       lastCategory: "reservation",
       reservationSlots: {
-        checkIn: "2026-06-23",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
       },
     };
     const sendReply = vi.fn(async () => {});
 
-    await handleIncomingMessage(msg("Del 23/6/2026 al 25/06/2026", "email"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg(`Del ${range.rangeText}`, "email"), { mode: "automatic", sendReply });
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(replyText).toMatch(/tipo de habitaci[oó]n/i);
@@ -180,6 +185,8 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("mantiene modify flow para '2 personas' y no vuelve al fallback", async () => {
+    const range = futureReservationDateRange(40, 4);
+
     currentState = {
       activeFlow: "modify_reservation",
       desiredAction: "modify",
@@ -187,8 +194,8 @@ describe("messageHandler domain lock de reservation", () => {
       activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
       reservationSlots: {
         roomType: "single",
-        checkIn: "2026-04-21",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "1",
       },
     };
@@ -202,6 +209,8 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("mantiene reservation domain para '3 noches' dentro de modify", async () => {
+    const range = futureReservationDateRange(45, 4);
+
     currentState = {
       activeFlow: "modify_reservation",
       desiredAction: "modify",
@@ -209,8 +218,8 @@ describe("messageHandler domain lock de reservation", () => {
       activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-04-21",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "2",
       },
     };
@@ -224,6 +233,8 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("usa fallback local en modify activo para input ambiguo y no sale al global", async () => {
+    const range = futureReservationDateRange(50, 4);
+
     currentState = {
       activeFlow: "modify_reservation",
       desiredAction: "modify",
@@ -232,8 +243,8 @@ describe("messageHandler domain lock de reservation", () => {
       modifyState: { activeField: "guests" },
       reservationSlots: {
         roomType: "single",
-        checkIn: "2026-04-21",
-        checkOut: "2026-04-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "1",
       },
     };
@@ -288,6 +299,8 @@ describe("messageHandler domain lock de reservation", () => {
   });
 
   it("usa fallback local en confirm activo para input no concluyente", async () => {
+    const range = futureReservationDateRange(55, 4);
+
     currentState = {
       activeFlow: "reservation",
       desiredAction: "create",
@@ -296,8 +309,8 @@ describe("messageHandler domain lock de reservation", () => {
       conversationStage: "reservation_quoted",
       reservationSlots: {
         roomType: "double",
-        checkIn: "2026-06-21",
-        checkOut: "2026-06-25",
+        checkIn: range.checkInISO,
+        checkOut: range.checkOutISO,
         numGuests: "2",
         guestName: "Marcelo Martinez",
       },
