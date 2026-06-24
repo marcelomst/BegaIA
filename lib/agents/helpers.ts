@@ -100,6 +100,8 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
   };
   const toISOFromParts = (day: number, month: number, explicitYear?: number) =>
     `${String(inferYear(day, month, explicitYear)).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const toISOWithYear = (day: number, month: number, year: number) =>
+    `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   // Fechas: "19/09/2025 al 22/09/2025", "19-09-2025 hasta 22-09-2025"
   const dateRange =
     t.match(/(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s*(?:al|hasta|a|-|→|->|—)\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/);
@@ -129,26 +131,35 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       noviembre: 11, nov: 11, november: 11,
       diciembre: 12, dic: 12, dec: 12, december: 12,
     };
-    const monthRange = t.match(/(?:del?\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta|a)\s*(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
+    const monthRange = t.match(/(?:desde\s+(?:el\s+)?|del?\s+(?:el\s+)?|de\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta(?:\s+el)?|a)\s*(?:el\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
     if (monthRange) {
-      const nowYear = new Date().getFullYear();
       const day1 = parseInt(monthRange[1], 10);
       const month1 = months[monthRange[2]] || months[monthRange[5]];
-      const year1 = monthRange[3] ? parseInt(monthRange[3], 10) : nowYear;
       const day2 = parseInt(monthRange[4], 10);
       const month2 = months[monthRange[5]] || month1;
+      const year1 = monthRange[3]
+        ? parseInt(monthRange[3], 10)
+        : monthRange[6]
+          ? parseInt(monthRange[6], 10)
+          : undefined;
       const year2 = monthRange[6] ? parseInt(monthRange[6], 10) : year1;
       if (month1 && month2) {
-        out.checkIn = toISOFromParts(day1, month1, year1);
-        out.checkOut = toISOFromParts(day2, month2, year2);
+        const resolvedYear1 = inferYear(day1, month1, year1);
+        let resolvedYear2 = typeof year2 === "number" ? inferYear(day2, month2, year2) : resolvedYear1;
+        if (typeof year2 !== "number") {
+          const checkInDate = new Date(resolvedYear1, month1 - 1, day1);
+          const checkOutDate = new Date(resolvedYear2, month2 - 1, day2);
+          if (checkOutDate <= checkInDate) resolvedYear2 += 1;
+        }
+        out.checkIn = toISOWithYear(day1, month1, resolvedYear1);
+        out.checkOut = toISOWithYear(day2, month2, resolvedYear2);
       }
     } else {
       const singleMonth = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?/i);
       if (singleMonth) {
-        const nowYear = new Date().getFullYear();
         const day = parseInt(singleMonth[1], 10);
         const month = months[singleMonth[2]];
-        const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : nowYear;
+        const year = singleMonth[3] ? parseInt(singleMonth[3], 10) : undefined;
         if (month) out.checkIn = toISOFromParts(day, month, year);
       }
     }

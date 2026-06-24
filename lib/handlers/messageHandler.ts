@@ -290,6 +290,41 @@ async function applyExplicitConversationalActorToGuest(
   };
 }
 
+function buildAvailabilityGuestContext(pre: PreLLMResult, rawTurnText: string) {
+  const explicitConversationalActor = extractExplicitConversationalActorName(rawTurnText);
+  const guest = pre.guest || {};
+  if (!explicitConversationalActor) return guest;
+
+  const nextGuestFirstName = explicitConversationalActor.split(/\s+/)[0] || explicitConversationalActor;
+  const currentGuestName = String(guest.name || "").trim();
+  const currentGuestFirstName = String(guest.firstName || "").trim();
+  if (currentGuestName === explicitConversationalActor && currentGuestFirstName === nextGuestFirstName) {
+    return guest;
+  }
+
+  return {
+    ...guest,
+    name: explicitConversationalActor,
+    firstName: nextGuestFirstName,
+  };
+}
+
+function isCreateWordDatesTraceCandidate(text: string): boolean {
+  return (
+    /\b(reserv|reserva|reservar|book)\b/i.test(text || "") &&
+    /\b\d{1,2}\s+(?:al|hasta|a)\s+\d{1,2}\s+de\s+[a-záéíóúñ]+/i.test(text || "")
+  );
+}
+
+function traceCreateWordDates(step: string, payload: Record<string, unknown>) {
+  if (process.env.CREATE_WORD_DATES_TRACE !== "1" && payload.force !== true) return;
+  try {
+    console.log("CREATE_WORD_DATES_TRACE", JSON.stringify({ step, ...payload }, null, 2));
+  } catch {
+    console.log("CREATE_WORD_DATES_TRACE", step, payload);
+  }
+}
+
 function getConfiguredCheckTimes(hotel: any): { checkIn?: string; checkOut?: string } {
   return {
     checkIn:
@@ -671,6 +706,44 @@ function emitStableIntentRouting(
 
 // ---------- helpers locales ----------
 
+function attributeSingleWordDateToPendingCreateCheckout(
+  turnSlots: Partial<ReservationSlotsStrict>,
+  turnText: string,
+  prevSlots: ReservationSlotsStrict,
+  st: any,
+  prevCategory: string | null
+): Partial<ReservationSlotsStrict> {
+  const normalized = String(turnText || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[“”"'`]/g, "")
+    .replace(/[¡!¿?.,;:()]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const isSingleWordDate = /^\d{1,2}\s+de\s+[a-z]+(?:\s+de\s+\d{4})?$/.test(normalized);
+  const createContext =
+    st?.activeFlow === "reservation" ||
+    st?.desiredAction === "create" ||
+    prevCategory === "reservation" ||
+    st?.conversationFocus?.subFlow === "create" ||
+    st?.activeReservationContext?.kind === "draft";
+
+  if (
+    createContext &&
+    isSingleWordDate &&
+    prevSlots.checkIn &&
+    !prevSlots.checkOut &&
+    turnSlots.checkIn &&
+    !turnSlots.checkOut
+  ) {
+    const { checkIn: _singleDate, ...rest } = turnSlots;
+    return { ...rest, checkOut: turnSlots.checkIn };
+  }
+
+  return turnSlots;
+}
+
 // Toggle global para controlar si se usan preLLM/posLLM o solo bodyLLM
 export let USE_PRELLM_POSLLM = true;
 export function setUsePrePosLLM(val: boolean) { USE_PRELLM_POSLLM = val; }
@@ -728,7 +801,13 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   const lcHistory = recent.map(toLC).filter(Boolean) as (HumanMessage | AIMessage)[];
   // --- Novedad: slots del turno actual (pre-LLM) → evitar re-preguntas
   const turnText = String(msg.content || "");
-  const turnSlots = extractSlotsFromText(turnText, lang);
+  const turnSlots = attributeSingleWordDateToPendingCreateCheckout(
+    extractSlotsFromText(turnText, lang),
+    turnText,
+    prevSlotsStrict,
+    st,
+    prevCategory
+  );
   const shortGuestCount = turnText.match(/^\s*(\d{1,2})\s*$/);
   if (
     !turnSlots.numGuests &&
@@ -4255,7 +4334,13 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
 
   // --- Novedad: slots del turno actual (pre-LLM) → evitar re-preguntas
   const turnText = String(msg.content || "");
-  const turnSlots = extractSlotsFromText(turnText, lang);
+  const turnSlots = attributeSingleWordDateToPendingCreateCheckout(
+    extractSlotsFromText(turnText, lang),
+    turnText,
+    prevSlotsStrict,
+    st,
+    prevCategory
+  );
   const shortGuestCount = turnText.match(/^\s*(\d{1,2})\s*$/);
   if (
     !turnSlots.numGuests &&
@@ -4965,6 +5050,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   const guestState = resolveGuestState(pre.st);
   const rawTurnText = String(pre.msg.content || "");
+  const availabilityPre = { ...pre, guest: buildAvailabilityGuestContext(pre, rawTurnText) };
   const dominantTurnDomain = detectDominantTurnDomain(rawTurnText, pre.lang);
   const stableIntent = await runStableIntentsGuard({
     rawQuery: rawTurnText,
@@ -5306,11 +5392,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             graphResult: null,
           };
         }
-        const availabilityResult = await runAvailabilityCheck(pre, fastPathSlots, dr0.checkIn, dr0.checkOut, {
+        const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, dr0.checkIn, dr0.checkOut, {
           mode: "inquiry",
           persistConvState: false,
         });
-        finalText = availabilityResult.finalText;
+        finalText = applyConversationalProposalVocative(availabilityResult.finalText, pre.lang, availabilityPre.guest);
         if (!availabilityResult.needsHandoff) {
           finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
         }
@@ -5445,6 +5531,78 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     if (fastPathSubFlow === "create" && !explicitTurnSlotsFast.guestName) {
       const safeLeadGuestName = extractSafeCreateTemporalLeadGuestName(userTxtFast);
       if (safeLeadGuestName) explicitTurnSlotsFast.guestName = safeLeadGuestName;
+    }
+    const currentTurnReadyCreateFastSlots = mergeReservationSlots(
+      pre.st?.reservationSlots,
+      nextSlots,
+      explicitTurnSlotsFast
+    );
+    const currentTurnReadyCreateFast =
+      fastPathSubFlow === "create" &&
+      explicitCreateIntentFast &&
+      isCreateWordDatesTraceCandidate(userTxtFast) &&
+      isCreateStateReadyForQuote(currentTurnReadyCreateFastSlots as ReservationSlotsStrict);
+    if (currentTurnReadyCreateFast) {
+      const createDraftConsistency = validateCreateDraftConsistency(
+        pre.lang,
+        currentTurnReadyCreateFastSlots as ReservationSlotsStrict
+      );
+      if (!createDraftConsistency.valid) {
+        await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);
+        return {
+          finalText: createDraftConsistency.message,
+          nextCategory: "reservation",
+          nextSlots: { ...createDraftConsistency.sanitizedSlots },
+          needsSupervision,
+          graphResult: null,
+        };
+      }
+      const ciISO = createDraftConsistency.sanitizedSlots.checkIn;
+      const coISO = createDraftConsistency.sanitizedSlots.checkOut;
+      const readyCreateResult = await runAvailabilityCheck(
+        availabilityPre,
+        createDraftConsistency.sanitizedSlots,
+        ciISO!,
+        coISO!
+      );
+      const readyCreateSnapshot = {
+        ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, createDraftConsistency.sanitizedSlots),
+        locale: pre.lang,
+      } as ReservationSlotsStrict;
+      finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
+      nextSlots = readyCreateSnapshot;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: readyCreateSnapshot,
+        lastProposal: {
+          text: finalText,
+          available: true,
+        },
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext("quoted"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "quote",
+        conversationStage: "reservation_quoted",
+        pendingAvailabilityVerification: null,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      traceCreateWordDates("final_output_boundary", {
+        force: isCreateWordDatesTraceCandidate(userTxtFast),
+        sourceFunction: "bodyLLM.fastPath.currentTurnReadyCreate",
+        finalText,
+        nextSlots,
+        currSlots: pre.currSlots,
+        stateForPlaybookDraft: pre.stateForPlaybook?.draft,
+        nextCategory: "reservation",
+      });
+      return {
+        finalText,
+        nextCategory: "reservation",
+        nextSlots,
+        needsSupervision: needsSupervision || readyCreateResult.needsHandoff,
+        graphResult: null,
+      };
     }
     const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);
     const explicitCheckOutFast =
@@ -5602,11 +5760,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             };
           }
           if (ciISO && coISO) {
-            const availabilityResult = await runAvailabilityCheck(pre, fastPathSlots, ciISO, coISO, {
+            const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, ciISO, coISO, {
               mode: "inquiry",
               persistConvState: false,
             });
-            finalText = availabilityResult.finalText;
+            finalText = applyConversationalProposalVocative(availabilityResult.finalText, pre.lang, availabilityPre.guest);
             if (!availabilityResult.needsHandoff) {
               finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
             }
@@ -5662,7 +5820,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
           if (canAutoQuoteCreateFast && isCreateStateReadyForQuote(normalizedFastPathSlots) && ciISO && coISO) {
             const readyCreateResult = await runAvailabilityCheck(
-              pre,
+              availabilityPre,
               normalizedFastPathSlots,
               ciISO,
               coISO
@@ -5687,7 +5845,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               lastCategory: "reservation",
               updatedBy: "ai",
             } as any);
-            finalText = readyCreateResult.finalText;
+            finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
             nextSlots = readyCreateSnapshot;
             return {
               finalText,
@@ -5867,7 +6025,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }
           if (canAutoQuoteCreateFast) {
             const readyCreateResult = await runAvailabilityCheck(
-              pre,
+              availabilityPre,
               fastPathSlots,
               ciISO,
               coISO
@@ -5892,7 +6050,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               lastCategory: "reservation",
               updatedBy: "ai",
             } as any);
-            finalText = readyCreateResult.finalText;
+            finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
             nextSlots = readyCreateSnapshot;
             return {
               finalText,
@@ -7720,14 +7878,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
       const availabilityResult = await runAvailabilityCheck(
-        pre,
+        availabilityPre,
         additionalReservationDraft,
         additionalReservationDraft.checkIn!,
         additionalReservationDraft.checkOut!,
         { persistConvState: false }
       );
       nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
-      finalText = availabilityResult.finalText;
+      finalText = applyConversationalProposalVocative(availabilityResult.finalText, pre.lang, availabilityPre.guest);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         reservationHistory: preservedHistory,
         reservationSlots: availabilityResult.nextSlots as any,
@@ -7811,11 +7969,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         finalText = buildInvalidReservationDatesReply(pre.lang, inquiryDateCoherence.reason);
         return { finalText, nextCategory: "availability_inquiry", nextSlots, needsSupervision, graphResult };
       }
-      const availabilityResult = await runAvailabilityCheck(pre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {
+      const availabilityResult = await runAvailabilityCheck(availabilityPre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {
         mode: "inquiry",
         persistConvState: false,
       });
-      finalText = availabilityResult.finalText;
+      finalText = applyConversationalProposalVocative(availabilityResult.finalText, pre.lang, availabilityPre.guest);
       if (!availabilityResult.needsHandoff) {
         finalText = `${finalText}\n\n${buildAvailabilityInquiryFollowup(pre.lang)}`.trim();
       }
@@ -7911,11 +8069,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     createDraftRawOrderedDates?.checkIn ||
     createDraftRawOrderedDates?.checkOut ||
     createDraftRelativeWeekendRange.checkIn ||
-    createDraftRelativeWeekendRange.checkOut
+    createDraftRelativeWeekendRange.checkOut ||
+    (pre.currSlots.checkIn && pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn) ||
+    (pre.currSlots.checkOut && pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut)
   );
-  const createQuoteTurnEligible =
-    looksExplicitNewReservation ||
-    (activeCreateFlow && createFollowupCarriesDateProgress);
+  const createDraftReadyToQuote = Boolean(
+    createDraftConsistency.sanitizedSlots.checkIn &&
+    createDraftConsistency.sanitizedSlots.checkOut &&
+    createDraftConsistency.sanitizedSlots.roomType &&
+    createDraftConsistency.sanitizedSlots.numGuests &&
+    isSafeGuestName(createDraftConsistency.sanitizedSlots.guestName || "") &&
+    createFollowupCarriesDateProgress
+  );
+    const createQuoteTurnEligible =
+      looksExplicitNewReservation ||
+      createDraftReadyToQuote ||
+      (activeCreateFlow && createFollowupCarriesDateProgress);
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
   const pendingCreateProposal = isPendingCreateProposalContext(pre, userTxtRaw);
   if (
@@ -7935,7 +8104,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
     const readyCreateResult = await runAvailabilityCheck(
-      pre,
+      availabilityPre,
       createDraftConsistency.sanitizedSlots,
       readyCreateCheckIn!,
       readyCreateCheckOut!
@@ -7960,7 +8129,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "reservation",
       updatedBy: "ai",
     } as any);
-    finalText = readyCreateResult.finalText;
+    finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
     nextSlots = readyCreateSnapshot;
     return { finalText, nextCategory: "reservation", nextSlots, needsSupervision: needsSupervision || readyCreateResult.needsHandoff, graphResult };
   }
@@ -8119,7 +8288,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
           }
           const requoteResult = await runAvailabilityCheck(
-            pre,
+            availabilityPre,
             quotedDraftConsistency.sanitizedSlots,
             requoteCheckIn,
             requoteCheckOut
@@ -8144,7 +8313,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             lastCategory: "reservation",
             updatedBy: "ai",
           } as any);
-          finalText = requoteResult.finalText;
+          finalText = applyConversationalProposalVocative(requoteResult.finalText, pre.lang, availabilityPre.guest);
           nextSlots = requotedSnapshot;
           return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
         }
@@ -10298,20 +10467,51 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
     const explicitPureAvailabilityInquiryTurn = isExplicitPureAvailabilityInquiryIntent(String(pre.msg.content || ""));
     const currentTurnRelativeWeekendRange = extractRelativeWeekendDateRange(String(pre.msg.content || ""));
-    const currentTurnCreateSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+    // Solo usamos los slots capturados en el turno actual para decidir si el mensaje ya trae un create completo.
+    // El estado persistido no debe hacer pasar un modify como si fuera create.
+    const currentTurnCreateSlots = attributeSingleWordDateToPendingCreateCheckout(
+      extractSlotsFromText(String(pre.msg.content || ""), pre.lang),
+      String(pre.msg.content || ""),
+      pre.prevSlotsStrict,
+      pre.st,
+      pre.prevCategory
+    );
+    const shouldMergeCreateTemporalDates =
+      !pre.inModifyMode &&
+      pre.st?.activeFlow !== "modify_reservation" &&
+      pre.st?.desiredAction !== "modify" &&
+      pre.prevCategory !== "modify_reservation";
+    const currentTurnCreateTemporalSlots = shouldMergeCreateTemporalDates
+      ? mergeReservationSlots(userDates, currentTurnCreateSlots)
+      : currentTurnCreateSlots;
+    traceCreateWordDates("after_extractSlotsFromText", {
+      checkIn: currentTurnCreateTemporalSlots.checkIn,
+      checkOut: currentTurnCreateTemporalSlots.checkOut,
+      roomType: currentTurnCreateTemporalSlots.roomType,
+      numGuests: currentTurnCreateTemporalSlots.numGuests,
+      guestName: currentTurnCreateTemporalSlots.guestName,
+      display_name: availabilityPre?.guest?.name,
+      source_function: "create_word_dates_runtime",
+    });
     const currentTurnCreatePayloadComplete = Boolean(
-      currentTurnCreateSlots.checkIn &&
-      currentTurnCreateSlots.checkOut &&
-      currentTurnCreateSlots.roomType &&
-      currentTurnCreateSlots.numGuests &&
-      isSafeGuestName(currentTurnCreateSlots.guestName || "")
+      currentTurnCreateTemporalSlots.checkIn &&
+      currentTurnCreateTemporalSlots.checkOut &&
+      currentTurnCreateTemporalSlots.roomType &&
+      currentTurnCreateTemporalSlots.numGuests &&
+      isSafeGuestName(currentTurnCreateTemporalSlots.guestName || "")
     );
     const currentTurnCarriesDateProgress = Boolean(
       hasAnyDateToken ||
       userDates.checkIn ||
       userDates.checkOut ||
+      currentTurnCreateTemporalSlots.checkIn ||
+      currentTurnCreateTemporalSlots.checkOut ||
       currentTurnRelativeWeekendRange.checkIn ||
       currentTurnRelativeWeekendRange.checkOut
+    );
+    const currentTurnCreateReadyToQuote = Boolean(
+      currentTurnCreatePayloadComplete &&
+      currentTurnCarriesDateProgress
     );
     const currentTurnCreateRangeResolved =
       currentTurnCarriesDateProgress &&
@@ -10322,9 +10522,27 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const createQuoteReadyOnCurrentTurn =
       (
         Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||
-        currentTurnCreateRangeResolved
+        currentTurnCreateRangeResolved ||
+        currentTurnCreateReadyToQuote
       ) &&
-      (isCreateContextActive(pre) || looksExplicitNewReservation);
+      (isCreateContextActive(pre) || looksExplicitNewReservation || currentTurnCreateReadyToQuote);
+    traceCreateWordDates("after_create_quote_decision", {
+      createQuoteReady: Boolean(
+        currentTurnCreateTemporalSlots.checkIn &&
+        currentTurnCreateTemporalSlots.checkOut &&
+        currentTurnCreateTemporalSlots.roomType &&
+        currentTurnCreateTemporalSlots.numGuests &&
+        isSafeGuestName(currentTurnCreateTemporalSlots.guestName || "")
+      ),
+      createQuoteReadyOnCurrentTurn,
+      currentTurnCreateRangeResolved,
+      currentTurnCarriesDateProgress,
+      checkIn: currentTurnCreateTemporalSlots.checkIn,
+      checkOut: currentTurnCreateTemporalSlots.checkOut,
+      roomType: currentTurnCreateTemporalSlots.roomType,
+      numGuests: currentTurnCreateTemporalSlots.numGuests,
+      guestName: currentTurnCreateTemporalSlots.guestName,
+    });
     const triggerDateFlow =
       !activeModifyField &&
       !explicitPureAvailabilityInquiryTurn &&
@@ -10480,13 +10698,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const prevCO = pre.prevSlotsStrict?.checkOut;
         const newCI = nextSlots.checkIn;
         const newCO = nextSlots.checkOut;
-        const createQuoteReadySlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots);
+        const createQuoteReadySlots = mergeReservationSlots(pre.st?.reservationSlots, currentTurnCreateTemporalSlots, nextSlots);
         const createQuoteReady =
           (
             Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) ||
-            currentTurnCreateRangeResolved
+            currentTurnCreateRangeResolved ||
+            currentTurnCreateReadyToQuote
           ) &&
-          (isCreateContextActive(pre) || looksExplicitNewReservation) &&
+          (isCreateContextActive(pre) || looksExplicitNewReservation || currentTurnCreateReadyToQuote) &&
           !getNextCreateFlowMissingField(createQuoteReadySlots);
         if (newCI && newCO && (newCI !== prevCI || newCO !== prevCO)) {
           const txt = (finalText || '').trim();
@@ -10569,10 +10788,19 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const proposed = getProposedAvailabilityRange(pre.lcHistory);
     const ciISO = pendingAvailabilityVerification?.checkIn || proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
     const coISO = pendingAvailabilityVerification?.checkOut || proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
-    const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots, {
-      checkIn: ciISO,
-      checkOut: coISO,
-    });
+          const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, createDraftConsistency.sanitizedSlots, nextSlots, {
+            checkIn: ciISO,
+            checkOut: coISO,
+          });
+          traceCreateWordDates("before_availability_or_create_prompt", {
+            source_function: "isAskAvailabilityStatusQuery",
+            missingField: getNextCreateFlowMissingField(createQuoteSlots),
+            checkIn: createQuoteSlots.checkIn,
+            checkOut: createQuoteSlots.checkOut,
+            roomType: createQuoteSlots.roomType,
+            numGuests: createQuoteSlots.numGuests,
+            guestName: createQuoteSlots.guestName,
+          });
     if (quoteGatedCreateFlow) {
       const createDraftConsistency = validateCreateDraftConsistency(pre.lang, createQuoteSlots);
       if (!createDraftConsistency.valid) {
@@ -10635,7 +10863,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : pre.lang === "pt"
               ? `Perfeito, vou verificar a disponibilidade para ${ci} → ${co}.`
               : `Great, I'll check availability for ${ci} → ${co}.`;
-          const res = await runAvailabilityCheck(pre, nextSlots, ciISO!, coISO!);
+          const res = await runAvailabilityCheck(availabilityPre, nextSlots, ciISO!, coISO!);
           finalText = `${ackLine}\n\n${res.finalText}`.trim();
           nextSlots = res.nextSlots;
           const quotedCreateSnapshot = {
@@ -10696,9 +10924,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const proposed = getProposedAvailabilityRange(pre.lcHistory);
       const ciISO = proposed.checkIn || nextSlots.checkIn || pre.st?.reservationSlots?.checkIn;
       const coISO = proposed.checkOut || nextSlots.checkOut || pre.st?.reservationSlots?.checkOut;
-      const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, pre.currSlots, nextSlots, {
+      const createQuoteSlots = mergeReservationSlots(pre.st?.reservationSlots, createDraftConsistency.sanitizedSlots, nextSlots, {
         checkIn: ciISO,
         checkOut: coISO,
+      });
+      traceCreateWordDates("before_availability_or_create_prompt", {
+        source_function: "isVerifyAvailabilityAffirmative",
+        missingField: getNextCreateFlowMissingField(createQuoteSlots),
+        checkIn: createQuoteSlots.checkIn,
+        checkOut: createQuoteSlots.checkOut,
+        roomType: createQuoteSlots.roomType,
+        numGuests: createQuoteSlots.numGuests,
+        guestName: createQuoteSlots.guestName,
       });
       if (quoteGatedCreateFlow) {
         const createDraftConsistency = validateCreateDraftConsistency(pre.lang, createQuoteSlots);
@@ -10728,8 +10965,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           finalText = buildInvalidReservationDatesReply(pre.lang, availabilityStatusDateCoherence.reason);
           return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
         }
-        const res = await runAvailabilityCheck(pre, { ...nextSlots }, ciISO, coISO);
-        finalText = res.finalText;
+        const res = await runAvailabilityCheck(availabilityPre, { ...nextSlots }, ciISO, coISO);
+        finalText = applyConversationalProposalVocative(res.finalText, pre.lang, availabilityPre.guest);
         nextSlots = { ...nextSlots, ...res.nextSlots };
         if (modifyExecutionActive) {
           const modifyReservationId = getModifyExecutionReservationId(pre, reservationReference, resolvedModifyTarget);
@@ -10833,11 +11070,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
   }
   const quotedReservationSnapshot = {
-    ...mergeReservationSlots(
-      pre.st?.reservationSlots,
-      nextSlots,
-      isSafeGuestName(String(pre.msg.content || "").trim()) ? { guestName: String(pre.msg.content || "").trim() } : undefined
-    ),
+      ...mergeReservationSlots(
+        pre.st?.reservationSlots,
+        createDraftConsistency.sanitizedSlots,
+        nextSlots,
+        isSafeGuestName(String(pre.msg.content || "").trim()) ? { guestName: String(pre.msg.content || "").trim() } : undefined
+      ),
     locale: pre.lang,
   };
   if (
@@ -10898,6 +11136,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   finalText = stripGlobalTailNoise(String(finalText || ""));
   const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
+  traceCreateWordDates("final_output_boundary", {
+    force: isCreateWordDatesTraceCandidate(String(pre.msg.content || "")),
+    sourceFunction: "bodyLLM.final_output_boundary",
+    finalText,
+    nextSlots,
+    currSlots: pre.currSlots,
+    stateForPlaybookDraft: pre.stateForPlaybook?.draft,
+    quotedReservationSnapshot,
+    nextCategory,
+  });
   if (!(graphResult as any)?.meta?.debug?.route_source && finalText) {
     emitRoutingDecision(pre.msg, {
       decision_layer: "bodyLLM",

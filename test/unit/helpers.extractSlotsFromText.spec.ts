@@ -159,15 +159,30 @@ describe("extractSlotsFromText", () => {
     expect(slots.roomType).toBeUndefined();
   });
 
-  it("usa el año actual para rangos con mes nombrado sin rollover silencioso", () => {
+  it("usa el próximo año válido para rangos con mes nombrado sin año si el check-in ya pasó", () => {
     const slots = extractSlotsFromText("quiero reservar una habitación doble del 21 de mayo al 25 de mayo", "es");
-    expect(slots.checkIn).toBe("2026-05-21");
-    expect(slots.checkOut).toBe("2026-05-25");
+    expect(slots.checkIn).toBe("2027-05-21");
+    expect(slots.checkOut).toBe("2027-05-25");
   });
 
   it("preserva el año explícito en rangos con mes nombrado", () => {
     const slots = extractSlotsFromText("quiero reservar del 21 de mayo de 2028 al 25 de mayo de 2028", "es");
     expect(slots.checkIn).toBe("2028-05-21");
     expect(slots.checkOut).toBe("2028-05-25");
+  });
+
+  it("resuelve rangos con mes nombrado y actor inline sin perder checkOut", () => {
+    const slots = extractSlotsFromText(
+      "Hola, soy Martín Perez. Quisiera reservar una triple del 25 al 27 de agosto para tres personas, a nombre de Sergio Botana.",
+      "es"
+    );
+
+    expect(slots).toMatchObject({
+      checkIn: "2026-08-25",
+      checkOut: "2026-08-27",
+      roomType: "triple",
+      numGuests: "3",
+      guestName: "Sergio Botana",
+    });
   });
 });

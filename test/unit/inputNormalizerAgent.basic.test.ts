@@ -74,17 +74,17 @@ describe('runInputNormalizer (mínimo)', () => {
         };
         const norm = await runInputNormalizer({ msg });
         expect(norm.currSlots.roomType).toBe('double');
-        expect(norm.currSlots.checkIn).toBe('2026-05-21');
-        expect(norm.currSlots.checkOut).toBe('2026-05-25');
+        expect(norm.currSlots.checkIn).toBe('2027-05-21');
+        expect(norm.currSlots.checkOut).toBe('2027-05-25');
     });
 
-    it('no hace rollover automático al año siguiente para mes nombrado sin año', async () => {
+    it('usa el próximo año válido para mes nombrado sin año si el check-in ya pasó', async () => {
         const msg = {
             ...baseMsg,
             content: 'quiero reservar una habitación doble del 21 de mayo al 25 de mayo',
         };
         const norm = await runInputNormalizer({ msg });
-        expect(norm.currSlots.checkIn).toBe('2026-05-21');
-        expect(norm.currSlots.checkOut).toBe('2026-05-25');
+        expect(norm.currSlots.checkIn).toBe('2027-05-21');
+        expect(norm.currSlots.checkOut).toBe('2027-05-25');
     });
 });

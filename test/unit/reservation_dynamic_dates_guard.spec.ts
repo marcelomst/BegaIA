@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const guardedSpecs = [
   "test/unit/graph_create_confirm_guard.spec.ts",
   "test/unit/messageHandler.domain_lock.spec.ts",
+  "test/unit/messageHandler.create_word_dates_no_year.spec.ts",
   "test/unit/messageHandler.guest_name_capture.spec.ts",
 ];
 
