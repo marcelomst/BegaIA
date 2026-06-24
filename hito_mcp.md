@@ -10931,3 +10931,44 @@ Impacto:
 - evita que `guestName` contamine `display_name` o `firstName`
 - preserva el vocativo visible desde el actor explícito incluso cross-channel y con guestId aliasado
 - mantiene el alcance fuera de `cancel`, `fallbackLocal`, `graphClassifierPolicy` y confirmación
+
+### ENFORCE-DYNAMIC-DATE-HELPER-IN-RESERVATION-TESTS-02
+
+Estado: COMPLETADO  
+Fecha: 2026-06-24  
+Commit: 72df616d2d0566c5ce5fd93b44aef35dfd209b6d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito acotado a infraestructura de tests. Introduce un helper compartido de
+fechas futuras dinámicas para specs de reservas vulnerables, migra fixtures
+absolutos vencibles y agrega un meta-test anti-recurrencia para impedir nuevas
+fallas por fechas hardcodeadas que vencen con el calendario.
+
+Archivos afectados:
+
+- `test/unit/graph_create_confirm_guard.spec.ts`
+- `test/unit/messageHandler.domain_lock.spec.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `test/utils/reservationDates.ts`
+- `test/unit/reservation_dynamic_dates_guard.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/reservation_dynamic_dates_guard.spec.ts test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts`
+  `pnpm test`
+- validación manual:
+  `not_required`
+
+Impacto:
+
+- formaliza la disciplina temporal de tests de reservas
+- centraliza el patrón canónico de fechas dinámicas futuras
+- agrega una barrera focal anti-recurrencia contra fixtures absolutos vencidos
+- no modifica runtime productivo, arquitectura viva ni Runtime Map
