@@ -21,18 +21,21 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: bc1113a
-messageHandler_lines: 11778
+commit_base: 7f11b08
+messageHandler_lines: 12026
 working_tree_status: clean
-analysis_scope: commit_bc1113a7d298208ddec966fd2283ad7314efb63a
-suite_status_reported: scope_pass_with_external_failures
+analysis_scope: commit_7f11b089ee7d515456ae410914798d364aa47428
+suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
-  summary: scope_pass_with_external_failures
+    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
+  summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
-    - pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
+    - pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm run ts-check
+    - pnpm test
+    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
 known_manual_bug: none
 ```
 
@@ -41,24 +44,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.quote_boundary
+    - slot_extraction_support
+  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - admin_guest_read_path./api/admin/guests
-    - admin_guest_read_path./api/admin/guest-profile
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - actor conversacional inline explícito persiste en guest canónico efectivo
-      - proposal vocative usa actor conversacional y no guestName transaccional
-      - guestName de tercero no contamina display_name ni firstName
-      - soporte ES/PT/EN mínimo mantiene captura multilingüe asociada
+      - create con rango en palabras sin año consolida `checkOut` sin pedirlo de nuevo
+      - fecha única en palabras se atribuye a `checkOut` pendiente dentro de create
+      - actor conversacional y `guestName` transaccional permanecen separados
+      - no aparece copy de `modify` dentro del corredor `create`
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -66,13 +69,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: bc1113a
-    messageHandler_lines: 11778
+    commit: 7f11b08
+    messageHandler_lines: 12026
     functions:
-      preLLM: L4200-L4443
-      bodyLLM: L4956-L11408
-      posLLM: L11409-L11453
-      handleIncomingMessage: L11454-L11778
+      preLLM: L4279-L4528
+      bodyLLM: L5041-L11656
+      posLLM: L11657-L11701
+      handleIncomingMessage: L11702-L12026
 ```
 
 ---
@@ -81,18 +84,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2044-L2544 |    501 | high      |
-| `resolveReservationReference`        | L2545-L2884 |    340 | high      |
-| `detectDominantTurnDomain`           | L2885-L3168 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3169-L3340 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3341-L3393 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3394-L3530 |    137 | high      |
-| `assessReservationDateCoherence`     | L3531-L4010 |    480 | high      |
-| `tryStructuredAnalyze`               | L4011-L4199 |    189 | high      |
-| `preLLM`                             | L4200-L4443 |    244 | high      |
-| `bodyLLM`                            | L4956-L11408 |   6453 | high      |
-| `posLLM`                             | L11409-L11453 |     45 | high      |
-| `handleIncomingMessage`              | L11454-L11778 |    325 | high      |
+| `buildReservationCanonicalState`     | L2123-L2623 |    501 | high      |
+| `resolveReservationReference`        | L2624-L2963 |    340 | high      |
+| `detectDominantTurnDomain`           | L2964-L3247 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3248-L3419 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3420-L3472 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3473-L3609 |    137 | high      |
+| `assessReservationDateCoherence`     | L3610-L4089 |    480 | high      |
+| `tryStructuredAnalyze`               | L4090-L4278 |    189 | high      |
+| `preLLM`                             | L4279-L4528 |    250 | high      |
+| `bodyLLM`                            | L5041-L11656 |   6616 | high      |
+| `posLLM`                             | L11657-L11701 |     45 | high      |
+| `handleIncomingMessage`              | L11702-L12026 |    325 | high      |
 
 ---
 
@@ -101,8 +104,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 11778 líneas
-bodyLLM:                6453 líneas
+messageHandler.ts total: 12026 líneas
+bodyLLM:                6616 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -121,9 +124,9 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- captura inline multilingüe de actor conversacional
-- persistencia de display_name y firstName sobre guest canónico efectivo
-- separación estricta entre actor conversacional y guestName transaccional
+- rangos en palabras sin año consolidados dentro de create
+- hardening del parser base para mes nombrado sin año
+- atribución de `checkOut` pendiente dentro del turno activo
 - early returns
 
 ---
@@ -497,7 +500,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4200-L4443
+    range: L4279-L4528
     confidence: high
 ```
 
@@ -516,7 +519,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4956-L11408
+    range: L5041-L11656
     confidence: high
 ```
 
@@ -535,7 +538,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11409-L11453
+    range: L11657-L11701
     confidence: high
 ```
 
@@ -554,7 +557,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11454-L11778
+    range: L11702-L12026
     confidence: high
 ```
 

@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: bc1113a
-messageHandler_lines: 11778
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v21
+commit_base: 7f11b08
+messageHandler_lines: 12026
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v22
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_bc1113a7d298208ddec966fd2283ad7314efb63a
+analysis_scope: commit_7f11b089ee7d515456ae410914798d364aa47428
 ```
 
 ---
@@ -29,14 +29,16 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts
+pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
 result: pass
-pnpm vitest run test/unit/graph_create_confirm_guard.spec.ts test/unit/messageHandler.domain_lock.spec.ts
-result: external_failures_only
-notes:
-- 5 fallos por fixtures temporales vencidos
-- no causados por este diff
-- deuda separable: ENFORCE-DYNAMIC-DATE-HELPER-IN-RESERVATION-TESTS-02
+pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+result: pass
+pnpm run ts-check
+result: pass
+pnpm test
+result: pass
+pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+result: pass
 ```
 
 ---
@@ -66,15 +68,16 @@ improve_conversation_list_interlocutor_copy_commit: d9ccd725a9e40a1a5a79f86f001a
 modify_preview_confirmation_before_execution_commit: e7add187294ba8b3d0f55b245185eecc5febad2f
 create_date_correction_language_stickiness_commit: e67ba4968d2275211fe63673cf64224bcae07fc8
 inline_conversational_actor_multilingual_cross_channel_commit: bc1113a7d298208ddec966fd2283ad7314efb63a
+create_word_dates_no_year_cross_channel_commit: 7f11b089ee7d515456ae410914798d364aa47428
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- actor conversacional inline explícito debe persistirse sobre el guest canónico efectivo
-- el vocativo visible debe salir de `display_name` o `firstName`, no de `guestName`
-- `guestName` transaccional a nombre de tercero no debe contaminar el actor conversacional
-- el comportamiento debe sostenerse cross-channel y con guestId aliasado
+- create con rango en palabras sin año no debe pedir `check-out` si ya quedó consolidado
+- la fecha única en palabras debe atribuirse a `checkOut` pendiente dentro del turno actual
+- debe preservarse actor conversacional vs `guestName` transaccional
+- no debe aparecer copy de `modify` dentro del flujo `create`
 ```
 
 ---
@@ -82,7 +85,7 @@ inline_conversational_actor_multilingual_cross_channel_commit: bc1113a7d298208dd
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`bc1113a`.
+`7f11b08`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
 ya no usa el working tree previo como referencia operativa principal.
@@ -99,9 +102,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `bc1113a`
-2. Corredor `create` refrescado para actor conversacional inline multilingüe
+1. Snapshot base a commit real `7f11b08`
+2. Corredor `create` refrescado para word dates sin año y preservación cross-channel
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para actor visible y separación con `guestName`
+5. box index machine-friendly refrescado para preLLM, quote boundary y slot extraction support
 ```

@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: bc1113a
-messageHandler_lines: 11778
+commit_base: 7f11b08
+messageHandler_lines: 12026
 working_tree_status: clean
-analysis_scope: commit_bc1113a7d298208ddec966fd2283ad7314efb63a
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v21
+analysis_scope: commit_7f11b089ee7d515456ae410914798d364aa47428
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v22
 known_manual_bug: none
 ```
 
@@ -56,24 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.quote_boundary
+    - slot_extraction_support
+  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - admin_guest_read_path./api/admin/guests
-    - admin_guest_read_path./api/admin/guest-profile
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - actor conversacional inline explícito persiste en guest canónico efectivo
-      - proposal vocative usa actor conversacional y no guestName transaccional
-      - guestName de tercero no contamina display_name ni firstName
-      - soporte ES/PT/EN mínimo mantiene captura multilingüe asociada
+      - create con rango en palabras sin año consolida `checkOut` sin pedirlo de nuevo
+      - fecha única en palabras se atribuye a `checkOut` pendiente dentro de create
+      - actor conversacional y `guestName` transaccional permanecen separados
+      - no aparece copy de `modify` dentro del corredor `create`
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -183,7 +183,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11454-L11778
+        range: L11702-L12026
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -213,7 +213,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4200-L4443
+        range: L4279-L4528
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -248,7 +248,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4956-L11408
+        range: L5041-L11656
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -287,13 +287,13 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4444-L4955
+        range: L4529-L5040
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L11188-L11335
+        range: L11484-L11631
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L2545-L3340
+        range: L2624-L3419
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors
@@ -327,7 +327,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4956-L11408
+        range: L5041-L11656
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -362,7 +362,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4956-L11408
+        range: L5041-L11656
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -381,15 +381,15 @@ boxes:
     kind: operational_corridor
     human_summary: >
       Corredor de creación de reservas. Completa slots, valida fechas,
-      consulta disponibilidad, captura actor conversacional inline cuando existe,
-      genera quote/proposal y permite confirmación explícita si corresponde.
+      consolida rangos en palabras sin año cuando corresponde, preserva actor
+      conversacional y genera quote/proposal con confirmación explícita.
     responsibilities:
       - slot ingestion
       - date repair
-      - conversational actor capture
+      - word dates without year
       - availability check
       - quote gating
-      - visible actor identity continuity
+      - checkOut pending attribution
       - proposal confirmation
       - confirmAndCreate guard
     risk_tags:
@@ -397,6 +397,7 @@ boxes:
       - slot_attribution
       - temporal_repair
       - conversational_identity
+      - temporal_parser_support
       - quote_gating
       - confirmation_gating
       - availability
@@ -406,10 +407,10 @@ boxes:
         range: L1477-L1867
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L4444-L4955
+        range: L4529-L5040
         confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
-        range: L4956-L7163
+        range: L5041-L7321
         confidence: needs_refresh
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -828,7 +829,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11409-L11453
+        range: L11657-L11701
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply
