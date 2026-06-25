@@ -21,21 +21,21 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7f11b08
-messageHandler_lines: 12026
+commit_base: 4d3cd1d
+messageHandler_lines: 12031
 working_tree_status: clean
-analysis_scope: commit_7f11b089ee7d515456ae410914798d364aa47428
+analysis_scope: commit_4d3cd1dfea48d536986e36b2fde28ff9b6841d35
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
+    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts
   summary: targeted_green
   full_suite:
+    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts
     - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
-    - pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
     - pnpm run ts-check
     - pnpm test
-    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts
 known_manual_bug: none
 ```
 
@@ -44,38 +44,39 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
+    - slot_extraction
+    - temporal_slot_extraction
     - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.quote_boundary
-    - slot_extraction_support
+    - create_word_dates
+    - create_quote_fast_path_gating
+    - create_to_availability_boundary
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create con rango en palabras sin año consolida `checkOut` sin pedirlo de nuevo
-      - fecha única en palabras se atribuye a `checkOut` pendiente dentro de create
-      - actor conversacional y `guestName` transaccional permanecen separados
-      - no aparece copy de `modify` dentro del corredor `create`
-  code_refs_status: needs_refresh
+      - create con variantes naturales ES/PT/EN consolida `checkOut` sin pedirlo de nuevo
+      - conectores y variantes ordinales quedan absorbidos como rango temporal completo
+      - alias PT `duplo` normaliza a `double` dentro del payload de create
+      - interlocutor conversacional y `guestName` transaccional permanecen separados
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 7f11b08
-    messageHandler_lines: 12026
+    commit: 4d3cd1d
+    messageHandler_lines: 12031
     functions:
-      preLLM: L4279-L4528
-      bodyLLM: L5041-L11656
-      posLLM: L11657-L11701
-      handleIncomingMessage: L11702-L12026
+      preLLM: L4284-L4533
+      bodyLLM: L5046-L11661
+      posLLM: L11662-L11706
+      handleIncomingMessage: L11707-L12031
 ```
 
 ---
@@ -84,18 +85,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2123-L2623 |    501 | high      |
-| `resolveReservationReference`        | L2624-L2963 |    340 | high      |
-| `detectDominantTurnDomain`           | L2964-L3247 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3248-L3419 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3420-L3472 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3473-L3609 |    137 | high      |
-| `assessReservationDateCoherence`     | L3610-L4089 |    480 | high      |
-| `tryStructuredAnalyze`               | L4090-L4278 |    189 | high      |
-| `preLLM`                             | L4279-L4528 |    250 | high      |
-| `bodyLLM`                            | L5041-L11656 |   6616 | high      |
-| `posLLM`                             | L11657-L11701 |     45 | high      |
-| `handleIncomingMessage`              | L11702-L12026 |    325 | high      |
+| `buildReservationCanonicalState`     | L2128-L2628 |    501 | high      |
+| `resolveReservationReference`        | L2629-L2968 |    340 | high      |
+| `detectDominantTurnDomain`           | L2969-L3252 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3253-L3424 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3425-L3477 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3478-L3614 |    137 | high      |
+| `assessReservationDateCoherence`     | L3615-L4094 |    480 | high      |
+| `tryStructuredAnalyze`               | L4095-L4283 |    189 | high      |
+| `preLLM`                             | L4284-L4533 |    250 | high      |
+| `bodyLLM`                            | L5046-L11661 |   6616 | high      |
+| `posLLM`                             | L11662-L11706 |     45 | high      |
+| `handleIncomingMessage`              | L11707-L12031 |    325 | high      |
 
 ---
 
@@ -104,7 +105,7 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12026 líneas
+messageHandler.ts total: 12031 líneas
 bodyLLM:                6616 líneas
 ```
 
@@ -124,9 +125,10 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- rangos en palabras sin año consolidados dentro de create
-- hardening del parser base para mes nombrado sin año
-- atribución de `checkOut` pendiente dentro del turno activo
+- rangos naturales multilingües consolidados dentro de create
+- hardening del parser base para conectores y variantes ordinales ES/PT/EN
+- fast-path que evita pedir `checkOut` si el rango ya llegó completo
+- compatibilidad PT de `roomType` vía alias `duplo -> double`
 - early returns
 
 ---

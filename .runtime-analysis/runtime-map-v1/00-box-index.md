@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7f11b08
-messageHandler_lines: 12026
+commit_base: 4d3cd1d
+messageHandler_lines: 12031
 working_tree_status: clean
-analysis_scope: commit_7f11b089ee7d515456ae410914798d364aa47428
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v22
+analysis_scope: commit_4d3cd1dfea48d536986e36b2fde28ff9b6841d35
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v23
 known_manual_bug: none
 ```
 
@@ -56,25 +56,26 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
+    - slot_extraction
+    - temporal_slot_extraction
     - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.quote_boundary
-    - slot_extraction_support
+    - create_word_dates
+    - create_quote_fast_path_gating
+    - create_to_availability_boundary
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create con rango en palabras sin año consolida `checkOut` sin pedirlo de nuevo
-      - fecha única en palabras se atribuye a `checkOut` pendiente dentro de create
-      - actor conversacional y `guestName` transaccional permanecen separados
-      - no aparece copy de `modify` dentro del corredor `create`
-  code_refs_status: needs_refresh
+      - create con variantes naturales ES/PT/EN consolida `checkOut` sin pedirlo de nuevo
+      - conectores y variantes ordinales quedan absorbidos como rango temporal completo
+      - alias PT `duplo` normaliza a `double` dentro del payload de create
+      - interlocutor conversacional y `guestName` transaccional permanecen separados
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
@@ -155,7 +156,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L11778
+        range: L1-L12031
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -183,7 +184,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11702-L12026
+        range: L11707-L12031
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -213,7 +214,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4279-L4528
+        range: L4284-L4533
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -248,7 +249,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5041-L11656
+        range: L5046-L11661
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision

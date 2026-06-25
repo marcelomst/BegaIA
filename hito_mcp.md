@@ -10973,6 +10973,73 @@ Impacto:
 - agrega una barrera focal anti-recurrencia contra fixtures absolutos vencidos
 - no modifica runtime productivo, arquitectura viva ni Runtime Map
 
+### FIX-CREATE-WORD-DATE-RANGE-SYNTAX-VARIANTS-MULTILINGUAL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-25  
+Commit: 4d3cd1dfea48d536986e36b2fde28ff9b6841d35
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix runtime sobre `create` con variantes sintácticas multilingües de rangos
+de fechas naturales sin año. Amplía la extracción temporal para conectores y
+variantes ordinales en ES/PT/EN, habilita el fast-path de `create` cuando el
+payload ya trae rango completo sin pedir `check-out` y agrega compatibilidad PT
+de `roomType` vía alias `duplo -> double`.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/schemas/reservation.ts`
+- `test/utils/reservationDates.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/messageHandler.create_word_dates_no_year.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- `baseline_commit` previo auditado:
+  `7f11b089ee7d515456ae410914798d364aa47428`
+- cajas tocadas:
+  `slot_extraction`
+  `temporal_slot_extraction`
+  `create_word_dates`
+  `create_quote_fast_path_gating`
+  `create_to_availability_boundary`
+  `runtime.messageHandler.preLLM`
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  ES: "para el 27 hasta el 30 de Julio" cotiza sin pedir `check-out`
+  PT: variante con `até` cotiza sin pedir `check-out`
+  EN: variante `from August 25 to August 27` cotiza sin pedir `check-out`
+  preservación de interlocutor conversacional y titular transaccional
+- variante diferida explícita:
+  `SUPPORT-CREATE-CHECKIN-CHECKOUT-LABELED-DATES-ES-PT-EN`
+
+Impacto:
+
+- reduce falsos faltantes de `check-out` cuando el rango ya está completo en el turno
+- alinea el parser temporal con variantes reales de ES/PT/EN sin relajar guards
+- fortalece el fast-path de `create` y la frontera `create -> availability`
+- deja fuera de alcance la familia sintáctica etiquetada `ingreso/egreso` o `check-in/check-out`
+
 ### FIX-CREATE-WORD-DATES-NO-YEAR-CROSS-CHANNEL-01
 
 Estado: COMPLETADO  
