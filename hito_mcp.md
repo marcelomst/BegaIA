@@ -10973,6 +10973,71 @@ Impacto:
 - agrega una barrera focal anti-recurrencia contra fixtures absolutos vencidos
 - no modifica runtime productivo, arquitectura viva ni Runtime Map
 
+### FIX-CREATE-WORD-DATES-NO-YEAR-CROSS-CHANNEL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-24  
+Commit: 7f11b089ee7d515456ae410914798d364aa47428
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix runtime sobre `create` con rangos de fechas en palabras sin año y
+cobertura cross-channel. Corrige la atribución de una fecha única en palabras a
+`checkOut` pendiente dentro de `create`, preserva la frontera entre actor
+conversacional y `guestName` transaccional y endurece el parser base para
+rangos con mes nombrado sin año.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/agents/helpers.ts`
+- `test/unit/messageHandler.create_word_dates_no_year.spec.ts`
+- `test/unit/helpers.extractSlotsFromText.spec.ts`
+- `test/unit/inputNormalizerAgent.basic.test.ts`
+- `test/unit/reservation_dynamic_dates_guard.spec.ts`
+- `test/utils/reservationDates.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- `baseline_commit` previo auditado:
+  `72df616d2d0566c5ce5fd93b44aef35dfd209b6d`
+- cajas tocadas:
+  `runtime.messageHandler.preLLM`
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry`
+  `runtime.messageHandler.bodyLLM.quote_boundary`
+  `slot_extraction_support`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+  `pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
+- validación manual requerida para:
+  actor inline mismo turno con rango en palabras sin año y `guestName` distinto
+  actor capturado en turno previo con rango en palabras sin año
+  ausencia de prompt de `check-out` cuando ya está consolidado
+  ausencia de copy de `modify` en `create`
+  confirmación correcta preservando vocativo y titular transaccional
+
+Impacto:
+
+- corrige una divergencia real donde `create` podía pedir `checkOut` aunque ya estuviera consolidado
+- preserva la separación entre actor conversacional y `guestName` transaccional
+- alinea el parser base con la semántica esperada para rangos con mes nombrado sin año
+- fortalece el flujo cross-channel sin invadir corredores ajenos a reservas activas
+
 ### FIX-CREATE-WORD-DATE-RANGE-SYNTAX-VARIANTS-MULTILINGUAL-01
 
 Estado: COMPLETADO  
@@ -11039,68 +11104,3 @@ Impacto:
 - alinea el parser temporal con variantes reales de ES/PT/EN sin relajar guards
 - fortalece el fast-path de `create` y la frontera `create -> availability`
 - deja fuera de alcance la familia sintáctica etiquetada `ingreso/egreso` o `check-in/check-out`
-
-### FIX-CREATE-WORD-DATES-NO-YEAR-CROSS-CHANNEL-01
-
-Estado: COMPLETADO  
-Fecha: 2026-06-24  
-Commit: 7f11b089ee7d515456ae410914798d364aa47428
-Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
-
-Descripcion:
-
-Bugfix runtime sobre `create` con rangos de fechas en palabras sin año y
-cobertura cross-channel. Corrige la atribución de una fecha única en palabras a
-`checkOut` pendiente dentro de `create`, preserva la frontera entre actor
-conversacional y `guestName` transaccional y endurece el parser base para
-rangos con mes nombrado sin año.
-
-Archivos afectados:
-
-- `lib/handlers/messageHandler.ts`
-- `lib/agents/helpers.ts`
-- `test/unit/messageHandler.create_word_dates_no_year.spec.ts`
-- `test/unit/helpers.extractSlotsFromText.spec.ts`
-- `test/unit/inputNormalizerAgent.basic.test.ts`
-- `test/unit/reservation_dynamic_dates_guard.spec.ts`
-- `test/utils/reservationDates.ts`
-- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
-- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
-- `.runtime-analysis/runtime-map-v1/00-code-index.md`
-- `.runtime-analysis/runtime-map-v1/00-box-index.md`
-
-Validacion:
-
-- commit y push verificados sobre `origin/main`
-- salida estructurada de Guardian validada como fuente primaria
-- `roadmap_impact: none`
-- `runtime_map.applies: true`
-- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
-- `baseline_commit` previo auditado:
-  `72df616d2d0566c5ce5fd93b44aef35dfd209b6d`
-- cajas tocadas:
-  `runtime.messageHandler.preLLM`
-  `runtime.messageHandler.bodyLLM.turnDecision`
-  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
-  `runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry`
-  `runtime.messageHandler.bodyLLM.quote_boundary`
-  `slot_extraction_support`
-- tests reportados en verde:
-  `pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts`
-  `pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
-  `pnpm run ts-check`
-  `pnpm test`
-  `pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts test/unit/messageHandler.multi_reservation.spec.ts test/unit/messageHandler.postbooking_reservation_snapshot.spec.ts test/unit/messageHandler.reference_resolution.spec.ts`
-- validación manual requerida para:
-  actor inline mismo turno con rango en palabras sin año y `guestName` distinto
-  actor capturado en turno previo con rango en palabras sin año
-  ausencia de prompt de `check-out` cuando ya está consolidado
-  ausencia de copy de `modify` en `create`
-  confirmación correcta preservando vocativo y titular transaccional
-
-Impacto:
-
-- corrige una divergencia real donde `create` podía pedir `checkOut` aunque ya estuviera consolidado
-- preserva la separación entre actor conversacional y `guestName` transaccional
-- alinea el parser base con la semántica esperada para rangos con mes nombrado sin año
-- fortalece el flujo cross-channel sin invadir corredores ajenos a reservas activas
