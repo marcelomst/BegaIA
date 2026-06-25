@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { extractSlotsFromText } from "@/lib/agents/helpers";
+import { futureMonthDayReservationRange } from "../utils/reservationDates";
 
 describe("extractSlotsFromText", () => {
   beforeEach(() => {
@@ -183,6 +184,70 @@ describe("extractSlotsFromText", () => {
       roomType: "triple",
       numGuests: "3",
       guestName: "Sergio Botana",
+    });
+  });
+
+  it("resuelve variante ES 'para el 27 hasta el 30 de Julio'", () => {
+    const dates = futureMonthDayReservationRange(7, 27, 30);
+    const slots = extractSlotsFromText(
+      `Hola, soy Raul. Quiero hacer una reserva para el ${dates.wordRangeTextUntilEs}, una doble para 2 personas a nombre de Pep Guardiola.`,
+      "es"
+    );
+
+    expect(slots).toMatchObject({
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+      roomType: "double",
+      numGuests: "2",
+      guestName: "Pep Guardiola",
+    });
+  });
+
+  it("resuelve variante PT con 'até'", () => {
+    const dates = futureMonthDayReservationRange(8, 25, 27);
+    const slots = extractSlotsFromText(
+      `Quero reservar um quarto duplo de ${dates.wordRangeTextPtAte} para duas pessoas, em nome de Pep Guardiola.`,
+      "pt"
+    );
+
+    expect(slots).toMatchObject({
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+      roomType: "double",
+      numGuests: "2",
+      guestName: "Pep Guardiola",
+    });
+  });
+
+  it("resuelve variante EN month-first con from/to", () => {
+    const dates = futureMonthDayReservationRange(8, 25, 27);
+    const slots = extractSlotsFromText(
+      `Hi, I am Raul. I want to book a double room for two people from ${dates.wordRangeTextEnFromTo} under the name of Pep Guardiola.`,
+      "en"
+    );
+
+    expect(slots).toMatchObject({
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+      roomType: "double",
+      numGuests: "2",
+      guestName: "Pep Guardiola",
+    });
+  });
+
+  it("resuelve variante EN ordinal con from/until", () => {
+    const dates = futureMonthDayReservationRange(8, 25, 27);
+    const slots = extractSlotsFromText(
+      `Hi, I am Raul. I want to make a reservation in a double room from ${dates.wordRangeTextEnOrdinalFromUntil} for 2 people under the name of Pep Guardiola.`,
+      "en"
+    );
+
+    expect(slots).toMatchObject({
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+      roomType: "double",
+      numGuests: "2",
+      guestName: "Pep Guardiola",
     });
   });
 });

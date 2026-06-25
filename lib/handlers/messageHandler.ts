@@ -310,9 +310,14 @@ function buildAvailabilityGuestContext(pre: PreLLMResult, rawTurnText: string) {
 }
 
 function isCreateWordDatesTraceCandidate(text: string): boolean {
+  const raw = String(text || "");
   return (
-    /\b(reserv|reserva|reservar|book)\b/i.test(text || "") &&
-    /\b\d{1,2}\s+(?:al|hasta|a)\s+\d{1,2}\s+de\s+[a-záéíóúñ]+/i.test(text || "")
+    /\b(reserv|reserva|reservar|book)\b/i.test(raw) &&
+    (
+      /\b\d{1,2}\s+(?:al|hasta(?:\s+el)?|a|até|ate)\s+(?:el\s+|o\s+)?\d{1,2}\s+de\s+[a-záéíóúñ]+/i.test(raw) ||
+      /\bfrom\s+[a-z]+\s+\d{1,2}(?:st|nd|rd|th)?\s+(?:to|until)\s+[a-z]+\s+\d{1,2}(?:st|nd|rd|th)?/i.test(raw) ||
+      /\bfrom\s+(?:the\s+)?\d{1,2}(?:st|nd|rd|th)?\s+(?:to|until)\s+(?:the\s+)?\d{1,2}(?:st|nd|rd|th)?\s+of\s+[a-z]+/i.test(raw)
+    )
   );
 }
 

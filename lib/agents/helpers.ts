@@ -131,7 +131,26 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
       noviembre: 11, nov: 11, november: 11,
       diciembre: 12, dic: 12, dec: 12, december: 12,
     };
-    const monthRange = t.match(/(?:desde\s+(?:el\s+)?|del?\s+(?:el\s+)?|de\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta(?:\s+el)?|a)\s*(?:el\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
+    const applyNamedMonthRange = (
+      day1: number,
+      month1: number | undefined,
+      year1: number | undefined,
+      day2: number,
+      month2: number | undefined,
+      year2: number | undefined
+    ) => {
+      if (!month1 || !month2) return;
+      const resolvedYear1 = inferYear(day1, month1, year1);
+      let resolvedYear2 = typeof year2 === "number" ? inferYear(day2, month2, year2) : resolvedYear1;
+      if (typeof year2 !== "number") {
+        const checkInDate = new Date(resolvedYear1, month1 - 1, day1);
+        const checkOutDate = new Date(resolvedYear2, month2 - 1, day2);
+        if (checkOutDate <= checkInDate) resolvedYear2 += 1;
+      }
+      out.checkIn = toISOWithYear(day1, month1, resolvedYear1);
+      out.checkOut = toISOWithYear(day2, month2, resolvedYear2);
+    };
+    const monthRange = t.match(/(?:desde\s+(?:el\s+)?|del?\s+(?:el\s+)?|de\s+)?(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?\s*(?:al|hasta(?:\s+el)?|a|até|ate|to|until)\s*(?:el\s+|o\s+)?(\d{1,2})\s*(?:de\s+|of\s+)?([a-záéíóúñ]+)?(?:\s+de\s+(\d{4}))?/i);
     if (monthRange) {
       const day1 = parseInt(monthRange[1], 10);
       const month1 = months[monthRange[2]] || months[monthRange[5]];
@@ -143,18 +162,33 @@ export function extractSlotsFromText(text: string, _lang: string): Partial<SlotM
           ? parseInt(monthRange[6], 10)
           : undefined;
       const year2 = monthRange[6] ? parseInt(monthRange[6], 10) : year1;
-      if (month1 && month2) {
-        const resolvedYear1 = inferYear(day1, month1, year1);
-        let resolvedYear2 = typeof year2 === "number" ? inferYear(day2, month2, year2) : resolvedYear1;
-        if (typeof year2 !== "number") {
-          const checkInDate = new Date(resolvedYear1, month1 - 1, day1);
-          const checkOutDate = new Date(resolvedYear2, month2 - 1, day2);
-          if (checkOutDate <= checkInDate) resolvedYear2 += 1;
+      applyNamedMonthRange(day1, month1, year1, day2, month2, year2);
+    }
+    if (!out.checkIn && !out.checkOut) {
+      const englishMonthFirstRange = t.match(/(?:from\s+)?([a-záéíóúñ]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?\s*(?:to|until)\s*(?:the\s+)?([a-záéíóúñ]+)?\s*(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?/i);
+      const englishDayFirstRange = t.match(/(?:from\s+)?(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\s*(?:to|until)\s*(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s+)?([a-záéíóúñ]+)(?:,?\s+(\d{4}))?/i);
+      let appliedEnglishMonthFirstRange = false;
+      if (englishMonthFirstRange) {
+        const month1 = months[englishMonthFirstRange[1]];
+        const day1 = parseInt(englishMonthFirstRange[2], 10);
+        const year1 = englishMonthFirstRange[3] ? parseInt(englishMonthFirstRange[3], 10) : undefined;
+        const month2 = months[englishMonthFirstRange[4]] || month1;
+        const day2 = parseInt(englishMonthFirstRange[5], 10);
+        const year2 = englishMonthFirstRange[6] ? parseInt(englishMonthFirstRange[6], 10) : year1;
+        if (month1 && month2) {
+          applyNamedMonthRange(day1, month1, year1, day2, month2, year2);
+          appliedEnglishMonthFirstRange = true;
         }
-        out.checkIn = toISOWithYear(day1, month1, resolvedYear1);
-        out.checkOut = toISOWithYear(day2, month2, resolvedYear2);
       }
-    } else {
+      if (!appliedEnglishMonthFirstRange && englishDayFirstRange) {
+        const day1 = parseInt(englishDayFirstRange[1], 10);
+        const day2 = parseInt(englishDayFirstRange[2], 10);
+        const month = months[englishDayFirstRange[3]];
+        const year = englishDayFirstRange[4] ? parseInt(englishDayFirstRange[4], 10) : undefined;
+        applyNamedMonthRange(day1, month, year, day2, month, year);
+      }
+    }
+    if (!out.checkIn && !out.checkOut) {
       const singleMonth = t.match(/(\d{1,2})\s*(?:de\s+)?([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?/i);
       if (singleMonth) {
         const day = parseInt(singleMonth[1], 10);

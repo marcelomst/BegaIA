@@ -13,6 +13,34 @@ const ES_MONTH_NAMES = [
   "noviembre",
   "diciembre",
 ];
+const PT_MONTH_NAMES = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+const EN_MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function utcTodayNoon() {
   const now = new Date();
@@ -67,6 +95,8 @@ export function futureMonthDayReservationRange(month: number, checkInDay: number
     checkOut = new Date(Date.UTC(year + 1, month - 1, checkOutDay, 12));
   }
   const monthNameEs = ES_MONTH_NAMES[month - 1];
+  const monthNamePt = PT_MONTH_NAMES[month - 1];
+  const monthNameEn = EN_MONTH_NAMES[month - 1];
 
   return {
     checkIn,
@@ -76,7 +106,15 @@ export function futureMonthDayReservationRange(month: number, checkInDay: number
     checkInText: formatDateDDMMYYYY(checkIn),
     checkOutText: formatDateDDMMYYYY(checkOut),
     monthNameEs,
+    monthNamePt,
+    monthNameEn,
     wordRangeText: `${checkInDay} al ${checkOutDay} de ${monthNameEs}`,
+    wordRangeTextUntilEs: `${checkInDay} hasta el ${checkOutDay} de ${monthNameEs}`,
+    wordRangeTextPtAte: `${checkInDay} até ${checkOutDay} de ${monthNamePt}`,
+    wordRangeTextEnFromTo: `${monthNameEn} ${checkInDay} to ${monthNameEn} ${checkOutDay}`,
+    wordRangeTextEnFromUntil: `${monthNameEn} ${checkInDay} until ${monthNameEn} ${checkOutDay}`,
+    wordRangeTextEnOrdinalFromTo: `the ${checkInDay}th to the ${checkOutDay}th of ${monthNameEn}`,
+    wordRangeTextEnOrdinalFromUntil: `the ${checkInDay}th until the ${checkOutDay}th of ${monthNameEn}`,
     singleCheckoutText: `${checkOutDay} de ${monthNameEs}`,
   };
 }

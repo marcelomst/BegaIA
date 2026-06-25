@@ -8,6 +8,14 @@ let lastAvailabilitySlotsSnapshot: Record<string, unknown> | null = null;
 
 const runAvailabilityCheckMock = vi.hoisted(() =>
   vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => {
+    const roomLabel =
+      String(slots.roomType || "double") === "double"
+        ? pre?.lang === "pt"
+          ? "duplo"
+          : pre?.lang === "en"
+            ? "double"
+            : "doble"
+        : String(slots.roomType || "double");
     lastAvailabilityGuestSnapshot = {
       name: String(pre?.guest?.name || ""),
       firstName: String(pre?.guest?.firstName || ""),
@@ -18,7 +26,7 @@ const runAvailabilityCheckMock = vi.hoisted(() =>
       checkOut: coISO,
     };
     return {
-      finalText: `Tengo ${String(slots.roomType || "double")} disponible para ${String(slots.guestName || "el huésped")}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+      finalText: `Tengo ${roomLabel} disponible para ${String(slots.guestName || "el huésped")}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
       nextSlots: {
         ...slots,
         checkIn: ciISO,
@@ -127,7 +135,7 @@ function restoreEnv(name: string, value: string | undefined) {
   process.env[name] = value;
 }
 
-function msg(content: string, channel: "web" | "email" | "whatsapp" = "web") {
+function msg(content: string, channel: "web" | "email" | "whatsapp" = "web", detectedLanguage: "es" | "pt" | "en" = "es") {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
     hotelId: "hotel999",
@@ -137,7 +145,7 @@ function msg(content: string, channel: "web" | "email" | "whatsapp" = "web") {
     timestamp: new Date().toISOString(),
     conversationId: `conv-word-dates-${channel}`,
     guestId: channel === "whatsapp" ? "whatsapp:+59891359375" : "g1",
-    detectedLanguage: "es",
+    detectedLanguage,
   } as any;
 }
 
@@ -338,6 +346,91 @@ describe("messageHandler create word dates without explicit year", () => {
       checkOut: dates.checkOutISO,
     });
     expect(guestRecord?.name).toBe("Martín Perez");
+  });
+
+  it("resuelve variante ES 'para el 27 hasta el 30 de Julio' y cotiza sin pedir check-out", async () => {
+    const dates = futureMonthDayReservationRange(7, 27, 30);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        `Hola, soy Raul. Quiero hacer una reserva para el ${dates.wordRangeTextUntilEs}, una doble para 2 personas a nombre de Pep Guardiola.`,
+        "web",
+        "es"
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replies = replyTexts(sendReply);
+    expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+    expect(lastAvailabilityGuestSnapshot?.name).toBe("Raul");
+    expect(lastAvailabilitySlotsSnapshot).toMatchObject({
+      guestName: "Pep Guardiola",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+    });
+    expect(replies[0] || "").toMatch(/Raul/i);
+    expect(replies[0] || "").toMatch(/doble disponible/i);
+    expect(replies[0] || "").toMatch(/Pep Guardiola/i);
+    expect(replies.some((text) => /confirmarme también la fecha de check-?out|fecha de check-?out|Anot[eé] nuevas fechas|posibles diferencias/i.test(text))).toBe(false);
+  });
+
+  it("resuelve variante PT con 'até' y cotiza sin pedir check-out", async () => {
+    const dates = futureMonthDayReservationRange(8, 25, 27);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        `Quero reservar um quarto duplo de ${dates.wordRangeTextPtAte} para duas pessoas, em nome de Pep Guardiola.`,
+        "web",
+        "pt"
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replies = replyTexts(sendReply);
+    expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+    expect(lastAvailabilitySlotsSnapshot).toMatchObject({
+      guestName: "Pep Guardiola",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+    });
+    expect(replies[0] || "").toMatch(/duplo disponible|duplo dispon/i);
+    expect(replies[0] || "").toMatch(/Pep Guardiola/i);
+    expect(replies.some((text) => /check-?out|Anot[eé] novas fechas|Anotei as novas datas|pos[ií]veis diferen/i.test(text))).toBe(false);
+  });
+
+  it("resuelve variante EN from/to y cotiza sin pedir check-out", async () => {
+    const dates = futureMonthDayReservationRange(8, 25, 27);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        `Hi, I am Raul. I want to book a double room for two people from ${dates.wordRangeTextEnFromTo} under the name of Pep Guardiola.`,
+        "web",
+        "en"
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replies = replyTexts(sendReply);
+    expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+    expect(lastAvailabilityGuestSnapshot?.name).toBe("Raul");
+    expect(lastAvailabilitySlotsSnapshot).toMatchObject({
+      guestName: "Pep Guardiola",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: dates.checkInISO,
+      checkOut: dates.checkOutISO,
+    });
+    expect(replies[0] || "").toMatch(/Raul/i);
+    expect(replies[0] || "").toMatch(/double disponible|double available/i);
+    expect(replies[0] || "").toMatch(/Pep Guardiola/i);
+    expect(replies.some((text) => /check-?out date|fecha de check-?out|Anot[eé] nuevas fechas|posibles diferencias/i.test(text))).toBe(false);
   });
 
   it("con grafo activo no pide check-out si nextSlots ya contiene checkOut", async () => {
