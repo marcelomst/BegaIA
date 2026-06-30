@@ -1178,6 +1178,14 @@ function buildModifyInactiveTargetReply(lang: "es" | "en" | "pt"): string {
       : "No encuentro una reserva activa para aplicar esa modificación.";
 }
 
+function buildModifyReservationCodeNotFoundReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Não encontrei uma reserva ativa com esse código. Pode me passar outro código ou dizer a primeira, segunda ou terceira?"
+    : lang === "en"
+      ? "I could not find an active booking with that code. Could you share another code or say first, second, or third?"
+      : "No encontré una reserva activa con ese código. ¿Podés pasarme otro código o decir primera, segunda o tercera?";
+}
+
 function buildModifyMissingPatchReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "No detectei uma alteração concreta para aplicar. Me diga o que você quer mudar."
@@ -5298,7 +5306,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
       }
       const fastPathTurnSlots = toStrictSlots(extractSlotsFromText(userTxt0, pre.lang));
-      const explicitReservationCode0 = parseReservationCode(userTxt0);
+      const explicitReservationCode0 = parseReservationCode(userTxt0) || extractReservationCodeLikeToken(userTxt0);
       const fastPathSlots = mergeReservationSlots(pre.st?.reservationSlots, nextSlots, fastPathTurnSlots, {
         checkIn: dr0.checkIn,
         checkOut: dr0.checkOut,
@@ -6187,7 +6195,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const userTxt = String(pre.msg.content || "");
     const tLower = userTxt.toLowerCase();
     const hasAnaphoraReferenceFast = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxt));
-    const explicitReservationCodeFast = parseReservationCode(userTxt);
+    const explicitReservationCodeFast = parseReservationCode(userTxt) || extractReservationCodeLikeToken(userTxt);
     const resolutionFast = resolveReservationReference(pre.st, userTxt);
     const ordinalReservationTargetFast = resolveExplicitOrdinalReservationTarget(pre.st, userTxt);
     const actionableReservationCountFast = buildActionableReservationCandidates(pre.st).length;
@@ -6607,7 +6615,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const explicitOrdinalReservationTarget = resolveExplicitOrdinalReservationTarget(pre.st, userTxtRaw);
   const persistedSelectedReservationTarget = resolveSelectedReservationTarget(pre.st);
   const hasAnaphoraReference = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizedReferenceUserText);
-  const explicitReservationCode = parseReservationCode(userTxtRaw);
+  const explicitReservationCode = parseReservationCode(userTxtRaw) || extractReservationCodeLikeToken(userTxtRaw);
   const explicitIdReservationTarget = explicitReservationCode
     ? getReservationReferenceTargetById(pre.st, explicitReservationCode)
     : null;
@@ -7049,6 +7057,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
   }
   if (ambiguousReservationAction) {
+    if (ambiguousReservationAction === "modify") {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        modifyState: null,
+        updatedBy: "ai",
+      } as any);
+    }
     finalText = buildAmbiguousReservationSelectionReply(
       pre.lang,
       ambiguousReservationAction,
@@ -7216,6 +7234,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     resolvedReferenceReservationTarget
       ? resolvedReferenceReservationTarget
       : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget || resolveSingleActionableReservationTarget(pre.st);
+  if (modifyFocusActiveEarly && explicitReservationCode && !explicitIdReservationTarget && !explicitOrdinalReservationTarget) {
+    finalText = buildModifyReservationCodeNotFoundReply(pre.lang);
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      conversationFocus: buildConversationFocus("modify"),
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+      modifyState: null,
+      updatedBy: "ai",
+    } as any);
+    return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+  }
   const normalizedUserTxtForModify = normalizeReferenceText(userTxtRaw);
   const mentionsModifyDatesField = /\b(fechas|fecha|dates|date|datas|data|check-in|check out|check-out|entrada|salida|ingreso)\b/i.test(normalizedUserTxtForModify);
   const mentionsModifyRoomField = /\b(habitacion|habitación|tipo de habitacion|tipo de habitación|room type|room|quarto|tipo de quarto)\b/i.test(normalizedUserTxtForModify);
@@ -7254,7 +7284,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       hasExecutableModifyIntent ||
       (
         (pre.inModifyMode || pre.prevCategory === "modify_reservation" || pre.st?.desiredAction === "modify") &&
-        (hasExplicitModifyFieldRequest || hasImmediateModifyValue || hasTemporalModifySignal)
+        (hasExplicitModifyFieldRequest || hasImmediateModifyValue || hasTemporalModifySignal || Boolean(explicitReservationCode))
       )
     );
   if (
@@ -7264,6 +7294,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const target = resolvedModifyTarget;
     if (!target?.reservationId) {
       finalText = buildAskReservationCode(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (target.reservationStatus === "cancelled" || target.reservationStatus === "error") {
+      finalText = buildModifyInactiveTargetReply(pre.lang);
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        conversationFocus: buildConversationFocus("modify"),
+        activeFlow: "modify_reservation",
+        desiredAction: "modify",
+        lastCategory: "modify_reservation",
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(
+          target.reservationId,
+          explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : "active_focus",
+          explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
+        ),
+        modifyState: null,
+        updatedBy: "ai",
+      } as any);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     const recentModifyRoomType = getRecentModifyRoomTypeCandidate(pre);
@@ -8895,7 +8942,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const { flow: reservationFlow, confirmable: isReservationConfirmable } = isConfirmableReservationState(pre.st, nextSlots);
 
   // === Sprint 3: cancelar reserva ===
-  const cancelCodeFromUser = parseReservationCode(userTxtRaw);
+  const cancelCodeFromUser = parseReservationCode(userTxtRaw) || extractReservationCodeLikeToken(userTxtRaw);
   const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } | undefined;
   const inCancelFlow = pre.prevCategory === "cancel_reservation" || pre.st?.activeFlow === "cancel_reservation";
   const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
@@ -9340,7 +9387,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
       const codeFromUser =
         parseReservationCode(userTxtRaw) ||
+        extractReservationCodeLikeToken(userTxtRaw) ||
         parseReservationCode(String(pre.msg.content || "")) ||
+        extractReservationCodeLikeToken(String(pre.msg.content || "")) ||
         (reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
           ? reservationReference.target.reservationId
           : undefined) ||
@@ -9358,7 +9407,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         reservationReference.status === "resolved" &&
         reservationReference.target.kind === "draft" &&
         !parseReservationCode(userTxtRaw) &&
-        !parseReservationCode(String(pre.msg.content || ""))
+        !extractReservationCodeLikeToken(userTxtRaw) &&
+        !parseReservationCode(String(pre.msg.content || "")) &&
+        !extractReservationCodeLikeToken(String(pre.msg.content || ""))
       ) {
         if (!hasChanges) {
           finalText = pre.lang === "es"
@@ -11617,6 +11668,10 @@ function parseReservationCode(text: string): string | undefined {
     return normalized;
   }
   return undefined;
+}
+function extractReservationCodeLikeToken(text: string): string | undefined {
+  const candidates = String(text || "").match(/\b[A-Z]{1,8}-[A-Z0-9-]{4,24}\b/gi) || [];
+  return candidates[0]?.toUpperCase();
 }
 function buildAskReservationCode(lang: "es" | "en" | "pt"): string {
   return lang === "es" ? "¿Me compartís el *código de reserva*?"

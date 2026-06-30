@@ -267,6 +267,74 @@ function baseSingleReservationState(overrides: Record<string, any> = {}) {
   };
 }
 
+function baseAmbiguousModifyState(overrides: Record<string, any> = {}) {
+  return {
+    reservationSlots: {
+      guestName: "Laura Gómez",
+      roomType: "double",
+      checkIn: "2026-08-15",
+      checkOut: "2026-08-17",
+      numGuests: "2",
+    },
+    salesStage: "close",
+    conversationStage: "reservation_confirmed",
+    reservationHistory: [
+      {
+        reservationId: "RES-6543E5",
+        status: "created",
+        createdAt: "2026-08-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Martín Pérez",
+        roomType: "simple",
+        checkIn: "2026-08-20",
+        checkOut: "2026-08-22",
+        numGuests: "1",
+      },
+      {
+        reservationId: "RES-C386D0",
+        status: "created",
+        createdAt: "2026-08-02T10:00:00.000Z",
+        channel: "web",
+        guestName: "Ana Rodríguez",
+        roomType: "triple",
+        checkIn: "2026-08-25",
+        checkOut: "2026-08-27",
+        numGuests: "3",
+      },
+      {
+        reservationId: "RES-403A89",
+        status: "created",
+        createdAt: "2026-08-03T10:00:00.000Z",
+        channel: "web",
+        guestName: "Laura Gómez",
+        roomType: "double",
+        checkIn: "2026-08-15",
+        checkOut: "2026-08-17",
+        numGuests: "2",
+      },
+    ],
+    lastReservation: {
+      reservationId: "RES-403A89",
+      status: "created",
+      createdAt: "2026-08-03T10:00:00.000Z",
+      channel: "web",
+      guestName: "Laura Gómez",
+      roomType: "double",
+      checkIn: "2026-08-15",
+      checkOut: "2026-08-17",
+      numGuests: "2",
+    },
+    activeReservationContext: {
+      kind: "reservation",
+      reservationId: "RES-403A89",
+      phase: "confirmed",
+      updatedAt: "2026-08-03T10:00:00.000Z",
+    },
+    updatedAt: "2026-08-03T10:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("messageHandler reference resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1713,6 +1781,108 @@ describe("messageHandler reference resolution", () => {
     expect(previewReply).toMatch(/reserva res-only-01/i);
     expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
     expect(previewReply).not.toMatch(/qu[eé] te gustar[ií]a cambiar|c[oó]digo de reserva/i);
+  });
+
+  it.each([
+    "codigo RES-403A89",
+    "código RES-403A89",
+    "RES-403A89",
+  ])("recover modify ambiguity by reservationId with %s", async (content) => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = `conv-ref-modify-code-recovery-${content.replace(/\W+/g, "-").toLowerCase()}`;
+    stateByConversation.set(conversationId, baseAmbiguousModifyState());
+
+    await handleIncomingMessage(msg("Quiero cambiar una reserva", conversationId), { mode: "automatic", sendReply });
+
+    const firstReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(firstReply).toMatch(/varias reservas|cu[aá]l quer[eé]s modificar|c[oó]digo/i);
+    expect(stateByConversation.get(conversationId)?.lastCategory).toBe("modify_reservation");
+
+    await handleIncomingMessage(msg(content, conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-403A89/i);
+    expect(replyText).toMatch(/Ok, vamos a modificar esta reserva|Podemos modificar tu reserva confirmada/i);
+    expect(replyText).toMatch(/Laura Gómez/i);
+    expect(replyText).toMatch(/qué te gustaría cambiar|cambiar fechas|cambiar habitación|cambiar huéspedes/i);
+    expect(replyText).not.toMatch(/¿En qué puedo ayudarte\?|fallback/i);
+    expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+      reservationId: "RES-403A89",
+    });
+    expect(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+  });
+
+  it("rejects unknown reservationId during modify ambiguity recovery", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-code-unknown-1";
+    stateByConversation.set(conversationId, baseAmbiguousModifyState());
+
+    await handleIncomingMessage(msg("Quiero cambiar una reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("codigo RES-NOEXISTE", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/no encontr[eé].*c[oó]digo|otro c[oó]digo|primera, segunda o tercera/i);
+    expect(replyText).not.toMatch(/¿En qu[eé] puedo ayudarte\?/i);
+    expect(stateByConversation.get(conversationId)?.lastCategory).toBe("modify_reservation");
+  });
+
+  it("rejects cancelled reservationId during modify ambiguity recovery", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-code-cancelled-1";
+    stateByConversation.set(
+      conversationId,
+      baseAmbiguousModifyState({
+        reservationHistory: [
+          {
+            reservationId: "RES-6543E5",
+            status: "created",
+            createdAt: "2026-08-01T10:00:00.000Z",
+            channel: "web",
+            guestName: "Martín Pérez",
+            roomType: "simple",
+            checkIn: "2026-08-20",
+            checkOut: "2026-08-22",
+            numGuests: "1",
+          },
+          {
+            reservationId: "RES-CANCEL-01",
+            status: "cancelled",
+            createdAt: "2026-08-03T10:00:00.000Z",
+            channel: "web",
+            guestName: "Laura Gómez",
+            roomType: "double",
+            checkIn: "2026-08-15",
+            checkOut: "2026-08-17",
+            numGuests: "2",
+          },
+        ],
+        lastReservation: {
+          reservationId: "RES-CANCEL-01",
+          status: "cancelled",
+          createdAt: "2026-08-03T10:00:00.000Z",
+          channel: "web",
+          guestName: "Laura Gómez",
+          roomType: "double",
+          checkIn: "2026-08-15",
+          checkOut: "2026-08-17",
+          numGuests: "2",
+        },
+        activeReservationContext: {
+          kind: "reservation",
+          reservationId: "RES-CANCEL-01",
+          phase: "cancelled",
+          updatedAt: "2026-08-03T10:00:00.000Z",
+        },
+      })
+    );
+
+    await handleIncomingMessage(msg("Quiero cambiar una reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("RES-CANCEL-01", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/no encuentro una reserva activa para aplicar esa modificación|no encuentro una reserva activa/i);
+    expect(replyText).not.toMatch(/¿En qu[eé] puedo ayudarte\?/i);
+    expect(stateByConversation.get(conversationId)?.lastCategory).toBe("modify_reservation");
   });
 
   it("muestra preview con ordinal cuando el mismo turno trae roomType, huéspedes y fechas", async () => {
