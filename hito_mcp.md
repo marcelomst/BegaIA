@@ -11104,3 +11104,69 @@ Impacto:
 - alinea el parser temporal con variantes reales de ES/PT/EN sin relajar guards
 - fortalece el fast-path de `create` y la frontera `create -> availability`
 - deja fuera de alcance la familia sintáctica etiquetada `ingreso/egreso` o `check-in/check-out`
+
+### FIX-MODIFY-AMBIGUITY-RECOVERY-BY-RESERVATION-ID-01
+
+Estado: COMPLETADO  
+Fecha: 2026-06-30  
+Commit: ebffb82b9920ab76a1483a358af2adc54dc1e70e
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix runtime sobre `modify` con múltiples reservas activas. Corrige la
+recuperación de ambigüedad cuando el usuario responde con `reservationId`
+explícito, preserva la continuidad del subflujo de modificación tras la
+selección por código y rechaza de forma segura códigos inexistentes o reservas
+canceladas/inactivas.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- `baseline_commit` previo auditado:
+  `c7afb850009dab3c8838d14c7da59b78163f3089`
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel`
+  `runtime.messageHandler.reference_resolution`
+  `runtime.messageHandler.selectedReservationTarget_resolution`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.modify*.spec.ts test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts test/unit/messageHandler.confirm_followup.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+- validación manual requerida para:
+  listado de reservas seguido de `modify` ambiguo
+  recuperación por `codigo RES-XXXXXX`
+  recuperación por `código RES-XXXXXX`
+  recuperación por `RES-XXXXXX` pelado
+  selección de campo posterior
+  preview antes de ejecución
+  confirmación explícita antes de aplicar cambios
+- audit de cancel:
+  helper compartido de reconocimiento de token tipo `reservationId`
+  `contract_change: false`
+  `guards_relaxed: false`
+  `execution_without_confirmation: false`
+- candidato futuro explícito:
+  `FIX-CANCEL-PREVIEW-BEFORE-CONFIRMATION-01`
+
+Impacto:
+
+- evita caída a fallback genérico ante respuestas válidas de desambiguación por código
+- conserva el foco de `modify` y exige target real activo antes de continuar
+- mantiene el contrato canónico de preview más confirmación antes de ejecutar cambios
+- toca `cancel` solo por reutilización segura del helper compartido, sin alterar su contrato

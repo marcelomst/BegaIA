@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 4d3cd1d
-messageHandler_lines: 12031
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v23
+commit_base: ebffb82
+messageHandler_lines: 12086
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v24
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_4d3cd1dfea48d536986e36b2fde28ff9b6841d35
+analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
 ```
 
 ---
@@ -29,11 +29,9 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
 result: pass
-pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
-result: pass
-pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
+pnpm vitest run test/unit/messageHandler.modify*.spec.ts test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts test/unit/messageHandler.confirm_followup.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -70,16 +68,16 @@ create_date_correction_language_stickiness_commit: e67ba4968d2275211fe63673cf642
 inline_conversational_actor_multilingual_cross_channel_commit: bc1113a7d298208ddec966fd2283ad7314efb63a
 create_word_dates_no_year_cross_channel_commit: 7f11b089ee7d515456ae410914798d364aa47428
 create_word_date_range_syntax_variants_multilingual_commit: 4d3cd1dfea48d536986e36b2fde28ff9b6841d35
+modify_ambiguity_recovery_by_reservation_id_commit: ebffb82b9920ab76a1483a358af2adc54dc1e70e
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- create con variantes ES/PT/EN de rango natural no debe pedir `check-out` si el rango ya quedó consolidado
-- conectores y variantes ordinales de fechas naturales deben extraerse como rango completo dentro de `create`
-- alias PT `duplo` debe normalizarse a `double` sin romper el fast-path de cotización
-- debe preservarse interlocutor conversacional vs `guestName` transaccional
-- la familia etiquetada `ingreso/egreso` o `check-in/check-out` sigue fuera de alcance de este hito
+- modify ambiguo debe recuperarse si el usuario responde con `reservationId` explícito válido
+- la selección por código debe conservar el foco del subflujo `modify`
+- códigos inexistentes o reservas canceladas/inactivas deben rechazarse sin abrir ejecución
+- el contrato de preview más confirmación debe mantenerse antes de aplicar cambios
 ```
 
 ---
@@ -87,10 +85,10 @@ create_word_date_range_syntax_variants_multilingual_commit: 4d3cd1dfea48d536986e
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`4d3cd1d`.
+`ebffb82`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
-se fija sobre el commit técnico actual y toma `7f11b08` como baseline previo del
+se fija sobre el commit técnico actual y toma `c7afb85` como baseline previo del
 Runtime Map formal.
 
 ```text
@@ -105,9 +103,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `4d3cd1d`
-2. Corredor `create` refrescado para variantes sintácticas multilingües ES/PT/EN
+1. Snapshot base a commit real `ebffb82`
+2. Corredor `modify` refrescado para recuperación de ambigüedad por `reservationId`
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para slot extraction, fast-path gating y boundary `create -> availability`
+5. box index machine-friendly refrescado para `reference_resolution`, `selectedReservationTarget` y helper compartido de código de reserva
 ```

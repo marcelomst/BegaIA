@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 4d3cd1d
-messageHandler_lines: 12031
+commit_base: ebffb82
+messageHandler_lines: 12086
 working_tree_status: clean
-analysis_scope: commit_4d3cd1dfea48d536986e36b2fde28ff9b6841d35
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v23
+analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v24
 known_manual_bug: none
 ```
 
@@ -56,25 +56,22 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - slot_extraction
-    - temporal_slot_extraction
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - create_word_dates
-    - create_quote_fast_path_gating
-    - create_to_availability_boundary
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.reference_resolution
+    - runtime.messageHandler.selectedReservationTarget_resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.preview
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create con variantes naturales ES/PT/EN consolida `checkOut` sin pedirlo de nuevo
-      - conectores y variantes ordinales quedan absorbidos como rango temporal completo
-      - alias PT `duplo` normaliza a `double` dentro del payload de create
-      - interlocutor conversacional y `guestName` transaccional permanecen separados
+      - modify ambiguo recupera por `reservationId` explícito sin caer en fallback genérico
+      - la respuesta `RES-XXXXXX` pelada conserva el foco del subflujo `modify`
+      - códigos inexistentes o reservas canceladas/inactivas no avanzan a ejecución
+      - preview y confirmación explícita siguen siendo obligatorios antes de aplicar cambios
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -156,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12031
+        range: L1-L12086
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -184,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11707-L12031
+        range: L11762-L12086
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -214,7 +211,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4284-L4533
+        range: L4292-L4541
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -249,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5046-L11661
+        range: L5054-L11716
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision

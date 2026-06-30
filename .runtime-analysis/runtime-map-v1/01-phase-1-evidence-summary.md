@@ -21,19 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 4d3cd1d
-messageHandler_lines: 12031
+commit_base: ebffb82
+messageHandler_lines: 12086
 working_tree_status: clean
-analysis_scope: commit_4d3cd1dfea48d536986e36b2fde28ff9b6841d35
+analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/helpers.extractSlotsFromText.spec.ts test/unit/reservation_dynamic_dates_guard.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_word_dates_no_year.spec.ts
-    - pnpm vitest run test/unit/messageHandler.create_sequencing.spec.ts test/unit/messageHandler.slot_ingestion.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm vitest run test/unit/messageHandler.modify*.spec.ts test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts test/unit/messageHandler.confirm_followup.spec.ts
     - pnpm run ts-check
     - pnpm test
 known_manual_bug: none
@@ -44,25 +43,22 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - slot_extraction
-    - temporal_slot_extraction
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - create_word_dates
-    - create_quote_fast_path_gating
-    - create_to_availability_boundary
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.reference_resolution
+    - runtime.messageHandler.selectedReservationTarget_resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.preview
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create con variantes naturales ES/PT/EN consolida `checkOut` sin pedirlo de nuevo
-      - conectores y variantes ordinales quedan absorbidos como rango temporal completo
-      - alias PT `duplo` normaliza a `double` dentro del payload de create
-      - interlocutor conversacional y `guestName` transaccional permanecen separados
+      - modify ambiguo recupera por `reservationId` explícito sin caer en fallback genérico
+      - la respuesta `RES-XXXXXX` pelada conserva el foco del subflujo de modificación
+      - códigos inexistentes o reservas canceladas/inactivas no avanzan a ejecución
+      - preview y confirmación explícita siguen siendo obligatorios antes de aplicar cambios
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -70,13 +66,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 4d3cd1d
-    messageHandler_lines: 12031
+    commit: ebffb82
+    messageHandler_lines: 12086
     functions:
-      preLLM: L4284-L4533
-      bodyLLM: L5046-L11661
-      posLLM: L11662-L11706
-      handleIncomingMessage: L11707-L12031
+      preLLM: L4292-L4541
+      bodyLLM: L5054-L11716
+      posLLM: L11717-L11761
+      handleIncomingMessage: L11762-L12086
 ```
 
 ---
@@ -85,18 +81,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2128-L2628 |    501 | high      |
-| `resolveReservationReference`        | L2629-L2968 |    340 | high      |
-| `detectDominantTurnDomain`           | L2969-L3252 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3253-L3424 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3425-L3477 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3478-L3614 |    137 | high      |
-| `assessReservationDateCoherence`     | L3615-L4094 |    480 | high      |
-| `tryStructuredAnalyze`               | L4095-L4283 |    189 | high      |
-| `preLLM`                             | L4284-L4533 |    250 | high      |
-| `bodyLLM`                            | L5046-L11661 |   6616 | high      |
-| `posLLM`                             | L11662-L11706 |     45 | high      |
-| `handleIncomingMessage`              | L11707-L12031 |    325 | high      |
+| `buildReservationCanonicalState`     | L2136-L2636 |    501 | high      |
+| `resolveReservationReference`        | L2637-L2976 |    340 | high      |
+| `detectDominantTurnDomain`           | L2977-L3260 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3261-L3432 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3433-L3485 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3486-L3622 |    137 | high      |
+| `assessReservationDateCoherence`     | L3623-L4102 |    480 | high      |
+| `tryStructuredAnalyze`               | L4103-L4291 |    189 | high      |
+| `preLLM`                             | L4292-L4541 |    250 | high      |
+| `bodyLLM`                            | L5054-L11716 |   6663 | high      |
+| `posLLM`                             | L11717-L11761 |     45 | high      |
+| `handleIncomingMessage`              | L11762-L12086 |    325 | high      |
 
 ---
 
@@ -105,8 +101,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12031 líneas
-bodyLLM:                6616 líneas
+messageHandler.ts total: 12086 líneas
+bodyLLM:                6663 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -125,10 +121,10 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- rangos naturales multilingües consolidados dentro de create
-- hardening del parser base para conectores y variantes ordinales ES/PT/EN
-- fast-path que evita pedir `checkOut` si el rango ya llegó completo
-- compatibilidad PT de `roomType` vía alias `duplo -> double`
+- recuperación de ambigüedad por `reservationId` explícito dentro de modify
+- preservación del selected target activo tras desambiguación por código
+- helper compartido de reconocimiento de token tipo código de reserva
+- rechazo seguro de reservas inexistentes, canceladas o inactivas
 - early returns
 
 ---
