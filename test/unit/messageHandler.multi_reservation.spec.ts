@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { futureReservationDateRange } from "../utils/reservationDates";
 
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
@@ -294,6 +295,7 @@ describe("messageHandler multi reservation", () => {
   });
 
   it("otra reserva con payload completo en el mismo turno por email cotiza la nueva y no reutiliza la anterior", async () => {
+    const dates = futureReservationDateRange(40, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage({
@@ -301,7 +303,7 @@ describe("messageHandler multi reservation", () => {
       hotelId: "hotel999",
       channel: "email",
       sender: "guest",
-      content: "quiero hacer otra reserva para el dia 01/07/2026 al 03/07/2026, una triple, para 3 personas a nombre de Pablo Roca",
+      content: `quiero hacer otra reserva para el dia ${dates.checkInText} al ${dates.checkOutText}, una triple, para 3 personas a nombre de Pablo Roca`,
       timestamp: new Date().toISOString(),
       conversationId: "conv-multi-3c",
       guestId: "g1",
@@ -318,8 +320,8 @@ describe("messageHandler multi reservation", () => {
         }),
         salesStage: "quote",
         reservationSlots: {
-          checkIn: "2026-07-01",
-          checkOut: "2026-07-03",
+          checkIn: dates.checkInISO,
+          checkOut: dates.checkOutISO,
           guestName: "Pablo Roca",
           numGuests: "3",
           roomType: "triple",
@@ -333,6 +335,7 @@ describe("messageHandler multi reservation", () => {
   });
 
   it("create explícito con payload suficiente rompe continuidad de modify y no actualiza la reserva previa", async () => {
+    const dates = futureReservationDateRange(43, 9);
     const sendReply = vi.fn(async () => {});
     (getConvState as any).mockResolvedValue({
       ...confirmedState,
@@ -350,7 +353,7 @@ describe("messageHandler multi reservation", () => {
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: "quiero hacer otra reserva para el dia 01/07/2026 al 10/07/2026, habitacion single, para 1 persona, a nombre de Raul Olivera",
+      content: `quiero hacer otra reserva para el dia ${dates.checkInText} al ${dates.checkOutText}, habitacion single, para 1 persona, a nombre de Raul Olivera`,
       timestamp: new Date().toISOString(),
       conversationId: "conv-multi-4",
       guestId: "g1",
@@ -368,8 +371,8 @@ describe("messageHandler multi reservation", () => {
         }),
         salesStage: "quote",
         reservationSlots: {
-          checkIn: "2026-07-01",
-          checkOut: "2026-07-10",
+          checkIn: dates.checkInISO,
+          checkOut: dates.checkOutISO,
           guestName: "Raul Olivera",
           numGuests: "1",
           roomType: "single",
@@ -587,6 +590,7 @@ describe("messageHandler multi reservation", () => {
   });
 
   it("en multi-reserva usa vocativo solo desde guest canónico y conserva el titular nuevo", async () => {
+    const dates = futureReservationDateRange(55, 9);
     (getGuest as any).mockResolvedValue({
       guestId: "g1",
       hotelId: "hotel999",
@@ -610,7 +614,7 @@ describe("messageHandler multi reservation", () => {
       hotelId: "hotel999",
       channel: "web",
       sender: "guest",
-      content: "quiero hacer otra reserva para el dia 01/07/2026 al 10/07/2026, habitacion single, para 1 persona, a nombre de Ana Gomez",
+      content: `quiero hacer otra reserva para el dia ${dates.checkInText} al ${dates.checkOutText}, habitacion single, para 1 persona, a nombre de Ana Gomez`,
       timestamp: new Date().toISOString(),
       conversationId: "conv-multi-9",
       guestId: "g1",
