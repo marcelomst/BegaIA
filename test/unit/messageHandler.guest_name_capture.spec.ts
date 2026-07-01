@@ -415,8 +415,61 @@ describe("messageHandler guest conversational name capture", () => {
     expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
   });
 
-  it("captura actor inline PT y guestName con 'em nome de' en web", async () => {
+  it("captura actor inline en un body email multilinea y preserva guestName", async () => {
+    const dates = futureBookingText(75, 2);
+    const sendReply = vi.fn(async () => {});
+    const { runAvailabilityCheck } = await import("@/lib/handlers/pipeline/availability");
+    vi.mocked(runAvailabilityCheck).mockResolvedValueOnce({
+      finalText: "Tengo triple disponible para Ana Rodríguez. Tarifa por noche: 130 USD. Total 2 noches: 260 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+      nextSlots: {
+        guestName: "Ana Rodríguez",
+        roomType: "triple",
+        checkIn: dates.checkInISO,
+        checkOut: dates.checkOutISO,
+        numGuests: "3",
+      },
+      needsHandoff: false,
+    });
+
+    await handleIncomingMessage(
+      msg(
+        `Hola, soy Martín P. Quisiera reservar una triple ${dates.delAlText} para\ntres personas, a nombre de Ana Rodríguez.`,
+        { channel: "email", detectedLanguage: "es", conversationId: "conv-inline-email-multiline-es" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(replyText).not.toMatch(/^Ana,\s+tengo/i);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(guestRecord?.firstName).toBe("Martín");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+    expect(guestRecord?.name).not.toBe("Ana Rodríguez");
+  });
+
+  it("captura actor inline en email aunque el body llegue con prefijo estilo Gmail", async () => {
     const dates = futureBookingText(76, 2);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        `marcelomst123 jun 2026, 9:40 (hace 8 días)Hola, soy Martín P. Quisiera reservar una triple ${dates.delAlText} para\ntres personas, a nombre de Ana Rodríguez.`,
+        { channel: "email", detectedLanguage: "es", conversationId: "conv-inline-email-gmail-noise-es" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/^Martín,\s+tengo triple disponible para Ana Rodríguez\./i);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(guestRecord?.firstName).toBe("Martín");
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Rodríguez");
+    expect(guestRecord?.name).not.toBe("Ana Rodríguez");
+  });
+
+  it("captura actor inline PT y guestName con 'em nome de' en web", async () => {
+    const dates = futureBookingText(77, 2);
     const sendReply = vi.fn(async () => {});
 
     await handleIncomingMessage(

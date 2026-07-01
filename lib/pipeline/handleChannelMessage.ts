@@ -7,6 +7,7 @@ const FORCE_GENERATION = process.env.FORCE_GENERATION === "1";
 const IS_TEST_ENV = process.env.NODE_ENV === "test" || Boolean((globalThis as any).vitest) || Boolean(process.env.VITEST);
 const ENABLE_TEST_FASTPATH = process.env.ENABLE_TEST_FASTPATH === "1" || process.env.DEBUG_FASTPATH === "1" || IS_TEST_ENV;
 const FAST_ROUTE_MODE = IS_TEST_ENV && !FORCE_GENERATION && ENABLE_TEST_FASTPATH;
+const DEBUG_EMAIL_ACTOR_CAPTURE = process.env.DEBUG_EMAIL_ACTOR_CAPTURE === "1";
 
 const processedMsgIds = new Set<string>();
 
@@ -80,13 +81,14 @@ export async function handleChannelMessage(input: {
   channel?: Channel;
 }> {
   const [
-    { handleIncomingMessage },
+    { handleIncomingMessage, extractExplicitConversationalActorName },
     { getAdapter },
     { getHotelConfig },
     { getMessagesByConversationService },
     { detectLanguage },
     { resolveGuestIdentity },
     conversationsDb,
+    guestsDb,
   ] =
     await Promise.all([
       import("@/lib/handlers/messageHandler"),
@@ -96,6 +98,7 @@ export async function handleChannelMessage(input: {
       import("@/lib/utils/language"),
       import("@/lib/pipeline/resolveGuestIdentity"),
       import("@/lib/db/conversations"),
+      import("@/lib/db/guests"),
     ]);
   const hotelId = normText(input.hotelId, 120);
   const channel = (normText(input.channel, 30) || "web") as Channel;
@@ -116,6 +119,23 @@ export async function handleChannelMessage(input: {
     rawGuestId,
   });
   const guestId = normText(resolvedIdentity.guestId, 120) || rawGuestId;
+  if (DEBUG_EMAIL_ACTOR_CAPTURE && channel === "email") {
+    console.info("[EMAIL_ACTOR_CAPTURE]", {
+      stage: "email_actor_capture",
+      phase: "resolved_identity",
+      hotelId,
+      channel,
+      resolvedGuestId: guestId,
+      incomingGuestId: rawGuestId,
+      senderIdentity: sender,
+      contentPreview: content.slice(0, 240),
+      extractedActorName: null,
+      derivedFirstName: null,
+      updateGuestCalled: false,
+      updateGuestPatch: null,
+      updateGuestResult_or_error: null,
+    });
+  }
   let conversationId = explicitConversationId;
   if (!conversationId && guestId) {
     const existingConversation = await conversationsDb.findActiveConversationByGuestId({
@@ -173,6 +193,74 @@ export async function handleChannelMessage(input: {
     isForwarded: typeof input.isForwarded === "boolean" ? input.isForwarded : undefined,
     meta: input.meta,
   };
+
+  if (channel === "email") {
+    const explicitConversationalActor = extractExplicitConversationalActorName(content);
+    const firstName = explicitConversationalActor
+      ? explicitConversationalActor.split(/\s+/)[0] || explicitConversationalActor
+      : null;
+    const updateGuestPatch = explicitConversationalActor
+      ? { name: explicitConversationalActor, firstName: firstName || explicitConversationalActor }
+      : null;
+    if (DEBUG_EMAIL_ACTOR_CAPTURE) {
+      console.info("[EMAIL_ACTOR_CAPTURE]", {
+        stage: "email_actor_capture",
+        phase: "before_update",
+        hotelId,
+        channel,
+        resolvedGuestId: guestId,
+        incomingGuestId: rawGuestId,
+        senderIdentity: sender,
+        contentPreview: content.slice(0, 240),
+        extractedActorName: explicitConversationalActor || null,
+        derivedFirstName: firstName,
+        updateGuestCalled: Boolean(explicitConversationalActor),
+        updateGuestPatch,
+        updateGuestResult_or_error: null,
+      });
+    }
+    if (explicitConversationalActor) {
+      try {
+        await guestsDb.updateGuest(hotelId, guestId, updateGuestPatch!);
+        if (DEBUG_EMAIL_ACTOR_CAPTURE) {
+          console.info("[EMAIL_ACTOR_CAPTURE]", {
+            stage: "email_actor_capture",
+            phase: "after_update",
+            hotelId,
+            channel,
+            resolvedGuestId: guestId,
+            incomingGuestId: rawGuestId,
+            senderIdentity: sender,
+            contentPreview: content.slice(0, 240),
+            extractedActorName: explicitConversationalActor,
+            derivedFirstName: firstName,
+            updateGuestCalled: true,
+            updateGuestPatch,
+            updateGuestResult_or_error: "success",
+          });
+        }
+      } catch (error) {
+        if (DEBUG_EMAIL_ACTOR_CAPTURE) {
+          console.error("[EMAIL_ACTOR_CAPTURE]", {
+            stage: "email_actor_capture",
+            phase: "update_error",
+            hotelId,
+            channel,
+            resolvedGuestId: guestId,
+            incomingGuestId: rawGuestId,
+            senderIdentity: sender,
+            contentPreview: content.slice(0, 240),
+            extractedActorName: explicitConversationalActor,
+            derivedFirstName: firstName,
+            updateGuestCalled: true,
+            updateGuestPatch,
+            updateGuestResult_or_error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        throw error;
+      }
+    }
+  }
 
   const adapter = getAdapter(channel);
   const opts: Parameters<typeof handleIncomingMessage>[1] = { mode: cfgMode };

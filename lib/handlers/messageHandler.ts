@@ -237,9 +237,10 @@ function extractInlineConversationalActorFromTail(tail: string): string | undefi
   return sanitizeInlineConversationalActorCandidate(candidate);
 }
 
-function extractExplicitConversationalActorName(text: string): string | undefined {
+export function extractExplicitConversationalActorName(text: string): string | undefined {
   const rawText = String(text || "").trim();
   if (!rawText) return undefined;
+  const normalizedText = rawText.replace(/\s+/g, " ").trim();
 
   const patterns = [
     /^(?:\s*(?:hola|buenas|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches)[,!\s-]*)?(?:soy|me\s+llamo|mi\s+nombre\s+es|ac[aá]|te\s+escribe)\s+(.+)$/iu,
@@ -247,13 +248,30 @@ function extractExplicitConversationalActorName(text: string): string | undefine
     /^(?:\s*(?:hi|hello|hey)[,!\s-]*)?(?:i\s+am|i['’]m|my\s+name\s+is|this\s+is)\s+(.+)$/iu,
   ];
 
-  for (const pattern of patterns) {
-    const match = rawText.match(pattern);
-    const candidate = extractInlineConversationalActorFromTail(match?.[1] || "");
+  const tryExtractFromStart = (candidateText: string): string | undefined => {
+    for (const pattern of patterns) {
+      const match = candidateText.match(pattern);
+      const candidate = extractInlineConversationalActorFromTail(match?.[1] || "");
+      if (candidate) return candidate;
+    }
+    return undefined;
+  };
+
+  const directCandidate = tryExtractFromStart(normalizedText);
+  if (directCandidate) return directCandidate;
+
+  const introMatcher =
+    /\b(?:hola|buenas|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches|soy|me\s+llamo|mi\s+nombre\s+es|ac[aá]|te\s+escribe|ol[aá]|oi|sou|me\s+chamo|meu\s+nome\s+[ée]|aqui\s+[ée]|quem\s+fala\s+[ée]|hi|hello|hey|i\s+am|i['’]m|my\s+name\s+is|this\s+is)\b/giu;
+  const seenOffsets = new Set<number>();
+  for (const match of normalizedText.matchAll(introMatcher)) {
+    const offset = match.index ?? -1;
+    if (offset < 0 || seenOffsets.has(offset)) continue;
+    seenOffsets.add(offset);
+    const candidate = tryExtractFromStart(normalizedText.slice(offset));
     if (candidate) return candidate;
   }
 
-  const hereMatch = rawText.match(/^(?:\s*(?:hi|hello|hey)[,!\s-]*)?([\p{L}][\p{L}'’. -]{1,58}?)\s+here\b/iu);
+  const hereMatch = normalizedText.match(/^(?:\s*(?:hi|hello|hey)[,!\s-]*)?([\p{L}][\p{L}'’. -]{1,58}?)\s+here\b/iu);
   const hereCandidate = sanitizeInlineConversationalActorCandidate(hereMatch?.[1] || "");
   if (hereCandidate) return hereCandidate;
 
@@ -261,27 +279,103 @@ function extractExplicitConversationalActorName(text: string): string | undefine
 }
 
 async function applyExplicitConversationalActorToGuest(
-  msg: Pick<ChannelMessage, "hotelId" | "guestId" | "content">,
+  msg: Pick<ChannelMessage, "hotelId" | "guestId" | "channel" | "content">,
   guest: any,
   guestId: string,
   now: string,
 ): Promise<any> {
   const explicitConversationalActor = extractExplicitConversationalActorName(String(msg.content || ""));
-  if (!explicitConversationalActor) return guest;
+  const debugEmailActorCapture = process.env.DEBUG_EMAIL_ACTOR_CAPTURE === "1" && msg.channel === "email";
+  if (!explicitConversationalActor) {
+    if (debugEmailActorCapture) {
+      console.info("[EMAIL_ACTOR_CAPTURE]", {
+        stage: "messageHandler_actor_capture",
+        phase: "actor_not_found",
+        hotelId: msg.hotelId,
+        guestId: msg.guestId || guestId,
+        channel: msg.channel,
+        textPreview: String(msg.content || "").slice(0, 240),
+        extractedActorName: null,
+        updateGuestCalled: false,
+        updateGuestResult_or_error: null,
+      });
+    }
+    return guest;
+  }
 
   const currentGuestName = String(guest?.name || "").trim();
   const currentGuestFirstName = String(guest?.firstName || "").trim();
   const nextGuestFirstName = explicitConversationalActor.split(/\s+/)[0] || explicitConversationalActor;
   const targetGuestId = String(guest?.guestId || guestId || "").trim();
   if (currentGuestName === explicitConversationalActor && currentGuestFirstName === nextGuestFirstName) {
+    if (debugEmailActorCapture) {
+      console.info("[EMAIL_ACTOR_CAPTURE]", {
+        stage: "messageHandler_actor_capture",
+        phase: "already_persisted",
+        hotelId: msg.hotelId,
+        guestId: targetGuestId || msg.guestId || guestId,
+        channel: msg.channel,
+        textPreview: String(msg.content || "").slice(0, 240),
+        extractedActorName: explicitConversationalActor,
+        updateGuestCalled: false,
+        updateGuestResult_or_error: "already_persisted",
+      });
+    }
     return guest;
   }
 
-  await updateGuest(msg.hotelId, targetGuestId || guestId, {
+  const updateGuestPatch = {
     name: explicitConversationalActor,
     firstName: nextGuestFirstName,
     updatedAt: now,
-  });
+  };
+  if (debugEmailActorCapture) {
+    console.info("[EMAIL_ACTOR_CAPTURE]", {
+      stage: "messageHandler_actor_capture",
+      phase: "before_update",
+      hotelId: msg.hotelId,
+      guestId: targetGuestId || msg.guestId || guestId,
+      channel: msg.channel,
+      textPreview: String(msg.content || "").slice(0, 240),
+      extractedActorName: explicitConversationalActor,
+      updateGuestCalled: true,
+      updateGuestPatch,
+      updateGuestResult_or_error: null,
+    });
+  }
+  try {
+    await updateGuest(msg.hotelId, targetGuestId || guestId, updateGuestPatch);
+  } catch (error) {
+    if (debugEmailActorCapture) {
+      console.error("[EMAIL_ACTOR_CAPTURE]", {
+        stage: "messageHandler_actor_capture",
+        phase: "update_error",
+        hotelId: msg.hotelId,
+        guestId: targetGuestId || msg.guestId || guestId,
+        channel: msg.channel,
+        textPreview: String(msg.content || "").slice(0, 240),
+        extractedActorName: explicitConversationalActor,
+        updateGuestCalled: true,
+        updateGuestPatch,
+        updateGuestResult_or_error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    throw error;
+  }
+  if (debugEmailActorCapture) {
+    console.info("[EMAIL_ACTOR_CAPTURE]", {
+      stage: "messageHandler_actor_capture",
+      phase: "after_update",
+      hotelId: msg.hotelId,
+      guestId: targetGuestId || msg.guestId || guestId,
+      channel: msg.channel,
+      textPreview: String(msg.content || "").slice(0, 240),
+      extractedActorName: explicitConversationalActor,
+      updateGuestCalled: true,
+      updateGuestPatch,
+      updateGuestResult_or_error: "success",
+    });
+  }
   return {
     ...(guest || {}),
     name: explicitConversationalActor,
@@ -11163,7 +11257,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     quotedReservationSnapshot.numGuests &&
     isSafeGuestName(quotedReservationSnapshot.guestName || "")
   ) {
-    finalText = applyConversationalProposalVocative(String(finalText || ""), pre.lang, pre.guest);
+    finalText = applyConversationalProposalVocative(String(finalText || ""), pre.lang, availabilityPre.guest);
   }
   if (
     !modifyExecutionActive &&

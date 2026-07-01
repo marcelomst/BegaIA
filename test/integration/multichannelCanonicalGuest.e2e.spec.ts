@@ -30,9 +30,13 @@ const {
   saveMessageIdempotentMock: vi.fn(),
 }));
 
-vi.mock("@/lib/handlers/messageHandler", () => ({
-  handleIncomingMessage: handleIncomingMessageMock,
-}));
+vi.mock("@/lib/handlers/messageHandler", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/handlers/messageHandler")>();
+  return {
+    ...actual,
+    handleIncomingMessage: handleIncomingMessageMock,
+  };
+});
 
 vi.mock("@/lib/adapters/registry", () => ({
   getAdapter: getAdapterMock,

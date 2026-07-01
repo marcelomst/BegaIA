@@ -208,6 +208,51 @@ describe("email pipeline identity", () => {
     );
   });
 
+  it("conserva una autopresentación inline aunque el body traiga prefijo estilo Gmail", async () => {
+    parseEmailToChannelMessageMock.mockResolvedValueOnce({
+      messageId: "parser-msg-gmail-noise-1",
+      conversationId: "hotel-email-1-email-legacy@example.com",
+      hotelId: "hotel-email-1",
+      channel: "email",
+      sender: "Legacy@Example.com",
+      guestId: "Legacy@Example.com",
+      content: "marcelomst123 jun 2026, 9:40 (hace 8 días)Hola, soy Martín P. Quisiera reservar una triple del 25 al 27 de julio para tres personas, a nombre de Ana Rodríguez.",
+      suggestion: "",
+      subject: "Consulta",
+      recipient: "hotel@example.com",
+      cc: [],
+      bcc: [],
+      attachments: [],
+      references: [],
+      inReplyTo: "",
+      originalMessageId: "<msg-gmail-noise-1@example.com>",
+      isForwarded: false,
+      role: "user",
+    });
+
+    await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Consulta",
+        messageId: "<msg-gmail-noise-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply: vi.fn(async () => {}),
+    });
+
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "marcelomst123 jun 2026, 9:40 (hace 8 días)Hola, soy Martín P. Quisiera reservar una triple del 25 al 27 de julio para tres personas, a nombre de Ana Rodríguez.",
+        guestId: "legacy@example.com",
+        sender: "legacy@example.com",
+        channel: "email",
+      }),
+    );
+  });
+
   it("no promueve una confirmacion citada cuando la parte nueva no confirma", async () => {
     parseEmailToChannelMessageMock.mockResolvedValueOnce({
       messageId: "parser-msg-quoted-3",
