@@ -21,19 +21,19 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ebffb82
-messageHandler_lines: 12086
+commit_base: 58af388
+messageHandler_lines: 12180
 working_tree_status: clean
-analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
+analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/unit/messageHandler.modify*.spec.ts test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts test/unit/messageHandler.confirm_followup.spec.ts
+    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
     - pnpm run ts-check
+    - git diff --check
     - pnpm test
 known_manual_bug: none
 ```
@@ -43,22 +43,23 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.reference_resolution
-    - runtime.messageHandler.selectedReservationTarget_resolution
+    - transport.email.inbound_adapter
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.identity_capture
+    - runtime.messageHandler.state.guest_identity
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.preview
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - modify ambiguo recupera por `reservationId` explícito sin caer en fallback genérico
-      - la respuesta `RES-XXXXXX` pelada conserva el foco del subflujo de modificación
-      - códigos inexistentes o reservas canceladas/inactivas no avanzan a ejecución
-      - preview y confirmación explícita siguen siendo obligatorios antes de aplicar cambios
+      - Email captura actor conversacional inline real en cuerpo simple, multilinea y Gmail-like
+      - el actor persiste sobre el guest canónico resuelto antes de entrar a `create`
+      - la cotización same-turn usa el vocativo del actor conversacional y no `guestName` transaccional
+      - `reservationSlots.guestName` permanece separado como titular de reserva
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -66,13 +67,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: ebffb82
-    messageHandler_lines: 12086
+    commit: 58af388
+    messageHandler_lines: 12180
     functions:
-      preLLM: L4292-L4541
-      bodyLLM: L5054-L11716
-      posLLM: L11717-L11761
-      handleIncomingMessage: L11762-L12086
+      preLLM: L4386-L4635
+      bodyLLM: L5148-L11810
+      posLLM: L11811-L11855
+      handleIncomingMessage: L11856-L12180
 ```
 
 ---
@@ -81,18 +82,18 @@ runtime_map_refresh:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2136-L2636 |    501 | high      |
-| `resolveReservationReference`        | L2637-L2976 |    340 | high      |
-| `detectDominantTurnDomain`           | L2977-L3260 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3261-L3432 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3433-L3485 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3486-L3622 |    137 | high      |
-| `assessReservationDateCoherence`     | L3623-L4102 |    480 | high      |
-| `tryStructuredAnalyze`               | L4103-L4291 |    189 | high      |
-| `preLLM`                             | L4292-L4541 |    250 | high      |
-| `bodyLLM`                            | L5054-L11716 |   6663 | high      |
-| `posLLM`                             | L11717-L11761 |     45 | high      |
-| `handleIncomingMessage`              | L11762-L12086 |    325 | high      |
+| `buildReservationCanonicalState`     | L2230-L2730 |    501 | high      |
+| `resolveReservationReference`        | L2731-L3070 |    340 | high      |
+| `detectDominantTurnDomain`           | L3071-L3354 |    284 | high      |
+| `getReservationDomainLockSignal`     | L3355-L3526 |    172 | high      |
+| `shouldUseReservationLocalFallback`  | L3527-L3579 |     53 | high      |
+| `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
+| `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
+| `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
+| `preLLM`                             | L4386-L4635 |    250 | high      |
+| `bodyLLM`                            | L5148-L11810 |   6663 | high      |
+| `posLLM`                             | L11811-L11855 |     45 | high      |
+| `handleIncomingMessage`              | L11856-L12180 |    325 | high      |
 
 ---
 
@@ -101,7 +102,7 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12086 líneas
+messageHandler.ts total: 12180 líneas
 bodyLLM:                6663 líneas
 ```
 
@@ -121,10 +122,10 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- recuperación de ambigüedad por `reservationId` explícito dentro de modify
-- preservación del selected target activo tras desambiguación por código
-- helper compartido de reconocimiento de token tipo código de reserva
-- rechazo seguro de reservas inexistentes, canceladas o inactivas
+- captura y persistencia de actor conversacional inline en Email
+- uso del guest canónico enriquecido en el vocativo same-turn de `create`
+- separación explícita entre actor conversacional y titular transaccional
+- continuidad multicanal entre inbound adapter Email y runtime principal
 - early returns
 
 ---

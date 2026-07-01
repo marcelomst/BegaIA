@@ -11170,3 +11170,103 @@ Impacto:
 - conserva el foco de `modify` y exige target real activo antes de continuar
 - mantiene el contrato canónico de preview más confirmación antes de ejecutar cambios
 - toca `cancel` solo por reutilización segura del helper compartido, sin alterar su contrato
+
+### FIX-MULTI-RESERVATION-CREATE-QUOTE-VOCATIVE-REGRESSION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-01  
+Commit: ea0f482fa54b1589be526f5168c68aa13e9fc6d8
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito acotado a reparación de tests. Sustituye fechas absolutas vencidas o
+fronterizas dentro de `multi_reservation` por el helper dinámico compartido y
+restablece la estabilidad temporal de la suite sin modificar runtime productivo.
+
+Archivos afectados:
+
+- `test/unit/messageHandler.multi_reservation.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.multi_reservation.spec.ts`
+  `pnpm test`
+- validación manual:
+  `not_required`
+
+Impacto:
+
+- repara fixtures temporales fronterizos en `multi_reservation`
+- preserva la semántica original de los casos multi-reserva
+- destraba la suite completa sin tocar runtime ni arquitectura
+
+### FIX-EMAIL-INLINE-CONVERSATIONAL-ACTOR-PARITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-01  
+Commit: 58af388c0b6b4cf05fcf0b53462e7c843daa416e
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix runtime sobre identidad conversacional en Email. Alinea la captura de
+actor conversacional inline con Web/WhatsApp, persiste el actor real sobre el
+guest canónico resuelto, preserva el boundary con `guestName` transaccional y
+aplica el vocativo correcto en la cotización `create` del mismo turno.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/pipeline/handleChannelMessage.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
+- `test/unit/email.pipelineIdentity.spec.ts`
+- `test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- `baseline_commit` previo auditado:
+  `ebffb82b9920ab76a1483a358af2adc54dc1e70e`
+- cajas tocadas:
+  `transport.email.inbound_adapter`
+  `runtime.messageHandler.preLLM`
+  `runtime.messageHandler.bodyLLM.identity_capture`
+  `runtime.messageHandler.state.guest_identity`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- validación manual requerida para:
+  email real con "Hola, soy Martín P.... a nombre de Ana Rodríguez"
+  Admin muestra `guest.name = "Martín P."`
+  Astra muestra `firstName = "Martín"`
+  same-turn vocative = `Martín`
+  `reservationSlots.guestName = "Ana Rodríguez"`
+  Ana Rodríguez no se usa como vocativo
+- suite completa destrabada por:
+  `FIX-MULTI-RESERVATION-CREATE-QUOTE-VOCATIVE-REGRESSION-01`
+  `ea0f482fa54b1589be526f5168c68aa13e9fc6d8`
+
+Impacto:
+
+- alinea Email con Web/WhatsApp en captura de actor conversacional inline
+- evita promover `guestName` transaccional a actor canónico
+- corrige el uso del guest enriquecido en la cotización same-turn
+- fortalece la identidad conversacional multicanal sin contaminar el titular transaccional

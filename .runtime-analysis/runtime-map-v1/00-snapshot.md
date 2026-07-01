@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ebffb82
-messageHandler_lines: 12086
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v24
+commit_base: 58af388
+messageHandler_lines: 12180
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v25
 known_manual_bug: none
 working_tree_status: clean
-analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
+analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
 ```
 
 ---
@@ -29,11 +29,11 @@ clean
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: pass
-pnpm vitest run test/unit/messageHandler.modify*.spec.ts test/unit/messageHandler.snapshot_followup_precedence_guard.spec.ts test/unit/messageHandler.confirm_followup.spec.ts
+pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
 result: pass
 pnpm run ts-check
+result: pass
+git diff --check
 result: pass
 pnpm test
 result: pass
@@ -69,15 +69,16 @@ inline_conversational_actor_multilingual_cross_channel_commit: bc1113a7d298208dd
 create_word_dates_no_year_cross_channel_commit: 7f11b089ee7d515456ae410914798d364aa47428
 create_word_date_range_syntax_variants_multilingual_commit: 4d3cd1dfea48d536986e36b2fde28ff9b6841d35
 modify_ambiguity_recovery_by_reservation_id_commit: ebffb82b9920ab76a1483a358af2adc54dc1e70e
+email_inline_conversational_actor_parity_commit: 58af388c0b6b4cf05fcf0b53462e7c843daa416e
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- modify ambiguo debe recuperarse si el usuario responde con `reservationId` explícito válido
-- la selección por código debe conservar el foco del subflujo `modify`
-- códigos inexistentes o reservas canceladas/inactivas deben rechazarse sin abrir ejecución
-- el contrato de preview más confirmación debe mantenerse antes de aplicar cambios
+- Email debe capturar el actor conversacional inline real incluso en cuerpo multilinea o Gmail-like
+- `guest.name` y `firstName` deben persistirse sobre el guest canónico resuelto
+- el vocativo same-turn de `create` debe usar al actor conversacional y no a `guestName` transaccional
+- `reservationSlots.guestName` debe seguir reservado para el titular transaccional
 ```
 
 ---
@@ -85,10 +86,10 @@ modify_ambiguity_recovery_by_reservation_id_commit: ebffb82b9920ab76a1483a358af2
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`ebffb82`.
+`58af388`.
 
 Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
-se fija sobre el commit técnico actual y toma `c7afb85` como baseline previo del
+se fija sobre el commit técnico actual y toma `ebffb82` como baseline previo del
 Runtime Map formal.
 
 ```text
@@ -103,9 +104,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `ebffb82`
-2. Corredor `modify` refrescado para recuperación de ambigüedad por `reservationId`
+1. Snapshot base a commit real `58af388`
+2. Corredor de identidad conversacional en Email refrescado para persistencia y vocativo same-turn
 3. Evidence summary refrescado
 4. code index refrescado
-5. box index machine-friendly refrescado para `reference_resolution`, `selectedReservationTarget` y helper compartido de código de reserva
+5. box index machine-friendly refrescado para inbound adapter Email, `guest_identity` y `identity_capture`
 ```

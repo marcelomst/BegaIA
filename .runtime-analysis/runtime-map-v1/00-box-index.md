@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: ebffb82
-messageHandler_lines: 12086
+commit_base: 58af388
+messageHandler_lines: 12180
 working_tree_status: clean
-analysis_scope: commit_ebffb82b9920ab76a1483a358af2adc54dc1e70e
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v24
+analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
+baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v25
 known_manual_bug: none
 ```
 
@@ -56,22 +56,23 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.reference_resolution
-    - runtime.messageHandler.selectedReservationTarget_resolution
+    - transport.email.inbound_adapter
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.identity_capture
+    - runtime.messageHandler.state.guest_identity
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.preview
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - modify ambiguo recupera por `reservationId` explícito sin caer en fallback genérico
-      - la respuesta `RES-XXXXXX` pelada conserva el foco del subflujo `modify`
-      - códigos inexistentes o reservas canceladas/inactivas no avanzan a ejecución
-      - preview y confirmación explícita siguen siendo obligatorios antes de aplicar cambios
+      - Email captura actor conversacional inline real en cuerpo simple, multilinea y Gmail-like
+      - el actor persiste sobre el guest canónico resuelto antes de entrar a `create`
+      - la cotización same-turn usa el vocativo del actor conversacional y no `guestName` transaccional
+      - `reservationSlots.guestName` permanece separado como titular de reserva
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -153,7 +154,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12086
+        range: L1-L12180
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -181,7 +182,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11762-L12086
+        range: L11856-L12180
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -211,7 +212,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4292-L4541
+        range: L4386-L4635
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -246,7 +247,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5054-L11716
+        range: L5148-L11810
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
