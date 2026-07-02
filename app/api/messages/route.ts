@@ -13,6 +13,7 @@ import { toTwilioWhatsAppAddress, twilioSendWhatsAppMessage } from "@/lib/channe
 import { getGuest } from "@/lib/db/guests";
 import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
 import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
+import { emitToConversation } from "@/lib/web/eventBus";
 
 function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -180,7 +181,15 @@ export async function POST(req: Request) {
       }
     }
 
-    const updateResult = await updateMessageInChannel(
+    const current = await getMessageById(messageId);
+    if (!current || current.hotelId !== user.hotelId || current.channel !== channel) {
+      return NextResponse.json(
+        { error: "Mensaje no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    await updateMessageInChannel(
       user.hotelId,
       channel,
       messageId,
@@ -191,11 +200,13 @@ export async function POST(req: Request) {
       }
     );
 
-    if (!updateResult) {
-      return NextResponse.json(
-        { error: "Mensaje no encontrado o sin cambios" },
-        { status: 404 }
-      );
+    if (channel === "web" && current.conversationId && typeof approvedResponse === "string") {
+      emitToConversation(current.conversationId, {
+        type: "message",
+        sender: "assistant",
+        text: approvedResponse,
+        timestamp: new Date().toISOString(),
+      });
     }
 
     return NextResponse.json({ success: true });

@@ -10,7 +10,7 @@ interface MessageBubbleProps {
   subject: string;
   editingIdx: number | null;
   editingText: string;
-  onEdit: (idx: number) => void;
+  onEdit: (idx: number, initialText: string) => void;
   onChangeEdit: (val: string) => void;
   onSendEdit: (msg: ChatTurnWithMeta, idx: number) => void;
   onCancelEdit: () => void;
@@ -53,11 +53,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 value={editingText}
                 onChange={e => onChangeEdit(e.target.value)}
               />
-              <div className="flex gap-2 text-xs">
-                <button className="text-green-600 font-bold" onClick={() => onSendEdit(msg, idx)}>
-                  {t.channelInbox?.send || "Enviar"}
+              <div className="flex flex-wrap gap-2 text-xs">
+                <button
+                  type="button"
+                  className="rounded bg-[#AB0389] px-3 py-1.5 font-semibold text-white shadow-sm hover:bg-[#6F025C]"
+                  onClick={() => onSendEdit(msg, idx)}
+                >
+                  {t.channelInbox?.saveAndSend || "Guardar y enviar"}
                 </button>
-                <button className="text-gray-500" onClick={onCancelEdit}>
+                <button
+                  type="button"
+                  className="rounded border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50"
+                  onClick={onCancelEdit}
+                >
                   {t.channelInbox?.cancel || "Cancelar"}
                 </button>
               </div>
@@ -120,7 +128,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               {msg.status === "pending" && editingIdx !== idx && (
                 <button
                   className="ml-2 text-xs text-yellow-700 underline"
-                  onClick={() => onEdit(idx)}
+                  onClick={() => onEdit(idx, msg.approvedResponse ?? msg.suggestion ?? msg.text ?? "")}
                 >
                   {t.channelInbox?.editAndSend || "Editar y enviar"}
                 </button>

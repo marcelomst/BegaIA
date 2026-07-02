@@ -668,7 +668,10 @@ export default function ChannelInbox({
                 subject={subject}
                 editingIdx={editingIdx}
                 editingText={editingText}
-                onEdit={setEditingIdx}
+                onEdit={(idx, initialText) => {
+                  setEditingIdx(idx);
+                  setEditingText(initialText);
+                }}
                 onChangeEdit={setEditingText}
                 onSendEdit={handleSendEdit}
                 onCancelEdit={() => {

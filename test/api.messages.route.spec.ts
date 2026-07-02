@@ -9,6 +9,7 @@ const updateMessageInAstraMock = vi.fn();
 const twilioSendWhatsAppMessageMock = vi.fn();
 const getGuestMock = vi.fn();
 const getGuestAliasesByGuestIdMock = vi.fn();
+const emitToConversationMock = vi.fn();
 
 vi.mock("@/lib/auth/getCurrentUser", () => ({
   getCurrentUser: getCurrentUserMock,
@@ -40,6 +41,10 @@ vi.mock("@/lib/db/guestAliases", () => ({
   getGuestAliasesByGuestId: getGuestAliasesByGuestIdMock,
 }));
 
+vi.mock("@/lib/web/eventBus", () => ({
+  emitToConversation: emitToConversationMock,
+}));
+
 describe("/api/messages POST approve_and_send", () => {
   beforeEach(() => {
     getCurrentUserMock.mockReset();
@@ -50,6 +55,7 @@ describe("/api/messages POST approve_and_send", () => {
     twilioSendWhatsAppMessageMock.mockReset();
     getGuestMock.mockReset();
     getGuestAliasesByGuestIdMock.mockReset();
+    emitToConversationMock.mockReset();
 
     getCurrentUserMock.mockResolvedValue({
       email: "reception@hotel.com",
@@ -185,5 +191,97 @@ describe("/api/messages POST approve_and_send", () => {
     expect(json.error).toMatch(/destinatario WhatsApp t[eé]cnico/i);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
     expect(updateMessageInAstraMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("Web supervisado: guarda y envía el texto editado usando el messageId real", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "pending-1",
+      hotelId: "hotel999",
+      channel: "web",
+      status: "pending",
+      conversationId: "conv-1",
+      guestId: "guest-1",
+      suggestion: "¿Cuál es el tipo de habitación?",
+    });
+    updateMessageInChannelMock.mockResolvedValueOnce(undefined);
+
+    const req = new Request("http://localhost/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messageId: "pending-1",
+        channel: "web",
+        approvedResponse: "Necesito saber qué tipo de habitación preferís.",
+        status: "sent",
+        respondedBy: "reception@hotel.com",
+      }),
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({ success: true });
+    expect(updateMessageInChannelMock).toHaveBeenCalledWith(
+      "hotel999",
+      "web",
+      "pending-1",
+      {
+        approvedResponse: "Necesito saber qué tipo de habitación preferís.",
+        status: "sent",
+        respondedBy: "reception@hotel.com",
+      },
+    );
+    expect(emitToConversationMock).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({
+        type: "message",
+        sender: "assistant",
+        text: "Necesito saber qué tipo de habitación preferís.",
+        timestamp: expect.any(String),
+      }),
+    );
+  });
+
+  it("Web supervisado: permite aprobar y enviar la sugerencia sin modificarla", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+    const suggestion = "¿Cuál es el tipo de habitación?";
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "pending-2",
+      hotelId: "hotel999",
+      channel: "web",
+      status: "pending",
+      conversationId: "conv-2",
+      suggestion,
+    });
+    updateMessageInChannelMock.mockResolvedValueOnce(undefined);
+
+    const req = new Request("http://localhost/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messageId: "pending-2",
+        channel: "web",
+        approvedResponse: suggestion,
+        status: "sent",
+        respondedBy: "reception@hotel.com",
+      }),
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(updateMessageInChannelMock).toHaveBeenCalledWith(
+      "hotel999",
+      "web",
+      "pending-2",
+      expect.objectContaining({ approvedResponse: suggestion, status: "sent" }),
+    );
+    expect(emitToConversationMock).toHaveBeenCalledWith(
+      "conv-2",
+      expect.objectContaining({ sender: "assistant", text: suggestion }),
+    );
   });
 });
