@@ -11270,3 +11270,61 @@ Impacto:
 - evita promover `guestName` transaccional a actor canónico
 - corrige el uso del guest enriquecido en la cotización same-turn
 - fortalece la identidad conversacional multicanal sin contaminar el titular transaccional
+
+### FIX-DEMO-ADMIN-CHANNELS-READPATH-AND-MOCK-DATA-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-02  
+Commit: 6d4190cef9367cff15aebfb85027f2b52e6be60c
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Ajuste acotado al frontend/Admin demo y al read-path de configuración de
+canales. Elimina mock data embebida del home Admin, consume el estado real
+desde `/api/config`, trata explícitamente canales no configurados o
+transaccionales y acompaña con pulido visual de branding, sidebar, light theme
+y reordenamiento UI de Guests sin cambio funcional.
+
+Archivos afectados:
+
+- `app/admin/guests/page.tsx`
+- `app/admin/layout.tsx`
+- `app/admin/page.tsx`
+- `components/admin/ChannelOverview.tsx`
+- `components/admin/ChannelPanel.tsx`
+- `components/admin/ChannelStatusCard.tsx`
+- `components/admin/ChannelsClient.tsx`
+- `components/admin/EditHotelForm.tsx`
+- `components/ui/SidebarGroup.tsx`
+- `components/ui/SidebarLink.tsx`
+- `components/ui/SidebarLogout.tsx`
+- `components/ui/ThemeToggle.tsx`
+- `test/frontend/channelPanel.perChannelState.spec.tsx`
+- `test/integration/multichannelCanonicalGuest.e2e.spec.ts`
+- `test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/frontend/channelPanel.perChannelState.spec.tsx test/integration/multichannelCanonicalGuest.e2e.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+  `git diff --check`
+- validación manual requerida para:
+  abrir Admin home y confirmar ausencia de mock data embebida
+  abrir `/admin/channels` y verificar estado real por canal desde `/api/config`
+  verificar canal no configurado sin controles heredados
+  verificar Channel Manager como integración transaccional sin inbox
+  verificar branding, sidebar y light theme según nuevo diseño
+
+Impacto:
+
+- elimina mock data engañosa del home Admin
+- alinea la UI con configuración real de canales
+- evita estados heredados inválidos para canales no configurados o transaccionales
+- corrige la presentación transaccional de Channel Manager sin tocar runtime conversacional
