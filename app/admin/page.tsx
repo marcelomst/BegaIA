@@ -2,62 +2,10 @@
 "use client";
 
 import { useCurrentUser } from "@/lib/context/UserContext";
-import { Settings, User, Hotel, Server, Users, FileText } from "lucide-react";
+import { Settings, User, Hotel, Server, FileText } from "lucide-react";
 import UserStatus from "@/components/UsertStatus";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-
-// MOCK de estados por canal y usuarios
-const channelData = [
-  {
-    key: "web",
-    nameKey: "web",
-    icon: <Image src="/icons/web.svg" alt="Web" width={20} height={20} className="inline mr-1" />,
-    modeKey: "automatic",
-    status: "online",
-    todayMessages: 13,
-    pending: 1,
-  },
-  {
-    key: "email",
-    nameKey: "email",
-    icon: <Image src="/icons/email.svg" alt="Email" width={20} height={20} className="inline mr-1" />,
-    modeKey: "supervised",
-    status: "offline",
-    todayMessages: 3,
-    pending: 2,
-  },
-  {
-    key: "whatsapp",
-    nameKey: "whatsapp",
-    icon: <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={20} height={20} className="inline mr-1" />,
-    modeKey: "automatic",
-    status: "online",
-    todayMessages: 10,
-    pending: 0,
-  },
-  {
-    key: "channelManager",
-    nameKey: "channelManager",
-    icon: <Image src="/icons/channelManager.svg" alt="ChannelMgr" width={20} height={20} className="inline mr-1" />,
-    modeKey: "automatic",
-    status: "online",
-    todayMessages: 2,
-    pending: 0,
-  },
-];
-
-const usersMock = [
-  { name: "marcelomst1@gmail.com", roleKey: "admin", lastLoginKey: "today", lastLogin: "8:23" },
-  { name: "soporte@demo.com", roleKey: "receptionist", lastLoginKey: "yesterday", lastLogin: "22:10" },
-];
-
-const logsMockKeys = [
-  "log.whatsappConnected",
-  "log.webApproved",
-  "log.emailDiscarded",
-];
 
 export default function AdminDashboard() {
   const { user, loading } = useCurrentUser();
@@ -102,7 +50,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-10 px-4">
+    <div className="min-h-screen bg-transparent px-4 py-10 text-[#1F1724] dark:text-foreground">
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
         <h1 className="text-3xl font-bold flex items-center gap-3">
           <Settings className="w-7 h-7" />
@@ -110,7 +58,7 @@ export default function AdminDashboard() {
         </h1>
 
         {/* Bloque: Datos del usuario y hotel */}
-        <div className="rounded-lg bg-muted shadow p-6 flex flex-col gap-2">
+        <div className="flex flex-col gap-2 rounded-xl border border-[#E8DDEA] bg-[#FDF4FB] p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-primary" />
             <span className="font-semibold">{dictionary.admin.userLabel}</span> {user.email}
@@ -126,7 +74,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white dark:bg-zinc-900 shadow border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-xl border border-[#E8DDEA] bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
           <a className="text-sm underline" href="/admin/events">Eventos</a>
           <span className="text-xs text-muted-foreground">
             {user.hotelId === "system" ? "Incluye POI" : "Eventos del hotel"}
@@ -139,75 +87,16 @@ export default function AdminDashboard() {
             <Server className="w-5 h-5" />
             {dictionary.admin.channelStatusTitle}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {channelData.map((ch) => (
-              <div
-                key={ch.key}
-                className="rounded-lg bg-white dark:bg-zinc-900 shadow border border-gray-200 dark:border-zinc-700 p-4 flex flex-col gap-2"
-              >
-                <div className="flex items-center gap-2 font-semibold">
-                  {ch.icon}
-                  {dictionary.admin.channels[ch.nameKey]}
-                  <span
-                    className={`ml-auto px-2 py-0.5 rounded text-xs font-semibold ${
-                      ch.status === "online"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {ch.status === "online"
-                      ? dictionary.admin.online
-                      : dictionary.admin.offline}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs mt-1">
-                  <span
-                    className={`px-2 py-0.5 rounded font-semibold ${
-                      ch.modeKey === "automatic"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {dictionary.admin.modes[ch.modeKey]}
-                  </span>
-                  <span className="ml-auto">
-                    {dictionary.admin.todayMessages}: <b>{ch.todayMessages}</b>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span>
-                    {dictionary.admin.pending}:{" "}
-                    <span className={ch.pending > 0 ? "text-red-600 font-bold" : ""}>
-                      {ch.pending}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bloque: Usuarios activos */}
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2 mb-3">
-            <Users className="w-5 h-5" />
-            {dictionary.admin.activeUsersTitle}
-          </h2>
-          <div className="flex gap-6 flex-wrap">
-            {usersMock.map((u, i) => (
-              <div
-                key={i}
-                className="rounded bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 px-4 py-3 flex flex-col"
-              >
-                <span className="font-semibold">{u.name}</span>
-                <span className="text-xs text-muted-foreground capitalize">
-                  {dictionary.admin.roles[u.roleKey]}
-                </span>
-                <span className="text-xs text-primary">
-                  {dictionary.admin.lastLoginLabel}: {dictionary.admin[u.lastLoginKey]} {u.lastLogin}
-                </span>
-              </div>
-            ))}
+          <div className="rounded-xl border border-[#E8DDEA] bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <p className="text-sm text-slate-600 dark:text-zinc-300">
+              El estado mostrado en Canales se obtiene de la configuración real del hotel. No se muestran métricas demo como actividad operativa.
+            </p>
+            <a
+              href="/admin/channels"
+              className="mt-4 inline-flex rounded-lg bg-[#AB0389] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#6F025C] dark:bg-white dark:text-zinc-900"
+            >
+              Ver configuración de canales
+            </a>
           </div>
         </div>
 
@@ -217,11 +106,9 @@ export default function AdminDashboard() {
             <FileText className="w-5 h-5" />
             {dictionary.admin.recentLogsTitle}
           </h2>
-          <ul className="text-sm text-muted-foreground list-disc ml-6">
-            {logsMockKeys.map((logKey, i) => (
-              <li key={i}>{dictionary.admin.logs[logKey]}</li>
-            ))}
-          </ul>
+          <div className="rounded-xl border border-dashed border-[#D7B8D1] bg-[#FDF4FB] px-5 py-6 text-sm text-[#6B5D70] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+            Sin eventos recientes reales para mostrar.
+          </div>
         </div>
 
         {/* UserStatus (opcional) */}

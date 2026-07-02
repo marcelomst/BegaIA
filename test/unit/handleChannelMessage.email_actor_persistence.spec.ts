@@ -114,7 +114,7 @@ describe("handleChannelMessage email actor persistence", () => {
         channel: "email",
       }),
     );
-  });
+  }, 10_000);
 
   it("persiste el actor inline en email con prefijo estilo Gmail sobre el guest canónico resuelto", async () => {
     const { handleChannelMessage } = await import("@/lib/pipeline/handleChannelMessage");

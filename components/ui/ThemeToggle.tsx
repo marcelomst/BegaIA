@@ -9,7 +9,7 @@ export function ThemeToggle() {
 
   return (
     <button
-      className="ml-2 rounded p-1 bg-gray-800 hover:bg-gray-700 text-yellow-400 dark:text-blue-200 transition"
+      className="ml-2 rounded-lg border border-white/15 bg-white/10 p-1.5 text-[#F4DDF0] transition hover:bg-[#3A123F] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FBE8F7]"
       onClick={toggleTheme}
       title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
       type="button"

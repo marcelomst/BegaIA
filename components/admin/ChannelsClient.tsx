@@ -78,7 +78,7 @@ export default function ChannelsClient({ initialConfig, hotelId }: Props) {
             description={
               isMissing
                 ? "⚠️ Canal no configurado"
-                : `Modo actual: ${channelConfig.mode === "automatic" ? "🧠 Automático" : "🧍 Supervisado"}`
+                : `Modo actual: ${channelConfig.mode === "automatic" ? "🧠 Automático" : "👤 Supervisado"}`
             }
           >
             {isMissing ? (
@@ -131,7 +131,7 @@ export default function ChannelsClient({ initialConfig, hotelId }: Props) {
                 <div className="text-sm text-muted-foreground flex flex-col gap-2 mb-4">
                   <form action={`/api/config/mode?channel=${channelKey}&hotelId=${hotelId}`} method="POST">
                     <button className="text-blue-500 hover:underline" type="submit">
-                      Cambiar a modo {channelConfig.mode === "automatic" ? "🧍 Supervisado" : "🧠 Automático"}
+                      Cambiar a modo {channelConfig.mode === "automatic" ? "👤 Supervisado" : "🧠 Automático"}
                     </button>
                   </form>
                   <form action={`/api/config/toggle?channel=${channelKey}&hotelId=${hotelId}`} method="POST">

@@ -250,129 +250,6 @@ export default function AdminGuestsPage() {
         </div>
       )}
 
-      <div className="rounded border border-border bg-background p-3 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="font-semibold">Posibles unificaciones sugeridas</h2>
-            <p className="text-xs text-muted-foreground">
-              Sugerencias heurísticas para detectar posibles duplicados. La unificación sigue siendo manual.
-            </p>
-          </div>
-          <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-            {mergeSuggestions.length} sugerencia{mergeSuggestions.length === 1 ? "" : "s"}
-          </span>
-        </div>
-        {mergeSuggestions.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
-            No hay sugerencias útiles con las heurísticas actuales.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {mergeSuggestions.map((suggestion) => {
-              const primary = guestsById.get(suggestion.primaryGuestId);
-              const secondary = guestsById.get(suggestion.secondaryGuestId);
-              if (!primary || !secondary) return null;
-
-              const severityClass =
-                suggestion.severity === "high"
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200"
-                  : suggestion.severity === "medium"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
-                    : "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-200";
-
-              return (
-                <div
-                  key={suggestion.key}
-                  className="rounded border border-border bg-muted/20 p-3 space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${severityClass}`}>
-                        {suggestion.severity}
-                      </span>
-                      <span className="text-xs text-muted-foreground">score {suggestion.score}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
-                        onClick={() => setSelectedGuestId(primary.guestId)}
-                      >
-                        Revisar
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded bg-amber-700 px-2 py-1 text-xs text-white hover:bg-amber-800"
-                        onClick={() => prepareMergeFromSuggestion(primary.guestId, secondary.guestId)}
-                      >
-                        Preparar unificación
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
-                        onClick={() => dismissSuggestion(suggestion.key)}
-                      >
-                        Ignorar por ahora
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded border border-border bg-background p-2">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Huésped principal sugerido
-                      </div>
-                      <div className="font-medium">
-                        {getGuestDisplayName({
-                          guestId: primary.guestId,
-                          name: primary.name,
-                          aliases: primary.aliases,
-                          channel: primary.channels[0] || null,
-                        })}
-                      </div>
-                      <div className="font-mono text-xs text-muted-foreground">
-                        guestId: {compactGuestId(primary.guestId)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {primary.channels.length ? primary.channels.join(", ") : "-"} · {fmtDate(primary.lastActivityAt)}
-                      </div>
-                    </div>
-                    <div className="rounded border border-border bg-background p-2">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Huésped secundario sugerido
-                      </div>
-                      <div className="font-medium">
-                        {getGuestDisplayName({
-                          guestId: secondary.guestId,
-                          name: secondary.name,
-                          aliases: secondary.aliases,
-                          channel: secondary.channels[0] || null,
-                        })}
-                      </div>
-                      <div className="font-mono text-xs text-muted-foreground">
-                        guestId: {compactGuestId(secondary.guestId)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {secondary.channels.length ? secondary.channels.join(", ") : "-"} · {fmtDate(secondary.lastActivityAt)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {suggestion.signals.map((signal) => (
-                      <span
-                        key={signal}
-                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-foreground"
-                      >
-                        {signal}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded border border-border bg-background p-3">
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -538,6 +415,129 @@ export default function AdminGuestsPage() {
             </>
           )}
         </div>
+      </div>
+
+      <div className="space-y-3 rounded border border-border bg-background p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="font-semibold">Posibles unificaciones sugeridas</h2>
+            <p className="text-xs text-muted-foreground">
+              Sugerencias heurísticas para detectar posibles duplicados. La unificación sigue siendo manual.
+            </p>
+          </div>
+          <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
+            {mergeSuggestions.length} sugerencia{mergeSuggestions.length === 1 ? "" : "s"}
+          </span>
+        </div>
+        {mergeSuggestions.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            No hay sugerencias útiles con las heurísticas actuales.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {mergeSuggestions.map((suggestion) => {
+              const primary = guestsById.get(suggestion.primaryGuestId);
+              const secondary = guestsById.get(suggestion.secondaryGuestId);
+              if (!primary || !secondary) return null;
+
+              const severityClass =
+                suggestion.severity === "high"
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200"
+                  : suggestion.severity === "medium"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+                    : "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-200";
+
+              return (
+                <div
+                  key={suggestion.key}
+                  className="space-y-2 rounded border border-border bg-muted/20 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${severityClass}`}>
+                        {suggestion.severity}
+                      </span>
+                      <span className="text-xs text-muted-foreground">score {suggestion.score}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                        onClick={() => setSelectedGuestId(primary.guestId)}
+                      >
+                        Revisar
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded bg-amber-700 px-2 py-1 text-xs text-white hover:bg-amber-800"
+                        onClick={() => prepareMergeFromSuggestion(primary.guestId, secondary.guestId)}
+                      >
+                        Preparar unificación
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                        onClick={() => dismissSuggestion(suggestion.key)}
+                      >
+                        Ignorar por ahora
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded border border-border bg-background p-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Huésped principal sugerido
+                      </div>
+                      <div className="font-medium">
+                        {getGuestDisplayName({
+                          guestId: primary.guestId,
+                          name: primary.name,
+                          aliases: primary.aliases,
+                          channel: primary.channels[0] || null,
+                        })}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        guestId: {compactGuestId(primary.guestId)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {primary.channels.length ? primary.channels.join(", ") : "-"} · {fmtDate(primary.lastActivityAt)}
+                      </div>
+                    </div>
+                    <div className="rounded border border-border bg-background p-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Huésped secundario sugerido
+                      </div>
+                      <div className="font-medium">
+                        {getGuestDisplayName({
+                          guestId: secondary.guestId,
+                          name: secondary.name,
+                          aliases: secondary.aliases,
+                          channel: secondary.channels[0] || null,
+                        })}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        guestId: {compactGuestId(secondary.guestId)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {secondary.channels.length ? secondary.channels.join(", ") : "-"} · {fmtDate(secondary.lastActivityAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestion.signals.map((signal) => (
+                      <span
+                        key={signal}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-foreground"
+                      >
+                        {signal}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

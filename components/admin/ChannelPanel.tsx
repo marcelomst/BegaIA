@@ -21,6 +21,8 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
   const [mode, setMode] = useState<"automatic" | "supervised">("automatic");
   const [curationModel, setCurationModel] = useState<CurationModel>("gpt-3.5-turbo");
   const [loading, setLoading] = useState(false);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [configured, setConfigured] = useState(false);
   const [reloadFlag, setReloadFlag] = useState(0);
   const [t, setT] = useState<any>(null);
 
@@ -30,18 +32,25 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
   const channelConfig: ChannelConfig | undefined = CHANNELS.find((ch) => ch.id === channel);
 
   async function refreshFromServer(hotelId: string) {
-    const cfg = await fetchHotelConfig(hotelId);
-    const hotelCfg = (cfg as any)?.hotel ?? cfg;
-    if (hotelCfg?.channelConfigs && channel in hotelCfg.channelConfigs) {
-      const chCfg: any = (hotelCfg.channelConfigs as any)[channel];
-      setMode(chCfg?.mode ?? "automatic");
-      setForceCanonical(Boolean(chCfg?.reservations?.forceCanonicalQuestion));
-      if (channel === "email") {
-        setCurationModel(chCfg?.preferredCurationModel ?? "gpt-3.5-turbo");
+    setConfigLoading(true);
+    try {
+      const cfg = await fetchHotelConfig(hotelId);
+      const hotelCfg = (cfg as any)?.hotel ?? cfg;
+      if (hotelCfg?.channelConfigs && channel in hotelCfg.channelConfigs) {
+        const chCfg: any = (hotelCfg.channelConfigs as any)[channel];
+        setConfigured(true);
+        setMode(chCfg?.mode ?? "automatic");
+        setForceCanonical(Boolean(chCfg?.reservations?.forceCanonicalQuestion));
+        if (channel === "email") {
+          setCurationModel(chCfg?.preferredCurationModel ?? "gpt-3.5-turbo");
+        }
+      } else {
+        setConfigured(false);
+        setMode("automatic");
+        setForceCanonical(false);
       }
-    } else {
-      setMode("automatic");
-      setForceCanonical(false);
+    } finally {
+      setConfigLoading(false);
     }
   }
 
@@ -109,6 +118,42 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
     );
   }
 
+  if (configLoading) {
+    return <section className="flex-1 p-6 text-sm text-muted-foreground">Cargando configuración del canal...</section>;
+  }
+
+  if (!configured) {
+    return (
+      <section className="flex-1 p-6 md:p-8">
+        <div className="max-w-2xl rounded-xl border border-[#E8DDEA] bg-[#FDF4FB] p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-zinc-100">
+            {t.sidebar[channelConfig?.id ?? channel] || channelConfig?.label || channel}
+          </h2>
+          <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-zinc-800 dark:text-zinc-200">
+            No configurado
+          </span>
+          <p className="mt-4 text-sm text-slate-600 dark:text-zinc-300">
+            Este canal no tiene configuración para el hotel actual. No se muestran modos, mensajes ni estados heredados.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (channel === "channelManager") {
+    return (
+      <section className="flex-1 p-6 md:p-8">
+        <div className="max-w-3xl rounded-xl border border-[#E8DDEA] bg-[#FDF4FB] p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="text-xs font-bold uppercase tracking-widest text-amber-700 dark:text-amber-300">Integración transaccional</div>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-zinc-100">Channel Manager</h2>
+          <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-zinc-300">
+            Channel Manager no es un canal de chat. Es una integración transaccional para sincronizar reservas, modificaciones y cancelaciones provenientes de OTAs, PMS o gestores de canales.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex-1 flex flex-col p-6">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -146,7 +191,7 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
           >
             {mode === "supervised" ? (
               <>
-                <span className="mr-1">🧍</span>
+                <span className="mr-1">👤</span>
                 {t.channelPanel?.supervised || "Supervisado"}
               </>
             ) : (
@@ -158,7 +203,7 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
           </span>
         </div>
 
-        {/* 🆕 Flag por canal: Forzar pregunta canónica */}
+        {/* Presentación comercial de la secuencia controlada de reservas. */}
         <div className="flex items-center gap-2 ml-4">
           <Switch
             checked={forceCanonical}
@@ -172,9 +217,9 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
                 ? "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200"
                 : "bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-200")
             }
-            title="Si está activo, se prioriza la pregunta canónica en reservas."
+            title="Cuando está activo, el asistente sigue una secuencia controlada para pedir los datos mínimos de una reserva."
           >
-            ❓ {t.channelPanel?.forceCanonicalQuestion || "Pregunta canónica"}
+            🧭 Guía de reservas
           </span>
         </div>
 

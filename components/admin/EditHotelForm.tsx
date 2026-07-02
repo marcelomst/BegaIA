@@ -205,8 +205,11 @@ function ChannelConfigCard({ channel, config, onChange, t }: { channel: Channel;
       <div className="mt-2 pt-2 border-t">
         <label className="flex items-center gap-2 text-xs">
           <input type="checkbox" checked={forceCanonical} onChange={e => patchReservations({ forceCanonicalQuestion: e.target.checked })} />
-          <span>Forzar pregunta canónica (reservas)</span>
+          <span>Forzar guía de reservas</span>
         </label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Cuando está activo, el asistente sigue una secuencia controlada para pedir los datos mínimos de una reserva.
+        </p>
       </div>
     </div>
   );
@@ -943,7 +946,15 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                   </div>
                 );
               })()}
-              <div className="mt-3"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={Boolean(hotel.reservations?.forceCanonicalQuestion)} onChange={e => setHotel(h => h ? ({ ...h, reservations: { ...(h.reservations ?? {}), forceCanonicalQuestion: e.target.checked } }) : h)} /><span>Forzar pregunta canónica (reservas)</span></label></div>
+              <div className="mt-3">
+                <label className="flex items-center gap-2 text-xs">
+                  <input type="checkbox" checked={Boolean(hotel.reservations?.forceCanonicalQuestion)} onChange={e => setHotel(h => h ? ({ ...h, reservations: { ...(h.reservations ?? {}), forceCanonicalQuestion: e.target.checked } }) : h)} />
+                  <span>Forzar guía de reservas</span>
+                </label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Cuando está activo, el asistente sigue una secuencia controlada para pedir los datos mínimos de una reserva.
+                </p>
+              </div>
             </div>
 
             <div className="p-4 border rounded bg-white/60 dark:bg-zinc-900/40">

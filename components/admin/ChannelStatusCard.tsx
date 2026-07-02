@@ -44,7 +44,14 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
       <div className="text-xs">
         {isMissing
           ? "⚠️ Canal no configurado"
-          : <>Modo actual: {config.mode === "automatic" ? "🧠 Automático" : "🧍 Supervisado"}</>
+          : (
+            <span className={config.mode === "automatic"
+              ? "inline-flex rounded-full bg-green-100 px-2 py-1 font-semibold text-green-800"
+              : "inline-flex rounded-full bg-amber-100 px-2 py-1 font-semibold text-amber-800"}
+            >
+              {config.mode === "automatic" ? "🧠 Automático" : "👤 Supervisado"}
+            </span>
+          )
         }
       </div>
       {needsConfig && (
@@ -77,7 +84,7 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
       <div className="flex gap-2 mt-2">
         <form action={`/api/config/mode?channel=${channel}&hotelId=${hotelId}`} method="POST">
           <button className="text-blue-500 underline text-xs" type="submit">
-            Cambiar a modo {config.mode === "automatic" ? "🧍 Supervisado" : "🧠 Automático"}
+            Cambiar a modo {config.mode === "automatic" ? "👤 Supervisado" : "🧠 Automático"}
           </button>
         </form>
         <form action={`/api/config/toggle?channel=${channel}&hotelId=${hotelId}`} method="POST">

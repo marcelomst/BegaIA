@@ -23,6 +23,30 @@ vi.mock("@/lib/i18n/getDictionary", () => ({
       email: "Email",
       web: "Web",
       whatsapp: "WhatsApp",
+      channelManager: "Channel Manager",
+      telegram: "Telegram",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      x: "X (Twitter)",
+      tiktok: "TikTok",
+    },
+    channelOverview: {
+      title: "Visión general de los canales",
+      loading: "Cargando estado de canales...",
+      qrReady: "QR listo",
+      scanQr: "Escaneá este QR",
+      status: {
+        active: "Activo",
+        disabled: "Desactivado",
+        supervised: "Supervisado",
+        automatic: "Automático",
+        connected: "Conectado",
+        developing: "En desarrollo",
+        waitingQr: "Esperando QR",
+        disconnected: "Desconectado",
+        notConfigured: "No configurado",
+        unknown: "Desconocido",
+      },
     },
     channelPanel: {
       supervised: "Supervisado",
@@ -61,6 +85,7 @@ vi.mock("@/components/ui/switch", () => ({
 }));
 
 import ChannelPanel from "@/components/admin/ChannelPanel";
+import ChannelOverview from "@/components/admin/ChannelOverview";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
 
 describe("ChannelPanel per-channel state", () => {
@@ -84,6 +109,8 @@ describe("ChannelPanel per-channel state", () => {
 
     await screen.findByText("Email");
     await waitFor(() => expect(screen.getByText("Supervisado")).toBeInTheDocument());
+    expect(screen.getByText("Supervisado").closest("span")).toHaveClass("bg-yellow-100");
+    expect(screen.getByText(/Guía de reservas/)).toBeInTheDocument();
     expect(screen.getByTestId("channel-inbox")).toHaveTextContent("email");
   });
 
@@ -103,6 +130,62 @@ describe("ChannelPanel per-channel state", () => {
 
     await screen.findByText("Web");
     await waitFor(() => expect(screen.getByText("Automático")).toBeInTheDocument());
+    expect(screen.getByText("Automático").closest("span")).toHaveClass("bg-green-100");
     expect(screen.queryByText("Supervisado")).not.toBeInTheDocument();
+  });
+
+  it("shows an explicit empty state without inherited controls for an unconfigured channel", async () => {
+    (fetchHotelConfig as any).mockResolvedValue({
+      hotel: { hotelId: "hotel999", channelConfigs: { web: { enabled: true, mode: "automatic" } } },
+    });
+
+    render(<ChannelPanel channel="telegram" />);
+
+    expect(await screen.findByText("No configurado")).toBeInTheDocument();
+    expect(screen.queryByTestId("channel-inbox")).not.toBeInTheDocument();
+    expect(screen.queryByText("Automático")).not.toBeInTheDocument();
+  });
+
+  it("presents Channel Manager as a transactional integration without chat inbox", async () => {
+    (fetchHotelConfig as any).mockResolvedValue({
+      hotel: {
+        hotelId: "hotel999",
+        channelConfigs: { channelManager: { enabled: true, mode: "automatic" } },
+      },
+    });
+
+    render(<ChannelPanel channel="channelManager" />);
+
+    expect(await screen.findByText("Integración transaccional")).toBeInTheDocument();
+    expect(screen.getByText(/no es un canal de chat/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("channel-inbox")).not.toBeInTheDocument();
+  });
+
+  it("unwraps the real hotel config and lists configured and unconfigured channels", async () => {
+    (fetchHotelConfig as any).mockResolvedValue({
+      hotel: {
+        hotelId: "hotel999",
+        channelConfigs: {
+          web: { enabled: true, mode: "automatic" },
+          email: { enabled: false, mode: "supervised" },
+          channelManager: { enabled: true, mode: "automatic" },
+        },
+      },
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ state: "automatic" }),
+    })));
+    const dictionary = await (await import("@/lib/i18n/getDictionary")).getDictionary("es");
+
+    render(<ChannelOverview hotelId="hotel999" t={dictionary} />);
+
+    expect(await screen.findByText("Visión general de los canales")).toBeInTheDocument();
+    expect(screen.getByText("Web")).toBeInTheDocument();
+    expect(screen.getByText("Telegram")).toBeInTheDocument();
+    expect(screen.getByText("🧠 Automático")).toHaveClass("bg-green-100");
+    expect(screen.getByText("Integración transaccional")).toHaveClass("bg-amber-100");
+    expect(screen.getAllByText("No configurado").length).toBeGreaterThan(0);
+    expect(screen.getByText(/integración transaccional para reservas/i)).toBeInTheDocument();
   });
 });

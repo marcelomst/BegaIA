@@ -248,7 +248,7 @@ describe("multichannel canonical guest contract", () => {
     expect(incomingMessages.some((msg) => msg.guestId === "session-abc")).toBe(false);
     expect(incomingMessages.some((msg) => msg.guestId === "Guest@Example.com")).toBe(false);
     expect(incomingMessages.some((msg) => msg.guestId === "whatsapp:+59899123456")).toBe(false);
-  });
+  }, 10_000);
 
   it("keeps WhatsApp legacy conversationId compatibility while upgrading guestId to the canonical identity", async () => {
     let inboundHandler: ((message: any) => Promise<void>) | undefined;

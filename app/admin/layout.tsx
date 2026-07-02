@@ -40,6 +40,18 @@ import {
 } from "@/lib/auth/roles";
 import { getDictionary } from "@/lib/i18n/getDictionary"; // 👈🏼 Helper central i18n
 
+function getHotelInitials(hotelName: string) {
+  const initials = hotelName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "HT";
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{
     email: string;
@@ -96,11 +108,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <UserProvider>
       <HotelContext.Provider value={{ hotel }}>
         <SidebarProvider>
-          <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
+          <div className="flex min-h-screen bg-[#FAF7FB] text-[#1F1724] transition-colors duration-300 dark:bg-background dark:text-foreground">
             <aside
               className={`
-                relative transition-all duration-200 bg-gray-900 border-r border-border p-4 flex flex-col
-                justify-between text-foreground
+                relative transition-all duration-200 bg-[#2A0B2E] border-r border-[#4B204F] p-4 flex flex-col
+                justify-between text-white shadow-[8px_0_30px_rgba(42,11,46,0.16)]
                 ${sidebarOpen ? "w-64" : "w-0"}
                 overflow-x-hidden
               `}
@@ -109,14 +121,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {sidebarOpen && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold">{t.layout.panelTitle}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-white">{t.layout.panelTitle}</h1>
                     <ThemeToggle />
                   </div>
-                  <div className="text-xs text-muted-foreground mb-2 leading-snug">
-                    {user.email}
-                    <br />
-                    {user.hotelName}{" "}
-                    <span className="text-[10px] text-gray-400">(ID: {user.hotelId})</span>
+                  <div className="mb-4 flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-xs leading-snug text-[#F4DDF0]">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#AB0389] text-sm font-bold tracking-wide text-white shadow-sm"
+                      aria-label={`Identidad visual de ${user.hotelName}`}
+                    >
+                      {getHotelInitials(user.hotelName)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate font-medium text-white">{user.hotelName}</div>
+                      <div className="text-[10px] text-[#D7B8D1]">ID: {user.hotelId}</div>
+                      <div className="mt-1 truncate text-[11px] text-[#F4DDF0]">{user.email}</div>
+                    </div>
                   </div>
                   <nav className="space-y-2">
                     <SidebarLink
@@ -249,8 +268,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <button
               className={`
                 fixed top-6 left-0 z-40
-                bg-gray-200 dark:bg-zinc-700 border rounded-full w-8 h-8 flex
-                items-center justify-center shadow
+                bg-[#AB0389] text-white border border-[#F4DDF0]/40 rounded-full w-8 h-8 flex
+                items-center justify-center shadow-md hover:bg-[#6F025C]
                 transition
                 ${sidebarOpen ? "translate-x-60" : "translate-x-2"}
               `}
@@ -260,7 +279,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               {sidebarOpen ? "⟨" : "⟩"}
             </button>
-            <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+            <main className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_#FBE8F7_0,_#FAF7FB_34rem)] p-6 dark:bg-none">
+              {children}
+            </main>
           </div>
           <Toaster />
         </SidebarProvider>

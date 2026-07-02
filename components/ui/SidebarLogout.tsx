@@ -17,7 +17,7 @@ export function SidebarLogout() {
     <Button
       onClick={handleLogout}
       variant="ghost"
-      className="w-full justify-start mt-4 text-red-500 hover:bg-red-500/10"
+      className="mt-5 w-full justify-start border border-transparent text-[#FCA5A5] hover:border-[#FCA5A5]/20 hover:bg-[#4A1028] hover:text-red-100"
     >
       <LogOut className="w-5 h-5 mr-2" />
       <span className="truncate">Cerrar sesión</span>

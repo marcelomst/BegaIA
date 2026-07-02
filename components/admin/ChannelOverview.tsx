@@ -1,6 +1,7 @@
 // Path: /root/begasist/components/admin/ChannelOverview.tsx
 "use client";
 
+import React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
 import { ALL_CHANNELS } from "@/types/channel";
@@ -41,18 +42,16 @@ export default function ChannelOverview({ hotelId, t }: Props) {
   useEffect(() => {
     setLoading(true);
     fetchHotelConfig(hotelId)
-      .then(cfg => setConfigs(cfg?.channelConfigs ?? {}))
+      .then(cfg => {
+        const hotelCfg = (cfg as any)?.hotel ?? cfg;
+        setConfigs(hotelCfg?.channelConfigs ?? {});
+      })
       .finally(() => setLoading(false));
   }, [hotelId]);
 
-  // Lista dinámica de canales configurados/habilitados
+  // El catálogo completo evita ocultar canales no configurados y confundirlos con canales ausentes.
   const visibleChannels: ChannelId[] = useMemo(() => {
-    if (!configs) return [];
-    return [...ALL_CHANNELS].filter(
-      (id) =>
-        configs[id] !== undefined &&
-        (configs[id]?.enabled === undefined || configs[id]?.enabled === true)
-    );
+    return [...ALL_CHANNELS];
   }, [configs]);
 
   // Trae estado real de todos los canales listados
@@ -61,6 +60,8 @@ export default function ChannelOverview({ hotelId, t }: Props) {
     async function fetchAll() {
       const updates: Record<ChannelId, { state: string; qr?: string | null }> = {} as any;
       for (const channel of visibleChannels) {
+        const cfg = configs?.[channel];
+        if (!cfg || cfg.enabled === false || channel === "channelManager") continue;
         try {
           updates[channel] = await fetchChannelStatus(hotelId, channel);
         } catch {
@@ -69,7 +70,7 @@ export default function ChannelOverview({ hotelId, t }: Props) {
       }
       if (active) setChannelStates(updates);
     }
-    if (visibleChannels.length) {
+    if (configs && visibleChannels.length) {
       fetchAll();
       const intv = setInterval(fetchAll, 8000);
       return () => {
@@ -77,7 +78,7 @@ export default function ChannelOverview({ hotelId, t }: Props) {
         clearInterval(intv);
       };
     }
-  }, [hotelId, visibleChannels]);
+  }, [configs, hotelId, visibleChannels]);
 
   // Helper para mostrar estado legible según config
   function getChannelStatusKey(cfg: any): ChannelStatusKey {
@@ -104,9 +105,10 @@ export default function ChannelOverview({ hotelId, t }: Props) {
     switch (statusKey) {
       case "active":
       case "automatic":
-      case "supervised":
       case "connected":
         return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200";
+      case "supervised":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200";
       case "waitingQr":
         return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200";
       case "disabled":
@@ -120,14 +122,24 @@ export default function ChannelOverview({ hotelId, t }: Props) {
     }
   }
 
+  function getStatusLabel(id: ChannelId, statusKey: ChannelStatusKey) {
+    if (id === "channelManager") return "Integración transaccional";
+    if (statusKey === "automatic") return `🧠 ${t.channelOverview.status[statusKey]}`;
+    if (statusKey === "supervised") return `👤 ${t.channelOverview.status[statusKey]}`;
+    return t.channelOverview.status[statusKey];
+  }
+
   return (
-    <section className="flex-1 flex flex-col p-6">
-      <h2 className="text-xl font-bold mb-2">{t.channelOverview.title}</h2>
-      <div className="border rounded-lg p-4 bg-muted/50">
+    <section className="flex-1 flex flex-col p-6 md:p-8">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">{t.channelOverview.title}</h2>
+      <p className="mb-5 mt-1 text-sm text-slate-600 dark:text-zinc-300">
+        Configuración real del hotel. Los estados operativos solo se muestran cuando existe una señal verificable.
+      </p>
+      <div className="overflow-hidden rounded-xl border border-[#E8DDEA] bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         {loading ? (
           <div className="text-muted-foreground">{t.channelOverview.loading}</div>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-[#E8DDEA] dark:divide-zinc-700">
             {visibleChannels.map(id => {
               const cfg = configs?.[id];
               const chanState = channelStates[id] || { state: "unknown" };
@@ -144,7 +156,12 @@ export default function ChannelOverview({ hotelId, t }: Props) {
                       : getChannelStatusKey(cfg))
                   : getChannelStatusKey(cfg);
 
+              if (!cfg) statusKey = "notConfigured";
+
               let badgeColor = getBadgeColor(statusKey);
+              if (id === "channelManager") {
+                badgeColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200";
+              }
               let extra = null;
 
               // WhatsApp: QR si corresponde
@@ -157,21 +174,25 @@ export default function ChannelOverview({ hotelId, t }: Props) {
               }
 
               return (
-                <li key={id} className="flex items-center gap-2 py-2">
+                <li key={id} className="flex flex-wrap items-center gap-3 px-4 py-4">
                   {getChannelIcon(id)}
-                  <span className="font-medium capitalize">{t.sidebar[id] || id}</span>
+                  <div>
+                    <div className="font-semibold text-slate-900 dark:text-zinc-100">{t.sidebar[id] || id}</div>
+                    <div className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">
+                      {id === "channelManager"
+                        ? "Integración transaccional para reservas, modificaciones y cancelaciones; no es un canal de chat."
+                        : cfg
+                          ? "Canal conversacional configurado para este hotel."
+                          : "Sin configuración para este hotel."}
+                    </div>
+                  </div>
                   <span className={`ml-auto text-xs px-2 py-1 rounded ${badgeColor}`}>
-                    {t.channelOverview.status[statusKey]}
+                    {getStatusLabel(id, statusKey)}
                   </span>
                   {extra}
                 </li>
               );
             })}
-            {visibleChannels.length === 0 && (
-              <li className="text-muted-foreground text-sm py-6 text-center">
-                {t.channelOverview.noneEnabled || "No hay canales configurados o habilitados para este hotel."}
-              </li>
-            )}
           </ul>
         )}
       </div>
