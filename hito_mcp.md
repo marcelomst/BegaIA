@@ -11328,3 +11328,57 @@ Impacto:
 - alinea la UI con configuración real de canales
 - evita estados heredados inválidos para canales no configurados o transaccionales
 - corrige la presentación transaccional de Channel Manager sin tocar runtime conversacional
+
+### FIX-ADMIN-INBOX-SUPERVISED-EDIT-PREFILL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-02  
+Commit: b410824f1feb10174ec860a93a86e979e0a84bd5
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado al Admin Inbox supervisado Web y al endpoint de aprobación
+manual. Precarga la sugerencia existente al editar, hace explícitas las acciones
+de guardar y enviar / cancelar, permite aprobación supervisada sin exigir
+edición y valida el binding de conversación desde el pending correcto usando
+`messageId` antes de entregar la respuesta al widget vía SSE.
+
+Archivos afectados:
+
+- `app/api/messages/route.ts`
+- `components/admin/ChannelInbox.tsx`
+- `components/admin/MessageBubble.tsx`
+- `test/api.messages.route.spec.ts`
+- `test/frontend/messageBubble.supervisedEdit.spec.tsx`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/frontend/messageBubble.supervisedEdit.spec.tsx test/api.messages.route.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- validación manual requerida para:
+  abrir un pending web supervisado en Admin Inbox
+  hacer click en editar y enviar y verificar `textarea` precargado
+  guardar y enviar sin editar y verificar envío correcto
+  editar texto y verificar envío del texto editado
+  cancelar y verificar que no se envía nada
+  verificar que el widget web recibe el mensaje aprobado
+  verificar que no reaparece "tu consulta está siendo revisada" tras el envío
+- límites conocidos:
+  la entrega SSE usa `eventBus` en memoria y requerirá bus compartido en despliegues multiinstancia
+- nota de seguimiento:
+  si reaparece una sugerencia previa contaminada con otro nombre, abrir hito separado de estado pendiente / `conversationId` / `guestId`
+
+Impacto:
+
+- alinea el flujo de supervisión con la expectativa real del operador
+- permite editar o aprobar la sugerencia existente sin fricción artificial
+- persiste contra el pending correcto y entrega al widget usando el `conversationId` validado del mensaje
+- fortalece el Inbox supervisado Web sin tocar runtime conversacional principal
