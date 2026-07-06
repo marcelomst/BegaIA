@@ -31,6 +31,7 @@ vi.mock('@/lib/categories/resolveCategory', () => {
                 filters: {
                     category: opts.category,
                     promptKey: opts.promptKey,
+                    version: 'v4',
                     status: 'active',
                     extra_ignored: 'x',
                 },
@@ -62,8 +63,11 @@ describe('searchFromAstra: merges registry/overrides filters and topK', () => {
         expect(capturedFilter.hotelId).toBe('hotelX');
         expect(capturedFilter.category).toBe('amenities');
         expect(capturedFilter.promptKey).toBe('ev_charging');
+        expect(capturedFilter.version).toBe('v4');
         // userLang 'es' + no filters.targetLang → base mantiene 'es' al estar soportado; resolved.lang ('en') no fuerza cambio
         expect(capturedFilter.targetLang).toBe('es');
+        // status no existe en metadata vectorial y no debe romper retrieval aunque registry lo declare
+        expect((capturedFilter as any).status).toBeUndefined();
         // extra_ignored debe ser filtrado (no permitido)
         expect((capturedFilter as any).extra_ignored).toBeUndefined();
 

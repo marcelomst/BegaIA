@@ -22,6 +22,8 @@ type LoadDocumentArgs = {
   enforcedCategory?: string;
   enforcedPromptKey?: string;
   targetLang?: string;
+  // Re-vectorization of an existing hotel_content row must keep the source version.
+  versionOverride?: string | number;
   // metadata libre
   metadata?: Record<string, any>;
 };
@@ -218,6 +220,7 @@ export async function loadDocumentFileForHotel(args: LoadDocumentArgs) {
     enforcedCategory,
     enforcedPromptKey,
     targetLang,
+    versionOverride,
     metadata = {},
   } = args;
 
@@ -236,7 +239,9 @@ export async function loadDocumentFileForHotel(args: LoadDocumentArgs) {
   // 4) determinar versión
   const categoryForVersion = enforcedCategory || "retrieval_based";
   const promptKeyForVersion = enforcedPromptKey || "kb_general";
-  const nextVersion = await getNextVersionForCollection(hotelId, categoryForVersion, promptKeyForVersion, lang);
+  const nextVersion = versionOverride != null
+    ? normalizeVersionToTag(versionOverride)
+    : await getNextVersionForCollection(hotelId, categoryForVersion, promptKeyForVersion, lang);
 
   // 5) guardar original
   await saveOriginalTextToAstra({
@@ -316,6 +321,8 @@ export async function loadDocumentFileForHotel(args: LoadDocumentArgs) {
       mimeType,
       uploadedAt: new Date().toISOString(),
       ...metadata,
+      sourceVersion: (metadata as any)?.sourceVersion ?? nextVersion,
+      vectorVersion: nextVersion,
     } as any;
     try {
       await coll.insertOne(payload);

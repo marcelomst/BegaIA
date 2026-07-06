@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
       enforcedCategory: category,
       enforcedPromptKey: promptKey,
       targetLang: lang,
+      versionOverride: sourceVersion ?? undefined,
       uploader: "admin@panel",
       mimeType: "text/plain",
       metadata: {
@@ -162,6 +163,7 @@ export async function POST(req: NextRequest) {
       deleted,
       indexed: load?.count ?? 0,
       vectorVersion: load?.version ?? null,
+      versionAligned: sourceVersion ? normalizeVersionToTag(sourceVersion) === normalizeVersionToTag(load?.version ?? null) : null,
     });
   } finally {
     try { await fs.unlink(tmp); } catch { }
