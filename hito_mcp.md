@@ -11382,3 +11382,63 @@ Impacto:
 - permite editar o aprobar la sugerencia existente sin fricción artificial
 - persiste contra el pending correcto y entrega al widget usando el `conversationId` validado del mensaje
 - fortalece el Inbox supervisado Web sin tocar runtime conversacional principal
+
+### FIX-KB-VERSION-INDEX-VECTOR-SYNC-ARRIVALS-TRANSPORT-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-06  
+Commit: def7bab5891f0056becf237e23c45d62dd26a445
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado a consistencia de KB, versionado y vectorización puntual.
+Sincroniza `hotel_content`, `hotel_version_index` y la metadata vectorial para
+que la vectorización one-shot preserve `sourceVersion`, persista trazabilidad
+explícita `sourceVersion/vectorVersion` y mantenga filtros coherentes en
+retrieval sobre `arrivals_transport`.
+
+Archivos afectados:
+
+- `app/api/hotel-content/vectorize-one/route.ts`
+- `lib/retrieval/index.ts`
+- `test/unit/searchFromAstra.filters.test.ts`
+- `test/unit/retrieval.version_consistency.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+  `git diff --check`
+- validación manual requerida para:
+  verificar que `vectorize-one` preserve `sourceVersion` actual sobre `hotel_content`
+  verificar que el chunk persista `version`, `sourceVersion` y `vectorVersion` alineados
+  verificar que retrieval para `arrivals_transport` recupere el chunk consistente esperado
+  verificar que el sync puntual no regenere toda la KB ni elimine el chunk legacy `v5`
+- reparación de datos reportada:
+  `hotelId: hotel999`
+  `category: retrieval_based`
+  `promptKey: arrivals_transport`
+  `lang: es`
+  `sourceVersion: v4`
+- restricciones respetadas:
+  `do_not_delete_v5`
+  `no_full_kb_regeneration`
+  `scoped_only_to_arrivals_transport`
+- límites conocidos:
+  el chunk legacy `v5` queda preservado intencionalmente; si retrieval sigue cayendo a fallback, abrir hito separado de runtime/routing
+- nota de working tree:
+  `.gitignore` permanece modificado fuera de este hito y no forma parte del commit documental
+
+Impacto:
+
+- evita divergencias entre la versión fuente en `hotel_content` y la versión persistida en chunks vectoriales
+- preserva trazabilidad explícita `sourceVersion/vectorVersion` para retrieval
+- fortalece filtros consistentes sin regenerar la KB completa ni borrar el chunk legacy `v5`
+- mantiene el alcance estrictamente focalizado a `arrivals_transport`
