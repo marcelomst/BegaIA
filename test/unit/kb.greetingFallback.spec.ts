@@ -85,4 +85,45 @@ describe("knowledgeBaseAgent greeting fallback", () => {
     expect(String(res.answer || "")).not.toContain("Habitación Doble");
     expect(String(res.answer || "")).not.toContain("booking.bedzzle.com");
   });
+
+  it("bypasses classifyQuery when category and promptKey are explicitly overridden", async () => {
+    resolveCategoryForHotelMock.mockResolvedValue({
+      lang: "es",
+      router: {
+        category: "retrieval_based",
+        promptKey: "arrivals_transport",
+      },
+      retriever: { topK: 3 },
+      content: null,
+    });
+    hydratedContentMock.mockResolvedValue({ text: "PDP 5 km; MVD 120 km" });
+    searchFromAstraMock.mockResolvedValue(["Transfer, taxi y bus disponibles."]);
+    invokeMock.mockResolvedValue({ content: "Información de transporte." });
+
+    const { answerWithKnowledge } = await import("@/lib/agents/knowledgeBaseAgent");
+    const res = await answerWithKnowledge({
+      question: "que aeropuerto hay cerca del hotel",
+      hotelId: "hotel999",
+      override: {
+        category: "retrieval_based",
+        promptKey: "arrivals_transport",
+      },
+    });
+
+    expect(classifyQueryMock).not.toHaveBeenCalled();
+    expect(resolveCategoryForHotelMock).toHaveBeenCalledWith(expect.objectContaining({
+      category: "retrieval_based",
+      promptKey: "arrivals_transport",
+    }));
+    expect(searchFromAstraMock).toHaveBeenCalledWith(
+      "que aeropuerto hay cerca del hotel",
+      "hotel999",
+      expect.objectContaining({
+        category: "retrieval_based",
+        promptKey: "arrivals_transport",
+      }),
+      "es"
+    );
+    expect(res.promptKey).toBe("arrivals_transport");
+  });
 });

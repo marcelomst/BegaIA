@@ -85,7 +85,7 @@ import {
   hasCreateQuoteConfirmationContext as hasCreateQuoteConfirmationContextSignal,
   isBareAffirmativeForQuotedCreate,
 } from "@/lib/agents/confirmationGovernance";
-import { RE_BILLING } from "@/lib/agents/classify/keywords";
+import { RE_BILLING, RE_TRANSPORT } from "@/lib/agents/classify/keywords";
 
 // ================================
 // --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
@@ -10032,6 +10032,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 question: kbUserText,
                 hotelId: pre.msg.hotelId,
                 desiredLang: pre.lang,
+                ...(RE_TRANSPORT.test(kbUserText)
+                  ? { override: { category: "retrieval_based", promptKey: "arrivals_transport" } }
+                  : {}),
               });
 
               const cat = kb.category;

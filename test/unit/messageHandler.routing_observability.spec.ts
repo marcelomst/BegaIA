@@ -237,6 +237,88 @@ describe("messageHandler routing observability baseline", () => {
     );
   });
 
+  it.each([
+    "que aeropuerto hay cerca del hotel",
+    "cómo llego desde el aeropuerto al hotel",
+    "hay taxi desde el aeropuerto",
+    "hay bus desde el aeropuerto",
+    "tienen transfer desde el aeropuerto",
+    "airport near the hotel",
+    "how do I get from the airport",
+    "tem transfer do aeroporto",
+  ])("prioriza arrivals_transport en el fast-path KB para: %s", async (content) => {
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "arrivals_transport",
+      answer: "Transporte desde el aeropuerto.",
+      retrieved: ["PDP 5 km; MVD 120 km; transfer, taxi y bus"],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: `obs-transport-${content}`,
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: new Date().toISOString(),
+      conversationId: `conv-obs-transport-${content}`,
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(answerWithKnowledge).toHaveBeenCalledWith(expect.objectContaining({
+      question: content,
+      override: {
+        category: "retrieval_based",
+        promptKey: "arrivals_transport",
+      },
+    }));
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][decision]",
+      expect.objectContaining({
+        route_source: "knowledgeBaseAgent",
+        early_return: true,
+        final_category: "retrieval_based",
+        final_prompt_key: "arrivals_transport",
+      })
+    );
+  });
+
+  it("mantiene nearby_points sin override de transporte para una consulta cercana legítima", async () => {
+    const content = "qué lugares hay cerca del hotel";
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "nearby_points",
+      answer: "Lugares cercanos al hotel.",
+      retrieved: [],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-nearby-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-nearby-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(answerWithKnowledge).toHaveBeenCalledWith(expect.objectContaining({
+      question: content,
+    }));
+    expect(answerWithKnowledge).not.toHaveBeenCalledWith(expect.objectContaining({
+      override: expect.anything(),
+    }));
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+  });
+
   it("loggea no-match del stable guard antes de caer al flujo normal", async () => {
     vi.mocked(answerWithKnowledge).mockResolvedValue({
       ok: true,

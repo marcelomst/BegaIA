@@ -32,14 +32,14 @@ box_id = estable
 code_refs = recalculables
 ```
 
-Este archivo registra `code_refs` actuales para el estado commiteado analizado.
+Este archivo registra `code_refs` actuales para el working tree analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito `58af388`, Guardian confirmó:
+Para el hito actual:
 
 ```yaml
-code_refs_status: needs_refresh
+code_refs_status: fresh_for_impacted_boxes
 runtime_map_refresh_required: true
 ```
 
@@ -60,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 58af388
-messageHandler_lines: 12180
-working_tree_status: clean
-analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v25
+commit_base: 9aa3702
+messageHandler_lines: 12183
+working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
+analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
+baseline_status: working_tree_runtime_fix_validated_v26
 known_manual_bug: none
 ```
 
@@ -109,7 +109,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12180
+total_lines: 12183
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -136,9 +136,9 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L4386-L4635 |    250 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5148-L11810 |   6663 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L11811-L11855 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L11856-L12180 |    325 | high      | Entrypoint público del runtime             |
+| `bodyLLM`                            | L5148-L11813 |   6666 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L11814-L11858 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L11859-L12183 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -189,8 +189,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5041-L11656
-lines: 6616
+range: L5148-L11813
+lines: 6666
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -412,8 +412,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5041-L11656
-bodyLLM_lines: 6616
+bodyLLM_range: L5148-L11813
+bodyLLM_lines: 6666
 bucket_size: 250
 confidence: high_for_full_range
 ```

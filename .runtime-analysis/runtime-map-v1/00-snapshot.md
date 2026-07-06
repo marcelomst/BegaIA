@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 58af388
-messageHandler_lines: 12180
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v25
+commit_base: 9aa3702
+messageHandler_lines: 12183
+baseline_status: working_tree_runtime_fix_validated_v26
 known_manual_bug: none
-working_tree_status: clean
-analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
+working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
+analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
 ```
 
 ---
@@ -21,7 +21,7 @@ analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
 ## Working tree al momento del snapshot
 
 ```text
-clean
+dirty esperado: fix runtime/test/Runtime Map del hito actual y `.gitignore` preexistente
 ```
 
 ---
@@ -99,14 +99,14 @@ code_refs = recalculables
 
 ---
 
-## Próximo paso
+## Refresh actual
 
 Refresh aplicado:
 
 ```text
-1. Snapshot base a commit real `58af388`
-2. Corredor de identidad conversacional en Email refrescado para persistencia y vocativo same-turn
-3. Evidence summary refrescado
-4. code index refrescado
-5. box index machine-friendly refrescado para inbound adapter Email, `guest_identity` y `identity_capture`
+1. Baseline de working tree sobre `9aa3702`
+2. Precedencia de transporte en el fastpath KB refrescada
+3. Evidence summary y scans top-level refrescados
+4. code index y box index refrescados
+5. Cajas de reserva y fallback preservadas
 ```

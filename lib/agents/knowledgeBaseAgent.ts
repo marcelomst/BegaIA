@@ -34,7 +34,9 @@ export async function answerWithKnowledge(args: {
     const { question, hotelId, desiredLang, override } = args;
 
     // 1) Classify question into category/promptKey
-    const cls = await classifyQuery(question, hotelId);
+    const cls = override?.category && override?.promptKey
+        ? { category: override.category, promptKey: override.promptKey }
+        : await classifyQuery(question, hotelId);
     const category = override?.category ?? cls.category;
     const promptKey = override?.promptKey ?? cls.promptKey ?? null;
 

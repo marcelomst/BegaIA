@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 58af388
-messageHandler_lines: 12180
-working_tree_status: clean
-analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
-baseline_status: committed_fix_pushed_runtime_map_refresh_applied_v25
+commit_base: 9aa3702
+messageHandler_lines: 12183
+working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
+analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
+baseline_status: working_tree_runtime_fix_validated_v26
 known_manual_bug: none
 ```
 
@@ -56,23 +56,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - transport.email.inbound_adapter
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.identity_capture
-    - runtime.messageHandler.state.guest_identity
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Email captura actor conversacional inline real en cuerpo simple, multilinea y Gmail-like
-      - el actor persiste sobre el guest canónico resuelto antes de entrar a `create`
-      - la cotización same-turn usa el vocativo del actor conversacional y no `guestName` transaccional
-      - `reservationSlots.guestName` permanece separado como titular de reserva
+      - transporte domina sobre nearby en el fastpath KB
+      - nearby legítimo permanece sin override de transporte
+      - el fastpath resuelto preserva el bypass del graph
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -154,7 +150,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12180
+        range: L1-L12183
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -182,7 +178,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11856-L12180
+        range: L11859-L12183
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -247,7 +243,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5148-L11810
+        range: L5148-L11813
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -286,13 +282,10 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4529-L5040
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L11484-L11631
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L2624-L3419
+        range: L9883-L10104
+        confidence: high
+      - file: lib/agents/classify/keywords.ts
+        range: L6-L6
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors
@@ -326,7 +319,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5041-L11656
+        range: L5148-L11813
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -361,7 +354,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5041-L11656
+        range: L5148-L11813
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -614,10 +607,10 @@ boxes:
       - domain_lock
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L8064-L8563
-        confidence: medium
-      - file: lib/handlers/messageHandler.ts
-        range: L2546-L2581
+        range: L9883-L10104
+        confidence: high
+      - file: lib/agents/knowledgeBaseAgent.ts
+        range: L28-L153
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -682,17 +675,14 @@ boxes:
       - fallback_precedence
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L8314-L8563
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L3384-L3511
+        range: L9883-L10205
         confidence: high
-      - file: lib/handlers/messageHandler.ts
-        range: L4314-L4563
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L9314-L9367
-        confidence: needs_refresh
+      - file: lib/agents/classify/policy.ts
+        range: L103-L725
+        confidence: high
+      - file: lib/classifier/index.ts
+        range: L51-L145
+        confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
       - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal

@@ -21,11 +21,11 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 58af388
-messageHandler_lines: 12180
-working_tree_status: clean
-analysis_scope: commit_58af388c0b6b4cf05fcf0b53462e7c843daa416e
-suite_status_reported: targeted_green
+commit_base: 9aa3702
+messageHandler_lines: 12183
+working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
+analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
+suite_status_reported: full_green
 suite_reported:
   commands:
     - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
@@ -43,23 +43,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - transport.email.inbound_adapter
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.identity_capture
-    - runtime.messageHandler.state.guest_identity
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Email captura actor conversacional inline real en cuerpo simple, multilinea y Gmail-like
-      - el actor persiste sobre el guest canónico resuelto antes de entrar a `create`
-      - la cotización same-turn usa el vocativo del actor conversacional y no `guestName` transaccional
-      - `reservationSlots.guestName` permanece separado como titular de reserva
+      - transporte domina sobre nearby en el fastpath KB
+      - nearby legítimo permanece sin override de transporte
+      - el fastpath resuelto preserva el bypass del graph
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -67,13 +63,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 58af388
-    messageHandler_lines: 12180
+    commit: working_tree_on_9aa3702
+    messageHandler_lines: 12183
     functions:
       preLLM: L4386-L4635
-      bodyLLM: L5148-L11810
-      posLLM: L11811-L11855
-      handleIncomingMessage: L11856-L12180
+      bodyLLM: L5148-L11813
+      posLLM: L11814-L11858
+      handleIncomingMessage: L11859-L12183
 ```
 
 ---
@@ -91,9 +87,9 @@ runtime_map_refresh:
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
 | `preLLM`                             | L4386-L4635 |    250 | high      |
-| `bodyLLM`                            | L5148-L11810 |   6663 | high      |
-| `posLLM`                             | L11811-L11855 |     45 | high      |
-| `handleIncomingMessage`              | L11856-L12180 |    325 | high      |
+| `bodyLLM`                            | L5148-L11813 |   6666 | high      |
+| `posLLM`                             | L11814-L11858 |     45 | high      |
+| `handleIncomingMessage`              | L11859-L12183 |    325 | high      |
 
 ---
 
@@ -102,8 +98,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12180 líneas
-bodyLLM:                6663 líneas
+messageHandler.ts total: 12183 líneas
+bodyLLM:                6666 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -518,7 +514,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5041-L11656
+    range: L5148-L11813
     confidence: high
 ```
 
