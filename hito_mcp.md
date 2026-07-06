@@ -11442,3 +11442,73 @@ Impacto:
 - preserva trazabilidad explícita `sourceVersion/vectorVersion` para retrieval
 - fortalece filtros consistentes sin regenerar la KB completa ni borrar el chunk legacy `v5`
 - mantiene el alcance estrictamente focalizado a `arrivals_transport`
+
+### FIX-MESSAGEHANDLER-KB-FASTPATH-ARRIVALS-TRANSPORT-ROUTING-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-06  
+Commit: f5e32cdfd21216d83ea6f665d77f3bbed5bbd5bc
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix de runtime conversacional sobre precedencia de routing KB dentro de
+`messageHandler`. Refuerza el fastpath para señales de aeropuerto/transporte,
+aplica override explícito a `retrieval_based/arrivals_transport`, evita pasar
+por `classifyQuery` salvo con override completo y amplía mínimamente
+`RE_TRANSPORT` sin invadir corredores de reservas ni fallback local.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/agents/classify/keywords.ts`
+- `lib/agents/knowledgeBaseAgent.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+- `test/unit/kb.greetingFallback.spec.ts`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_status: complete`
+- baseline auditado:
+  `working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc`
+- `messageHandler_lines: 12183`
+- `bodyLLM_range: L5148-L11813`
+- `bodyLLM_lines: 6666`
+- cajas impactadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy`
+- `forbidden_boxes_touched: []`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts test/unit/kb.greetingFallback.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+  `git diff --check`
+- validación manual requerida para:
+  "que aeropuerto hay cerca del hotel" debe rutear a `arrivals_transport`
+  "cómo llego desde el aeropuerto al hotel" debe rutear a `arrivals_transport`
+  "hay taxi desde el aeropuerto" debe rutear a `arrivals_transport`
+  "hay bus desde el aeropuerto" debe rutear a `arrivals_transport`
+  "qué lugares hay cerca del hotel" debe preservar `nearby_points`
+  el graph debe quedar bypassed cuando KB resuelve por fastpath
+- límites conocidos:
+  si reaparecen respuestas incorrectas con routing correcto, abrir hito separado de grounding factual post-generación
+- nota de working tree:
+  `.gitignore` permanece modificado fuera del commit y no forma parte de este hito
+
+Impacto:
+
+- alinea el fastpath KB con la intención semántica dominante de transporte/aeropuerto
+- evita que `nearby_points` capture consultas que deben resolverse por `arrivals_transport`
+- preserva el bypass del graph cuando KB resuelve por override completo
+- corrige precedencia/routing sin hardcodear respuestas ni abrir refactor mayor
