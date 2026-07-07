@@ -11512,3 +11512,49 @@ Impacto:
 - evita que `nearby_points` capture consultas que deben resolverse por `arrivals_transport`
 - preserva el bypass del graph cuando KB resuelve por override completo
 - corrige precedencia/routing sin hardcodear respuestas ni abrir refactor mayor
+
+### DOC-ADR-KB-FASTPATH-PRECEDENCE-POLICY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-07  
+Commit: aa2727824d228e2b8cf845e024d69e028ee47515
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito exclusivamente documental. Introduce el ADR
+`docs/architecture/ADR-KB-FASTPATH-PRECEDENCE-POLICY-TARGET.md` en estado
+`Proposed` para explicitar la política objetivo de precedencia del fastpath KB,
+la frontera conceptual entre `kb_precedence_policy` y `category_overrides` y la
+dirección futura sin implementación efectiva en runtime.
+
+Archivos afectados:
+
+- `docs/architecture/ADR-KB-FASTPATH-PRECEDENCE-POLICY-TARGET.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: false`
+- verificación documental reportada en verde:
+  `git diff --check -- docs/architecture/ADR-KB-FASTPATH-PRECEDENCE-POLICY-TARGET.md`
+- validación manual requerida para:
+  verificar que el ADR mantenga estado `Proposed`
+  verificar que no documente implementación efectiva de helper ni runtime
+  verificar que preserve la frontera entre `kb_precedence_policy` y `category_overrides`
+  verificar compatibilidad explícita con `ADR-PIPELINE-RUNTIME-TARGET`
+- límite conocido:
+  el ADR no define todavía el contrato técnico mínimo del helper
+- follow-up sugerido:
+  `DESIGN-KB-FASTPATH-PRECEDENCE-POLICY-CONTRACT-01`
+  `technical_design`
+  `runtime_map_applies: true`
+
+Impacto:
+
+- refuerza la arquitectura vigente sin alterar runtime ni datos
+- preserva `messageHandler` como runtime operativo principal
+- separa source grounding de content resolution
+- mantiene `category_overrides` como mecanismo hotel-level posterior al `categoryId`
