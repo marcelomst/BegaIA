@@ -22,16 +22,18 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 9aa3702
-messageHandler_lines: 12183
+messageHandler_lines: 12203
 working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
 analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
 suite_status_reported: full_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
+    - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+    - pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
+    - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+    - pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
     - pnpm run ts-check
     - git diff --check
     - pnpm test
@@ -64,12 +66,12 @@ runtime_map_refresh:
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
     commit: working_tree_on_9aa3702
-    messageHandler_lines: 12183
+    messageHandler_lines: 12203
     functions:
-      preLLM: L4386-L4635
-      bodyLLM: L5148-L11813
-      posLLM: L11814-L11858
-      handleIncomingMessage: L11859-L12183
+      preLLM: L4387-L4598
+      bodyLLM: L5160-L11833
+      posLLM: L11834-L11875
+      handleIncomingMessage: L11879-L12203
 ```
 
 ---
@@ -86,10 +88,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4386-L4635 |    250 | high      |
-| `bodyLLM`                            | L5148-L11813 |   6666 | high      |
-| `posLLM`                             | L11814-L11858 |     45 | high      |
-| `handleIncomingMessage`              | L11859-L12183 |    325 | high      |
+| `preLLM`                             | L4387-L4598 |    212 | high      |
+| `bodyLLM`                            | L5160-L11833 |   6674 | high      |
+| `posLLM`                             | L11834-L11875 |     42 | high      |
+| `handleIncomingMessage`              | L11879-L12203 |    325 | high      |
 
 ---
 
@@ -98,8 +100,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12183 líneas
-bodyLLM:                6666 líneas
+messageHandler.ts total: 12203 líneas
+bodyLLM:                6674 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -118,10 +120,10 @@ Es una zona donde conviven además:
 - fallback
 - graph/classifier/policy
 - persistencia parcial
-- captura y persistencia de actor conversacional inline en Email
-- uso del guest canónico enriquecido en el vocativo same-turn de `create`
-- separación explícita entre actor conversacional y titular transaccional
-- continuidad multicanal entre inbound adapter Email y runtime principal
+- precedencia compartida del fastpath KB informativo
+- override determinístico hacia `retrieval_based/arrivals_transport`
+- preservación de nearby legítimo sin override de transporte
+- preservación explícita de billing forced path fuera de esta migración
 - early returns
 
 ---
@@ -514,7 +516,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5148-L11813
+    range: L5160-L11833
     confidence: high
 ```
 

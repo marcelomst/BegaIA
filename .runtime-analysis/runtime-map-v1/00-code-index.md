@@ -46,11 +46,11 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta la captura de actor conversacional inline en Email
-- se registra la persistencia del actor sobre el guest canónico resuelto
-- se preserva la frontera entre actor conversacional y `guestName` transaccional
-- se explicita el uso del guest enriquecido en el vocativo same-turn de `create`
-- se enlaza el inbound adapter Email con el runtime principal sin abrir arquitectura paralela
+- se documenta la migración del hotfix `arrivals_transport` a `resolveKbFastpathPrecedence`
+- se preserva que airport/aeropuerto/transfer/taxi/bus gane sobre nearby en el fastpath KB
+- se preserva que consultas puras de nearby no activen el override de transporte
+- se preserva billing forced path fuera de esta migración
+- se preservan los corredores de reserva fuera de alcance
 
 ---
 
@@ -61,7 +61,7 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 9aa3702
-messageHandler_lines: 12183
+messageHandler_lines: 12203
 working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
 analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
 baseline_status: working_tree_runtime_fix_validated_v26
@@ -73,7 +73,9 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
+pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+result: pass
+pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -87,7 +89,7 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una reparación de identidad conversacional inline en Email, pero no
+Este refresh documenta una reparación de precedencia KB en el fastpath informativo, pero no
 elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 ```
 
@@ -109,7 +111,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12183
+total_lines: 12203
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -117,8 +119,8 @@ confidence: high
 Lectura:
 
 ```text
-messageHandler.ts sigue siendo el runtime principal vigente en el commit
-`58af388`.
+messageHandler.ts sigue siendo el runtime principal vigente en el working tree
+del hito `FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
 ```
 
 ---
@@ -135,10 +137,10 @@ messageHandler.ts sigue siendo el runtime principal vigente en el commit
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4386-L4635 |    250 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5148-L11813 |   6666 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L11814-L11858 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L11859-L12183 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4387-L4598 |    212 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5160-L11833 |   6674 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L11834-L11875 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L11879-L12203 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -168,7 +170,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 ```yaml
 name: preLLM
 range: L4279-L4528
-lines: 250
+lines: 212
 confidence: high
 role: context_preparation
 ```
@@ -189,8 +191,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5148-L11813
-lines: 6666
+range: L5160-L11833
+lines: 6674
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -412,8 +414,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5148-L11813
-bodyLLM_lines: 6666
+bodyLLM_range: L5160-L11833
+bodyLLM_lines: 6674
 bucket_size: 250
 confidence: high_for_full_range
 ```

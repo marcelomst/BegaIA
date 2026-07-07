@@ -9,7 +9,7 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 9aa3702
-messageHandler_lines: 12183
+messageHandler_lines: 12203
 baseline_status: working_tree_runtime_fix_validated_v26
 known_manual_bug: none
 working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
@@ -29,7 +29,9 @@ dirty esperado: fix runtime/test/Runtime Map del hito actual y `.gitignore` pree
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts test/unit/email.pipelineIdentity.spec.ts test/unit/messageHandler.create_word_dates_no_year.spec.ts test/integration/multichannelCanonicalGuest.e2e.spec.ts
+pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+result: pass
+pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -75,22 +77,22 @@ email_inline_conversational_actor_parity_commit: 58af388c0b6b4cf05fcf0b53462e7c8
 ### Resultado esperado ahora preservado
 
 ```text
-- Email debe capturar el actor conversacional inline real incluso en cuerpo multilinea o Gmail-like
-- `guest.name` y `firstName` deben persistirse sobre el guest canónico resuelto
-- el vocativo same-turn de `create` debe usar al actor conversacional y no a `guestName` transaccional
-- `reservationSlots.guestName` debe seguir reservado para el titular transaccional
+- el fastpath KB informativo usa una política compartida de precedencia
+- airport/aeropuerto/transfer/taxi/bus enruta a `retrieval_based/arrivals_transport`
+- nearby legítimo permanece sin override de transporte
+- billing forced path permanece fuera de la migración
+- los corredores de reserva/create/modify/cancel/snapshot quedan preservados
 ```
 
 ---
 
 ## Advertencia de uso
 
-Este snapshot es válido para analizar el estado commiteado y pusheado del hito
-`58af388`.
+Este snapshot es válido para analizar el working tree del hito
+`FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
 
-Guardian confirmó `runtime_map_refresh.required: true`, por lo que esta baseline
-se fija sobre el commit técnico actual y toma `ebffb82` como baseline previo del
-Runtime Map formal.
+Guardian requiere refresh porque el hito toca `messageHandler.ts`. La baseline se
+mantiene sobre `9aa3702` y se documentan los rangos recalculados del working tree.
 
 ```text
 box_id = estable

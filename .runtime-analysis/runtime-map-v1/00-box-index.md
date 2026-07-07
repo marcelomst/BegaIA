@@ -44,7 +44,7 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 9aa3702
-messageHandler_lines: 12183
+messageHandler_lines: 12203
 working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
 analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
 baseline_status: working_tree_runtime_fix_validated_v26
@@ -150,7 +150,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12183
+        range: L1-L12203
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -178,7 +178,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11859-L12183
+        range: L11879-L12203
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -208,7 +208,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4386-L4635
+        range: L4387-L4598
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -243,7 +243,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5148-L11813
+        range: L5160-L11833
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -319,7 +319,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5148-L11813
+        range: L5160-L11833
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -354,7 +354,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5148-L11813
+        range: L5160-L11833
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create

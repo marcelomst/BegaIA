@@ -85,7 +85,8 @@ import {
   hasCreateQuoteConfirmationContext as hasCreateQuoteConfirmationContextSignal,
   isBareAffirmativeForQuotedCreate,
 } from "@/lib/agents/confirmationGovernance";
-import { RE_BILLING, RE_TRANSPORT } from "@/lib/agents/classify/keywords";
+import { RE_BILLING } from "@/lib/agents/classify/keywords";
+import { resolveKbFastpathPrecedence } from "@/lib/kb/kbPrecedencePolicy";
 
 // ================================
 // --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
@@ -4926,10 +4927,21 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
       debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
     } else {
       try {
+        const kbPrecedence = resolveKbFastpathPrecedence({
+          query: kbUserText,
+          lang: pre.lang,
+          channel: pre.msg.channel,
+          hotelId: pre.msg.hotelId,
+          hasReservationContext: effectiveReservationContext,
+          transactionalIntent: looksTransactionalPricing ? { kind: "create", confidence: 0.7 } : null,
+        });
         const kb = await answerWithKnowledge({
           question: kbUserText,
           hotelId: pre.msg.hotelId,
           desiredLang: pre.lang,
+          ...(kbPrecedence && !kbPrecedence.defersToRuntimeAction
+            ? { override: { category: kbPrecedence.category, promptKey: kbPrecedence.promptKey } }
+            : {}),
         });
         const cat = kb.category;
         const safeCat = isSafeAutosendCategory(cat);
@@ -10028,12 +10040,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             debugLog("[KB] skip fast-path for events followup", { text: kbUserText });
           } else {
             try {
+              const kbPrecedence = resolveKbFastpathPrecedence({
+                query: kbUserText,
+                lang: pre.lang,
+                channel: pre.msg.channel,
+                hotelId: pre.msg.hotelId,
+                hasReservationContext,
+                transactionalIntent: looksTransactionalPricing ? { kind: "create", confidence: 0.7 } : null,
+              });
               const kb = await answerWithKnowledge({
                 question: kbUserText,
                 hotelId: pre.msg.hotelId,
                 desiredLang: pre.lang,
-                ...(RE_TRANSPORT.test(kbUserText)
-                  ? { override: { category: "retrieval_based", promptKey: "arrivals_transport" } }
+                ...(kbPrecedence && !kbPrecedence.defersToRuntimeAction
+                  ? { override: { category: kbPrecedence.category, promptKey: kbPrecedence.promptKey } }
                   : {}),
               });
 
