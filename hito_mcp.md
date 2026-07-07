@@ -11558,3 +11558,71 @@ Impacto:
 - preserva `messageHandler` como runtime operativo principal
 - separa source grounding de content resolution
 - mantiene `category_overrides` como mecanismo hotel-level posterior al `categoryId`
+
+### FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-07  
+Commit: bbd36d193baedb55718c957819f990559b754b9e
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix de runtime conversacional que reemplaza el hotfix inline de
+`arrivals_transport` por un helper compartido, puro y determinístico de
+precedencia para fastpath KB. Integra la policy mínimamente en
+`messageHandler`, preserva `nearby_points` legítimo y deja `billing` fuera de
+la migración, manteniendo su forced path actual.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/kb/kbPrecedencePolicy.ts`
+- `test/unit/kbPrecedencePolicy.spec.ts`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_status: complete`
+- baseline auditado:
+  `working_tree_on_9aa3702`
+- `messageHandler_lines: 12203`
+- `bodyLLM_range: L5160-L11833`
+- `bodyLLM_lines: 6674`
+- cajas impactadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy`
+- `forbidden_boxes_touched: []`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts test/unit/kbPrecedencePolicy.spec.ts`
+  `pnpm run ts-check`
+  `pnpm test`
+  `git diff --check`
+- validación manual requerida para:
+  "que aeropuerto hay cerca del hotel" debe disparar override a `arrivals_transport`
+  "cómo llego desde el aeropuerto al hotel" debe disparar override a `arrivals_transport`
+  "hay taxi desde el aeropuerto" debe disparar override a `arrivals_transport`
+  "hay bus desde el aeropuerto" debe disparar override a `arrivals_transport`
+  "qué lugares hay cerca del hotel" debe preservar `nearby_points` sin override
+  consultas con contexto transaccional de reserva no deben disparar la precedence policy
+- límites conocidos:
+  esta fase cubre solo `arrivals_transport` y precedence negativa sobre `nearby`
+  no implementa factual checker post-generación
+  `billing` queda deliberadamente fuera de esta migración
+
+Impacto:
+
+- reemplaza el hotfix inline por una policy compartida alineada con el ADR de precedencia KB
+- preserva determinismo sin abrir migración de graph ni runtime paralelo
+- mantiene `nearby_points` legítimo y el forced path de billing sin regresión
+- fortalece la precedencia del fastpath KB con una integración mínima y explícita
