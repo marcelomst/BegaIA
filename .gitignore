@@ -84,3 +84,6 @@ docs/Capsula_documentacion.md
 .runtime-analysis/*
 !.runtime-analysis/**/
 !.runtime-analysis/**/*.md
+
+# Auxiliary local docs
+docs-local/
