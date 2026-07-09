@@ -11702,3 +11702,49 @@ Impacto:
 - evita fuga de markdown crudo y preserva render rich público en widget
 - mantiene la continuidad hacia reserva cuando aparece intención de booking
 - preserva la separación entre render público rich y corredores de reserva
+
+### FIX-ADMIN-ROOM-INFO-IMG-RICH-PREVIEW-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-09  
+Commit: 9f104a809e47577c7f21dd84a5c059c499f7d5f7
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito acotado a Admin UI, DTO y mapper para hacer visible el payload `rich` ya
+existente de `room-info-img`. Preserva la metadata rich en el mapeo de canal y
+renderiza una preview visual suficiente en Admin Inbox, sin buscar paridad
+exacta con el carrusel del widget público.
+
+Archivos afectados:
+
+- `components/admin/MessageBubble.tsx`
+- `utils/fetchAndMapMessagesWithSubject.ts`
+- `types/channel.ts`
+- `test/frontend/messageBubble.supervisedEdit.spec.tsx`
+- `test/unit/fetchAndMapMessagesWithSubject.rich.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/fetchAndMapMessagesWithSubject.rich.spec.ts test/frontend/messageBubble.supervisedEdit.spec.tsx`
+  `git diff --check`
+- validación manual requerida para:
+  abrir conversación Admin con assistant response `retrieval_based/room_info_img`
+  verificar que la preview visual aparece en Admin
+  verificar que el formato en grilla es visible y suficiente
+  verificar que no se requiere carrusel para considerar el hito válido
+- notas:
+  la preview en Admin queda en formato grilla y se acepta como suficiente para este alcance
+  no se tocaron `messageHandler`, `retrieval_based`, `kbPrecedencePolicy`, datos, vector store, billing, reservations, arrivals transport ni `public/widget/begai-chat.js`
+
+Impacto:
+
+- completa la observabilidad del canal Admin sobre el contrato `rich` ya emitido por runtime/API
+- evita pérdida de metadata en mapper y DTO
+- hace visible la preview visual esperada sin acoplar Admin al widget público
+- mantiene el alcance estrictamente en UI/DTO/mapper sin tocar runtime conversacional
