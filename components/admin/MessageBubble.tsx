@@ -3,6 +3,19 @@ import React from "react";
 import { Eye } from "lucide-react";
 import type { ChatTurnWithMeta } from "@/types/channel";
 
+type RoomInfoImgItem = {
+  type?: string;
+  name?: string;
+  icon?: string;
+  description?: string;
+  highlights?: string[];
+  images?: string[];
+  image?: string;
+  capacity?: number;
+  beds?: string;
+  sizeM2?: number;
+};
+
 interface MessageBubbleProps {
   msg: ChatTurnWithMeta;
   idx: number;
@@ -16,6 +29,80 @@ interface MessageBubbleProps {
   onCancelEdit: () => void;
   onViewOriginal: (msg: string) => void;
   t: any;
+}
+
+function getRoomImage(item: RoomInfoImgItem): string {
+  const first = Array.isArray(item.images) ? item.images.find(Boolean) : "";
+  return String(first || item.image || "").trim();
+}
+
+function getRoomTitle(item: RoomInfoImgItem): string {
+  return String(item.type || item.name || "Habitación").trim();
+}
+
+function getRoomHighlights(item: RoomInfoImgItem): string[] {
+  const structured = [
+    typeof item.capacity === "number" ? `Capacidad: ${item.capacity}` : "",
+    item.beds ? `Camas: ${item.beds}` : "",
+    typeof item.sizeM2 === "number" ? `Superficie: ${item.sizeM2} m²` : "",
+  ];
+  return [
+    ...structured,
+    ...(Array.isArray(item.highlights) ? item.highlights : []),
+  ]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+function RoomInfoImgPreview({ rich }: { rich: ChatTurnWithMeta["rich"] }) {
+  if (!rich || rich.type !== "room-info-img" || !Array.isArray(rich.data) || rich.data.length === 0) {
+    return null;
+  }
+
+  const rooms = rich.data as RoomInfoImgItem[];
+  return (
+    <div className="mt-3 grid gap-3 sm:grid-cols-2" data-testid="admin-room-info-img-preview">
+      {rooms.map((room, index) => {
+        const image = getRoomImage(room);
+        const title = getRoomTitle(room);
+        const highlights = getRoomHighlights(room);
+        return (
+          <article
+            key={`${title}-${index}`}
+            className="overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          >
+            {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={image}
+                alt={title}
+                className="h-32 w-full object-cover"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            ) : null}
+            <div className="space-y-2 p-3">
+              <div className="flex items-center gap-2 font-semibold">
+                {room.icon ? <span aria-hidden="true">{room.icon}</span> : null}
+                <span>{title}</span>
+              </div>
+              {room.description ? (
+                <p className="text-xs text-gray-600 dark:text-zinc-300">{room.description}</p>
+              ) : null}
+              {highlights.length ? (
+                <ul className="list-disc space-y-1 pl-4 text-xs text-gray-700 dark:text-zinc-300">
+                  {highlights.map((highlight) => (
+                    <li key={highlight}>{highlight}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -133,6 +220,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   {t.channelInbox?.editAndSend || "Editar y enviar"}
                 </button>
               )}
+              <RoomInfoImgPreview rich={msg.rich} />
             </>
           )}
           <div className="mt-2 flex flex-wrap gap-3 items-center text-xs text-muted-foreground">

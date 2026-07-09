@@ -32,6 +32,7 @@ export async function fetchAndMapMessagesWithSubject(
     timestamp: msg.timestamp,
     status: msg.status ?? undefined,
     respondedBy: msg.respondedBy ?? undefined,
+    rich: msg.rich ?? undefined,
     approvedResponse: msg.approvedResponse ?? undefined,
     suggestion: msg.suggestion ?? undefined,  // Para "Ver original"
     messageId: msg.messageId,                 // Por si se necesita editar/enviar

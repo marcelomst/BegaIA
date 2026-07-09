@@ -80,4 +80,72 @@ describe("MessageBubble supervised edit", () => {
       "msg-pending-1|¿Qué tipo de habitación preferís?",
     );
   });
+
+  it("renderiza preview rich room-info-img con habitaciones e imágenes", () => {
+    const richMessage: ChatTurnWithMeta = {
+      role: "ai",
+      text: "Estas son las habitaciones disponibles.",
+      status: "sent",
+      timestamp: "2026-07-09T12:00:00.000Z",
+      messageId: "msg-room-rich-1",
+      rich: {
+        type: "room-info-img",
+        data: [
+          {
+            type: "Single Standard",
+            icon: "🛏️",
+            highlights: ["Vista al mar"],
+            images: ["/hotel999/rooms/single/single.jpg"],
+          },
+          {
+            type: "Doble",
+            highlights: ["Balcón"],
+            images: ["/hotel999/rooms/double/double.jpg"],
+          },
+          {
+            type: "Twin",
+            highlights: ["TV Smart"],
+            images: ["/hotel999/rooms/twin/twin.jpg"],
+          },
+          {
+            type: "Triple",
+            highlights: ["Terraza"],
+            images: ["/hotel999/rooms/triple/hab-triple-1.jpg"],
+          },
+        ],
+      },
+    };
+
+    render(
+      <MessageBubble
+        msg={richMessage}
+        idx={0}
+        isEmail={false}
+        subject=""
+        editingIdx={null}
+        editingText=""
+        onEdit={() => undefined}
+        onChangeEdit={() => undefined}
+        onSendEdit={() => undefined}
+        onCancelEdit={() => undefined}
+        onViewOriginal={() => undefined}
+        t={{ channelInbox: {} }}
+      />
+    );
+
+    expect(screen.getByText("Estas son las habitaciones disponibles.")).toBeVisible();
+    expect(screen.getByTestId("admin-room-info-img-preview")).toBeVisible();
+    expect(screen.getByText("Single Standard")).toBeVisible();
+    expect(screen.getByText("Doble")).toBeVisible();
+    expect(screen.getByText("Twin")).toBeVisible();
+    expect(screen.getByText("Triple")).toBeVisible();
+    expect(screen.getByRole("img", { name: "Single Standard" })).toHaveAttribute(
+      "src",
+      "/hotel999/rooms/single/single.jpg"
+    );
+    expect(screen.getByRole("img", { name: "Triple" })).toHaveAttribute(
+      "src",
+      "/hotel999/rooms/triple/hab-triple-1.jpg"
+    );
+  });
 });

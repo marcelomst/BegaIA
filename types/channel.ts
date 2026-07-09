@@ -270,6 +270,7 @@ export type ChatTurn = {
 export type ChatTurnWithMeta = ChatTurn & {
   status?: string;
   respondedBy?: string;
+  rich?: RichPayload;
   approvedResponse?: string;
   suggestion?: string;
   messageId?: string;
