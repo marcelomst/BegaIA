@@ -11626,3 +11626,79 @@ Impacto:
 - preserva determinismo sin abrir migración de graph ni runtime paralelo
 - mantiene `nearby_points` legítimo y el forced path de billing sin regresión
 - fortalece la precedencia del fastpath KB con una integración mínima y explícita
+
+### FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-09  
+Commit: f223802abd0e46b85b4c2b250d29d9dcf50e51df
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix de runtime conversacional y publicación rich para `room_info_img`.
+Formaliza la precedencia KB para inventario visual de habitaciones, asegura la
+generación/publicación de una respuesta rich renderizable en el widget público,
+evita fuga de markdown crudo y preserva la continuidad hacia reserva cuando
+aparece intención de booking.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/kb/kbPrecedencePolicy.ts`
+- `lib/agents/retrieval_based.ts`
+- `lib/kb/generator.ts`
+- `public/widget/begai-chat.js`
+- `scripts/verify-room-info-img.ts`
+- `scripts/repair-room-info-img.ts`
+- `test/unit/kbPrecedencePolicy.spec.ts`
+- `test/unit/messageHandler.routing_observability.spec.ts`
+- `test/unit/kb.generator.room_info_img.spec.ts`
+- `test/unit/retrieval.roomInfoImgRich.spec.ts`
+- `test/unit/handleChannelMessage.room_info_img.spec.ts`
+- `test/unit/api.chat.rich.spec.ts`
+- `test/unit/widget.roomInfoImg.static.spec.ts`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `roadmap_impact: none`
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: false`
+- baseline auditado:
+  `working_tree_on_446ab78`
+- cajas impactadas:
+  `runtime.messageHandler.bodyLLM.turnDecision`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities`
+- cajas guardadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+  `runtime.messageHandler.billing`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/api.chat.rich.spec.ts test/unit/widget.roomInfoImg.static.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/handleChannelMessage.room_info_img.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- validación manual requerida para:
+  "Que tipos de habitaciones tienen?" devuelve `retrieval_based/room_info_img` con rich visible y sin markdown crudo
+  "mostrame habitaciones" devuelve `retrieval_based/room_info_img` con rich visible y sin markdown crudo
+  un follow-up de reserva posterior deriva al corredor de reserva y no queda capturado por `room_info_img`
+  el widget público renderiza imágenes; Admin sin carrusel queda fuera de scope
+- notas:
+  la diferencia entre `reservation/default` y `reservation/reservation_flow` no bloquea el hito si ambos avanzan correctamente a reserva
+  la falta de carrusel en Admin queda fuera de scope; candidato futuro `ENHANCE-ADMIN-RICH-ROOM-INFO-IMG-PREVIEW-01`
+  el script de repair queda acotado por código a `hotel999 / retrieval_based / room_info_img / es`
+
+Impacto:
+
+- formaliza un fastpath explícito y acotado para inventario visual de habitaciones con imágenes
+- evita fuga de markdown crudo y preserva render rich público en widget
+- mantiene la continuidad hacia reserva cuando aparece intención de booking
+- preserva la separación entre render público rich y corredores de reserva
