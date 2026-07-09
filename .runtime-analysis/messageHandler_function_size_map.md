@@ -1,8 +1,8 @@
 # messageHandler function size map
 
 Archivo: `lib/handlers/messageHandler.ts`
-Líneas totales: 12203
-Declaraciones detectadas: 304
+Líneas totales: 12322
+Declaraciones detectadas: 309
 
 > Scan estático readonly. Los rangos son aproximados y dependen de llaves `{}`.
 
@@ -21,9 +21,9 @@ Declaraciones detectadas: 304
 | `assessReservationDateCoherence` | L3718-L3731 | 14 | `function assessReservationDateCoherence(` |
 | `tryStructuredAnalyze` | L4198-L4325 | 128 | `async function tryStructuredAnalyze(params: {` |
 | `preLLM` | L4387-L4598 | 212 | `async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: string) => Promise<void>; mode?: ChannelMode; skipPersistIncoming?: boolean; }): Promise<PreLLMResult> {` |
-| `bodyLLM` | L5160-L11833 | 6674 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
-| `posLLM` | L11834-L11875 | 42 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
-| `handleIncomingMessage` | L11879-L12203 | 325 | `export async function handleIncomingMessage(` |
+| `bodyLLM` | L5257-L11996 | 6740 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
+| `posLLM` | L11923-L11967 | 45 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
+| `handleIncomingMessage` | L11968-L12322 | 325 | `export async function handleIncomingMessage(` |
 
 ---
 
@@ -31,45 +31,45 @@ Declaraciones detectadas: 304
 
 | Nombre | Rango | Líneas | Firma |
 | --- | ---: | ---: | --- |
-| `bodyLLM` | L5160-L11833 | 6674 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
+| `bodyLLM` | L5257-L11996 | 6740 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
 | `preLLM` | L4387-L4598 | 212 | `async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: string) => Promise<void>; mode?: ChannelMode; skipPersistIncoming?: boolean; }): Promise<PreLLMResult> {` |
-| `tryBodyLLMKnowledgeShortcuts` | L4794-L4982 | 189 | `async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
+| `tryBodyLLMKnowledgeShortcuts` | L4839-L5049 | 211 | `async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
 | `buildReservationLocalFallbackReply` | L3581-L3716 | 136 | `function buildReservationLocalFallbackReply(` |
 | `tryStructuredAnalyze` | L4198-L4325 | 128 | `async function tryStructuredAnalyze(params: {` |
 | `resolveReservationReference` | L2732-L2839 | 108 | `function resolveReservationReference(state: any, userText: string): ReservationReferenceResolution {` |
 | `applyExplicitConversationalActorToGuest` | L282-L386 | 105 | `async function applyExplicitConversationalActorToGuest(` |
-| `runBodyLLMGraphPath` | L4984-L5087 | 104 | `async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Promise<any[]> {` |
-| `tryConversationalGuestNameCapture` | L4700-L4792 | 93 | `async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
+| `runBodyLLMGraphPath` | L5051-L5154 | 104 | `async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Promise<any[]> {` |
+| `tryConversationalGuestNameCapture` | L4745-L4837 | 93 | `async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
 | `getObjectiveContext` | L851-L926 | 76 | `async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: (reply: string) => Promise<void>; mode?: ChannelMode; skipPersistIncoming?: boolean; }) {` |
 | `buildReservationListAnswer` | L2352-L2427 | 76 | `function buildReservationListAnswer(` |
 | `buildModifyPreviewReply` | L1177-L1250 | 74 | `function buildModifyPreviewReply(` |
-| `jidFromGuest` | L8848-L8916 | 69 | `const jidFromGuest = (pre.msg.guestId \|\| "").includes("@s.whatsapp.net") ? pre.msg.guestId : undefined;` |
-| `jidFromGuest` | L8727-L8794 | 68 | `const jidFromGuest = (pre.msg.guestId \|\| '').includes('@s.whatsapp.net') ? pre.msg.guestId : undefined;` |
-| `jidFromConv` | L8849-L8916 | 68 | `const jidFromConv = (pre.conversationId \|\| "").split("whatsapp-")[1];` |
-| `jidFromConv` | L8728-L8794 | 67 | `const jidFromConv = (pre.conversationId \|\| '').split('whatsapp-')[1];` |
+| `jidFromGuest` | L8915-L8983 | 69 | `const jidFromGuest = (pre.msg.guestId \|\| "").includes("@s.whatsapp.net") ? pre.msg.guestId : undefined;` |
+| `jidFromGuest` | L8794-L8861 | 68 | `const jidFromGuest = (pre.msg.guestId \|\| '').includes('@s.whatsapp.net') ? pre.msg.guestId : undefined;` |
+| `jidFromConv` | L8916-L8983 | 68 | `const jidFromConv = (pre.conversationId \|\| "").split("whatsapp-")[1];` |
+| `jidFromConv` | L8795-L8861 | 67 | `const jidFromConv = (pre.conversationId \|\| '').split('whatsapp-')[1];` |
 | `resolveReservationListSource` | L2453-L2516 | 64 | `async function resolveReservationListSource(pre: PreLLMResult): Promise<{` |
 | `buildReservationSnapshotAnswer` | L483-L545 | 63 | `function buildReservationSnapshotAnswer(` |
-| `buildDeterministicBillingReply` | L11460-L11522 | 63 | `async function buildDeterministicBillingReply(` |
+| `buildDeterministicBillingReply` | L11549-L11611 | 63 | `async function buildDeterministicBillingReply(` |
 | `detectDominantTurnDomain` | L3072-L3131 | 60 | `function detectDominantTurnDomain(` |
-| `buildModifyOptionsMenu` | L11673-L11728 | 56 | `function buildModifyOptionsMenu(` |
+| `buildModifyOptionsMenu` | L11762-L11817 | 56 | `function buildModifyOptionsMenu(` |
 | `buildFocusContinuationPrompt` | L1812-L1865 | 54 | `function buildFocusContinuationPrompt(` |
-| `harmonizeBillingCurrencyAnswer` | L11392-L11444 | 53 | `async function harmonizeBillingCurrencyAnswer(` |
+| `harmonizeBillingCurrencyAnswer` | L11481-L11533 | 53 | `async function harmonizeBillingCurrencyAnswer(` |
 | `shouldUseReservationLocalFallback` | L3528-L3579 | 52 | `function shouldUseReservationLocalFallback(` |
 | `buildPureCreateLateralFailsafeReply` | L1930-L1980 | 51 | `function buildPureCreateLateralFailsafeReply(` |
 | `validateCreateDraftConsistency` | L1546-L1590 | 45 | `function validateCreateDraftConsistency(` |
 | `extractRawOrderedDateRange` | L3733-L3775 | 43 | `function extractRawOrderedDateRange(text: string): { checkIn?: string; checkOut?: string } \| null {` |
-| `posLLM` | L11834-L11875 | 42 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
+| `posLLM` | L11923-L11967 | 45 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
 | `extractModifyAvailabilitySupplementalLines` | L1337-L1377 | 41 | `function extractModifyAvailabilitySupplementalLines(` |
 | `extractExplicitConversationalActorName` | L241-L280 | 40 | `export function extractExplicitConversationalActorName(text: string): string \| undefined {` |
 | `buildReservationCanonicalState` | L2231-L2268 | 38 | `function buildReservationCanonicalState(state: any): {` |
 | `buildReservationReferenceCandidates` | L2518-L2555 | 38 | `function buildReservationReferenceCandidates(state: any): ReservationReferenceTarget[] {` |
-| `tryBodyLLMStructuredEnrichment` | L5089-L5126 | 38 | `async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
+| `tryBodyLLMStructuredEnrichment` | L5156-L5193 | 38 | `async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
 | `detectReservationSnapshotQuery` | L445-L481 | 37 | `function detectReservationSnapshotQuery(` |
 | `attributeSingleWordDateToPendingCreateCheckout` | L809-L845 | 37 | `function attributeSingleWordDateToPendingCreateCheckout(` |
 | `anchorCreateDayRangeToDraft` | L3777-L3813 | 37 | `function anchorCreateDayRangeToDraft(` |
 | `extractRelativeWeekdayRange` | L3846-L3882 | 37 | `function extractRelativeWeekdayRange(` |
 | `getReservationDomainLockSignal` | L3356-L3391 | 36 | `function getReservationDomainLockSignal(pre: PreLLMResult, text: string): {` |
-| `applyCommittedHotelTone` | L11524-L11559 | 36 | `function applyCommittedHotelTone(text: string, lang: "es" \| "en" \| "pt"): string {` |
+| `applyCommittedHotelTone` | L11613-L11648 | 36 | `function applyCommittedHotelTone(text: string, lang: "es" \| "en" \| "pt"): string {` |
 | `buildCreateDraftCapacityReply` | L1511-L1544 | 34 | `function buildCreateDraftCapacityReply(` |
 
 ---
@@ -300,85 +300,90 @@ Declaraciones detectadas: 304
 | `buildStateSummary` | L4637-L4646 | 10 | `function buildStateSummary(slots: ReservationSlotsStrict, st: any) {` |
 | `initBodyLLMState` | L4659-L4668 | 10 | `function initBodyLLMState(pre: PreLLMResult): BodyLLMState {` |
 | `toBodyLLMResult` | L4670-L4679 | 10 | `function toBodyLLMResult(state: BodyLLMState) {` |
-| `tryBodyLLMTestGreetingFastpath` | L4681-L4698 | 18 | `function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState): boolean {` |
-| `tryConversationalGuestNameCapture` | L4700-L4792 | 93 | `async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
-| `tryBodyLLMKnowledgeShortcuts` | L4794-L4982 | 189 | `async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
-| `looksEventIntent` | L4822-L4833 | 12 | `const looksEventIntent = (() => {` |
-| `runBodyLLMGraphPath` | L4984-L5087 | 104 | `async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Promise<any[]> {` |
-| `last` | L5011-L5021 | 11 | `const last = (state.graphResult as any)?.messages?.at?.(-1);` |
-| `resolved` | L5046-L5056 | 11 | `const resolved = (state.graphResult as any)?.resolved;` |
-| `classified` | L5047-L5056 | 10 | `const classified = (state.graphResult as any)?.classified;` |
-| `rbLast` | L5070-L5080 | 11 | `const rbLast = (rbState as any)?.messages?.at?.(-1);` |
-| `rbRich` | L5072-L5080 | 9 | `const rbRich = (rbState as any)?.meta?.rich as RichPayload \| undefined;` |
-| `tryBodyLLMStructuredEnrichment` | L5089-L5126 | 38 | `async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
-| `tryBodyLLMStructuredFallback` | L5128-L5157 | 30 | `async function tryBodyLLMStructuredFallback(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
-| `bodyLLM` | L5160-L11833 | 6674 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
-| `code` | L6575-L6576 | 2 | `const code = (e as any)?.code;` |
-| `prevAttempt` | L6598-L6609 | 12 | `const prevAttempt = (pre.st as any)?.lastEmailCopyAttempt;` |
-| `toDDMMYYYY` | L6620-L6620 | 1 | `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; };` |
-| `prevFailures` | L6670-L6681 | 12 | `const prevFailures = (prevAttempt?.failures \|\| 0) + 1;` |
-| `quotedTurnDirectWeekdayRange` | L8347-L8356 | 10 | `const quotedTurnDirectWeekdayRange = (() => {` |
-| `toDDMMYYYY` | L8598-L8601 | 4 | `const toDDMMYYYY = (iso?: string) => {` |
-| `rawMsg` | L8631-L8633 | 3 | `const rawMsg = (lastErr as any)?.message \|\| String(lastErr \|\| '');` |
-| `toDDMMYYYY` | L8669-L8671 | 3 | `const toDDMMYYYY = (iso?: string) => {` |
-| `rawMsg` | L8699-L8701 | 3 | `const rawMsg = (lastErr as any)?.message \|\| String(lastErr \|\| '');` |
-| `jidFromGuest` | L8727-L8794 | 68 | `const jidFromGuest = (pre.msg.guestId \|\| '').includes('@s.whatsapp.net') ? pre.msg.guestId : undefined;` |
-| `jidFromConv` | L8728-L8794 | 67 | `const jidFromConv = (pre.conversationId \|\| '').split('whatsapp-')[1];` |
-| `code` | L8774-L8775 | 2 | `const code = (e as any)?.code;` |
-| `code` | L8830-L8831 | 2 | `const code = (e as any)?.code;` |
-| `jidFromGuest` | L8848-L8916 | 69 | `const jidFromGuest = (pre.msg.guestId \|\| "").includes("@s.whatsapp.net") ? pre.msg.guestId : undefined;` |
-| `jidFromConv` | L8849-L8916 | 68 | `const jidFromConv = (pre.conversationId \|\| "").split("whatsapp-")[1];` |
-| `code` | L8895-L8896 | 2 | `const code = (e as any)?.code;` |
-| `code` | L8952-L8953 | 2 | `const code = (e as any)?.code;` |
-| `code` | L9009-L9010 | 2 | `const code = (e as any)?.code;` |
-| `pendingAvailabilityVerification` | L9037-L9037 | 1 | `const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } \| undefined;` |
-| `pendingCancellation` | L9052-L9052 | 1 | `const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } \| undefined;` |
-| `snapshotSlots` | L9826-L9834 | 9 | `const snapshotSlots = (canonicalSlots` |
-| `looksEventIntent` | L9897-L9911 | 15 | `const looksEventIntent = (() => {` |
-| `last` | L10183-L10193 | 11 | `const last = (graphResult as any)?.messages?.at?.(-1);` |
-| `resolved` | L10222-L10232 | 11 | `const resolved = (graphResult as any)?.resolved;` |
-| `classified` | L10223-L10232 | 10 | `const classified = (graphResult as any)?.classified;` |
-| `rbLast` | L10246-L10256 | 11 | `const rbLast = (rbState as any)?.messages?.at?.(-1);` |
-| `rbRich` | L10248-L10256 | 9 | `const rbRich = (rbState as any)?.meta?.rich as RichPayload \| undefined;` |
-| `cons` | L10839-L10850 | 12 | `const cons = (await import('./pipeline/dateConsolidation')).consolidateDates({` |
-| `txt` | L10884-L10886 | 3 | `const txt = (finalText \|\| '').trim();` |
-| `toDDMMYYYY` | L10889-L10893 | 5 | `const toDDMMYYYY = (iso?: string) => {` |
-| `currentDates` | L10917-L10917 | 1 | `const currentDates = (String(pre.msg.content \|\| '').match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g) \|\| []).map(d => d);` |
-| `toISO` | L10930-L10932 | 3 | `const toISO = (d: string) => {` |
-| `toDDMMYYYY` | L10937-L10937 | 1 | `const toDDMMYYYY = (iso?: string) => iso ? iso.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : '';` |
-| `stripOffTopicAmenitiesTail` | L11341-L11363 | 23 | `function stripOffTopicAmenitiesTail(text: string, lang: "es" \| "en" \| "pt"): string {` |
-| `stripOffTopicBillingTail` | L11365-L11390 | 26 | `function stripOffTopicBillingTail(text: string, lang: "es" \| "en" \| "pt"): string {` |
-| `harmonizeBillingCurrencyAnswer` | L11392-L11444 | 53 | `async function harmonizeBillingCurrencyAnswer(` |
-| `ensureBillingContextualFollowup` | L11446-L11458 | 13 | `function ensureBillingContextualFollowup(text: string, lang: "es" \| "en" \| "pt"): string {` |
-| `buildDeterministicBillingReply` | L11460-L11522 | 63 | `async function buildDeterministicBillingReply(` |
-| `textNorm` | L11475-L11479 | 5 | `const textNorm = (userText \|\| "").toLowerCase();` |
-| `applyCommittedHotelTone` | L11524-L11559 | 36 | `function applyCommittedHotelTone(text: string, lang: "es" \| "en" \| "pt"): string {` |
-| `stripGlobalTailNoise` | L11561-L11572 | 12 | `function stripGlobalTailNoise(text: string): string {` |
-| `buildModifyGuidance` | L11574-L11589 | 16 | `function buildModifyGuidance(` |
-| `es` | L11579-L11581 | 3 | `const es = () =>` |
-| `en` | L11582-L11584 | 3 | `const en = () =>` |
-| `pt` | L11585-L11587 | 3 | `const pt = () =>` |
-| `isContactHotelText` | L11591-L11600 | 10 | `function isContactHotelText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
-| `t` | L11592-L11608 | 17 | `const t = (text \|\| "").toLowerCase();` |
-| `isQuoteOrConfirmText` | L11608-L11616 | 9 | `function isQuoteOrConfirmText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
-| `t` | L11609-L11619 | 11 | `const t = (text \|\| "").toLowerCase();` |
-| `wantsGenericModify` | L11619-L11636 | 18 | `function wantsGenericModify(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
-| `t` | L11620-L11630 | 11 | `const t = (text \|\| "").toLowerCase();` |
-| `isExecutableModifyIntent` | L11638-L11645 | 8 | `function isExecutableModifyIntent(` |
-| `buildModifyInquiryReply` | L11647-L11671 | 25 | `function buildModifyInquiryReply(lang: "es" \| "en" \| "pt", text: string): string \| null {` |
-| `buildModifyOptionsMenu` | L11673-L11728 | 56 | `function buildModifyOptionsMenu(` |
-| `buildModifyReservationSelectionIntro` | L11730-L11763 | 34 | `function buildModifyReservationSelectionIntro(` |
-| `isGenericFallbackText` | L11767-L11776 | 10 | `function isGenericFallbackText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
-| `t` | L11768-L11779 | 12 | `const t = (text \|\| "").toLowerCase();` |
-| `parseReservationCode` | L11779-L11788 | 10 | `function parseReservationCode(text: string): string \| undefined {` |
-| `extractReservationCodeLikeToken` | L11789-L11792 | 4 | `function extractReservationCodeLikeToken(text: string): string \| undefined {` |
-| `buildAskReservationCode` | L11793-L11797 | 5 | `function buildAskReservationCode(lang: "es" \| "en" \| "pt"): string {` |
-| `buildReservationCopySummary` | L11801-L11811 | 11 | `function buildReservationCopySummary(pre: PreLLMResult, nextSlots: ReservationSlotsStrict) {` |
-| `detectWhatsAppCopyRequest` | L11813-L11831 | 19 | `function detectWhatsAppCopyRequest(pre: PreLLMResult, text: string): { matched: boolean; mode?: 'explicit' \| 'light'; inlinePhone?: string } {` |
-| `posLLM` | L11834-L11875 | 42 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
-| `handleIncomingMessage` | L11879-L12203 | 325 | `export async function handleIncomingMessage(` |
-| `respCategory` | L12084-L12109 | 26 | `const respCategory = (body?.graphResult?.category \|\| body?.nextCategory \|\| pre.prevCategory) as string \| undefined;` |
-| `respPromptKey` | L12085-L12109 | 25 | `const respPromptKey = (` |
-| `respContentVersion` | L12091-L12109 | 19 | `const respContentVersion = (` |
-| `respSource` | L12096-L12109 | 14 | `const respSource = (` |
-| `respSalesStage` | L12100-L12109 | 10 | `const respSalesStage = (body?.graphResult?.salesStage \|\| pre.st?.salesStage) as string \| undefined;` |
+| `hotelConfigHasRenderableRoomImages` | L4681-L4691 | 11 | `function hotelConfigHasRenderableRoomImages(hotelConfig: unknown): boolean {` |
+| `rooms` | L4682-L4682 | 1 | `const rooms = (hotelConfig as { rooms?: unknown })?.rooms;` |
+| `runKbPrecedenceRichPath` | L4693-L4724 | 32 | `async function runKbPrecedenceRichPath(pre: PreLLMResult, promptKey: string): Promise<{` |
+| `rbLast` | L4709-L4723 | 15 | `const rbLast = (rbState as any)?.messages?.at?.(-1);` |
+| `rbRich` | L4711-L4723 | 13 | `const rbRich = (rbState as any)?.meta?.rich as RichPayload \| undefined;` |
+| `tryBodyLLMTestGreetingFastpath` | L4726-L4743 | 18 | `function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState): boolean {` |
+| `tryConversationalGuestNameCapture` | L4745-L4837 | 93 | `async function tryConversationalGuestNameCapture(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
+| `tryBodyLLMKnowledgeShortcuts` | L4839-L5049 | 211 | `async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMState): Promise<boolean> {` |
+| `looksEventIntent` | L4867-L4878 | 12 | `const looksEventIntent = (() => {` |
+| `runBodyLLMGraphPath` | L5051-L5154 | 104 | `async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Promise<any[]> {` |
+| `last` | L5078-L5088 | 11 | `const last = (state.graphResult as any)?.messages?.at?.(-1);` |
+| `resolved` | L5113-L5123 | 11 | `const resolved = (state.graphResult as any)?.resolved;` |
+| `classified` | L5114-L5123 | 10 | `const classified = (state.graphResult as any)?.classified;` |
+| `rbLast` | L5137-L5147 | 11 | `const rbLast = (rbState as any)?.messages?.at?.(-1);` |
+| `rbRich` | L5139-L5147 | 9 | `const rbRich = (rbState as any)?.meta?.rich as RichPayload \| undefined;` |
+| `tryBodyLLMStructuredEnrichment` | L5156-L5193 | 38 | `async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
+| `tryBodyLLMStructuredFallback` | L5195-L5224 | 30 | `async function tryBodyLLMStructuredFallback(pre: PreLLMResult, state: BodyLLMState): Promise<void> {` |
+| `bodyLLM` | L5257-L11996 | 6740 | `async function bodyLLM(pre: PreLLMResult): Promise<any> {` |
+| `code` | L6642-L6643 | 2 | `const code = (e as any)?.code;` |
+| `prevAttempt` | L6665-L6676 | 12 | `const prevAttempt = (pre.st as any)?.lastEmailCopyAttempt;` |
+| `toDDMMYYYY` | L6687-L6687 | 1 | `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; };` |
+| `prevFailures` | L6737-L6748 | 12 | `const prevFailures = (prevAttempt?.failures \|\| 0) + 1;` |
+| `quotedTurnDirectWeekdayRange` | L8414-L8423 | 10 | `const quotedTurnDirectWeekdayRange = (() => {` |
+| `toDDMMYYYY` | L8665-L8668 | 4 | `const toDDMMYYYY = (iso?: string) => {` |
+| `rawMsg` | L8698-L8700 | 3 | `const rawMsg = (lastErr as any)?.message \|\| String(lastErr \|\| '');` |
+| `toDDMMYYYY` | L8736-L8738 | 3 | `const toDDMMYYYY = (iso?: string) => {` |
+| `rawMsg` | L8766-L8768 | 3 | `const rawMsg = (lastErr as any)?.message \|\| String(lastErr \|\| '');` |
+| `jidFromGuest` | L8794-L8861 | 68 | `const jidFromGuest = (pre.msg.guestId \|\| '').includes('@s.whatsapp.net') ? pre.msg.guestId : undefined;` |
+| `jidFromConv` | L8795-L8861 | 67 | `const jidFromConv = (pre.conversationId \|\| '').split('whatsapp-')[1];` |
+| `code` | L8841-L8842 | 2 | `const code = (e as any)?.code;` |
+| `code` | L8897-L8898 | 2 | `const code = (e as any)?.code;` |
+| `jidFromGuest` | L8915-L8983 | 69 | `const jidFromGuest = (pre.msg.guestId \|\| "").includes("@s.whatsapp.net") ? pre.msg.guestId : undefined;` |
+| `jidFromConv` | L8916-L8983 | 68 | `const jidFromConv = (pre.conversationId \|\| "").split("whatsapp-")[1];` |
+| `code` | L8962-L8963 | 2 | `const code = (e as any)?.code;` |
+| `code` | L9019-L9020 | 2 | `const code = (e as any)?.code;` |
+| `code` | L9076-L9077 | 2 | `const code = (e as any)?.code;` |
+| `pendingAvailabilityVerification` | L9104-L9104 | 1 | `const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } \| undefined;` |
+| `pendingCancellation` | L9119-L9119 | 1 | `const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } \| undefined;` |
+| `snapshotSlots` | L9893-L9901 | 9 | `const snapshotSlots = (canonicalSlots` |
+| `looksEventIntent` | L9964-L9978 | 15 | `const looksEventIntent = (() => {` |
+| `last` | L10272-L10282 | 11 | `const last = (graphResult as any)?.messages?.at?.(-1);` |
+| `resolved` | L10311-L10321 | 11 | `const resolved = (graphResult as any)?.resolved;` |
+| `classified` | L10312-L10321 | 10 | `const classified = (graphResult as any)?.classified;` |
+| `rbLast` | L10335-L10345 | 11 | `const rbLast = (rbState as any)?.messages?.at?.(-1);` |
+| `rbRich` | L10337-L10345 | 9 | `const rbRich = (rbState as any)?.meta?.rich as RichPayload \| undefined;` |
+| `cons` | L10928-L10939 | 12 | `const cons = (await import('./pipeline/dateConsolidation')).consolidateDates({` |
+| `txt` | L10973-L10975 | 3 | `const txt = (finalText \|\| '').trim();` |
+| `toDDMMYYYY` | L10978-L10982 | 5 | `const toDDMMYYYY = (iso?: string) => {` |
+| `currentDates` | L11006-L11006 | 1 | `const currentDates = (String(pre.msg.content \|\| '').match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g) \|\| []).map(d => d);` |
+| `toISO` | L11019-L11021 | 3 | `const toISO = (d: string) => {` |
+| `toDDMMYYYY` | L11026-L11026 | 1 | `const toDDMMYYYY = (iso?: string) => iso ? iso.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : '';` |
+| `stripOffTopicAmenitiesTail` | L11430-L11452 | 23 | `function stripOffTopicAmenitiesTail(text: string, lang: "es" \| "en" \| "pt"): string {` |
+| `stripOffTopicBillingTail` | L11454-L11479 | 26 | `function stripOffTopicBillingTail(text: string, lang: "es" \| "en" \| "pt"): string {` |
+| `harmonizeBillingCurrencyAnswer` | L11481-L11533 | 53 | `async function harmonizeBillingCurrencyAnswer(` |
+| `ensureBillingContextualFollowup` | L11535-L11547 | 13 | `function ensureBillingContextualFollowup(text: string, lang: "es" \| "en" \| "pt"): string {` |
+| `buildDeterministicBillingReply` | L11549-L11611 | 63 | `async function buildDeterministicBillingReply(` |
+| `textNorm` | L11564-L11568 | 5 | `const textNorm = (userText \|\| "").toLowerCase();` |
+| `applyCommittedHotelTone` | L11613-L11648 | 36 | `function applyCommittedHotelTone(text: string, lang: "es" \| "en" \| "pt"): string {` |
+| `stripGlobalTailNoise` | L11650-L11661 | 12 | `function stripGlobalTailNoise(text: string): string {` |
+| `buildModifyGuidance` | L11663-L11678 | 16 | `function buildModifyGuidance(` |
+| `es` | L11668-L11670 | 3 | `const es = () =>` |
+| `en` | L11671-L11673 | 3 | `const en = () =>` |
+| `pt` | L11674-L11676 | 3 | `const pt = () =>` |
+| `isContactHotelText` | L11680-L11689 | 10 | `function isContactHotelText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
+| `t` | L11681-L11697 | 17 | `const t = (text \|\| "").toLowerCase();` |
+| `isQuoteOrConfirmText` | L11697-L11705 | 9 | `function isQuoteOrConfirmText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
+| `t` | L11698-L11708 | 11 | `const t = (text \|\| "").toLowerCase();` |
+| `wantsGenericModify` | L11708-L11725 | 18 | `function wantsGenericModify(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
+| `t` | L11709-L11719 | 11 | `const t = (text \|\| "").toLowerCase();` |
+| `isExecutableModifyIntent` | L11727-L11734 | 8 | `function isExecutableModifyIntent(` |
+| `buildModifyInquiryReply` | L11736-L11760 | 25 | `function buildModifyInquiryReply(lang: "es" \| "en" \| "pt", text: string): string \| null {` |
+| `buildModifyOptionsMenu` | L11762-L11817 | 56 | `function buildModifyOptionsMenu(` |
+| `buildModifyReservationSelectionIntro` | L11819-L11852 | 34 | `function buildModifyReservationSelectionIntro(` |
+| `isGenericFallbackText` | L11856-L11865 | 10 | `function isGenericFallbackText(text: string, lang: "es" \| "en" \| "pt"): boolean {` |
+| `t` | L11857-L11868 | 12 | `const t = (text \|\| "").toLowerCase();` |
+| `parseReservationCode` | L11868-L11877 | 10 | `function parseReservationCode(text: string): string \| undefined {` |
+| `extractReservationCodeLikeToken` | L11878-L11881 | 4 | `function extractReservationCodeLikeToken(text: string): string \| undefined {` |
+| `buildAskReservationCode` | L11882-L11886 | 5 | `function buildAskReservationCode(lang: "es" \| "en" \| "pt"): string {` |
+| `buildReservationCopySummary` | L11890-L11900 | 11 | `function buildReservationCopySummary(pre: PreLLMResult, nextSlots: ReservationSlotsStrict) {` |
+| `detectWhatsAppCopyRequest` | L11902-L11920 | 19 | `function detectWhatsAppCopyRequest(pre: PreLLMResult, text: string): { matched: boolean; mode?: 'explicit' \| 'light'; inlinePhone?: string } {` |
+| `posLLM` | L11923-L11967 | 45 | `async function posLLM(pre: PreLLMResult, body: any): Promise<{ verdictInfo: any; llmInterp: Interpretation; needsSupervision: any }> {` |
+| `handleIncomingMessage` | L11968-L12322 | 325 | `export async function handleIncomingMessage(` |
+| `respCategory` | L12173-L12198 | 26 | `const respCategory = (body?.graphResult?.category \|\| body?.nextCategory \|\| pre.prevCategory) as string \| undefined;` |
+| `respPromptKey` | L12174-L12198 | 25 | `const respPromptKey = (` |
+| `respContentVersion` | L12180-L12198 | 19 | `const respContentVersion = (` |
+| `respSource` | L12185-L12198 | 14 | `const respSource = (` |
+| `respSalesStage` | L12189-L12198 | 10 | `const respSalesStage = (body?.graphResult?.salesStage \|\| pre.st?.salesStage) as string \| undefined;` |

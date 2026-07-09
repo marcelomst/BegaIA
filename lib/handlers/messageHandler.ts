@@ -87,6 +87,7 @@ import {
 } from "@/lib/agents/confirmationGovernance";
 import { RE_BILLING } from "@/lib/agents/classify/keywords";
 import { resolveKbFastpathPrecedence } from "@/lib/kb/kbPrecedencePolicy";
+import { resolveCategoryForHotel } from "@/lib/categories/resolveCategory";
 
 // ================================
 // --- Mini mejoras: normalización y métricas de teléfonos WhatsApp ---
@@ -4678,6 +4679,80 @@ function toBodyLLMResult(state: BodyLLMState) {
   };
 }
 
+function isRenderableRoomImageUrl(value: unknown): boolean {
+  const url = String(value || "").trim();
+  return /^https?:\/\//i.test(url) || /^\/hotel[^/\s]*\//i.test(url);
+}
+
+function roomInfoImgBodyHasRenderableImages(body: unknown): boolean {
+  const text = String(body || "");
+  return /^Images:\s*(?:(?:https?:\/\/)|(?:\/hotel[^/\s]*\/)|(?:[-*]\s*(?:https?:\/\/|\/hotel[^/\s]*\/)))/im.test(text);
+}
+
+function hotelConfigHasRenderableRoomImages(hotelConfig: unknown): boolean {
+  const rooms = (hotelConfig as { rooms?: unknown })?.rooms;
+  if (!Array.isArray(rooms)) return false;
+  return rooms.some((room: any) => {
+    const images = Array.isArray(room?.images) ? room.images : [];
+    return images.some((image: any) => {
+      const url = typeof image === "string" ? image : image?.url;
+      return isRenderableRoomImageUrl(url);
+    });
+  });
+}
+
+async function hotelHasRenderableRoomInventoryVisuals(pre: PreLLMResult): Promise<boolean> {
+  if (hotelConfigHasRenderableRoomImages(pre.hotelConfig)) return true;
+  try {
+    const resolved = await resolveCategoryForHotel({
+      hotelId: pre.msg.hotelId,
+      category: "retrieval_based",
+      promptKey: "room_info_img",
+      desiredLang: pre.lang,
+    });
+    return roomInfoImgBodyHasRenderableImages(resolved?.content?.body);
+  } catch (error) {
+    debugLog("[room_info_img] visual availability check skipped", {
+      hotelId: pre.msg.hotelId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+async function runKbPrecedenceRichPath(pre: PreLLMResult, promptKey: string): Promise<{
+  finalText: string;
+  nextCategory: string;
+  graphResult: any;
+  rich?: RichPayload;
+} | null> {
+  const rbState = await retrievalBased({
+    hotelId: pre.msg.hotelId,
+    conversationId: pre.conversationId,
+    normalizedMessage: String(pre.msg.content || ""),
+    retrievalLang: pre.lang,
+    originalLang: pre.lang,
+    messages: [new HumanMessage(String(pre.msg.content || ""))],
+    promptKey,
+    category: "retrieval_based",
+  });
+  const rbLast = (rbState as any)?.messages?.at?.(-1);
+  const rbText = extractTextFromLCContent(rbLast?.content)?.trim();
+  const rbRich = (rbState as any)?.meta?.rich as RichPayload | undefined;
+  if (!rbText && !rbRich) return null;
+  return {
+    finalText: rbText || "",
+    nextCategory: "retrieval_based",
+    graphResult: {
+      category: "retrieval_based",
+      promptKey,
+      source: "retrievalBased_kb_precedence_policy",
+      meta: rbState?.meta || {},
+    },
+    rich: rbRich,
+  };
+}
+
 function tryBodyLLMTestGreetingFastpath(pre: PreLLMResult, state: BodyLLMState): boolean {
   const tLowerBody = String(pre.msg.content || "").toLowerCase();
   const looksGreetingBody = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/.test(tLowerBody);
@@ -4932,9 +5007,31 @@ async function tryBodyLLMKnowledgeShortcuts(pre: PreLLMResult, state: BodyLLMSta
           lang: pre.lang,
           channel: pre.msg.channel,
           hotelId: pre.msg.hotelId,
+          hasRoomImages: await hotelHasRenderableRoomInventoryVisuals(pre),
           hasReservationContext: effectiveReservationContext,
           transactionalIntent: looksTransactionalPricing ? { kind: "create", confidence: 0.7 } : null,
         });
+        if (kbPrecedence?.promptKey === "room_info_img" && !kbPrecedence.defersToRuntimeAction) {
+          const richResolved = await runKbPrecedenceRichPath(pre, kbPrecedence.promptKey);
+          if (richResolved) {
+            state.finalText = richResolved.finalText;
+            state.nextCategory = richResolved.nextCategory;
+            state.nextSlots = pre.currSlots;
+            state.graphResult = richResolved.graphResult;
+            state.explicitRich = richResolved.rich;
+            emitRoutingDecision(pre.msg, {
+              decision_layer: "bodyLLM",
+              route_source: "kb_precedence_policy",
+              route_match: kbPrecedence.reason,
+              early_return: true,
+              used_llm_classifier: false,
+              classifier_source: "heuristic",
+              final_category: state.nextCategory,
+              final_prompt_key: kbPrecedence.promptKey,
+            });
+            return true;
+          }
+        }
         const kb = await answerWithKnowledge({
           question: kbUserText,
           hotelId: pre.msg.hotelId,
@@ -10045,9 +10142,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 lang: pre.lang,
                 channel: pre.msg.channel,
                 hotelId: pre.msg.hotelId,
+                hasRoomImages: await hotelHasRenderableRoomInventoryVisuals(pre),
                 hasReservationContext,
                 transactionalIntent: looksTransactionalPricing ? { kind: "create", confidence: 0.7 } : null,
               });
+              if (kbPrecedence?.promptKey === "room_info_img" && !kbPrecedence.defersToRuntimeAction) {
+                const richResolved = await runKbPrecedenceRichPath(pre, kbPrecedence.promptKey);
+                if (richResolved) {
+                  finalText = richResolved.finalText;
+                  nextCategory = richResolved.nextCategory;
+                  nextSlots = pre.currSlots;
+                  graphResult = richResolved.graphResult;
+                  explicitRich = richResolved.rich;
+                  emitRoutingDecision(pre.msg, {
+                    decision_layer: "bodyLLM",
+                    route_source: "kb_precedence_policy",
+                    route_match: kbPrecedence.reason,
+                    early_return: true,
+                    used_llm_classifier: false,
+                    classifier_source: "heuristic",
+                    final_category: nextCategory,
+                    final_prompt_key: kbPrecedence.promptKey,
+                  });
+                  return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich: explicitRich };
+                }
+              }
               const kb = await answerWithKnowledge({
                 question: kbUserText,
                 hotelId: pre.msg.hotelId,

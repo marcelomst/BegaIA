@@ -40,7 +40,7 @@ async function main() {
     });
     // Validaciones rápidas del formato esperado
     const hasTipo = /Tipo:\s*/i.test(body);
-    const hasImages = /Images:\s*\[/i.test(body);
+    const hasImages = /Images:\s*(?:\[|\n\s*-\s+\S+)/i.test(body);
     if (!hasTipo) console.warn('⚠️ No se detectó bloque Tipo: revisar generación.');
     if (!hasImages) console.warn('⚠️ No se detectó línea Images: (puede faltar imágenes en hotel_config.rooms[*].images).');
     if (hasTipo && hasImages) console.log('🎯 Formato básico OK (Tipo + Images presentes).');

@@ -143,6 +143,13 @@
   .bgst-card-body{padding:6px 8px;font-size:12px}
   .bgst-card-title{font-weight:700;font-size:12px}
   .bgst-card-sub{color:#9fb3c8;font-size:11px}
+  .bgst-room-gallery{display:flex;gap:10px;overflow:auto;padding:4px 2px;width:100%;flex-shrink:0}
+  .bgst-room-card{min-width:240px;background:#0c1428;border:1px solid #263650;border-radius:14px;overflow:hidden}
+  .bgst-room-card img{width:100%;height:150px;object-fit:cover;object-position:center 65%;background:#0c1428;display:block}
+  .bgst-room-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #263650}
+  .bgst-room-icon{font-size:18px}
+  .bgst-room-title{font-weight:800;font-size:13px}
+  .bgst-room-highlights{margin:0;padding:8px 12px 10px 24px;color:#cbd5e1;font-size:12px;white-space:normal}
   `;
   document.head.appendChild(style);
 
@@ -273,6 +280,71 @@
     msgs.scrollTop = msgs.scrollHeight;
   };
 
+  const normalizeRoomImageSrc = (src) => {
+    const raw = String(src || "").trim();
+    if (!raw) return "";
+    if (raw.startsWith("/")) return `${api}${raw}`;
+    return raw;
+  };
+
+  const appendRoomInfoGallery = (items) => {
+    if (!Array.isArray(items) || !items.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "bgst-room-gallery";
+    for (const item of items) {
+      const card = document.createElement("div");
+      card.className = "bgst-room-card";
+
+      const head = document.createElement("div");
+      head.className = "bgst-room-head";
+      const icon = document.createElement("span");
+      icon.className = "bgst-room-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = item?.icon || "🏨";
+      const title = document.createElement("div");
+      title.className = "bgst-room-title";
+      title.textContent = item?.type || "Habitación";
+      head.appendChild(icon);
+      head.appendChild(title);
+      card.appendChild(head);
+
+      const src = normalizeRoomImageSrc(Array.isArray(item?.images) ? item.images[0] : "");
+      if (src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = item?.type || "Habitación";
+        img.loading = "lazy";
+        card.appendChild(img);
+      }
+
+      if (Array.isArray(item?.highlights) && item.highlights.length) {
+        const list = document.createElement("ul");
+        list.className = "bgst-room-highlights";
+        for (const value of item.highlights.slice(0, 6)) {
+          const li = document.createElement("li");
+          li.textContent = String(value || "");
+          list.appendChild(li);
+        }
+        card.appendChild(list);
+      }
+
+      wrap.appendChild(card);
+    }
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+
+  const appendRich = (rich) => {
+    if (!rich) return;
+    if (Array.isArray(rich.carousel)) {
+      appendCarousel(rich.carousel);
+      return;
+    }
+    if (rich.type === "room-info-img" && Array.isArray(rich.data)) {
+      appendRoomInfoGallery(rich.data);
+    }
+  };
+
   // --- SSE
   let es = null;
   let esConvId = null;
@@ -291,9 +363,7 @@
           const data = JSON.parse(ev.data);
           const text = data.response || data.delta || data.text || "";
           if (text) appendMsg("ai", text);
-          if (data.rich && Array.isArray(data.rich.carousel)) {
-            appendCarousel(data.rich.carousel);
-          }
+          appendRich(data.rich);
         } catch { if (ev.data) appendMsg("ai", ev.data); }
       };
     } catch (e) {
@@ -389,9 +459,7 @@
       } else if (!res.ok) {
         appendMsg("ai", "⚠️ Error del servidor o ruta no disponible.");
       }
-      if (data && data.rich && Array.isArray(data.rich.carousel)) {
-        appendCarousel(data.rich.carousel);
-      }
+      if (data && data.rich) appendRich(data.rich);
     } catch (err) {
       appendMsg("ai", "⚠️ No se pudo conectar con el servidor.");
       console.warn("[BegAIChat] error:", err);

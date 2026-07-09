@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9aa3702
-messageHandler_lines: 12203
-working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
-analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
-baseline_status: working_tree_runtime_fix_validated_v26
+commit_base: 446ab78
+messageHandler_lines: 12322
+working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
+analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
+baseline_status: working_tree_room_info_img_rich_validated_v27
 known_manual_bug: none
 ```
 
@@ -58,15 +58,18 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
       - transporte domina sobre nearby en el fastpath KB
+      - room_info_img domina sobre room_info para inventario visual con imágenes
+      - intención de reserva no es capturada por room_info_img
+      - retrieval_based produce `rich.type = room-info-img`
       - nearby legítimo permanece sin override de transporte
       - el fastpath resuelto preserva el bypass del graph
   code_refs_status: fresh
@@ -150,7 +153,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12203
+        range: L1-L12322
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -178,7 +181,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11879-L12203
+        range: L11968-L12322
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -243,7 +246,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5160-L11833
+        range: L5257-L11996
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -319,7 +322,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5160-L11833
+        range: L5257-L11996
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -354,7 +357,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5160-L11833
+        range: L5257-L11996
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create

@@ -55,10 +55,28 @@ vi.mock("@/lib/handlers/pipeline/availability", () => ({
 vi.mock("@/lib/agents/knowledgeBaseAgent", () => ({
   answerWithKnowledge: vi.fn(),
 }));
+vi.mock("@/lib/agents/retrieval_based", () => ({
+  retrievalBased: vi.fn(),
+}));
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
     invoke: vi.fn(),
   },
+}));
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: vi.fn(async () => ({
+    hotelId: "hotel999",
+    defaultLanguage: "es",
+    rooms: [
+      {
+        name: "Doble",
+        images: [{ url: "https://cdn.example.com/doble.jpg" }],
+      },
+    ],
+  })),
+}));
+vi.mock("@/lib/categories/resolveCategory", () => ({
+  resolveCategoryForHotel: vi.fn(async () => ({ content: undefined })),
 }));
 vi.mock("@/lib/prompts", () => ({
   defaultPrompt: "{{retrieved}}",
@@ -75,8 +93,11 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
+import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { agentGraph } from "@/lib/agents";
 import { debugLog } from "@/lib/utils/debugLog";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import { resolveCategoryForHotel } from "@/lib/categories/resolveCategory";
 
 describe("messageHandler routing observability baseline", () => {
   beforeEach(() => {
@@ -317,6 +338,185 @@ describe("messageHandler routing observability baseline", () => {
       override: expect.anything(),
     }));
     expect(agentGraph.invoke).not.toHaveBeenCalled();
+  });
+
+  it("prioriza room_info_img con rich para consulta visual de habitaciones cuando hay imágenes", async () => {
+    const content = "Que tipos de habitaciones tienen?";
+    vi.mocked(retrievalBased).mockResolvedValue({
+      messages: [{ role: "assistant", content: "Tenemos habitaciones doble y triple." }],
+      meta: {
+        rich: {
+          type: "room-info-img",
+          data: [
+            {
+              type: "Doble",
+              icon: "🛏️",
+              highlights: ["Capacidad: 2"],
+              images: ["https://cdn.example.com/doble.jpg"],
+            },
+          ],
+        },
+      },
+    } as any);
+
+    const sendReply = vi.fn(async () => {});
+    await handleIncomingMessage({
+      messageId: "obs-room-img-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-room-img-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(retrievalBased).toHaveBeenCalledWith(expect.objectContaining({
+      hotelId: "hotel999",
+      normalizedMessage: content,
+      promptKey: "room_info_img",
+      category: "retrieval_based",
+    }));
+    expect(answerWithKnowledge).not.toHaveBeenCalled();
+    expect(agentGraph.invoke).not.toHaveBeenCalled();
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][decision]",
+      expect.objectContaining({
+        route_source: "kb_precedence_policy",
+        route_match: "room_inventory_visual_signal_with_images",
+        early_return: true,
+        final_category: "retrieval_based",
+        final_prompt_key: "room_info_img",
+      })
+    );
+  });
+
+  it("no captura una intención de reserva como room_info_img", async () => {
+    const content = "quiero reservar una doble";
+    const localSendReply = vi.fn(async () => {});
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: false,
+      category: "retrieval_based",
+      answer: "",
+    } as any);
+    vi.mocked(agentGraph.invoke).mockResolvedValue({
+      messages: [{ role: "assistant", content: "¿Cuál es la fecha de check-in?" }],
+      category: "reservation",
+      promptKey: "reservation_flow",
+      reservationSlots: { roomType: "double" },
+      meta: { debug: { route_source: "forced_llm_classifier", route_match: "reservation" } },
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-room-img-reservation-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-room-img-reservation-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: localSendReply });
+
+    expect(retrievalBased).not.toHaveBeenCalled();
+    expect(answerWithKnowledge).not.toHaveBeenCalled();
+    expect(localSendReply).toHaveBeenCalled();
+  });
+
+  it("no activa room_info_img cuando el hotel no tiene imágenes de habitaciones", async () => {
+    vi.mocked(getHotelConfig).mockResolvedValueOnce({
+      hotelId: "hotel999",
+      defaultLanguage: "es",
+      rooms: [{ name: "Doble", images: [] }],
+    } as any);
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "room_info",
+      answer: "Tenemos habitaciones doble y triple.",
+      retrieved: [],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-room-no-img-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "Que tipos de habitaciones tienen?",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-room-no-img-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(retrievalBased).not.toHaveBeenCalled();
+    expect(answerWithKnowledge).toHaveBeenCalled();
+  });
+
+  it("prioriza room_info_img cuando las imágenes están publicadas en KB vigente aunque hotel_config no las exponga", async () => {
+    vi.mocked(getHotelConfig).mockResolvedValueOnce({
+      hotelId: "hotel999",
+      defaultLanguage: "es",
+      rooms: [{ name: "Doble", images: [] }],
+    } as any);
+    vi.mocked(resolveCategoryForHotel).mockResolvedValueOnce({
+      content: {
+        body: [
+          "Tipo: Habitación Doble",
+          "Images:",
+          " - /hotel999/rooms/doble.jpg",
+          "Highlights: Vista al mar",
+        ].join("\n"),
+      },
+    } as any);
+    vi.mocked(retrievalBased).mockResolvedValue({
+      messages: [{ role: "assistant", content: "Tenemos habitaciones con fotos." }],
+      meta: {
+        rich: {
+          type: "room-info-img",
+          data: [{ type: "Habitación Doble", images: ["/hotel999/rooms/doble.jpg"], highlights: ["Vista al mar"] }],
+        },
+      },
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "obs-room-img-kb-published-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content: "mostrame habitaciones",
+      timestamp: new Date().toISOString(),
+      conversationId: "conv-obs-room-img-kb-published-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(resolveCategoryForHotel).toHaveBeenCalledWith(expect.objectContaining({
+      hotelId: "hotel999",
+      category: "retrieval_based",
+      promptKey: "room_info_img",
+      desiredLang: "es",
+    }));
+    expect(retrievalBased).toHaveBeenCalledWith(expect.objectContaining({
+      hotelId: "hotel999",
+      normalizedMessage: "mostrame habitaciones",
+      promptKey: "room_info_img",
+      category: "retrieval_based",
+    }));
+    expect(answerWithKnowledge).not.toHaveBeenCalled();
+    expect(debugLog).toHaveBeenCalledWith(
+      "[routing][decision]",
+      expect.objectContaining({
+        route_source: "kb_precedence_policy",
+        route_match: "room_inventory_visual_signal_with_images",
+        early_return: true,
+        final_category: "retrieval_based",
+        final_prompt_key: "room_info_img",
+      })
+    );
   });
 
   it("loggea no-match del stable guard antes de caer al flujo normal", async () => {

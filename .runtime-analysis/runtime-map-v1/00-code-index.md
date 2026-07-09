@@ -46,7 +46,8 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta la migración del hotfix `arrivals_transport` a `resolveKbFastpathPrecedence`
+- se documenta la extensión de `resolveKbFastpathPrecedence` para inventario visual de habitaciones
+- se documenta la ruta `retrieval_based/room_info_img` como productora de `rich.type = room-info-img`
 - se preserva que airport/aeropuerto/transfer/taxi/bus gane sobre nearby en el fastpath KB
 - se preserva que consultas puras de nearby no activen el override de transporte
 - se preserva billing forced path fuera de esta migración
@@ -60,11 +61,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9aa3702
-messageHandler_lines: 12203
-working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
-analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
-baseline_status: working_tree_runtime_fix_validated_v26
+commit_base: 446ab78
+messageHandler_lines: 12322
+working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
+analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
+baseline_status: working_tree_room_info_img_rich_validated_v27
 known_manual_bug: none
 ```
 
@@ -75,7 +76,7 @@ known_manual_bug: none
 ```text
 pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
 result: pass
-pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
+pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -111,7 +112,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12203
+total_lines: 12322
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -120,7 +121,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
+del hito `FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01`.
 ```
 
 ---
@@ -138,9 +139,9 @@ del hito `FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L4387-L4598 |    212 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5160-L11833 |   6674 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L11834-L11875 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L11879-L12203 |    325 | high      | Entrypoint público del runtime             |
+| `bodyLLM`                            | L5257-L11996 |   6740 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L11923-L11967 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L11968-L12322 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -150,7 +151,7 @@ del hito `FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L11702-L12026
+range: L11968-L12322
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -169,7 +170,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4279-L4528
+range: L4387-L4598
 lines: 212
 confidence: high
 role: context_preparation
@@ -191,8 +192,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5160-L11833
-lines: 6674
+range: L5257-L11996
+lines: 6740
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -221,7 +222,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L11657-L11701
+range: L11923-L11967
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -414,8 +415,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5160-L11833
-bodyLLM_lines: 6674
+bodyLLM_range: L5257-L11996
+bodyLLM_lines: 6740
 bucket_size: 250
 confidence: high_for_full_range
 ```

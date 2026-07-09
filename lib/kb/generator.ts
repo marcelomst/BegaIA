@@ -70,13 +70,51 @@ export function buildHydrationConfigFromProfile(p: Profile): Record<string, any>
   };
 }
 
+function normalizeRoomImageUrl(raw: unknown): string {
+  const normalize = (value: string) => {
+    const trimmed = value.trim();
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    const publicIndex = trimmed.lastIndexOf("/public/");
+    if (publicIndex >= 0) {
+      const publicPath = trimmed.slice(publicIndex + "/public".length);
+      return publicPath.startsWith("/") ? publicPath : `/${publicPath}`;
+    }
+    return trimmed;
+  };
+  if (typeof raw === "string") return normalize(raw);
+  if (raw && typeof raw === "object" && typeof (raw as { url?: unknown }).url === "string") {
+    return normalize(String((raw as { url: string }).url || ""));
+  }
+  return "";
+}
+
+function isRenderableRoomImageUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url) || /^\/hotel[a-z0-9_-]+\//i.test(url);
+}
+
+function normalizeRoomImagesForTemplates(cfg: any): any {
+  if (!Array.isArray(cfg?.rooms)) return cfg;
+  return {
+    ...cfg,
+    rooms: cfg.rooms.map((room: any) => {
+      const images = Array.isArray(room?.images)
+        ? room.images
+            .map(normalizeRoomImageUrl)
+            .filter(isRenderableRoomImageUrl)
+            .slice(0, 8)
+        : room?.images;
+      return { ...room, images };
+    }),
+  };
+}
+
 export function generateKbFilesFromTemplates(args: {
   hotelConfig: any;
   defaultLanguage?: Lang;
 }): Record<string, string> {
   const lang = (args.defaultLanguage || args.hotelConfig?.defaultLanguage || 'es') as Lang;
   const files: Record<string, string> = {};
-  const cfg = args.hotelConfig || {};
+  const cfg = normalizeRoomImagesForTemplates(args.hotelConfig || {});
 
   for (const [category, entries] of Object.entries(templates)) {
     for (const entry of entries) {
@@ -283,7 +321,10 @@ export function generateKbFilesFromProfile(p: Profile): Record<string, string> {
       if (highlights.length) roomsImgBody += `Highlights: ${highlights.join(' | ')}\n`;
       if (Array.isArray(r.images) && r.images.length) {
         // El parser acepta JSON array o lista separada por comas; usamos JSON para fiabilidad.
-        const safeImages = r.images.filter(u => /^https?:\/\//i.test(u)).slice(0, 8);
+        const safeImages = r.images
+          .map(normalizeRoomImageUrl)
+          .filter(isRenderableRoomImageUrl)
+          .slice(0, 8);
         if (safeImages.length) roomsImgBody += `Images: ${JSON.stringify(safeImages)}\n`;
       }
       roomsImgBody += `\n`; // separador de bloque

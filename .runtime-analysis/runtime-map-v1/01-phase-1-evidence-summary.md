@@ -21,15 +21,15 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9aa3702
-messageHandler_lines: 12203
-working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
-analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
+commit_base: 446ab78
+messageHandler_lines: 12322
+working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
+analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
 suite_status_reported: full_green
 suite_reported:
   commands:
     - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
-    - pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
+    - pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
   summary: targeted_green
   full_suite:
     - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
@@ -47,15 +47,18 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
       - transporte domina sobre nearby en el fastpath KB
+      - room_info_img domina sobre room_info para inventario visual con imágenes
+      - intención de reserva no es capturada por room_info_img
+      - retrieval_based produce `rich.type = room-info-img`
       - nearby legítimo permanece sin override de transporte
       - el fastpath resuelto preserva el bypass del graph
   code_refs_status: fresh
@@ -65,13 +68,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: working_tree_on_9aa3702
-    messageHandler_lines: 12203
+    commit: working_tree_on_446ab78
+    messageHandler_lines: 12322
     functions:
       preLLM: L4387-L4598
-      bodyLLM: L5160-L11833
-      posLLM: L11834-L11875
-      handleIncomingMessage: L11879-L12203
+      bodyLLM: L5257-L11996
+      posLLM: L11923-L11967
+      handleIncomingMessage: L11968-L12322
 ```
 
 ---
@@ -89,9 +92,9 @@ runtime_map_refresh:
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
 | `preLLM`                             | L4387-L4598 |    212 | high      |
-| `bodyLLM`                            | L5160-L11833 |   6674 | high      |
-| `posLLM`                             | L11834-L11875 |     42 | high      |
-| `handleIncomingMessage`              | L11879-L12203 |    325 | high      |
+| `bodyLLM`                            | L5257-L11996 |   6740 | high      |
+| `posLLM`                             | L11923-L11967 |     45 | high      |
+| `handleIncomingMessage`              | L11968-L12322 |    325 | high      |
 
 ---
 
@@ -100,8 +103,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12203 líneas
-bodyLLM:                6674 líneas
+messageHandler.ts total: 12322 líneas
+bodyLLM:                6740 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -122,6 +125,8 @@ Es una zona donde conviven además:
 - persistencia parcial
 - precedencia compartida del fastpath KB informativo
 - override determinístico hacia `retrieval_based/arrivals_transport`
+- selección determinística de `retrieval_based/room_info_img` para inventario visual con imágenes
+- conexión al rich path existente de `retrieval_based` para `room-info-img`
 - preservación de nearby legítimo sin override de transporte
 - preservación explícita de billing forced path fuera de esta migración
 - early returns
@@ -516,7 +521,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5160-L11833
+    range: L5257-L11996
     confidence: high
 ```
 

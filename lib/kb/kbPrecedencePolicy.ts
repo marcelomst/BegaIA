@@ -3,6 +3,7 @@ export type KbPrecedenceInput = {
   lang?: "es" | "en" | "pt" | string;
   channel?: string;
   hotelId?: string;
+  hasRoomImages?: boolean;
   hasReservationContext?: boolean;
   transactionalIntent?: {
     kind?: "create" | "modify" | "cancel" | "snapshot" | "verify" | null;
@@ -30,6 +31,12 @@ const TRANSPORT_SIGNAL_RE =
 const NEARBY_SIGNAL_RE =
   /\b(cerca|cercano|cercana|cercanos|cercanas|nearby|near|visitar|atracciones?|lugares|points?\s+of\s+interest)\b/i;
 
+const ROOM_INVENTORY_SIGNAL_RE =
+  /\b(tipos?\s+de\s+habitaciones?|habitaciones?|cuartos?|quartos?|rooms?|room\s+types?|opciones?\s+de\s+habitaci[oó]n|mostrame\s+(?:las\s+)?habitaciones?|mostrar\s+(?:las\s+)?habitaciones?|ver\s+(?:las\s+)?habitaciones?|fotos?\s+de\s+(?:las\s+)?habitaciones?|habitaciones?\s+con\s+fotos?)\b/i;
+
+const BOOKING_ACTION_RE =
+  /\b(quiero\s+reservar|reserv(?:ar|ame|a|o|emos)|hacer\s+una\s+reserva|book(?:ing)?|reserve|reservation|quero\s+reservar)\b/i;
+
 function normalizePolicyText(value: string): string {
   return value
     .normalize("NFD")
@@ -46,6 +53,20 @@ export function resolveKbFastpathPrecedence(input: KbPrecedenceInput): KbPrecede
 
   const normalizedQuery = normalizePolicyText(input.query || "");
   if (!normalizedQuery) return null;
+
+  if (input.hasRoomImages && ROOM_INVENTORY_SIGNAL_RE.test(normalizedQuery) && !BOOKING_ACTION_RE.test(normalizedQuery)) {
+    return {
+      category: "retrieval_based",
+      promptKey: "room_info_img",
+      categoryId: "retrieval_based/room_info_img",
+      reason: "room_inventory_visual_signal_with_images",
+      confidence: 0.95,
+      source: "kb_precedence_policy",
+      defersToRuntimeAction: false,
+      winningSignal: "room_inventory_visual",
+      losingSignals: ["room_info_text"],
+    };
+  }
 
   if (!TRANSPORT_SIGNAL_RE.test(normalizedQuery)) return null;
 

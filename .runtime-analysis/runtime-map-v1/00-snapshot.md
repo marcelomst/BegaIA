@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9aa3702
-messageHandler_lines: 12203
-baseline_status: working_tree_runtime_fix_validated_v26
+commit_base: 446ab78
+messageHandler_lines: 12322
+baseline_status: working_tree_room_info_img_rich_validated_v27
 known_manual_bug: none
-working_tree_status: dirty_expected_runtime_fix_plus_preexisting_gitignore
-analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
+working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
+analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
 ```
 
 ---
@@ -21,7 +21,7 @@ analysis_scope: working_tree_on_9aa370288a4997bcdeb03f6f9a5af98b48c684cc
 ## Working tree al momento del snapshot
 
 ```text
-dirty esperado: fix runtime/test/Runtime Map del hito actual y `.gitignore` preexistente
+dirty esperado: fix runtime/test/script/Runtime Map del hito actual
 ```
 
 ---
@@ -31,7 +31,7 @@ dirty esperado: fix runtime/test/Runtime Map del hito actual y `.gitignore` pree
 ```text
 pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
 result: pass
-pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
+pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -79,6 +79,8 @@ email_inline_conversational_actor_parity_commit: 58af388c0b6b4cf05fcf0b53462e7c8
 ```text
 - el fastpath KB informativo usa una política compartida de precedencia
 - airport/aeropuerto/transfer/taxi/bus enruta a `retrieval_based/arrivals_transport`
+- consultas visuales de inventario de habitaciones con imágenes enrutan a `retrieval_based/room_info_img`
+- `room_info_img` usa la frontera `retrieval_based` para producir `rich.type = room-info-img`
 - nearby legítimo permanece sin override de transporte
 - billing forced path permanece fuera de la migración
 - los corredores de reserva/create/modify/cancel/snapshot quedan preservados
@@ -89,10 +91,10 @@ email_inline_conversational_actor_parity_commit: 58af388c0b6b4cf05fcf0b53462e7c8
 ## Advertencia de uso
 
 Este snapshot es válido para analizar el working tree del hito
-`FIX-KB-FASTPATH-SHARED-PRECEDENCE-POLICY-01`.
+`FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01`.
 
 Guardian requiere refresh porque el hito toca `messageHandler.ts`. La baseline se
-mantiene sobre `9aa3702` y se documentan los rangos recalculados del working tree.
+mantiene sobre `446ab78` y se documentan los rangos recalculados del working tree.
 
 ```text
 box_id = estable
@@ -106,9 +108,10 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline de working tree sobre `9aa3702`
-2. Precedencia de transporte en el fastpath KB refrescada
-3. Evidence summary y scans top-level refrescados
-4. code index y box index refrescados
-5. Cajas de reserva y fallback preservadas
+1. Baseline de working tree sobre `446ab78`
+2. Precedencia visual de habitaciones en fastpath KB agregada
+3. Camino rich existente de `retrieval_based/room_info_img` conectado desde `messageHandler`
+4. Evidence summary y scans top-level refrescados
+5. code index y box index refrescados
+6. Cajas de reserva, billing, arrivals_transport y fallback preservadas
 ```

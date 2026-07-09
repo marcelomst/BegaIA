@@ -17,6 +17,7 @@ import { extractMapsQuery } from "@/lib/poi/placeKey";
 import { getTemplate } from "@/lib/prompts/templates";
 import { renderCuratedTemplate } from "@/lib/prompts/renderCuratedTemplate";
 import { getCurrentVersionFromIndex } from "@/lib/astra/hotelVersionIndex";
+import { resolveCategoryForHotel } from "@/lib/categories/resolveCategory";
 import { DateTime } from "luxon";
 
 let localModel: ChatOpenAI | null = null;
@@ -984,6 +985,143 @@ function clampBullets(text: string, min = 4, max = 8): string {
   return lines.join("\n");
 }
 
+type RoomInfoImgItem = {
+  type?: string;
+  icon?: string;
+  highlights?: string[];
+  images?: string[];
+};
+
+function normalizeRoomInfoImageUrl(raw: unknown): string {
+  const value =
+    typeof raw === "string"
+      ? raw
+      : raw && typeof raw === "object" && typeof (raw as { url?: unknown }).url === "string"
+        ? String((raw as { url: string }).url)
+        : "";
+  const trimmed = value.trim().replace(/^["']|["']$/g, "");
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const publicIndex = trimmed.lastIndexOf("/public/");
+  if (publicIndex >= 0) {
+    const publicPath = trimmed.slice(publicIndex + "/public".length);
+    return publicPath.startsWith("/") ? publicPath : `/${publicPath}`;
+  }
+  return trimmed;
+}
+
+function isRenderableRoomInfoImageUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url) || /^\/hotel[a-z0-9_-]+\//i.test(url);
+}
+
+function splitRoomInfoImgValues(raw: string): string[] {
+  return raw
+    .split(/\s*[|;]\s*|\s*,\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function parseRoomInfoImgImages(raw: string, block: string): string[] {
+  const candidates: unknown[] = [];
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) candidates.push(...parsed);
+    } catch {
+      // Fall through to regex extraction below.
+    }
+  }
+  if (!candidates.length && trimmed) {
+    candidates.push(...trimmed.split(/\s*,\s*|\s+/).filter(Boolean));
+  }
+
+  const imagesSection = block.match(/^\s*(?:Images?|Imágenes?|Imagens?)\s*:\s*([\s\S]*?)(?=^\s*(?:Tipo|Type|Icono|Icon|Resumen|Summary|Highlights?|Destacados?|Destaques?)\s*:|\s*$)/im)?.[1] || "";
+  const sectionMatches = imagesSection.match(/https?:\/\/[^\s"')\]]+|\/hotel[a-z0-9_-]+\/[^\s"')\]]+/gi) || [];
+  candidates.push(...sectionMatches);
+
+  const directMatches = block.match(/https?:\/\/[^\s"')\]]+|\/hotel[a-z0-9_-]+\/[^\s"')\]]+/gi) || [];
+  candidates.push(...directMatches);
+
+  const seen = new Set<string>();
+  return candidates
+    .map(normalizeRoomInfoImageUrl)
+    .filter(isRenderableRoomInfoImageUrl)
+    .filter((url) => {
+      if (seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    })
+    .slice(0, 8);
+}
+
+function parseRoomInfoImgDocument(text: string): RoomInfoImgItem[] {
+  if (!text.trim()) return [];
+  const items: RoomInfoImgItem[] = [];
+  const roomBlocks = Array.from(text.matchAll(/(?:^|\n)\s*(?:Tipo|Type)\s*:\s*([^\n]+)([\s\S]*?)(?=\n\s*(?:Tipo|Type)\s*:|$)/gi));
+
+  for (const match of roomBlocks) {
+    const block = `${match[0] || ""}`.trim();
+    const type = String(match[1] || "").trim();
+    const icon = (block.match(/^\s*(?:Icono|Icon)\s*:\s*([^\n]+)/im)?.[1] || "").trim();
+    const highlightsRaw = (block.match(/^\s*(?:Highlights?|Destacados?|Destaques?)\s*:\s*([^\n]+)/im)?.[1] || "").trim();
+    const summaryRaw = (block.match(/^\s*(?:Resumen visual|Summary)\s*:\s*([^\n]+)/im)?.[1] || "").trim();
+    const imagesRaw = (block.match(/^\s*(?:Images?|Imágenes?|Imagens?)\s*:\s*([^\n]*)/im)?.[1] || "").trim();
+
+    const highlights = [
+      ...splitRoomInfoImgValues(summaryRaw),
+      ...splitRoomInfoImgValues(highlightsRaw),
+    ].filter(Boolean).slice(0, 8);
+    const images = parseRoomInfoImgImages(imagesRaw, block);
+    if (!type && !highlights.length && !images.length) continue;
+    items.push({
+      type: type || undefined,
+      icon: icon || undefined,
+      highlights: highlights.length ? highlights : undefined,
+      images: images.length ? images : undefined,
+    });
+  }
+
+  return items.filter((item) => Array.isArray(item.images) && item.images.length > 0);
+}
+
+function buildRoomInfoImgItemsFromConfig(cfg: any): RoomInfoImgItem[] {
+  if (!Array.isArray(cfg?.rooms)) return [];
+  return cfg.rooms
+    .map((room: any) => {
+      const images = Array.isArray(room?.images)
+        ? room.images
+            .map(normalizeRoomInfoImageUrl)
+            .filter(isRenderableRoomInfoImageUrl)
+            .slice(0, 8)
+        : [];
+      if (!images.length) return null;
+      const highlights = [
+        room?.capacity ? `Capacidad: ${room.capacity} huésped${Number(room.capacity) === 1 ? "" : "es"}` : "",
+        room?.beds ? `Camas: ${room.beds}` : "",
+        room?.sizeM2 ? `Superficie: ${room.sizeM2} m²` : "",
+        ...(Array.isArray(room?.highlights) ? room.highlights : []),
+      ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 8);
+      return {
+        type: String(room?.name || "").trim() || undefined,
+        icon: String(room?.icon || "").trim() || undefined,
+        highlights: highlights.length ? highlights : undefined,
+        images,
+      };
+    })
+    .filter((item: RoomInfoImgItem | null): item is RoomInfoImgItem => Boolean(item));
+}
+
+function roomInfoImgIntro(lang: "es" | "en" | "pt" | "other"): string {
+  if (lang === "en") {
+    return "Here are the available room options with photos and key features. Would you like help choosing one?";
+  }
+  if (lang === "pt") {
+    return "Estas são as opções de quartos disponíveis, com fotos e principais características. Quer ajuda para escolher uma?";
+  }
+  return "Estas son las habitaciones disponibles, con fotos y características principales. ¿Querés que te ayude a elegir una?";
+}
+
 // Función principal de retrieval determinista
 export async function retrievalBased(state: any): Promise<any> {
   if (process.env.DEBUG_ROUTING === "1") {
@@ -1390,6 +1528,68 @@ export async function retrievalBased(state: any): Promise<any> {
           }
           : {}),
         ...(rich ? { rich } : {}),
+      },
+    };
+  }
+
+  if (promptKey === "room_info_img") {
+    const hotelId = state.hotelId ?? "hotel999";
+    const langRaw = normalizeLang(state.originalLang ?? state.retrievalLang ?? state.detectedLanguage);
+    const desiredLang = langRaw === "other" ? "es" : langRaw;
+    const [resolved, cfg] = await Promise.all([
+      resolveCategoryForHotel({
+        hotelId,
+        category: "retrieval_based",
+        promptKey: "room_info_img",
+        desiredLang,
+      }).catch(() => null),
+      getHotelConfig(hotelId).catch(() => null),
+    ]);
+    const contentItems = parseRoomInfoImgDocument(String(resolved?.content?.body || ""));
+    const configItems = buildRoomInfoImgItemsFromConfig(cfg);
+    const items = configItems.length > contentItems.length ? configItems : contentItems;
+    const responseText = roomInfoImgIntro(langRaw);
+    const richPayload: RichPayload | undefined = items.length
+      ? { type: "room-info-img", data: items }
+      : undefined;
+
+    return {
+      ...state,
+      messages: [...state.messages, new AIMessage(responseText)],
+      category: "retrieval_based",
+      promptKey: "room_info_img",
+      source: "retrieval_based_room_info_img",
+      resolved: {
+        ...((state as any).resolved || {}),
+        content: resolved?.content
+          ? {
+            ...(((state as any).resolved || {}).content || {}),
+            version: resolved.content.version,
+          }
+          : (((state as any).resolved || {}).content || undefined),
+      },
+      meta: {
+        ...(state as any).meta,
+        resolved: resolved?.content
+          ? {
+            ...((state as any)?.meta?.resolved || {}),
+            content: {
+              ...(((state as any)?.meta?.resolved || {}).content || {}),
+              version: resolved.content.version,
+            },
+          }
+          : (state as any)?.meta?.resolved,
+        ...(debugRouting
+          ? {
+            debug: {
+              ...((state as any)?.meta?.debug || {}),
+              intentGroup: "room_info_img",
+              roomInfoImgItems: items.length,
+              source: configItems.length > contentItems.length ? "hotel_config" : "hotel_content",
+            },
+          }
+          : {}),
+        ...(richPayload ? { rich: richPayload } : {}),
       },
     };
   }
