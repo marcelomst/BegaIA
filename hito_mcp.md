@@ -11748,3 +11748,48 @@ Impacto:
 - evita pérdida de metadata en mapper y DTO
 - hace visible la preview visual esperada sin acoplar Admin al widget público
 - mantiene el alcance estrictamente en UI/DTO/mapper sin tocar runtime conversacional
+
+### DOC-DEMO-SCRIPT-DRAFT-V5-KB-RICH-ROOMS-BASELINE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-10  
+Commit: f260a30781b0f409e80c1e520ce258e0159e87ae
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Hito puramente documental. Incorpora un draft versionado del guion operativo de
+demo v5, actualizado al baseline posterior de KB/rich rooms y Admin preview
+visual, como base de trabajo para análisis comercial y medium dry run antes de
+promover una versión final aprobada.
+
+Archivos afectados:
+
+- `docs/product/demo_script_core_first_admin_supervision_refresh.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- verificación documental reportada en verde:
+  `git diff --check`
+- validación manual requerida para:
+  revisar que el draft se use como fuente de trabajo y no como versión final aprobada
+  usar el documento en análisis comercial
+  ejecutar medium dry run y registrar ajustes antes de promover una versión final
+- validaciones de contenido:
+  `diff_scope: ok`
+  `draft_status: ok`
+  `content: ok`
+  `claim_safety: ok`
+- notas:
+  el documento incorpora explícitamente `room_info_img` visual en widget y preview visual en Admin en formato grilla
+  mantiene claims prudentes y prohíbe sobrepromesas sobre reservas garantizadas, reemplazo de recepción, PMS/CRM/Channel Manager completo, WhatsApp universal y threading perfecto
+
+Impacto:
+
+- explicita el estado draft y evita presentar el material como versión final aprobada
+- actualiza la narrativa comercial al baseline real del producto
+- incorpora una matriz de claims prudentes/prohibidos para reducir sobrepromesa
+- fortalece el uso del guion como base de trabajo para análisis comercial y dry run
