@@ -11793,3 +11793,53 @@ Impacto:
 - actualiza la narrativa comercial al baseline real del producto
 - incorpora una matriz de claims prudentes/prohibidos para reducir sobrepromesa
 - fortalece el uso del guion como base de trabajo para análisis comercial y dry run
+
+### FIX-EMAIL-SUPERVISED-APPROVAL-SENDS-OUTBOUND-REPLY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-13  
+Commit: cd1d8cdfe186ae4e65686896daa772a3a5ae789c
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado al flujo end-to-end de Email supervisado desde Admin. Corrige la
+aprobación con `approve_and_send` real, despacha outbound SMTP solo tras éxito
+efectivo, evita reenvío de pendings ya marcados como sent y limpia quoted
+Gmail replies para que una confirmación por Email entre al runtime con texto
+útil normalizado.
+
+Archivos afectados:
+
+- `app/api/messages/route.ts`
+- `components/admin/ChannelInbox.tsx`
+- `lib/utils/emailCleanup.ts`
+- `test/api.messages.route.spec.ts`
+- `test/unit/email.pipelineIdentity.spec.ts`
+- `test/frontend/channelInbox.emailSupervisedSend.spec.tsx`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/email.pipelineIdentity.spec.ts test/api.messages.route.spec.ts test/frontend/channelInbox.emailSupervisedSend.spec.tsx`
+- validación manual requerida para:
+  aprobar desde Admin un pending Email en modo supervisado y verificar outbound real al remitente
+  verificar que el pending no queda sent si SMTP falla
+  verificar que un pending ya sent no se reenvía
+  responder desde Gmail con `confirmar` y quoted headers same-line
+  responder desde Gmail con `confirmar` y quoted headers multiline
+  verificar confirmación correcta de reserva luego del reply limpio
+- notas:
+  `scripts/stop-email-worker.sh` quedó untracked fuera de este hito
+  si se decide versionarlo, debe tratarse como hito separado
+  hubo ruido local `EPERM 127.0.0.1:6379` durante `email.pipelineIdentity`, pero la suite focal pasó y no altera el dictamen funcional
+
+Impacto:
+
+- corrige el camino real de aprobación supervisada en Email
+- asegura que el pending solo quede enviado después de SMTP OK
+- evita duplicados en pendings ya sent
+- normaliza el texto útil del reply antes de entrar al runtime de confirmación
