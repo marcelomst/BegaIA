@@ -63,6 +63,20 @@ function compactConversationId(value: string | null | undefined): string {
   return `${raw.slice(0, 8)}...${raw.slice(-6)}`;
 }
 
+function isEmailSupervisedApprovalBrowserDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem("DEBUG_EMAIL_SUPERVISED_APPROVAL") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function logEmailSupervisedApprovalBrowser(stage: string, payload: Record<string, unknown>) {
+  if (!isEmailSupervisedApprovalBrowserDebugEnabled()) return;
+  console.log("[email-supervised]", stage, payload);
+}
+
 export default function ChannelInbox({
   hotelId,
   channel,
@@ -344,14 +358,14 @@ export default function ChannelInbox({
       conversations.find((c) => c.conversationId === selectedConv)?.channel ||
       selectedConvChannel ||
       channel;
-    const payload = activeChannel === "whatsapp"
+    const payload = activeChannel === "whatsapp" || activeChannel === "email"
       ? {
           action: "approve_and_send",
           messageId: msg.messageId,
           approvedResponse: editingText,
           channel: activeChannel,
           respondedBy: user?.email,
-          to: msg.guestId,
+          ...(activeChannel === "whatsapp" && { to: msg.guestId }),
         }
       : {
           messageId: msg.messageId,
@@ -361,11 +375,28 @@ export default function ChannelInbox({
           respondedBy: user?.email,
         };
 
+    if (activeChannel === "email") {
+      logEmailSupervisedApprovalBrowser("approve_request", {
+        endpoint: "/api/messages",
+        payload,
+        selectedConv,
+        selectedConvChannel,
+      });
+    }
+
     const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    if (activeChannel === "email") {
+      const responseBody = await res.clone().json().catch(() => null);
+      logEmailSupervisedApprovalBrowser("approve_response", {
+        status: res.status,
+        ok: res.ok,
+        body: responseBody,
+      });
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       alert(err?.error || "No se pudo enviar el mensaje");

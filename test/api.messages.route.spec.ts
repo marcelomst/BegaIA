@@ -5,8 +5,11 @@ const getCurrentUserMock = vi.fn();
 const getMessagesFromChannelMock = vi.fn();
 const updateMessageInChannelMock = vi.fn();
 const getMessageByIdMock = vi.fn();
+const getMessagesByConversationMock = vi.fn();
 const updateMessageInAstraMock = vi.fn();
 const twilioSendWhatsAppMessageMock = vi.fn();
+const sendEmailMock = vi.fn();
+const getHotelConfigMock = vi.fn();
 const getGuestMock = vi.fn();
 const getGuestAliasesByGuestIdMock = vi.fn();
 const emitToConversationMock = vi.fn();
@@ -22,7 +25,16 @@ vi.mock("@/lib/services/messages", () => ({
 
 vi.mock("@/lib/db/messages", () => ({
   getMessageById: getMessageByIdMock,
+  getMessagesByConversation: getMessagesByConversationMock,
   updateMessageInAstra: updateMessageInAstraMock,
+}));
+
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: getHotelConfigMock,
+}));
+
+vi.mock("@/lib/email/sendEmail", () => ({
+  sendEmail: sendEmailMock,
 }));
 
 vi.mock("@/lib/channels/whatsapp/twilioSendMessage", () => ({
@@ -51,8 +63,11 @@ describe("/api/messages POST approve_and_send", () => {
     getMessagesFromChannelMock.mockReset();
     updateMessageInChannelMock.mockReset();
     getMessageByIdMock.mockReset();
+    getMessagesByConversationMock.mockReset();
     updateMessageInAstraMock.mockReset();
     twilioSendWhatsAppMessageMock.mockReset();
+    sendEmailMock.mockReset();
+    getHotelConfigMock.mockReset();
     getGuestMock.mockReset();
     getGuestAliasesByGuestIdMock.mockReset();
     emitToConversationMock.mockReset();
@@ -62,6 +77,23 @@ describe("/api/messages POST approve_and_send", () => {
       hotelId: "hotel999",
       roleLevel: 80,
     });
+    getHotelConfigMock.mockResolvedValue({
+      hotelId: "hotel999",
+      channelConfigs: {
+        email: {
+          enabled: true,
+          mode: "supervised",
+          dirEmail: "hotel@example.com",
+          password: "smtp-pass",
+          imapHost: "imap.example.com",
+          imapPort: 993,
+          smtpHost: "smtp.example.com",
+          smtpPort: 587,
+          secure: false,
+        },
+      },
+    });
+    getMessagesByConversationMock.mockResolvedValue([]);
     getGuestMock.mockResolvedValue(null);
     getGuestAliasesByGuestIdMock.mockResolvedValue([]);
   });
@@ -191,6 +223,239 @@ describe("/api/messages POST approve_and_send", () => {
     expect(json.error).toMatch(/destinatario WhatsApp t[eé]cnico/i);
     expect(twilioSendWhatsAppMessageMock).toHaveBeenCalledTimes(0);
     expect(updateMessageInAstraMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("Email supervisado: envía outbound al remitente del hilo y marca el pendiente como sent", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "email-pending-1",
+      hotelId: "hotel999",
+      channel: "email",
+      status: "pending",
+      conversationId: "email-conv-1",
+      guestId: "martin@example.com",
+      suggestion: "texto sugerido",
+      subject: "Reserva",
+    });
+    getMessagesByConversationMock.mockResolvedValueOnce([
+      {
+        messageId: "email-in-1",
+        hotelId: "hotel999",
+        channel: "email",
+        status: "sent",
+        conversationId: "email-conv-1",
+        direction: "in",
+        role: "user",
+        sender: "martin@example.com",
+        subject: "Reserva",
+        originalMessageId: "<gmail-msg-1@example.com>",
+      },
+    ]);
+    sendEmailMock.mockResolvedValueOnce(undefined);
+
+    const req = new Request("http://localhost/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "approve_and_send",
+        messageId: "email-pending-1",
+        channel: "email",
+        approvedResponse: "Texto editado\nsegunda línea",
+        respondedBy: "agent@hotel.com",
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendEmailMock).toHaveBeenCalledWith(
+      {
+        host: "smtp.example.com",
+        port: 587,
+        user: "hotel@example.com",
+        pass: "smtp-pass",
+        secure: false,
+      },
+      "martin@example.com",
+      "Re: Reserva",
+      "Texto editado<br>segunda línea",
+    );
+    expect(updateMessageInAstraMock).toHaveBeenCalledWith(
+      "hotel999",
+      "email-pending-1",
+      expect.objectContaining({
+        approvedResponse: "Texto editado\nsegunda línea",
+        status: "sent",
+        respondedBy: "agent@hotel.com",
+        deliveredAt: expect.any(String),
+        meta: expect.objectContaining({
+          emailOutboundTo: "martin@example.com",
+          emailOriginalMessageId: "<gmail-msg-1@example.com>",
+        }),
+      }),
+    );
+  });
+
+  it("Email supervisado: no duplica outbound si el pendiente ya estaba sent", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "email-pending-2",
+      hotelId: "hotel999",
+      channel: "email",
+      status: "sent",
+      conversationId: "email-conv-2",
+      suggestion: "texto sugerido",
+    });
+
+    const req = new Request("http://localhost/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "approve_and_send",
+        messageId: "email-pending-2",
+        channel: "email",
+        approvedResponse: "Texto editado",
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ success: true, deduped: true });
+    expect(sendEmailMock).toHaveBeenCalledTimes(0);
+    expect(updateMessageInAstraMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("Email supervisado: si SMTP falla devuelve error y no marca sent", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "email-pending-3",
+      hotelId: "hotel999",
+      channel: "email",
+      status: "pending",
+      conversationId: "email-conv-3",
+      guestId: "martin@example.com",
+      suggestion: "texto sugerido",
+      subject: "Reserva",
+    });
+    getMessagesByConversationMock.mockResolvedValueOnce([
+      {
+        messageId: "email-in-3",
+        hotelId: "hotel999",
+        channel: "email",
+        conversationId: "email-conv-3",
+        direction: "in",
+        role: "user",
+        sender: "martin@example.com",
+        subject: "Reserva",
+        originalMessageId: "<gmail-msg-3@example.com>",
+      },
+    ]);
+    sendEmailMock.mockRejectedValueOnce(new Error("SMTP rejected"));
+
+    const req = new Request("http://localhost/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "approve_and_send",
+        messageId: "email-pending-3",
+        channel: "email",
+        approvedResponse: "Texto editado",
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(json.success).toBe(false);
+    expect(json.error).toBe("SMTP rejected");
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(updateMessageInAstraMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("Email supervisado: si Gmail rechaza inline reintenta con EMAIL_PASS antes de marcar sent", async () => {
+    const { POST } = await import("@/app/api/messages/route");
+    const previousEmailPass = process.env.EMAIL_PASS;
+    process.env.EMAIL_PASS = "env-app-password";
+
+    getMessageByIdMock.mockResolvedValueOnce({
+      messageId: "email-pending-4",
+      hotelId: "hotel999",
+      channel: "email",
+      status: "pending",
+      conversationId: "email-conv-4",
+      guestId: "martin@example.com",
+      suggestion: "texto sugerido",
+      subject: "Reserva",
+    });
+    getMessagesByConversationMock.mockResolvedValueOnce([
+      {
+        messageId: "email-in-4",
+        hotelId: "hotel999",
+        channel: "email",
+        conversationId: "email-conv-4",
+        direction: "in",
+        role: "user",
+        sender: "martin@example.com",
+        subject: "Reserva",
+      },
+    ]);
+    sendEmailMock
+      .mockRejectedValueOnce(new Error("Invalid login: 535-5.7.8 Username and Password not accepted"))
+      .mockResolvedValueOnce(undefined);
+
+    try {
+      const req = new Request("http://localhost/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "approve_and_send",
+          messageId: "email-pending-4",
+          channel: "email",
+          approvedResponse: "Texto editado",
+        }),
+      });
+
+      const res = await POST(req);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.success).toBe(true);
+      expect(sendEmailMock).toHaveBeenCalledTimes(2);
+      expect(sendEmailMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ pass: "smtp-pass" }),
+        "martin@example.com",
+        "Re: Reserva",
+        "Texto editado",
+      );
+      expect(sendEmailMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ pass: "env-app-password" }),
+        "martin@example.com",
+        "Re: Reserva",
+        "Texto editado",
+      );
+      expect(updateMessageInAstraMock).toHaveBeenCalledWith(
+        "hotel999",
+        "email-pending-4",
+        expect.objectContaining({ status: "sent" }),
+      );
+    } finally {
+      if (previousEmailPass === undefined) {
+        delete process.env.EMAIL_PASS;
+      } else {
+        process.env.EMAIL_PASS = previousEmailPass;
+      }
+    }
   });
 
   it("Web supervisado: guarda y envía el texto editado usando el messageId real", async () => {

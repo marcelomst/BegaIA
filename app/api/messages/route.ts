@@ -5,18 +5,35 @@ import {
   getMessagesFromChannel,
   updateMessageInChannel,
 } from "@/lib/services/messages";
-import { getMessageById, updateMessageInAstra } from "@/lib/db/messages";
+import { getMessageById, getMessagesByConversation, updateMessageInAstra } from "@/lib/db/messages";
 import { channelHandlers } from "@/lib/services/channelHandlers";
 import { parseChannel } from "@/lib/utils/parseChannel";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { toTwilioWhatsAppAddress, twilioSendWhatsAppMessage } from "@/lib/channels/whatsapp/twilioSendMessage";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import { getGuest } from "@/lib/db/guests";
 import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
+import { resolveEmailCredentials } from "@/lib/email/resolveEmailCredentials";
+import { sendEmail } from "@/lib/email/sendEmail";
 import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 import { emitToConversation } from "@/lib/web/eventBus";
 
 function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function isEmailSupervisedApprovalDebugEnabled(): boolean {
+  return process.env.DEBUG_EMAIL_SUPERVISED_APPROVAL === "1";
+}
+
+function logEmailSupervisedApproval(stage: string, payload: Record<string, unknown>) {
+  if (!isEmailSupervisedApprovalDebugEnabled()) return;
+  console.log("[email-supervised]", stage, payload);
+}
+
+function isInvalidEmailLoginError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error || "");
+  return /invalid login|username and password not accepted|535-5\.7\.8/i.test(message);
 }
 
 function looksLikeWhatsAppDeliveryAddress(value: unknown): boolean {
@@ -65,6 +82,74 @@ async function resolveWhatsAppApprovalTo(input: {
   return candidates.values().next().value ?? null;
 }
 
+function looksLikeEmailAddress(value: unknown): boolean {
+  const trimmed = normalizeText(value);
+  return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(trimmed);
+}
+
+function normalizeReplySubject(subject: unknown): string {
+  const trimmed = normalizeText(subject);
+  if (!trimmed) return "Re: Consulta";
+  return /^re:/i.test(trimmed) ? trimmed : `Re: ${trimmed}`;
+}
+
+function plainTextToHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+}
+
+async function resolveEmailApprovalContext(input: {
+  hotelId: string;
+  requestedTo?: string | null;
+  current: Record<string, any>;
+}) {
+  const candidates: Array<Record<string, any>> = [input.current];
+  const conversationId = normalizeText(input.current.conversationId);
+  if (conversationId) {
+    const threadMessages = await getMessagesByConversation({
+      hotelId: input.hotelId,
+      conversationId,
+      channel: "email",
+      limit: 20,
+    }).catch(() => []);
+    candidates.push(...threadMessages);
+  }
+
+  const inbound = candidates.find(
+    (message) =>
+      message?.channel === "email" &&
+      (message.direction === "in" || message.role === "user") &&
+      looksLikeEmailAddress(message.sender),
+  );
+
+  const requestedTo = looksLikeEmailAddress(input.requestedTo) ? normalizeText(input.requestedTo) : "";
+  const currentRecipient = looksLikeEmailAddress(input.current.recipient) ? normalizeText(input.current.recipient) : "";
+  const inboundSender = looksLikeEmailAddress(inbound?.sender) ? normalizeText(inbound?.sender) : "";
+  const guestId = looksLikeEmailAddress(input.current.guestId) ? normalizeText(input.current.guestId) : "";
+  const sender = looksLikeEmailAddress(input.current.sender) ? normalizeText(input.current.sender) : "";
+
+  const to = requestedTo || inboundSender || currentRecipient || guestId || sender;
+  return {
+    to,
+    source: requestedTo
+      ? "requestedTo"
+      : inboundSender
+        ? "inbound.sender"
+        : currentRecipient
+          ? "current.recipient"
+          : guestId
+            ? "current.guestId"
+            : sender
+              ? "current.sender"
+              : "none",
+    subject: normalizeReplySubject(input.current.subject || inbound?.subject),
+    originalMessageId: normalizeText(input.current.originalMessageId || inbound?.originalMessageId),
+  };
+}
+
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) {
@@ -110,20 +195,41 @@ export async function POST(req: Request) {
     }
 
     if (action === "approve_and_send") {
-      if (channel !== "whatsapp") {
+      logEmailSupervisedApproval("backend_enter", {
+        action,
+        channel,
+        messageId,
+      });
+      if (channel !== "whatsapp" && channel !== "email") {
         return NextResponse.json(
-          { error: "approve_and_send solo está soportado para WhatsApp" },
+          { error: "approve_and_send solo está soportado para WhatsApp y Email" },
           { status: 400 }
         );
       }
-
       const current = await getMessageById(messageId);
+      if (channel === "email") {
+        logEmailSupervisedApproval("pending", {
+          found: Boolean(current),
+          status: current?.status,
+          conversationId: current?.conversationId,
+          messageChannel: current?.channel,
+        });
+      }
       if (!current || current.hotelId !== user.hotelId) {
         return NextResponse.json({ error: "Mensaje no encontrado" }, { status: 404 });
       }
-      if (current.channel !== "whatsapp" || current.status !== "pending") {
+      if (current.channel !== channel) {
         return NextResponse.json(
-          { error: "El mensaje no está en estado pendiente de WhatsApp" },
+          { error: "El canal del mensaje no coincide con la solicitud" },
+          { status: 400 }
+        );
+      }
+      if (current.status === "sent") {
+        return NextResponse.json({ success: true, deduped: true });
+      }
+      if (current.status !== "pending") {
+        return NextResponse.json(
+          { error: `El mensaje no está en estado pendiente de ${channel}` },
           { status: 400 }
         );
       }
@@ -136,6 +242,123 @@ export async function POST(req: Request) {
         "";
       if (!textToSend) {
         return NextResponse.json({ error: "No hay texto para enviar" }, { status: 400 });
+      }
+
+      if (channel === "email") {
+        const emailTarget = await resolveEmailApprovalContext({
+          hotelId: user.hotelId,
+          requestedTo: typeof to === "string" ? to : "",
+          current,
+        });
+        if (!emailTarget.to) {
+          logEmailSupervisedApproval("recipient", {
+            recipient: "",
+            source: emailTarget.source,
+            conversationId: current.conversationId,
+          });
+          return NextResponse.json(
+            { error: "No se pudo resolver destinatario Email para entrega" },
+            { status: 400 },
+          );
+        }
+
+        const hotelConfig = await getHotelConfig(user.hotelId);
+        const emailConfig = hotelConfig?.channelConfigs?.email;
+        const credentials = resolveEmailCredentials(emailConfig);
+        logEmailSupervisedApproval("smtp_config", {
+          hasHost: Boolean(credentials?.host),
+          hasUser: Boolean(credentials?.user),
+          hasPass: Boolean(credentials?.pass),
+          from: credentials?.user || null,
+          source: credentials?.source || "none",
+          reason: credentials?.reason || null,
+        });
+        if (!credentials || !credentials.pass || credentials.source === "none") {
+          return NextResponse.json(
+            { success: false, error: credentials?.reason || "Credenciales Email no configuradas" },
+            { status: 400 },
+          );
+        }
+
+        const smtpConfig = {
+          host: credentials.host,
+          port: credentials.port,
+          user: credentials.user,
+          pass: credentials.pass,
+          secure: credentials.secure ?? false,
+        };
+
+        try {
+          logEmailSupervisedApproval("recipient", {
+            recipient: emailTarget.to,
+            source: emailTarget.source,
+            subject: emailTarget.subject,
+            conversationId: current.conversationId,
+          });
+          logEmailSupervisedApproval("sendEmail_call", {
+            to: emailTarget.to,
+            subject: emailTarget.subject,
+            bodyChars: textToSend.length,
+            credentialSource: credentials.source,
+          });
+          try {
+            await sendEmail(smtpConfig, emailTarget.to, emailTarget.subject, plainTextToHtml(textToSend));
+          } catch (firstError) {
+            const altPass = process.env.EMAIL_PASS;
+            if (
+              isInvalidEmailLoginError(firstError) &&
+              credentials.source === "inline" &&
+              altPass &&
+              altPass !== credentials.pass
+            ) {
+              logEmailSupervisedApproval("sendEmail_fallback", {
+                reason: "invalid_inline_credentials",
+                fallback: "EMAIL_PASS",
+              });
+              await sendEmail(
+                { ...smtpConfig, pass: altPass },
+                emailTarget.to,
+                emailTarget.subject,
+                plainTextToHtml(textToSend),
+              );
+            } else {
+              throw firstError;
+            }
+          }
+
+          await updateMessageInAstra(user.hotelId, messageId, {
+            approvedResponse: textToSend,
+            status: "sent",
+            respondedBy: respondedBy || user.email,
+            deliveredAt: new Date().toISOString(),
+            meta: {
+              ...(current.meta || {}),
+              emailOutboundTo: emailTarget.to,
+              emailOriginalMessageId: emailTarget.originalMessageId || null,
+            },
+          });
+          logEmailSupervisedApproval("sendEmail_result", {
+            ok: true,
+            messageId,
+            statusAfter: "sent",
+          });
+
+          return NextResponse.json({ success: true });
+        } catch (error) {
+          logEmailSupervisedApproval("sendEmail_result", {
+            ok: false,
+            messageId,
+            error: error instanceof Error ? error.message : "Email send failed",
+            statusAfter: current.status,
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: error instanceof Error ? error.message : "Email send failed",
+            },
+            { status: 502 },
+          );
+        }
       }
 
       const twilioTo = await resolveWhatsAppApprovalTo({

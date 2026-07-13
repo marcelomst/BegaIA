@@ -208,6 +208,148 @@ describe("email pipeline identity", () => {
     );
   });
 
+  it("limpia quoted thread Gmail en la misma linea y preserva solo confirmar", async () => {
+    parseEmailToChannelMessageMock.mockResolvedValueOnce({
+      messageId: "parser-msg-quoted-inline-es-1",
+      conversationId: "hotel-email-1-email-legacy@example.com",
+      hotelId: "hotel-email-1",
+      channel: "email",
+      sender: "Legacy@Example.com",
+      guestId: "Legacy@Example.com",
+      content: [
+        "confirmar El lun, 13 jul 2026 a las 16:26, Hotel Assistant (<begamshop.ventas@gmail.com>) escribió:",
+        "> Tengo triple disponible para Ana Rodríguez.",
+        "> ¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+      ].join("\n"),
+      suggestion: "",
+      subject: "Re: Reserva",
+      recipient: "hotel@example.com",
+      cc: [],
+      bcc: [],
+      attachments: [],
+      references: ["<ref-1@example.com>"],
+      inReplyTo: "<prev@example.com>",
+      originalMessageId: "<msg-quoted-inline-es-1@example.com>",
+      isForwarded: false,
+      role: "user",
+    });
+
+    await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Re: Reserva",
+        messageId: "<msg-quoted-inline-es-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply: vi.fn(async () => {}),
+    });
+
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "confirmar",
+        sourceMsgId: "<msg-quoted-inline-es-1@example.com>",
+      }),
+    );
+  });
+
+  it("limpia quoted thread Gmail multilinea y preserva solo confirmar", async () => {
+    parseEmailToChannelMessageMock.mockResolvedValueOnce({
+      messageId: "parser-msg-quoted-multiline-es-1",
+      conversationId: "hotel-email-1-email-legacy@example.com",
+      hotelId: "hotel-email-1",
+      channel: "email",
+      sender: "Legacy@Example.com",
+      guestId: "Legacy@Example.com",
+      content: [
+        "confirmar",
+        "El lun, 13 jul 2026 a las 17:31, Hotel Assistant (<",
+        "begamshop.ventas@gmail.com>) escribió:",
+        "> Martin, tengo doble disponible para Raul Olivera.",
+        "> ¿Confirmás la reserva? Respondé “CONFIRMAR”.",
+      ].join("\n"),
+      suggestion: "",
+      subject: "Re: Reserva",
+      recipient: "hotel@example.com",
+      cc: [],
+      bcc: [],
+      attachments: [],
+      references: ["<ref-1@example.com>"],
+      inReplyTo: "<prev@example.com>",
+      originalMessageId: "<msg-quoted-multiline-es-1@example.com>",
+      isForwarded: false,
+      role: "user",
+    });
+
+    await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Re: Reserva",
+        messageId: "<msg-quoted-multiline-es-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply: vi.fn(async () => {}),
+    });
+
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "confirmar",
+        sourceMsgId: "<msg-quoted-multiline-es-1@example.com>",
+      }),
+    );
+  });
+
+  it("limpia quoted thread Gmail en ingles en la misma linea y preserva solo confirmar", async () => {
+    parseEmailToChannelMessageMock.mockResolvedValueOnce({
+      messageId: "parser-msg-quoted-inline-en-1",
+      conversationId: "hotel-email-1-email-legacy@example.com",
+      hotelId: "hotel-email-1",
+      channel: "email",
+      sender: "Legacy@Example.com",
+      guestId: "Legacy@Example.com",
+      content: [
+        "CONFIRMAR On Mon, Jul 13, 2026 at 4:26 PM Hotel Assistant <begamshop.ventas@gmail.com> wrote:",
+        "> Do you confirm the booking? Reply “CONFIRMAR”.",
+      ].join("\n"),
+      suggestion: "",
+      subject: "Re: Booking",
+      recipient: "hotel@example.com",
+      cc: [],
+      bcc: [],
+      attachments: [],
+      references: ["<ref-1@example.com>"],
+      inReplyTo: "<prev@example.com>",
+      originalMessageId: "<msg-quoted-inline-en-1@example.com>",
+      isForwarded: false,
+      role: "user",
+    });
+
+    await processInboundEmailMessage({
+      hotelId: "hotel-email-1",
+      parsed: {
+        from: { text: "Legacy@Example.com" },
+        subject: "Re: Booking",
+        messageId: "<msg-quoted-inline-en-1@example.com>",
+      },
+      raw: "raw-email",
+      mode: "automatic",
+      emailUser: "hotel@example.com",
+      sendReply: vi.fn(async () => {}),
+    });
+
+    expect(handleChannelMessageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "CONFIRMAR",
+        sourceMsgId: "<msg-quoted-inline-en-1@example.com>",
+      }),
+    );
+  });
+
   it("conserva una autopresentación inline aunque el body traiga prefijo estilo Gmail", async () => {
     parseEmailToChannelMessageMock.mockResolvedValueOnce({
       messageId: "parser-msg-gmail-noise-1",

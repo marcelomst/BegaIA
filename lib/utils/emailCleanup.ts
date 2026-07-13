@@ -6,9 +6,28 @@ export function isProtonMail(email: string): boolean {
 
 const QUOTED_REPLY_BOUNDARIES = [
   /^\s*On .+ wrote:\s*$/i,
+  /^\s*On\s+(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\b.+/i,
   /^\s*El .+ escribi[oó]:\s*$/i,
+  /^\s*El\s+(?:lun|mar|mi[eé]|jue|vie|s[aá]b|dom)\.?,?\b.+/i,
   /^\s*-----Original Message-----\s*$/i,
 ];
+
+const INLINE_QUOTED_REPLY_BOUNDARIES = [
+  /\s+On\s+(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?[\s\S]{0,240}?\bwrote:\s*$/i,
+  /\s+El\s+(?:lun|mar|mi[eé]|jue|vie|s[aá]b|dom)\.?,?[\s\S]{0,240}?\bescribi[oó]:\s*$/i,
+];
+
+function stripInlineQuotedReplyBoundary(line: string): string {
+  let boundaryIndex = -1;
+
+  for (const pattern of INLINE_QUOTED_REPLY_BOUNDARIES) {
+    const match = pattern.exec(line);
+    if (!match || match.index < 0) continue;
+    boundaryIndex = boundaryIndex === -1 ? match.index : Math.min(boundaryIndex, match.index);
+  }
+
+  return boundaryIndex >= 0 ? line.slice(0, boundaryIndex).trim() : line;
+}
 
 function stripQuotedThread(text: string): string[] {
   const rawLines = String(text || "").split(/\r?\n/);
@@ -18,7 +37,7 @@ function stripQuotedThread(text: string): string[] {
     const trimmed = rawLine.trim();
     if (QUOTED_REPLY_BOUNDARIES.some((pattern) => pattern.test(trimmed))) break;
     if (kept.length > 0 && /^>+/.test(trimmed)) break;
-    kept.push(trimmed);
+    kept.push(stripInlineQuotedReplyBoundary(trimmed));
   }
 
   return kept;
