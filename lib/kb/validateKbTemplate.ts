@@ -4,19 +4,84 @@ import path from "path";
 import { listRuntimeKeys } from "@/lib/kb/runtimeContextSchema";
 
 type KeyRef = { path: string; hasKeyPrefix: boolean };
+type ContextualKeyRef = { collectionPath: string; path: string };
+type EachBlock = { path: string; body: string; start: number; end: number };
+
+function findEachBlocks(template: string): EachBlock[] {
+    const blocks: EachBlock[] = [];
+    if (!template) return blocks;
+    let searchFrom = 0;
+    while (searchFrom < template.length) {
+        const eachStart = template.indexOf("[[each:", searchFrom);
+        if (eachStart === -1) break;
+        const arrowIndex = template.indexOf("->", eachStart);
+        if (arrowIndex === -1) break;
+        const pathAndOptions = template.substring(eachStart + 7, arrowIndex).trim();
+        let bracketCount = 1;
+        let endIndex = arrowIndex + 2;
+        while (endIndex < template.length && bracketCount > 0) {
+            if (template.substring(endIndex, endIndex + 2) === "[[") {
+                bracketCount++;
+                endIndex += 2;
+            } else if (template.substring(endIndex, endIndex + 2) === "]]") {
+                bracketCount--;
+                endIndex += 2;
+            } else {
+                endIndex++;
+            }
+        }
+        if (bracketCount > 0) break;
+        const { path: collectionPath } = parsePathAndOptions(pathAndOptions);
+        blocks.push({
+            path: collectionPath,
+            body: template.substring(arrowIndex + 2, endIndex - 2),
+            start: eachStart,
+            end: endIndex,
+        });
+        searchFrom = endIndex;
+    }
+    return blocks;
+}
+
+function isInsideAnyEach(index: number, eachBlocks: EachBlock[]): boolean {
+    return eachBlocks.some((block) => index >= block.start && index < block.end);
+}
+
+function extractContextualKeyRefs(eachBlocks: EachBlock[]): ContextualKeyRef[] {
+    const refs: ContextualKeyRef[] = [];
+    const tokenRe = /\[\[(key:)?\s*([a-zA-Z0-9_.-]+)(\s*\|[^\]]*)?\]\]/g;
+    for (const block of eachBlocks) {
+        let m;
+        while ((m = tokenRe.exec(block.body))) {
+            const full = m[0].toLowerCase();
+            const path = m[2];
+            if (!path || path === "item") continue;
+            if (full.startsWith("[[each:") || full.startsWith("[[join:")) continue;
+            const hasKeyPrefix = !!m[1];
+            const isExplicitPath = path.includes(".");
+            if (hasKeyPrefix || isExplicitPath) continue;
+            refs.push({ collectionPath: block.path, path });
+        }
+    }
+    return refs;
+}
 
 // Extrae todos los tokens [[key: ...]], [[each: ...]], [[join: ...]] de una plantilla
 function extractTokens(template: string): {
     keys: string[];
     keyRefs: KeyRef[];
+    contextualKeyRefs: ContextualKeyRef[];
     eachBlocks: string[];
     joinBlocks: string[];
 } {
     const keys: string[] = [];
     const keyRefs: KeyRef[] = [];
+    const contextualKeyRefs: ContextualKeyRef[] = [];
     const eachBlocks: string[] = [];
     const joinBlocks: string[] = [];
-    if (!template) return { keys, keyRefs, eachBlocks, joinBlocks };
+    if (!template) return { keys, keyRefs, contextualKeyRefs, eachBlocks, joinBlocks };
+    const eachBlockSpans = findEachBlocks(template);
+    contextualKeyRefs.push(...extractContextualKeyRefs(eachBlockSpans));
     // [[key: ...]] y [[campo]]
     const keyRe = /\[\[(key:)?\s*([a-zA-Z0-9_.-]+)(\s*\|[^\]]*)?\]\]/g;
     let m;
@@ -28,6 +93,8 @@ function extractTokens(template: string): {
             //  - paths con punto (a.b.c)
             const hasKeyPrefix = !!m[1];
             const isPath = m[2].includes(".");
+            const isContextualSimpleToken = !hasKeyPrefix && !isPath && isInsideAnyEach(m.index, eachBlockSpans);
+            if (isContextualSimpleToken) continue;
             keyRefs.push({ path: m[2], hasKeyPrefix });
             if (m[2] !== "item" && (hasKeyPrefix || isPath)) keys.push(m[2]);
         }
@@ -42,7 +109,7 @@ function extractTokens(template: string): {
     while ((m = joinRe.exec(template))) {
         if (m[1]) joinBlocks.push(m[1]);
     }
-    return { keys, keyRefs, eachBlocks, joinBlocks };
+    return { keys, keyRefs, contextualKeyRefs, eachBlocks, joinBlocks };
 }
 
 // Valida una plantilla contra hotel_config y seed
@@ -59,15 +126,17 @@ export async function validateKbTemplate({
 }): Promise<{
     missingFromHotelConfig: string[];
     missingFromRuntime: string[];
+    missingContextualFields: string[];
     invalidEachBlocks: string[];
     invalidJoinBlocks: string[];
     tokensMissingInDBVersion: string[];
     legacyRuntimeCandidates: string[];
     summary: "OK" | "ISSUES";
 }> {
-    const { keys, keyRefs, eachBlocks, joinBlocks } = extractTokens(template);
+    const { keys, keyRefs, contextualKeyRefs, eachBlocks, joinBlocks } = extractTokens(template);
     const missingFromHotelConfig: string[] = [];
     const missingFromRuntime: string[] = [];
+    const missingContextualFields: string[] = [];
     const invalidEachBlocks: string[] = [];
     const invalidJoinBlocks: string[] = [];
     const legacyRuntimeCandidates: string[] = [];
@@ -90,6 +159,16 @@ export async function validateKbTemplate({
         // hotel_config normal
         const v = getIn(hotelConfig, k);
         if (v === undefined || v === null) missingFromHotelConfig.push(k);
+    }
+    // Verifica tokens simples dentro de each contra el item de la colección.
+    for (const ref of contextualKeyRefs) {
+        const collection = getIn(hotelConfig, ref.collectionPath);
+        if (!Array.isArray(collection) || collection.length === 0) continue;
+        const existsInAnyItem = collection.some((item) => {
+            const v = getIn(item, ref.path);
+            return v !== undefined && v !== null;
+        });
+        if (!existsInAnyItem) missingContextualFields.push(`${ref.collectionPath}[].${ref.path}`);
     }
     // Verifica eachBlocks:
     // - paths con punto (a.b.c): deben existir como array en hotel_config
@@ -124,18 +203,30 @@ export async function validateKbTemplate({
         tokensMissingInDBVersion = seedKeys.filter(k => !keys.includes(k));
     }
     const summary =
-        missingFromHotelConfig.length || missingFromRuntime.length || invalidEachBlocks.length || invalidJoinBlocks.length || tokensMissingInDBVersion.length
+        missingFromHotelConfig.length || missingFromRuntime.length || missingContextualFields.length || invalidEachBlocks.length || invalidJoinBlocks.length || tokensMissingInDBVersion.length
             ? "ISSUES"
             : "OK";
     return {
         missingFromHotelConfig,
         missingFromRuntime,
+        missingContextualFields,
         invalidEachBlocks,
         invalidJoinBlocks,
         tokensMissingInDBVersion,
         legacyRuntimeCandidates,
         summary,
     };
+}
+
+function parsePathAndOptions(raw: string): { path: string; options: Record<string, string> } {
+    const parts = raw.split("|").map((s: string) => s.trim()).filter(Boolean);
+    const path = (parts[0] || "").replace(/^each:\s*/i, "").replace(/^join:\s*/i, "").trim();
+    const options: Record<string, string> = {};
+    for (const part of parts.slice(1)) {
+        const m = part.match(/^([a-z0-9_-]+)\s*:\s*([\s\S]*)$/i);
+        if (m) options[m[1]] = m[2];
+    }
+    return { path, options };
 }
 
 // Helper para acceder a paths tipo a.b.c
