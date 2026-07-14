@@ -11843,3 +11843,45 @@ Impacto:
 - asegura que el pending solo quede enviado después de SMTP OK
 - evita duplicados en pendings ya sent
 - normaliza el texto útil del reply antes de entrar al runtime de confirmación
+
+### FIX-KB-EACH-CONTEXTUAL-TOKEN-VALIDATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-14  
+Commit: ed3f47e8369c13afae5b90785bafe282389531f0
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado al validador de templates KB. Corrige la semántica de validación
+de tokens contextuales dentro de bloques `[[each: rooms -> ...]]`, preserva la
+validación raíz sobre `hotel_config` y evita promover artificialmente campos
+simples contextuales a nivel raíz.
+
+Archivos afectados:
+
+- `lib/kb/validateKbTemplate.ts`
+- `test/unit/kb.validateTemplate.contextualEach.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/kb.validateTemplate.contextualEach.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/retrieval.version_consistency.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- validación manual:
+  `not_required`
+- notas:
+  `scripts/stop-email-worker.sh` quedó fuera de este hito
+  el hallazgo sobre refresco de categorías derivadas desde Templates queda fuera de alcance y puede tratarse como `FIX-KB-TEMPLATES-CATEGORY-UPLOAD-REHYDRATION-UX-01`
+
+Impacto:
+
+- reafirma la jerarquía canónica entre tokens raíz y tokens contextuales de items
+- preserva validación raíz contra `hotel_config`
+- valida campos simples dentro de `each` contra `hotel_config.rooms[]`
+- corrige el validador sin tocar hydration, templates, runtime conversacional, vectorización ni UI
