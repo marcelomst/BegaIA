@@ -554,6 +554,101 @@ function normalizeRuntimeLanguage(value: unknown): "es" | "en" | "pt" | null {
   return null;
 }
 
+function inferRuntimeLanguageFromText(text: string): "es" | "en" | "pt" | null {
+  const normalized = String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return null;
+
+  const scores: Record<"es" | "en" | "pt", number> = { es: 0, en: 0, pt: 0 };
+  const bump = (lang: "es" | "en" | "pt", patterns: RegExp[]) => {
+    for (const pattern of patterns) {
+      if (pattern.test(normalized)) scores[lang] += 1;
+    }
+  };
+
+  bump("en", [
+    /\b(hello|hi|my name is|i would like|make a reservation|booking|room|guests?|please|thank you)\b/,
+  ]);
+  bump("pt", [
+    /\b(ola|oi|me chamo|gostaria|fazer uma reserva|quarto|hospedes?|por favor|obrigad[oa])\b/,
+  ]);
+  bump("es", [
+    /\b(hola|soy|me llamo|quisiera|quiero|hacer una reserva|habitacion|habitaci[oó]n|huespedes|hu[eé]spedes|por favor|gracias)\b/,
+  ]);
+
+  const ranked = (Object.keys(scores) as Array<"es" | "en" | "pt">)
+    .sort((a, b) => scores[b] - scores[a]);
+  return scores[ranked[0]] > 0 && scores[ranked[0]] > scores[ranked[1]] ? ranked[0] : null;
+}
+
+function isLowSignalLanguageMessage(text: string): boolean {
+  const normalized = String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return /^(confirmar|confirm|confirmo|si|yes|ok|okay|dale|perfecto|gracias|thanks|obrigad[oa])$/.test(normalized);
+}
+
+function resolveFarewellResponseLanguage(pre: {
+  lang: "es" | "en" | "pt";
+  st?: any;
+  prevSlotsStrict?: ReservationSlotsStrict;
+  recentHistory?: ChannelMessage[];
+  lcHistory: (HumanMessage | AIMessage)[];
+  msg: ChannelMessage;
+  hotelConfig?: { defaultLanguage?: string | null } | null;
+}): "es" | "en" | "pt" {
+  const historyScores: Record<"es" | "en" | "pt", number> = { es: 0, en: 0, pt: 0 };
+  const currentText = String(pre.msg.content || "").trim();
+  const userMessages = Array.isArray(pre.recentHistory)
+    ? pre.recentHistory.filter((item) => {
+      const role = String((item as any)?.role || "").toLowerCase();
+      const sender = String((item as any)?.sender || "").toLowerCase();
+      return role !== "ai" && sender !== "assistant";
+    })
+    : [];
+
+  for (const item of userMessages) {
+    const text = String((item as any)?.content || (item as any)?.suggestion || "").trim();
+    if (!text || text === currentText) continue;
+    if (isLowSignalLanguageMessage(text)) continue;
+    const detected = normalizeRuntimeLanguage((item as any)?.detectedLanguage);
+    if (detected) {
+      historyScores[detected] += 3;
+      continue;
+    }
+    const inferred = inferRuntimeLanguageFromText(text);
+    if (inferred) historyScores[inferred] += 2;
+  }
+
+  if (!userMessages.length) {
+    for (const item of pre.lcHistory) {
+      if (!(item instanceof HumanMessage)) continue;
+      const text = String(item.content || "").trim();
+      if (!text || text === currentText) continue;
+      if (isLowSignalLanguageMessage(text)) continue;
+      const inferred = inferRuntimeLanguageFromText(text);
+      if (inferred) historyScores[inferred] += 2;
+    }
+  }
+
+  const ranked = (Object.keys(historyScores) as Array<"es" | "en" | "pt">)
+    .sort((a, b) => historyScores[b] - historyScores[a]);
+  if (historyScores[ranked[0]] > 0 && historyScores[ranked[0]] > historyScores[ranked[1]]) {
+    return ranked[0];
+  }
+
+  return normalizeRuntimeLanguage(pre.hotelConfig?.defaultLanguage) || pre.lang;
+}
+
 function resolveReservationSnapshotLanguage(pre: {
   lang: "es" | "en" | "pt";
   st?: any;
@@ -599,6 +694,7 @@ const CONFIG = {
     "checkout_info",
     "amenities_info",
     "directions_info",
+    "farewell",
   ]),
   // NEW: modelo liviano para structured fallback
   STRUCTURED_MODEL: process.env.STRUCTURED_MODEL || "gpt-4o-mini",
@@ -923,7 +1019,7 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   }
   const currSlots = mergeReservationSlots(prevSlotsStrict, turnSlots);
   console.log('[DEBUG-numGuests] currSlots:', JSON.stringify(currSlots));
-  return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, currSlots, hotelConfig };
+  return { guest, conversationId, st, prevCategory, prevSlotsStrict, lang, lcHistory, recentHistory: recent, currSlots, hotelConfig };
 }
 function safeNowISO() { return new Date().toISOString(); }
 
@@ -4377,6 +4473,7 @@ type PreLLMResult = {
   promptKey: string;
   systemInstruction: string;
   lcHistory: (HumanMessage | AIMessage)[];
+  recentHistory?: ChannelMessage[];
   hints: string[];
   draftExists: boolean;
   guest: any;
@@ -4589,6 +4686,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
     promptKey,
     systemInstruction,
     lcHistory,
+    recentHistory: recent,
     hints,
     draftExists,
     guest,
@@ -5272,8 +5370,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     rawQuery: rawTurnText,
     hotelId: pre.msg.hotelId,
     preferredLanguage: pre.lang,
+    responseLanguage: resolveFarewellResponseLanguage(pre),
     conversationId: pre.conversationId,
     guestState,
+    conversationalDisplayName: getConversationalDisplayName(pre.guest),
+    assistantBranding: pre.hotelConfig?.assistantBranding ?? null,
   });
   emitStableIntentRouting(pre.msg, {
     routing_stage: "stable_intents_guard",
@@ -5292,11 +5393,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   if (stableIntent.matched && stableIntent.response && !shouldSuppressStableIntent) {
     finalText = stableIntent.response;
     nextCategory =
-      stableIntent.intentKey === "faq_check_out_time"
+      stableIntent.intentKey === "farewell"
+        ? "farewell"
+        : stableIntent.intentKey === "faq_check_out_time"
         ? "checkout_info"
         : stableIntent.intentKey === "faq_check_in_time"
           ? "checkin_info"
           : "amenities_info";
+    if (stableIntent.intentKey === "farewell") {
+      debugLog("[stable-intents-guard] farewell matched", {
+        conversationId: pre.conversationId,
+        normalizedQuery: stableIntent.normalizedQuery,
+      });
+      emitRoutingDecision(pre.msg, {
+        decision_layer: "stable_intents_guard",
+        route_source: "stable_intents_guard",
+        route_match: stableIntent.intentKey,
+        early_return: true,
+        used_llm_classifier: false,
+        classifier_source: "heuristic",
+        final_category: nextCategory,
+        final_prompt_key: null,
+      });
+      return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+    }
     const stableFocus = getConversationFocus(pre.st);
     const stableTurnSlots = extractSlotsFromText(rawTurnText, pre.lang);
     const stableTurnHasReservationData = Boolean(

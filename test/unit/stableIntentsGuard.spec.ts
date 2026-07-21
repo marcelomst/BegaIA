@@ -81,6 +81,52 @@ describe("stableIntentsGuard", () => {
     expect(String(parking.response || "")).toMatch(/estacionamiento|parking/i);
   });
 
+  it.each([
+    { rawQuery: "¡CHAU!", lang: "es" as const, expected: "¡Hasta pronto, Martín!" },
+    { rawQuery: "Adiós.", lang: "es" as const, expected: "¡Hasta pronto, Martín!" },
+    { rawQuery: "Take care.", lang: "en" as const, expected: "See you soon, Martín!" },
+    { rawQuery: "Até logo!", lang: "pt" as const, expected: "Até breve, Martín!" },
+  ])("reconoce despedida explícita multilingüe con puntuación: $rawQuery", async ({ rawQuery, lang, expected }) => {
+    getHotelConfigMock.mockResolvedValueOnce(makeHotelConfig({
+      assistantBranding: { displayName: "Vera" },
+    }));
+
+    const result = await runStableIntentsGuard({
+      rawQuery,
+      hotelId: "hotel999",
+      preferredLanguage: lang,
+      conversationalDisplayName: "Martín",
+    });
+
+    expect(result.matched).toBe(true);
+    expect(result.intentKey).toBe("farewell");
+    expect(result.routingDecision).toBe("served");
+    expect(result.response).toContain(expected);
+    expect(result.response).not.toContain("Vera");
+  });
+
+  it.each([
+    "goodbye",
+    "good bye",
+    "good-bye",
+    "good by",
+    "GOOD BY!",
+    "bye bye",
+  ])("reconoce variante inglesa de despedida: %s", async (rawQuery) => {
+    const result = await runStableIntentsGuard({
+      rawQuery,
+      hotelId: "hotel999",
+      preferredLanguage: "en",
+      conversationalDisplayName: "Oscar",
+    });
+
+    expect(result.matched).toBe(true);
+    expect(result.intentKey).toBe("farewell");
+    expect(result.routingDecision).toBe("served");
+    expect(result.response).toContain("See you soon, Oscar!");
+    expect(result.response).toContain("I'll be here for you.");
+  });
+
   it("distingue desayuno incluido y modalidad sin colapsarlos a horario puro", async () => {
     const included = await runStableIntentsGuard({
       rawQuery: "el desayuno está incluido?",

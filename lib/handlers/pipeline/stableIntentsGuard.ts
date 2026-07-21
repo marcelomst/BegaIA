@@ -1,7 +1,9 @@
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
+import type { AssistantBrandingConfig } from "@/lib/config/assistantBranding";
 import type { GuestState } from "@/lib/db/convState";
 
 export type StableIntentKey =
+  | "farewell"
   | "faq_check_in_time"
   | "faq_check_out_time"
   | "faq_breakfast_hours"
@@ -15,8 +17,11 @@ export interface StableIntentGuardInput {
   rawQuery: string;
   hotelId: string;
   preferredLanguage: "es" | "en" | "pt";
+  responseLanguage?: "es" | "en" | "pt";
   conversationId?: string;
   guestState?: GuestState;
+  conversationalDisplayName?: string;
+  assistantBranding?: AssistantBrandingConfig | null;
 }
 
 export interface StableIntentGuardResult {
@@ -43,6 +48,13 @@ type StableIntentCatalogEntry = {
 type StableIntentCatalog = Record<StableIntentKey, StableIntentCatalogEntry>;
 
 const DEFAULT_STABLE_INTENTS_CATALOG: StableIntentCatalog = {
+  farewell: {
+    intentKey: "farewell",
+    enabled: true,
+    responseSource: "conversation.farewell",
+    examples: ["chau", "bye", "tchau"],
+    notes: "Cierre conversacional explícito, sin continuar flujos operativos residuales",
+  },
   faq_check_in_time: {
     intentKey: "faq_check_in_time",
     enabled: true,
@@ -106,12 +118,50 @@ function normalizeStableIntentInput(raw: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
-    .replace(/[¡!¿?.,;:()[\]"'`]/g, " ")
+    .replace(/[¡!¿?.,;:()[\]"'`\-–—]/g, " ")
     .replace(/\bcheck\s*[- ]*\s*i+n\b/g, " checkin ")
     .replace(/\bcheck\s*[- ]*\s*out\b/g, " checkout ")
     .replace(/\bwi\s*[- ]*\s*fi\b/g, " wifi ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function detectFarewellIntent(
+  normalized: string,
+  preferredLanguage?: "es" | "en" | "pt"
+): StableIntentKey | null {
+  if (!normalized) return null;
+
+  const esFarewells = new Set([
+    "chau",
+    "adios",
+    "hasta luego",
+    "hasta pronto",
+    "nos vemos",
+    "saludos",
+  ]);
+  const enFarewells = new Set([
+    "bye",
+    "bye bye",
+    "goodbye",
+    "good bye",
+    "good by",
+    "see you",
+    "see you later",
+    "take care",
+  ]);
+  const ptFarewells = new Set([
+    "tchau",
+    "adeus",
+    "ate logo",
+    "ate breve",
+    "nos vemos",
+  ]);
+
+  if (preferredLanguage === "pt" && ptFarewells.has(normalized)) return "farewell";
+  if (preferredLanguage === "en" && enFarewells.has(normalized)) return "farewell";
+  if (esFarewells.has(normalized) || enFarewells.has(normalized) || ptFarewells.has(normalized)) return "farewell";
+  return null;
 }
 
 function looksTransactional(text: string): boolean {
@@ -120,8 +170,10 @@ function looksTransactional(text: string): boolean {
   );
 }
 
-function detectStableIntent(normalized: string): StableIntentKey | null {
+function detectStableIntent(normalized: string, preferredLanguage?: "es" | "en" | "pt"): StableIntentKey | null {
   if (!normalized) return null;
+  const farewell = detectFarewellIntent(normalized, preferredLanguage);
+  if (farewell) return farewell;
   if (looksTransactional(normalized)) return null;
 
   const asksTime = /\b(a que hora|que hora|hora|horario|schedule|time|when|starts|start|begins|begin|comienza|empieza|abre)\b/i.test(
@@ -215,8 +267,17 @@ function buildStableIntentResponse(
     wifiNotes?: string;
     wifiQuality?: string;
     parkingNotes?: string;
-  }
+  },
+  conversationalDisplayName?: string,
+  _assistantBranding?: AssistantBrandingConfig | null
 ): string {
+  if (intentKey === "farewell") {
+    const guestDisplayName = String(conversationalDisplayName || "").trim();
+    const vocative = guestDisplayName ? `, ${guestDisplayName}` : "";
+    if (lang === "pt") return `Até breve${vocative}! Foi um prazer ajudar. Quando quiser fazer outra consulta ou planejar sua estadia, estarei aqui para acompanhar você.`;
+    if (lang === "en") return `See you soon${vocative}! It was a pleasure helping you. Whenever you want to ask something else or plan your stay, I'll be here for you.`;
+    return `¡Hasta pronto${vocative}! Fue un gusto ayudarte. Cuando quieras volver a consultar o planificar tu estadía, voy a estar acá para acompañarte.`;
+  }
   if (intentKey === "faq_check_in_time") {
     if (times.checkIn) {
       if (lang === "pt") return `O check-in começa às ${times.checkIn}.`;
@@ -398,7 +459,7 @@ export async function runStableIntentsGuard(
   input: StableIntentGuardInput
 ): Promise<StableIntentGuardResult> {
   const normalizedQuery = normalizeStableIntentInput(input.rawQuery);
-  const intentKey = detectStableIntent(normalizedQuery);
+  const intentKey = detectStableIntent(normalizedQuery, input.preferredLanguage);
   if (!intentKey) {
     return {
       matched: false,
@@ -434,11 +495,13 @@ export async function runStableIntentsGuard(
     };
   }
   const response = buildStableIntentResponse(
-    input.preferredLanguage,
+    intentKey === "farewell" ? input.responseLanguage ?? input.preferredLanguage : input.preferredLanguage,
     intentKey,
     getConfiguredCheckTimes(hotel),
     input.guestState,
-    getStableFaqDetails(hotel)
+    getStableFaqDetails(hotel),
+    input.conversationalDisplayName,
+    input.assistantBranding ?? hotel?.assistantBranding ?? null
   );
   return {
     matched: true,
@@ -457,6 +520,7 @@ export async function runStableIntentsGuard(
 export const __stableIntentsForTest = {
   normalizeStableIntentInput,
   detectStableIntent,
+  detectFarewellIntent,
   resolveStableIntentCatalog,
   DEFAULT_STABLE_INTENTS_CATALOG,
 };
