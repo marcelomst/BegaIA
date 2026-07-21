@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 446ab78
-messageHandler_lines: 12322
-working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
-analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
-baseline_status: working_tree_room_info_img_rich_validated_v27
+commit_base: 5e4f233
+messageHandler_lines: 12442
+working_tree_status: dirty_expected_only_non_hito_changes
+analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
+baseline_status: working_tree_farewell_multilingual_validated_v28
 known_manual_bug: none
 ```
 
@@ -58,20 +58,25 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.replyComposition
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.conversationState
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - transporte domina sobre nearby en el fastpath KB
-      - room_info_img domina sobre room_info para inventario visual con imágenes
-      - intención de reserva no es capturada por room_info_img
-      - retrieval_based produce `rich.type = room-info-img`
-      - nearby legítimo permanece sin override de transporte
-      - el fastpath resuelto preserva el bypass del graph
+      - `farewell` se resuelve como stable intent de precedencia temprana
+      - una despedida explícita no reabre `create`
+      - una despedida explícita no reabre `modify`
+      - una despedida explícita con cancel pendiente no ejecuta cancelación
+      - `goodbye` conserva inglés conversacional confiable
+      - `tchau` conserva portugués conversacional confiable
+      - sin señal confiable se usa `hotel.defaultLanguage`
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid

@@ -46,12 +46,11 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta la extensión de `resolveKbFastpathPrecedence` para inventario visual de habitaciones
-- se documenta la ruta `retrieval_based/room_info_img` como productora de `rich.type = room-info-img`
-- se preserva que airport/aeropuerto/transfer/taxi/bus gane sobre nearby en el fastpath KB
-- se preserva que consultas puras de nearby no activen el override de transporte
-- se preserva billing forced path fuera de esta migración
-- se preservan los corredores de reserva fuera de alcance
+- se documenta `farewell` como stable intent temprano
+- se documenta el corte de continuidad residual de corredores operativos tras despedida explícita
+- se documenta la resolución de idioma conversacional confiable para despedidas multilingües
+- se preserva que `farewell` no ejecute cancelaciones pendientes ni reabra `create`, `modify` o `availability`
+- se preservan los corredores de reserva como cajas relacionadas, no como cajas modificadas
 
 ---
 
@@ -61,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 446ab78
-messageHandler_lines: 12322
-working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
-analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
-baseline_status: working_tree_room_info_img_rich_validated_v27
+commit_base: 5e4f233
+messageHandler_lines: 12442
+working_tree_status: dirty_expected_only_non_hito_changes
+analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
+baseline_status: working_tree_farewell_multilingual_validated_v28
 known_manual_bug: none
 ```
 
@@ -74,9 +73,9 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts
 result: pass
-pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
+pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts
 result: pass
 pnpm run ts-check
 result: pass

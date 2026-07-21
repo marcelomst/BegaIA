@@ -21,19 +21,17 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 446ab78
-messageHandler_lines: 12322
-working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
-analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
+commit_base: 5e4f233
+messageHandler_lines: 12442
+working_tree_status: dirty_expected_only_non_hito_changes
+analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
 suite_status_reported: full_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
-    - pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
+    - pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts
+    - pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts
   summary: targeted_green
   full_suite:
-    - pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
-    - pnpm vitest run test/unit/kbPrecedencePolicy.spec.ts
     - pnpm run ts-check
     - git diff --check
     - pnpm test
@@ -47,20 +45,25 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.replyComposition
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.conversationState
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - transporte domina sobre nearby en el fastpath KB
-      - room_info_img domina sobre room_info para inventario visual con imágenes
-      - intención de reserva no es capturada por room_info_img
-      - retrieval_based produce `rich.type = room-info-img`
-      - nearby legítimo permanece sin override de transporte
-      - el fastpath resuelto preserva el bypass del graph
+      - `farewell` se resuelve como stable intent de precedencia temprana
+      - una despedida explícita no reabre `create`
+      - una despedida explícita no reabre `modify`
+      - una despedida explícita con cancel pendiente no ejecuta cancelación
+      - `goodbye` conserva inglés conversacional confiable
+      - `tchau` conserva portugués conversacional confiable
+      - sin señal confiable se usa `hotel.defaultLanguage`
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -68,16 +71,14 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: working_tree_on_446ab78
-    messageHandler_lines: 12322
+    commit: working_tree_on_5e4f233
+    messageHandler_lines: 12442
     functions:
-      preLLM: L4387-L4598
-      bodyLLM: L5257-L11996
-      posLLM: L11923-L11967
-      handleIncomingMessage: L11968-L12322
+      preLLM: L4485-L5354
+      bodyLLM: L5355-L12072
+      posLLM: L12073-L12117
+      handleIncomingMessage: L12118-L12442
 ```
-
----
 
 ## Funciones clave actuales
 

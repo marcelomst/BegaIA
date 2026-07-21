@@ -11885,3 +11885,55 @@ Impacto:
 - preserva validación raíz contra `hotel_config`
 - valida campos simples dentro de `each` contra `hotel_config.rooms[]`
 - corrige el validador sin tocar hydration, templates, runtime conversacional, vectorización ni UI
+
+### FIX-CONVERSATIONAL-FAREWELL-MULTILINGUAL-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-21  
+Commit: 5e4f233f348acd3e76133604d822585cae978ea3
+Clasificacion documental: RUNTIME_MAP_REFRESH_PLUS_HITO
+
+Descripcion:
+
+Bugfix de runtime productivo sobre `messageHandler` y `stableIntentsGuard`.
+Formaliza `farewell` como stable intent de precedencia temprana, resuelve el
+idioma conversacional confiable para despedidas multilingües y bloquea la
+reapertura residual de continuidad operativa de `create`, `modify`, `cancel`
+o `availability` cuando el huésped ya está cerrando la conversación.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `lib/handlers/pipeline/stableIntentsGuard.ts`
+- `test/unit/stableIntentsGuard.spec.ts`
+- `test/unit/messageHandler.farewell_multilingual.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- suite reportada:
+  `176 archivos / 971 tests`
+- validación manual requerida para:
+  despedida explícita tras create confirmado responde farewell y no reabre create
+  despedida explícita tras modify confirmado responde farewell y no reabre modify
+  despedida explícita con cancel pendiente no ejecuta cancelación
+  conversación inglesa con replies operativos en español más `goodbye` responde en inglés
+  conversación portuguesa con `tchau` responde en portugués
+  sin señal confiable usa `hotel.defaultLanguage`
+- notas:
+  quedaron fuera del commit cambios ajenos en `.gitignore`, `components/admin/ChannelInbox.tsx`, `components/admin/ConversationsTabs.tsx` y `scripts/report-demo-message-timeline.ts`
+
+Impacto:
+
+- formaliza `farewell` como stable intent temprano y determinístico
+- protege contra continuidad residual de `create`, `modify`, `cancel` y `availability`
+- preserva el vocativo conversacional canónico al despedirse
+- desacopla la despedida de señales débiles o mensajes previos del asistente

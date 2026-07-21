@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 446ab78
-messageHandler_lines: 12322
-baseline_status: working_tree_room_info_img_rich_validated_v27
+commit_base: 5e4f233
+messageHandler_lines: 12442
+baseline_status: working_tree_farewell_multilingual_validated_v28
 known_manual_bug: none
-working_tree_status: dirty_expected_room_info_img_fix_plus_data_repair
-analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
+working_tree_status: dirty_expected_only_non_hito_changes
+analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
 ```
 
 ---
@@ -21,7 +21,7 @@ analysis_scope: working_tree_on_446ab78c560203bf8e33912b68544e5e882589e7
 ## Working tree al momento del snapshot
 
 ```text
-dirty esperado: fix runtime/test/script/Runtime Map del hito actual
+dirty esperado: solo cambios no incluidos en el hito actual
 ```
 
 ---
@@ -29,9 +29,9 @@ dirty esperado: fix runtime/test/script/Runtime Map del hito actual
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.routing_observability.spec.ts
+pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts
 result: pass
-pnpm vitest run test/unit/retrieval.version_consistency.spec.ts test/unit/searchFromAstra.filters.test.ts test/unit/kbPrecedencePolicy.spec.ts test/unit/kb.generator.room_info_img.spec.ts test/unit/retrieval.roomInfoImgRich.spec.ts test/unit/messageHandler.routing_observability.spec.ts
+pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -72,12 +72,15 @@ create_word_dates_no_year_cross_channel_commit: 7f11b089ee7d515456ae410914798d36
 create_word_date_range_syntax_variants_multilingual_commit: 4d3cd1dfea48d536986e36b2fde28ff9b6841d35
 modify_ambiguity_recovery_by_reservation_id_commit: ebffb82b9920ab76a1483a358af2adc54dc1e70e
 email_inline_conversational_actor_parity_commit: 58af388c0b6b4cf05fcf0b53462e7c843daa416e
+conversational_farewell_multilingual_commit: 5e4f233f348acd3e76133604d822585cae978ea3
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- el fastpath KB informativo usa una política compartida de precedencia
+- farewell explícito corta continuidad residual de corredores operativos
+- el idioma de despedida se resuelve con señal conversacional confiable
+- una despedida no reactiva `create`, `modify`, `cancel` ni `availability`
 - airport/aeropuerto/transfer/taxi/bus enruta a `retrieval_based/arrivals_transport`
 - consultas visuales de inventario de habitaciones con imágenes enrutan a `retrieval_based/room_info_img`
 - `room_info_img` usa la frontera `retrieval_based` para producir `rich.type = room-info-img`
