@@ -11,6 +11,33 @@ ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ---
 
+## 📌 CHECKPOINT COMERCIAL — DEMO VALIDADA 2026-07-22
+
+```yaml
+commercial_demo_checkpoint:
+  status: closed
+  commercial_dry_run: validated
+  dry_run_date: 2026-07-22
+  observed_duration_until_chau: 17m05s
+  observed_duration_including_final_reply: 17m06s
+  commercial_demo_asset: docs/product/demo-assets/demo_comercial_15_min_begaia.html
+  extended_demo_asset: docs/product/demo-assets/demo_extendida_begaia.html
+  multichannel_demo: validated
+  canonical_guestId: cfcd4116-356d-4865-ab6b-63e1f8acbdfc
+  reservations_order:
+    - RES-A365BD Ana Rodríguez Email precargado
+    - RES-37A215 Laura Gómez Web
+    - RES-77A568 Martín Pérez WhatsApp
+  farewell: validated
+  documentation_sync: completed
+  next_phase: commercial_presentations_with_prospects
+  runtime_map_applies: false
+```
+
+Este checkpoint registra readiness comercial de demo controlada. No modifica el runtime target ni altera las reglas técnicas del roadmap.
+
+---
+
 # 🧠 PRINCIPIO RECTOR (OBLIGATORIO)
 
 ```text

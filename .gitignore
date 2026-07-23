@@ -56,6 +56,8 @@ claves.txt
 exports/
 salida.html
 *.html
+!docs/product/demo-assets/demo_comercial_15_min_begaia.html
+!docs/product/demo-assets/demo_extendida_begaia.html
 
 # local notes
 *.ms

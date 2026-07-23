@@ -1,0 +1,1164 @@
+<!-- Path: docs/product/demo-assets/demo_comercial_15_min_begaia.html -->
+
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Chuleta Demo Comercial BegaIA — 15 minutos + Email precargado</title>
+<style>
+    :root {
+      --bg: #050505;
+      --paper: #111111;
+      --ink: #f5f5f5;
+      --muted: #c9c9c9;
+      --border: #333333;
+      --code: #000000;
+      --accent: #7cc7ff;
+      --ok: #5ee37d;
+      --warn: #ffd166;
+      --guest: #ffd166;
+      --claim: #9dffb0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(0,0,0,.95);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      backdrop-filter: blur(8px);
+    }
+    .toolbar-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin: 20px 0 10px;
+    }
+    h2 {
+      margin-top: 34px;
+      padding: 16px 18px;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 22px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    h3 {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+    .label {
+      margin-top: 14px;
+      color: var(--ink);
+    }
+    .label.guest-label strong,
+    .copy-head.guest-head,
+    pre.guest-text code {
+      color: var(--guest);
+    }
+    .label.claim-label strong,
+    p.claim-text {
+      color: var(--claim);
+    }
+    .bullet, .numbered {
+      margin-left: 14px;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 26px 0;
+    }
+    .note {
+      border: 1px solid var(--border);
+      background: #101820;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 16px 0 22px;
+      color: var(--muted);
+    }
+    .note strong { color: var(--ink); }
+    .timing {
+      border-left: 4px solid var(--warn);
+      padding-left: 12px;
+      color: var(--muted);
+    }
+    .copy-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 8px 0 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .copy-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px 8px 14px;
+      background: #1c1c1c;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: #1b1b1b;
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    button:hover {
+      background: #102a3d;
+      border-color: #7cc7ff;
+    }
+    pre {
+      margin: 0;
+      padding: 16px;
+      background: var(--code);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    .copied {
+      color: var(--ok) !important;
+      border-color: #86d19a !important;
+      background: #153d21 !important;
+    }
+
+    .scene-title-btn {
+      width: 100%;
+      display: block;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+    .scene-title-btn:hover {
+      background: transparent;
+      border-color: transparent;
+      color: var(--warn);
+    }
+    .scene-title-btn::after {
+      content: "  ✦ speech";
+      color: var(--claim);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, .72);
+      backdrop-filter: blur(5px);
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-card {
+      width: min(860px, 100%);
+      max-height: min(82vh, 760px);
+      overflow: auto;
+      background: #101010;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.55);
+    }
+    .modal-head {
+      position: sticky;
+      top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #181818;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 18px;
+      color: var(--ink);
+    }
+    .modal-body {
+      padding: 18px;
+    }
+    .modal-body p {
+      font-size: 18px;
+      line-height: 1.58;
+      margin: 0 0 14px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .speech-copy {
+      color: var(--claim);
+    }
+
+
+    /* Layout de operación: flujo visible a la izquierda y speech a la derecha. */
+    main {
+      max-width: 1600px;
+      display: grid;
+      grid-template-columns: minmax(620px, 1.35fr) minmax(420px, .85fr);
+      column-gap: 26px;
+      align-items: start;
+    }
+
+    main > :not(.modal-backdrop) {
+      grid-column: 1;
+    }
+
+    .modal-backdrop {
+      grid-column: 2;
+      grid-row: 1 / span 999;
+      position: sticky;
+      top: 72px;
+      inset: auto;
+      z-index: 20;
+      display: none;
+      width: 100%;
+      height: calc(100vh - 92px);
+      padding: 0;
+      background: transparent;
+      backdrop-filter: none;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    .modal-backdrop.open {
+      display: block;
+    }
+
+    .modal-card {
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-color: #48525b;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, .42);
+    }
+
+    .modal-head {
+      flex: 0 0 auto;
+      padding: 16px 18px;
+      background: #171d22;
+    }
+
+    .modal-title {
+      font-size: 21px;
+      color: var(--accent);
+    }
+
+    .modal-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 22px 24px 34px;
+      background:
+        linear-gradient(180deg, rgba(124, 199, 255, .06), transparent 180px),
+        #0d1114;
+    }
+
+    .modal-body p {
+      font-size: 21px;
+      line-height: 1.62;
+      color: #f2e6ba;
+      margin: 0 0 20px;
+    }
+
+    .modal-body p.speech-section-number {
+      margin: 6px 0 10px;
+      color: #ffcc66;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .speech-reference {
+      display: inline-block;
+      margin: 10px 0 12px;
+      padding: 7px 12px;
+      border-left: 4px solid #ff9f43;
+      border-radius: 0 9px 9px 0;
+      background: rgba(255, 159, 67, .12);
+      color: #ffbd73;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    @media (max-width: 1120px) {
+      main {
+        display: block;
+        max-width: 980px;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        width: auto;
+        height: auto;
+        padding: 18px;
+        background: rgba(0, 0, 0, .72);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(860px, 100%);
+        height: auto;
+        max-height: min(82vh, 760px);
+      }
+    }
+
+    @media print {
+      .toolbar, button { display: none; }
+      body { background: white; color: black; }
+      h2, .copy-card { box-shadow: none; }
+    }
+  
+    .speech-reference {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0 12px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .speech-fragment-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border: 1px solid rgba(255, 159, 67, .65);
+      border-radius: 9px;
+      background: rgba(255, 159, 67, .12);
+      color: #ffbd73;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+
+    .speech-fragment-btn::before {
+      content: "▶";
+      font-size: 12px;
+    }
+
+    .speech-fragment-btn:hover {
+      background: rgba(255, 159, 67, .22);
+      border-color: #ffbd73;
+      color: #ffd29e;
+    }
+
+    .modal-body p.speech-section-number {
+      display: none;
+    }
+
+  
+    /* Panel derecho sincronizado con el elemento activo del flujo. */
+    @media (min-width: 1121px) {
+      .modal-backdrop {
+        position: fixed;
+        inset: auto;
+        z-index: 40;
+        display: none;
+        padding: 0;
+        background: transparent;
+        backdrop-filter: none;
+        align-items: stretch;
+        justify-content: stretch;
+        transition: top .12s ease-out;
+      }
+
+      .modal-backdrop.open {
+        display: block;
+      }
+
+      .modal-card {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+      }
+
+      .speech-anchor-active {
+        outline: 2px solid rgba(255, 189, 115, .75);
+        outline-offset: 4px;
+        border-radius: 8px;
+      }
+    }
+
+  
+.preloaded-email-note {
+  border-color: #7c5b00;
+  background: #191407;
+}
+.preloaded-email-note > strong {
+  color: var(--warn);
+  font-size: 17px;
+}
+.preloaded-email-note p {
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+<div class="toolbar-inner">
+<strong>Chuleta BegaIA — Demo Comercial 15 min</strong>
+<span>Click en cada título para abrir speech</span>
+</div>
+</div>
+<main>
+<h1>CHULETA — DEMO COMERCIAL BEGAIA · OBJETIVO 15 MINUTOS</h1>
+<div class="note"><strong>Versión comercial breve:</strong> recorrido optimizado para una primera presentación. Conserva Web, WhatsApp, identidad multicanal, snapshot y modify. Email se incorpora como reserva precargada fuera del cronómetro para demostrar conciliación sin consumir tiempo.<br/><strong>Cronometraje:</strong> iniciar con el primer “Hola” y finalizar con el último “chau”. La preparación del Email queda excluida.<br/><strong>Orden del snapshot:</strong> las reservas se esperan en orden real de ingreso: Email precargado, Web y WhatsApp.</div>
+<div class="note preloaded-email-note">
+<strong>PREPARACIÓN FUERA DE CRONÓMETRO — EMAIL PRECARGADO</strong>
+<p>Antes de iniciar el dry run comercial, enviar y confirmar por Email la siguiente reserva. Esta operación no forma parte de los 15 minutos.</p>
+<p class="label guest-label"><strong>EMAIL / GUEST PRECARGADO::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>EMAIL / GUEST PRECARGADO</span>
+<button onclick="copyText('copy-preloaded-email', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-preloaded-email"><code>Hola, soy Martín P. Quisiera reservar una triple del 25 al 27 de agosto para tres personas, a nombre de Ana Rodríguez.</code></pre>
+</div>
+<p><strong>Resultado previo requerido:</strong> reserva Email confirmada para Ana Rodríguez y asociada a Martín P.</p>
+<p><strong>Uso durante la demo:</strong> no se muestra el envío ni la confirmación. La evidencia aparece al conciliar “Los Martin” y en el snapshot consolidado.</p>
+</div>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="1" data-speech="1.1
+  Comienzo desde la experiencia del huésped.
+
+BegaIA está pensado como un concierge digital para hotelería: una capa conversacional que ayuda a responder consultas, acompañar reservas y sostener continuidad con el huésped.
+
+La primera interacción es simple. El asistente saluda y pregunta cómo prefiere ser llamado el huésped.
+1.2
+Ese dato parece pequeño, pero cambia el tono de toda la conversación: el sistema no presupone identidad, la captura de forma explícita y la usa después para conversar mejor.
+
+Desde el primer turno, la idea es mostrar una experiencia cercana, pero gobernada." data-title="1. Apertura Web" type="button">1. Apertura Web</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Abrir Widget Web. Mostrar saludo inicial.</p>
+<p class="label"><strong>NARRATIVA::</strong></p>
+<p>BegaIA no es un chatbot genérico. Es un Concierge Digital para hotelería: responde, muestra información útil, acompaña reservas y ayuda a ordenar la operación.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-1', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-1"><code>Hola</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA pregunta cómo preferís que te llame.</p>
+<p>speech 1.2.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-2', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-2"><code>Jose</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA saluda a Jose y pregunta en qué puede ayudar.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">Concierge digital especializado en hotelería.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="2" data-speech="2.1
+Empiezo con una consulta frecuente, que representa una parte muy concreta del trabajo diario de recepción.
+
+Horarios y condiciones del hotel suelen repetirse muchas veces. BegaIA puede responder ese tipo de preguntas de forma breve, consistente y alineada con la información configurada por el hotel.
+2.2
+El valor no está solo en responder rápido. También está en responder siempre con el mismo criterio, sin improvisar ni depender de quién esté atendiendo en ese momento." data-title="2. FAQ breve" type="button">2. FAQ breve</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Mostrar una consulta frecuente simple.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-3', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-3"><code>¿A qué hora es el check-in?</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 2.2.</p>
+<p>Responde que el check-in comienza a las 15:00.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA responde consultas frecuentes de forma breve y controlada.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="3" data-speech="3.1
+Paso a una experiencia más visual.
+
+Cuando un huésped pregunta por habitaciones, muchas veces no alcanza con una respuesta textual. Quiere ver opciones, comparar y entender qué tipo de habitación le conviene.
+3.2
+BegaIA puede presentar habitaciones con imágenes y características principales, acercando la conversación a una experiencia de decisión más parecida a la hotelería real.
+
+Esto ayuda a que la consulta no quede en un intercambio plano de mensajes: el huésped empieza a explorar opciones de manera más natural antes de avanzar hacia disponibilidad o reserva." data-title="3. Exploración visual de habitaciones" type="button">3. Exploración visual de habitaciones</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Mostrar que el huésped puede explorar habitaciones con fotos antes de reservar.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-5', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-5"><code>mostrame habitaciones</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 3.2.</p>
+<p>Debe mostrar cards/imágenes de habitaciones.</p>
+<p class="label"><strong>DEBE VERSE::</strong></p>
+<p>Single Standard, Doble, Twin, Triple. Sin markdown crudo.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">El huésped puede explorar opciones visuales antes de avanzar hacia disponibilidad o reserva.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="4" data-speech="4.1
+La siguiente escena muestra una frontera importante: consultar disponibilidad no es lo mismo que reservar.
+4.2
+El huésped puede estar explorando fechas, precios o tipos de habitación. En ese caso, BegaIA informa disponibilidad y tarifa, pero no crea una reserva antes de que el huésped lo pida explícitamente.
+
+Esta diferencia es central para una operación responsable. Una cosa es responder al huésped; otra es registrar datos que afectan la gestión del hotel.
+
+El sistema guía, pero no ejecuta acciones sensibles antes de tiempo." data-title="4. Disponibilidad sin reserva prematura" type="button">4. Disponibilidad sin reserva prematura</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Mostrar disponibilidad sin crear reserva todavía.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-6', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-6"><code>Quiero saber si tienen disponibilidad del 14 al 16 de agosto para dos personas.</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 4.2.</p>
+<p>Puede pedir tipo de habitación.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-7', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-7"><code>doble</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Debe informar disponibilidad de doble, tarifa por noche y total. No debe confirmar reserva.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA distingue disponibilidad exploratoria de reserva. No crea reserva antes de que el huésped lo pida.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="5" data-speech="5.1
+Muestro una reserva desde Web con un detalle muy frecuente en hotelería.
+
+Quien conversa es Martin, pero la reserva queda a nombre de Laura Gómez.
+5.2
+Esto puede pasar con familiares, empresas, secretarias, agencias o intermediarios. El sistema tiene que distinguir entre la persona que está interactuando y el titular real de la reserva.
+
+Ese matiz evita confusiones operativas: el diálogo puede ser natural, pero el registro debe quedar correctamente asociado al huésped de la reserva." data-title="5. Reserva Web con titular distinto" type="button">5. Reserva Web con titular distinto</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Mostrar que quien conversa puede ser distinto del titular de la reserva.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-8', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-8"><code>Hola, soy Martin. Quiero reservar una habitación doble del 14 al 16 de agosto para dos personas, a nombre de Laura Gómez.</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 5.2.</p>
+<p>Debe proponer reserva para Laura Gómez, mencionar tarifa y pedir confirmación.</p>
+<p class="label"><strong>DEBE QUEDAR CLARO::</strong></p>
+<p>Interlocutor: Martin.<br/>Titular de reserva: Laura Gómez.<br/>Habitación: doble.<br/>Fechas: 14 al 16 de agosto.<br/>Huéspedes: 2.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA distingue quién conversa de a nombre de quién queda registrada la reserva.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="6" data-speech="En esta escena confirmo la reserva.
+6.1
+BegaIA no debería ejecutar una acción sensible solo porque detectó intención. Primero arma una propuesta, muestra los datos relevantes y pide confirmación.
+
+Recién después de esa confirmación se registra la reserva.
+6.2
+Este patrón es uno de los puntos centrales del producto: la IA ayuda a operar, pero dentro de un flujo gobernado. No se trata de automatizar a ciegas, sino de reducir fricción sin perder control." data-title="6. Confirmación explícita Web" type="button">6. Confirmación explícita Web</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Confirmar la reserva Web de Laura Gómez.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-9', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-9"><code>confirmar</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 6.2.</p>
+<p>Reserva confirmada con código RES-XXXXXX. Debe quedar a nombre de Laura Gómez.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA no ejecuta una acción sensible sin confirmación explícita.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="7" data-speech="7.1
+Después de confirmar, pido ver la reserva.
+
+La conversación no vuelve a cero. BegaIA conserva el contexto suficiente para recuperar la reserva recién creada y mostrar un resumen.
+7.2
+Esto se parece más a una conversación con recepción: primero consulto, después reservo, luego reviso o hago seguimiento.
+
+La continuidad es parte del valor, porque el huésped no tiene que repetir todo en cada turno." data-title="7. Follow-up Web" type="button">7. Follow-up Web</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Mostrar continuidad conversacional de la reserva recién creada.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-10', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-10"><code>mostrame mi reserva</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 7.2.</p>
+<p>Debe mostrar resumen de la reserva de Laura Gómez: código, estado activa, habitación doble, fechas y huéspedes.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">La conversación no empieza de cero en cada turno.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="8" data-speech="Paso al panel de administración, donde se ve la otra mitad del producto: el control operativo del hotel.
+
+El hotel no tiene que elegir entre todo automático o todo manual. Puede definir el comportamiento por canal: Web, WhatsApp o Email pueden operar en automático o con supervisión, según la política del hotel.
+
+Además, la supervisión también puede aplicarse a nivel de huésped. Por ejemplo, si hay una negociación importante, una reserva corporativa o un seguimiento comercial sensible, el hotel puede mantener ese caso bajo revisión más cercana sin cambiar necesariamente toda la operación del canal.
+
+La idea es que BegaIA combine automatización con gobierno humano, no que quite control a recepción." data-title="8. Admin Channels" type="button">8. Admin Channels</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Ir al panel Admin y abrir Channels.</p>
+<p class="label"><strong>MOSTRAR::</strong></p>
+<p>Modos por canal: Web, WhatsApp, Email.<br/>Mostrar Channel Manager como integración transaccional.<br/>Mostrar badges de automático/supervisado/no configurado.</p>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Se entiende que el hotel puede graduar automatización por canal.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">El hotel puede graduar automatización por canal y también puede supervisar a nivel de guest si necesita mayor control.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="9" data-speech="En esta vista muestro cómo recepción puede ver el contexto visual que recibió el huésped.
+
+Si el huésped pidió habitaciones, el panel no debería mostrar únicamente texto plano. También puede mostrar la respuesta enriquecida con imágenes y opciones.
+
+Esto ayuda al equipo del hotel a entender mejor la conversación y a intervenir con más contexto si hace falta.
+
+El panel empieza a funcionar como una consola operativa, no solamente como una bandeja de mensajes." data-title="9. Admin preview visual" type="button">9. Admin preview visual</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>En Admin Inbox, abrir la conversación donde el huésped pidió habitaciones.</p>
+<p class="label"><strong>REFERENCIA DEL MENSAJE::</strong></p>
+<div class="copy-card">
+<div class="copy-head">
+<span>REFERENCIA DEL MENSAJE</span>
+<button onclick="copyText('copy-11', this)" type="button">Copiar</button>
+</div>
+<pre id="copy-11"><code>mostrame habitaciones</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Admin debe mostrar preview visual en grilla con habitaciones e imágenes.</p>
+<p class="label"><strong>DEBE VERSE::</strong></p>
+<p>Single Standard, Doble, Twin, Triple.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">Recepción también puede ver contexto visual, no solamente texto.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="10" data-speech="Hasta este punto mostré Web como canal principal.
+
+Ahora agrego WhatsApp como otro punto de entrada, probablemente el canal más natural para muchos huéspedes.
+
+No busco repetir toda la demostración. El objetivo es mostrar que la misma lógica operativa puede continuar en otro canal sin perder identidad ni gobierno." data-title="10. Transición a WhatsApp" type="button">10. Transición a WhatsApp</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Explicar que ahora se agrega WhatsApp como otro punto de entrada.</p>
+<p class="label"><strong>NARRATIVA::</strong></p>
+<p>Hasta acá vimos Web. Ahora agrego WhatsApp como otro punto de entrada para mostrar continuidad multicanal sin repetir toda la demostración.</p>
+<p class="timing"><strong>TIP DE TIEMPO:</strong> La transición debe ser directa: pasar de Web a WhatsApp y explicar que cambia el canal, pero no las reglas operativas.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA puede operar en un modelo multicanal controlado.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="11" data-speech="En WhatsApp la conversación suele ser corta, directa y muy parecida a lo que hoy ya ocurre con recepción.
+
+El huésped pide una reserva. Si falta un dato, BegaIA lo solicita. Cuando la información es suficiente, propone la reserva y espera confirmación.
+
+El canal cambia, pero la regla operativa se mantiene: no inventar datos, no confirmar sin permiso y registrar solo cuando corresponde." data-title="11. Reserva WhatsApp" type="button">11. Reserva WhatsApp</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Enviar una reserva por WhatsApp.</p>
+<p class="label guest-label"><strong>WHATSAPP / GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>WHATSAPP / GUEST</span>
+<button onclick="copyText('copy-19', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-19"><code>Hola, soy Martín Pérez. Quiero reservar una single del 20 al 22 de agosto para una persona.</code></pre>
+</div>
+<p class="label"><strong>ESPERADO POSIBLE::</strong></p>
+<p>Puede pedir nombre del titular.</p>
+<p class="label guest-label"><strong>WHATSAPP / GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>WHATSAPP / GUEST</span>
+<button onclick="copyText('copy-20', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-20"><code>Martín Pérez</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA propone reserva single/simple para Martín Pérez y pide confirmación.</p>
+<p class="label guest-label"><strong>WHATSAPP / GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>WHATSAPP / GUEST</span>
+<button onclick="copyText('copy-21', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-21"><code>confirmar</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Reserva confirmada con código RES-XXXXXX.</p>
+<p class="label"><strong>DEBE QUEDAR CLARO::</strong></p>
+<p>Canal: WhatsApp.<br/>Interlocutor: Martín Pérez.<br/>Titular reserva: Martín Pérez.<br/>Habitación: single/simple.<br/>Fechas: 20 al 22 de agosto.<br/>Huéspedes: 1.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">WhatsApp puede mostrarse en demo controlada si el entorno está estable.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="12" data-speech="Paso a Admin Guests para mostrar cómo se ordena la identidad operativa.
+
+Una misma persona puede aparecer con variantes del nombre y por distintos canales: Martin desde Web, Martín Pérez desde WhatsApp y Martín P. desde Email.
+
+La reserva de Email ya fue precargada antes de iniciar la demo. Como fue la primera reserva ingresada para este guest canónico, aparece primero en el snapshot consolidado.
+
+BegaIA no se presenta como un CRM completo. La forma prudente de explicarlo es como una capa conversacional y operativa que ayuda a asociar conversaciones, canales y reservas bajo una identidad operativa común." data-title="12. Admin Guests — conciliación de “Los Martin”" type="button">12. Admin Guests — conciliación de “Los Martin”</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Ir a Admin Guests / Guest Profile. Buscar y conciliar las identidades correspondientes a “Los Martin”.</p>
+<p class="label"><strong>BUSCAR / VERIFICAR::</strong></p>
+<p>Web / Martin.<br/>Email / Martín P.<br/>WhatsApp / Martín Pérez.</p>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Las tres reservas deben quedar visibles y asociadas al guest canónico de Martin. El orden esperado sigue el orden real de ingreso: Email precargado, Web y WhatsApp.</p>
+<p class="label"><strong>RESERVAS ESPERADAS EN GUEST MARTIN::</strong></p>
+<p>Ana Rodríguez — triple — 25/08/2026 al 27/08/2026 — Email precargado.<br/>Laura Gómez — doble — 14/08/2026 al 16/08/2026 — Web.<br/>Martín Pérez — single/simple — 20/08/2026 al 22/08/2026 — WhatsApp.</p>
+<p class="label"><strong>NOTA::</strong></p>
+<p>La reserva Email de Ana Rodríguez fue creada y confirmada antes del inicio del cronómetro. Durante la demo se utiliza como evidencia de conciliación con Martín P.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">El hotel puede ordenar identidad operativa cuando un huésped aparece por más de un canal. No se presenta como CRM completo.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="13" data-speech="Vuelvo al Widget Web y pido ver mis reservas.
+
+El objetivo es mostrar continuidad multicanal. La reserva Email de Ana Rodríguez fue precargada antes de iniciar la demo; después se crearon la reserva Web de Laura Gómez y la reserva WhatsApp de Martín Pérez.
+
+El snapshot presenta las reservas en su orden real de ingreso. Por eso, la reserva Email aparece primero, seguida por Web y WhatsApp.
+
+El huésped no piensa en bases de datos ni en canales. Espera que el hotel recuerde lo que pasó y pueda continuar la atención de forma ordenada." data-title="13. Snapshot consolidado" type="button">13. Snapshot consolidado</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Volver al Widget Web de Martin y pedir todas las reservas.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-23', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-23"><code>mostrame mis reservas</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Debe mostrar las tres reservas consolidadas del guest Martin en el orden real de ingreso. La primera debe ser la reserva Email precargada de Ana Rodríguez.</p>
+<p class="numbered">1. Ana Rodríguez — triple — 25/08/2026 al 27/08/2026 — Email precargado.</p>
+<p class="numbered">2. Laura Gómez — doble — 14/08/2026 al 16/08/2026 — Web.</p><p class="numbered">3. Martín Pérez — single/simple — 20/08/2026 al 22/08/2026 — WhatsApp.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">Continuidad multicanal con operación ordenada.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="14" data-speech="En esta escena modifico una reserva usando lenguaje natural.
+
+Digo “la primera reserva” y el sistema debe resolver la referencia contra el orden que acaba de mostrar en el snapshot.
+
+Como la reserva Email de Ana Rodríguez fue la primera ingresada, esa es la reserva que debe seleccionar.
+
+Primero identifica el objetivo, después pregunta qué campo quiero cambiar y finalmente muestra una vista previa antes de ejecutar." data-title="14. Modify por ordinal" type="button">14. Modify por ordinal</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Modificar la primera reserva usando ordinal. En este flujo, la primera reserva del guest Martin es la reserva Email precargada de Ana Rodríguez.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-24', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-24"><code>Quiero cambiar la primera reserva</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA identifica la primera reserva: Ana Rodríguez · triple · 25/08/2026 → 27/08/2026, y pregunta qué se quiere cambiar.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-25', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-25"><code>cambiar fechas</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA pide nuevas fechas.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-26', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-26"><code>del 25 al 28 de agosto</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>BegaIA muestra preview antes de aplicar el cambio: fechas anteriores 25/08/2026 → 27/08/2026 y nuevas fechas 25/08/2026 → 28/08/2026.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA no modifica directamente. Primero identifica reserva, luego muestra preview y recién después permite confirmar.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="15" data-speech="Cierro el cambio de reserva con confirmación explícita.
+
+Antes de aplicar la modificación, BegaIA muestra cómo estaba la reserva y cómo quedaría después.
+
+Ese preview es clave: el huésped entiende el cambio y el hotel evita modificaciones accidentales.
+
+De nuevo aparece el mismo principio: la IA acompaña la operación, pero las acciones sensibles pasan por identificación, vista previa y confirmación." data-title="15. Confirmación de modify" type="button">15. Confirmación de modify</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Confirmar la modificación.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-27', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-27"><code>confirmar</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Reserva actualizada correctamente.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">Confirmación explícita en acciones sensibles.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="16" data-speech="Para cerrar, lo importante es no mirar esto como “un chat”.
+
+BegaIA es una capa de experiencia y operación para hotelería. Del lado del huésped, permite consultar, explorar habitaciones, reservar y continuar por distintos canales. Del lado del hotel, permite supervisar, ordenar conversaciones, revisar reservas y mantener trazabilidad.
+
+La propuesta no es reemplazar la hospitalidad ni la operación humana. Es automatizar lo repetitivo, asistir lo operativo y conservar control donde hace falta.
+
+Por eso lo planteo como demo comercial y piloto controlado, no como despliegue masivo sin matices." data-title="16. Cierre comercial" type="button">16. Cierre comercial</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Cerrar la demo con síntesis de valor.</p>
+<p class="label"><strong>NARRATIVA::</strong></p>
+<p>Lo que quise mostrar no es solo un chat. Es una capa de experiencia y operación: el huésped consulta, explora habitaciones, avanza hacia reserva y puede continuar por distintos canales; el hotel conserva control, supervisión y trazabilidad desde Admin.</p>
+<p class="label claim-label"><strong>CLAIMS FINALES::</strong></p>
+<p class="claim-text">Concierge digital para hotelería.<br/>Experiencia visual previa a reserva.<br/>Reservas guiadas con confirmación.<br/>Control humano y automatización graduable.<br/>Operación multicanal controlada.<br/>Piloto controlado, no despliegue masivo sin matices.</p>
+<p class="label"><strong>FRASE FINAL::</strong></p>
+<p>Esto lo planteamos como demo comercial y piloto controlado, no como despliegue masivo sin matices.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="17" data-speech="Cierro la demostración con una despedida breve.
+
+Además de terminar naturalmente la conversación, este último mensaje deja una marca objetiva en la base de datos para medir el tiempo total de la demo.
+
+La respuesta debe ser cálida, coherente con el tono del hotel y no debe reabrir ningún flujo anterior." data-title="17. Saludo final" type="button">17. Saludo final</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Enviar el saludo final inmediatamente después del cierre comercial. Este mensaje marca el final objetivo del cronómetro en la base.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
+<div class="copy-card">
+<div class="copy-head guest-head">
+<span>GUEST</span>
+<button onclick="copyText('copy-final-goodbye', this)" type="button">Copiar</button>
+</div>
+<pre class="guest-text" id="copy-final-goodbye"><code>chau</code></pre>
+</div>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>Debe responder con una despedida cálida y breve, usando el nombre conversacional cuando esté disponible, sin reabrir reserva, modify ni otro flujo.</p>
+<p class="label"><strong>RESPUESTA OBJETIVO::</strong></p>
+<p>¡Hasta pronto, Martin! Fue un gusto ayudarte. Cuando quieras volver a consultar o planificar tu estadía, voy a estar acá para acompañarte.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA también sabe cerrar la conversación de forma natural, sin arrastrar un flujo operativo ya terminado.</p>
+<div aria-hidden="true" class="modal-backdrop" id="speech-modal">
+<div aria-labelledby="speech-modal-title" aria-modal="false" class="modal-card" role="dialog">
+<div class="modal-head">
+<h3 class="modal-title" id="speech-modal-title">Speech</h3>
+<div class="modal-actions">
+<button class="speech-copy" id="speech-copy-btn" type="button">Copiar speech</button>
+<button id="speech-close-btn" type="button">Cerrar</button>
+</div>
+</div>
+<div class="modal-body" id="speech-modal-body"></div>
+</div>
+</div>
+</main>
+<script>
+    async function copyText(id, btn) {
+      const el = document.getElementById(id);
+      const text = el ? el.innerText : "";
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      const old = btn.textContent;
+      btn.textContent = "Copiado";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = old;
+        btn.classList.remove("copied");
+      }, 1200);
+    }
+
+    const speechModal = document.getElementById("speech-modal");
+    const speechModalTitle = document.getElementById("speech-modal-title");
+    const speechModalBody = document.getElementById("speech-modal-body");
+    const speechCloseBtn = document.getElementById("speech-close-btn");
+    const speechCopyBtn = document.getElementById("speech-copy-btn");
+    let currentSpeech = "";
+
+    function parseSpeechSections(rawSpeech) {
+      const speech = (rawSpeech || "").replace(/\r/g, "").trim();
+      const markerRegex = /(?:^|\n)\s*(\d+\.\d+)\s*(?=\n|$)/g;
+      const markers = [];
+      let match;
+
+      while ((match = markerRegex.exec(speech)) !== null) {
+        markers.push({
+          key: match[1],
+          markerStart: match.index,
+          contentStart: markerRegex.lastIndex
+        });
+      }
+
+      if (markers.length === 0) {
+        return {
+          first: speech,
+          sections: {}
+        };
+      }
+
+      const preamble = speech.slice(0, markers[0].markerStart).trim();
+      const sections = {};
+
+      markers.forEach((marker, index) => {
+        const end = index + 1 < markers.length
+          ? markers[index + 1].markerStart
+          : speech.length;
+        let content = speech.slice(marker.contentStart, end).trim();
+
+        if (index === 0 && preamble) {
+          content = `${preamble}\n\n${content}`.trim();
+        }
+
+        sections[marker.key] = content;
+      });
+
+      return {
+        first: sections[markers[0].key] || speech,
+        sections
+      };
+    }
+
+    let activeSpeechAnchor = null;
+
+    function syncSpeechPanelPosition() {
+      if (!activeSpeechAnchor || !speechModal.classList.contains("open")) return;
+
+      const desktop = window.matchMedia("(min-width: 1121px)").matches;
+      if (!desktop) {
+        speechModal.style.removeProperty("top");
+        speechModal.style.removeProperty("left");
+        speechModal.style.removeProperty("width");
+        speechModal.style.removeProperty("height");
+        return;
+      }
+
+      const main = document.querySelector("main");
+      const mainRect = main.getBoundingClientRect();
+      const anchorRect = activeSpeechAnchor.getBoundingClientRect();
+      const styles = getComputedStyle(main);
+      const columnGap = parseFloat(styles.columnGap) || 26;
+      const columns = styles.gridTemplateColumns.split(" ").map(parseFloat);
+      const leftColumnWidth = columns[0] || Math.max(620, mainRect.width * .6);
+      const rightColumnLeft = mainRect.left + leftColumnWidth + columnGap;
+      const rightColumnWidth = Math.max(360, mainRect.right - rightColumnLeft);
+
+      const viewportPadding = 18;
+      const minTop = 72;
+      const desiredTop = Math.max(minTop, anchorRect.top);
+      const availableHeight = Math.max(
+        280,
+        window.innerHeight - desiredTop - viewportPadding
+      );
+
+      speechModal.style.top = `${desiredTop}px`;
+      speechModal.style.left = `${rightColumnLeft}px`;
+      speechModal.style.width = `${rightColumnWidth}px`;
+      speechModal.style.height = `${availableHeight}px`;
+    }
+
+    function renderSpeech(title, speech, anchorElement) {
+      currentSpeech = speech || "";
+      speechModalTitle.textContent = title || "Speech";
+      speechModalBody.innerHTML = "";
+
+      currentSpeech.split(/\n\s*\n/).forEach((paragraph) => {
+        const trimmed = paragraph.trim();
+        if (!trimmed) return;
+        const p = document.createElement("p");
+        p.textContent = trimmed;
+        speechModalBody.appendChild(p);
+      });
+
+      if (activeSpeechAnchor) {
+        activeSpeechAnchor.classList.remove("speech-anchor-active");
+      }
+
+      activeSpeechAnchor = anchorElement || null;
+
+      if (activeSpeechAnchor) {
+        activeSpeechAnchor.classList.add("speech-anchor-active");
+      }
+
+      speechModal.classList.add("open");
+      speechModal.setAttribute("aria-hidden", "false");
+      syncSpeechPanelPosition();
+    }
+
+    function closeSpeechModal() {
+      speechModal.classList.remove("open");
+      speechModal.setAttribute("aria-hidden", "true");
+
+      if (activeSpeechAnchor) {
+        activeSpeechAnchor.classList.remove("speech-anchor-active");
+      }
+
+      activeSpeechAnchor = null;
+      speechModal.style.removeProperty("top");
+      speechModal.style.removeProperty("left");
+      speechModal.style.removeProperty("width");
+      speechModal.style.removeProperty("height");
+    }
+
+    const sceneSpeechIndex = new Map();
+
+    document.querySelectorAll(".scene-title-btn").forEach((btn) => {
+      const parsed = parseSpeechSections(btn.dataset.speech);
+      sceneSpeechIndex.set(btn.dataset.scene, parsed);
+
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        renderSpeech(btn.dataset.title, parsed.first, btn);
+      });
+    });
+
+    document.querySelectorAll("main > p").forEach((paragraph) => {
+      const text = paragraph.textContent.trim();
+      const match = text.match(/^speech\s+(\d+)\.(\d+)\.?$/i);
+      if (!match) return;
+
+      const sceneNumber = match[1];
+      const sectionKey = `${match[1]}.${match[2]}`;
+      const sceneData = sceneSpeechIndex.get(sceneNumber);
+      const fragment = sceneData?.sections?.[sectionKey];
+
+      if (!fragment) return;
+
+      paragraph.classList.add("speech-reference");
+      paragraph.textContent = "";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "speech-fragment-btn";
+      button.textContent = "Ver speech de este tramo";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const sceneTitleButton = document.querySelector(
+          `.scene-title-btn[data-scene="${sceneNumber}"]`
+        );
+        const sceneTitle = sceneTitleButton?.dataset.title || "Speech";
+
+        renderSpeech(sceneTitle, fragment, button);
+      });
+
+      paragraph.appendChild(button);
+    });
+
+    speechCloseBtn.addEventListener("click", closeSpeechModal);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && speechModal.classList.contains("open")) {
+        closeSpeechModal();
+      }
+    });
+
+    window.addEventListener("scroll", syncSpeechPanelPosition, { passive: true });
+    window.addEventListener("resize", syncSpeechPanelPosition);
+
+    speechCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(currentSpeech);
+      } catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = currentSpeech;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+
+      const old = speechCopyBtn.textContent;
+      speechCopyBtn.textContent = "Copiado";
+      speechCopyBtn.classList.add("copied");
+
+      setTimeout(() => {
+        speechCopyBtn.textContent = old;
+        speechCopyBtn.classList.remove("copied");
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

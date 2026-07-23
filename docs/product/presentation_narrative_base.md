@@ -1,313 +1,108 @@
-// Path: docs/product/presentation_narrative_base.md
+<!-- Path: docs/product/presentation_narrative_base.md -->
 
-# DRAFT — BegaIA Presentation Narrative Base
+# BegaIA — Presentation Narrative Base
 
-## 1. Propósito del documento
+## 1. Propósito
 
-Este documento es la base narrativa para futuras piezas no técnicas de BegaIA:
-
-- deck comercial
-- one-pager
-- guion de demo
-
-No es la presentación final.
-No redefine producto ni arquitectura.
-Consolida la narrativa ya alineada en la documentación existente.
-
-Nota de naming:
-
-- `BegaIA` = branding externo recomendado para demo/presentación
-- `Begasist` = nombre interno/histórico del sistema
-
----
+Este documento es la base narrativa para speech, deck, one-pager y reuniones con prospectos. No es un deck final ni redefine arquitectura, producto o pricing.
 
 ## 2. Estado
 
-Documento: `DRAFT`
+```yaml
+document_status: validated_for_controlled_commercial_presentations
+commercial_dry_run:
+  date: 2026-07-22
+  duration_until_farewell_input: "17:05"
+  duration_including_farewell_response: "17:06"
+demo_assets:
+  commercial: docs/product/demo-assets/demo_comercial_15_min_begaia.html
+  extended: docs/product/demo-assets/demo_extendida_begaia.html
+runtime_map_applies: false
+```
 
-Uso permitido:
+La demo comercial breve fue validada en dry run real. El objetivo nominal de 15 minutos queda como referencia comercial, no como medición exacta.
 
-- preparar materiales comerciales
-- alinear relato de producto
-- evitar claims inconsistentes
-
-Uso no permitido:
-
-- publicar como pieza final sin revisión
-- agregar promesas no validadas
-- usarlo como fuente para claims técnicos no documentados
-
-Recorte de resincronización actual:
-
-- alineado hasta `FEAT-ASSISTANT-BRANDING-ACKNOWLEDGEMENT-COPY-60`
-- incorpora como contexto demo la línea reciente 51–60
-
----
-
-## 3. Narrativa base
+## 3. Narrativa Base
 
 BegaIA no debe presentarse como un chatbot genérico.
 
-BegaIA debe presentarse como el Concierge Digital del hotel:
-
-- conversacional
-- multicanal
-- orientado al dominio hotelero
-- asistido por IA
-- con control humano cuando corresponde
-
-La idea central no es reemplazar la hospitalidad del hotel.
-La idea central es ampliar su capacidad operativa.
+BegaIA debe presentarse como un Concierge Digital para hotelería: una capa conversacional y operativa que ayuda al hotel a responder, orientar, reservar y supervisar conversaciones con huéspedes.
 
 Relato corto recomendado:
 
-> BegaIA es el Concierge Digital del hotel. Atiende consultas, acompaña reservas y ayuda a operar la conversación con huéspedes a través de múltiples canales, combinando automatización con control humano.
+> BegaIA es el Concierge Digital del hotel. Atiende consultas, muestra información útil, acompaña reservas y ayuda a operar la conversación con huéspedes a través de múltiples canales, combinando automatización con control humano.
 
----
+La idea central no es reemplazar la hospitalidad del hotel. La idea central es ampliar la capacidad operativa del equipo, manteniendo gobierno y trazabilidad.
 
-## 4. Audiencia
+## 4. Capacidades Demostradas En La Demo Comercial
 
-### 4.1 Audiencia principal
+- Concierge Digital especializado en hotelería.
+- Exploración visual de habitaciones.
+- Consulta frecuente breve.
+- Disponibilidad sin crear reserva prematura.
+- Reserva guiada con confirmación explícita.
+- Interlocutor conversacional distinto del titular de reserva.
+- Web como canal principal del recorrido.
+- Email como canal operativo precargado fuera del cronómetro.
+- WhatsApp Twilio como punto de entrada controlado.
+- Guest canónico multicanal.
+- Admin como consola operativa.
+- Automatización graduable.
+- Preview visual en Admin.
+- Preview antes de modify.
+- Modify por referencia ordinal.
+- Farewell natural como cierre medible.
+- Piloto controlado, no despliegue masivo sin matices.
 
-Pendiente de validación comercial final.
+## 5. Recorte De Uso Comercial
 
-Base recomendada para materiales de presentación:
+### Demo Comercial Breve
 
-- dueños o dirección de hotel
-- gerencia operativa
-- recepción / front desk
+Uso recomendado:
 
-### 4.2 Audiencia secundaria
+- primer contacto con prospectos;
+- conversación inicial con dirección o gerencia;
+- mostrar valor visible sin densificar arquitectura.
 
-Pendiente de validación comercial final.
+Fuente:
 
-Base recomendada:
+- `docs/product/demo-assets/demo_comercial_15_min_begaia.html`
 
-- responsables comerciales
-- responsables de experiencia de huésped
-- hoteles que evalúan digitalizar atención conversacional
+### Demo Extendida
 
-Nota:
-Estas audiencias deben confirmarse antes de armar el deck final.
+Uso recomendado:
 
----
+- profundización operativa;
+- conversación técnica o comercial más larga;
+- revisión de Admin, supervisión e identidad multicanal con más detalle.
 
-## 5. Problema que BegaIA ayuda a resolver
+Fuente:
 
-Los hoteles reciben conversaciones repetitivas y operativas por distintos canales.
+- `docs/product/demo-assets/demo_extendida_begaia.html`
 
-Eso genera presión sobre recepción:
+## 6. Wording Comercial Seguro
 
-- consultas frecuentes
-- seguimiento manual
-- respuestas demoradas
-- pérdida de continuidad entre turnos
-- dificultad para sostener atención consistente
+- “Concierge Digital para hotelería.”
+- “Capa conversacional especializada para hoteles.”
+- “Acompaña consultas, disponibilidad y reservas guiadas.”
+- “Permite supervisión humana cuando corresponde.”
+- “Puede operar una demo controlada con Web, Email y WhatsApp.”
+- “Ayuda a ordenar identidad operativa del huésped entre canales.”
+- “Piloto controlado para validar operación y valor con el hotel.”
 
-BegaIA se posiciona como una capa conversacional para ordenar esa interacción sin quitar control al hotel.
+## 7. Wording A Evitar
 
----
+- “Automatiza todo el hotel.”
+- “Reemplaza recepción.”
+- “CRM completo.”
+- “PMS completo.”
+- “Paridad productiva absoluta en todos los canales.”
+- “Onboarding automático sin operación.”
+- “Aumenta reservas en X%.”
+- “Reduce costos en X%.”
 
-## 6. Posicionamiento recomendado
+## 8. Cierre Narrativo
 
-### 6.1 Qué es
+Frase final sugerida:
 
-BegaIA es:
-
-- un sistema SaaS conversacional para hotelería
-- un Concierge Digital del hotel
-- una capa conversacional entre huéspedes, operación hotelera y flujos de reserva
-
-### 6.2 Qué no es
-
-BegaIA no es:
-
-- un chatbot genérico
-- un bot diseñado para reemplazar recepción
-- una automatización ciega sin control operativo
-
----
-
-## 7. Storyline recomendado
-
-### 7.1 Apertura
-
-Los hoteles ya conversan por WhatsApp, web, email y otros canales.
-El problema no es abrir otro canal.
-El problema es sostener una conversación útil, consistente y operable.
-
-### 7.2 Cambio de marco
-
-BegaIA no propone “poner un bot”.
-Propone crear un Concierge Digital del hotel.
-
-### 7.3 Diferencia estratégica
-
-Un bot tradicional intenta responder todo.
-BegaIA combina:
-
-- automatización para lo repetitivo
-- contexto conversacional
-- soporte para reservas
-- intervención humana cuando hace falta
-
-### 7.4 Valor operativo
-
-BegaIA ayuda a:
-
-- responder consultas operativas
-- acompañar flujos de reserva
-- sostener continuidad conversacional
-- operar en múltiples canales bajo una lógica común
-
-### 7.5 Cierre
-
-La hospitalidad sigue siendo del hotel.
-BegaIA amplifica su capacidad para atender, responder y convertir conversaciones en una operación más ordenada.
-
-### 7.6 Estado demo actual
-
-Para materiales de demo, la narrativa debe asumir como base validada y reciente:
-
-- consolidación de guests en Admin
-- priorización del guest profile canónico
-- snapshot/listado post-merge sobre guest consolidado
-- captura conversacional de `guest.name` en saludo inicial
-- tolerancia mínima a typos frecuentes en `availability inquiry`
-- branding textual del asistente por hotel mediante `assistantBranding`
-- copy controlado de acknowledgement mediante `acknowledgementLabel`
-
-Estos puntos deben presentarse como robustecimientos concretos de demo, no como promesa de automatización total.
-
----
-
-## 8. Claims seguros
-
-Estos claims pueden usarse en materiales base porque están alineados con documentación existente.
-
-- BegaIA es un sistema SaaS conversacional para hotelería.
-- BegaIA debe presentarse como Concierge Digital del hotel.
-- BegaIA no debe entenderse como un chatbot genérico.
-- BegaIA opera de forma multicanal.
-- BegaIA puede responder consultas operativas e informativas.
-- BegaIA puede guiar flujos de reserva.
-- BegaIA puede soportar follow-ups sobre reservas.
-- BegaIA combina automatización con control humano cuando corresponde.
-- La IA no reemplaza a recepción.
-- BegaIA crea un nuevo canal digital de reservas y concierge.
-- En demo, BegaIA ya puede sostener saludo con branding del asistente y captura básica del nombre conversacional del huésped.
-
----
-
-## 9. Claims prudentes
-
-Estos claims pueden aparecer solo con formulación prudente o marcados como pendientes de validación comercial.
-
-Para WhatsApp, la formulación prudente es: “Podemos iniciar sin tocar el WhatsApp actual del hotel. Si luego quieren conservar su número principal, se evalúa migración o coexistencia según elegibilidad de Meta/proveedor.”
-
-No afirmar que la telefónica puede redirigir WhatsApp de un número a otro, ni que WhatsApp Business App y API coexistirán siempre con el mismo número sin validación previa.
-
-- BegaIA ayuda a ordenar la operación conversacional del hotel.
-  Estado: formulación prudente permitida.
-
-- BegaIA puede mejorar tiempos de respuesta en conversaciones repetitivas.
-  Estado: pendiente de validación comercial con evidencia específica.
-
-- BegaIA puede ayudar a capturar más oportunidades de reserva por canales conversacionales.
-  Estado: pendiente de validación comercial.
-
-- BegaIA puede habilitar upselling de servicios o recomendaciones.
-  Estado: permitido solo como capacidad posible del modelo de producto, no como resultado garantizado.
-
-- BegaIA puede integrarse con operación asistida por humanos cuando la automatización total no corresponde.
-  Estado: claim seguro a nivel conceptual; no prometer alcance de integración comercial no documentado.
-
----
-
-## 10. Claims prohibidos
-
-Estos claims no deben usarse en deck, one-pager ni demo comercial.
-
-- “BegaIA reemplaza a recepción.”
-- “BegaIA opera solo, sin supervisión.”
-- “BegaIA garantiza más reservas.”
-- “BegaIA garantiza aumento de ingresos.”
-- “BegaIA entiende cualquier caso sin errores.”
-- “BegaIA ya integra cualquier sistema hotelero.”
-- “BegaIA elimina por completo la intervención humana.”
-- “BegaIA es un bot de atención automática genérico.”
-
----
-
-## 11. Lenguaje recomendado
-
-Priorizar expresiones como:
-
-- Concierge Digital del hotel
-- sistema conversacional para hotelería
-- operación asistida por IA
-- multicanal
-- control humano
-- continuidad conversacional
-- reservas y atención operativa
-
-Evitar expresiones como:
-
-- bot que reemplaza personas
-- atención 100% autónoma garantizada
-- solución mágica
-- inteligencia total
-
----
-
-## 12. Aplicación por pieza
-
-### 12.1 Deck
-
-Usar esta secuencia:
-
-1. problema operativo
-2. cambio de marco: no bot, sí concierge digital
-3. qué hace Begasist
-   Usar `BegaIA` como branding externo en la pieza final.
-4. cómo combina IA + humano
-5. casos de uso conversacionales
-6. cierre con valor operativo
-
-### 12.2 One-pager
-
-Usar:
-
-- definición corta de Begasist
-  Usar `BegaIA` como nombre visible y `Begasist` solo si hace falta referencia interna.
-- 3 a 5 claims seguros
-- diferenciación frente a chatbot genérico
-- cierre con propuesta de valor prudente
-
-### 12.3 Demo
-
-Mostrar:
-
-- consulta operativa
-- flujo de reserva
-- saludo con captura de nombre conversacional
-- continuidad entre interlocutor conversacional y titular transaccional
-- momento de asistencia humana o control operativo
-- branding configurable del asistente con fallback seguro
-
-La demo no debe depender de promesas comerciales no validadas.
-
----
-
-## 13. Notas de gobernanza
-
-- Este documento permanece en estado `DRAFT`.
-- Si se agregan métricas, resultados o promesas comerciales, deben validarse antes.
-- Si aparece conflicto con documentación conceptual de producto, prevalece la narrativa documentada del Concierge Digital.
-- Si se requiere una narrativa comercial más agresiva, debe revisarse antes de incorporarla como claim.
-
----
-
-## 14. Versión corta lista para reutilizar
-
-> BegaIA es el Concierge Digital del hotel. Es un sistema SaaS conversacional para hotelería que ayuda a atender consultas, acompañar reservas y sostener conversaciones operativas a través de múltiples canales. No busca reemplazar a recepción, sino ampliar su capacidad con automatización e intervención humana cuando corresponde.
+> Esto lo planteamos como demo comercial y piloto controlado: una forma concreta de mostrar cómo el hotel puede mejorar experiencia y operación conversacional sin prometer automatización total ni despliegue masivo sin matices.
