@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/lib/context/UserContext";
 import GuestProfileModal from "./GuestProfileModal";
 import MessageBubble from "./MessageBubble";
 import ConversationsTabs from "./ConversationsTabs";
-import { User2, Edit2, MessageSquareText, CircleAlert, Clock3 } from "lucide-react";
+import { User2, Edit2, MessageSquareText, CircleAlert, Clock3, ChevronDown, ChevronRight } from "lucide-react";
 
 interface ChannelInboxProps {
   hotelId: string;
@@ -51,9 +51,26 @@ function formatDateTime(value: string | null | undefined): string {
   return new Date(parsed).toLocaleString();
 }
 
+function formatRelativeTime(value: string | null | undefined): string {
+  if (!value) return "sin actividad";
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return value;
+  const diffMin = Math.max(0, Math.round((Date.now() - parsed) / 60000));
+  if (diffMin < 1) return "ahora";
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  const diffHour = Math.round(diffMin / 60);
+  if (diffHour < 24) return `hace ${diffHour} h`;
+  const diffDay = Math.round(diffHour / 24);
+  return `hace ${diffDay} d`;
+}
+
 function formatChannelLabel(value: string | null | undefined, t: any): string {
   if (!value) return "unknown";
   return t?.sidebar?.[value] || value;
+}
+
+function formatModeLabel(value: string | null | undefined): string {
+  return value === "supervised" ? "Supervisado" : "Automático";
 }
 
 function compactConversationId(value: string | null | undefined): string {
@@ -100,6 +117,8 @@ export default function ChannelInbox({
   const [selectedConv, setSelectedConv] = useState<string | null>(null);
   const [selectedConvChannel, setSelectedConvChannel] = useState<string>(channel);
   const [copiedConversationId, setCopiedConversationId] = useState<string | null>(null);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+  const [showReservationDetails, setShowReservationDetails] = useState(false);
 
   const copyConversationId = async (conversationId: string) => {
     try {
@@ -135,6 +154,16 @@ export default function ChannelInbox({
   const selectedConversation = conversations.find((c) => c.conversationId === selectedConv) ?? null;
   const selectedGuestConversations = conversations.filter((c) => c.guestId === selectedGuest);
   const selectedGuestPending = pendingList.filter((item) => item.guestId === selectedGuest);
+  const selectedGuestName = selectedGuest
+    ? getGuestDisplayName({
+        guestId: guestProfile?.guestId || selectedGuest,
+        name: guestProfile?.guest?.name || profiles[selectedGuest]?.name,
+        aliases: guestProfile?.aliases || profiles[selectedGuest]?.aliases || [],
+        channel: selectedConvChannel || channel,
+      })
+    : "Sin huésped";
+  const selectedMode = guestProfile?.guest?.mode || (selectedGuest ? profiles[selectedGuest]?.mode : undefined) || "automatic";
+  const selectedActivity = selectedConversation?.lastUpdatedAt || guestProfile?.lastActivityAt;
   const pendingConversationIds = new Set(
     pendingList
       .map((item) => item.conversationId)
@@ -543,88 +572,95 @@ export default function ChannelInbox({
         onNewConversation={handleNewConversation}
         pendingConversationIds={pendingConversationIds}
       />
-          <div className="border-b bg-background px-4 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Conversación activa
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="text-base font-semibold">
-                    {subject || (t.channelInbox?.noSubject || "Sin asunto")}
+          <div className="border-b bg-background px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0 flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-semibold">{selectedGuestName}</span>
+                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium">
+                  {formatChannelLabel(selectedConversation?.channel || selectedConvChannel || channel, t)}
+                </span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  selectedMode === "supervised"
+                    ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-200"
+                    : "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200"
+                }`}>
+                  {formatModeLabel(selectedMode)}
+                </span>
+                <span className="rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                  {selectedConversation?.status || "active"}
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock3 className="h-3.5 w-3.5" />
+                  {formatRelativeTime(selectedActivity)}
+                </span>
+                <span className="min-w-0 truncate text-xs text-muted-foreground">
+                  {subject || (t.channelInbox?.noSubject || "Conversación actual")}
+                </span>
+                {selectedGuestPending.length > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                    <CircleAlert className="h-3.5 w-3.5" />
+                    {selectedGuestPending.length} pendiente{selectedGuestPending.length === 1 ? "" : "s"}
                   </span>
-                  {selectedConversation?.channel && (
-                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium">
-                      {formatChannelLabel(selectedConversation.channel, t)}
-                    </span>
-                  )}
-                  {selectedConversation?.status && (
-                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
-                      {selectedConversation.status}
-                    </span>
-                  )}
-                  {selectedGuestPending.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-                      <CircleAlert className="h-3.5 w-3.5" />
-                      {selectedGuestPending.length} pendiente{selectedGuestPending.length === 1 ? "" : "s"}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <MessageSquareText className="h-3.5 w-3.5" />
-                    {selectedGuestConversations.length} conversacion{selectedGuestConversations.length === 1 ? "" : "es"} del huésped
-                  </span>
-                  {selectedConversation?.conversationId && (
-                    <button
-                      type="button"
-                      onClick={() => copyConversationId(selectedConversation.conversationId)}
-                      className="inline-flex min-w-0 max-w-[360px] items-center gap-1 rounded border border-border bg-background px-2 py-0.5 font-mono transition hover:bg-muted"
-                      title={selectedConversation.conversationId}
-                    >
-                      <MessageSquareText className="h-3.5 w-3.5" />
-                      <span className="min-w-0 flex-1 truncate">
-                        conversationId: {compactConversationId(selectedConversation.conversationId)}
-                      </span>
-                      {copiedConversationId === selectedConversation.conversationId && (
-                        <span className="font-sans text-[11px] text-emerald-600">copiado</span>
-                      )}
-                    </button>
-                  )}
-                  <span className="inline-flex items-center gap-1">
-                    <Clock3 className="h-3.5 w-3.5" />
-                    Última actividad: {formatDateTime(selectedConversation?.lastUpdatedAt || guestProfile?.lastActivityAt)}
-                  </span>
-                </div>
+                )}
               </div>
-              {selectedGuest && guestProfile && (
-                <div className="min-w-[260px] max-w-[360px] rounded-lg border border-border bg-muted/30 p-3 text-sm">
-                  <div className="mb-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Huésped actual
-                    </div>
-                    <div className="text-base font-semibold">
-                      {getGuestDisplayName({
-                        guestId: guestProfile.guestId,
-                        name: guestProfile.guest?.name,
-                        aliases: guestProfile.aliases,
-                        channel: selectedConvChannel || channel,
-                      })}
-                    </div>
-                    <div className="font-mono text-xs text-muted-foreground">
-                      {shortGuestId(guestProfile.guestId, channel)}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-1 text-xs">
-                    <div><span className="font-semibold">Canales:</span> {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}</div>
-                    <div><span className="font-semibold">Aliases:</span> {guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</div>
-                    <div><span className="font-semibold">Conversaciones:</span> {guestProfile.conversationCount}</div>
-                    <div><span className="font-semibold">Modo:</span> {guestProfile.guest?.mode || "-"}</div>
-                    <div><span className="font-semibold">Última actividad:</span> {formatDateTime(guestProfile.lastActivityAt)}</div>
-                  </div>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowTechnicalDetails((value) => !value)}
+                aria-expanded={showTechnicalDetails}
+                aria-controls="channel-inbox-technical-details"
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
+              >
+                {showTechnicalDetails ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                Detalles técnicos
+              </button>
             </div>
+            {showTechnicalDetails && (
+              <div
+                id="channel-inbox-technical-details"
+                className="mt-2 grid gap-2 rounded-lg border border-border bg-muted/30 p-2 text-xs text-muted-foreground md:grid-cols-2"
+              >
+                <div className="min-w-0">
+                  <span className="font-semibold text-foreground">Conversaciones:</span>{" "}
+                  {selectedGuestConversations.length} del huésped
+                </div>
+                <div className="min-w-0">
+                  <span className="font-semibold text-foreground">Última actividad exacta:</span>{" "}
+                  {formatDateTime(selectedActivity)}
+                </div>
+                {selectedConversation?.conversationId && (
+                  <button
+                    type="button"
+                    onClick={() => copyConversationId(selectedConversation.conversationId)}
+                    className="inline-flex min-w-0 items-center gap-1 rounded border border-border bg-background px-2 py-1 font-mono transition hover:bg-muted md:col-span-2"
+                    title={selectedConversation.conversationId}
+                  >
+                    <MessageSquareText className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 flex-1 truncate">
+                      conversationId: {compactConversationId(selectedConversation.conversationId)}
+                    </span>
+                    {copiedConversationId === selectedConversation.conversationId && (
+                      <span className="font-sans text-[11px] text-emerald-600">copiado</span>
+                    )}
+                  </button>
+                )}
+                {selectedGuest && guestProfile && (
+                  <>
+                    <div className="min-w-0">
+                      <span className="font-semibold text-foreground">guestId:</span>{" "}
+                      <span className="font-mono">{shortGuestId(guestProfile.guestId, channel)}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-semibold text-foreground">Canales:</span>{" "}
+                      {guestProfile.channels.length ? guestProfile.channels.join(", ") : "-"}
+                    </div>
+                    <div className="min-w-0 md:col-span-2">
+                      <span className="font-semibold text-foreground">Aliases:</span>{" "}
+                      <span className="break-words">{guestProfile.aliases.length ? guestProfile.aliases.join(", ") : "-"}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
             {viewMode === "inbox" && channel === "whatsapp" && pendingList.length > 0 && (
@@ -660,29 +696,44 @@ export default function ChannelInbox({
               </div>
             )}
             {snapshot && (
-              <div className="border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 text-blue-900 dark:text-blue-100 rounded p-3 text-sm">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold">Reserva confirmada</div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs"
-                      title="Copiar código"
-                      onClick={() => snapshot.code && navigator.clipboard.writeText(snapshot.code)}
-                    >
-                      Copiar código
-                    </button>
+              <div className="rounded-lg border border-blue-200 bg-blue-50 text-sm text-blue-950 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReservationDetails((value) => !value)}
+                    aria-expanded={showReservationDetails}
+                    aria-controls="channel-inbox-reservation-details"
+                    className="inline-flex min-w-0 flex-1 items-center gap-2 text-left font-semibold"
+                  >
+                    {showReservationDetails ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                    <span className="truncate">
+                      Reserva confirmada: {snapshot.code || "sin código"} · {snapshot.guestName || "sin titular"} · {snapshot.roomType || "habitación"} · {snapshot.checkIn || "?"} → {snapshot.checkOut || "?"}
+                    </span>
+                  </button>
+                  <button
+                    className="rounded bg-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                    title="Copiar código"
+                    onClick={() => snapshot.code && navigator.clipboard.writeText(snapshot.code)}
+                    type="button"
+                  >
+                    Copiar código
+                  </button>
+                </div>
+                {showReservationDetails && (
+                  <div
+                    id="channel-inbox-reservation-details"
+                    className="grid grid-cols-1 gap-x-6 gap-y-1 border-t border-blue-200 px-3 py-2 text-xs sm:grid-cols-2 md:grid-cols-4 dark:border-blue-800"
+                  >
+                    <div><span className="text-blue-700 dark:text-blue-200">Titular:</span> {snapshot.guestName || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Habitación:</span> {snapshot.roomType || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Código:</span> {snapshot.code || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Huéspedes:</span> {snapshot.numGuests || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Check-in:</span> {snapshot.checkIn || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Check-out:</span> {snapshot.checkOut || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Canal:</span> {snapshot.channel || "-"}</div>
+                    <div><span className="text-blue-700 dark:text-blue-200">Creada:</span> {snapshot.createdAt ? new Date(snapshot.createdAt).toLocaleString() : "-"}</div>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
-                  <div><span className="text-muted-foreground">Nombre:</span> {snapshot.guestName || "-"}</div>
-                  <div><span className="text-muted-foreground">Habitación:</span> {snapshot.roomType || "-"}</div>
-                  <div><span className="text-muted-foreground">Código:</span> {snapshot.code || "-"}</div>
-                  <div><span className="text-muted-foreground">Check-in:</span> {snapshot.checkIn || "-"}</div>
-                  <div><span className="text-muted-foreground">Check-out:</span> {snapshot.checkOut || "-"}</div>
-                  <div><span className="text-muted-foreground">Huéspedes:</span> {snapshot.numGuests || "-"}</div>
-                  <div><span className="text-muted-foreground">Canal:</span> {snapshot.channel || "-"}</div>
-                  <div><span className="text-muted-foreground">Creada:</span> {snapshot.createdAt ? new Date(snapshot.createdAt).toLocaleString() : "-"}</div>
-                </div>
+                )}
               </div>
             )}
             {loading && (

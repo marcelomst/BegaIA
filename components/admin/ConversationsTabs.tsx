@@ -62,27 +62,29 @@ const ConversationsTabs: React.FC<Props> = ({
   const guestConversations = conversations.filter((c) => c.guestId === selectedGuest);
 
   return (
-    <div className="border-b bg-muted/60">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div>
-          <div className="font-semibold">{t.channelInbox?.convsWithGuest || "Conversaciones con guest"}</div>
+    <div className="border-b bg-muted/40">
+      <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <div className="min-w-0">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Conversaciones
+          </div>
           <div className="text-xs text-muted-foreground">
-            {guestConversations.length} conversaciones activas para este huésped.
+            {guestConversations.length} para este huésped
           </div>
         </div>
         <button
-          className="flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-gray-600 hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-primary/10"
+          className="flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-gray-600 hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-primary/10"
           onClick={onNewConversation}
           title={t.channelInbox?.newConv || "Nueva conversación"}
         >
           <Plus className="w-4 h-4" /> {t.channelInbox?.newConv || "Nueva conversación"}
         </button>
       </div>
-      <div className="flex gap-2 px-4 pb-3 flex-wrap">
+      <div className="flex gap-2 overflow-x-auto px-3 pb-2">
         {guestConversations.map((c) => (
             <button
               key={c.conversationId}
-              className={`relative min-w-[220px] rounded-lg border px-3 py-3 text-left transition text-xs font-medium flex flex-col items-start gap-2
+              className={`relative flex min-w-[190px] max-w-[240px] shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-left text-xs font-medium transition
                 ${
                   selectedConv === c.conversationId
                     ? "border-blue-500 bg-white dark:bg-zinc-900 text-blue-800 dark:text-primary shadow-sm ring-1 ring-blue-200 dark:ring-blue-900/40"
@@ -94,45 +96,37 @@ const ConversationsTabs: React.FC<Props> = ({
                 setSubject(c.subject ?? "");
               }}
               title={c.subject ?? (t.channelInbox?.noSubject || "Sin asunto")}
+              aria-pressed={selectedConv === c.conversationId}
+              aria-label={`Seleccionar conversación ${(c.subject && c.subject !== "") ? c.subject : (t.channelInbox?.noSubject || "Conversación actual")}`}
             >
-              <div className="flex w-full items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="block font-semibold truncate">
-                    {(c.subject && c.subject !== "") ? c.subject : (t.channelInbox?.noSubject || "Sin asunto")}
-                  </span>
-                  <span className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    {fmtRelativeLabel(c.lastUpdatedAt)}
-                  </span>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  {msgCounts[c.conversationId] ?? 0}
+              <img
+                src={getChannelIconSrc(c.channel)}
+                alt={c.channel ?? "unknown"}
+                className="h-3.5 w-3.5 shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="block truncate font-semibold">
+                  {(c.subject && c.subject !== "") ? c.subject : (t.channelInbox?.noSubject || "Conversación actual")}
+                </span>
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {fmtRelativeLabel(c.lastUpdatedAt)}
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-1">
-                <span className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-800">
-                  <img
-                    src={getChannelIconSrc(c.channel)}
-                    alt={c.channel ?? "unknown"}
-                    className="h-3.5 w-3.5 inline"
-                  />
-                  {t.sidebar?.[(c.channel ?? "unknown")] || t.sidebar?.unknown || c.channel || "unknown"}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-foreground">
-                  {STATUS_ICON[c.status || "active"]}
-                  {c.status || "active"}
-                </span>
-                {pendingConversationIds.has(c.conversationId) && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-                    <TriangleAlert className="h-3.5 w-3.5" />
-                    pendiente
-                  </span>
-                )}
-              </div>
-              <span className="text-[11px] leading-4 truncate w-full text-muted-foreground">
-                {c.lastMessage || "Sin mensajes todavía"}
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                <MessageSquare className="h-3 w-3" />
+                {msgCounts[c.conversationId] ?? 0}
               </span>
+              <span className="inline-flex shrink-0 items-center">
+                {STATUS_ICON[c.status || "active"]}
+                <span className="sr-only">Estado {c.status || "active"}</span>
+              </span>
+              {pendingConversationIds.has(c.conversationId) && (
+                <span className="inline-flex shrink-0 items-center">
+                  <TriangleAlert className="h-4 w-4 text-amber-600" />
+                  <span className="sr-only">pendiente</span>
+                </span>
+              )}
             </button>
           ))}
       </div>
