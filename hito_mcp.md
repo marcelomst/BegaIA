@@ -11937,3 +11937,64 @@ Impacto:
 - protege contra continuidad residual de `create`, `modify`, `cancel` y `availability`
 - preserva el vocativo conversacional canónico al despedirse
 - desacopla la despedida de señales débiles o mensajes previos del asistente
+
+### DOC-CLOSE-COMMERCIAL-DEMO-VALIDATION-AND-PRESENTATION-READINESS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-23  
+Commit: 9b2d2d165407d30f25b02149db5a68866471b1cb
+Clasificacion documental: DOCS_PRODUCT_COMMERCIAL_DEMO_READINESS_CLOSE
+
+Descripcion:
+
+Cierre documental del baseline comercial de demo posterior al dry run del
+2026-07-22. Consolida los assets HTML versionados de demo, compacta los
+documentos canónicos de narrativa y validación, sincroniza el checkpoint de
+roadmap y deja explícitos los límites comerciales válidos para presentación.
+
+Archivos afectados:
+
+- `.gitignore`
+- `docs/product/demo-assets/demo_comercial_15_min_begaia.html`
+- `docs/product/demo-assets/demo_extendida_begaia.html`
+- `docs/product/demo_script_core_first_admin_supervision_refresh.md`
+- `docs/product/presentation_narrative_base.md`
+- `docs/product/presentation_capability_map.md`
+- `docs/product/presentation_use_cases_demo_selection.md`
+- `docs/product/presentation_multichannel_parity_validation.md`
+- `docs/architecture/roadmap.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `scope_commit: ok`
+- `unrelated_changes_excluded: ok`
+- `diff_check: previously_passed`
+- evidencia operativa consolidada:
+  `dry_run_date: 2026-07-22`
+  `duration_until_chau: 17m05s`
+  `duration_including_final_reply: 17m06s`
+  `canonical_guest_id: cfcd4116-356d-4865-ab6b-63e1f8acbdfc`
+- validación funcional del orden de reservas:
+  `RES-A365BD` Ana Rodríguez Email precargado triple 2026-08-25→2026-08-27 3 huéspedes
+  `RES-37A215` Laura Gómez Web doble 2026-08-14→2026-08-16 2 huéspedes
+  `RES-77A568` Martín Pérez WhatsApp simple 2026-08-20→2026-08-22 1 huésped
+  la primera reserva resuelve correctamente a Ana Rodríguez
+  no se detectó issue de runtime en interpretación ordinal
+  el problema previo estaba en el cheat sheet, no en el runtime
+- assets HTML validados:
+  versionados en `docs/product/demo-assets/`
+  comments de path validados
+  ignorados por default y designorados selectivamente
+- notas:
+  quedaron fuera del commit `.gitignore` para `.tmp/` y `stop-email-worker.sh`
+  también quedaron fuera `components/admin/ChannelInbox.tsx`, `components/admin/ConversationsTabs.tsx` y `scripts/report-demo-message-timeline.ts`
+
+Impacto:
+
+- cierra la validación comercial del demo sobre evidencia real de dry run
+- preserva claims prudentes y límites explícitos de producto
+- deja sincronizados demo HTML, guion, narrativa base, capability map, use cases, validación multicanal y roadmap
+- acepta la compactación de documentos largos como versión canónica post dry run sin perder trazabilidad suficiente
