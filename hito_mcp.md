@@ -11998,3 +11998,51 @@ Impacto:
 - preserva claims prudentes y límites explícitos de producto
 - deja sincronizados demo HTML, guion, narrativa base, capability map, use cases, validación multicanal y roadmap
 - acepta la compactación de documentos largos como versión canónica post dry run sin perder trazabilidad suficiente
+
+### IMPROVE-ADMIN-INBOX-COMPACT-OPERATIONAL-UX-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-23  
+Commit: 08af629c839810ef713483e4ac5d1a874df4e47e
+Clasificacion documental: UI_OPERATIONAL_UX_COMPACTION
+
+Descripcion:
+
+Mejora acotada de UX operativa en el panel Admin. Compacta visualmente el
+Inbox y las tabs de conversaciones del huésped, preserva señales críticas y
+acciones clave mediante disclosure progresivo y agrega cobertura frontend
+específica de accesibilidad e interacción sin tocar runtime, persistencia ni APIs.
+
+Archivos afectados:
+
+- `components/admin/ChannelInbox.tsx`
+- `components/admin/ConversationsTabs.tsx`
+- `test/frontend/channelInbox.compactOperationalUx.spec.tsx`
+- `test/frontend/conversationsTabs.compactOperationalUx.spec.tsx`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `scope_commit: ok`
+- `unrelated_changes_excluded: ok`
+- tests reportados en verde:
+  `pnpm vitest run test/frontend/channelInbox.compactOperationalUx.spec.tsx test/frontend/conversationsTabs.compactOperationalUx.spec.tsx test/frontend/channelInbox.emailSupervisedSend.spec.tsx`
+  `pnpm run ts-check`
+  `pnpm test`
+- suite reportada:
+  `178 passed, 974 passed`
+- lint:
+  `preexisting_out_of_scope_failure`
+  detalle: `lib/retrieval/utils.ts -> no-control-regex`
+  bloqueo: `false`
+- notas:
+  siguen fuera de alcance `.gitignore` y `scripts/report-demo-message-timeline.ts`
+
+Impacto:
+
+- reduce ruido visual del inbox operativo
+- mantiene accesibilidad, visibilidad de estado y acciones críticas
+- mejora la operabilidad con jerarquía de información más compacta
+- no altera contratos funcionales, runtime, persistencia ni APIs
