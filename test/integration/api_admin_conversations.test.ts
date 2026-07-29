@@ -287,4 +287,56 @@ describe("/api/admin/conversations (integration)", () => {
 
     aliasSpy.mockRestore();
   });
+
+  it("lista conversaciones consolidadas desde guests.aliases aunque guest_aliases_by_guest esté incompleta", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+    const msgCol = getCollection("messages");
+
+    await guestCol.insertOne({
+      guestId: "guest-conv-incomplete-reverse-1",
+      hotelId: "hotel999",
+      aliases: ["web:conv-demo-1", "whatsapp:+59855555555", "email:conv-demo@example.com"],
+      createdAt: "2026-03-06T13:00:00.000Z",
+      updatedAt: "2026-03-06T13:01:00.000Z",
+      mode: "automatic",
+    });
+
+    for (const [conversationId, channel] of [
+      ["conv-incomplete-web-1", "web"],
+      ["conv-incomplete-wa-1", "whatsapp"],
+      ["conv-incomplete-email-1", "email"],
+    ]) {
+      await convCol.insertOne({
+        conversationId,
+        hotelId: "hotel999",
+        channel,
+        guestId: "guest-conv-incomplete-reverse-1",
+        startedAt: "2026-03-06T13:02:00.000Z",
+        lastUpdatedAt: "2026-03-06T13:05:00.000Z",
+        lang: "es",
+        status: "active",
+      });
+      await msgCol.insertOne({
+        _id: `msg-${conversationId}`,
+        messageId: `msg-${conversationId}`,
+        hotelId: "hotel999",
+        conversationId,
+        channel,
+        content: `hola ${channel}`,
+        timestamp: "2026-03-06T13:05:00.000Z",
+      });
+    }
+
+    const r = await adminConversationsGET(
+      makeReq({ hotelId: "hotel999", guestId: "guest-conv-incomplete-reverse-1" }),
+    );
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(json.conversations).toHaveLength(3);
+    expect(json.conversations.map((conversation: any) => conversation.channel)).toEqual(
+      expect.arrayContaining(["web", "whatsapp", "email"]),
+    );
+  });
 });

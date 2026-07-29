@@ -164,6 +164,52 @@ describe("/api/admin/guests (integration)", () => {
     expect(row.channels).toEqual(expect.arrayContaining(["web"]));
   });
 
+  it("muestra identidades y conversaciones consolidadas aunque guest_aliases_by_guest esté incompleta", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-admin-incomplete-reverse-1",
+      hotelId: "hotel999",
+      name: "Martin",
+      aliases: ["web:admin-demo-1", "whatsapp:+59877777777", "email:admin-demo@example.com"],
+      createdAt: "2026-03-09T13:20:00.000Z",
+      updatedAt: "2026-03-09T13:20:00.000Z",
+      tags: [],
+      mode: "automatic",
+    });
+
+    for (const [conversationId, channel] of [
+      ["conv-admin-incomplete-web-1", "web"],
+      ["conv-admin-incomplete-wa-1", "whatsapp"],
+      ["conv-admin-incomplete-email-1", "email"],
+    ]) {
+      await convCol.insertOne({
+        conversationId,
+        hotelId: "hotel999",
+        channel,
+        guestId: "guest-admin-incomplete-reverse-1",
+        startedAt: "2026-03-09T13:25:00.000Z",
+        lastUpdatedAt: "2026-03-09T13:30:00.000Z",
+        lang: "es",
+        status: "active",
+      });
+    }
+
+    const r = await adminGuestsGET(makeReq({ hotelId: "hotel999" }));
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    const row = Array.isArray(json?.guests)
+      ? json.guests.find((guest: any) => guest.guestId === "guest-admin-incomplete-reverse-1")
+      : null;
+
+    expect(row).toBeTruthy();
+    expect(row.aliases).toHaveLength(3);
+    expect(row.channels).toEqual(expect.arrayContaining(["web", "whatsapp", "email"]));
+    expect(row.conversationCount).toBe(3);
+  });
+
   it("responde rápido con filas mínimas aunque la carga de conversaciones no resuelva", async () => {
     const guestCol = getCollection("guests");
 

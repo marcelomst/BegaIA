@@ -62,6 +62,14 @@ Usada por:
 - admin inbox
 - analytics futuro
 
+Autoridad:
+
+`no canónica`
+
+Esta tabla es una proyección inversa reparable. No gobierna resolución runtime,
+no gobierna merges consecutivos y no debe bloquear una unificación manual cuyo
+estado canónico ya fue persistido.
+
 ## 3. Direcciones de consulta soportadas
 
 ### alias -> guestId
@@ -76,7 +84,11 @@ Consulta típica:
 
 ### guestId -> aliases
 
-Usando:
+Fuente primaria de perfil:
+
+`guests.aliases`
+
+Proyección optimizada reparable:
 
 `guest_aliases_by_guest`
 
@@ -113,6 +125,77 @@ Modo:
 `best-effort`
 
 Así, una falla de la proyección secundaria no rompe el pipeline operativo.
+
+### Contrato de consistencia en merge manual
+
+Durante una unificación manual, las fuentes que deben quedar persistidas antes
+de responder éxito son:
+
+- `guest_aliases`: lookup canónico `alias -> guestId`
+- `guests.aliases` del primary: acumulación durable de identidades visibles
+- `mergedIds` del primary
+- `tags` del secondary: `merged` y `merged-into:<primaryGuestId>`
+- `conversations.guestId`
+- `messages.guestId`
+
+La tabla `guest_aliases_by_guest` queda fuera del camino crítico del request.
+Si está atrasada, el Admin debe poder mostrar el estado consolidado usando
+`guests.aliases` y las conversaciones ya reasignadas al primary.
+
+### Merges consecutivos
+
+Dos merges consecutivos no dependen de que `guest_aliases_by_guest` del primary
+esté completa.
+
+Ejemplo:
+
+`Web + WhatsApp`
+`Web/WhatsApp + Email`
+
+El segundo merge usa:
+
+- `primary.aliases`
+- `secondary.aliases`
+- aliases descubiertos sólo en la proyección inversa del secondary
+- candidatos derivados del `guestId`
+
+Por eso el alias de WhatsApp acumulado en `guests.aliases` no se pierde aunque
+la proyección inversa del primary todavía no haya sido reparada.
+
+### Detección y reparación de proyección atrasada
+
+Una proyección inversa puede considerarse atrasada cuando:
+
+- falta en `guest_aliases_by_guest` un alias presente en `guests.aliases` cuyo
+  mapping canónico en `guest_aliases` apunta al mismo guest
+- existe en `guest_aliases_by_guest` un alias cuyo mapping canónico apunta a
+  otro guest
+- existe en `guest_aliases_by_guest` un alias asociado a un guest absorbido
+- existe una fila inversa que ya no está representada en `guests.aliases`
+
+La reparación explícita se ejecuta con:
+
+`tsx scripts/repair-guest-aliases-by-guest.ts --hotel=hotel999`
+
+Por defecto opera en dry-run. Para aplicar cambios sobre la proyección:
+
+`tsx scripts/repair-guest-aliases-by-guest.ts --hotel=hotel999 --apply`
+
+La reparación:
+
+- reconstruye desde `guests.aliases`
+- valida cada alias contra `guest_aliases`
+- inserta sólo aliases cuyo mapping canónico apunta al guest
+- remueve filas inversas contradictorias o asociadas a guests absorbidos
+- no modifica `guest_aliases`
+- no modifica `guests`
+- no modifica `conversations`
+- no modifica `messages`
+
+Si la reparación falla, el estado canónico sigue siendo el definido por
+`guest_aliases`, `guests.aliases`, `conversations` y `messages`. La falla debe
+tratarse como deuda operativa de read model, no como falla de identidad
+canónica.
 
 ## 6. Impacto en arquitectura
 

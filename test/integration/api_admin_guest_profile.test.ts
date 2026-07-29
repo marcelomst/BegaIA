@@ -230,6 +230,48 @@ describe("/api/admin/guest-profile (integration)", () => {
     aliasSpy.mockRestore();
   });
 
+  it("muestra perfil consolidado desde guests.aliases aunque guest_aliases_by_guest esté incompleta", async () => {
+    const guestCol = getCollection("guests");
+    const convCol = getCollection("conversations");
+
+    await guestCol.insertOne({
+      guestId: "guest-profile-incomplete-reverse-1",
+      hotelId: "hotel999",
+      name: "Martin",
+      aliases: ["web:profile-demo-1", "whatsapp:+59866666666", "email:profile-demo@example.com"],
+      createdAt: "2026-03-06T06:30:00.000Z",
+      updatedAt: "2026-03-06T06:31:00.000Z",
+      mode: "automatic",
+    });
+
+    for (const [conversationId, channel] of [
+      ["conv-profile-incomplete-web-1", "web"],
+      ["conv-profile-incomplete-wa-1", "whatsapp"],
+      ["conv-profile-incomplete-email-1", "email"],
+    ]) {
+      await convCol.insertOne({
+        conversationId,
+        hotelId: "hotel999",
+        channel,
+        guestId: "guest-profile-incomplete-reverse-1",
+        startedAt: "2026-03-06T06:32:00.000Z",
+        lastUpdatedAt: "2026-03-06T06:35:00.000Z",
+        lang: "es",
+        status: "active",
+      });
+    }
+
+    const r = await adminGuestProfileGET(
+      makeReq({ hotelId: "hotel999", guestId: "guest-profile-incomplete-reverse-1" }),
+    );
+    expect(r.ok).toBe(true);
+
+    const json = await r.json();
+    expect(json.aliases).toHaveLength(3);
+    expect(json.channels).toEqual(expect.arrayContaining(["web", "whatsapp", "email"]));
+    expect(json.conversationCount).toBe(3);
+  });
+
   it("prioriza el documento real más completo cuando existen duplicados con el mismo guestId", async () => {
     const guestCol = getCollection("guests");
 

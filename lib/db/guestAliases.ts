@@ -240,6 +240,24 @@ export async function reassignGuestAlias(input: {
   });
 }
 
+export async function reassignGuestAliasForMerge(input: {
+  hotelId: string;
+  alias: string;
+  primaryGuestId: string;
+}): Promise<void> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const alias = normalizeGuestAlias(input.alias);
+  const primaryGuestId = String(input.primaryGuestId ?? "").trim();
+  if (!hotelId || !alias || !primaryGuestId) return;
+
+  await insertGuestAlias({
+    hotelId,
+    alias,
+    guestId: primaryGuestId,
+    createdAt: new Date(),
+  });
+}
+
 export async function removeGuestAliasFromReverseLookup(input: {
   hotelId: string;
   guestId: string;
@@ -250,4 +268,22 @@ export async function removeGuestAliasFromReverseLookup(input: {
   const alias = normalizeGuestAlias(input.alias);
   if (!hotelId || !guestId || !alias) return;
   await deleteGuestAliasByGuest({ hotelId, guestId, alias });
+}
+
+export async function upsertGuestAliasReverseLookup(input: {
+  hotelId: string;
+  guestId: string;
+  alias: string;
+  createdAt?: Date;
+}): Promise<void> {
+  const hotelId = String(input.hotelId ?? "").trim();
+  const guestId = String(input.guestId ?? "").trim();
+  const alias = normalizeGuestAlias(input.alias);
+  if (!hotelId || !guestId || !alias) return;
+  await insertGuestAliasByGuest({
+    hotelId,
+    guestId,
+    alias,
+    createdAt: input.createdAt ?? new Date(),
+  });
 }

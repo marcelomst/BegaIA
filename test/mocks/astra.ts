@@ -34,19 +34,51 @@ class InMemoryCollection {
       toArray: async () => this.findMany(filter),
     };
   }
+  private matches(d: Doc, filter: Partial<Doc>) {
+    for (const [k, v] of Object.entries(filter)) if (d[k] !== v) return false;
+    return true;
+  }
+  private applySetPatch(base: Doc, patch: Doc) {
+    const next = structuredClone(base);
+    for (const [key, value] of Object.entries(patch)) {
+      const parts = key.split(".");
+      let target = next;
+      for (let i = 0; i < parts.length - 1; i += 1) {
+        const part = parts[i];
+        const current = target[part];
+        if (!current || typeof current !== "object" || Array.isArray(current)) {
+          target[part] = {};
+        }
+        target = target[part];
+      }
+      target[parts[parts.length - 1]] = value;
+    }
+    return next;
+  }
+  private applyUpdate(base: Doc, update: Partial<Doc>) {
+    const asAny = update as any;
+    const setPatch = asAny?.$set && typeof asAny.$set === "object" ? asAny.$set : null;
+    return setPatch ? this.applySetPatch(base, setPatch) : { ...base, ...update };
+  }
   async updateOne(filter: Partial<Doc>, update: Partial<Doc>) {
     for (const [id, d] of this.data.entries()) {
-      let ok = true;
-      for (const [k, v] of Object.entries(filter)) if (d[k] !== v) { ok = false; break; }
-      if (ok) {
-        const asAny = update as any;
-        const setPatch = asAny?.$set && typeof asAny.$set === "object" ? asAny.$set : null;
-        const nd = setPatch ? { ...d, ...setPatch } : { ...d, ...update };
-        this.data.set(id, nd);
+      if (this.matches(d, filter)) {
+        this.data.set(id, this.applyUpdate(d, update));
         return { acknowledged: true, matchedCount: 1, modifiedCount: 1, upsertedId: null };
       }
     }
     return { acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedId: null };
+  }
+  async updateMany(filter: Partial<Doc>, update: Partial<Doc>) {
+    let matchedCount = 0;
+    let modifiedCount = 0;
+    for (const [id, d] of this.data.entries()) {
+      if (!this.matches(d, filter)) continue;
+      matchedCount += 1;
+      this.data.set(id, this.applyUpdate(d, update));
+      modifiedCount += 1;
+    }
+    return { acknowledged: true, matchedCount, modifiedCount, upsertedCount: 0, upsertedId: null };
   }
   async upsert(filter: Partial<Doc>, update: Partial<Doc>) {
     const found = await this.findOne(filter);
@@ -85,6 +117,23 @@ export async function getAstraCollection(name: string) {
   return getCollection(name);
 }
 
+type CassandraFailureMode =
+  | "insert_guest_aliases"
+  | "insert_guest_aliases_by_guest"
+  | "delete_guest_aliases_by_guest";
+
+const cassandraFailures: Partial<Record<CassandraFailureMode, string[]>> = {};
+
+export function failNextCassandraExecute(mode: CassandraFailureMode, message: string) {
+  cassandraFailures[mode] = [...(cassandraFailures[mode] || []), message];
+}
+
+function maybeFailCassandraExecute(mode: CassandraFailureMode) {
+  const failures = cassandraFailures[mode];
+  const message = failures?.shift();
+  if (message) throw new Error(message);
+}
+
 function toCqlRow(doc: Doc | null) {
   if (!doc) return null;
   return {
@@ -111,6 +160,7 @@ export function getMockCassandraClient() {
           };
         }
         if (q.trim().startsWith("insert")) {
+          maybeFailCassandraExecute("insert_guest_aliases_by_guest");
           const [hotelId, guestId, alias, createdAt] = params;
           await col.upsert(
             { hotelid: hotelId, guestid: guestId, alias },
@@ -122,6 +172,7 @@ export function getMockCassandraClient() {
           };
         }
         if (q.trim().startsWith("delete")) {
+          maybeFailCassandraExecute("delete_guest_aliases_by_guest");
           const [hotelId, guestId, alias] = params;
           const rows = await col.findMany({ hotelid: hotelId, guestid: guestId, alias });
           for (const row of rows) {
@@ -154,6 +205,7 @@ export function getMockCassandraClient() {
           };
         }
         if (q.trim().startsWith("insert")) {
+          maybeFailCassandraExecute("insert_guest_aliases");
           const [hotelId, alias, guestId, createdAt] = params;
           await col.upsert(
             { hotelid: hotelId, alias },

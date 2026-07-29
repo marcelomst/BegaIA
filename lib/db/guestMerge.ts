@@ -4,8 +4,7 @@ import { getAstraDB } from "@/lib/astra/connection";
 import { createGuest, getGuest, updateGuest } from "@/lib/db/guests";
 import {
   getGuestAliasesByGuestId,
-  reassignGuestAlias,
-  removeGuestAliasFromReverseLookup,
+  reassignGuestAliasForMerge,
 } from "@/lib/db/guestAliases";
 import type { Guest } from "@/types/channel";
 
@@ -43,16 +42,9 @@ function aliasCandidatesFromGuestId(guestId: string): string[] {
   return [];
 }
 
-async function findAllByFilter(col: any, filter: Record<string, unknown>): Promise<any[]> {
-  if (typeof col?.find === "function") {
-    const cursor = await col.find(filter);
-    if (Array.isArray(cursor)) return cursor;
-    return await (cursor?.toArray?.() ?? []);
-  }
-  if (typeof col?.findMany === "function") {
-    return await col.findMany(filter);
-  }
-  return [];
+function matchedCountOf(result: unknown): number {
+  const value = (result as { matchedCount?: unknown } | null)?.matchedCount;
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function isMergedGuest(guest: Guest | null): boolean {
@@ -107,9 +99,13 @@ export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeG
   if (!primaryGuestId || !secondaryGuestId) throw new Error("primaryGuestId and secondaryGuestId are required");
   if (primaryGuestId === secondaryGuestId) throw new Error("primaryGuestId and secondaryGuestId must be different");
 
-  const [primaryRaw, secondaryRaw] = await Promise.all([
-    getGuest(hotelId, primaryGuestId),
-    getGuest(hotelId, secondaryGuestId),
+  const primaryRawPromise = getGuest(hotelId, primaryGuestId);
+  const secondaryRawPromise = getGuest(hotelId, secondaryGuestId);
+  const secondaryAliasesFromTablePromise = safeGetAliasesByGuestId({ hotelId, guestId: secondaryGuestId });
+  const [primaryRaw, secondaryRaw, secondaryAliasesFromTable] = await Promise.all([
+    primaryRawPromise,
+    secondaryRawPromise,
+    secondaryAliasesFromTablePromise,
   ]);
 
   const [primary, secondary] = await Promise.all([
@@ -119,13 +115,7 @@ export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeG
 
   if (isMergedGuest(secondary)) throw new Error("secondary guest is already merged");
 
-  const [primaryAliasesFromTable, secondaryAliasesFromTable] = await Promise.all([
-    safeGetAliasesByGuestId({ hotelId, guestId: primaryGuestId }),
-    safeGetAliasesByGuestId({ hotelId, guestId: secondaryGuestId }),
-  ]);
-
   const primaryAliasSet = new Set([
-    ...primaryAliasesFromTable,
     ...(Array.isArray(primary.aliases) ? primary.aliases.map((a) => normalizeText(a)).filter(Boolean) : []),
     ...aliasCandidatesFromGuestId(primaryGuestId),
   ]);
@@ -135,51 +125,45 @@ export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeG
     ...aliasCandidatesFromGuestId(secondaryGuestId),
   ]);
 
-  let movedAliases = 0;
+  const movedAliasCount = secondaryAliases.filter((alias) => !primaryAliasSet.has(alias)).length;
+  await Promise.all(
+    secondaryAliases.map((alias) =>
+      reassignGuestAliasForMerge({
+        hotelId,
+        alias,
+        primaryGuestId,
+      }),
+    ),
+  );
   for (const alias of secondaryAliases) {
-    try {
-      await reassignGuestAlias({ hotelId, alias, guestId: primaryGuestId });
-      await removeGuestAliasFromReverseLookup({ hotelId, guestId: secondaryGuestId, alias });
-    } catch {
-      // El read-path admin debe seguir consolidando aunque la proyección CQL falle.
-    }
-    if (!primaryAliasSet.has(alias)) movedAliases += 1;
     primaryAliasSet.add(alias);
   }
 
   const db = getAstraDB();
   const convCol = db.collection<any>(CONVERSATIONS_COLLECTION);
   const msgCol = db.collection<any>(MESSAGES_COLLECTION);
+  const mergedAt = new Date().toISOString();
 
-  const secondaryConvs = await findAllByFilter(convCol, { hotelId, guestId: secondaryGuestId });
-  for (const conv of secondaryConvs) {
-    await convCol.updateOne(
-      { conversationId: conv.conversationId },
-      {
-        $set: {
-          guestId: primaryGuestId,
-          lastUpdatedAt: new Date().toISOString(),
-          metadata: {
-            ...(conv.metadata || {}),
-            guestMerge: {
-              mergedAt: new Date().toISOString(),
-              mergedBy,
-              fromGuestId: secondaryGuestId,
-              toGuestId: primaryGuestId,
-            },
-          },
+  const conversationsUpdate = await convCol.updateMany(
+    { hotelId, guestId: secondaryGuestId },
+    {
+      $set: {
+        guestId: primaryGuestId,
+        lastUpdatedAt: mergedAt,
+        "metadata.guestMerge": {
+          mergedAt,
+          mergedBy,
+          fromGuestId: secondaryGuestId,
+          toGuestId: primaryGuestId,
         },
       },
-    );
-  }
+    },
+  );
 
-  const secondaryMsgs = await findAllByFilter(msgCol, { hotelId, guestId: secondaryGuestId });
-  for (const msg of secondaryMsgs) {
-    await msgCol.updateOne(
-      { _id: msg._id ?? msg.messageId },
-      { $set: { guestId: primaryGuestId, updatedAt: new Date().toISOString() } },
-    );
-  }
+  const messagesUpdate = await msgCol.updateMany(
+    { hotelId, guestId: secondaryGuestId },
+    { $set: { guestId: primaryGuestId, updatedAt: mergedAt } },
+  );
 
   const mergedIds = unique([
     ...(Array.isArray(primary.mergedIds) ? primary.mergedIds : []),
@@ -211,8 +195,8 @@ export async function mergeGuestsManual(input: MergeGuestsInput): Promise<MergeG
   return {
     primaryGuestId,
     secondaryGuestId,
-    movedAliases,
-    updatedConversations: secondaryConvs.length,
-    updatedMessages: secondaryMsgs.length,
+    movedAliases: movedAliasCount,
+    updatedConversations: matchedCountOf(conversationsUpdate),
+    updatedMessages: matchedCountOf(messagesUpdate),
   };
 }
