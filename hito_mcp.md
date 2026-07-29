@@ -12046,3 +12046,68 @@ Impacto:
 - mantiene accesibilidad, visibilidad de estado y acciones críticas
 - mejora la operabilidad con jerarquía de información más compacta
 - no altera contratos funcionales, runtime, persistencia ni APIs
+
+### FIX-ADMIN-GUEST-MERGE-UPDATE-MANY-LATENCY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-07-29  
+Commit: a5f33ea84118483fe3d6ecda262b1a8089c465c6
+Clasificacion documental: IDENTITY_PROJECTION_PERFORMANCE
+
+Descripcion:
+
+Fix técnico de performance y frontera canónica sobre el merge manual de
+huéspedes en Admin. Conserva `guest_aliases` y `guests.aliases` como fuentes
+canónicas bloqueantes, mantiene `updateMany` para `conversations/messages`,
+retira `guest_aliases_by_guest` del camino síncrono y deja la proyección
+inversa como read model reparable mediante script explícito e idempotente.
+
+Archivos afectados:
+
+- `docs/architecture/guest_identity_model.md`
+- `lib/db/guestAliases.ts`
+- `lib/db/guestMerge.ts`
+- `scripts/repair-guest-aliases-by-guest.ts`
+- `test/integration/api_admin_conversations.test.ts`
+- `test/integration/api_admin_guest_profile.test.ts`
+- `test/integration/api_admin_guests_list.test.ts`
+- `test/integration/api_admin_guests_merge.test.ts`
+- `test/integration/repair_guest_aliases_by_guest.test.ts`
+- `test/mocks/astra.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `scope: ok`
+- `excluded_out_of_scope: ok`
+- `.npmrc` quedó fuera del commit como correspondía
+- tests reportados en verde:
+  `pnpm vitest run test/integration/api_admin_guests_merge.test.ts test/integration/api_admin_guests_list.test.ts test/integration/api_admin_guest_profile.test.ts test/integration/api_admin_conversations.test.ts test/integration/repair_guest_aliases_by_guest.test.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+  `pnpm test`
+- suite reportada:
+  `5 files / 32 tests pass`
+  `179 files / 984 tests pass`
+- evidencia manual reportada:
+  `merge_post_ms: 8610`
+  `refresh_admin_ms: 367`
+  `total_estimado_ms: 8977`
+  `merge_post_ms_anterior: 14526`
+  `total_busy_anterior: 14980`
+  `mejora_total_aprox_ms: 6003`
+  `mejora_porcentual_aprox: 40`
+  fuente: `chrome_devtools_network`
+- riesgos residuales:
+  si una etapa canónica tardía falla tras escrituras previas puede quedar estado parcialmente avanzado aunque el request responda error
+  `guest_aliases_by_guest` puede permanecer atrasada hasta ejecutar reparación explícita
+  la mejora de performance fue validada manualmente, no re-medida por Guardian
+
+Impacto:
+
+- reduce la latencia del merge manual de huéspedes
+- refuerza la separación entre identidad canónica y proyección secundaria
+- evita que una tabla inversa no canónica bloquee merges manuales
+- preserva consistencia operativa del Admin usando `guests.aliases` y `guestId` consolidado
