@@ -12111,3 +12111,56 @@ Impacto:
 - refuerza la separación entre identidad canónica y proyección secundaria
 - evita que una tabla inversa no canónica bloquee merges manuales
 - preserva consistencia operativa del Admin usando `guests.aliases` y `guestId` consolidado
+
+### DOC-PXSOL-BEGAIA-COMPETITIVE-ANALYSIS-V2-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-04  
+Commit: d1c7d3a442d306d0e7c78d47d219a81dd4241c4a
+Clasificacion documental: DOCUMENTATION_ONLY
+
+Descripcion:
+
+Documento estratégico de referencia que compara PXSol general, el caso observado
+Sunset Beach, BegaIA actual y BegaIA destino documentado. Es un insumo interno
+no normativo, sensible al tiempo, para discovery comercial, revisión de claims
+y ajuste futuro de materiales de demo y posicionamiento.
+
+Archivos afectados:
+
+- `docs/product/pxsol_begaia_competitive_analysis.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `diff_scope: ok`
+- `post_commit_worktree: preexisting_noise_only`
+- `.npmrc` quedó fuera del hito como ruido local preexistente
+- validaciones documentales reportadas:
+  `path_comment: ok`
+  `section_count: 26`
+  `matrix_rows: 92`
+  `forbidden_claims_check: ok`
+  `external_urls_utm: ok`
+  `diff_against_dev_null: 1 file changed, 471 insertions(+)`
+- categorías de evidencia presentes:
+  `OFICIAL_PXSOL`
+  `OBSERVADO_SUNSET_BEACH`
+  `CANONICO_BEGAIA`
+  `DEMOSTRADO_BEGAIA`
+  `DESTINO_DOCUMENTADO_BEGAIA`
+  `INFERENCIA_TECNICA`
+  `DECLARACION_COMERCIAL_NO_VERIFICADA`
+  `DESCONOCIDO`
+- notas residuales:
+  `.npmrc` permanece modificado en working tree fuera de este hito
+  no requiere actualización obligatoria de README ni índices en este mismo hito
+
+Impacto:
+
+- incorpora una referencia estratégica comparativa para uso interno
+- no modifica automáticamente roadmap, arquitectura ni claims canónicos
+- preserva el carácter no normativo del análisis
+- deja trazabilidad suficiente para revisión comercial y preparación de demos futuras
