@@ -12200,3 +12200,38 @@ Impacto:
 - no introduce reglas canónicas nuevas ni modifica arquitectura
 - preserva el carácter no normativo y de referencia temporal del documento
 - sirve como insumo para discovery comercial y ajuste futuro de materiales
+
+### COM-03-REFRAME-NARRATIVE-CAPABILITIES-DEMO-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-07  
+Commit: 1710f10fd5a42910a00caa594ede78b8e96a1c8a
+Clasificacion documental: DOCUMENTATION_ONLY
+
+Descripcion:
+
+Hito documental de producto/comercial que reencuadra COM-03 alrededor de
+operaciones gobernadas. Ajusta la narrativa base, el capability map y la
+selección de demos para reforzar consistencia comercial y posicionamiento
+sin introducir cambios normativos sobre arquitectura, runtime o contratos técnicos.
+
+Archivos afectados:
+
+- `docs/product/presentation_capability_map.md`
+- `docs/product/presentation_narrative_base.md`
+- `docs/product/presentation_use_cases_demo_selection.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- working tree posterior reportado como `clean`
+- `runtime_map.applies: false`
+- alcance confirmado como documental puro sobre tres archivos de producto
+- no hay evidencia de mezcla con código, tests, arquitectura, índices ni otros documentos
+
+Impacto:
+
+- reencuadra COM-03 sobre la noción de operaciones gobernadas
+- alinea narrativa, mapa de capacidades y selección de demos
+- refuerza consistencia comercial sin tocar arquitectura ni runtime
+- mantiene el carácter documental y no normativo del cambio
