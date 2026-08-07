@@ -520,13 +520,15 @@ Desde el primer turno, la idea es mostrar una experiencia cercana, pero gobernad
 <p class="claim-text">Concierge digital especializado en hotelería.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="2" data-speech="2.1
-Empiezo con una consulta frecuente, que representa una parte muy concreta del trabajo diario de recepción.
+Hago dos checks conversacionales rápidos: una FAQ simple y una exploración visual de habitaciones.
 
-Horarios y condiciones del hotel suelen repetirse muchas veces. BegaIA puede responder ese tipo de preguntas de forma breve, consistente y alineada con la información configurada por el hotel.
+No los presento como el diferencial principal de la demo. Sirven para mostrar que BegaIA puede conversar de forma natural antes de entrar en operaciones sensibles.
 2.2
-El valor no está solo en responder rápido. También está en responder siempre con el mismo criterio, sin improvisar ni depender de quién esté atendiendo en ese momento." data-title="2. FAQ breve" type="button">2. FAQ breve</button></h2>
+La consulta de habitaciones permite mostrar inventario visual sin markdown crudo. Es útil comercialmente, pero en esta versión queda como contexto: el mensaje central es que BegaIA conversa naturalmente y opera bajo reglas.
+
+Por eso avanzo rápido hacia disponibilidad, reserva, confirmación, identidad y modificación gobernada." data-title="2. Setup conversacional breve: FAQ + habitaciones" type="button">2. Setup conversacional breve: FAQ + habitaciones</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
-<p>Mostrar una consulta frecuente simple.</p>
+<p>Mostrar una FAQ y una exploración visual breve sin convertirlas en el foco de la demo.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
 <div class="copy-card">
 <div class="copy-head guest-head">
@@ -536,45 +538,31 @@ El valor no está solo en responder rápido. También está en responder siempre
 <pre class="guest-text" id="copy-3"><code>¿A qué hora es el check-in?</code></pre>
 </div>
 <p class="label"><strong>ESPERADO::</strong></p>
-<p>speech 2.2.</p>
 <p>Responde que el check-in comienza a las 15:00.</p>
-<p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">BegaIA responde consultas frecuentes de forma breve y controlada.</p>
-<hr/>
-<h2><button class="scene-title-btn" data-scene="3" data-speech="3.1
-Paso a una experiencia más visual.
-
-Cuando un huésped pregunta por habitaciones, muchas veces no alcanza con una respuesta textual. Quiere ver opciones, comparar y entender qué tipo de habitación le conviene.
-3.2
-BegaIA puede presentar habitaciones con imágenes y características principales, acercando la conversación a una experiencia de decisión más parecida a la hotelería real.
-
-Esto ayuda a que la consulta no quede en un intercambio plano de mensajes: el huésped empieza a explorar opciones de manera más natural antes de avanzar hacia disponibilidad o reserva." data-title="3. Exploración visual de habitaciones" type="button">3. Exploración visual de habitaciones</button></h2>
-<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
-<p>Mostrar que el huésped puede explorar habitaciones con fotos antes de reservar.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
 <div class="copy-card">
 <div class="copy-head guest-head">
 <span>GUEST</span>
-<button onclick="copyText('copy-5', this)" type="button">Copiar</button>
+<button onclick="copyText('copy-4', this)" type="button">Copiar</button>
 </div>
-<pre class="guest-text" id="copy-5"><code>mostrame habitaciones</code></pre>
+<pre class="guest-text" id="copy-4"><code>mostrame habitaciones</code></pre>
 </div>
 <p class="label"><strong>ESPERADO::</strong></p>
-<p>speech 3.2.</p>
-<p>Debe mostrar cards/imágenes de habitaciones.</p>
-<p class="label"><strong>DEBE VERSE::</strong></p>
-<p>Single Standard, Doble, Twin, Triple. Sin markdown crudo.</p>
+<p>speech 2.2.</p>
+<p>Debe mostrar cards/imágenes de habitaciones: Single Standard, Doble, Twin y Triple. Sin markdown crudo.</p>
+<p class="label"><strong>NOTA DEMO::</strong></p>
+<p>Si el tiempo aprieta, esta escena puede mostrarse como evidencia breve o usarse como backup visual. No debe desplazar identidad, guards ni confirmación explícita.</p>
 <p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">El huésped puede explorar opciones visuales antes de avanzar hacia disponibilidad o reserva.</p>
+<p class="claim-text">BegaIA sostiene una conversación hotelera natural y puede enriquecerla visualmente, antes de pasar a operaciones gobernadas.</p>
 <hr/>
-<h2><button class="scene-title-btn" data-scene="4" data-speech="4.1
-La siguiente escena muestra una frontera importante: consultar disponibilidad no es lo mismo que reservar.
-4.2
-El huésped puede estar explorando fechas, precios o tipos de habitación. En ese caso, BegaIA informa disponibilidad y tarifa, pero no crea una reserva antes de que el huésped lo pida explícitamente.
+<h2><button class="scene-title-btn" data-scene="3" data-speech="3.1
+La siguiente escena marca una frontera importante: consultar disponibilidad no es lo mismo que reservar.
 
+El huésped puede estar explorando fechas, precios o tipos de habitación. En ese caso, BegaIA informa disponibilidad y tarifa, pero no crea una reserva antes de que el huésped lo pida explícitamente.
+3.2
 Esta diferencia es central para una operación responsable. Una cosa es responder al huésped; otra es registrar datos que afectan la gestión del hotel.
 
-El sistema guía, pero no ejecuta acciones sensibles antes de tiempo." data-title="4. Disponibilidad sin reserva prematura" type="button">4. Disponibilidad sin reserva prematura</button></h2>
+El sistema guía, pero no ejecuta acciones sensibles antes de tiempo." data-title="3. Disponibilidad: consultar no es reservar" type="button">3. Disponibilidad: consultar no es reservar</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Mostrar disponibilidad sin crear reserva todavía.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
@@ -586,7 +574,7 @@ El sistema guía, pero no ejecuta acciones sensibles antes de tiempo." data-titl
 <pre class="guest-text" id="copy-6"><code>Quiero saber si tienen disponibilidad del 14 al 16 de agosto para dos personas.</code></pre>
 </div>
 <p class="label"><strong>ESPERADO::</strong></p>
-<p>speech 4.2.</p>
+<p>speech 3.2.</p>
 <p>Puede pedir tipo de habitación.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
 <div class="copy-card">
@@ -600,6 +588,21 @@ El sistema guía, pero no ejecuta acciones sensibles antes de tiempo." data-titl
 <p>Debe informar disponibilidad de doble, tarifa por noche y total. No debe confirmar reserva.</p>
 <p class="label claim-label"><strong>CLAIM::</strong></p>
 <p class="claim-text">BegaIA distingue disponibilidad exploratoria de reserva. No crea reserva antes de que el huésped lo pida.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="4" data-speech="4.1
+Este es el giro narrativo de la demo.
+
+Hasta acá vimos que BegaIA conversa bien: saluda, responde, muestra habitaciones y consulta disponibilidad.
+4.2
+Pero el producto no se define solo por responder. El punto fuerte es separar conversación de ejecución: puede interpretar lenguaje natural, pero las operaciones sensibles tienen reglas, estado, target, preview y confirmación.
+
+Desde este momento la demo deja de ser “mirá cómo responde” y pasa a ser “mirá cómo opera sin perder gobierno”." data-title="4. Giro narrativo: responder no es operar" type="button">4. Giro narrativo: responder no es operar</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Hacer una pausa breve y explicitar el cambio de foco antes de crear reservas.</p>
+<p class="label"><strong>NARRATIVA::</strong></p>
+<p>speech 4.2.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">La conversación puede ser natural, pero la ejecución operativa está gobernada.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="5" data-speech="5.1
 Muestro una reserva desde Web con un detalle muy frecuente en hotelería.
@@ -633,7 +636,7 @@ BegaIA no debería ejecutar una acción sensible solo porque detectó intención
 
 Recién después de esa confirmación se registra la reserva.
 6.2
-Este patrón es uno de los puntos centrales del producto: la IA ayuda a operar, pero dentro de un flujo gobernado. No se trata de automatizar a ciegas, sino de reducir fricción sin perder control." data-title="6. Confirmación explícita Web" type="button">6. Confirmación explícita Web</button></h2>
+Este patrón es uno de los puntos centrales del producto: la IA ayuda a operar, pero dentro de un flujo gobernado. No se trata de automatizar a ciegas, sino de reducir fricción sin perder control." data-title="6. Propuesta + confirmación explícita" type="button">6. Propuesta + confirmación explícita</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Confirmar la reserva Web de Laura Gómez.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
@@ -651,68 +654,74 @@ Este patrón es uno de los puntos centrales del producto: la IA ayuda a operar, 
 <p class="claim-text">BegaIA no ejecuta una acción sensible sin confirmación explícita.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="7" data-speech="7.1
-Después de confirmar, pido ver la reserva.
+Ahora pruebo un guard simple pero muy importante: enviar solamente “sí” cuando ya no hay una propuesta pendiente.
 
-La conversación no vuelve a cero. BegaIA conserva el contexto suficiente para recuperar la reserva recién creada y mostrar un resumen.
+En una conversación natural, “sí” puede ser una respuesta válida. Pero en una operación hotelera no puede convertirse automáticamente en autorización si no existe una acción sensible pendiente y bien identificada.
 7.2
-Esto se parece más a una conversación con recepción: primero consulto, después reservo, luego reviso o hago seguimiento.
+El comportamiento esperado es que BegaIA no cree, modifique ni cancele nada. Puede responder de forma natural o preguntar qué quiere hacer el huésped, pero no debe interpretar ese “sí” como permiso operativo.
 
-La continuidad es parte del valor, porque el huésped no tiene que repetir todo en cada turno." data-title="7. Follow-up Web" type="button">7. Follow-up Web</button></h2>
+Este ejemplo resume el principio: interpretación lingüística no equivale a autorización operacional." data-title="7. Guard: “sí” sin propuesta válida" type="button">7. Guard: “sí” sin propuesta válida</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
-<p>Mostrar continuidad conversacional de la reserva recién creada.</p>
+<p>Enviar “sí” después de la reserva confirmada, cuando no debería existir una propuesta operativa pendiente.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
 <div class="copy-card">
 <div class="copy-head guest-head">
 <span>GUEST</span>
 <button onclick="copyText('copy-10', this)" type="button">Copiar</button>
 </div>
-<pre class="guest-text" id="copy-10"><code>mostrame mi reserva</code></pre>
+<pre class="guest-text" id="copy-10"><code>sí</code></pre>
 </div>
 <p class="label"><strong>ESPERADO::</strong></p>
 <p>speech 7.2.</p>
-<p>Debe mostrar resumen de la reserva de Laura Gómez: código, estado activa, habitación doble, fechas y huéspedes.</p>
+<p>No debe crear, confirmar, modificar ni cancelar ninguna reserva. Debe responder sin ejecutar una acción sensible o pedir aclaración.</p>
 <p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">La conversación no empieza de cero en cada turno.</p>
+<p class="claim-text">BegaIA separa comprensión conversacional de autorización operativa.</p>
 <hr/>
-<h2><button class="scene-title-btn" data-scene="8" data-speech="Paso al panel de administración, donde se ve la otra mitad del producto: el control operativo del hotel.
+<h2><button class="scene-title-btn" data-scene="8" data-speech="8.1
+Después del guard, pido ver la reserva.
 
-El hotel no tiene que elegir entre todo automático o todo manual. Puede definir el comportamiento por canal: Web, WhatsApp o Email pueden operar en automático o con supervisión, según la política del hotel.
+La conversación no vuelve a cero. BegaIA conserva el contexto suficiente para recuperar la reserva recién creada y mostrar un resumen.
+8.2
+Esto se parece más a una conversación con recepción: primero consulto, después reservo, luego pruebo que una respuesta ambigua no ejecuta nada y finalmente reviso el estado.
 
-Además, la supervisión también puede aplicarse a nivel de huésped. Por ejemplo, si hay una negociación importante, una reserva corporativa o un seguimiento comercial sensible, el hotel puede mantener ese caso bajo revisión más cercana sin cambiar necesariamente toda la operación del canal.
-
-La idea es que BegaIA combine automatización con gobierno humano, no que quite control a recepción." data-title="8. Admin Channels" type="button">8. Admin Channels</button></h2>
+La continuidad vale porque el huésped no tiene que repetir todo en cada turno, y el hotel conserva trazabilidad de lo que sí fue confirmado." data-title="8. Follow-up Web" type="button">8. Follow-up Web</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
-<p>Ir al panel Admin y abrir Channels.</p>
-<p class="label"><strong>MOSTRAR::</strong></p>
-<p>Modos por canal: Web, WhatsApp, Email.<br/>Mostrar Channel Manager como integración transaccional.<br/>Mostrar badges de automático/supervisado/no configurado.</p>
-<p class="label"><strong>ESPERADO::</strong></p>
-<p>Se entiende que el hotel puede graduar automatización por canal.</p>
-<p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">El hotel puede graduar automatización por canal y también puede supervisar a nivel de guest si necesita mayor control.</p>
-<hr/>
-<h2><button class="scene-title-btn" data-scene="9" data-speech="En esta vista muestro cómo recepción puede ver el contexto visual que recibió el huésped.
-
-Si el huésped pidió habitaciones, el panel no debería mostrar únicamente texto plano. También puede mostrar la respuesta enriquecida con imágenes y opciones.
-
-Esto ayuda al equipo del hotel a entender mejor la conversación y a intervenir con más contexto si hace falta.
-
-El panel empieza a funcionar como una consola operativa, no solamente como una bandeja de mensajes." data-title="9. Admin preview visual" type="button">9. Admin preview visual</button></h2>
-<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
-<p>En Admin Inbox, abrir la conversación donde el huésped pidió habitaciones.</p>
-<p class="label"><strong>REFERENCIA DEL MENSAJE::</strong></p>
+<p>Mostrar continuidad conversacional de la reserva recién creada.</p>
+<p class="label guest-label"><strong>GUEST::</strong></p>
 <div class="copy-card">
-<div class="copy-head">
-<span>REFERENCIA DEL MENSAJE</span>
+<div class="copy-head guest-head">
+<span>GUEST</span>
 <button onclick="copyText('copy-11', this)" type="button">Copiar</button>
 </div>
-<pre id="copy-11"><code>mostrame habitaciones</code></pre>
+<pre class="guest-text" id="copy-11"><code>mostrame mi reserva</code></pre>
 </div>
 <p class="label"><strong>ESPERADO::</strong></p>
-<p>Admin debe mostrar preview visual en grilla con habitaciones e imágenes.</p>
-<p class="label"><strong>DEBE VERSE::</strong></p>
-<p>Single Standard, Doble, Twin, Triple.</p>
+<p>speech 8.2.</p>
+<p>Debe mostrar resumen de la reserva de Laura Gómez: código, estado activa, habitación doble, fechas y huéspedes.</p>
 <p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">Recepción también puede ver contexto visual, no solamente texto.</p>
+<p class="claim-text">La conversación no empieza de cero en cada turno y conserva trazabilidad de operaciones confirmadas.</p>
+<hr/>
+<h2><button class="scene-title-btn" data-scene="9" data-speech="9.1
+Paso al panel de administración, donde se ve la otra mitad del producto: control operativo para el hotel.
+
+El hotel no tiene que elegir entre todo automático o todo manual. Puede definir comportamiento por canal: Web, WhatsApp o Email pueden operar en automático o con supervisión, según la política del hotel.
+9.2
+También puede supervisar a nivel de huésped cuando un caso requiere más cuidado: una negociación importante, una reserva corporativa o una conversación sensible.
+
+Si hay tiempo, se puede mostrar que recepción ve la conversación y el contexto visual de habitaciones. Pero ese es apoyo de demo, no el diferencial central.
+
+La idea es que BegaIA combine automatización con gobierno humano, no que quite control a recepción." data-title="9. Admin: control y supervisión" type="button">9. Admin: control y supervisión</button></h2>
+<p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
+<p>Ir al panel Admin y abrir Channels. Mostrar modos por canal y, si aporta, una conversación reciente.</p>
+<p class="label"><strong>MOSTRAR::</strong></p>
+<p>Modos por canal: Web, WhatsApp, Email.<br/>Badges de automático/supervisado/no configurado.<br/>Supervisión por canal y mención prudente de supervisión por guest.</p>
+<p class="label"><strong>ESPERADO::</strong></p>
+<p>speech 9.2.</p>
+<p>Se entiende que el hotel puede graduar automatización y supervisión sin tocar el runtime conversacional durante la demo.</p>
+<p class="label"><strong>BACKUP VISUAL OPCIONAL::</strong></p>
+<p>Si el entorno está estable y hay tiempo, abrir el mensaje “mostrame habitaciones” en Admin Inbox para mostrar preview visual. No es escena principal.</p>
+<p class="label claim-label"><strong>CLAIM::</strong></p>
+<p class="claim-text">BegaIA permite automatización graduable con supervisión humana y trazabilidad administrativa.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="10" data-speech="Hasta este punto mostré Web como canal principal.
 
@@ -775,7 +784,7 @@ Una misma persona puede aparecer con variantes del nombre y por distintos canale
 
 La reserva de Email ya fue precargada antes de iniciar la demo. Como fue la primera reserva ingresada para este guest canónico, aparece primero en el snapshot consolidado.
 
-BegaIA no se presenta como un CRM completo. La forma prudente de explicarlo es como una capa conversacional y operativa que ayuda a asociar conversaciones, canales y reservas bajo una identidad operativa común." data-title="12. Admin Guests — conciliación de “Los Martin”" type="button">12. Admin Guests — conciliación de “Los Martin”</button></h2>
+BegaIA no se presenta como una suite CRM integral. La forma prudente de explicarlo es como una capa conversacional y operativa que ayuda a asociar conversaciones, canales y reservas bajo una identidad operativa común." data-title="12. Admin Guests — conciliación de “Los Martin”" type="button">12. Admin Guests — conciliación de “Los Martin”</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Ir a Admin Guests / Guest Profile. Buscar y conciliar las identidades correspondientes a “Los Martin”.</p>
 <p class="label"><strong>BUSCAR / VERIFICAR::</strong></p>
@@ -787,7 +796,7 @@ BegaIA no se presenta como un CRM completo. La forma prudente de explicarlo es c
 <p class="label"><strong>NOTA::</strong></p>
 <p>La reserva Email de Ana Rodríguez fue creada y confirmada antes del inicio del cronómetro. Durante la demo se utiliza como evidencia de conciliación con Martín P.</p>
 <p class="label claim-label"><strong>CLAIM::</strong></p>
-<p class="claim-text">El hotel puede ordenar identidad operativa cuando un huésped aparece por más de un canal. No se presenta como CRM completo.</p>
+<p class="claim-text">El hotel puede ordenar identidad operativa cuando un huésped aparece por más de un canal. No se presenta como una suite CRM integral.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="13" data-speech="Vuelvo al Widget Web y pido ver mis reservas.
 
@@ -819,7 +828,7 @@ Digo “la primera reserva” y el sistema debe resolver la referencia contra el
 
 Como la reserva Email de Ana Rodríguez fue la primera ingresada, esa es la reserva que debe seleccionar.
 
-Primero identifica el objetivo, después pregunta qué campo quiero cambiar y finalmente muestra una vista previa antes de ejecutar." data-title="14. Modify por ordinal" type="button">14. Modify por ordinal</button></h2>
+Primero identifica el objetivo, después pregunta qué campo quiero cambiar y finalmente muestra una vista previa antes de ejecutar." data-title="14. Modify por ordinal / target" type="button">14. Modify por ordinal / target</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Modificar la primera reserva usando ordinal. En este flujo, la primera reserva del guest Martin es la reserva Email precargada de Ana Rodríguez.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
@@ -861,7 +870,7 @@ Antes de aplicar la modificación, BegaIA muestra cómo estaba la reserva y cóm
 
 Ese preview es clave: el huésped entiende el cambio y el hotel evita modificaciones accidentales.
 
-De nuevo aparece el mismo principio: la IA acompaña la operación, pero las acciones sensibles pasan por identificación, vista previa y confirmación." data-title="15. Confirmación de modify" type="button">15. Confirmación de modify</button></h2>
+De nuevo aparece el mismo principio: la IA acompaña la operación, pero las acciones sensibles pasan por identificación, vista previa y confirmación." data-title="15. Preview + confirmación de modify" type="button">15. Preview + confirmación de modify</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Confirmar la modificación.</p>
 <p class="label guest-label"><strong>GUEST::</strong></p>
@@ -879,19 +888,19 @@ De nuevo aparece el mismo principio: la IA acompaña la operación, pero las acc
 <hr/>
 <h2><button class="scene-title-btn" data-scene="16" data-speech="Para cerrar, lo importante es no mirar esto como “un chat”.
 
-BegaIA es una capa de experiencia y operación para hotelería. Del lado del huésped, permite consultar, explorar habitaciones, reservar y continuar por distintos canales. Del lado del hotel, permite supervisar, ordenar conversaciones, revisar reservas y mantener trazabilidad.
+BegaIA es una capa de experiencia y operación para hotelería. Del lado del huésped, permite conversar de forma natural, consultar, explorar habitaciones, reservar y continuar por distintos canales. Del lado del hotel, permite supervisar, ordenar conversaciones, revisar reservas y mantener trazabilidad.
 
-La propuesta no es reemplazar la hospitalidad ni la operación humana. Es automatizar lo repetitivo, asistir lo operativo y conservar control donde hace falta.
+La propuesta no es sustituir la hospitalidad ni la operación humana. Es automatizar lo repetitivo, asistir lo operativo y conservar control donde hace falta.
 
-Por eso lo planteo como demo comercial y piloto controlado, no como despliegue masivo sin matices." data-title="16. Cierre comercial" type="button">16. Cierre comercial</button></h2>
+La frase de cierre es: conversaciones naturales, operaciones gobernadas. Por eso lo planteo como demo comercial y piloto controlado, no como despliegue masivo sin matices." data-title="16. Cierre: operaciones gobernadas" type="button">16. Cierre: operaciones gobernadas</button></h2>
 <p class="label"><strong>INSTRUCCIÓN BREVE::</strong></p>
 <p>Cerrar la demo con síntesis de valor.</p>
 <p class="label"><strong>NARRATIVA::</strong></p>
-<p>Lo que quise mostrar no es solo un chat. Es una capa de experiencia y operación: el huésped consulta, explora habitaciones, avanza hacia reserva y puede continuar por distintos canales; el hotel conserva control, supervisión y trazabilidad desde Admin.</p>
+<p>Lo que quise mostrar no es solo un chat. Es una capa de experiencia y operación: el huésped conversa naturalmente, consulta, explora habitaciones, avanza hacia reserva y puede continuar por distintos canales; el hotel conserva control, supervisión y trazabilidad desde Admin.</p>
 <p class="label claim-label"><strong>CLAIMS FINALES::</strong></p>
-<p class="claim-text">Concierge digital para hotelería.<br/>Experiencia visual previa a reserva.<br/>Reservas guiadas con confirmación.<br/>Control humano y automatización graduable.<br/>Operación multicanal controlada.<br/>Piloto controlado, no despliegue masivo sin matices.</p>
+<p class="claim-text">Conversaciones naturales. Operaciones gobernadas.<br/>Concierge digital para hotelería.<br/>Reservas guiadas con target y confirmación explícita.<br/>Control humano y automatización graduable.<br/>Operación multicanal controlada.<br/>Piloto controlado, no despliegue masivo sin matices.</p>
 <p class="label"><strong>FRASE FINAL::</strong></p>
-<p>Esto lo planteamos como demo comercial y piloto controlado, no como despliegue masivo sin matices.</p>
+<p>Conversaciones naturales. Operaciones gobernadas. Esto lo planteamos como demo comercial y piloto controlado, no como despliegue masivo sin matices.</p>
 <hr/>
 <h2><button class="scene-title-btn" data-scene="17" data-speech="Cierro la demostración con una despedida breve.
 
