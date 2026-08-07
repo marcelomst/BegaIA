@@ -12235,3 +12235,64 @@ Impacto:
 - alinea narrativa, mapa de capacidades y selección de demos
 - refuerza consistencia comercial sin tocar arquitectura ni runtime
 - mantiene el carácter documental y no normativo del cambio
+
+### COM-03-ALIGN-15MIN-COMMERCIAL-DEMO-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-07  
+Commit: c7333c58ef7e53475e9bef3102a5e5fbc2ab904a
+Clasificacion documental: SOLO_DOCUMENTACION_PRODUCTO
+
+Descripcion:
+
+Hito documental de producto/demo que alinea el asset HTML del demo comercial
+de 15 minutos con el framing de operaciones gobernadas. Ajusta la estructura
+de la demo y refuerza controles de yes-guard, identidad, multicanalidad,
+target, confirmación, supervisión, trazabilidad y claims sin introducir
+cambios de arquitectura, runtime ni contratos técnicos.
+
+Archivos afectados:
+
+- `docs/product/demo-assets/demo_comercial_15_min_begaia.html`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- working tree posterior reportado como `clean`
+- `runtime_map.applies: false`
+- `diff_scope: ok`
+- `scope_control: ok`
+- `COM03_alignment: ok`
+- `demo_structure_control: ok`
+- `yes_guard_control: ok`
+- `yes_guard_runtime_evidence: ok`
+- `identity_control: ok`
+- `multichannel_control: ok`
+- `target_control: ok`
+- `confirmation_control: ok`
+- `supervision_control: ok`
+- `traceability_control: ok`
+- `claims_control: ok`
+- `timing_control: ok`
+- `html_control: ok`
+- `javascript_control: ok`
+- `redundancy_review: ok`
+- validaciones ejecutadas reportadas:
+  `git status --short`
+  `git diff --check`
+  `git diff -- docs/product/demo-assets/demo_comercial_15_min_begaia.html`
+  `git diff --stat -- docs/product/demo-assets/demo_comercial_15_min_begaia.html`
+  `node --check <inline-script-extract>`
+  `git push`
+  `git rev-parse HEAD`
+  `git status --short`
+  `git log -1 --oneline`
+- diff reportado:
+  `1 file changed, 86 insertions(+), 77 deletions(-)`
+
+Impacto:
+
+- alinea el demo comercial de 15 minutos con el framing vigente de operaciones gobernadas
+- refuerza consistencia narrativa y controles comerciales del asset HTML
+- no toca runtime, arquitectura, tests ni índices
+- mantiene el cambio en el plano de documentación/producto
