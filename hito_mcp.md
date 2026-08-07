@@ -12164,3 +12164,39 @@ Impacto:
 - no modifica automáticamente roadmap, arquitectura ni claims canónicos
 - preserva el carácter no normativo del análisis
 - deja trazabilidad suficiente para revisión comercial y preparación de demos futuras
+
+### DOC-HOTEL-CONVERSATIONAL-MARKET-OBSERVATION-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-07  
+Commit: a5c2b8882b84d1494bb6874b1e1a6004d3670dc2
+Clasificacion documental: DOCUMENTATION_ONLY
+
+Descripcion:
+
+Documento estratégico de observación de mercado sobre el espacio de hotelería
+conversacional. Funciona como referencia interna no normativa y sensible al
+tiempo para apoyar discovery comercial, análisis competitivo, ajuste de
+posicionamiento y revisión futura de materiales de producto.
+
+Archivos afectados:
+
+- `docs/product/hotel_conversational_market_observation.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- working tree posterior reportado como `clean`
+- `runtime_map.applies: false`
+- `documentation_only: confirmado`
+- `strategic_product_reference: confirmado`
+- `non_normative: confirmado`
+- `time_sensitive: confirmado`
+- no hay evidencia de mezcla con código, tests, arquitectura, índices ni otros documentos
+
+Impacto:
+
+- agrega una referencia estratégica interna sobre mercado conversacional hotelero
+- no introduce reglas canónicas nuevas ni modifica arquitectura
+- preserva el carácter no normativo y de referencia temporal del documento
+- sirve como insumo para discovery comercial y ajuste futuro de materiales
