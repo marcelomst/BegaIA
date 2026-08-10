@@ -13,7 +13,7 @@
   <meta property="og:description" content="Probá el widget de chat Begasist en este Hotel Demo." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:,"><!-- evita 404 de favicon -->
-  <link rel="preload" as="script" href="http://localhost:3000/widget/begai-chat.js" />
+  <link rel="preload" as="script" href="http://localhost:3000/widget/embed?hotel=hotel999&apiBase=http%3A%2F%2Flocalhost%3A3000&lang=es&pos=bottom-right&primary=%230ea5e9&langs=es%2Cen%2Cpt" />
 
   <style>
     :root {
@@ -125,15 +125,6 @@
       - CORS: backend en http://localhost:3000 debe permitir origen http://localhost:8081
       - No usa cookies; todo client-side -->
 <!-- BegAI Web Widget -->
-<script>
-  window.BegAIChat = {
-    hotelId: "hotel999",
-    apiBase: "http://localhost:3000",
-    position: "bottom-right",
-    theme: { primary: "#0ea5e9" },
-    languages: ["es","en","pt"]
-  };
-</script>
-<script defer src="http://localhost:3000/widget/begai-chat.js"></script>
+<script defer src="http://localhost:3000/widget/embed?hotel=hotel999&apiBase=http%3A%2F%2Flocalhost%3A3000&lang=es&pos=bottom-right&primary=%230ea5e9&langs=es%2Cen%2Cpt"></script>
 </body>
 </html>

@@ -50,6 +50,7 @@ describe("EditHotelForm assistant branding", () => {
           displayName: "Vera",
           roleLabel: "la asistente hotelera digital",
           acknowledgementLabel: "Encantada",
+          avatarVariant: "female",
         },
       },
     });
@@ -65,10 +66,13 @@ describe("EditHotelForm assistant branding", () => {
     expect(screen.getByLabelText("Encantado")).toBeInTheDocument();
     expect(screen.getByLabelText("Encantada")).toBeInTheDocument();
     expect(screen.getByLabelText("Un gusto")).toBeInTheDocument();
+    expect(screen.getByLabelText("Femenino")).toBeChecked();
+    expect(screen.getByLabelText("Masculino")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Nombre del asistente"), { target: { value: "BegaIA" } });
     fireEvent.change(screen.getByLabelText("Rol o presentación del asistente"), { target: { value: "el asistente hotelero digital" } });
     fireEvent.click(screen.getByLabelText("Encantado"));
+    fireEvent.click(screen.getByLabelText("Masculino"));
 
     expect(screen.getByText("Hola, soy BegaIA, el asistente hotelero digital de Hotel Demo. ¿Cómo preferís que te llame?")).toBeInTheDocument();
     expect(screen.getByText("Encantado, Marcelo. ¿En qué puedo ayudarte hoy?")).toBeInTheDocument();
@@ -83,6 +87,7 @@ describe("EditHotelForm assistant branding", () => {
     expect(body.updates.assistantBranding).toEqual({
       displayName: "BegaIA",
       roleLabel: "el asistente hotelero digital",
+      avatarVariant: "male",
     });
     expect(screen.getByText("Configuración guardada correctamente.")).toBeInTheDocument();
   });

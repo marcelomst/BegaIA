@@ -2,12 +2,14 @@ export type AssistantBrandingConfig = {
   displayName?: string | null;
   roleLabel?: string | null;
   acknowledgementLabel?: string | null;
+  avatarVariant?: string | null;
 };
 
 export type AssistantBrandingStored = {
   displayName?: string;
   roleLabel?: string;
   acknowledgementLabel?: AssistantAcknowledgementLabel;
+  avatarVariant?: AssistantAvatarVariant;
 };
 
 export const ASSISTANT_ACKNOWLEDGEMENT_OPTIONS = [
@@ -18,6 +20,14 @@ export const ASSISTANT_ACKNOWLEDGEMENT_OPTIONS = [
 
 export type AssistantAcknowledgementLabel =
   typeof ASSISTANT_ACKNOWLEDGEMENT_OPTIONS[number];
+
+export const ASSISTANT_AVATAR_VARIANT_OPTIONS = [
+  "female",
+  "male",
+] as const;
+
+export type AssistantAvatarVariant =
+  typeof ASSISTANT_AVATAR_VARIANT_OPTIONS[number];
 
 export const ASSISTANT_BRANDING_LIMITS = {
   displayName: 60,
@@ -33,7 +43,12 @@ export const DEFAULT_ASSISTANT_BRANDING = {
 export function resolveAssistantBranding(branding?: AssistantBrandingConfig | null) {
   const rawDisplayName = typeof branding?.displayName === "string" ? branding.displayName.trim() : "";
   const rawRoleLabel = typeof branding?.roleLabel === "string" ? branding.roleLabel.trim() : "";
-  if (!rawDisplayName && !rawRoleLabel) {
+  const avatarVariant = ASSISTANT_AVATAR_VARIANT_OPTIONS.includes(
+    branding?.avatarVariant as AssistantAvatarVariant
+  )
+    ? branding?.avatarVariant as AssistantAvatarVariant
+    : undefined;
+  if (!rawDisplayName && !rawRoleLabel && !avatarVariant) {
     return { ...DEFAULT_ASSISTANT_BRANDING };
   }
 
@@ -47,14 +62,15 @@ export function resolveAssistantBranding(branding?: AssistantBrandingConfig | nu
   )
     ? rawAcknowledgementLabel as AssistantAcknowledgementLabel
     : DEFAULT_ASSISTANT_BRANDING.acknowledgementLabel;
-  return { displayName, roleLabel, acknowledgementLabel };
+  return { displayName, roleLabel, acknowledgementLabel, ...(avatarVariant ? { avatarVariant } : {}) };
 }
 
 export function normalizeAssistantBrandingInput(raw: AssistantBrandingConfig | null | undefined): {
   error?:
     | "assistant_branding_display_name_too_long"
     | "assistant_branding_role_label_too_long"
-    | "assistant_branding_acknowledgement_label_invalid";
+    | "assistant_branding_acknowledgement_label_invalid"
+    | "assistant_branding_avatar_variant_invalid";
   value?: AssistantBrandingStored | null;
 } {
   if (raw == null) return { value: undefined };
@@ -64,6 +80,7 @@ export function normalizeAssistantBrandingInput(raw: AssistantBrandingConfig | n
   const acknowledgementLabel = typeof raw.acknowledgementLabel === "string"
     ? raw.acknowledgementLabel.trim()
     : "";
+  const avatarVariant = typeof raw.avatarVariant === "string" ? raw.avatarVariant.trim() : "";
 
   if (displayName.length > ASSISTANT_BRANDING_LIMITS.displayName) {
     return { error: "assistant_branding_display_name_too_long" as const };
@@ -77,8 +94,14 @@ export function normalizeAssistantBrandingInput(raw: AssistantBrandingConfig | n
   ) {
     return { error: "assistant_branding_acknowledgement_label_invalid" as const };
   }
+  if (
+    avatarVariant &&
+    !ASSISTANT_AVATAR_VARIANT_OPTIONS.includes(avatarVariant as AssistantAvatarVariant)
+  ) {
+    return { error: "assistant_branding_avatar_variant_invalid" as const };
+  }
 
-  if (!displayName && !roleLabel) {
+  if (!displayName && !roleLabel && !avatarVariant) {
     return { value: null };
   }
 
@@ -89,6 +112,7 @@ export function normalizeAssistantBrandingInput(raw: AssistantBrandingConfig | n
       ...(acknowledgementLabel && acknowledgementLabel !== DEFAULT_ASSISTANT_BRANDING.acknowledgementLabel
         ? { acknowledgementLabel: acknowledgementLabel as AssistantAcknowledgementLabel }
         : {}),
+      ...(avatarVariant ? { avatarVariant: avatarVariant as AssistantAvatarVariant } : {}),
     },
   };
 }

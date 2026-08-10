@@ -11,6 +11,31 @@
   const side = pos.includes("left") ? "left" : "right";
   const api = (cfg.apiBase || "").replace(/\/+$/, "");
   const hotelId = cfg.hotelId || "hotel-demo";
+  const assistantCfg = (cfg.assistant && typeof cfg.assistant === "object") ? cfg.assistant : {};
+  const sanitizeLabel = (value, fallback) => {
+    const clean = String(value || "").trim();
+    return clean || fallback;
+  };
+  const assistantName = sanitizeLabel(assistantCfg.displayName, "BegaIA");
+  const assistantRole = sanitizeLabel(assistantCfg.roleLabel, "");
+  const avatarVariant = assistantCfg.avatarVariant === "male" || assistantCfg.avatarVariant === "female"
+    ? assistantCfg.avatarVariant
+    : "";
+  const brandAsset = (path) => `${api}${path}`;
+  const assistantAvatarSrc = avatarVariant === "female"
+    ? brandAsset("/brand/begaia-assistant-avatar-female-1024.png")
+    : avatarVariant === "male"
+      ? brandAsset("/brand/begaia-assistant-avatar-male-1024.png")
+      : brandAsset("/brand/begaia-simbolo-transparente-1024.png");
+  const poweredByLogoSrc = brandAsset("/brand/begaia-simbolo-transparente-1024.png");
+  const escapeHtml = (value) => String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+  const assistantNameHtml = escapeHtml(assistantName);
+  const assistantRoleHtml = escapeHtml(assistantRole);
 
   // 🌐 idiomas soportados
   const SUPPORTED = ["es", "en", "pt"];
@@ -119,12 +144,18 @@
   style.textContent = `
   .bgst-bubble{position:fixed;${side}:18px;bottom:18px;border-radius:999px;border:0;
     background:${primary};color:#03131d;font-weight:800;width:56px;height:56px;
-    box-shadow:0 10px 30px ${primary}55;display:grid;place-items:center;cursor:pointer;z-index:999999}
+    box-shadow:0 10px 30px ${primary}55;display:grid;place-items:center;cursor:pointer;z-index:999999;
+    overflow:hidden;padding:3px}
+  .bgst-launcher-avatar{width:100%;height:100%;border-radius:999px;object-fit:cover;object-position:center;background:#f8e7f5;display:block}
   .bgst-panel{position:fixed;${side}:18px;bottom:86px;width:min(360px,92vw);
     max-height:70vh;background:#0b1220;color:#e5eef9;border:1px solid #263650;border-radius:16px;
     box-shadow:0 10px 40px #0008;display:none;flex-direction:column;overflow:hidden;z-index:999999}
   .bgst-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#0c1428;border-bottom:1px solid #263650}
-  .bgst-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bgst-brand{display:flex;align-items:center;gap:9px;min-width:0}
+  .bgst-avatar{width:34px;height:34px;border-radius:999px;object-fit:cover;object-position:center;background:#f8e7f5;flex:0 0 auto}
+  .bgst-title-wrap{min-width:0}
+  .bgst-title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bgst-role{color:#9fb3c8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bgst-header-right{display:flex;align-items:center;gap:8px}
   .bgst-lang{appearance:none;background:#0b1220;border:1px solid #263650;color:#e5eef9;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer}
   .bgst-close{background:transparent;border:0;color:#9fb3c8;cursor:pointer;font-size:18px}
@@ -137,6 +168,8 @@
   .bgst-input textarea{flex:1;resize:none;height:64px;background:#0b1220;color:#e5eef9;border:1px solid #263650;border-radius:8px;padding:8px;outline:none}
   .bgst-input button{background:${primary};border:0;color:#03131d;font-weight:700;padding:8px 12px;border-radius:10px;cursor:pointer}
   .bgst-input button:disabled{opacity:.6;cursor:not-allowed}
+  .bgst-powered{display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #263650;background:#0b1220;color:#9fb3c8;font-size:10px;padding:5px 8px}
+  .bgst-powered img{width:14px;height:14px;object-fit:contain}
   .bgst-carousel{display:flex;gap:8px;overflow:auto;padding:4px 2px;width:100%;flex-shrink:0}
   .bgst-card{min-width:180px;background:#0c1428;border:1px solid #263650;border-radius:12px;overflow:hidden}
   .bgst-card img{width:100%;height:170px;object-fit:cover;object-position:center 70%;background:#0c1428;display:block}
@@ -159,14 +192,14 @@
   bubble.setAttribute("aria-label", t("ariaOpen"));
   bubble.setAttribute("aria-expanded", "false");
   bubble.setAttribute("aria-controls", "bgst-panel");
-  bubble.innerHTML = "💬";
+  bubble.innerHTML = `<img class="bgst-launcher-avatar" src="${assistantAvatarSrc}" alt="${assistantNameHtml}">`;
 
   const panel = document.createElement("div");
   panel.className = "bgst-panel";
   panel.id = "bgst-panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-modal", "false");
-  panel.setAttribute("aria-label", `${t("assistant")} • ${hotelId}`);
+  panel.setAttribute("aria-label", assistantName);
 
   const langSelect = document.createElement("select");
   langSelect.className = "bgst-lang";
@@ -181,7 +214,13 @@
 
   panel.innerHTML = `
     <div class="bgst-header">
-      <div class="bgst-title" id="bgst-title">${t("assistant")} • ${hotelId}</div>
+      <div class="bgst-brand">
+        <img class="bgst-avatar" src="${assistantAvatarSrc}" alt="${assistantNameHtml}">
+        <div class="bgst-title-wrap">
+          <div class="bgst-title" id="bgst-title">${assistantNameHtml}</div>
+          <div class="bgst-role" id="bgst-role">${assistantRoleHtml}</div>
+        </div>
+      </div>
       <div class="bgst-header-right">
         <!-- select de idioma se inserta aquí -->
         <button class="bgst-newchat" id="bgst-newchat" aria-label="${t("ariaNewChat")}">${t("newChat")}</button>
@@ -193,6 +232,7 @@
       <textarea id="bgst-input" placeholder="${t("placeholder")}"></textarea>
       <button id="bgst-send">${t("send")}</button>
     </div>
+    <div class="bgst-powered">Powered by <img src="${poweredByLogoSrc}" alt="" aria-hidden="true"> <strong>BegaIA</strong></div>
   `;
 
   document.body.appendChild(bubble);
@@ -207,6 +247,7 @@
   const btnClose = panel.querySelector(".bgst-close");
   const btnNewChat = panel.querySelector("#bgst-newchat");
   const titleEl = panel.querySelector("#bgst-title");
+  const roleEl = panel.querySelector("#bgst-role");
 
   const applyLangToUI = () => {
     document.documentElement.lang = currentLang;
@@ -214,7 +255,8 @@
     btnClose.setAttribute("aria-label", t("ariaClose"));
     btnNewChat.setAttribute("aria-label", t("ariaNewChat"));
     btnNewChat.textContent = t("newChat");
-    titleEl.textContent = `${t("assistant")} • ${hotelId}`;
+    titleEl.textContent = assistantName;
+    roleEl.textContent = assistantRole;
     ta.placeholder = t("placeholder");
     btn.textContent = t("send");
   };

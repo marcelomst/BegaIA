@@ -1,5 +1,7 @@
 // Path: /root/begAI/app/widget/embed/route.ts
 import { NextResponse } from "next/server";
+import { resolveAssistantBranding } from "@/lib/config/assistantBranding";
+import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 
 /**
  * Endpoint "una sola etiqueta" (CSP-friendly).
@@ -70,6 +72,19 @@ export async function GET(req: Request) {
   );
   if (langs.length === 0) langs.push("es");
 
+  let assistantBranding = resolveAssistantBranding(null);
+  try {
+    const hotelConfig = await getHotelConfig(hotel);
+    assistantBranding = resolveAssistantBranding(hotelConfig?.assistantBranding ?? null);
+  } catch (err) {
+    console.warn("[widget/embed] assistant branding fallback", err);
+  }
+  const assistant = {
+    displayName: assistantBranding.displayName,
+    roleLabel: assistantBranding.roleLabel,
+    ...(assistantBranding.avatarVariant ? { avatarVariant: assistantBranding.avatarVariant } : {}),
+  };
+
   // JS a servir: configura y luego inyecta el bundle
   const js =
     `(()=>{` +
@@ -81,19 +96,19 @@ export async function GET(req: Request) {
     `languages:${JSON.stringify(langs)},` +
     `position:${JSON.stringify(pos)},` +
     `theme:{primary:${JSON.stringify(primary)}},` +
+    `assistant:${JSON.stringify(assistant)},` +
     `requireName:false` +
     `});` +
     `var s=d.createElement("script");` +
     `s.async=true;` +
-    `s.src:${JSON.stringify(apiBase + "/widget/begai-chat.js")};` +
+    `s.src=${JSON.stringify(apiBase + "/widget/begai-chat.js")};` +
     `d.head.appendChild(s);` +
     `})();`;
 
   return new NextResponse(js, {
     headers: {
       "Content-Type": "application/javascript; charset=utf-8",
-      // Cache corto; podés ajustar según tus necesidades:
-      "Cache-Control": "public, max-age=300",
+      "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
       // Para recursos <script> no hace falta CORS, pero no molesta habilitarlo:
       "Access-Control-Allow-Origin": "*",

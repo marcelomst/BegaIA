@@ -7,6 +7,7 @@ import { normalizeAmenityTags, amenityLabel } from "@/lib/taxonomy/amenities";
 import { fetchHotelConfig } from "@/lib/config/hotelConfig.client";
 import {
   ASSISTANT_ACKNOWLEDGEMENT_OPTIONS,
+  ASSISTANT_AVATAR_VARIANT_OPTIONS,
   ASSISTANT_BRANDING_LIMITS,
   buildAssistantAcknowledgementReply,
   buildAssistantGreetingNamePrompt,
@@ -363,12 +364,17 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
     const brandingValidation = normalizeAssistantBrandingInput(hotel.assistantBranding);
     const shouldClearAssistantBranding =
       !String(hotel.assistantBranding?.displayName ?? "").trim() &&
-      !String(hotel.assistantBranding?.roleLabel ?? "").trim();
+      !String(hotel.assistantBranding?.roleLabel ?? "").trim() &&
+      !String((hotel.assistantBranding as any)?.avatarVariant ?? "").trim();
     if (brandingValidation.error) {
       if (brandingValidation.error === "assistant_branding_display_name_too_long") {
         setError(`El nombre del asistente no puede superar ${ASSISTANT_BRANDING_LIMITS.displayName} caracteres.`);
-      } else {
+      } else if (brandingValidation.error === "assistant_branding_role_label_too_long") {
         setError(`El rol o presentación no puede superar ${ASSISTANT_BRANDING_LIMITS.roleLabel} caracteres.`);
+      } else if (brandingValidation.error === "assistant_branding_avatar_variant_invalid") {
+        setError("Seleccioná un avatar válido para el asistente.");
+      } else {
+        setError("Seleccioná un texto válido para confirmar el nombre.");
       }
       setSuccessMessage(null);
       return;
@@ -451,7 +457,9 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
         ? `Máximo ${ASSISTANT_BRANDING_LIMITS.roleLabel} caracteres para el rol o presentación.`
         : brandingValidation.error === "assistant_branding_acknowledgement_label_invalid"
           ? "Seleccioná un texto válido para confirmar el nombre."
-        : null;
+          : brandingValidation.error === "assistant_branding_avatar_variant_invalid"
+            ? "Seleccioná un avatar válido para el asistente."
+            : null;
 
   const channelConfigs = hotel.channelConfigs || EMPTY_CHANNEL_CONFIGS;
 
@@ -520,6 +528,39 @@ export default function EditHotelForm({ hotelId, onSaved, showBackButton }: { ho
                     }) : h)}
                   />
                 </label>
+                <fieldset className="text-xs">
+                  <legend className="font-medium">Avatar del asistente</legend>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Se usa en el launcher y la cabecera del widget web.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {ASSISTANT_AVATAR_VARIANT_OPTIONS.map((option) => {
+                      const checked = hotel.assistantBranding?.avatarVariant === option;
+                      const label = option === "female" ? "Femenino" : "Masculino";
+                      return (
+                        <label
+                          key={option}
+                          className={`inline-flex items-center gap-2 rounded border px-3 py-2 ${checked ? "border-fuchsia-700 bg-fuchsia-50 text-fuchsia-800" : "border-slate-300 bg-white text-slate-700"}`}
+                        >
+                          <input
+                            type="radio"
+                            name="assistant-avatar-variant"
+                            value={option}
+                            checked={checked}
+                            onChange={() => setHotel(h => h ? ({
+                              ...h,
+                              assistantBranding: {
+                                ...(h.assistantBranding ?? {}),
+                                avatarVariant: option,
+                              },
+                            }) : h)}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
                 <fieldset className="text-xs">
                   <legend className="font-medium">Texto al confirmar el nombre</legend>
                   <p className="mt-1 text-[11px] text-muted-foreground">

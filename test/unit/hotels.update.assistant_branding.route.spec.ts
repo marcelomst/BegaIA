@@ -26,6 +26,7 @@ describe("hotels update route assistant branding", () => {
           assistantBranding: {
             displayName: "Vera",
             roleLabel: "la asistente hotelera digital",
+            avatarVariant: "female",
           },
         },
       }),
@@ -37,6 +38,7 @@ describe("hotels update route assistant branding", () => {
       assistantBranding: {
         displayName: "Vera",
         roleLabel: "la asistente hotelera digital",
+        avatarVariant: "female",
       },
     });
   });
@@ -52,6 +54,7 @@ describe("hotels update route assistant branding", () => {
             displayName: "  Vera  ",
             roleLabel: "  la asistente hotelera digital  ",
             acknowledgementLabel: " Encantada ",
+            avatarVariant: " female ",
           },
         },
       }),
@@ -64,6 +67,32 @@ describe("hotels update route assistant branding", () => {
         displayName: "Vera",
         roleLabel: "la asistente hotelera digital",
         acknowledgementLabel: "Encantada",
+        avatarVariant: "female",
+      },
+    });
+  });
+
+  it("permite guardar solo avatarVariant sin nombre ni rol custom", async () => {
+    const req = new Request("http://localhost/api/hotels/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotelId: "hotel999",
+        updates: {
+          assistantBranding: {
+            displayName: "   ",
+            roleLabel: "",
+            avatarVariant: "male",
+          },
+        },
+      }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.ok).toBe(true);
+    expect(updateHotelConfig).toHaveBeenCalledWith("hotel999", {
+      assistantBranding: {
+        avatarVariant: "male",
       },
     });
   });
@@ -201,6 +230,28 @@ describe("hotels update route assistant branding", () => {
     const res = await POST(req as any);
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toEqual({ error: "assistant_branding_acknowledgement_label_invalid" });
+    expect(updateHotelConfig).not.toHaveBeenCalled();
+  });
+
+  it("rechaza avatarVariant inválido y no persiste cambios", async () => {
+    const req = new Request("http://localhost/api/hotels/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotelId: "hotel999",
+        updates: {
+          assistantBranding: {
+            displayName: "Vera",
+            roleLabel: "la asistente hotelera digital",
+            avatarVariant: "robot",
+          },
+        },
+      }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "assistant_branding_avatar_variant_invalid" });
     expect(updateHotelConfig).not.toHaveBeenCalled();
   });
 });

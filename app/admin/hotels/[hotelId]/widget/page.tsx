@@ -31,17 +31,7 @@ export default function WidgetSnippetPage() {
 
     return [
       `<!-- BegAI Web Widget -->`,
-      `<script>`,
-      `  window.BegAIChat = {`,
-      `    hotelId: "${hotelId}",`,
-      `    apiBase: "${base}",`,
-      `    lang: "${langList[0] || "es"}",`,
-      `    position: "${position}",`,
-      `    theme: { primary: "${primary}" },`,
-      `    languages: ${JSON.stringify(langList)}`,
-      `  };`,
-      `</script>`,
-      `<script defer src="${base}/widget/begai-chat.js"></script>`,
+      `<script defer src="${base}/widget/embed?hotel=${encodeURIComponent(hotelId)}&apiBase=${encodeURIComponent(base)}&lang=${encodeURIComponent(langList[0] || "es")}&pos=${encodeURIComponent(position)}&primary=${encodeURIComponent(primary)}&langs=${encodeURIComponent(langList.join(","))}"></script>`,
     ].join("\n");
   }, [apiBase, hotelId, position, primary, langs]);
 

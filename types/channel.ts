@@ -179,6 +179,7 @@ export type HotelConfig = {
     displayName?: string;
     roleLabel?: string;
     acknowledgementLabel?: "Encantado" | "Encantada" | "Un gusto";
+    avatarVariant?: "female" | "male";
   };
   /** Banderas globales del flujo de reservas del hotel */
   reservations?: ReservationsFlags;

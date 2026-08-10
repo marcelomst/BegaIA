@@ -78,6 +78,11 @@ function sanitizeHotelConfig(doc: HotelConfigDoc): HotelConfig {
           doc.assistantBranding.acknowledgementLabel === "Un gusto"
             ? doc.assistantBranding.acknowledgementLabel
             : undefined,
+        avatarVariant:
+          doc.assistantBranding.avatarVariant === "female" ||
+          doc.assistantBranding.avatarVariant === "male"
+            ? doc.assistantBranding.avatarVariant
+            : undefined,
       }
       : undefined,
     country: doc.country,
