@@ -9,6 +9,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "BegAI",
   description: "Asistente conversacional hotelero",
+  icons: {
+    icon: "/brand/begaia-favicon-base-512.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
