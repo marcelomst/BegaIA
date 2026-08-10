@@ -12421,3 +12421,67 @@ Impacto:
 - preserva el fallback legacy oficial BegaIA
 - alinea Admin, embed y demo sobre un mismo contrato visual tenant-aware
 - no modifica runtime conversacional ni Runtime Map
+
+### IMPROVE-APP-DEMO-FAVICONS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-10  
+Commit: 634ee69fcf269e3403a3e1a21c16c599d47fc9be
+Clasificacion documental: HITO_TECNICO_UI
+
+Descripcion:
+
+Mejora visual acotada de identidad para alinear los favicons finales de
+BegaIA/Admin y Hotel Demo. La app principal pasa a usar el asset oficial
+`public/brand/begaia-favicon-base-512.png` en metadata, `app/favicon.ico`
+se regenera desde ese mismo asset en tamaños `16x16`, `32x32` y `48x48`, y
+Hotel Demo incorpora su propio favicon HD referenciado desde su `index.html`.
+
+Archivos afectados:
+
+- `app/layout.tsx`
+- `app/favicon.ico`
+- `examples/hotel-demo/index.html`
+- `examples/hotel-demo/favicon.png`
+- `public/brand/begaia-favicon-base-512.png`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `runtime_map.applies: false`
+- pureza del hito: `ok`
+- working tree posterior al commit: solo quedaron fuera tres assets excluidos en `public/brand/`
+- validaciones reportadas en verde:
+  `pnpm run ts-check`
+  `git diff --check`
+  `identify app/favicon.ico`
+- validación técnica reportada:
+  `app_layout_uses_final_asset: true`
+  `app_favicon_ico_sizes: 16x16, 32x32, 48x48`
+  `hotel_demo_uses_own_favicon: true`
+  `begaia_tenant_identity_mixing: false`
+  `widget_persona_changes: false`
+  `runtime_changes: false`
+- validación visual manual:
+  BegaIA tab favicon: `ok`
+  legibilidad: `ok`
+  asset final: `public/brand/begaia-favicon-base-512.png`
+  Hotel Demo tab favicon: `ok`
+  identidad HD: `ok`
+  asset final: `examples/hotel-demo/favicon.png`
+  header sin cambios: `ok`
+  overall manual validation: `ok`
+- assets incluidos:
+  `public/brand/begaia-favicon-base-512.png`
+  `examples/hotel-demo/favicon.png`
+- assets excluidos:
+  `public/brand/begaia-app-icon-1024.png`
+  `public/brand/begaia-apple-touch-icon-180.png`
+  `public/brand/begaia-monocromatico-negro-1024.png`
+
+Impacto:
+
+- alinea la identidad final de favicon entre app principal y Hotel Demo
+- mantiene separado el favicon HD propio del demo del branding de la app principal
+- no introduce cambios en widget persona ni runtime conversacional
+- deja fuera del hito otros assets de marca no requeridos
