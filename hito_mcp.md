@@ -12348,3 +12348,76 @@ Impacto:
 - mantiene una única presencia de marca global y consistente
 - no altera comportamiento funcional, navegación, permisos ni rutas
 - deja los otros assets de marca fuera del hito actual
+
+### IMPROVE-WIDGET-ASSISTANT-PERSONA-AVATAR-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-10  
+Commit: 0fdc5b9eaf5ac95bd0f74bd59c1483bc9693c32f
+Clasificacion documental: HITO_TECNICO_UI
+
+Descripcion:
+
+Mejora visual y de configuración del widget para incorporar identidad del
+asistente configurable por hotel mediante `assistantBranding.avatarVariant`.
+Incluye persistencia y validación tenant-aware, selector visual en Admin,
+resolución por `/widget/embed`, fallback legacy con símbolo oficial BegaIA,
+footer permanente `Powered by BegaIA` y render final normalizado con
+`object-fit: cover` y `object-position: center`.
+
+Archivos afectados:
+
+- `types/channel.ts`
+- `lib/config/assistantBranding.ts`
+- `lib/config/hotelConfig.server.ts`
+- `components/admin/EditHotelForm.tsx`
+- `app/admin/hotels/[hotelId]/widget/page.tsx`
+- `app/widget/embed/route.ts`
+- `examples/hotel-demo/index.html`
+- `public/widget/begai-chat.js`
+- `test/frontend/editHotelForm.assistantBranding.spec.tsx`
+- `test/unit/hotels.update.assistant_branding.route.spec.ts`
+- `test/unit/widget.assistantPersona.static.spec.ts`
+- `test/unit/widget.embed.assistantBranding.spec.ts`
+- `test/unit/widget.personaEntrypoints.static.spec.ts`
+- `public/brand/begaia-assistant-avatar-female-1024.png`
+- `public/brand/begaia-assistant-avatar-male-1024.png`
+- `public/brand/begaia-simbolo-transparente-1024.png`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `runtime_map.applies: false`
+- pureza del hito: `ok`
+- working tree posterior al commit: solo quedaron fuera cuatro assets excluidos en `public/brand/`
+- validaciones reportadas en verde:
+  `pnpm vitest run test/unit/widget.assistantPersona.static.spec.ts test/unit/widget.embed.assistantBranding.spec.ts test/unit/widget.personaEntrypoints.static.spec.ts test/frontend/editHotelForm.assistantBranding.spec.tsx test/unit/hotels.update.assistant_branding.route.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación contractual:
+  fuente canónica de branding del asistente: `true`
+  embed tenant-aware: `true`
+  config pública limitada a `displayName`, `roleLabel`, `avatarVariant`
+  cambios en runtime conversacional: `false`
+- validación visual manual:
+  female avatar launcher/header: `ok`
+  male avatar launcher/header: `ok`
+  avatar crop: `ok`
+  powered by BegaIA: `ok`
+  overall visual validation: `ok`
+- assets incluidos:
+  `public/brand/begaia-assistant-avatar-female-1024.png`
+  `public/brand/begaia-assistant-avatar-male-1024.png`
+  `public/brand/begaia-simbolo-transparente-1024.png`
+- assets excluidos:
+  `public/brand/begaia-app-icon-1024.png`
+  `public/brand/begaia-apple-touch-icon-180.png`
+  `public/brand/begaia-favicon-base-512.png`
+  `public/brand/begaia-monocromatico-negro-1024.png`
+
+Impacto:
+
+- incorpora una identidad visual configurable del asistente en el widget
+- preserva el fallback legacy oficial BegaIA
+- alinea Admin, embed y demo sobre un mismo contrato visual tenant-aware
+- no modifica runtime conversacional ni Runtime Map
