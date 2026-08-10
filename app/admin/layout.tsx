@@ -120,8 +120,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               {sidebarOpen && (
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold tracking-tight text-white">{t.layout.panelTitle}</h1>
+                  <div className="mb-5 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Image
+                        src="/brand/begaia-monocromatico-blanco-1024.png"
+                        alt=""
+                        width={44}
+                        height={44}
+                        aria-hidden="true"
+                        priority
+                        className="h-11 w-11 shrink-0 object-contain"
+                      />
+                      <div className="min-w-0 leading-tight">
+                        <h1 className="truncate text-2xl font-bold tracking-tight text-white">BegaIA</h1>
+                        <p className="truncate text-xs font-medium text-[#D7B8D1]">{t.layout.panelTitle}</p>
+                      </div>
+                    </div>
                     <ThemeToggle />
                   </div>
                   <div className="mb-4 flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-xs leading-snug text-[#F4DDF0]">
