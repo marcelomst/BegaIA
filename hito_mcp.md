@@ -12296,3 +12296,55 @@ Impacto:
 - refuerza consistencia narrativa y controles comerciales del asset HTML
 - no toca runtime, arquitectura, tests ni índices
 - mantiene el cambio en el plano de documentación/producto
+
+### IMPROVE-ADMIN-BEGAIA-BRAND-IDENTITY-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-10  
+Commit: 4c3cdea0f609c5e80ac0f9c6fde134ef32635df0
+Clasificacion documental: ADMIN_VISUAL_BRAND_ALIGNMENT
+
+Descripcion:
+
+Mejora visual acotada del shell global del Admin para alinearlo con la identidad
+oficial de BegaIA. Incorpora una única presencia global de marca en el header
+del sidebar usando el símbolo oficial monocromático blanco y la grafía exacta
+`BegaIA`, sin modificar navegación, permisos, rutas ni comportamiento funcional.
+
+Archivos afectados:
+
+- `app/admin/layout.tsx`
+- `test/frontend/adminLayout.brandIdentity.spec.tsx`
+- `public/brand/begaia-monocromatico-blanco-1024.png`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `.npmrc` quedó excluido del commit y preservado localmente
+- `skip-worktree` sobre `.npmrc` aplicado como housekeeping local
+- `runtime_map.applies: false`
+- validaciones reportadas en verde:
+  `git diff --check`
+  `pnpm vitest run test/frontend/adminLayout.brandIdentity.spec.tsx`
+  `pnpm run ts-check`
+  `pnpm vitest run test/frontend`
+- suite frontend reportada:
+  `11 files / 22 tests PASS`
+- validación visual manual:
+  marca visible: `yes`
+  asset del símbolo: `/brand/begaia-monocromatico-blanco-1024.png`
+  nombre visible: `BegaIA`
+  responsive: `ok`
+  navegación preservada: `yes`
+  regresiones funcionales: `none_detected`
+  resultado visual: `aprobado`
+- riesgos residuales:
+  cinco assets excluidos de `public/brand/` siguen `untracked` en el working tree local
+  `skip-worktree` sobre `.npmrc` puede ocultar futuros cambios versionados si no se revierte
+
+Impacto:
+
+- alinea el Admin con la identidad oficial de BegaIA
+- mantiene una única presencia de marca global y consistente
+- no altera comportamiento funcional, navegación, permisos ni rutas
+- deja los otros assets de marca fuera del hito actual
