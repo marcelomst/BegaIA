@@ -12485,3 +12485,51 @@ Impacto:
 - mantiene separado el favicon HD propio del demo del branding de la app principal
 - no introduce cambios en widget persona ni runtime conversacional
 - deja fuera del hito otros assets de marca no requeridos
+
+### FIX-ADMIN-BEGAIA-DOCUMENT-TITLE-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-11  
+Commit: 1f1775d4e7f21b72420fec406fc7cf0261eddba8
+Clasificacion documental: HITO_TECNICO_UI
+
+Descripcion:
+
+Fix puntual de grafía canónica en la metadata global del documento. Corrige
+exclusivamente `metadata.title` en `app/layout.tsx`, reemplazando `BegAI` por
+`BegaIA`, sin tocar favicon, widget, runtime ni otras ocurrencias técnicas o
+históricas fuera de alcance.
+
+Archivos afectados:
+
+- `app/layout.tsx`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `runtime_map.applies: false`
+- pureza del hito: `ok`
+- working tree posterior al commit: solo quedaron fuera tres assets excluidos en `public/brand/`
+- validaciones reportadas en verde:
+  `pnpm run ts-check`
+  `git diff --check`
+- validación técnica reportada:
+  `metadata_title_final: BegaIA`
+  `previous_title_removed: BegAI`
+  `favicon_changed: false`
+  `widget_changed: false`
+  `runtime_changed: false`
+- validación manual:
+  hard reload: `ok`
+  navegación admin: `ok`
+  document title: `BegaIA`
+  `BegAI` as document title: `no`
+- riesgos residuales:
+  existen tres assets untracked fuera de alcance en `public/brand/`, excluidos correctamente del commit
+
+Impacto:
+
+- corrige la grafía canónica visible del título global del documento
+- no altera favicon, widget ni runtime
+- mantiene el cambio acotado a un único archivo de UI global
+- deja fuera de alcance los assets de marca no requeridos
