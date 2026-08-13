@@ -1,0 +1,148 @@
+# Path: /docker-compose.demo.yml
+name: begasist-demo
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: begasist-demo-redis
+    volumes:
+      - demo_redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  suite:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: begasist-suite:dev
+    container_name: begasist-demo-suite
+    command: pnpm exec next dev --turbopack -p 3000 -H 0.0.0.0
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      REDIS_URL: redis://redis:6379
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "300"
+      TAILWIND_MODE: watch
+      USE_MCP_RESERVATIONS: "true"
+      MCP_API_KEY: ${MCP_API_KEY:-dev_key}
+      MCP_ENDPOINT: http://suite:3000/api/mcp
+      ASTRA_DB_SECURE_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
+      ASTRA_DB_SECURE_CONNECT_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app:cached
+      - demo_suite_node_modules:/app/node_modules
+      - demo_suite_next:/app/.next
+    depends_on:
+      redis:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 20s
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  hotel-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: begasist-suite:dev
+    container_name: begasist-demo-hotel
+    command: node scripts/serve-hotel-demo.mjs
+    environment:
+      HOTEL_DEMO_HOST: 0.0.0.0
+      HOTEL_DEMO_PORT: "8081"
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/app:cached
+    depends_on:
+      suite:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 10s
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8081/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  email-worker:
+    profiles: ["email"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: begasist-suite:dev
+    container_name: begasist-demo-email
+    command: sh -lc 'touch /tmp/email-worker.started && exec pnpm run dev:email'
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      HOTEL_ID: ${HOTEL_ID:-hotel999}
+      REDIS_URL: redis://redis:6379
+      MCP_API_KEY: ${MCP_API_KEY:-dev_key}
+      MCP_ENDPOINT: http://suite:3000/api/mcp
+      ASTRA_DB_SECURE_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
+      ASTRA_DB_SECURE_CONNECT_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
+    volumes:
+      - .:/app:cached
+      - demo_suite_node_modules:/app/node_modules
+    depends_on:
+      redis:
+        condition: service_healthy
+      suite:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/email-worker.started"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cloudflared:
+    profiles: ["public"]
+    image: cloudflare/cloudflared:latest
+    container_name: begasist-demo-cloudflared
+    command: >
+      tunnel --no-autoupdate
+      --loglevel info
+      --metrics 0.0.0.0:2000
+      --config /etc/cloudflared/config.dev.yml
+      run begasist-dev
+    volumes:
+      - ./.cloudflared:/etc/cloudflared:ro
+    ports:
+      - "2000:2000"
+    depends_on:
+      suite:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cloudflared", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  demo_redis_data:
+  demo_suite_node_modules:
+  demo_suite_next:
