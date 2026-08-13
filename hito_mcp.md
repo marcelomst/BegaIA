@@ -12533,3 +12533,84 @@ Impacto:
 - no altera favicon, widget ni runtime
 - mantiene el cambio acotado a un único archivo de UI global
 - deja fuera de alcance los assets de marca no requeridos
+
+### TECH-DEMO-LOCAL-ORCHESTRATION-HEALTHCHECKS-01
+
+Estado: COMPLETADO  
+Fecha: 2026-08-13  
+Commit: df8ee0dce93c28146e2524392852fae19ee4eaa5
+Clasificacion documental: HITO_TECNICO_INFRA_CON_DOCUMENTACION_OPERATIVA_MINIMA
+
+Descripcion:
+
+Hito técnico de infraestructura para consolidar una unidad reproducible y
+observable de demo local de BegaIA mediante Docker Compose. Define un core
+mínimo `redis/suite/hotel-demo`, perfiles opcionales `email-worker` y
+`cloudflared`, agrega healthchecks, smoke no destructivo, comandos `demo:*`
+y documentación operativa mínima sin modificar el runtime conversacional.
+
+Archivos afectados:
+
+- `package.json`
+- `docker-compose.demo.yml`
+- `scripts/demo-local-smoke.sh`
+- `scripts/serve-hotel-demo.mjs`
+- `docs/development/demo-local-orchestration.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- `runtime_map.applies: false`
+- pureza del hito: `ok`
+- `runtime_changes: none`
+- clasificación multitenant preservada:
+  `stack_per_hotel: false`
+  `shared_runtime: true`
+  `shared_admin_api: true`
+  `hotel_discrimination_by_hotel_id: true`
+  `kb_vectorial_separation_preserved: true`
+- validaciones de compose reportadas en verde:
+  `docker compose -f docker-compose.demo.yml config --quiet`
+  `docker compose -f docker-compose.demo.yml --profile email config --quiet`
+  `docker compose -f docker-compose.demo.yml --profile public config --quiet`
+- validaciones técnicas reportadas en verde:
+  `bash -n scripts/demo-local-smoke.sh`
+  `node --check scripts/serve-hotel-demo.mjs`
+  `package.json parse`
+  `git diff --check`
+- evidencia reportada del hito:
+  `pnpm run demo:up`
+  `pnpm run demo:up:public`
+  `pnpm run demo:up:all`
+  `pnpm run demo:smoke`
+  `pnpm run ts-check`
+  `pnpm run demo:down`
+- validación manual reportada:
+  web: `ok`
+  email worker: `ok`
+  cloudflared: `ok`
+  endpoint público: `ok`
+  WhatsApp: `ok`
+  Docker Desktop: `ok`
+  stack completa operativa: `ok`
+- healthchecks cubiertos:
+  redis: `redis-cli ping`
+  suite: `GET /api/health`
+  hotel demo: `GET /`
+  email worker: sentinel file
+  cloudflared: `cloudflared --version`
+  smoke público: metrics desde host
+- legacy excluido:
+  `docker-compose.bots.yml`
+  `docker-compose.bots.override.yml`
+  `docker-compose.bots.prod.yml`
+  `Dockerfile.bots-node18`
+  `Dockerfile.channelbot`
+  `docker-compose.yml`
+
+Impacto:
+
+- hace reproducible y observable la demo local con orquestación explícita
+- agrega perfiles opcionales aislados para email y exposición pública
+- preserva el runtime conversacional y la arquitectura multitenant compartida
+- deja documentación operativa mínima para levantar, inspeccionar y apagar la stack
