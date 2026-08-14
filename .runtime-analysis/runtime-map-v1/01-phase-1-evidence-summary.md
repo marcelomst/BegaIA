@@ -21,20 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 5e4f233
-messageHandler_lines: 12442
-working_tree_status: dirty_expected_only_non_hito_changes
-analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
-suite_status_reported: full_green
+commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
+messageHandler_lines: 12482
+working_tree_status: clean_after_technical_commit
+analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
+suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts
-    - pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts
-  summary: targeted_green
+    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
+    - pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
   full_suite:
     - pnpm run ts-check
     - git diff --check
-    - pnpm test
 known_manual_bug: none
 ```
 
@@ -43,27 +41,26 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
-    - runtime.messageHandler.replyComposition
+    - create draft/proposal dominance
+    - modify fast-path gating
+    - confirmed target fallback resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.conversationState
+    - explicit ID / ordinal resolution
+    - confirmed modify continuity
+    - proposal confirm follow-up
+    - cancel flow
+    - snapshot flow
+    - modify preview confirmation
+    - persistencia fuera del gating
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `farewell` se resuelve como stable intent de precedencia temprana
-      - una despedida explícita no reabre `create`
-      - una despedida explícita no reabre `modify`
-      - una despedida explícita con cancel pendiente no ejecuta cancelación
-      - `goodbye` conserva inglés conversacional confiable
-      - `tchau` conserva portugués conversacional confiable
-      - sin señal confiable se usa `hotel.defaultLanguage`
+      - `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+      - `pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+      - `pnpm run ts-check`
+      - `git diff --check`
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -71,13 +68,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: working_tree_on_5e4f233
-    messageHandler_lines: 12442
+    commit: d6656276b3bc1f4451cb5a178ec697d31311239b
+    messageHandler_lines: 12482
     functions:
-      preLLM: L4485-L5354
-      bodyLLM: L5355-L12072
-      posLLM: L12073-L12117
-      handleIncomingMessage: L12118-L12442
+      preLLM: L4497-L5366
+      bodyLLM: L5367-L12112
+      posLLM: L12113-L12157
+      handleIncomingMessage: L12158-L12482
 ```
 
 ## Funciones clave actuales
@@ -92,10 +89,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4387-L4598 |    212 | high      |
-| `bodyLLM`                            | L5257-L11996 |   6740 | high      |
-| `posLLM`                             | L11923-L11967 |     45 | high      |
-| `handleIncomingMessage`              | L11968-L12322 |    325 | high      |
+| `preLLM`                             | L4497-L5366 |    870 | high      |
+| `bodyLLM`                            | L5367-L12112 |   6746 | high      |
+| `posLLM`                             | L12113-L12157 |     45 | high      |
+| `handleIncomingMessage`              | L12158-L12482 |    325 | high      |
 
 ---
 
@@ -104,8 +101,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12322 líneas
-bodyLLM:                6740 líneas
+messageHandler.ts total: 12482 líneas
+bodyLLM:                6746 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -522,7 +519,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5257-L11996
+    range: L5367-L12112
     confidence: high
 ```
 

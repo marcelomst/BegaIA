@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 5e4f233
-messageHandler_lines: 12442
-working_tree_status: dirty_expected_only_non_hito_changes
-analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
-baseline_status: working_tree_farewell_multilingual_validated_v28
+commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
+messageHandler_lines: 12482
+working_tree_status: clean_after_technical_commit
+analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
+baseline_status: runtime_proposal_dominance_modify_boundary_validated
 known_manual_bug: none
 ```
 
@@ -56,27 +56,26 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
-    - runtime.messageHandler.replyComposition
+    - create draft/proposal dominance
+    - modify fast-path gating
+    - confirmed target fallback resolution
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.conversationState
+    - explicit ID / ordinal resolution
+    - confirmed modify continuity
+    - proposal confirm follow-up
+    - cancel flow
+    - snapshot flow
+    - modify preview confirmation
+    - persistencia fuera del gating
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `farewell` se resuelve como stable intent de precedencia temprana
-      - una despedida explícita no reabre `create`
-      - una despedida explícita no reabre `modify`
-      - una despedida explícita con cancel pendiente no ejecuta cancelación
-      - `goodbye` conserva inglés conversacional confiable
-      - `tchau` conserva portugués conversacional confiable
-      - sin señal confiable se usa `hotel.defaultLanguage`
+      - `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+      - `pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+      - `pnpm run ts-check`
+      - `git diff --check`
   code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -158,7 +157,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12322
+        range: L1-L12482
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -186,7 +185,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L11968-L12322
+        range: L12158-L12482
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -216,7 +215,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4387-L4598
+        range: L4497-L5366
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -251,7 +250,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5257-L11996
+        range: L5367-L12112
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -327,7 +326,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5257-L11996
+        range: L5367-L12112
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -362,7 +361,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5257-L11996
+        range: L5367-L12112
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create

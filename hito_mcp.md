@@ -12614,3 +12614,66 @@ Impacto:
 - agrega perfiles opcionales aislados para email y exposición pública
 - preserva el runtime conversacional y la arquitectura multitenant compartida
 - deja documentación operativa mínima para levantar, inspeccionar y apagar la stack
+
+### FIX-RUNTIME-PROPOSAL-DOMINANCE-MODIFY-BOUNDARY-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-14
+Commit: d6656276b3bc1f4451cb5a178ec697d31311239b
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix runtime acotado a la frontera proposal-vs-confirmed dentro de `modify`.
+Preserva la dominancia de draft/proposal ante pedidos genéricos de cambio,
+bloquea el fallback implícito a target confirmado cuando no hay evidencia
+canónica compartida suficiente y mantiene el path legítimo de modify cuando
+existe referencia explícita o continuidad confirmada válida.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `create draft/proposal dominance`
+  `modify fast-path gating`
+  `confirmed target fallback resolution`
+- cajas revisadas:
+  `explicit ID / ordinal resolution`
+  `confirmed modify continuity`
+  `proposal confirm follow-up`
+  `cancel flow`
+  `snapshot flow`
+  `modify preview confirmation`
+  `persistencia fuera del gating`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
+  `pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+- veredicto Guardian:
+  `valid`
+- forbidden_touched:
+  `none`
+- undeclared_touched:
+  `none`
+
+Impacto:
+
+- bloquea la apertura automática incorrecta de `modify_reservation` confirmado
+  cuando domina un draft/proposal y el pedido de cambio es genérico
+- bloquea el fallback implícito a
+  `resolveSingleActionableReservationTarget(pre.st)` bajo draft dominante
+- reemplaza gating laxo de confirmado por evidencia canónica compartida
+- preserva modify legítimo y resolución explícita por ID u ordinal

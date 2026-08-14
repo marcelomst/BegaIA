@@ -46,11 +46,10 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta `farewell` como stable intent temprano
-- se documenta el corte de continuidad residual de corredores operativos tras despedida explícita
-- se documenta la resolución de idioma conversacional confiable para despedidas multilingües
-- se preserva que `farewell` no ejecute cancelaciones pendientes ni reabra `create`, `modify` o `availability`
-- se preservan los corredores de reserva como cajas relacionadas, no como cajas modificadas
+- se documenta la dominancia de draft/proposal sobre fallback implícito de modify confirmado
+- se bloquea el uso de `resolveSingleActionableReservationTarget(pre.st)` bajo draft dominante
+- se preserva modify legítimo con evidencia canónica compartida o referencia explícita
+- se preservan cajas relacionadas como revisadas, no como cajas tocadas fuera de auditoría
 
 ---
 
@@ -60,11 +59,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 5e4f233
-messageHandler_lines: 12442
-working_tree_status: dirty_expected_only_non_hito_changes
-analysis_scope: working_tree_on_5e4f233f348acd3e76133604d822585cae978ea3
-baseline_status: working_tree_farewell_multilingual_validated_v28
+commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
+messageHandler_lines: 12482
+working_tree_status: clean_after_technical_commit
+analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
+baseline_status: runtime_proposal_dominance_modify_boundary_validated
 known_manual_bug: none
 ```
 
@@ -73,15 +72,13 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/stableIntentsGuard.spec.ts test/unit/messageHandler.farewell_multilingual.spec.ts
+pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
 result: pass
-pnpm vitest run test/unit/messageHandler.stable_intents_guard.spec.ts test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.cancel_multiturn_continuity.spec.ts test/unit/messageHandler.create_sequencing.spec.ts
+pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
 git diff --check
-result: pass
-pnpm test
 result: pass
 ```
 
@@ -111,7 +108,7 @@ elimina el riesgo de futuros bugs funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12322
+total_lines: 12482
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -120,7 +117,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01`.
+del hito `FIX-RUNTIME-PROPOSAL-DOMINANCE-MODIFY-BOUNDARY-01`.
 ```
 
 ---
@@ -137,10 +134,10 @@ del hito `FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4387-L4598 |    212 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5257-L11996 |   6740 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L11923-L11967 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L11968-L12322 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4497-L5366 |    870 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5367-L12112 |   6746 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12113-L12157 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12158-L12482 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -150,7 +147,7 @@ del hito `FIX-ROOM-INFO-IMG-PUBLICATION-ROUTING-RICH-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L11968-L12322
+range: L12158-L12482
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -169,8 +166,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4387-L4598
-lines: 212
+range: L4497-L5366
+lines: 870
 confidence: high
 role: context_preparation
 ```
@@ -191,8 +188,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5257-L11996
-lines: 6740
+range: L5367-L12112
+lines: 6746
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -221,7 +218,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L11923-L11967
+range: L12113-L12157
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -414,8 +411,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5257-L11996
-bodyLLM_lines: 6740
+bodyLLM_range: L5367-L12112
+bodyLLM_lines: 6746
 bucket_size: 250
 confidence: high_for_full_range
 ```
