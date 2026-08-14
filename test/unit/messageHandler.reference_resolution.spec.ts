@@ -3245,4 +3245,175 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toMatch(/en qu[eé] puedo ayudarte/i);
     expect(replyText).toMatch(/de cu[aá]l reserva|precio/i);
   });
+
+  it("preserva dominancia de proposal activa frente a una reserva histórica al pedir un cambio genérico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-proposal-dominance-historical-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Martín Pérez",
+        roomType: "single",
+        checkIn: "2026-08-20",
+        checkOut: "2026-08-22",
+        numGuests: "1",
+      },
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      lastProposal: {
+        available: true,
+        proposal: "Martín, tengo simple disponible para Martín Pérez.",
+      },
+      lastReservation: {
+        reservationId: "RES-DE83D2",
+        status: "created",
+        createdAt: "2026-08-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Martín Pérez",
+        roomType: "double",
+        checkIn: "2026-08-10",
+        checkOut: "2026-08-12",
+        numGuests: "2",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES-DE83D2",
+          status: "created",
+          createdAt: "2026-08-01T10:00:00.000Z",
+          channel: "web",
+          guestName: "Martín Pérez",
+          roomType: "double",
+          checkIn: "2026-08-10",
+          checkOut: "2026-08-12",
+          numGuests: "2",
+        },
+      ],
+      activeReservationContext: {
+        kind: "draft",
+        phase: "quoted",
+        updatedAt: "2026-08-13T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero cambiar a nombre de quien va la reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).not.toMatch(/RES-DE83D2|ok, vamos a modificar esta reserva|podemos modificar tu reserva confirmada/i);
+    expect(replyText).toMatch(/nueva reserva en curso|qu[eé] quer[eé]s cambiar/i);
+    expect(currentState?.selectedReservationTarget ?? null).toBeNull();
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "draft" });
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+  });
+
+  it("con proposal activa y sin confirmadas no fabrica un target confirmado al pedir cambio genérico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-proposal-dominance-no-confirmed-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Martín Pérez",
+        roomType: "single",
+        checkIn: "2026-08-20",
+        checkOut: "2026-08-22",
+        numGuests: "1",
+      },
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      lastProposal: {
+        available: true,
+        proposal: "Martín, tengo simple disponible para Martín Pérez.",
+      },
+      lastReservation: null,
+      reservationHistory: [],
+      activeReservationContext: {
+        kind: "draft",
+        phase: "quoted",
+        updatedAt: "2026-08-13T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero cambiar nombre", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).not.toMatch(/podemos modificar tu reserva confirmada|pasame el c[oó]digo|ok, vamos a modificar esta reserva/i);
+    expect(replyText).toMatch(/nueva reserva en curso|qu[eé] quer[eé]s cambiar/i);
+    expect(currentState?.selectedReservationTarget ?? null).toBeNull();
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "draft" });
+  });
+
+  it("preserva el modify legítimo cuando solo existe una reserva confirmada", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-proposal-dominance-legit-modify-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("quiero cambiar mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(replyText).toMatch(/qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada/i);
+    expect(currentState?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "reservation", reservationId: "RES-ONLY-01" });
+    expect(currentState?.activeFlow).toBe("modify_reservation");
+  });
+
+  it("si el usuario referencia explícitamente una reserva confirmada mantiene el modify contractual aunque haya draft activo", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-proposal-dominance-explicit-code-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: {
+        guestName: "Martín Pérez",
+        roomType: "single",
+        checkIn: "2026-08-20",
+        checkOut: "2026-08-22",
+        numGuests: "1",
+      },
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      lastProposal: {
+        available: true,
+        proposal: "Martín, tengo simple disponible para Martín Pérez.",
+      },
+      lastReservation: {
+        reservationId: "RES-DE83D2",
+        status: "created",
+        createdAt: "2026-08-01T10:00:00.000Z",
+        channel: "web",
+        guestName: "Martín Pérez",
+        roomType: "double",
+        checkIn: "2026-08-10",
+        checkOut: "2026-08-12",
+        numGuests: "2",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES-DE83D2",
+          status: "created",
+          createdAt: "2026-08-01T10:00:00.000Z",
+          channel: "web",
+          guestName: "Martín Pérez",
+          roomType: "double",
+          checkIn: "2026-08-10",
+          checkOut: "2026-08-12",
+          numGuests: "2",
+        },
+      ],
+      activeReservationContext: {
+        kind: "draft",
+        phase: "quoted",
+        updatedAt: "2026-08-13T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero modificar mi reserva RES-DE83D2", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(replyText).toMatch(/RES-DE83D2|qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada/i);
+    expect(currentState?.selectedReservationTarget).toMatchObject({ reservationId: "RES-DE83D2" });
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "reservation", reservationId: "RES-DE83D2" });
+    expect(currentState?.activeFlow).toBe("modify_reservation");
+  });
 });

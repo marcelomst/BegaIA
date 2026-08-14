@@ -1040,7 +1040,7 @@ function computeInModifyMode(
   const prevWasModify = st?.lastCategory === "modify_reservation" || st?.lastCategory === "modify";
   const mentionsModify = normalizedIntent.kind === "modify";
   const hasDraft = Boolean(currSlots?.guestName || currSlots?.roomType || currSlots?.checkIn || currSlots?.checkOut || currSlots?.numGuests);
-  const hasConfirmed = st?.salesStage === "close";
+  const hasConfirmed = hasCanonicalConfirmedReservationContext(st);
   const hasDraftOrConfirmed = hasDraft || hasConfirmed;
   return Boolean(prevWasModify || (hasDraftOrConfirmed && mentionsModify));
 }
@@ -2282,6 +2282,18 @@ function getEffectiveActiveReservationContext(state: any): ActiveReservationCont
   }
   if (state?.reservationSlots) return buildDraftReservationContext("collecting");
   return undefined;
+}
+
+function hasCanonicalConfirmedReservationContext(state: any): boolean {
+  return Boolean(
+    state?.lastReservation?.reservationId ||
+    state?.salesStage === "close" ||
+    state?.conversationStage === "reservation_confirmed"
+  );
+}
+
+function hasDominantDraftProposalContext(state: any): boolean {
+  return getEffectiveActiveReservationContext(state)?.kind === "draft";
 }
 
 function normalizeCanonicalReservationStatus(status: string | null | undefined): CanonicalReservationRecord["canonicalStatus"] {
@@ -4566,7 +4578,7 @@ async function preLLM(msg: ChannelMessage, options?: { sendReply?: (reply: strin
   // Estado compacto para playbook
   const draftExists = !!currSlots.guestName || !!currSlots.roomType || !!currSlots.checkIn || !!currSlots.checkOut || !!currSlots.numGuests;
   // Detecta si hay reserva confirmada en el contexto (usando salesStage === 'close')
-  const hasConfirmed = !!(st?.reservationSlots && st?.salesStage === "close");
+  const hasConfirmed = hasCanonicalConfirmedReservationContext(st);
   // confirmedBooking solo acepta { code?: string }
   const confirmedBooking = hasConfirmed ? { code: "-" } : null;
   const stateForPlaybook: ConversationState = {
@@ -6523,7 +6535,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const ordinalReservationTargetFast = resolveExplicitOrdinalReservationTarget(pre.st, userTxt);
     const actionableReservationCountFast = buildActionableReservationCandidates(pre.st).length;
     const hasExplicitModifyTargetFast = Boolean(explicitReservationCodeFast || ordinalReservationTargetFast);
-    const hasConfirmed = pre.st?.salesStage === "close" || !!pre.st?.reservationSlots;
+    const hasConfirmed = hasCanonicalConfirmedReservationContext(pre.st);
+    const dominantDraftContext = hasDominantDraftProposalContext(pre.st);
     const isModifyFollowupContext = pre.prevCategory === "modify_reservation" || pre.prevCategory === "modify";
     const normalizedUserTxtFast = normalizeReferenceText(userTxt);
     const normalizedReservationIntentFast = normalizeReservationIntent(userTxt);
@@ -6574,7 +6587,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           (explicitReservationCodeFast
             ? getReservationReferenceTargetById(pre.st, explicitReservationCodeFast)
             : null) ||
-          resolveSingleActionableReservationTarget(pre.st);
+          (!dominantDraftContext ? resolveSingleActionableReservationTarget(pre.st) : null);
+    if (
+      dominantDraftContext &&
+      genericModify &&
+      !hasExplicitModifyTargetFast &&
+      !hasImmediateModifyPayloadFast &&
+      !isDateTopicFast
+    ) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        selectedReservationTarget: null,
+        modifyState: null,
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext(pre.st?.lastProposal || pre.st?.salesStage === "quote" ? "quoted" : "collecting"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = pre.lang === "es"
+        ? "Perfecto, trabajamos sobre la nueva reserva en curso. ¿Qué querés cambiar?"
+        : pre.lang === "pt"
+          ? "Perfeito, trabalhamos sobre a nova reserva em andamento. O que você quer mudar?"
+          : "Perfect, we will work on the new booking draft. What would you like to change?";
+      return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult: null };
+    }
     if (
       genericModify &&
       resolvedFastReservationTarget?.reservationId &&
@@ -7556,7 +7593,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const resolvedModifyTarget =
     resolvedReferenceReservationTarget
       ? resolvedReferenceReservationTarget
-      : explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget || resolveSingleActionableReservationTarget(pre.st);
+      : explicitIdReservationTarget ||
+        explicitOrdinalReservationTarget ||
+        selectedOrActiveReservationTarget ||
+        (!hasDominantDraftProposalContext(pre.st) ? resolveSingleActionableReservationTarget(pre.st) : null);
   if (modifyFocusActiveEarly && explicitReservationCode && !explicitIdReservationTarget && !explicitOrdinalReservationTarget) {
     finalText = buildModifyReservationCodeNotFoundReply(pre.lang);
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
