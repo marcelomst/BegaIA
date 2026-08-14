@@ -539,4 +539,97 @@ describe("messageHandler guest conversational name capture", () => {
     expect(replyText).toMatch(/a nombre de Ana Rodríguez/i);
     expect(replyText).not.toMatch(/^Ana,\s+/i);
   });
+
+  it("con proposal activa, pedir cambio de titular sin valor sigue en draft y pregunta por el nuevo titular", async () => {
+    const dates = futureBookingText(84, 2);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(`Hola, soy Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Revetria.`),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("quiero cambiar el titular"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/a nombre de qui[eé]n/i);
+    expect(replyText).not.toMatch(/podemos modificar tu reserva confirmada|ok, vamos a modificar esta reserva/i);
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Revetria");
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "draft" });
+    expect(currentState?.activeFlow).toBe("reservation");
+    expect(currentState?.desiredAction).toBe("create");
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(guestRecord?.firstName).toBe("Martín");
+  });
+
+  it("captura el nuevo titular en el turno siguiente sin tocar la identidad del interlocutor", async () => {
+    const dates = futureBookingText(86, 2);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(`Hola, soy Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Revetria.`),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("quiero cambiar el titular"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Laura Gómez"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(currentState?.reservationSlots?.guestName).toBe("Laura Gómez");
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(guestRecord?.firstName).toBe("Martín");
+    expect(guestRecord?.guestId).toBe("g1");
+    expect(replyText).toMatch(/^Mart[ií]n,\s+tengo triple disponible para Laura Gómez\./i);
+    expect(replyText).not.toMatch(/¿a nombre de qui[eé]n/i);
+  });
+
+  it("acepta cambio inline del titular en draft quoted y preserva guestId y aliases", async () => {
+    const dates = futureBookingText(88, 2);
+    guestRecord = {
+      guestId: "guest-canonical-1",
+      hotelId: "hotel999",
+      name: "Martín P.",
+      firstName: "Martín",
+      aliases: ["whatsapp:+59891359375", "email:martin@example.com"],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(
+        `Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Revetria.`,
+        { guestId: "guest-canonical-1", conversationId: "conv-holder-inline-1" }
+      ),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(
+      msg("quiero poner la reserva a nombre de Laura Gómez", { guestId: "guest-canonical-1", conversationId: "conv-holder-inline-1" }),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(currentState?.reservationSlots?.guestName).toBe("Laura Gómez");
+    expect(guestRecord?.guestId).toBe("guest-canonical-1");
+    expect(guestRecord?.aliases).toEqual(["whatsapp:+59891359375", "email:martin@example.com"]);
+    expect(guestRecord?.name).toBe("Martín P.");
+    expect(replyText).toMatch(/^Mart[ií]n,\s+tengo triple disponible para Laura Gómez\./i);
+    expect(replyText).not.toMatch(/a nombre de qui[eé]n/i);
+  });
+
+  it("rechaza follow-up metalingüístico y no convierte 'el nombre' en titular del draft", async () => {
+    const dates = futureBookingText(90, 2);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg(`Hola, soy Martín P. Quisiera reservar una triple para tres personas, ${dates.checkInOutText}, a nombre de Ana Revetria.`),
+      { mode: "automatic", sendReply }
+    );
+    await handleIncomingMessage(msg("quiero cambiar el nombre"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("el nombre"), { mode: "automatic", sendReply });
+
+    const replyText = lastReply(sendReply);
+    expect(replyText).toMatch(/a nombre de qui[eé]n/i);
+    expect(currentState?.reservationSlots?.guestName).toBe("Ana Revetria");
+    expect(replyText).not.toMatch(/El Nombre|para el nombre/i);
+    expect(guestRecord?.name).toBe("Martín P.");
+  });
 });

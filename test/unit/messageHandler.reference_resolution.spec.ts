@@ -3300,7 +3300,7 @@ describe("messageHandler reference resolution", () => {
     const currentState = stateByConversation.get(conversationId);
     expect(modifyReservation).not.toHaveBeenCalled();
     expect(replyText).not.toMatch(/RES-DE83D2|ok, vamos a modificar esta reserva|podemos modificar tu reserva confirmada/i);
-    expect(replyText).toMatch(/nueva reserva en curso|qu[eé] quer[eé]s cambiar/i);
+    expect(replyText).toMatch(/a nombre de qui[eé]n/i);
     expect(currentState?.selectedReservationTarget ?? null).toBeNull();
     expect(currentState?.activeReservationContext).toMatchObject({ kind: "draft" });
     expect(currentState?.activeFlow).toBe("reservation");
@@ -3339,7 +3339,7 @@ describe("messageHandler reference resolution", () => {
     const currentState = stateByConversation.get(conversationId);
     expect(modifyReservation).not.toHaveBeenCalled();
     expect(replyText).not.toMatch(/podemos modificar tu reserva confirmada|pasame el c[oó]digo|ok, vamos a modificar esta reserva/i);
-    expect(replyText).toMatch(/nueva reserva en curso|qu[eé] quer[eé]s cambiar/i);
+    expect(replyText).toMatch(/a nombre de qui[eé]n/i);
     expect(currentState?.selectedReservationTarget ?? null).toBeNull();
     expect(currentState?.activeReservationContext).toMatchObject({ kind: "draft" });
   });
@@ -3356,6 +3356,81 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).toMatch(/qu[eé] te gustar[ií]a cambiar|podemos modificar tu reserva confirmada/i);
     expect(currentState?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
     expect(currentState?.activeReservationContext).toMatchObject({ kind: "reservation", reservationId: "RES-ONLY-01" });
+    expect(currentState?.activeFlow).toBe("modify_reservation");
+  });
+
+  it("bloquea cambio de titular sobre reserva confirmada sin abrir el menú genérico de modify", async () => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Martín Pérez",
+      firstName: "Martín",
+      aliases: [],
+    });
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-confirmed-holder-guard-1";
+    stateByConversation.set(
+      conversationId,
+      baseSingleReservationState({
+        reservationSlots: {
+          guestName: "Laura Gómez",
+          roomType: "double",
+          checkIn: "2026-08-20",
+          checkOut: "2026-08-22",
+          numGuests: "2",
+        },
+        lastReservation: {
+          reservationId: "RES-ONLY-01",
+          status: "created",
+          createdAt: "2026-08-01T10:00:00.000Z",
+          channel: "web",
+          guestName: "Laura Gómez",
+          roomType: "double",
+          checkIn: "2026-08-20",
+          checkOut: "2026-08-22",
+          numGuests: "2",
+        },
+        reservationHistory: [
+          {
+            reservationId: "RES-ONLY-01",
+            status: "created",
+            createdAt: "2026-08-01T10:00:00.000Z",
+            channel: "web",
+            guestName: "Laura Gómez",
+            roomType: "double",
+            checkIn: "2026-08-20",
+            checkOut: "2026-08-22",
+            numGuests: "2",
+          },
+        ],
+      })
+    );
+
+    await handleIncomingMessage(msg("quiero cambiar el titular", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(replyText).toMatch(/por ahora no puedo cambiar el titular de una reserva confirmada/i);
+    expect(replyText).not.toMatch(/podemos modificar tu reserva confirmada|qu[eé] te gustar[ií]a cambiar|cambiar fechas|cambiar habitaci[oó]n|cambiar hu[eé]spedes/i);
+    expect(currentState?.reservationSlots?.guestName).toBe("Laura Gómez");
+    expect(currentState?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect(currentState?.activeReservationContext).toMatchObject({ kind: "reservation", reservationId: "RES-ONLY-01" });
+    expect(currentState?.modifyState ?? null).toBeNull();
+    expect(currentState?.activeFlow ?? null).not.toBe("modify_reservation");
+  });
+
+  it("mantiene el modify legítimo de fechas después del guard de titular sobre confirmada", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-confirmed-holder-guard-negative-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("quiero cambiar las fechas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(replyText).not.toMatch(/por ahora no puedo cambiar el titular de una reserva confirmada/i);
+    expect(replyText).toMatch(/nuevas fechas|check-in y check-out|cu[aá]les ser[ií]an las nuevas fechas/i);
     expect(currentState?.activeFlow).toBe("modify_reservation");
   });
 

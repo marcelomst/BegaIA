@@ -47,7 +47,7 @@ import { preLLMInterpret } from "@/lib/audit/preLLM";
 import { verdict as auditVerdict } from "@/lib/audit/compare";
 import { intentConfidenceByRules, slotsConfidenceByRules } from "@/lib/audit/confidence";
 import type { Interpretation, SlotMap } from "@/types/audit";
-import { extractSlotsFromText, extractGuests, isSafeGuestName, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange, buildReservationMissingQuestion, formatGuestCountLabel } from "@/lib/agents/helpers";
+import { extractSlotsFromText, extractGuests, isSafeGuestName, isMetalinguisticHolderCandidate, extractDateRangeFromText, localizeRoomType, pickNearbyPromptKey, looksNearbyPoints, wantsNearbyImages, looksLikeName, normalizeNameCase, maxGuestsFor, ddmmyyyyToISO, chronoExtractDateRange, buildReservationMissingQuestion, formatGuestCountLabel } from "@/lib/agents/helpers";
 import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
@@ -3314,7 +3314,55 @@ function isGuestNameFollowupInReservation(
   if (!looksLikeName(trimmed)) return false;
   const lastAi = [...lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
   const lastText = String(lastAi?.content || "").toLowerCase();
-  return /\b(a nombre de qui[eé]n ser[ií]a la reserva|nombre y apellido|what name should i use for the reservation|full name|nome e sobrenome|em nome de quem seria a reserva)\b/.test(lastText);
+  return /\b(a nombre de qui[eé]n ser[ií]a la reserva|a nombre de qui[eé]n quer[eé]s dejar la reserva|nombre y apellido|what name should i use for the reservation|under which name should i leave the booking|full name|nome e sobrenome|em nome de quem seria a reserva|em nome de quem voc[eê] quer deixar a reserva)\b/.test(lastText);
+}
+
+function hasHolderCorrectionIntent(text: string): boolean {
+  const normalized = normalizeReferenceText(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return false;
+  return Boolean(
+    /\b(cambiar|cambiemos|cambia|cambiaria|cambiaría|corregir|corregi|corregime|modificar|modifica|poner|dejar|actualizar)\b.*\b(nombre|titular)\b/.test(normalized) ||
+    /\b(nombre|titular)\b.*\b(cambiar|corregir|modificar|poner|dejar|actualizar)\b/.test(normalized) ||
+    /\ba nombre de quien\b/.test(normalized) ||
+    /\bquien va la reserva\b/.test(normalized) ||
+    /\bel nombre de la reserva\b/.test(normalized)
+  );
+}
+
+function hasDraftHolderCorrectionIntent(text: string): boolean {
+  return hasHolderCorrectionIntent(text);
+}
+
+function buildAskDraftHolderName(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "¿A nombre de quién querés dejar la reserva?"
+    : lang === "pt"
+      ? "Em nome de quem você quer deixar a reserva?"
+      : "Under which name would you like to leave the booking?";
+}
+
+function buildConfirmedHolderChangeNotSupportedReply(lang: "es" | "en" | "pt"): string {
+  return lang === "es"
+    ? "Por ahora no puedo cambiar el titular de una reserva confirmada."
+    : lang === "pt"
+      ? "Por enquanto não posso alterar o titular de uma reserva confirmada."
+      : "I can't change the holder of a confirmed booking right now.";
+}
+
+function resolveDraftHolderCandidate(
+  text: string,
+  lang: "es" | "en" | "pt",
+  options: { allowBareName?: boolean } = {}
+): string | undefined {
+  const extracted = extractSlotsFromText(text, lang);
+  const extractedCandidate = String(extracted.guestName || "").trim();
+  if (extractedCandidate && isSafeGuestName(extractedCandidate) && !isMetalinguisticHolderCandidate(extractedCandidate)) {
+    return normalizeNameCase(extractedCandidate);
+  }
+  const trimmed = String(text || "").trim();
+  if (!options.allowBareName) return undefined;
+  if (!isSafeGuestName(trimmed) || isMetalinguisticHolderCandidate(trimmed)) return undefined;
+  return normalizeNameCase(trimmed);
 }
 
 function hasActiveReservationDomain(pre: PreLLMResult): boolean {
@@ -6543,6 +6591,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const mentionsReservation = /(reserva|booking)/i.test(tLower);
     const looksGreeting = /^(hola|buenas|hello|hi|hey|ol[aá]|oi)\b/i.test(tLower) || /creo que tengo una reserva|tengo una reserva|i think i have a booking|acho que tenho uma reserva/i.test(tLower);
     const hasLooseModifyVerbFast = /\b(cambiame|modificame|cambiar|modificar|change|modify|update|alterar)\b/i.test(normalizedUserTxtFast);
+    const wantsConfirmedHolderChangeFast = hasHolderCorrectionIntent(userTxt);
     const isModifyInquiryFast =
       normalizedReservationIntentFast.kind === "other" &&
       hasLooseModifyVerbFast;
@@ -6589,6 +6638,34 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : null) ||
           (!dominantDraftContext ? resolveSingleActionableReservationTarget(pre.st) : null);
     if (
+      wantsConfirmedHolderChangeFast &&
+      resolvedFastReservationTarget?.reservationId &&
+      !dominantDraftContext
+    ) {
+      const holderGuardSlots = {
+        ...(pre.st?.reservationSlots || {}),
+        guestName: resolvedFastReservationTarget.guestName,
+        roomType: resolvedFastReservationTarget.roomType,
+        numGuests: resolvedFastReservationTarget.numGuests,
+        checkIn: resolvedFastReservationTarget.checkIn,
+        checkOut: resolvedFastReservationTarget.checkOut,
+        locale: pre.lang,
+      } as ReservationSlotsStrict;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: holderGuardSlots,
+        activeReservationContext: buildFocusedReservationContext(resolvedFastReservationTarget.reservationId, "confirmed"),
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(
+          resolvedFastReservationTarget.reservationId,
+          explicitReservationCodeFast ? "explicit_id" : ordinalReservationTargetFast ? "ordinal" : hasAnaphoraReferenceFast ? "anaphora" : "active_focus",
+          explicitReservationCodeFast || ordinalReservationTargetFast ? "strong" : "weak"
+        ),
+        modifyState: null,
+        updatedBy: "ai",
+      } as any);
+      finalText = buildConfirmedHolderChangeNotSupportedReply(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult: null };
+    }
+    if (
       dominantDraftContext &&
       genericModify &&
       !hasExplicitModifyTargetFast &&
@@ -6605,11 +6682,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         lastCategory: "reservation",
         updatedBy: "ai",
       } as any);
-      finalText = pre.lang === "es"
-        ? "Perfecto, trabajamos sobre la nueva reserva en curso. ¿Qué querés cambiar?"
-        : pre.lang === "pt"
-          ? "Perfeito, trabalhamos sobre a nova reserva em andamento. O que você quer mudar?"
-          : "Perfect, we will work on the new booking draft. What would you like to change?";
+      finalText = hasDraftHolderCorrectionIntent(userTxt)
+        ? buildAskDraftHolderName(pre.lang)
+        : pre.lang === "es"
+          ? "Perfecto, trabajamos sobre la nueva reserva en curso. ¿Qué querés cambiar?"
+          : pre.lang === "pt"
+            ? "Perfeito, trabalhamos sobre a nova reserva em andamento. O que você quer mudar?"
+            : "Perfect, we will work on the new booking draft. What would you like to change?";
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult: null };
     }
     if (
@@ -7632,6 +7711,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) ||
     Boolean(directModifyTurnSlots.numGuests) ||
     Boolean(directModifyTurnSlots.roomType);
+  const wantsConfirmedHolderChange = hasHolderCorrectionIntent(userTxtRaw);
   const directModifyUserDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
   const directModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, directModifyUserDates);
   const hasTemporalModifySignal = hasModifyDatesEntrySignal(
@@ -7675,6 +7755,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         updatedBy: "ai",
       } as any);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (wantsConfirmedHolderChange) {
+      const holderGuardSlots = {
+        ...(pre.st?.reservationSlots || {}),
+        guestName: target.guestName,
+        roomType: pre.currSlots.roomType || nextSlots.roomType || target.roomType,
+        numGuests: pre.currSlots.numGuests || nextSlots.numGuests || target.numGuests,
+        checkIn: pre.currSlots.checkIn || nextSlots.checkIn || target.checkIn,
+        checkOut: pre.currSlots.checkOut || nextSlots.checkOut || target.checkOut,
+        locale: pre.lang,
+      } as ReservationSlotsStrict;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: holderGuardSlots,
+        activeReservationContext: buildFocusedReservationContext(target.reservationId, "confirmed"),
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(
+          target.reservationId,
+          explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
+          explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
+        ),
+        modifyState: null,
+        updatedBy: "ai",
+      } as any);
+      finalText = buildConfirmedHolderChangeNotSupportedReply(pre.lang);
+      return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult };
     }
     const recentModifyRoomType = getRecentModifyRoomTypeCandidate(pre);
     const directImmediateModifyFields = normalizeModifyFieldQueue([
@@ -8502,6 +8606,100 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (activeCreateFlow && createFollowupCarriesDateProgress);
   const nextCreateMissingField = getNextCreateFlowMissingField(createDraftConsistency.sanitizedSlots);
   const pendingCreateProposal = isPendingCreateProposalContext(pre, userTxtRaw);
+  const draftHolderCorrectionFollowup = isGuestNameFollowupInReservation(pre.lcHistory, userTxtRaw);
+  const draftHolderCorrectionActive =
+    activeCreateFlow &&
+    !modifyExecutionActive &&
+    !hasConfirmedBookingContext &&
+    hasDominantDraftProposalContext(pre.st) &&
+    (hasDraftHolderCorrectionIntent(userTxtRaw) || draftHolderCorrectionFollowup);
+  if (draftHolderCorrectionActive) {
+    const holderCandidate = resolveDraftHolderCandidate(userTxtRaw, pre.lang, {
+      allowBareName: draftHolderCorrectionFollowup,
+    });
+    if (!holderCandidate) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: {
+          ...(pre.st?.reservationSlots || {}),
+          ...createDraftConsistency.sanitizedSlots,
+          locale: pre.lang,
+        },
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext(pendingCreateProposal ? "quoted" : "collecting"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildAskDraftHolderName(pre.lang);
+      return {
+        finalText,
+        nextCategory: "reservation",
+        nextSlots: createDraftConsistency.sanitizedSlots,
+        needsSupervision,
+        graphResult,
+      };
+    }
+
+    const updatedHolderSnapshot = {
+      ...createDraftConsistency.sanitizedSlots,
+      guestName: holderCandidate,
+      locale: pre.lang,
+    } as ReservationSlotsStrict;
+    const shouldQuoteUpdatedHolder =
+      Boolean(updatedHolderSnapshot.checkIn && updatedHolderSnapshot.checkOut && updatedHolderSnapshot.roomType && updatedHolderSnapshot.numGuests) &&
+      (pendingCreateProposal || isCreateStateReadyForQuote(updatedHolderSnapshot));
+
+    if (shouldQuoteUpdatedHolder) {
+      const holderQuoteResult = await runAvailabilityCheck(
+        availabilityPre,
+        updatedHolderSnapshot,
+        updatedHolderSnapshot.checkIn!,
+        updatedHolderSnapshot.checkOut!
+      );
+      const holderQuotedSnapshot = {
+        ...mergeReservationSlots(pre.st?.reservationSlots, holderQuoteResult.nextSlots, updatedHolderSnapshot),
+        locale: pre.lang,
+      } as ReservationSlotsStrict;
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: holderQuotedSnapshot,
+        lastProposal: {
+          text: holderQuoteResult.finalText,
+          available: true,
+        },
+        conversationFocus: buildConversationFocus("create"),
+        activeReservationContext: buildDraftReservationContext("quoted"),
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "quote",
+        conversationStage: "reservation_quoted",
+        pendingAvailabilityVerification: null,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = applyConversationalProposalVocative(holderQuoteResult.finalText, pre.lang, availabilityPre.guest);
+      return {
+        finalText,
+        nextCategory: "reservation",
+        nextSlots: holderQuotedSnapshot,
+        needsSupervision: needsSupervision || holderQuoteResult.needsHandoff,
+        graphResult,
+      };
+    }
+
+    await persistCreateDraft(pre, updatedHolderSnapshot);
+    const postHolderMissingField = getNextCreateFlowMissingField(updatedHolderSnapshot);
+    finalText = postHolderMissingField
+      ? buildCreateFlowPrompt(pre.lang, postHolderMissingField, pre.msg.channel, updatedHolderSnapshot)
+      : buildQuotedCreateConfirmClarification(pre.lang);
+    return {
+      finalText,
+      nextCategory: "reservation",
+      nextSlots: updatedHolderSnapshot,
+      needsSupervision,
+      graphResult,
+    };
+  }
   if (
     (hasConversationalGuestName || hasCreateDraftGuestName) &&
     createQuoteTurnEligible &&
@@ -9775,6 +9973,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         !extractReservationCodeLikeToken(String(pre.msg.content || ""))
       ) {
         if (!hasChanges) {
+          if (hasDraftHolderCorrectionIntent(userTxtRaw)) {
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              conversationFocus: buildConversationFocus("create"),
+              activeReservationContext: buildDraftReservationContext(pre.st?.lastProposal || pre.st?.salesStage === "quote" ? "quoted" : "collecting"),
+              activeFlow: "reservation",
+              desiredAction: "create",
+              lastCategory: "reservation",
+              updatedBy: "ai",
+            } as any);
+            finalText = buildAskDraftHolderName(pre.lang);
+            return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+          }
           finalText = pre.lang === "es"
             ? "Perfecto, trabajamos sobre la nueva reserva en curso. ¿Qué querés cambiar?"
             : pre.lang === "pt"
