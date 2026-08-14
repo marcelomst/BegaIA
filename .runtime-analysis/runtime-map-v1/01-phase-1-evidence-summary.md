@@ -21,15 +21,14 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
-messageHandler_lines: 12482
+commit_base: 98180396375f229d096c55753ba08eb9bff9d128
+messageHandler_lines: 12692
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
+analysis_scope: commit_98180396375f229d096c55753ba08eb9bff9d128
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-    - pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+    - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts
   full_suite:
     - pnpm run ts-check
     - git diff --check
@@ -41,24 +40,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - create draft/proposal dominance
-    - modify fast-path gating
-    - confirmed target fallback resolution
+    - draft/proposal holder correction intent
+    - draft holder capture
+    - reservationSlots.guestName transactional holder update
+    - confirmed reservation holder unsupported guard
   reviewed:
-    - explicit ID / ordinal resolution
-    - confirmed modify continuity
-    - proposal confirm follow-up
-    - cancel flow
-    - snapshot flow
-    - modify preview confirmation
-    - persistencia fuera del gating
+    - canonical guest identity isolation
+    - confirmed modify dates continuity
+    - confirmed modify roomType continuity
+    - confirmed modify guests continuity
+    - explicit reservation targeting
+    - MCP update contract
+    - Channel Manager untouched
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
-      - `pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+      - `pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -68,13 +67,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: d6656276b3bc1f4451cb5a178ec697d31311239b
-    messageHandler_lines: 12482
+    commit: 98180396375f229d096c55753ba08eb9bff9d128
+    messageHandler_lines: 12692
     functions:
-      preLLM: L4497-L5366
-      bodyLLM: L5367-L12112
-      posLLM: L12113-L12157
-      handleIncomingMessage: L12158-L12482
+      preLLM: L4545-L5414
+      bodyLLM: L5415-L12322
+      posLLM: L12323-L12367
+      handleIncomingMessage: L12368-L12692
 ```
 
 ## Funciones clave actuales
@@ -89,10 +88,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4497-L5366 |    870 | high      |
-| `bodyLLM`                            | L5367-L12112 |   6746 | high      |
-| `posLLM`                             | L12113-L12157 |     45 | high      |
-| `handleIncomingMessage`              | L12158-L12482 |    325 | high      |
+| `preLLM`                             | L4545-L5414 |    870 | high      |
+| `bodyLLM`                            | L5415-L12322 |   6908 | high      |
+| `posLLM`                             | L12323-L12367 |     45 | high      |
+| `handleIncomingMessage`              | L12368-L12692 |    325 | high      |
 
 ---
 
@@ -101,8 +100,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12482 líneas
-bodyLLM:                6746 líneas
+messageHandler.ts total: 12692 líneas
+bodyLLM:                6908 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -519,7 +518,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5367-L12112
+    range: L5415-L12322
     confidence: high
 ```
 

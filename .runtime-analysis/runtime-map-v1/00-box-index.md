@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
-messageHandler_lines: 12482
+commit_base: 98180396375f229d096c55753ba08eb9bff9d128
+messageHandler_lines: 12692
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
-baseline_status: runtime_proposal_dominance_modify_boundary_validated
+analysis_scope: commit_98180396375f229d096c55753ba08eb9bff9d128
+baseline_status: runtime_draft_holder_correction_guard_validated
 known_manual_bug: none
 ```
 
@@ -56,24 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - create draft/proposal dominance
-    - modify fast-path gating
-    - confirmed target fallback resolution
+    - draft/proposal holder correction intent
+    - draft holder capture
+    - reservationSlots.guestName transactional holder update
+    - confirmed reservation holder unsupported guard
   reviewed:
-    - explicit ID / ordinal resolution
-    - confirmed modify continuity
-    - proposal confirm follow-up
-    - cancel flow
-    - snapshot flow
-    - modify preview confirmation
-    - persistencia fuera del gating
+    - canonical guest identity isolation
+    - confirmed modify dates continuity
+    - confirmed modify roomType continuity
+    - confirmed modify guests continuity
+    - explicit reservation targeting
+    - MCP update contract
+    - Channel Manager untouched
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts`
-      - `pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts`
+      - `pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -157,7 +157,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12482
+        range: L1-L12692
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -185,7 +185,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12158-L12482
+        range: L12368-L12692
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -215,7 +215,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4497-L5366
+        range: L4545-L5414
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -250,7 +250,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5367-L12112
+        range: L5415-L12322
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -326,7 +326,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5367-L12112
+        range: L5415-L12322
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -361,7 +361,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5367-L12112
+        range: L5415-L12322
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create

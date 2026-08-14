@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d6656276b3bc1f4451cb5a178ec697d31311239b
-messageHandler_lines: 12482
+commit_base: 98180396375f229d096c55753ba08eb9bff9d128
+messageHandler_lines: 12692
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_d6656276b3bc1f4451cb5a178ec697d31311239b
+analysis_scope: commit_98180396375f229d096c55753ba08eb9bff9d128
 ```
 
 ---
@@ -27,9 +27,7 @@ working tree limpio; documentación pendiente al momento del cierre HDOC
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-result: pass
-pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts
 result: pass
 pnpm run ts-check
 result: pass
@@ -44,24 +42,24 @@ result: pass
 ```yaml
 runtime_boxes_audit:
   touched:
-    - create draft/proposal dominance
-    - modify fast-path gating
-    - confirmed target fallback resolution
+    - draft/proposal holder correction intent
+    - draft holder capture
+    - reservationSlots.guestName transactional holder update
+    - confirmed reservation holder unsupported guard
   reviewed:
-    - explicit ID / ordinal resolution
-    - confirmed modify continuity
-    - proposal confirm follow-up
-    - cancel flow
-    - snapshot flow
-    - modify preview confirmation
-    - persistencia fuera del gating
+    - canonical guest identity isolation
+    - confirmed modify dates continuity
+    - confirmed modify roomType continuity
+    - confirmed modify guests continuity
+    - explicit reservation targeting
+    - MCP update contract
+    - Channel Manager untouched
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - pnpm vitest run test/unit/messageHandler.reference_resolution.spec.ts
-      - pnpm vitest run test/unit/messageHandler.reservation_confirm_followup.spec.ts test/unit/messageHandler.modify_cancel_intent_normalization.spec.ts
+      - pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts
       - pnpm run ts-check
       - git diff --check
   code_refs_status: needs_refresh
@@ -78,23 +76,23 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: d6656276b3bc1f4451cb5a178ec697d31311239b
-    messageHandler_lines: 12482
+    commit: 98180396375f229d096c55753ba08eb9bff9d128
+    messageHandler_lines: 12692
     functions:
-      preLLM: L4497-L5366
-      bodyLLM: L5367-L12112
-      posLLM: L12113-L12157
-      handleIncomingMessage: L12158-L12482
+      preLLM: L4545-L5414
+      bodyLLM: L5415-L12322
+      posLLM: L12323-L12367
+      handleIncomingMessage: L12368-L12692
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- draft/proposal dominante bloquea apertura automática de modify confirmado ante pedido genérico
-- no hay fallback implícito a target confirmado bajo draft dominante
-- modify confirmado legítimo se preserva con evidencia canónica compartida o referencia explícita
-- resolución explícita por ID u ordinal permanece válida
-- proposal confirm follow-up, cancel, snapshot y modify preview confirmation quedan preservados
+- la corrección segura de titular opera solo en contexto draft/proposal
+- la identidad canónica del interlocutor permanece aislada del holder transaccional
+- `reservationSlots.guestName` se actualiza como holder transaccional sin persistir metalingüística como identidad
+- el cambio de titular sobre reserva confirmada queda bloqueado explícitamente en este corte
+- continuidad legítima de modify por fechas, habitación y huéspedes queda preservada
 ```
 
 ---
@@ -102,7 +100,7 @@ runtime_map_refresh:
 ## Advertencia de uso
 
 Este snapshot es válido para el hito
-`FIX-RUNTIME-PROPOSAL-DOMINANCE-MODIFY-BOUNDARY-01`.
+`FIX-RUNTIME-DRAFT-HOLDER-CORRECTION-GUARD-01`.
 
 ```text
 box_id = estable
@@ -116,9 +114,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline actualizada al commit `d6656276b3bc1f4451cb5a178ec697d31311239b`
+1. Baseline actualizada al commit `98180396375f229d096c55753ba08eb9bff9d128`
 2. Rangos top-level de `messageHandler.ts` recalculados
 3. Auditoría de cajas incorporada con veredicto `valid`
 4. code index y box index alineados al scan actual
-5. sin cambio conceptual de cajas; solo refresh documental y fix acotado
+5. sin cambio conceptual de cajas; solo refresh documental del corredor de holder correction y guard post-confirm
 ```

@@ -12677,3 +12677,69 @@ Impacto:
   `resolveSingleActionableReservationTarget(pre.st)` bajo draft dominante
 - reemplaza gating laxo de confirmado por evidencia canónica compartida
 - preserva modify legítimo y resolución explícita por ID u ordinal
+
+### FIX-RUNTIME-DRAFT-HOLDER-CORRECTION-GUARD-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-14
+Commit: 98180396375f229d096c55753ba08eb9bff9d128
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix runtime acotado al corredor de holder correction transaccional sobre
+draft/proposal y al guard explícito post-confirm. Soporta corrección segura de
+titular sin alterar la identidad canónica del interlocutor, captura el titular
+solo en contexto draft y bloquea explícitamente el cambio de titular sobre una
+reserva confirmada en este corte.
+
+Archivos afectados:
+
+- `lib/agents/helpers.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `draft/proposal holder correction intent`
+  `draft holder capture`
+  `reservationSlots.guestName transactional holder update`
+  `confirmed reservation holder unsupported guard`
+- cajas revisadas:
+  `canonical guest identity isolation`
+  `confirmed modify dates continuity`
+  `confirmed modify roomType continuity`
+  `confirmed modify guests continuity`
+  `explicit reservation targeting`
+  `MCP update contract`
+  `Channel Manager untouched`
+- tests reportados en verde:
+  `pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+- veredicto Guardian:
+  `valid`
+- forbidden_touched:
+  `none`
+- undeclared_touched:
+  `none`
+
+Impacto:
+
+- soporta corrección segura de titular sobre draft/proposal sin contaminar la
+  identidad canónica del guest
+- captura titular inline o por follow-up solo en contexto draft
+- actualiza `reservationSlots.guestName` como holder transaccional sin persistir
+  expresiones metalingüísticas como identidad canónica
+- bloquea explícitamente el cambio de titular sobre reserva confirmada en este
+  corte
