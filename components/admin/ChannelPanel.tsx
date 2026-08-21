@@ -71,9 +71,12 @@ export default function ChannelPanel({ channel }: { channel: ChannelId }) {
     if (!user?.hotelId) return;
     setLoading(true);
     try {
-      await fetch(`/api/config/mode?channel=${channel}&hotelId=${user.hotelId}&mode=${newMode}`, {
+      const response = await fetch(`/api/config/mode?channel=${channel}&hotelId=${user.hotelId}&mode=${newMode}`, {
         method: "POST",
       });
+      if (!response.ok) {
+        throw new Error(`Mode update failed with status ${response.status}`);
+      }
       await refreshFromServer(user.hotelId);
     } finally {
       setLoading(false);

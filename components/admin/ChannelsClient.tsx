@@ -129,7 +129,10 @@ export default function ChannelsClient({ initialConfig, hotelId }: Props) {
                 )}
 
                 <div className="text-sm text-muted-foreground flex flex-col gap-2 mb-4">
-                  <form action={`/api/config/mode?channel=${channelKey}&hotelId=${hotelId}`} method="POST">
+                  <form
+                    action={`/api/config/mode?channel=${channelKey}&hotelId=${hotelId}&mode=${channelConfig.mode === "automatic" ? "supervised" : "automatic"}`}
+                    method="POST"
+                  >
                     <button className="text-blue-500 hover:underline" type="submit">
                       Cambiar a modo {channelConfig.mode === "automatic" ? "👤 Supervisado" : "🧠 Automático"}
                     </button>

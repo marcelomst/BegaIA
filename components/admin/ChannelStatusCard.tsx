@@ -82,7 +82,10 @@ export default function ChannelStatusCard({ channel, config, hotelId }: Props) {
         </div>
       )}
       <div className="flex gap-2 mt-2">
-        <form action={`/api/config/mode?channel=${channel}&hotelId=${hotelId}`} method="POST">
+        <form
+          action={`/api/config/mode?channel=${channel}&hotelId=${hotelId}&mode=${config.mode === "automatic" ? "supervised" : "automatic"}`}
+          method="POST"
+        >
           <button className="text-blue-500 underline text-xs" type="submit">
             Cambiar a modo {config.mode === "automatic" ? "👤 Supervisado" : "🧠 Automático"}
           </button>
