@@ -12743,3 +12743,53 @@ Impacto:
   expresiones metalingüísticas como identidad canónica
 - bloquea explícitamente el cambio de titular sobre reserva confirmada en este
   corte
+
+### FIX-ADMIN-CHANNEL-MODE-API-CONTRACT-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-21
+Commit: 397858960e80aec7c1fb2e34e7a25bd852756c23
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado al contrato Admin/API del modo por canal. El endpoint
+`POST /api/config/mode` recibe y persiste de forma explícita el modo pedido,
+responde JSON `200` sin redirect y los callers de Admin transmiten `mode`
+explícito antes de refrescar el estado local.
+
+Archivos afectados:
+
+- `app/api/config/mode/route.ts`
+- `components/admin/ChannelPanel.tsx`
+- `components/admin/ChannelsClient.tsx`
+- `components/admin/ChannelStatusCard.tsx`
+- `test/unit/api.config.mode.route.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- contrato API validado: `hotelId`, `channel` y `mode` obligatorios; persiste
+  exactamente `automatic` o `supervised`; inválido o ausente devuelve `400`
+  sin mutación y canal inexistente devuelve `404`
+- idempotencia validada: reenviar el modo ya persistido no lo invierte
+- no queda `NextResponse.redirect` en el endpoint
+- los tres callers Admin envían `mode` explícito; `ChannelPanel` verifica
+  `response.ok` antes de refrescar
+- tests reportados en verde:
+  `pnpm vitest run test/unit/api.config.mode.route.spec.ts test/frontend/channelPanel.perChannelState.spec.tsx test/unit/hotels.update.assistant_branding.route.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual: `passed`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- elimina la inversión implícita del modo de canal en el contrato Admin/API
+- permite a los clientes Admin actualizar un canal con semántica explícita y
+  respuesta JSON consumible
+- no altera el runtime conversacional ni la arquitectura canónica
+- queda fuera de alcance el warning independiente de `conversation-trace`
+  sobre `$push` con `$slice`
