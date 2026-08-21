@@ -26,6 +26,10 @@ const EMAIL_LEGACY_LOOKBACK_DAYS_DEFAULT = Math.max(0, Number(process.env.EMAIL_
 const EMAIL_LEGACY_MAX_MESSAGES_DEFAULT = Math.max(1, Number(process.env.EMAIL_LEGACY_MAX_MESSAGES ?? 10) || 10);
 const failedUids: Record<number, number> = {};
 type EmailWorkerMode = "once" | "watch";
+type EmailBotStartup = {
+  lockToken: string;
+  cancelled: boolean;
+};
 const emailBotRuntimes = new Map<string, {
   hotelId: string;
   lockToken: string;
@@ -33,6 +37,14 @@ const emailBotRuntimes = new Map<string, {
   connection: any;
   stopping: boolean;
 }>();
+// Locks acquired before IMAP finishes connecting must also be released on shutdown.
+const emailBotStartingLocks = new Map<string, EmailBotStartup>();
+const RELEASE_EMAIL_BOT_LOCK_SCRIPT = `
+  if redis.call("GET", KEYS[1]) == ARGV[1] then
+    return redis.call("DEL", KEYS[1])
+  end
+  return 0
+`;
 
 /**
  * Determina si un email es irrelevante para el RAGbot (spam, promo, newsletter, etc.)
@@ -154,12 +166,15 @@ export async function refreshEmailBotLock(hotelId: string, lockToken: string): P
   return true;
 }
 
-export async function releaseEmailBotLock(hotelId: string, lockToken: string): Promise<void> {
+async function isEmailBotLockOwner(hotelId: string, lockToken: string): Promise<boolean> {
   const key = buildEmailBotLockKey(hotelId);
-  const current = await redis.get(key);
-  if (current === lockToken) {
-    await redis.del(key);
-  }
+  return (await redis.get(key)) === lockToken;
+}
+
+export async function releaseEmailBotLock(hotelId: string, lockToken: string): Promise<boolean> {
+  const key = buildEmailBotLockKey(hotelId);
+  const result = await redis.eval(RELEASE_EMAIL_BOT_LOCK_SCRIPT, 1, key, lockToken);
+  return Number(result) === 1;
 }
 
 function isUnsupportedImapKeywordError(err: unknown): boolean {
@@ -194,6 +209,18 @@ export async function markEmailProcessed(connection: any, uid: number): Promise<
   }
 }
 
+async function closeEmailConnection(connection: any): Promise<void> {
+  try {
+    await connection?.end?.();
+  } catch {
+    try {
+      connection?.imap?.end?.();
+    } catch {
+      // best effort
+    }
+  }
+}
+
 async function stopEmailBotRuntime(hotelId: string, reason: string, lockToken: string) {
   const runtime = emailBotRuntimes.get(hotelId);
   if (!runtime || runtime.lockToken !== lockToken) return;
@@ -204,15 +231,7 @@ async function stopEmailBotRuntime(hotelId: string, reason: string, lockToken: s
     runtime.intervalId = null;
   }
 
-  try {
-    await runtime.connection?.end?.();
-  } catch {
-    try {
-      runtime.connection?.imap?.end?.();
-    } catch {
-      // best effort
-    }
-  }
+  await closeEmailConnection(runtime.connection);
 
   emailBotRuntimes.delete(hotelId);
   stopChannelHeartbeat("email", hotelId);
@@ -220,6 +239,25 @@ async function stopEmailBotRuntime(hotelId: string, reason: string, lockToken: s
     console.warn(`[email] No se pudo liberar lock (${hotelId}) tras ${reason}:`, err);
   });
   console.log(`[email] Runtime detenido para hotel ${hotelId}. reason=${reason}`);
+}
+
+export async function stopAllEmailBotRuntimes(reason: string): Promise<void> {
+  const startingLocks = [...emailBotStartingLocks.entries()];
+  for (const [, startup] of startingLocks) {
+    startup.cancelled = true;
+  }
+
+  const runtimes = [...emailBotRuntimes.values()];
+  await Promise.all(runtimes.map((runtime) => (
+    stopEmailBotRuntime(runtime.hotelId, reason, runtime.lockToken)
+  )));
+
+  await Promise.all(startingLocks.map(async ([hotelId, startup]) => {
+    if (emailBotStartingLocks.get(hotelId) !== startup) return;
+    await releaseEmailBotLock(hotelId, startup.lockToken).catch((err) => {
+      console.warn(`[email] No se pudo liberar lock de arranque (${hotelId}) tras ${reason}:`, err);
+    });
+  }));
 }
 
 async function shouldContinueEmailProcessing(hotelId: string, lockToken: string): Promise<boolean> {
@@ -433,9 +471,22 @@ export async function startEmailBot({
     let transporter = buildTransporter(effectiveEmailPass);
 
     lockToken = newEmailBotLockToken(hotelId);
+    const startup: EmailBotStartup = { lockToken, cancelled: false };
+    emailBotStartingLocks.set(hotelId, startup);
     const acquired = await acquireEmailBotLock(hotelId, lockToken);
     if (!acquired) {
+      if (emailBotStartingLocks.get(hotelId) === startup) {
+        emailBotStartingLocks.delete(hotelId);
+      }
       console.warn(`[email] Ya existe otro proceso email activo para hotelId=${hotelId}. Abortando init.`);
+      return;
+    }
+    if (emailBotStartingLocks.get(hotelId) !== startup || startup.cancelled) {
+      await releaseEmailBotLock(hotelId, lockToken);
+      if (emailBotStartingLocks.get(hotelId) === startup) {
+        emailBotStartingLocks.delete(hotelId);
+      }
+      console.log(`[email] Startup cancelado durante adquisición de lock para hotel ${hotelId}.`);
       return;
     }
     const runtimeLockToken = lockToken;
@@ -478,6 +529,20 @@ export async function startEmailBot({
     }
     await connection.openBox("INBOX");
     console.log("📨 Conectado a IMAP como:", EMAIL_USER);
+    const registeredStartup = emailBotStartingLocks.get(hotelId);
+    const ownsLock = registeredStartup?.lockToken === lockToken
+      && await isEmailBotLockOwner(hotelId, lockToken);
+    const canPromoteStartup = emailBotStartingLocks.get(hotelId) === registeredStartup
+      && !registeredStartup?.cancelled
+      && ownsLock;
+    if (!canPromoteStartup) {
+      await closeEmailConnection(connection);
+      if (emailBotStartingLocks.get(hotelId) === registeredStartup) {
+        emailBotStartingLocks.delete(hotelId);
+      }
+      console.log(`[email] Startup cancelado o sin lock para hotel ${hotelId}. No se activa runtime.`);
+      return;
+    }
     emailBotRuntimes.set(hotelId, {
       hotelId,
       lockToken,
@@ -485,6 +550,9 @@ export async function startEmailBot({
       connection,
       stopping: false,
     });
+    if (emailBotStartingLocks.get(hotelId) === registeredStartup) {
+      emailBotStartingLocks.delete(hotelId);
+    }
     startChannelHeartbeat("email", hotelId);
     const legacyContainment = getEmailLegacyContainmentConfig();
     console.log("[email][legacy] containment", {
@@ -665,6 +733,12 @@ export async function startEmailBot({
     if (lockToken) {
       await stopEmailBotRuntime(hotelId, "startup_error", lockToken).catch(() => {
         // best effort cleanup
+      });
+      if (emailBotStartingLocks.get(hotelId)?.lockToken === lockToken) {
+        emailBotStartingLocks.delete(hotelId);
+      }
+      await releaseEmailBotLock(hotelId, lockToken).catch(() => {
+        // best effort cleanup for failures before the runtime was registered
       });
     }
     console.error("💥 [email] Error  crítico al iniciar el bot:", err);

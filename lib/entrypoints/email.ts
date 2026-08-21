@@ -19,10 +19,26 @@ process.on("unhandledRejection", (reason) => {
 
 console.log("🛠️ Iniciando entrypoint email.ts");
 
-import { startEmailBot } from "../../lib/services/email";
+import { startEmailBot, stopAllEmailBotRuntimes } from "../../lib/services/email";
 import { getHotelConfig } from "../config/hotelConfig.server"; // Ajustá el path si es necesario
 
 const HOTEL_ID = process.env.HOTEL_ID || "hotelplaza"; // O el hotel que quieras testear
+
+let shutdownPromise: Promise<void> | null = null;
+
+function shutdown(signal: "SIGINT" | "SIGTERM") {
+  if (!shutdownPromise) {
+    console.log(`[email] Recibida ${signal}; cerrando runtime de email.`);
+    shutdownPromise = stopAllEmailBotRuntimes(`signal_${signal}`);
+  }
+
+  void shutdownPromise.finally(() => {
+    process.exit(0);
+  });
+}
+
+process.once("SIGINT", () => shutdown("SIGINT"));
+process.once("SIGTERM", () => shutdown("SIGTERM"));
 
 console.log("📥 startEmailBot importado");
 (async () => {

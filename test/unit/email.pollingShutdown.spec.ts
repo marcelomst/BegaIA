@@ -18,6 +18,11 @@ const {
         store.delete(key);
         return 1;
       }),
+      eval: vi.fn(async (_script: string, _keyCount: number, key: string, lockToken: string) => {
+        if (store.get(key) !== lockToken) return 0;
+        store.delete(key);
+        return 1;
+      }),
     },
   };
 });
@@ -52,6 +57,31 @@ describe("email polling shutdown helpers", () => {
 
     await releaseEmailBotLock("hotel-lock-1", "token-a");
     await expect(acquireEmailBotLock("hotel-lock-1", "token-b")).resolves.toBe(true);
+  });
+
+  it("no permite que un token ajeno libere el lock del owner", async () => {
+    await expect(acquireEmailBotLock("hotel-lock-owner-1", "token-owner")).resolves.toBe(true);
+
+    await releaseEmailBotLock("hotel-lock-owner-1", "token-ajeno");
+
+    expect(redisStore.get("email_bot_lock:hotel-lock-owner-1")).toBe("token-owner");
+    await expect(acquireEmailBotLock("hotel-lock-owner-1", "token-ajeno")).resolves.toBe(false);
+  });
+
+  it("usa compare-and-delete atomico y no borra un lock renovado por otro worker", async () => {
+    const key = "email_bot_lock:hotel-lock-atomic-1";
+    redisStore.set(key, "token-a");
+    redisMock.eval.mockImplementationOnce(async () => {
+      // A competing atomic write won before this release script executed.
+      redisStore.set(key, "token-b");
+      return 0;
+    });
+
+    await expect(releaseEmailBotLock("hotel-lock-atomic-1", "token-a")).resolves.toBe(false);
+
+    expect(redisMock.eval).toHaveBeenCalledOnce();
+    expect(redisMock.del).not.toHaveBeenCalled();
+    expect(redisStore.get(key)).toBe("token-b");
   });
 
   it("marca \\Seen y RAGBOT_PROCESSED en fallback", async () => {
