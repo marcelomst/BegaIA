@@ -12793,3 +12793,54 @@ Impacto:
 - no altera el runtime conversacional ni la arquitectura canónica
 - queda fuera de alcance el warning independiente de `conversation-trace`
   sobre `$push` con `$slice`
+
+### FIX-DEMO-EMAIL-WORKER-STALE-LOCK-RESTART-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-21
+Commit: aedc37859b1c7927013c3317beee2831be31310a
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Bugfix acotado al lifecycle operativo del email-worker de demo. Libera locks
+Redis propietarios durante shutdown limpio mediante compare-and-delete atómico
+por `lockToken` e impide que startups IMAP cancelados promuevan el runtime.
+
+Archivos afectados:
+
+- `lib/entrypoints/email.ts`
+- `lib/services/email.ts`
+- `test/unit/email.pollingShutdown.spec.ts`
+- `test/unit/email.workerLifecycle.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- liberación atómica validada mediante `EVAL` Lua compare-and-delete
+- ownership validado: un token viejo o ajeno no elimina un lock vigente de
+  otro worker
+- shutdown cancela startups pendientes; una conexión IMAP que resuelve luego
+  no reactiva runtime, heartbeat ni polling
+- antes de registrar runtime se verifica startup vigente, no cancelado y token
+  presente en Redis
+- preservada exclusión mutua, liberación limpia y reacquisición inmediata
+  posterior al shutdown
+- tests reportados en verde:
+  `pnpm vitest run test/unit/email.pollingShutdown.spec.ts test/unit/email.workerLifecycle.spec.ts test/unit/email.smtpAuthFallback.spec.ts`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual: `passed`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- evita que un shutdown limpio deje locks propietarios stale y bloquee el
+  reinicio del email-worker
+- conserva la seguridad de ownership durante release y el worker único
+- no altera el runtime conversacional, reservas, identidad ni contratos de
+  canales
+- ante `SIGKILL`, crash abrupto o Redis no disponible durante release, el TTL
+  de 120 segundos permanece como fallback
