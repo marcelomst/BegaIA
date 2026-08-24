@@ -12844,3 +12844,62 @@ Impacto:
   canales
 - ante `SIGKILL`, crash abrupto o Redis no disponible durante release, el TTL
   de 120 segundos permanece como fallback
+
+### FIX-RUNTIME-GUEST-IDENTITY-CORRECTION-DOMINANCE-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-24
+Commit: 90497ac5d3037091b960d1f24b00db70fc1e1e63
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrección acotada de dominancia de identidad en runtime. Detecta la corrección
+explícita de identidad del interlocutor, actualiza `Guest.name` y
+`Guest.firstName` sobre el `guestId` canónico y finaliza el turno antes del
+routing transaccional.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.guest_name_capture.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `guest identity extraction`
+  `canonical Guest persistence`
+  `bodyLLM dominance gate`
+  `early return before transactional routing`
+- cajas revisadas incluyen availability, create, inquiry, modify, confirm,
+  follow-ups, holder correction, proposal dominance y aislamiento de estado
+  transaccional
+- `Guest.name` y `Guest.firstName` se actualizan sin alterar aliases ni la
+  identidad canónica existente
+- no se mutan `reservationSlots.guestName`, `lastProposal`,
+  `lastReservation.guestName` ni el target de reserva
+- tests reportados en verde:
+  `messageHandler.guest_name_capture.spec.ts + messageHandler.reference_resolution.spec.ts: 133/133 PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual: `passed`
+- veredicto Guardian: `valid`
+- forbidden_touched: `none`
+- undeclared_touched: `none`
+
+Impacto:
+
+- una corrección explícita de actor domina availability, create, inquiry,
+  modify, confirm y follow-ups transaccionales
+- preserva la separación entre identidad conversacional y titular de reserva
+- evita que frases de reserva, titular, habitación o consultas semánticas se
+  interpreten como correcciones de actor
+- no introduce cambios arquitectónicos ni de contrato externo
