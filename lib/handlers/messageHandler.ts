@@ -280,13 +280,36 @@ export function extractExplicitConversationalActorName(text: string): string | u
   return undefined;
 }
 
+export function extractExplicitGuestIdentityCorrection(text: string): string | undefined {
+  const normalizedText = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalizedText) return undefined;
+
+  // A correction must explicitly refer to the speaker's identity, never a booking holder.
+  if (/\b(?:reservar|reserva|disponibilidad|habitaci[oó]n|titular)\b/iu.test(normalizedText)) return undefined;
+
+  const patterns = [
+    /\bmi\s+nombre\s+no\s+es\s+[^,.;!?]{1,60}\s*,\s*(?:es|soy|me\s+llamo)\s+(.+)$/iu,
+    /^(?:me\s+equivoqu[eé](?:\s+en(?:\s+(?:el|mi))?\s+nombre)?|quiero\s+corregir\s+mi\s+nombre|el\s+nombre\s+est[aá]\s+mal)\s*[,;:.-]*\s*(?:mi\s+nombre\s+es|soy|me\s+llamo|es)\s+(.+)$/iu,
+    /^perd[oó]n\s*,?\s*(?:mi\s+nombre\s+es|soy|me\s+llamo)\s+(.+)$/iu,
+    /^me\s+llamo\s+(.+?)\s*,\s*no\s+[^,]+$/iu,
+  ];
+
+  for (const pattern of patterns) {
+    const candidate = sanitizeInlineConversationalActorCandidate(normalizedText.match(pattern)?.[1] || "");
+    if (candidate) return candidate;
+  }
+  return undefined;
+}
+
 async function applyExplicitConversationalActorToGuest(
   msg: Pick<ChannelMessage, "hotelId" | "guestId" | "channel" | "content">,
   guest: any,
   guestId: string,
   now: string,
 ): Promise<any> {
-  const explicitConversationalActor = extractExplicitConversationalActorName(String(msg.content || ""));
+  const explicitConversationalActor =
+    extractExplicitGuestIdentityCorrection(String(msg.content || "")) ||
+    extractExplicitConversationalActorName(String(msg.content || ""));
   const debugEmailActorCapture = process.env.DEBUG_EMAIL_ACTOR_CAPTURE === "1" && msg.channel === "email";
   if (!explicitConversationalActor) {
     if (debugEmailActorCapture) {
@@ -797,6 +820,12 @@ function buildConversationalNameCapturedReply(
     guestDisplayName: displayName,
     assistantBranding,
   });
+}
+
+function buildConversationalNameCorrectedReply(lang: "es" | "en" | "pt", displayName: string): string {
+  if (lang === "pt") return `Perfeito, ${displayName}. Corrigi seu nome. Como posso ajudar?`;
+  if (lang === "en") return `Perfect, ${displayName}. I corrected your name. How can I help?`;
+  return `Perfecto, ${displayName}. Corregí tu nombre. ¿En qué puedo ayudarte?`;
 }
 
 function buildConversationalNameDeclinedReply(lang: "es" | "en" | "pt"): string {
@@ -5424,6 +5453,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   const guestState = resolveGuestState(pre.st);
   const rawTurnText = String(pre.msg.content || "");
+  const correctedGuestName = extractExplicitGuestIdentityCorrection(rawTurnText);
+  if (correctedGuestName) {
+    const displayName = correctedGuestName.split(/\s+/)[0] || correctedGuestName;
+    finalText = buildConversationalNameCorrectedReply(pre.lang, displayName);
+    nextCategory = "retrieval_based";
+    emitRoutingDecision(pre.msg, {
+      decision_layer: "bodyLLM",
+      route_source: "conversational_guest_identity_correction",
+      route_match: "explicit_identity_correction",
+      early_return: true,
+      used_llm_classifier: false,
+      classifier_source: "heuristic",
+      final_category: nextCategory,
+      final_prompt_key: null,
+    });
+    return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };
+  }
   const availabilityPre = { ...pre, guest: buildAvailabilityGuestContext(pre, rawTurnText) };
   const dominantTurnDomain = detectDominantTurnDomain(rawTurnText, pre.lang);
   const stableIntent = await runStableIntentsGuard({

@@ -267,6 +267,102 @@ describe("messageHandler guest conversational name capture", () => {
     expect(lastReply(sendReply)).toBe("Hola, Geronimo. ¿En qué puedo ayudarte hoy?");
   });
 
+  it("la correccion explicita de identidad domina sobre routing de reserva y actualiza el guest canonico", async () => {
+    guestRecord = {
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Ose",
+      firstName: "Ose",
+      aliases: ["whatsapp:+59891359375"],
+    };
+    currentState = {
+      reservationSlots: { guestName: "Ana Rodríguez", roomType: "double" },
+      lastProposal: { guestName: "Ana Rodríguez", proposalId: "P-1" },
+      activeFlow: "reservation",
+      desiredAction: "create",
+    };
+    const sendReply = vi.fn(async () => {});
+    const { runAvailabilityCheck } = await import("@/lib/handlers/pipeline/availability");
+
+    await handleIncomingMessage(msg("Me equivoqué en el nombre, mi nombre es Jose"), { mode: "automatic", sendReply });
+
+    expect(lastReply(sendReply)).toBe("Perfecto, Jose. Corregí tu nombre. ¿En qué puedo ayudarte?");
+    expect(guestRecord).toMatchObject({ guestId: "g1", name: "Jose", firstName: "Jose", aliases: ["whatsapp:+59891359375"] });
+    expect(currentState).toMatchObject({
+      reservationSlots: { guestName: "Ana Rodríguez", roomType: "double" },
+      lastProposal: { guestName: "Ana Rodríguez", proposalId: "P-1" },
+      activeFlow: "reservation",
+      desiredAction: "create",
+    });
+    expect(runAvailabilityCheck).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "Mi nombre no es Ose, es Jose",
+    "Perdón, soy Jose",
+    "Perdón, me llamo Jose",
+    "Me llamo Jose, no Ose",
+    "Quiero corregir mi nombre, es Jose",
+    "El nombre está mal, soy Jose",
+  ])("captura la variante correctiva de identidad: %s", async (content) => {
+    guestRecord = { guestId: "g1", hotelId: "hotel999", name: "Ose", firstName: "Ose", aliases: ["web:guest"] };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg(content), { mode: "automatic", sendReply });
+
+    expect(guestRecord).toMatchObject({ guestId: "g1", name: "Jose", firstName: "Jose", aliases: ["web:guest"] });
+    expect(lastReply(sendReply)).toMatch(/^Perfecto, Jose\. Corregí tu nombre\./);
+  });
+
+  it("corrige identidad sin modificar el titular de una reserva confirmada ni abrir modify", async () => {
+    guestRecord = { guestId: "g1", hotelId: "hotel999", name: "Ose", firstName: "Ose" };
+    currentState = {
+      reservationSlots: { guestName: "Ana Rodríguez", roomType: "double" },
+      lastReservation: { reservationId: "R-1", guestName: "Ana Rodríguez" },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      modifyState: null,
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Perdón, mi nombre es Jose"), { mode: "automatic", sendReply });
+
+    expect(guestRecord).toMatchObject({ name: "Jose", firstName: "Jose" });
+    expect(currentState.lastReservation.guestName).toBe("Ana Rodríguez");
+    expect(currentState.reservationSlots.guestName).toBe("Ana Rodríguez");
+    expect(currentState.modifyState).toBeNull();
+    expect(lastReply(sendReply)).not.toMatch(/modificar|fechas|habitaci[oó]n|hu[eé]spedes/i);
+  });
+
+  it.each([
+    "la reserva es a nombre de Ana",
+    "quiero poner la reserva a nombre de Ana",
+    "quiero cambiar el titular a Ana",
+    "la habitación está a nombre de Ana",
+    "quiero reservar a nombre de Ana Rodríguez",
+    "¿Cuál es el nombre del hotel?",
+  ])("no confunde holder o pregunta semantica con correccion de identidad: %s", async (content) => {
+    guestRecord = { guestId: "g1", hotelId: "hotel999", name: "Ose", firstName: "Ose" };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg(content), { mode: "automatic", sendReply });
+
+    expect(guestRecord).toMatchObject({ name: "Ose", firstName: "Ose" });
+    expect(lastReply(sendReply)).not.toMatch(/Corregí tu nombre/i);
+  });
+
+  it("mantiene captura inicial e inline existente y usa el vocativo corregido despues", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("ose"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Me equivoque en el nombre, mi nombre es Jose"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("hola"), { mode: "automatic", sendReply });
+
+    expect(guestRecord).toMatchObject({ name: "Jose", firstName: "Jose" });
+    expect(lastReply(sendReply)).toBe("Hola, Jose. ¿En qué puedo ayudarte hoy?");
+  });
+
   it("si rechaza dar nombre no insiste y no bloquea el flujo", async () => {
     const sendReply = vi.fn(async () => {});
 
