@@ -12903,3 +12903,57 @@ Impacto:
 - evita que frases de reserva, titular, habitación o consultas semánticas se
   interpreten como correcciones de actor
 - no introduce cambios arquitectónicos ni de contrato externo
+
+### FIX-WEB-GUEST-IDENTITY-PERSISTENCE-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-28
+Commit: 364603387ba1a71fc4dd04d542d7fe77227ed385
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrección acotada del contrato client-side de identidad Web. Persiste el
+`guestId` por navegador y hotel mediante `localStorage`, preserva el
+`conversationId` aislado por pestaña en `sessionStorage` y migra identidad
+válida previa sin crear Guests duplicados.
+
+Archivos afectados:
+
+- `components/admin/ChatPage.tsx`
+- `utils/guestSession.ts`
+- `utils/conversationSession.ts`
+- `public/widget/begai-chat.js`
+- `test/frontend/chatPage.lang.spec.tsx`
+- `test/unit/conversationSession.storage.spec.ts`
+- `test/unit/widget.guestIdentity.static.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- la clave tenant-aware es `begai:guestId:<hotelId>`
+- `guestId` persiste por hotel; `conversationId` conserva aislamiento por
+  sesión y pestaña
+- se migran valores tenant-aware legacy y de sesión válidos; se descartan
+  placeholders inválidos
+- iniciar una conversación limpia la conversación sin crear un Guest nuevo
+- Widget y `ChatPage` aplican el mismo contrato y envían el `guestId`
+  persistente al API
+- tests reportados en verde:
+  `conversationSession.storage + widget.guestIdentity.static + chatPage.lang + chatPage.quickActions + chatPage.faq: 17/17 PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual: `passed`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- preserva identidad Web canónica por hotel entre pestañas sin mezclar
+  conversaciones
+- evita duplicados al migrar identidad Web válida existente
+- no altera backend, runtime conversacional ni arquitectura vigente
+- el asset local fuera de alcance
+  `docs/product/demo-assets/demo_comercial_15_min_begaia.html` se preserva
+  sin incluirse en este hito
