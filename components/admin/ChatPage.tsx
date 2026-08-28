@@ -17,7 +17,7 @@ import {
   setConversationId,
   getLang,
   setLang,
-  resetConversationSession,
+  clearConversationSession,
 } from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
 
@@ -66,7 +66,7 @@ type ChatTurn = {
 export default function ChatPage() {
   const searchParams = useSearchParams();
   const hotelId = searchParams?.get("hotelId") ?? "";
-  const guestId = getOrCreateGuestId();
+  const guestId = getOrCreateGuestId(hotelId);
 
   // ===== Estado base del chat =====
   const [query, setQuery] = useState("");
@@ -256,7 +256,7 @@ export default function ChatPage() {
       } catch {}
     }
 
-    resetConversationSession();
+    clearConversationSession();
     setConvId(null);
     setActiveConv(null);
     setStatus(null);

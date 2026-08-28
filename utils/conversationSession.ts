@@ -4,6 +4,12 @@ import { getScopedSessionKey } from "@/utils/webTabScope";
 const CONVERSATION_ID_STORAGE_KEY = "conversationId";
 const GUEST_ID_STORAGE_KEY = "guestId";
 
+export function clearConversationSession() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
+  sessionStorage.removeItem(CONVERSATION_ID_STORAGE_KEY);
+}
+
 export function getConversationId(): string | null {
   if (typeof window === "undefined") return null;
   const sessionValue = sessionStorage.getItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
@@ -55,9 +61,8 @@ function setCookie(name: string, value: string, days: number) {
 // por ejemplo, al cerrar sesión o al cambiar de usuario.
 export function resetConversationSession() {
   try {
-    sessionStorage.removeItem(getScopedSessionKey(CONVERSATION_ID_STORAGE_KEY));
+    clearConversationSession();
     sessionStorage.removeItem(getScopedSessionKey(GUEST_ID_STORAGE_KEY));
-    sessionStorage.removeItem(CONVERSATION_ID_STORAGE_KEY);
     sessionStorage.removeItem(GUEST_ID_STORAGE_KEY);
     localStorage.removeItem("lang");
     document.cookie = "lang=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";

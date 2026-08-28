@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { getConversationId, hasConversationId, resetConversationSession, setConversationId } from "@/utils/conversationSession";
+import { clearConversationSession, getConversationId, hasConversationId, resetConversationSession, setConversationId } from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
 import { getScopedSessionKey } from "@/utils/webTabScope";
 
@@ -42,20 +42,60 @@ describe("widget session storage isolation", () => {
     expect(localStorage.getItem("conversationId")).toBe("conv-shared-legacy");
   });
 
-  it("usa sessionStorage para guestId y evita compartirlo por localStorage", () => {
+  it("persiste guestId por hotel en localStorage y no usa el legacy global", () => {
     localStorage.setItem("guestId", "guest-shared-legacy");
 
-    const guestId = getOrCreateGuestId();
+    const guestId = getOrCreateGuestId("hotel999");
 
     expect(guestId).toMatch(/^guest-/);
     expect(guestId).not.toBe("guest-shared-legacy");
-    expect(sessionStorage.getItem(getScopedSessionKey("guestId"))).toBe(guestId);
+    expect(localStorage.getItem("begai:guestId:hotel999")).toBe(guestId);
     expect(localStorage.getItem("guestId")).toBe("guest-shared-legacy");
+  });
+
+  it("reutiliza guestId persistente entre tabs y sesiones de navegador", () => {
+    localStorage.setItem("begai:guestId:hotel999", "guest-persisted");
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-2";
+
+    expect(getOrCreateGuestId("hotel999")).toBe("guest-persisted");
+
+    Object.defineProperty(globalThis, "sessionStorage", { value: makeStorage(), configurable: true });
+    (globalThis as NamedGlobal).name = "";
+    expect(getOrCreateGuestId("hotel999")).toBe("guest-persisted");
+  });
+
+  it("mantiene identidades separadas entre hoteles", () => {
+    const hotel999Guest = getOrCreateGuestId("hotel999");
+    const hotel123Guest = getOrCreateGuestId("hotel123");
+
+    expect(hotel123Guest).not.toBe(hotel999Guest);
+    expect(localStorage.getItem("begai:guestId:hotel999")).toBe(hotel999Guest);
+    expect(localStorage.getItem("begai:guestId:hotel123")).toBe(hotel123Guest);
+  });
+
+  it("migra el guestId valido de la sesion actual sin generar otro", () => {
+    sessionStorage.setItem(getScopedSessionKey("guestId"), "guest-session-existing");
+
+    expect(getOrCreateGuestId("hotel999")).toBe("guest-session-existing");
+    expect(localStorage.getItem("begai:guestId:hotel999")).toBe("guest-session-existing");
+  });
+
+  it.each(["", "undefined", "null", "web-guest"])("no acepta guestId invalido: %s", (invalid) => {
+    localStorage.setItem("begai:guestId:hotel999", invalid);
+
+    expect(getOrCreateGuestId("hotel999")).toMatch(/^guest-/);
+  });
+
+  it("migra la clave tenant-aware legacy cuando existe", () => {
+    localStorage.setItem("begasist:guestId:hotel999", "guest-legacy");
+
+    expect(getOrCreateGuestId("hotel999")).toBe("guest-legacy");
+    expect(localStorage.getItem("begai:guestId:hotel999")).toBe("guest-legacy");
   });
 
   it("reset limpia conversationId y guestId de sessionStorage", () => {
     setConversationId("conv-tab-2");
-    void getOrCreateGuestId();
+    void getOrCreateGuestId("hotel999");
 
     resetConversationSession();
 
@@ -66,15 +106,24 @@ describe("widget session storage isolation", () => {
   it("aísla conversationId y guestId por tab scope aunque compartan el mismo sessionStorage subyacente", () => {
     (globalThis as NamedGlobal).name = "begasist:web-tab:tab-1";
     setConversationId("conv-tab-1");
-    const guestOne = getOrCreateGuestId();
+    const guestOne = getOrCreateGuestId("hotel999");
 
     (globalThis as NamedGlobal).name = "begasist:web-tab:tab-2";
     expect(getConversationId()).toBeNull();
-    const guestTwo = getOrCreateGuestId();
+    const guestTwo = getOrCreateGuestId("hotel999");
 
-    expect(guestTwo).toMatch(/^guest-/);
-    expect(guestTwo).not.toBe(guestOne);
+    expect(guestTwo).toBe(guestOne);
     expect(sessionStorage.getItem("conversationId:tab-1")).toBe("conv-tab-1");
     expect(sessionStorage.getItem("conversationId:tab-2")).toBeNull();
+  });
+
+  it("nueva conversacion limpia solo conversationId y conserva guestId", () => {
+    setConversationId("conv-tab-1");
+    const guestId = getOrCreateGuestId("hotel999");
+
+    clearConversationSession();
+
+    expect(getConversationId()).toBeNull();
+    expect(getOrCreateGuestId("hotel999")).toBe(guestId);
   });
 });

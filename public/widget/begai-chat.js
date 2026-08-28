@@ -86,6 +86,7 @@
     if (oldVal && !newVal) localStorage.setItem(newKey, oldVal);
   }
   migrateKey(`lang:${hotelId}`);
+  migrateKey(`guestId:${hotelId}`);
 
   // Idioma inicial: localStorage > config.lang > navegador > "es"
   const langKeyNew = `${NEW_PREFIX}:lang:${hotelId}`;
@@ -112,7 +113,7 @@
     return (I18N[currentLang] || I18N.es)[key] || key;
   };
 
-  // 🔐 conversación/guest aislados por tab con persistencia por sessionStorage
+  // 🔐 conversationId stays isolated per tab; guestId belongs to the browser + hotel.
   const convKey = scopedSessionKey("conversationId");
   const getConv = () => sessionStorage.getItem(convKey);
   const setConv = (id) => sessionStorage.setItem(convKey, id);
@@ -120,18 +121,37 @@
     sessionStorage.removeItem(convKey);
   };
 
-  const guestKey = scopedSessionKey("guestId");
+  const guestKey = `${NEW_PREFIX}:guestId:${hotelId}`;
+  const legacyGuestSessionKey = scopedSessionKey("guestId");
   const buildGuestId = () =>
     (typeof crypto !== "undefined" && crypto.randomUUID)
       ? `guest-${crypto.randomUUID()}`
       : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const getGuest = () => sessionStorage.getItem(guestKey);
+  const isValidGuestId = (value) => {
+    const normalized = String(value || "").trim();
+    return Boolean(normalized && normalized !== "undefined" && normalized !== "null" && normalized !== "web-guest");
+  };
+  const getGuest = () => {
+    const persisted = localStorage.getItem(guestKey);
+    if (isValidGuestId(persisted)) return String(persisted).trim();
+    const legacySessionGuest = sessionStorage.getItem(legacyGuestSessionKey);
+    return isValidGuestId(legacySessionGuest) ? String(legacySessionGuest).trim() : null;
+  };
   const setGuest = (id) => {
-    sessionStorage.setItem(guestKey, id);
+    if (!isValidGuestId(id)) return;
+    localStorage.setItem(guestKey, String(id).trim());
   };
   const getOrCreateGuest = () => {
-    const existing = String(getGuest() || "").trim();
-    if (existing && existing !== "web-guest") return existing;
+    const persisted = localStorage.getItem(guestKey);
+    if (isValidGuestId(persisted)) return String(persisted).trim();
+
+    const legacySessionGuest = sessionStorage.getItem(legacyGuestSessionKey);
+    if (isValidGuestId(legacySessionGuest)) {
+      const migratedGuestId = String(legacySessionGuest).trim();
+      setGuest(migratedGuestId);
+      return migratedGuestId;
+    }
+
     const guestId = buildGuestId();
     setGuest(guestId);
     return guestId;

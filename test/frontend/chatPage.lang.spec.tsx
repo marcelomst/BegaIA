@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import ChatPage from "@/components/admin/ChatPage";
-import { getScopedSessionKey } from "@/utils/webTabScope";
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("hotelId=hotel999"),
@@ -29,7 +28,7 @@ describe("ChatPage • language changes affect API payload", () => {
         if (body.lang !== "en") {
           return new Response("Lang not propagated", { status: 400 });
         }
-        const storedGuestId = sessionStorage.getItem(getScopedSessionKey("guestId"));
+        const storedGuestId = localStorage.getItem("begai:guestId:hotel999");
         if (!body.guestId || typeof body.guestId !== "string") {
           return new Response("guestId missing", { status: 400 });
         }
