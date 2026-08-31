@@ -71,6 +71,39 @@ runtime_map_refresh:
       handleIncomingMessage: L12632-L12956
 ```
 
+## Cierre diferido: snapshot completo post-modify
+
+La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
+sin reemplazar el scan vigente de `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`,
+que es su descendiente en `main`.
+
+```yaml
+hito_id: FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01
+technical_commit: 3bb821a3240fcf92aebae3424ebde4ba92699780
+scan:
+  messageHandler_lines: 12932
+  functions:
+    preLLM: L4675-L5545
+    bodyLLM: L5546-L12562
+    posLLM: L12563-L12607
+    handleIncomingMessage: L12608-L12932
+audit:
+  modified:
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.graph.reservationSnapshot
+  invariants:
+    - current confirmed reservation > guest-wide fallback
+    - hydration only completes missing fields for the same reservationId
+    - canonical merge never combines distinct reservationIds
+validation:
+  - pnpm test:core: 187 files, 1056 tests PASS
+  - pnpm run ts-check: PASS
+  - git diff --check: PASS
+```
+
 ## Funciones clave actuales
 
 | Función                              |       Rango | Líneas | Confianza |

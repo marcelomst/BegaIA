@@ -116,3 +116,29 @@ Refresh aplicado:
 5. sin cambio conceptual de cajas; solo refresh documental de la precedencia
    de salida explícita de modify y su fixture determinista de test
 ```
+
+---
+
+## Cierre diferido archivado
+
+El hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
+corresponde al commit `3bb821a3240fcf92aebae3424ebde4ba92699780`, antecesor de
+la baseline actual `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`. Se conserva el
+snapshot vigente y se registra la evidencia histórica del hito diferido.
+
+```yaml
+technical_commit: 3bb821a3240fcf92aebae3424ebde4ba92699780
+messageHandler_lines: 12932
+functions:
+  preLLM: L4675-L5545
+  bodyLLM: L5546-L12562
+  posLLM: L12563-L12607
+  handleIncomingMessage: L12608-L12932
+modified_boxes:
+  - runtime.messageHandler.bodyLLM
+  - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  - runtime.messageHandler.canonicalReservationReadPath
+  - runtime.graph.reservationSnapshot
+verdict: valid
+```

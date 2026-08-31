@@ -92,6 +92,39 @@ funcionales fuera de cobertura.
 
 ---
 
+## Evidencia de cierre diferido
+
+`FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
+contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
+conservan como evidencia histórica porque la baseline actual `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`
+es posterior.
+
+```yaml
+historical_code_refs:
+  - box_id: runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    file: lib/handlers/messageHandler.ts
+    refs:
+      - L7307
+      - L10037
+  - box_id: runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    file: lib/handlers/messageHandler.ts
+    refs:
+      - L7671
+      - L10526
+  - box_id: runtime.messageHandler.canonicalReservationReadPath
+    file: lib/handlers/messageHandler.ts
+    refs:
+      - L2402
+      - L2527
+  - box_id: runtime.graph.reservationSnapshot
+    file: lib/agents/nodes/reservationSnapshot.ts
+    refs:
+      - L43-L68
+      - L198
+```
+
+---
+
 ## Fuentes de evidencia usadas
 
 ```text

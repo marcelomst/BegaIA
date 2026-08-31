@@ -76,6 +76,29 @@ runtime_boxes_audit:
   verdict: valid
 ```
 
+## Cierre diferido registrado
+
+El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
+conserva los `box_id` existentes. La evidencia se refiere al commit
+`3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
+mantiene en su descendiente `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`.
+
+```yaml
+historical_audit:
+  modified_boxes:
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.graph.reservationSnapshot
+  invariants:
+    - modify hydration uses evidence from the same reservationId
+    - current confirmed reservation dominates guest-wide fallback
+    - canonical reads do not merge different reservationIds
+    - no conversational state cloning
+  verdict: valid
+```
+
 ---
 
 ## Convenciones

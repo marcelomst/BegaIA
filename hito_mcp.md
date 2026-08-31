@@ -13122,3 +13122,54 @@ Impacto:
 - desbloquea la baseline core para
   `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 - el HTML local de speech se preserva fuera del hito
+
+### FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-31
+Commit: 3bb821a3240fcf92aebae3424ebde4ba92699780
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Cierre diferido de la corrección de completitud de snapshot después de
+`modify`. Mantiene la reserva confirmada actual como referencia dominante,
+rehidrata campos faltantes desde evidencia local de la misma `reservationId` y
+preserva la lectura canónica sin clonar estado conversacional.
+
+Archivos afectados:
+
+- `lib/agents/nodes/reservationSnapshot.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/reservationSnapshot.guestFallback.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- bloqueo externo de baseline core resuelto por `0b8543a` y cierre documental
+  `e00c6c9`, ambos contenidos en `main`
+- evidencia Runtime Map previa preservada como cierre diferido sin degradar el
+  snapshot vigente, que corresponde a un descendiente del commit técnico
+- modify hidrata `pendingTarget` antes del preview temprano y en el corredor
+  posterior desde la misma `reservationId`
+- snapshot conserva `current confirmed reservation > guest-wide fallback`
+- la rehidratación de `reservationSnapshot` sólo completa campos faltantes de
+  la misma reserva local
+- tests reportados en verde:
+  `pnpm test:core: 187 files, 1056 tests PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual post-modify: `passed` mediante evidencia previa vigente
+
+Impacto:
+
+- preserva `guestName`, `roomType` y `numGuests` de la reserva confirmada tras
+  modify y durante el read-back
+- evita mezclar datos de `reservationId` diferentes o usar `Guest.name` como
+  fuente de hidratación
+- no altera providers, contratos externos ni arquitectura
