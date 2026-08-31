@@ -46,11 +46,10 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta la dominancia de la corrección explícita de identidad canónica
-  antes del routing transaccional
-- se preserva la separación entre actor conversacional y holder transaccional
-- se preservan aliases, `reservationSlots.guestName`, `lastProposal`,
-  `lastReservation.guestName` y target de reserva
+- se documenta el read-path guest-wide limitado a `hotelId + guestId` canónico
+- se preserva la dominancia de la reserva confirmada de la conversación actual
+- se persisten referencias mínimas para singular, plural, ordinales y anáforas
+- se hidrata el target seleccionado para preview y modify gobernado
 - se preservan cajas relacionadas como revisadas, no como cajas tocadas fuera de auditoría
 
 ---
@@ -61,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 90497ac5d3037091b960d1f24b00db70fc1e1e63
-messageHandler_lines: 12738
+commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+messageHandler_lines: 12911
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_90497ac5d3037091b960d1f24b00db70fc1e1e63
-baseline_status: runtime_guest_identity_correction_dominance_validated
+analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+baseline_status: runtime_reservation_snapshot_guest_continuity_validated
 known_manual_bug: none
 ```
 
@@ -74,7 +73,7 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-messageHandler.guest_name_capture.spec.ts + messageHandler.reference_resolution.spec.ts: 133/133 PASS
+reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -86,9 +85,9 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada de dominancia de identidad canónica
-antes del routing transaccional, pero no elimina el riesgo de futuros bugs
-funcionales fuera de cobertura.
+Este refresh documenta un ajuste acotado de continuidad referencial y snapshot
+guest-wide, pero no elimina el riesgo de futuros bugs funcionales fuera de
+cobertura.
 ```
 
 ---
@@ -109,7 +108,7 @@ funcionales fuera de cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12738
+total_lines: 12911
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -118,7 +117,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-GUEST-IDENTITY-CORRECTION-DOMINANCE-01`.
+del hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01`.
 ```
 
 ---
@@ -135,10 +134,10 @@ del hito `FIX-RUNTIME-GUEST-IDENTITY-CORRECTION-DOMINANCE-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4574-L5443 |    870 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5444-L12368 |   6925 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12369-L12413 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12414-L12738 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4658-L5528 |    871 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5529-L12541 |   7013 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12542-L12586 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12587-L12911 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -148,7 +147,7 @@ del hito `FIX-RUNTIME-GUEST-IDENTITY-CORRECTION-DOMINANCE-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12414-L12738
+range: L12587-L12911
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -167,8 +166,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4574-L5443
-lines: 870
+range: L4658-L5528
+lines: 871
 confidence: high
 role: context_preparation
 ```
@@ -189,8 +188,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5444-L12368
-lines: 6925
+range: L5529-L12541
+lines: 7013
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -219,7 +218,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12369-L12413
+range: L12542-L12586
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -412,8 +411,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5444-L12368
-bodyLLM_lines: 6925
+bodyLLM_range: L5529-L12541
+bodyLLM_lines: 7013
 bucket_size: 250
 confidence: high_for_full_range
 ```

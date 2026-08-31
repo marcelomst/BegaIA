@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 90497ac5d3037091b960d1f24b00db70fc1e1e63
-messageHandler_lines: 12738
+commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+messageHandler_lines: 12911
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_90497ac5d3037091b960d1f24b00db70fc1e1e63
-baseline_status: runtime_guest_identity_correction_dominance_validated
+analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+baseline_status: runtime_reservation_snapshot_guest_continuity_validated
 known_manual_bug: none
 ```
 
@@ -56,31 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - guest identity extraction
-    - canonical Guest persistence
-    - bodyLLM dominance gate
-    - early return before transactional routing
+    - guest-wide reservation read-path
+    - canonical guestId lookup
+    - current-conversation dominance
+    - singular/plural snapshot references
+    - ordinal and anaphoric resolution
+    - modify target hydration and preview
   reviewed:
-    - availability routing
-    - create reservation routing
-    - inquiry routing
-    - modify reservation routing
-    - confirm reservation routing
-    - reservation follow-up routing
-    - draft holder correction
-    - confirmed holder-change guard
-    - proposal dominance
-    - canonical guestId and aliases preservation
-    - reservationSlots.guestName isolation
-    - lastProposal isolation
-    - lastReservation.guestName isolation
-    - selectedReservationTarget isolation
+    - hotelId + guestId isolation
+    - holder versus conversational actor separation
+    - explicit reservation-code flows
+    - no state cloning
+    - current-conversation modify continuity
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `messageHandler.guest_name_capture.spec.ts + messageHandler.reference_resolution.spec.ts: 133/133 PASS`
+      - `reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -164,7 +157,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12738
+        range: L1-L12911
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -192,7 +185,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12414-L12738
+        range: L12587-L12911
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -222,7 +215,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4574-L5443
+        range: L4658-L5528
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -257,7 +250,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5444-L12368
+        range: L5529-L12541
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -333,7 +326,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5444-L12368
+        range: L5529-L12541
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -368,7 +361,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5444-L12368
+        range: L5529-L12541
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -538,6 +531,9 @@ boxes:
       - create_capture_risk
       - date_repair_contamination
     code_refs:
+      - file: lib/agents/nodes/reservationSnapshot.ts
+        range: L88
+        confidence: high
       - file: lib/handlers/messageHandler.ts
         range: L7814-L8063
         confidence: medium
@@ -832,7 +828,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12369-L12413
+        range: L12542-L12586
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

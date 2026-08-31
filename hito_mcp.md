@@ -12957,3 +12957,65 @@ Impacto:
 - el asset local fuera de alcance
   `docs/product/demo-assets/demo_comercial_15_min_begaia.html` se preserva
   sin incluirse en este hito
+
+### FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-31
+Commit: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrección acotada de continuidad referencial para snapshot de reservas.
+Extiende el read-path al guest canónico entre conversaciones y canales,
+mantiene la dominancia de la reserva confirmada de la conversación actual y
+persiste referencias mínimas para singular, plural, ordinales y anáforas.
+
+Archivos afectados:
+
+- `lib/agents/graphState.ts`
+- `lib/agents/nodes/reservationSnapshot.ts`
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/reservationSnapshot.guestFallback.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- cajas tocadas:
+  `guest-wide reservation read-path`
+  `canonical guestId lookup`
+  `current-conversation dominance`
+  `singular/plural snapshot references`
+  `ordinal and anaphoric resolution`
+  `modify target hydration and preview`
+- cajas revisadas incluyen aislamiento `hotelId + guestId`, separación entre
+  holder y actor conversacional, flujos con código explícito, no clonación de
+  estado y continuidad de modify en conversación actual
+- `reservationSnapshot.ts:L88` registrado como nodo adicional de runtime
+- tests reportados en verde:
+  `reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- veredicto Guardian: `valid`
+- forbidden_touched: `none`
+- undeclared_touched: `none`
+
+Impacto:
+
+- habilita snapshot guest-wide limitado al `hotelId + guestId` canónico
+- preserva la reserva confirmada de la conversación actual como referencia
+  dominante
+- hidrata el target seleccionado para preview y modify gobernado sin usar el
+  holder como identidad o autorización
+- los follow-ups de reprice y de completitud post-modify permanecen fuera de
+  alcance como hitos separados

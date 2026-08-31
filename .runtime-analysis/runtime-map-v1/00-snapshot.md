@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 90497ac5d3037091b960d1f24b00db70fc1e1e63
-messageHandler_lines: 12738
+commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+messageHandler_lines: 12911
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_90497ac5d3037091b960d1f24b00db70fc1e1e63
+analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
 ```
 
 ---
@@ -27,7 +27,7 @@ working tree limpio; documentación pendiente al momento del cierre HDOC
 ## Suite local informada
 
 ```text
-pnpm vitest run test/unit/messageHandler.guest_name_capture.spec.ts test/unit/messageHandler.reference_resolution.spec.ts test/unit/messageHandler.create_execution_integrity.spec.ts test/unit/handleChannelMessage.email_actor_persistence.spec.ts
+reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -42,31 +42,24 @@ result: pass
 ```yaml
 runtime_boxes_audit:
   touched:
-    - guest identity extraction
-    - canonical Guest persistence
-    - bodyLLM dominance gate
-    - early return before transactional routing
+    - guest-wide reservation read-path
+    - canonical guestId lookup
+    - current-conversation dominance
+    - singular/plural snapshot references
+    - ordinal and anaphoric resolution
+    - modify target hydration and preview
   reviewed:
-    - availability routing
-    - create reservation routing
-    - inquiry routing
-    - modify reservation routing
-    - confirm reservation routing
-    - reservation follow-up routing
-    - draft holder correction
-    - confirmed holder-change guard
-    - proposal dominance
-    - canonical guestId and aliases preservation
-    - reservationSlots.guestName isolation
-    - lastProposal isolation
-    - lastReservation.guestName isolation
-    - selectedReservationTarget isolation
+    - hotelId + guestId isolation
+    - holder versus conversational actor separation
+    - explicit reservation-code flows
+    - no state cloning
+    - current-conversation modify continuity
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - messageHandler.guest_name_capture.spec.ts + messageHandler.reference_resolution.spec.ts: 133/133 PASS
+      - reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS
       - pnpm run ts-check
       - git diff --check
   code_refs_status: needs_refresh
@@ -83,25 +76,27 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 90497ac5d3037091b960d1f24b00db70fc1e1e63
-    messageHandler_lines: 12738
+    commit: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+    messageHandler_lines: 12911
     functions:
-      preLLM: L4574-L5443
-      bodyLLM: L5444-L12368
-      posLLM: L12369-L12413
-      handleIncomingMessage: L12414-L12738
+      preLLM: L4658-L5528
+      bodyLLM: L5529-L12541
+      posLLM: L12542-L12586
+      handleIncomingMessage: L12587-L12911
+  additional_runtime_node:
+    file: lib/agents/nodes/reservationSnapshot.ts
+    handler: L88
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- la corrección explícita de identidad del interlocutor actualiza `Guest.name` y
-  `Guest.firstName` sobre el `guestId` canónico
-- el early return evita availability, create, inquiry, modify, confirm y
-  follow-ups transaccionales en ese turno
-- aliases, identidad existente y estado transaccional permanecen preservados
-- `reservationSlots.guestName`, `lastProposal`, `lastReservation.guestName` y
-  `selectedReservationTarget` quedan aislados de esta corrección
+- el snapshot puede leer reservas por `hotelId + guestId` canónico entre
+  conversaciones y canales
+- una reserva confirmada de la conversación actual mantiene dominancia
+- referencias singular, plural, ordinal y anafórica persisten de forma mínima
+- el target seleccionado se hidrata para preview y modify gobernado
+- holder y actor conversacional se mantienen separados, sin clonar estado
 ```
 
 ---
@@ -109,7 +104,7 @@ runtime_map_refresh:
 ## Advertencia de uso
 
 Este snapshot es válido para el hito
-`FIX-RUNTIME-GUEST-IDENTITY-CORRECTION-DOMINANCE-01`.
+`FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01`.
 
 ```text
 box_id = estable
@@ -123,10 +118,10 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline actualizada al commit `90497ac5d3037091b960d1f24b00db70fc1e1e63`
+1. Baseline actualizada al commit `84ec3d229104c3e4e3bf6e0047f262fcc11b229d`
 2. Rangos top-level de `messageHandler.ts` recalculados
 3. Auditoría de cajas incorporada con veredicto `valid`
 4. code index y box index alineados al scan actual
-5. sin cambio conceptual de cajas; solo refresh documental de la dominancia de
-   corrección de identidad canónica antes del routing transaccional
+5. sin cambio conceptual de cajas; solo refresh documental del read-path
+   guest-wide, continuidad referencial y nodo de snapshot
 ```
