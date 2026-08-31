@@ -109,4 +109,34 @@ describe("reservationSnapshot guest-wide fallback", () => {
       expect.objectContaining({ lastPresentedReservations: result.lastPresentedReservations }),
     );
   });
+
+  it("hydrates a degraded local snapshot from records with the same reservation ID only", async () => {
+    mocks.getConvState.mockResolvedValue({
+      reservationSlots: { checkIn: "2026-11-08", checkOut: "2026-11-09" },
+      lastReservation: { reservationId: "RES-X", status: "updated", createdAt: "2026-10-01T10:00:00.000Z", channel: "web" },
+      reservationHistory: [
+        reservation("RES-X", "2026-09-01T10:00:00.000Z", "Ana Perez"),
+        reservation("RES-OTHER", "2026-09-02T10:00:00.000Z", "Laura Gomez"),
+      ],
+    });
+
+    const result = await handleReservationSnapshotNode(graphState());
+    const reply = String((result.messages[0] as any).content);
+
+    expect(reply).toContain("RES-X");
+    expect(reply).toContain("Ana Perez");
+    expect(reply).toContain("double");
+    expect(reply).toContain("08/11/2026");
+    expect(reply).toContain("09/11/2026");
+    expect(reply).toContain("2");
+    expect(reply).not.toContain("RES-OTHER");
+    expect(result.reservationSlots).toMatchObject({
+      guestName: "Ana Perez",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: "2026-11-08",
+      checkOut: "2026-11-09",
+    });
+    expect(mocks.getConversationsByGuestId).not.toHaveBeenCalled();
+  });
 });

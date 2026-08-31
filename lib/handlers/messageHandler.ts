@@ -2402,6 +2402,15 @@ function buildReservationCanonicalState(state: any): {
   const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory : [];
   const records = [...history];
   if (shouldPreserveLastReservationRecord(history, state?.lastReservation)) records.push(state.lastReservation);
+  const mergeSameReservation = (base: CanonicalReservationRecord, preferred: CanonicalReservationRecord) => ({
+    ...base,
+    ...preferred,
+    guestName: preferred.guestName ?? base.guestName,
+    roomType: preferred.roomType ?? base.roomType,
+    checkIn: preferred.checkIn ?? base.checkIn,
+    checkOut: preferred.checkOut ?? base.checkOut,
+    numGuests: preferred.numGuests ?? base.numGuests,
+  });
 
   const byId = new Map<string, CanonicalReservationRecord>();
   for (const item of records) {
@@ -2418,7 +2427,11 @@ function buildReservationCanonicalState(state: any): {
     const prevAt = String(prev.createdAt || "");
     const currAt = String(current.createdAt || "");
     if (!prevAt || currAt > prevAt || (currAt === prevAt && current.canonicalStatus !== prev.canonicalStatus)) {
-      byId.set(current.reservationId, current);
+      // A later modify record may only contain the changed operational fields.
+      // Keep its status and populated values while completing it from this ID's prior record.
+      byId.set(current.reservationId, mergeSameReservation(prev, current));
+    } else {
+      byId.set(prev.reservationId, mergeSameReservation(current, prev));
     }
   }
 
@@ -2514,8 +2527,9 @@ function resolveConfirmedReservationFollowupSnapshot(
       guestName: record?.guestName || pre.st?.reservationSlots?.guestName,
       roomType: record?.roomType || pre.st?.reservationSlots?.roomType,
       numGuests: record?.numGuests || pre.st?.reservationSlots?.numGuests,
-      checkIn: record?.checkIn || pre.st?.reservationSlots?.checkIn,
-      checkOut: record?.checkOut || pre.st?.reservationSlots?.checkOut,
+      // A completed local modify can have dates newer than the historical record.
+      checkIn: pre.st?.reservationSlots?.checkIn || record?.checkIn,
+      checkOut: pre.st?.reservationSlots?.checkOut || record?.checkOut,
       locale: pre.lang,
     } as ReservationSlotsStrict,
   };
@@ -2923,6 +2937,9 @@ function getAmbiguousReservationAction(
 ): "modify" | "cancel" | "snapshot" | null {
   const actionableCount = buildActionableReservationCandidates(pre.st).length;
   if (actionableCount <= 1) return null;
+  // A current conversation's confirmed ID is the default read target. This does
+  // not relax modify/cancel ambiguity or override explicit reservation references.
+  if (options.snapshotQueryKind && pre.st?.lastReservation?.reservationId) return null;
   if (options.reservationReference.status === "resolved") return null;
   if (options.selectedReservationTarget?.reservationId) return null;
   if (options.hasAnaphoraReference) return null;
@@ -7290,7 +7307,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildModifyInactiveTargetReply(pre.lang);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
-    const currentPreviewSnapshot = applyModifyPreviewPatch(pendingTarget, pendingModifyPatchEarly, pre.lang);
+    const currentPreviewTarget = hydrateModifyPreviewTarget(pre, pendingTarget);
+    const currentPreviewSnapshot = applyModifyPreviewPatch(currentPreviewTarget, pendingModifyPatchEarly, pre.lang);
     const previewResolutionIntent = normalizeReservationIntent(userTxtRaw);
     const previewConfirm =
       isPureConfirm(userTxtRaw) ||
@@ -7319,7 +7337,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
     if (previewReject) {
       await persistModifyExecutionContext(pre, pendingTarget.reservationId, {
-        reservationSlots: applyModifyPreviewPatch(pendingTarget, { reservationId: pendingTarget.reservationId }, pre.lang),
+        reservationSlots: applyModifyPreviewPatch(currentPreviewTarget, { reservationId: pendingTarget.reservationId }, pre.lang),
         modifyState: null,
         pendingAvailabilityVerification: null,
         updatedBy: "ai",
@@ -7653,7 +7671,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (
     effectiveSnapshotQueryKind &&
-    (resolution.status === "ambiguous" || resolution.status === "out_of_range") &&
+    (resolution.status === "out_of_range" || (resolution.status === "ambiguous" && !hasConfirmedBookingContext)) &&
     !explicitOrdinalReservationTarget
   ) {
     finalText = buildReservationReferenceGuardReply(pre.lang, resolution);
@@ -10019,7 +10037,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           finalText = buildModifyInactiveTargetReply(pre.lang);
           return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
         }
-        const currentPreviewSnapshot = applyModifyPreviewPatch(pendingTarget, pendingModifyPatch, pre.lang);
+        const currentPreviewTarget = hydrateModifyPreviewTarget(pre, pendingTarget);
+        const currentPreviewSnapshot = applyModifyPreviewPatch(currentPreviewTarget, pendingModifyPatch, pre.lang);
         const previewResolutionIntent = normalizeReservationIntent(userTxtRaw);
         const previewConfirm =
           isPureConfirm(userTxtRaw) ||
@@ -10045,7 +10064,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
         if (previewReject) {
           await persistModifyExecutionContext(pre, pendingTarget.reservationId, {
-            reservationSlots: applyModifyPreviewPatch(pendingTarget, { reservationId: pendingTarget.reservationId }, pre.lang),
+            reservationSlots: applyModifyPreviewPatch(currentPreviewTarget, { reservationId: pendingTarget.reservationId }, pre.lang),
             modifyState: null,
             pendingAvailabilityVerification: null,
             updatedBy: "ai",
@@ -10507,18 +10526,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 locale: pre.lang,
               }
               : undefined;
+            const persistedSlots = pre.st?.reservationSlots || {};
             const supplementalSlots = nextSlots || {};
             const snapshotSlots = (canonicalSlots
               ? {
                 ...canonicalSlots,
-                guestName: canonicalSlots.guestName || supplementalSlots.guestName,
-                roomType: canonicalSlots.roomType || supplementalSlots.roomType,
-                checkIn: canonicalSlots.checkIn || supplementalSlots.checkIn,
-                checkOut: canonicalSlots.checkOut || supplementalSlots.checkOut,
-                numGuests: canonicalSlots.numGuests || supplementalSlots.numGuests,
+                guestName: canonicalSlots.guestName || persistedSlots.guestName || supplementalSlots.guestName,
+                roomType: canonicalSlots.roomType || persistedSlots.roomType || supplementalSlots.roomType,
+                // The current conversation's dates may be newer than its historical snapshot.
+                checkIn: persistedSlots.checkIn || supplementalSlots.checkIn || canonicalSlots.checkIn,
+                checkOut: persistedSlots.checkOut || supplementalSlots.checkOut || canonicalSlots.checkOut,
+                numGuests: canonicalSlots.numGuests || persistedSlots.numGuests || supplementalSlots.numGuests,
               }
               : {
-                ...(pre.st?.reservationSlots || {}),
+                ...persistedSlots,
                 ...(supplementalSlots || {}),
               }) as ReservationSlotsStrict;
             finalText = buildReservationSnapshotAnswer(

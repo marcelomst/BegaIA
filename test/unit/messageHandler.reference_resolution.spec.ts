@@ -1298,9 +1298,32 @@ describe("messageHandler reference resolution", () => {
     expect(modifyReservation).toHaveBeenCalledWith(
       "hotel999",
       "RES-SINGLE-01",
-      expect.objectContaining({ checkIn: "2026-10-02", checkOut: "2026-10-04" }),
+      expect.objectContaining({
+        guestName: "Ana Perez",
+        roomType: "double",
+        numGuests: "2",
+        checkIn: "2026-10-02",
+        checkOut: "2026-10-04",
+      }),
       "web",
     );
+    expect(stateByConversation.get(currentConversationId)?.lastReservation).toMatchObject({
+      reservationId: "RES-SINGLE-01",
+      status: "updated",
+      guestName: "Ana Perez",
+      roomType: "double",
+      numGuests: "2",
+      checkIn: "2026-10-02",
+      checkOut: "2026-10-04",
+    });
+
+    await handleIncomingMessage(msg("mostrame mi reserva", currentConversationId), { mode: "automatic", sendReply });
+    const postModifySnapshot = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(postModifySnapshot).toMatch(/RES-SINGLE-01|Ana Perez/i);
+    expect(postModifySnapshot).toMatch(/Ana Perez/i);
+    expect(postModifySnapshot).toMatch(/double|doble/i);
+    expect(postModifySnapshot).toMatch(/2/);
+    expect(postModifySnapshot).toMatch(/02\/10\/2026.*04\/10\/2026/i);
   });
 
   it("después de un listado guest-wide consolidado, 'quiero modificar la última reserva' respeta el orden mostrado", async () => {
@@ -3128,6 +3151,49 @@ describe("messageHandler reference resolution", () => {
     expect(replyText).not.toContain("Quarto");
     expect(replyText).not.toContain("Datas");
     expect(replyText).not.toContain("Nome");
+  });
+
+  it("rehidrata una reserva local degradada sin cambiar de ID ni usar otra reserva del huésped", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-degraded-local-snapshot-1";
+    stateByConversation.set(conversationId, {
+      reservationSlots: { checkIn: "2026-11-08", checkOut: "2026-11-09" },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastReservation: {
+        reservationId: "RES-X",
+        status: "updated",
+        createdAt: "2026-10-01T10:00:00.000Z",
+        channel: "web",
+      },
+      reservationHistory: [
+        {
+          reservationId: "RES-X", status: "created", createdAt: "2026-09-01T10:00:00.000Z", channel: "web",
+          guestName: "Ana Perez", roomType: "double", checkIn: "2026-09-08", checkOut: "2026-09-15", numGuests: "2",
+        },
+        {
+          reservationId: "RES-OTHER", status: "created", createdAt: "2026-09-02T10:00:00.000Z", channel: "web",
+          guestName: "Laura Gomez", roomType: "suite", checkIn: "2026-12-01", checkOut: "2026-12-05", numGuests: "4",
+        },
+      ],
+      lastPresentedReservations: {
+        guestId: "g1", presentedAt: "2026-10-02T10:00:00.000Z", reservations: [
+          { reservationId: "RES-OTHER", status: "created", createdAt: "2026-09-02T10:00:00.000Z", channel: "email", guestName: "Laura Gomez", roomType: "suite", checkIn: "2026-12-01", checkOut: "2026-12-05", numGuests: "4" },
+        ],
+      },
+    });
+
+    await handleIncomingMessage(msg("mostrame mi reserva", conversationId), { mode: "automatic", sendReply });
+
+    const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(reply).toContain("RES-X");
+    expect(reply).toContain("Ana Perez");
+    expect(reply).toContain("doble");
+    expect(reply).toContain("08/11/2026");
+    expect(reply).toContain("09/11/2026");
+    expect(reply).toContain("Huéspedes: 2");
+    expect(reply).not.toMatch(/RES-OTHER|Laura Gomez|suite/);
+    expect(conversationMocks.getConversationsForGuestPerspective).not.toHaveBeenCalled();
   });
 
   it("modify usa el titular canónico del target y no el guestName residual del draft", async () => {

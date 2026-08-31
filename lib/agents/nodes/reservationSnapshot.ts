@@ -40,6 +40,31 @@ function reservationSlotsFromRecord(record: Record<string, any>, state: any) {
     };
 }
 
+function hydrateLocalConfirmedSlots(state: any, reservationId: string | undefined, slots: Record<string, any>) {
+    if (!reservationId) return slots;
+    const sameReservation = (record: any) => String(record?.reservationId || "") === reservationId;
+    const history = Array.isArray(state?.reservationHistory) ? state.reservationHistory.filter(sameReservation) : [];
+    const presented = Array.isArray(state?.lastPresentedReservations?.reservations)
+        ? state.lastPresentedReservations.reservations.filter(sameReservation)
+        : [];
+    const lastReservation = sameReservation(state?.lastReservation) ? state.lastReservation : undefined;
+    const sources = [...history, ...presented, lastReservation].filter(Boolean);
+    const operational = (field: "guestName" | "roomType" | "numGuests") =>
+        sources.slice().reverse().find((record) => record[field] != null)?.[field];
+    const date = (field: "checkIn" | "checkOut") =>
+        slots[field] ?? sources.slice().reverse().find((record) => record[field] != null)?.[field];
+
+    return {
+        ...slots,
+        guestName: slots.guestName ?? operational("guestName"),
+        roomType: slots.roomType ?? operational("roomType"),
+        numGuests: slots.numGuests ?? operational("numGuests"),
+        // Local slots are the current projection and can contain newer modified dates.
+        checkIn: date("checkIn"),
+        checkOut: date("checkOut"),
+    };
+}
+
 function buildPresentedReservations(
     guestId: string,
     records: Array<{ record: Record<string, any>; state: any }>,
@@ -167,6 +192,10 @@ export async function handleReservationSnapshotNode(state: typeof GraphState.Sta
     // 6) Fallback: buscar código en la lastReservation efectiva o en todo el doc
     // Solo buscamos dentro de lastReservation (¡no escarbamos todo el documento!).
     if (!code) code = extractCode(effectiveLastRes);
+
+    // A confirmed local ID remains dominant, but older snapshots of that exact ID
+    // can safely fill fields lost by a partial modify projection.
+    persistedSlots = hydrateLocalConfirmedSlots(st, code, persistedSlots);
 
     // 7) Fallback read-only: current conversation remains dominant. When it has no
     // confirmed reservation, resolve only conversations already bound to the canonical guest.
