@@ -4,6 +4,7 @@
 // =============================
 import { Annotation } from "@langchain/langgraph";
 import type { BaseMessage } from "@langchain/core/messages";
+import type { LastPresentedReservations } from "@/lib/db/convState";
 
 export const GraphState = Annotation.Root({
     // Conversación y mensajes
@@ -49,6 +50,10 @@ export const GraphState = Annotation.Root({
         reducer: (_x, y) => y,
         default: () => null,
     }),
+    guestId: Annotation<string | null>({
+        reducer: (_x, y) => y,
+        default: () => null,
+    }),
 
     // Metadatos
     meta: Annotation<Record<string, any>>({
@@ -74,6 +79,10 @@ export const GraphState = Annotation.Root({
     }>({
         reducer: (x, y) => ({ ...x, ...y }),
         default: () => ({}),
+    }),
+    lastPresentedReservations: Annotation<LastPresentedReservations | null>({
+        reducer: (_x, y) => y,
+        default: () => null,
     }),
 
     // Intención y acción

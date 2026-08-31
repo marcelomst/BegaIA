@@ -52,7 +52,6 @@ import { debugLog } from "@/lib/utils/debugLog";
 import type { RichPayload } from "@/types/richPayload";
 import { retrievalBased } from "@/lib/agents/retrieval_based";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
-import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 // askAvailability moved to pipeline/availability via runAvailabilityCheck
 import {
   runAvailabilityCheck,
@@ -1009,12 +1008,18 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   channelMemory.addMessage(msg);
 
   // === Estado previo de la conversación
-  const st = await getConvState(msg.hotelId, conversationId);
+  let st: any = await getConvState(msg.hotelId, conversationId);
   const prevCategory = st?.lastCategory ?? null;
   const prevSlotsStrict = toStrictSlots(st?.reservationSlots);
   console.log("🧷 [conv-state] loaded:", { conv: conversationId, prevCategory, prevSlots: prevSlotsStrict });
   const hotelConfig = await getHotelConfigSafe(msg.hotelId);
   guest = await applyExplicitConversationalActorToGuest(msg, guest, guestId, now);
+  const presentedGuestId = String(st?.lastPresentedReservations?.guestId || "").trim();
+  const canonicalGuestId = String(getMergedIntoGuestId(guest) || guest?.guestId || guestId).trim();
+  if (presentedGuestId && presentedGuestId !== canonicalGuestId) {
+    // Presentation references are scoped to the canonical guest that received the list.
+    st = { ...st, lastPresentedReservations: null };
+  }
 
   // === Contexto para el LLM (historial reciente)
   const lang = (
@@ -1300,6 +1305,28 @@ function applyModifyPreviewPatch(
   } as ReservationSlotsStrict;
 }
 
+function hydrateModifyPreviewTarget(
+  pre: PreLLMResult,
+  target: ReservationReferenceTarget
+): ReservationReferenceTarget {
+  const focusedReservationId =
+    pre.st?.selectedReservationTarget?.reservationId ||
+    (pre.st?.activeReservationContext?.kind === "reservation"
+      ? pre.st.activeReservationContext.reservationId
+      : undefined);
+  if (!target.reservationId || target.reservationId !== focusedReservationId) return target;
+
+  const slots = pre.st?.reservationSlots || {};
+  return {
+    ...target,
+    guestName: target.guestName || slots.guestName,
+    roomType: target.roomType || slots.roomType,
+    numGuests: target.numGuests || slots.numGuests,
+    checkIn: target.checkIn || slots.checkIn,
+    checkOut: target.checkOut || slots.checkOut,
+  };
+}
+
 function buildModifyPreviewReply(
   lang: "es" | "en" | "pt",
   target: ReservationReferenceTarget,
@@ -1446,9 +1473,10 @@ async function persistModifyPreviewContext(
   snapshot: ReservationSlotsStrict,
   supplementalLines: string[] = []
 ): Promise<string> {
-  const pendingPatch = buildModifyPreviewPatch(target, snapshot);
+  const previewTarget = hydrateModifyPreviewTarget(pre, target);
+  const pendingPatch = buildModifyPreviewPatch(previewTarget, snapshot);
   if (!pendingPatch) return buildModifyMissingPatchReply(pre.lang);
-  await persistModifyExecutionContext(pre, target.reservationId, {
+  await persistModifyExecutionContext(pre, previewTarget.reservationId, {
     reservationSlots: snapshot,
     modifyState: buildModifyPreviewState(pendingPatch),
     lastProposal: null,
@@ -1457,7 +1485,7 @@ async function persistModifyPreviewContext(
     conversationStage: "reservation_confirmed",
     updatedBy: "ai",
   } as any);
-  return buildModifyPreviewReply(pre.lang, target, snapshot, supplementalLines);
+  return buildModifyPreviewReply(pre.lang, previewTarget, snapshot, supplementalLines);
 }
 
 function extractModifyAvailabilitySupplementalLines(
@@ -2260,7 +2288,7 @@ type ReservationReferenceTarget = {
   numGuests?: number | string;
   checkIn?: string;
   checkOut?: string;
-  source: "active" | "history" | "lastReservation";
+  source: "active" | "history" | "lastReservation" | "presented";
 };
 
 type ReservationReferenceResolution =
@@ -2407,6 +2435,12 @@ function buildReservationCanonicalState(state: any): {
 
 function buildCanonicalReservationRecords(state: any): CanonicalReservationRecord[] {
   return buildReservationCanonicalState(state).records;
+}
+
+function buildPresentedReservationRecords(state: any): CanonicalReservationRecord[] {
+  const presented = state?.lastPresentedReservations;
+  if (!Array.isArray(presented?.reservations)) return [];
+  return buildReservationCanonicalState({ reservationHistory: presented.reservations }).records;
 }
 
 function collectPersistedReservationRecords(state: any): LastReservation[] {
@@ -2574,15 +2608,14 @@ async function safeFindGuestByAnyId(hotelId: string, rawId: string) {
   }
 }
 
-async function safeGetConversationsForGuestPerspective(input: {
+async function safeGetConversationsByGuestId(input: {
   hotelId: string;
   guestId: string;
-  aliases?: string[];
 }) {
   try {
     const conversationsDb = await import("@/lib/db/conversations");
-    if (typeof (conversationsDb as any).getConversationsForGuestPerspective !== "function") return [];
-    return await (conversationsDb as any).getConversationsForGuestPerspective(input);
+    if (typeof (conversationsDb as any).getConversationsByGuestId !== "function") return [];
+    return await (conversationsDb as any).getConversationsByGuestId(input);
   } catch {
     return [];
   }
@@ -2592,6 +2625,7 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   reservations: CanonicalReservationRecord[];
   scope: "conversation" | "guest";
   conversationalDisplayName?: string;
+  canonicalGuestId?: string;
 }> {
   const localReservations = buildCanonicalReservationRecords(pre.st);
   const hasLocalEligibleReservations = localReservations.some((item) => isCanonicalReservationRecordEligible(item));
@@ -2607,31 +2641,16 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   const conversationalDisplayName = getConversationalDisplayName(canonicalGuest as any);
   if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
 
-  const aliases = deriveGuestReadAliases(canonicalGuest as any, [
-    pre.msg.guestId,
-    rawCurrentGuestId,
-    pre.guest?.guestId,
-  ]);
-  const conversations = await safeGetConversationsForGuestPerspective({
+  const conversations = await safeGetConversationsByGuestId({
     hotelId: pre.msg.hotelId,
     guestId: canonicalGuestId,
-    aliases,
   });
-  const canonicalMergedIntoGuestId = getMergedIntoGuestId(canonicalGuest as any);
-  const hasGuestWideSignals = Boolean(
-    mergedIntoGuestId ||
-    canonicalMergedIntoGuestId ||
-    aliases.length > 1 ||
-    (Array.isArray(conversations) && conversations.length > 1)
-  );
-  if (!hasGuestWideSignals && hasLocalEligibleReservations) {
-    return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
-  }
   if (!Array.isArray(conversations) || conversations.length === 0) {
     return {
-      reservations: hasGuestWideSignals ? localReservations : [],
-      scope: "guest",
+      reservations: localReservations,
+      scope: hasLocalEligibleReservations ? "conversation" : "guest",
       conversationalDisplayName,
+      canonicalGuestId,
     };
   }
 
@@ -2646,11 +2665,58 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
   }
 
   const reservations = buildReservationCanonicalState({ reservationHistory: reservationRecords }).records;
+  if (seenConversationIds.size === 1 && hasLocalEligibleReservations) {
+    return { reservations: localReservations, scope: "conversation", conversationalDisplayName, canonicalGuestId };
+  }
   return {
     reservations,
-    scope: reservations.some((item) => isCanonicalReservationRecordEligible(item)) ? "guest" : "guest",
+    scope: "guest",
     conversationalDisplayName,
+    canonicalGuestId,
   };
+}
+
+function buildLastPresentedReservations(source: {
+  reservations: CanonicalReservationRecord[];
+  canonicalGuestId?: string;
+}) {
+  if (!source.canonicalGuestId) return null;
+  return {
+    guestId: source.canonicalGuestId,
+    presentedAt: new Date().toISOString(),
+    reservations: source.reservations.map((item) => ({
+      reservationId: item.reservationId,
+      status: item.status,
+      createdAt: item.createdAt,
+      channel: item.channel,
+      guestName: item.guestName,
+      roomType: item.roomType,
+      checkIn: item.checkIn,
+      checkOut: item.checkOut,
+      numGuests: item.numGuests,
+    })),
+  };
+}
+
+function getConfirmedGuestReservationCandidates(reservations: CanonicalReservationRecord[]) {
+  return reservations.filter(
+    (item) => item.canonicalStatus === "active" && isCanonicalReservationRecordEligible(item),
+  );
+}
+
+function buildGuestReservationAmbiguityReply(
+  lang: "es" | "en" | "pt",
+  reservations: CanonicalReservationRecord[],
+  conversationalDisplayName?: string,
+) {
+  const list = buildReservationListAnswer(lang, reservations, "guest", conversationalDisplayName);
+  const prompt =
+    lang === "pt"
+      ? "Você tem mais de uma reserva. Qual delas quer revisar?"
+      : lang === "en"
+        ? "You have more than one booking. Which one would you like to review?"
+        : "Tenés más de una reserva. ¿Cuál querés revisar?";
+  return `${list}\n${prompt}`;
 }
 
 function buildReservationReferenceCandidates(state: any): ReservationReferenceTarget[] {
@@ -2689,11 +2755,28 @@ function buildReservationReferenceCandidates(state: any): ReservationReferenceTa
     });
   }
 
+  for (const item of buildPresentedReservationRecords(state)) {
+    if (!item?.reservationId || candidates.some((candidate) => candidate.reservationId === item.reservationId)) continue;
+    candidates.push({
+      kind: "reservation",
+      reservationId: item.reservationId,
+      reservationStatus: item.canonicalStatus === "active" ? "created" : item.canonicalStatus,
+      guestName: item.guestName,
+      roomType: item.roomType,
+      numGuests: item.numGuests,
+      checkIn: item.checkIn,
+      checkOut: item.checkOut,
+      source: "presented",
+    });
+  }
+
   return candidates;
 }
 
 function buildOrderedReservationHistoryCandidates(state: any): ReservationReferenceTarget[] {
-  return buildReservationCanonicalState(state).records
+  const presented = buildPresentedReservationRecords(state);
+  const records = presented.length > 0 ? presented : buildReservationCanonicalState(state).records;
+  return records
     .map((item) => ({
       kind: "reservation" as const,
       reservationId: item.reservationId,
@@ -2703,7 +2786,7 @@ function buildOrderedReservationHistoryCandidates(state: any): ReservationRefere
       numGuests: item.numGuests,
       checkIn: item.checkIn,
       checkOut: item.checkOut,
-      source: "history" as const,
+      source: presented.length > 0 ? "presented" as const : "history" as const,
     }));
 }
 
@@ -2873,6 +2956,7 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const candidates = buildReservationReferenceCandidates(state);
   const reservationCandidates = candidates.filter((candidate) => candidate.kind === "reservation" && candidate.reservationId);
   const singleActionableReservation = resolveSingleActionableReservationTarget(state);
+  const singleReservationReference = reservationCandidates.length === 1 ? reservationCandidates[0] : null;
   const orderedReservationHistory = buildOrderedReservationHistoryCandidates(state);
   const activeReservationId = active?.kind === "reservation" ? active.reservationId : undefined;
   const alternateReservations = reservationCandidates.filter((candidate) => candidate.reservationId !== activeReservationId);
@@ -2880,7 +2964,7 @@ function resolveReservationReference(state: any, userText: string): ReservationR
   const mentionsNew = /\bla nueva\b/.test(text);
   const mentionsOther = /\bla otra\b/.test(text);
   const mentionsPrevious = /\bla anterior\b/.test(text);
-  const mentionsThat = /\besa\b/.test(text);
+  const mentionsThat = /\besa\b|\b(?:modificar|cambiar|alterar|editar)la\b/.test(text);
   const mentionsUnique = /\bla unica que tengo\b|\bla unica\b|\bla única que tengo\b|\bla única\b/.test(text);
   const mentionsTomorrow = /\bla de manana\b|\bde manana\b/.test(text);
   const ordinalReference = extractReservationOrdinalReferenceSpec(text);
@@ -2948,8 +3032,8 @@ function resolveReservationReference(state: any, userText: string): ReservationR
     };
   }
 
-  if ((mentionsThat || mentionsUnique) && singleActionableReservation?.reservationId) {
-    return { status: "resolved", target: singleActionableReservation };
+  if ((mentionsThat || mentionsUnique) && (singleActionableReservation?.reservationId || singleReservationReference?.reservationId)) {
+    return { status: "resolved", target: singleActionableReservation || singleReservationReference! };
   }
 
   if (mentionsUnique) {
@@ -5279,6 +5363,7 @@ async function runBodyLLMGraphPath(pre: PreLLMResult, state: BodyLLMState): Prom
     agentGraph.invoke({
       hotelId: pre.msg.hotelId,
       conversationId: pre.conversationId,
+      guestId: pre.guest?.guestId || pre.msg.guestId || null,
       detectedLanguage: pre.msg.detectedLanguage,
       normalizedMessage: String(pre.msg.content || ""),
       messages: lcMessages,
@@ -7298,6 +7383,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       /\b(reserv(ar|a|o)?|book(?:ing)?)\b/i.test(userTxtRaw) ||
       availabilityInquiryCreateHandoff
     ) &&
+    !explicitReservationCode &&
     normalizedReservationIntent.kind !== "modify" &&
     normalizedReservationIntent.kind !== "cancel";
   const modifyInquiryReply = buildModifyInquiryReply(pre.lang, userTxtRaw);
@@ -7657,25 +7743,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       reservationListSource.scope,
       reservationListSource.conversationalDisplayName
     );
-    const persistedListHistory = reservationListSource.reservations.map((item) => ({
-      reservationId: item.reservationId,
-      status: item.status,
-      createdAt: item.createdAt,
-      channel: item.channel,
-      guestName: item.guestName,
-      roomType: item.roomType,
-      checkIn: item.checkIn,
-      checkOut: item.checkOut,
-      numGuests: item.numGuests,
-    })) as LastReservation[];
-    const persistedLastReservation =
-      persistedListHistory.at(-1) ||
-      (shouldPreserveLastReservationRecord(persistedListHistory, pre.st?.lastReservation)
-        ? pre.st?.lastReservation
-        : null);
+    // A guest-wide read must not turn an old reservation into this conversation's state.
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationHistory: persistedListHistory,
-      lastReservation: persistedLastReservation,
+      lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
       selectedReservationTarget: null,
       modifyState: null,
       conversationFocus: null,
@@ -7686,6 +7756,49 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     } as any);
     nextCategory = "reservation_snapshot";
     return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+  }
+  if (effectiveSnapshotQueryKind && !resolvedSnapshotTarget) {
+    const localConfirmed = getConfirmedGuestReservationCandidates(buildCanonicalReservationRecords(pre.st));
+    if (localConfirmed.length === 0) {
+      const reservationListSource = await resolveReservationListSource(pre);
+      const candidates = getConfirmedGuestReservationCandidates(reservationListSource.reservations);
+      if (candidates.length === 1) {
+        const target = candidates[0];
+        finalText = buildReservationSnapshotAnswer(
+          effectiveSnapshotQueryKind,
+          resolveReservationSnapshotLanguage(pre),
+          {
+            reservationId: target.reservationId,
+            guestName: target.guestName,
+            roomType: target.roomType,
+            numGuests: target.numGuests,
+            checkIn: target.checkIn,
+            checkOut: target.checkOut,
+          } as any,
+          target.reservationId,
+          target.status,
+        );
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          // Preserve only the references just shown; do not adopt guest-wide history as this conversation's state.
+          lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+          updatedBy: "ai",
+        } as any);
+      } else if (candidates.length > 1) {
+        finalText = buildGuestReservationAmbiguityReply(
+          pre.lang,
+          candidates,
+          reservationListSource.conversationalDisplayName,
+        );
+      }
+      if (finalText) {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          lastCategory: "reservation_snapshot",
+          updatedBy: "ai",
+        } as any);
+        nextCategory = "reservation_snapshot";
+        return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };
+      }
+    }
   }
   if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {
     const target = resolvedSnapshotTarget;
@@ -10292,6 +10405,65 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           pre.st?.salesStage === "close"
         );
         const mentionsReservationObject = /\b(reserva|booking|reservation)\b/i.test(kbUserText);
+        if (
+          postBookingSnapshotQ &&
+          postBookingReservationIntent.kind !== "modify" &&
+          postBookingReservationIntent.kind !== "cancel" &&
+          (postBookingSnapshotQ === "list" || !hasConfirmedBookingContext)
+        ) {
+          const reservationListSource = await resolveReservationListSource(pre);
+          const candidates = getConfirmedGuestReservationCandidates(reservationListSource.reservations);
+          if (postBookingSnapshotQ === "list") {
+            finalText = buildReservationListAnswer(
+              pre.lang,
+              reservationListSource.reservations,
+              reservationListSource.scope,
+              reservationListSource.conversationalDisplayName,
+            );
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              selectedReservationTarget: null,
+              lastCategory: "reservation_snapshot",
+              updatedBy: "ai",
+            } as any);
+            nextCategory = "reservation_snapshot";
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+          }
+          if (candidates.length === 1) {
+            const target = candidates[0];
+            finalText = buildReservationSnapshotAnswer(
+              postBookingSnapshotQ,
+              resolveReservationSnapshotLanguage(pre),
+              {
+                reservationId: target.reservationId,
+                guestName: target.guestName,
+                roomType: target.roomType,
+                numGuests: target.numGuests,
+                checkIn: target.checkIn,
+                checkOut: target.checkOut,
+              } as any,
+              target.reservationId,
+              target.status,
+            );
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              // Keep the same read-only reference context as the plural snapshot path.
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              lastCategory: "reservation_snapshot",
+              updatedBy: "ai",
+            } as any);
+            nextCategory = "reservation_snapshot";
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+          }
+          if (candidates.length > 1) {
+            finalText = buildGuestReservationAmbiguityReply(
+              pre.lang,
+              candidates,
+              reservationListSource.conversationalDisplayName,
+            );
+            nextCategory = "reservation_snapshot";
+            return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
+          }
+        }
         if (postBookingSnapshotQ && !hasConfirmedBookingContext) {
           finalText = pre.lang === "es"
             ? "No encuentro una reserva activa en esta conversación. Si querés revisar una reserva existente, pasame el código de reserva."
@@ -10702,6 +10874,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           agentGraph.invoke({
             hotelId: pre.msg.hotelId,
             conversationId: pre.conversationId,
+            guestId: pre.guest?.guestId || pre.msg.guestId || null,
             detectedLanguage: pre.msg.detectedLanguage,
             normalizedMessage: String(pre.msg.content || ""),
             messages: lcMessages,

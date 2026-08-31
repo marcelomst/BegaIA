@@ -1,8 +1,89 @@
 // Path: /home/marcelo/begasist/lib/agents/nodes/reservationSnapshot.ts
 import { formatReservationSnapshot } from "@/lib/format/reservationSnapshot";
 import { getConvState } from "@/lib/db/convState";
+import { getConversationsByGuestId } from "@/lib/db/conversations";
+import { getGuest } from "@/lib/db/guests";
+import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { AIMessage } from "@langchain/core/messages";
+import type { LastPresentedReservations } from "@/lib/db/convState";
 import type { GraphState } from "../graphState";
+
+function getMergedIntoGuestId(guest: { tags?: unknown } | null | undefined): string | undefined {
+    const tags = Array.isArray(guest?.tags) ? guest.tags : [];
+    const tag = tags.find((value) => typeof value === "string" && value.startsWith("merged-into:"));
+    return typeof tag === "string" ? tag.slice("merged-into:".length).trim() || undefined : undefined;
+}
+
+function getConfirmedReservationRecords(state: any): Array<Record<string, any>> {
+    const records = [
+        ...(Array.isArray(state?.reservationHistory) ? state.reservationHistory : []),
+        state?.lastReservation,
+    ];
+    const byId = new Map<string, Record<string, any>>();
+    for (const record of records) {
+        const reservationId = String(record?.reservationId || "").trim();
+        const status = String(record?.status || "").toLowerCase();
+        if (!reservationId || (status !== "created" && status !== "updated")) continue;
+        byId.set(reservationId, record);
+    }
+    return Array.from(byId.values());
+}
+
+function reservationSlotsFromRecord(record: Record<string, any>, state: any) {
+    const slots = state?.reservationSlots || {};
+    return {
+        guestName: record.guestName ?? slots.guestName,
+        roomType: record.roomType ?? slots.roomType,
+        checkIn: record.checkIn ?? slots.checkIn,
+        checkOut: record.checkOut ?? slots.checkOut,
+        numGuests: record.numGuests ?? slots.numGuests,
+    };
+}
+
+function buildPresentedReservations(
+    guestId: string,
+    records: Array<{ record: Record<string, any>; state: any }>,
+): LastPresentedReservations {
+    return {
+        guestId,
+        presentedAt: new Date().toISOString(),
+        reservations: records.map(({ record, state }) => ({
+            reservationId: String(record.reservationId),
+            status: record.status === "updated" ? "updated" : "created",
+            createdAt: String(record.createdAt || ""),
+            channel: record.channel || "web",
+            ...reservationSlotsFromRecord(record, state),
+        })) as LastPresentedReservations["reservations"],
+    };
+}
+
+function buildGuestReservationList(
+    lang: string,
+    reservations: LastPresentedReservations["reservations"],
+): string {
+    const header = lang === "pt"
+        ? "Estas são suas reservas:"
+        : lang === "en"
+            ? "These are your bookings:"
+            : "Estas son tus reservas:";
+    return [
+        header,
+        ...reservations.map((reservation, index) =>
+            `${index + 1}. ${reservation.reservationId} - ${reservation.guestName || "-"} - ${reservation.checkIn || "-"} → ${reservation.checkOut || "-"}`,
+        ),
+    ].join("\n");
+}
+
+async function persistPresentedReservations(
+    state: typeof GraphState.State,
+    context: LastPresentedReservations,
+) {
+    if (!state.conversationId) return;
+    await updateConversationState(state.hotelId, state.conversationId, {
+        lastPresentedReservations: context,
+        updatedBy: "ai",
+    } as any);
+}
 
 export async function handleReservationSnapshotNode(state: typeof GraphState.State) {
     const lang = (state.detectedLanguage || "es").slice(0, 2);
@@ -52,6 +133,8 @@ export async function handleReservationSnapshotNode(state: typeof GraphState.Sta
     let persistedSlots = state.reservationSlots || {};
     let persistedStage: string | undefined = state.salesStage;
     let code: string | undefined = extractCode((state as any)?.lastReservation);
+    let usedGuestFallback = false;
+    let guestFallbackContext: LastPresentedReservations | null = null;
 
     // 3) Si no hay cache, leemos de DB una sola vez
     if (!st) {
@@ -85,14 +168,52 @@ export async function handleReservationSnapshotNode(state: typeof GraphState.Sta
     // Solo buscamos dentro de lastReservation (¡no escarbamos todo el documento!).
     if (!code) code = extractCode(effectiveLastRes);
 
-    // 7) Preparar slots visuales
+    // 7) Fallback read-only: current conversation remains dominant. When it has no
+    // confirmed reservation, resolve only conversations already bound to the canonical guest.
+    const currentConfirmedRecords = getConfirmedReservationRecords(st);
+    if (currentConfirmedRecords.length === 0 && state.guestId) {
+        try {
+            const currentGuest = await getGuest(state.hotelId, state.guestId);
+            const canonicalGuestId = getMergedIntoGuestId(currentGuest) || currentGuest?.guestId || state.guestId;
+            const conversations = await getConversationsByGuestId({ hotelId: state.hotelId, guestId: canonicalGuestId });
+            const records: Array<{ record: Record<string, any>; state: any }> = [];
+            for (const conversation of conversations) {
+                const conversationId = String(conversation?.conversationId || "").trim();
+                if (!conversationId || conversationId === state.conversationId) continue;
+                const historicalState = await getConvState(state.hotelId, conversationId);
+                for (const record of getConfirmedReservationRecords(historicalState)) {
+                    records.push({ record, state: historicalState });
+                }
+            }
+            const uniqueRecords = Array.from(new Map(records.map((item) => [item.record.reservationId, item])).values());
+            guestFallbackContext = buildPresentedReservations(canonicalGuestId, uniqueRecords);
+            if (uniqueRecords.length === 1) {
+                const candidate = uniqueRecords[0];
+                persistedSlots = reservationSlotsFromRecord(candidate.record, candidate.state);
+                code = String(candidate.record.reservationId);
+                persistedStage = "close";
+                usedGuestFallback = true;
+            } else if (uniqueRecords.length > 1) {
+                await persistPresentedReservations(state, guestFallbackContext);
+                return {
+                    messages: [new AIMessage(buildGuestReservationList(lang, guestFallbackContext.reservations))],
+                    category: "reservation_snapshot",
+                    lastPresentedReservations: guestFallbackContext,
+                };
+            }
+        } catch {
+            // A snapshot must remain conservative if the guest-wide lookup is unavailable.
+        }
+    }
+
+    // 8) Preparar slots visuales
     const slots = { ...persistedSlots };
     let showSlots: Record<string, any> = { ...slots };
     if (typeof slots.numGuests === "number") {
         showSlots.numGuests = `${slots.numGuests}`;
     }
 
-    // 8) Confirmación: code OR lastReservation OR stage close
+    // 9) Confirmación: code OR active lastReservation OR stage close
     const confirmed =
         (typeof code === "string" && code.length > 0) ||
         !!effectiveLastRes ||
@@ -125,14 +246,23 @@ export async function handleReservationSnapshotNode(state: typeof GraphState.Sta
     const t = (state.normalizedMessage || "").toLowerCase();
     const isModify = /\b(modificar|cambiar|modification|change|alterar|alteração|alterar|change)\b/.test(t);
 
+    if (guestFallbackContext) {
+        await persistPresentedReservations(state, guestFallbackContext);
+    }
+
     return {
         messages: [new AIMessage(msg)],
-        reservationSlots: {
-            ...slots,
-            numGuests: typeof slots.numGuests === "number" ? `${slots.numGuests}` : slots.numGuests,
-        },
+        ...(guestFallbackContext ? { lastPresentedReservations: guestFallbackContext } : {}),
+        ...(usedGuestFallback
+            ? {}
+            : {
+                reservationSlots: {
+                    ...slots,
+                    numGuests: typeof slots.numGuests === "number" ? `${slots.numGuests}` : slots.numGuests,
+                },
+            }),
         category: "reservation_snapshot",
-        salesStage: persistedStage || state.salesStage,
-        desiredAction: isModify ? "modify" : undefined,
+        ...(usedGuestFallback ? {} : { salesStage: persistedStage || state.salesStage }),
+        ...(usedGuestFallback ? {} : { desiredAction: isModify ? "modify" : undefined }),
     };
 }

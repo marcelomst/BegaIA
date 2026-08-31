@@ -74,6 +74,12 @@ export type LastReservation =
     numGuests?: number | string;
   };
 
+export type LastPresentedReservations = {
+  guestId: string;
+  presentedAt: string;
+  reservations: LastReservation[];
+};
+
 export type PendingCancellation = {
   reservationId?: string;
   awaitingConfirmation?: boolean;
@@ -148,6 +154,7 @@ export type ConversationFlowState = {
   // Última reserva creada (si corresponde)
   lastReservation?: LastReservation;
   reservationHistory?: LastReservation[] | null;
+  lastPresentedReservations?: LastPresentedReservations | null;
   activeReservationContext?: ActiveReservationContext | null;
   selectedReservationTarget?: SelectedReservationTarget | null;
   modifyState?: ModifyState | null;
@@ -406,6 +413,14 @@ export async function upsertConvState(
     }
   }
 
+  if ("lastPresentedReservations" in patch) {
+    if ((patch as any).lastPresentedReservations == null) {
+      $unset["lastPresentedReservations"] = true;
+    } else {
+      $set["lastPresentedReservations"] = (patch as any).lastPresentedReservations;
+    }
+  }
+
   if ("activeReservationContext" in patch) {
     if ((patch as any).activeReservationContext == null) {
       $unset["activeReservationContext"] = true;
@@ -501,6 +516,7 @@ export async function upsertConvState(
       if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
       if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
       if ("reservationHistory" in patch && (patch as any).reservationHistory != null) doc.reservationHistory = (patch as any).reservationHistory;
+      if ("lastPresentedReservations" in patch && (patch as any).lastPresentedReservations != null) doc.lastPresentedReservations = (patch as any).lastPresentedReservations;
       if ("activeReservationContext" in patch && (patch as any).activeReservationContext != null) doc.activeReservationContext = (patch as any).activeReservationContext;
       if ("selectedReservationTarget" in patch && (patch as any).selectedReservationTarget != null) doc.selectedReservationTarget = (patch as any).selectedReservationTarget;
       if ("modifyState" in patch && (patch as any).modifyState != null) doc.modifyState = (patch as any).modifyState;
