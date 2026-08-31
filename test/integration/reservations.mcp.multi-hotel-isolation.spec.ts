@@ -1,5 +1,11 @@
 // Path: /root/begasist/test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/astra/connection", async () => {
+  const mod = await import("../mocks/astra");
+  return { getAstraDB: () => ({ collection: (name: string) => mod.getCollection(name), table: (name: string) => mod.getTable(name) }) };
+});
+
 import { POST as mcpPOST } from "@/app/api/mcp/route";
 
 function mkReq(body: unknown): Request {

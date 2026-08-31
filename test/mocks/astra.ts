@@ -113,6 +113,22 @@ export function getCollection(name: string) {
   if (!collections[name]) collections[name] = new InMemoryCollection(name);
   return collections[name];
 }
+
+export function getTable(name: string) {
+  const collection = getCollection(`table:${name}`);
+  return {
+    async insertOne(row: Doc) {
+      const key = `${row.hotel_id}:${row.reservation_id}`;
+      const existing = await collection.findOne({ _id: key });
+      if (existing) await collection.updateOne({ _id: key }, { $set: { ...row, _id: key } });
+      else await collection.insertOne({ ...row, _id: key });
+    },
+    findOne: (filter: Partial<Doc>) => collection.findOne(filter),
+    find: (filter: Partial<Doc> = {}) => collection.find(filter),
+    deleteOne: (filter: Partial<Doc>) => collection.deleteOne(filter),
+  };
+}
+
 export async function getAstraCollection(name: string) {
   return getCollection(name);
 }

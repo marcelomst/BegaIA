@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const rawGuests = normalizeText(url.searchParams.get("guests"));
     const guests = rawGuests ? Number.parseInt(rawGuests, 10) : undefined;
 
-    const data = inspectDemoInventory(hotelId, {
+    const data = await inspectDemoInventory(hotelId, {
       startDate: startDate || undefined,
       endDate: endDate || undefined,
       roomType,
@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Unsupported action" }, { status: 400 });
     }
 
-    const result = resetDemoInventory(hotelId);
-    const data = inspectDemoInventory(hotelId);
+    const result = await resetDemoInventory(hotelId);
+    const data = await inspectDemoInventory(hotelId);
     return NextResponse.json({ ok: true, result, data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal error";

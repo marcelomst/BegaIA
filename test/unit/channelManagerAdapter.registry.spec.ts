@@ -1,9 +1,20 @@
 // Path: /root/begasist/test/unit/channelManagerAdapter.registry.spec.ts
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/astra/connection", async () => {
+  const mod = await import("../mocks/astra");
+  return {
+    getAstraDB: () => ({
+      collection: (name: string) => mod.getCollection(name),
+      table: (name: string) => mod.getTable(name),
+    }),
+  };
+});
+
 import { getCMAdapter, inspectDemoInventory, resetDemoInventory } from "@/lib/mcp/channelManagerAdapter";
 
 describe("getCMAdapter registry by hotelId", () => {
-  it("reuses instance for same hotelId and isolates different hotelId", async () => {
+  it("reuses the registry instance while the durable store remains shared across adapter instances", async () => {
     const hotelA = `hotel-a-${Date.now()}`;
     const hotelB = `hotel-b-${Date.now()}`;
 
@@ -27,7 +38,59 @@ describe("getCMAdapter registry by hotelId", () => {
 
     expect(created.reservationId).toMatch(/^RES-[A-Z0-9]{6,}$/);
     expect(inA?.reservationId).toBe(created.reservationId);
-    expect(inB).toBeNull();
+    expect(inB?.reservationId).toBe(created.reservationId);
+  });
+
+  it("persists create, get, list, availability, update and cancel across a new adapter instance", async () => {
+    const hotelId = `hotel-restart-${Date.now()}`;
+    const instanceA = getCMAdapter(hotelId);
+    const created = await instanceA.createReservation({
+      hotelId,
+      guestName: "Ana Rodriguez",
+      roomType: "suite",
+      checkInDate: "2026-04-20",
+      checkOutDate: "2026-04-22",
+    });
+
+    const { DurableDemoCMAdapter } = await import("@/lib/mcp/channelManagerAdapter");
+    const instanceB = new DurableDemoCMAdapter();
+    expect((await instanceB.getReservation(hotelId, created.reservationId))?.guestName).toBe("Ana Rodriguez");
+    expect((await instanceB.listReservations({ hotelId })).items.map((item) => item.reservationId)).toContain(created.reservationId);
+    expect(await instanceB.searchAvailability({
+      hotelId,
+      startDate: "2026-04-21",
+      endDate: "2026-04-23",
+      roomType: "suite",
+      guests: 2,
+    })).toEqual([]);
+
+    const updated = await instanceB.updateReservation({
+      hotelId,
+      reservationId: created.reservationId,
+      checkInDate: "2026-04-25",
+      checkOutDate: "2026-04-27",
+    });
+    expect(updated.checkInDate).toBe("2026-04-25");
+    expect((await instanceA.getReservation(hotelId, created.reservationId))?.checkOutDate).toBe("2026-04-27");
+
+    const cancelled = await instanceB.cancelReservation({ hotelId, reservationId: created.reservationId });
+    expect(cancelled.status).toBe("cancelled");
+    expect((await instanceA.getReservation(hotelId, created.reservationId))?.status).toBe("cancelled");
+  });
+
+  it("isolates tenant reads and resets only the requested hotel", async () => {
+    const suffix = Date.now();
+    const hotelA = `hotel-tenant-a-${suffix}`;
+    const hotelB = `hotel-tenant-b-${suffix}`;
+    const adapter = getCMAdapter(hotelA);
+    const reservationA = await adapter.createReservation({ hotelId: hotelA, guestName: "Hotel A", roomType: "double", checkInDate: "2026-05-01", checkOutDate: "2026-05-03" });
+    const reservationB = await adapter.createReservation({ hotelId: hotelB, guestName: "Hotel B", roomType: "double", checkInDate: "2026-05-01", checkOutDate: "2026-05-03" });
+
+    expect(await adapter.getReservation(hotelA, reservationB.reservationId)).toBeNull();
+    expect((await adapter.listReservations({ hotelId: hotelA })).items.map((item) => item.reservationId)).toEqual([reservationA.reservationId]);
+    await resetDemoInventory(hotelA);
+    expect((await adapter.listReservations({ hotelId: hotelA })).items).toEqual([]);
+    expect((await adapter.getReservation(hotelB, reservationB.reservationId))?.guestName).toBe("Hotel B");
   });
 
   it("falls back to default key when hotelId is empty", () => {
@@ -100,7 +163,7 @@ describe("getCMAdapter registry by hotelId", () => {
 
     await cm.cancelReservation({ hotelId, reservationId: cancelled.reservationId });
 
-    const snapshot = inspectDemoInventory(hotelId, {
+    const snapshot = await inspectDemoInventory(hotelId, {
       startDate: "2026-04-21",
       endDate: "2026-04-22",
       roomType: "double",
@@ -125,10 +188,10 @@ describe("getCMAdapter registry by hotelId", () => {
       returnedBySearch: true,
     });
 
-    const resetResult = resetDemoInventory(hotelId);
+    const resetResult = await resetDemoInventory(hotelId);
     expect(resetResult.clearedReservations).toBe(2);
 
-    const resetSnapshot = inspectDemoInventory(hotelId);
+    const resetSnapshot = await inspectDemoInventory(hotelId);
     expect(resetSnapshot.totals.totalReservations).toBe(0);
     expect(resetSnapshot.activeReservations).toEqual([]);
   });

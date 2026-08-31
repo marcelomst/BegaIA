@@ -11,6 +11,12 @@ import type {
   UpdateReservationInput,
 } from "./types";
 import crypto from "crypto";
+import {
+  deleteDemoChannelManagerReservationsForHotel,
+  getDemoChannelManagerReservation,
+  listDemoChannelManagerReservations,
+  saveDemoChannelManagerReservation,
+} from "@/lib/db/demoChannelManagerReservations";
 
 export type DemoInventoryRoomSnapshot = {
   roomType: string;
@@ -36,7 +42,7 @@ export type DemoInventorySearchRoomDebug = {
 };
 
 export type DemoInventorySnapshot = {
-  provider: "inmemory";
+  provider: "astra-demo";
   hotelId: string;
   hotelKey: string;
   sharedByHotelId: true;
@@ -60,20 +66,9 @@ export type DemoInventorySnapshot = {
   };
 };
 
-export class InMemoryCMAdapter implements ChannelManagerAdapter {
-  private stores: Map<string, Map<string, Reservation>> = new Map();
-
-  private getStore(hotelId: string): Map<string, Reservation> {
-    const key = normalizeHotelKey(hotelId);
-    const existing = this.stores.get(key);
-    if (existing) return existing;
-    const created = new Map<string, Reservation>();
-    this.stores.set(key, created);
-    return created;
-  }
-
+export class DurableDemoCMAdapter implements ChannelManagerAdapter {
   async searchAvailability(q: AvailabilityQuery): Promise<AvailabilityItem[]> {
-    const store = this.getStore(q.hotelId);
+    const reservations = await listDemoChannelManagerReservations(q.hotelId);
     const startDate = parseIsoDate(q.startDate);
     const endDate = parseIsoDate(q.endDate);
     const nights = startDate && endDate ? getNights(startDate, endDate) : 1;
@@ -85,7 +80,7 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
       .filter((room) => !q.roomType || room.roomType === q.roomType)
       .filter((room) => !guestCount || guestCount <= room.maxGuests)
       .map((room) => {
-        const overlappingReservations = [...store.values()].filter(
+        const overlappingReservations = reservations.filter(
           (reservation) =>
             reservation.status !== "cancelled" &&
             reservation.roomType === room.roomType &&
@@ -110,8 +105,7 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 
   async createReservation(input: CreateReservationInput): Promise<Reservation> {
-    const store = this.getStore(input.hotelId);
-    const reservationId = buildHumanReservationId(store);
+    const reservationId = await buildHumanReservationId(input.hotelId);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
@@ -141,29 +135,22 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
       createdAt,
       updatedAt,
     };
-    store.set(reservationId, r);
-    return r;
+    return saveDemoChannelManagerReservation(r);
   }
 
   async cancelReservation(input: CancelReservationInput): Promise<Reservation> {
-    const store = this.getStore(input.hotelId);
-    const r = store.get(input.reservationId);
-    if (!r || r.hotelId !== input.hotelId) throw new Error("Reservation not found");
+    const r = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
+    if (!r) throw new Error("Reservation not found");
     const updated: Reservation = { ...r, status: "cancelled", updatedAt: new Date().toISOString() };
-    store.set(input.reservationId, updated);
-    return updated;
+    return saveDemoChannelManagerReservation(updated);
   }
 
   async getReservation(hotelId: string, reservationId: string): Promise<Reservation | null> {
-    const store = this.getStore(hotelId);
-    const r = store.get(reservationId);
-    if (!r || r.hotelId !== hotelId) return null;
-    return r;
+    return getDemoChannelManagerReservation(hotelId, reservationId);
   }
 
   async listReservations(q: ListReservationsQuery): Promise<ListReservationsResult> {
-    const store = this.getStore(q.hotelId);
-    const all = [...store.values()].filter(r => r.hotelId === q.hotelId);
+    const all = await listDemoChannelManagerReservations(q.hotelId);
     const filtered = all.filter(r => (q.status ? r.status === q.status : true));
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
@@ -173,9 +160,8 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
   }
 
   async updateReservation(input: UpdateReservationInput): Promise<Reservation> {
-    const store = this.getStore(input.hotelId);
-    const r = store.get(input.reservationId);
-    if (!r || r.hotelId !== input.hotelId) throw new Error("Reservation not found");
+    const r = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
+    if (!r) throw new Error("Reservation not found");
     const updated: Reservation = {
       ...r,
       guestName: input.guestName ?? r.guestName,
@@ -186,33 +172,26 @@ export class InMemoryCMAdapter implements ChannelManagerAdapter {
       checkOutDate: input.checkOutDate ?? r.checkOutDate,
       updatedAt: new Date().toISOString(),
     };
-    store.set(input.reservationId, updated);
-    return updated;
+    return saveDemoChannelManagerReservation(updated);
   }
 
-  debugSnapshot(hotelId: string): { hotelKey: string; reservations: Reservation[] } {
-    const store = this.getStore(hotelId);
-    const reservations = [...store.values()].sort((a, b) => {
-      const ta = Date.parse(String(b.updatedAt || b.createdAt || ""));
-      const tb = Date.parse(String(a.updatedAt || a.createdAt || ""));
-      return ta - tb;
-    });
+  async debugSnapshot(hotelId: string): Promise<{ hotelKey: string; reservations: Reservation[] }> {
     return {
       hotelKey: normalizeHotelKey(hotelId),
-      reservations,
+      reservations: await listDemoChannelManagerReservations(hotelId),
     };
   }
 
-  resetHotelStore(hotelId: string): { hotelKey: string; clearedReservations: number } {
-    const store = this.getStore(hotelId);
-    const clearedReservations = store.size;
-    store.clear();
+  async resetHotelStore(hotelId: string): Promise<{ hotelKey: string; clearedReservations: number }> {
     return {
       hotelKey: normalizeHotelKey(hotelId),
-      clearedReservations,
+      clearedReservations: await deleteDemoChannelManagerReservationsForHotel(hotelId),
     };
   }
 }
+
+/** @deprecated Use DurableDemoCMAdapter. Kept for import compatibility only. */
+export class InMemoryCMAdapter extends DurableDemoCMAdapter {}
 
 type DemoRoom = {
   roomType: string;
@@ -269,11 +248,11 @@ function getSeasonalMultiplier(startDate: Date | null, endDate: Date | null): nu
   return hasHighSeasonMonth ? 1.2 : 1;
 }
 
-function buildHumanReservationId(store: Map<string, Reservation>): string {
+async function buildHumanReservationId(hotelId: string): Promise<string> {
   for (let attempt = 0; attempt < 12; attempt++) {
     const suffix = crypto.randomBytes(3).toString("hex").toUpperCase();
     const candidate = `RES-${suffix}`;
-    if (!store.has(candidate)) return candidate;
+    if (!await getDemoChannelManagerReservation(hotelId, candidate)) return candidate;
   }
   return `RES-${Date.now().toString(36).toUpperCase()}`;
 }
@@ -285,11 +264,11 @@ function normalizeHotelKey(hotelId?: string): string {
   return key || "default";
 }
 
-function getInMemoryAdapter(hotelId?: string): InMemoryCMAdapter {
+function getDurableDemoAdapter(hotelId?: string): DurableDemoCMAdapter {
   const key = normalizeHotelKey(hotelId);
   const existing = registry.get(key);
-  if (existing instanceof InMemoryCMAdapter) return existing;
-  const created = new InMemoryCMAdapter();
+  if (existing instanceof DurableDemoCMAdapter) return existing;
+  const created = new DurableDemoCMAdapter();
   registry.set(key, created);
   return created;
 }
@@ -359,19 +338,19 @@ function buildSearchDebug(
 }
 
 export function getCMProvider(): string {
-  return "inmemory";
+  return "astra-demo";
 }
 
 export function getCMAdapter(hotelId?: string): ChannelManagerAdapter {
-  return getInMemoryAdapter(hotelId);
+  return getDurableDemoAdapter(hotelId);
 }
 
-export function inspectDemoInventory(
+export async function inspectDemoInventory(
   hotelId: string,
   query?: { startDate?: string; endDate?: string; roomType?: string; guests?: number }
-): DemoInventorySnapshot {
-  const adapter = getInMemoryAdapter(hotelId);
-  const { hotelKey, reservations } = adapter.debugSnapshot(hotelId);
+): Promise<DemoInventorySnapshot> {
+  const adapter = getDurableDemoAdapter(hotelId);
+  const { hotelKey, reservations } = await adapter.debugSnapshot(hotelId);
   const activeReservations = reservations.filter((reservation) => reservation.status !== "cancelled");
   const cancelledReservations = reservations.filter((reservation) => reservation.status === "cancelled");
 
@@ -399,7 +378,7 @@ export function inspectDemoInventory(
       : undefined;
 
   return {
-    provider: "inmemory",
+    provider: "astra-demo",
     hotelId,
     hotelKey,
     sharedByHotelId: true,
@@ -415,9 +394,9 @@ export function inspectDemoInventory(
   };
 }
 
-export function resetDemoInventory(hotelId: string): { hotelId: string; hotelKey: string; clearedReservations: number } {
-  const adapter = getInMemoryAdapter(hotelId);
-  const { hotelKey, clearedReservations } = adapter.resetHotelStore(hotelId);
+export async function resetDemoInventory(hotelId: string): Promise<{ hotelId: string; hotelKey: string; clearedReservations: number }> {
+  const adapter = getDurableDemoAdapter(hotelId);
+  const { hotelKey, clearedReservations } = await adapter.resetHotelStore(hotelId);
   return {
     hotelId,
     hotelKey,

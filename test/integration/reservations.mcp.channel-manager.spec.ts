@@ -1,5 +1,11 @@
 // Path: /root/begasist/test/integration/reservations.mcp.channel-manager.spec.ts
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/astra/connection", async () => {
+  const mod = await import("../mocks/astra");
+  return { getAstraDB: () => ({ collection: (name: string) => mod.getCollection(name), table: (name: string) => mod.getTable(name) }) };
+});
+
 import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation } from "@/lib/agents/reservations";
 import { POST as mcpPOST } from "@/app/api/mcp/route";
 
