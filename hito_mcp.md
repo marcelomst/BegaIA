@@ -13173,3 +13173,33 @@ Impacto:
 - evita mezclar datos de `reservationId` diferentes o usar `Guest.name` como
   fuente de hidratación
 - no altera providers, contratos externos ni arquitectura
+
+### UPDATE-DEMO-COMMERCIAL-SPEECH-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-31
+Commit: 5a2efa585a624479de3474d1ebb564b3cc6bed5e
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Microhito de mantenimiento narrativo del asset comercial
+`demo_comercial_15_min_begaia.html`. Refina el speech sin introducir cambios
+funcionales, de runtime ni de arquitectura.
+
+Archivos afectados:
+
+- `docs/product/demo-assets/demo_comercial_15_min_begaia.html`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- Channel Manager separado de canales conversacionales
+- mensajería de plataformas condicionada a proveedor
+- escena 4 compatible con parser: `4.1` con contenido y `4.2` vacío
+- `git diff --check`: `pass`
+
+Impacto:
+
+- mejora precisión comercial del discurso de demo
+- no altera funcionalidad, runtime, arquitectura ni contratos del sistema
