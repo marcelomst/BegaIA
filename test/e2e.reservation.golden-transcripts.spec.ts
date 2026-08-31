@@ -1,9 +1,22 @@
 // Path: /root/begasist/test/e2e.reservation.golden-transcripts.spec.ts
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
+const channelManagerMock = vi.hoisted(() => ({
+  searchAvailability: vi.fn(),
+  createReservation: vi.fn(),
+}));
+
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(),
   upsertConvState: vi.fn(),
+}));
+
+vi.mock("@/lib/mcp/channelManagerAdapter", () => ({
+  getCMProvider: () => "test-double",
+  getCMAdapter: () => ({
+    searchAvailability: channelManagerMock.searchAvailability,
+    createReservation: channelManagerMock.createReservation,
+  }),
 }));
 
 vi.mock("@/lib/agents/reservations", async () => {
@@ -38,6 +51,22 @@ describe("reservation golden transcripts", () => {
     vi.clearAllMocks();
     convStateStore.clear();
     mcpCalls.length = 0;
+    channelManagerMock.searchAvailability.mockResolvedValue([
+      { roomType: "double", description: "Hab. Doble", pricePerNight: 100, currency: "USD", availability: 4 },
+    ]);
+    channelManagerMock.createReservation.mockImplementation(async (input: AnyObj) => ({
+      reservationId: "RES-GOLDEN-001",
+      hotelId: input.hotelId,
+      roomType: input.roomType,
+      guestName: input.guestName,
+      checkInDate: input.checkInDate,
+      checkOutDate: input.checkOutDate,
+      status: "confirmed",
+      currency: "USD",
+      priceTotal: 200,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
 
     (getConvState as any).mockImplementation(async (h: string, c: string) => {
       return convStateStore.get(`${h}:${c}`) ?? null;

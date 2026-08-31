@@ -6724,6 +6724,30 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   // Fast-path 2: contexto de reserva confirmada o intención genérica de modificar → mostrar menú sin invocar grafo
   try {
     const userTxt = String(pre.msg.content || "");
+    const explicitModifyExitFast =
+      isExplicitModifyExitTurn(userTxt) &&
+      (pre.inModifyMode ||
+        pre.st?.desiredAction === "modify" ||
+        pre.st?.activeFlow === "modify_reservation" ||
+        pre.prevCategory === "modify_reservation" ||
+        getConversationFocus(pre.st)?.subFlow === "modify");
+    if (explicitModifyExitFast) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        modifyState: null,
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        selectedReservationTarget: null,
+        activeReservationContext: null,
+        updatedBy: "ai",
+      } as any);
+      finalText = pre.lang === "es"
+        ? "De acuerdo, salgo de la modificación. Si querés, podemos revisar otra consulta."
+        : pre.lang === "pt"
+          ? "Certo, saio da alteração. Se quiser, podemos revisar outra consulta."
+          : "Understood. I am leaving the modification flow. If you want, we can review something else.";
+      return { finalText, nextCategory: "retrieval_based", nextSlots, needsSupervision, graphResult: null };
+    }
     const tLower = userTxt.toLowerCase();
     const hasAnaphoraReferenceFast = /\besa\b|\bla misma\b|\bel mismo\b/.test(normalizeReferenceText(userTxt));
     const explicitReservationCodeFast = parseReservationCode(userTxt) || extractReservationCodeLikeToken(userTxt);
