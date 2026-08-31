@@ -13071,3 +13071,54 @@ Impacto:
 - preserva aislamiento multitenant por `hotel_id` y recuperación durable
 - mantiene separación entre reservas operacionales y estado conversacional
 - el HTML local de speech queda fuera del hito
+
+### TECH-TEST-CORE-BASELINE-RECOVERY-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-31
+Commit: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Recuperación de baseline core con corrección acotada del corredor `modify`.
+Una salida explícita limpia el estado de modificación y devuelve una respuesta
+neutral antes de que el fast-path reabra su menú; los intents modify válidos
+conservan el corredor existente.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/e2e.reservation.golden-transcripts.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`
+- `runtime_map.refresh_required: true` aplicado en Runtime Map V1
+- caja modificada: `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+- la compuerta de salida explícita opera en `L6727-L6733` antes del fast-path
+  iniciado en `L6724`; la rama de limpieza y retorno neutral inicia en `L6734`
+- limpia `modifyState`, `conversationFocus`, `activeFlow`,
+  `selectedReservationTarget` y `activeReservationContext`; responde
+  `retrieval_based`
+- la fixture local de Channel Manager es determinista y test-only, sin Astra,
+  red ni cambio de adapter productivo
+- tests reportados en verde:
+  `pnpm test:core: 187 files, 1056 tests PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+
+Impacto:
+
+- evita reabrir el menú modify frente a una salida explícita
+- preserva el comportamiento del modify legítimo y los contratos de MCP,
+  provider, Astra e identidad
+- desbloquea la baseline core para
+  `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
+- el HTML local de speech se preserva fuera del hito

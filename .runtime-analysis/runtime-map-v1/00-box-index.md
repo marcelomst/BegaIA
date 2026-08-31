@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-messageHandler_lines: 12911
+commit_base: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+messageHandler_lines: 12956
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-baseline_status: runtime_reservation_snapshot_guest_continuity_validated
+analysis_scope: commit_0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+baseline_status: runtime_modify_exit_and_core_baseline_validated
 known_manual_bug: none
 ```
 
@@ -56,24 +56,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - guest-wide reservation read-path
-    - canonical guestId lookup
-    - current-conversation dominance
-    - singular/plural snapshot references
-    - ordinal and anaphoric resolution
-    - modify target hydration and preview
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   reviewed:
-    - hotelId + guestId isolation
-    - holder versus conversational actor separation
-    - explicit reservation-code flows
-    - no state cloning
-    - current-conversation modify continuity
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.posLLM
+    - runtime.messageHandler.handleIncomingMessage
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS`
+      - `pnpm test:core: 187 files, 1056 tests PASS`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -157,7 +152,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L12911
+        range: L1-L12956
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -185,7 +180,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12587-L12911
+        range: L12632-L12956
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -215,7 +210,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4658-L5528
+        range: L4675-L5545
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -250,7 +245,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5529-L12541
+        range: L5546-L12586
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -326,7 +321,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5529-L12541
+        range: L5546-L12586
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -361,7 +356,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5529-L12541
+        range: L5546-L12586
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -828,7 +823,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12542-L12586
+        range: L12587-L12631
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

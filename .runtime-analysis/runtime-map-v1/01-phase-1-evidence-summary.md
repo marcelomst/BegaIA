@@ -21,14 +21,14 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-messageHandler_lines: 12911
+commit_base: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+messageHandler_lines: 12956
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
+analysis_scope: commit_0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS
+    - pnpm test:core: 187 files, 1056 tests PASS
   full_suite:
     - pnpm run ts-check
     - git diff --check
@@ -40,24 +40,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - guest-wide reservation read-path
-    - canonical guestId lookup
-    - current-conversation dominance
-    - singular/plural snapshot references
-    - ordinal and anaphoric resolution
-    - modify target hydration and preview
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   reviewed:
-    - hotelId + guestId isolation
-    - holder versus conversational actor separation
-    - explicit reservation-code flows
-    - no state cloning
-    - current-conversation modify continuity
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.posLLM
+    - runtime.messageHandler.handleIncomingMessage
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS`
+      - `pnpm test:core: 187 files, 1056 tests PASS`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -67,16 +62,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-    messageHandler_lines: 12911
+    commit: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+    messageHandler_lines: 12956
     functions:
-      preLLM: L4658-L5528
-      bodyLLM: L5529-L12541
-      posLLM: L12542-L12586
-      handleIncomingMessage: L12587-L12911
-  additional_runtime_node:
-    file: lib/agents/nodes/reservationSnapshot.ts
-    handler: L88
+      preLLM: L4675-L5545
+      bodyLLM: L5546-L12586
+      posLLM: L12587-L12631
+      handleIncomingMessage: L12632-L12956
 ```
 
 ## Funciones clave actuales
@@ -91,10 +83,10 @@ runtime_map_refresh:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4658-L5528 |    871 | high      |
-| `bodyLLM`                            | L5529-L12541 |   7013 | high      |
-| `posLLM`                             | L12542-L12586 |     45 | high      |
-| `handleIncomingMessage`              | L12587-L12911 |    325 | high      |
+| `preLLM`                             | L4675-L5545 |    871 | high      |
+| `bodyLLM`                            | L5546-L12586 |   7041 | high      |
+| `posLLM`                             | L12587-L12631 |     45 | high      |
+| `handleIncomingMessage`              | L12632-L12956 |    325 | high      |
 
 ---
 
@@ -103,8 +95,8 @@ runtime_map_refresh:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12911 líneas
-bodyLLM:                7013 líneas
+messageHandler.ts total: 12956 líneas
+bodyLLM:                7041 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -521,7 +513,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5529-L12541
+    range: L5546-L12586
     confidence: high
 ```
 
@@ -540,7 +532,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12542-L12586
+    range: L12587-L12631
     confidence: high
 ```
 

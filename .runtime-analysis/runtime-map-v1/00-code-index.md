@@ -46,10 +46,10 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta el read-path guest-wide limitado a `hotelId + guestId` canónico
-- se preserva la dominancia de la reserva confirmada de la conversación actual
-- se persisten referencias mínimas para singular, plural, ordinales y anáforas
-- se hidrata el target seleccionado para preview y modify gobernado
+- se documenta la precedencia de salida explícita antes del fast-path de modify
+- se preserva el corredor modify para intents válidos
+- se registra la fixture local determinista de availability/create como
+  evidencia test-only sin acceso a Astra, red ni adapter productivo
 - se preservan cajas relacionadas como revisadas, no como cajas tocadas fuera de auditoría
 
 ---
@@ -60,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-messageHandler_lines: 12911
+commit_base: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+messageHandler_lines: 12956
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_84ec3d229104c3e4e3bf6e0047f262fcc11b229d
-baseline_status: runtime_reservation_snapshot_guest_continuity_validated
+analysis_scope: commit_0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+baseline_status: runtime_modify_exit_and_core_baseline_validated
 known_manual_bug: none
 ```
 
@@ -73,7 +73,7 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-reservationSnapshot.guestFallback + graph.reservation.verify_and_snapshot + messageHandler.reference_resolution: 109/109 PASS
+pnpm test:core: 187 files, 1056 tests PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -85,9 +85,9 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta un ajuste acotado de continuidad referencial y snapshot
-guest-wide, pero no elimina el riesgo de futuros bugs funcionales fuera de
-cobertura.
+Este refresh documenta una corrección acotada de salida explícita de modify y
+la recuperación de la baseline core, pero no elimina el riesgo de futuros bugs
+funcionales fuera de cobertura.
 ```
 
 ---
@@ -108,7 +108,7 @@ cobertura.
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12911
+total_lines: 12956
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -117,7 +117,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01`.
+del hito `TECH-TEST-CORE-BASELINE-RECOVERY-01`.
 ```
 
 ---
@@ -134,10 +134,10 @@ del hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4658-L5528 |    871 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5529-L12541 |   7013 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12542-L12586 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12587-L12911 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4675-L5545 |    871 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5546-L12586 |   7041 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12587-L12631 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12632-L12956 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -147,7 +147,7 @@ del hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-GUEST-CONTINUITY-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12587-L12911
+range: L12632-L12956
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -166,7 +166,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4658-L5528
+range: L4675-L5545
 lines: 871
 confidence: high
 role: context_preparation
@@ -188,8 +188,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5529-L12541
-lines: 7013
+range: L5546-L12586
+lines: 7041
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -218,7 +218,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12542-L12586
+range: L12587-L12631
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -411,8 +411,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5529-L12541
-bodyLLM_lines: 7013
+bodyLLM_range: L5546-L12586
+bodyLLM_lines: 7041
 bucket_size: 250
 confidence: high_for_full_range
 ```
