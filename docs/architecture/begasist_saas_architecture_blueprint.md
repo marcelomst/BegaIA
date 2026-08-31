@@ -77,6 +77,7 @@ La arquitectura general de Begasist puede representarse de la siguiente forma:
 ┌─────────────────────────────────────────────┐
 │             PERSISTENCE LAYER               │
 │ messages / conv_state / hotel_config / KB   │
+│ demo_cm_reservations (Channel Manager demo) │
 └─────────────────────────────────────────────┘
 
 ```
@@ -342,6 +343,7 @@ guest_aliases
 conversations
 conv_state
 hotel_config
+demo_cm_reservations
 
 ```
 
@@ -353,6 +355,14 @@ operación diaria
 identidad de huéspedes
 estado conversacional
 configuración hotelera
+
+Para el Channel Manager demo/local, `demo_cm_reservations` es la tabla
+operacional durable de reservas. Se particiona por `hotel_id` y usa
+`reservation_id` como clave dentro de cada hotel para create, get, list,
+availability, update, cancel y reset.
+
+`conv_state` sigue siendo estado conversacional y no participa en la
+recuperación operacional de esas reservas.
 
 ```
 

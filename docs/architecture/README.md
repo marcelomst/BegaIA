@@ -137,6 +137,10 @@ Describe la arquitectura del panel administrativo del sistema, incluyendo:
 
 Describe la separación entre capa operacional SaaS y capa KB/retrieval.
 
+La reserva operacional del Channel Manager demo/local usa la tabla Astra
+`demo_cm_reservations`, aislada por `hotel_id`; `conv_state` conserva el rol de
+proyección conversacional y no reemplaza ese store.
+
 #### Guest aliases en CQL
 
 `astra_guest_aliases_table_adapter.md`

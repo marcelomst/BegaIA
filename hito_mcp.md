@@ -13019,3 +13019,55 @@ Impacto:
   holder como identidad o autorización
 - los follow-ups de reprice y de completitud post-modify permanecen fuera de
   alcance como hitos separados
+
+### FIX-DEMO-CHANNEL-MANAGER-RESERVATION-DURABILITY-01
+
+Estado: COMPLETADO
+Fecha: 2026-08-31
+Commit: dc8e92a32ad4a57985fb51db0f84e1006ce2b9c8
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Actualización de la frontera efectiva del Channel Manager demo/local. Reemplaza
+el store volátil por `DurableDemoCMAdapter` sobre la tabla Astra
+`demo_cm_reservations`, manteniendo `conv_state` como proyección conversacional
+y no como store operacional de reservas.
+
+Archivos afectados:
+
+- `app/api/admin/demo-inventory/route.ts`
+- `lib/mcp/channelManagerAdapter.ts`
+- `lib/db/demoChannelManagerReservations.ts`
+- `test/integration/reservations.mcp.channel-manager.spec.ts`
+- `test/integration/reservations.mcp.multi-hotel-isolation.spec.ts`
+- `test/mocks/astra.ts`
+- `test/unit/channelManagerAdapter.registry.spec.ts`
+- `docs/architecture/channel_architecture.md`
+- `docs/architecture/begasist_saas_architecture_blueprint.md`
+- `docs/architecture/README.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `demo_cm_reservations` es la fuente operacional para create, get, list,
+  availability, update, cancel y reset
+- clave primaria validada: `((hotel_id), reservation_id)`; operaciones y reset
+  aislados por hotel
+- persistencia entre instancias, lectura y update post-restart confirmados
+- `conv_state` no participa de la recuperación operacional
+- tests reportados en verde:
+  `channelManagerAdapter.registry + reservations.mcp.channel-manager + reservations.mcp.multi-hotel-isolation: 9/9 PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- validación manual: `passed`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- elimina la volatilidad del store operacional del Channel Manager demo/local
+- preserva aislamiento multitenant por `hotel_id` y recuperación durable
+- mantiene separación entre reservas operacionales y estado conversacional
+- el HTML local de speech queda fuera del hito

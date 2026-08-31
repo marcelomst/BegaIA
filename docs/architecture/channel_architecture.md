@@ -70,6 +70,19 @@ Características:
 - cuando aplica conversación de huésped, respeta el mismo modelo de identidad y
   persistencia
 
+#### Persistencia operacional demo/local
+
+El adaptador `DurableDemoCMAdapter` usa la tabla Astra
+`demo_cm_reservations` como fuente operacional para create, get, list,
+availability, update, cancel y reset del Channel Manager demo/local.
+
+La clave primaria es `((hotel_id), reservation_id)`. Todas las operaciones,
+incluido reset, se limitan al hotel correspondiente. Esto preserva el
+aislamiento multitenant y permite recuperación entre instancias o reinicios.
+
+`conv_state` no es el store operacional de reservas del Channel Manager:
+permanece como proyección de continuidad conversacional.
+
 ## 4. Flujo común de canal
 
 Flujo conceptual compartido:
@@ -135,6 +148,7 @@ Referencia: `docs/architecture/admin_panel.md`.
 - separación entre transporte y dominio
 - trazabilidad por `guestId` y `conversationId`
 - multi-hotel explícito por `hotelId`
+- reserva operacional durable por `hotel_id` en el Channel Manager demo/local
 
 ## 9. Relación con otros documentos
 
