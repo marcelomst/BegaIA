@@ -364,6 +364,18 @@ availability, update, cancel y reset.
 `conv_state` sigue siendo estado conversacional y no participa en la
 recuperación operacional de esas reservas.
 
+Para una modificación de reserva, el flujo durable es:
+
+```text
+provider quote -> preview conversacional -> confirmación vinculada
+-> validación de quote y disponibilidad por provider -> update durable
+```
+
+`quoteId`, `quoteVersion` y el pricing se conservan en `conv_state` como
+continuidad conversacional. `priceTotal` y `currency` son retornados por el
+provider; el runtime no los calcula ni autoriza. Una quote stale requiere
+re-quote y una segunda confirmación antes del update.
+
 ```
 
 Idealmente modeladas como **tablas CQL**.

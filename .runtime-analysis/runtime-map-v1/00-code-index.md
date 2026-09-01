@@ -46,10 +46,10 @@ runtime_map_refresh_required: true
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta la precedencia de salida explícita antes del fast-path de modify
-- se preserva el corredor modify para intents válidos
-- se registra la fixture local determinista de availability/create como
-  evidencia test-only sin acceso a Astra, red ni adapter productivo
+- se documenta el quote obligatorio de provider para modify
+- la confirmación se vincula a `quoteId` y `quoteVersion`
+- stale obliga re-quote y segunda confirmación antes de update durable
+- `conv_state` conserva continuidad de quote y no calcula ni autoriza precios
 - se preservan cajas relacionadas como revisadas, no como cajas tocadas fuera de auditoría
 
 ---
@@ -60,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
-messageHandler_lines: 12956
+commit_base: 63045d886fa3410e60bfa428b9b92feb69d768d0
+messageHandler_lines: 13029
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
-baseline_status: runtime_modify_exit_and_core_baseline_validated
+analysis_scope: commit_63045d886fa3410e60bfa428b9b92feb69d768d0
+baseline_status: runtime_modify_reprice_consistency_validated
 known_manual_bug: none
 ```
 
@@ -73,7 +73,7 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm test:core: 187 files, 1056 tests PASS
+pnpm test:core: 187 files, 1063 tests PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -85,9 +85,9 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada de salida explícita de modify y
-la recuperación de la baseline core, pero no elimina el riesgo de futuros bugs
-funcionales fuera de cobertura.
+Este refresh documenta una corrección acotada de integridad de precio en modify
+con quote de provider, pero no elimina el riesgo de futuros bugs funcionales
+fuera de cobertura.
 ```
 
 ---
@@ -141,7 +141,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 12956
+total_lines: 13029
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -150,7 +150,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `TECH-TEST-CORE-BASELINE-RECOVERY-01`.
+del hito `FIX-RUNTIME-RESERVATION-MODIFY-REPRICE-CONSISTENCY-01`.
 ```
 
 ---
@@ -167,10 +167,10 @@ del hito `TECH-TEST-CORE-BASELINE-RECOVERY-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4675-L5545 |    871 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5546-L12586 |   7041 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12587-L12631 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12632-L12956 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4737-L4949 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5608-L12165 |   6558 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12660-L12701 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12705-L12713 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -180,7 +180,7 @@ del hito `TECH-TEST-CORE-BASELINE-RECOVERY-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12632-L12956
+range: L12705-L12713
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -199,8 +199,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4675-L5545
-lines: 871
+range: L4737-L4949
+lines: 213
 confidence: high
 role: context_preparation
 ```
@@ -221,8 +221,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5546-L12586
-lines: 7041
+range: L5608-L12165
+lines: 6558
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -251,7 +251,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12587-L12631
+range: L12660-L12701
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -444,8 +444,8 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5546-L12586
-bodyLLM_lines: 7041
+bodyLLM_range: L5608-L12165
+bodyLLM_lines: 6558
 bucket_size: 250
 confidence: high_for_full_range
 ```

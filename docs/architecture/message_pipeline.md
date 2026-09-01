@@ -547,6 +547,26 @@ Regla operativa:
   `modify_reservation`
 - la ejecución comercial solo puede ocurrir sobre estado suficiente
 
+### 5.10 Integridad de quote en `modify`
+
+Una modificación gobernada requiere quote vigente de provider antes de la
+mutación durable. El preview persiste `quoteId`, `quoteVersion` y pricing como
+pending state conversacional; no convierte `conv_state` en fuente económica.
+
+Secuencia obligatoria:
+
+```text
+quote provider -> preview -> confirmación vinculada -> validación provider -> update
+```
+
+Reglas:
+
+- `QUOTE_REQUIRED` y `QUOTE_UNAVAILABLE` no actualizan la reserva
+- `QUOTE_STALE` no actualiza la reserva, genera re-quote y exige segunda
+  confirmación
+- `priceTotal` y `currency` vienen del provider
+- la continuidad de quote en `conv_state` no calcula ni autoriza precios
+
 ## 6. Reservas múltiples
 
 El sistema ya no asume rígidamente:

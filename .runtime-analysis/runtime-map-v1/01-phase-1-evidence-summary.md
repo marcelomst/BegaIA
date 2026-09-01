@@ -21,14 +21,14 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
-messageHandler_lines: 12956
+commit_base: 63045d886fa3410e60bfa428b9b92feb69d768d0
+messageHandler_lines: 13029
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
+analysis_scope: commit_63045d886fa3410e60bfa428b9b92feb69d768d0
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - pnpm test:core: 187 files, 1056 tests PASS
+    - pnpm test:core: 187 files, 1063 tests PASS
   full_suite:
     - pnpm run ts-check
     - git diff --check
@@ -40,19 +40,19 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM
-    - runtime.messageHandler.bodyLLM.operationalCorridors
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.canonicalReservationReadPath
   reviewed:
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.posLLM
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `pnpm test:core: 187 files, 1056 tests PASS`
+      - `quote requerida, unavailable y stale sin mutacion durable`
+      - `stale -> re-quote -> segunda confirmacion -> update`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -62,13 +62,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f
-    messageHandler_lines: 12956
+    commit: 63045d886fa3410e60bfa428b9b92feb69d768d0
+    messageHandler_lines: 13029
     functions:
-      preLLM: L4675-L5545
-      bodyLLM: L5546-L12586
-      posLLM: L12587-L12631
-      handleIncomingMessage: L12632-L12956
+      preLLM: L4737-L4949
+      bodyLLM: L5608-L12165
+      posLLM: L12660-L12701
+      handleIncomingMessage: L12705-L12713
 ```
 
 ## Cierre diferido: snapshot completo post-modify
@@ -116,10 +116,10 @@ validation:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4675-L5545 |    871 | high      |
-| `bodyLLM`                            | L5546-L12586 |   7041 | high      |
-| `posLLM`                             | L12587-L12631 |     45 | high      |
-| `handleIncomingMessage`              | L12632-L12956 |    325 | high      |
+| `preLLM`                             | L4737-L4949 |    213 | high      |
+| `bodyLLM`                            | L5608-L12165 |   6558 | high      |
+| `posLLM`                             | L12660-L12701 |     42 | high      |
+| `handleIncomingMessage`              | L12705-L12713 |      9 | high      |
 
 ---
 
@@ -128,8 +128,8 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 12956 líneas
-bodyLLM:                7041 líneas
+messageHandler.ts total: 13029 líneas
+bodyLLM:                6558 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -546,7 +546,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5546-L12586
+    range: L5608-L12165
     confidence: high
 ```
 
@@ -565,7 +565,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12587-L12631
+    range: L12660-L12701
     confidence: high
 ```
 

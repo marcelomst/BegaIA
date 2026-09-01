@@ -83,6 +83,16 @@ aislamiento multitenant y permite recuperación entre instancias o reinicios.
 `conv_state` no es el store operacional de reservas del Channel Manager:
 permanece como proyección de continuidad conversacional.
 
+#### Integridad de precio en modify
+
+`DurableDemoCMAdapter` expone `quoteReservationModification` para que el
+provider calcule la quote de una modificación. La operación `update` exige
+`quoteId` y `quoteVersion` vigentes, además de disponibilidad, antes de
+persistir en `demo_cm_reservations`.
+
+El provider conserva la autoridad operacional y económica: `priceTotal` y
+`currency` provienen de su respuesta. El runtime no calcula ni autoriza precios.
+
 ## 4. Flujo común de canal
 
 Flujo conceptual compartido:

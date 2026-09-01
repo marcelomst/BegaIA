@@ -13203,3 +13203,62 @@ Impacto:
 
 - mejora precisión comercial del discurso de demo
 - no altera funcionalidad, runtime, arquitectura ni contratos del sistema
+
+### FIX-RUNTIME-RESERVATION-MODIFY-REPRICE-CONSISTENCY-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-01
+Commit: 63045d886fa3410e60bfa428b9b92feb69d768d0
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Actualiza el contrato de integridad económica de `modify`: la quote es
+obligatoria y emitida por provider; la confirmación queda vinculada a
+`quoteId` y `quoteVersion`, y el update durable sólo ocurre con quote vigente y
+disponibilidad validada.
+
+Archivos afectados:
+
+- `lib/agents/reservations.ts`
+- `lib/db/convState.ts`
+- `lib/handlers/messageHandler.ts`
+- `lib/mcp/channelManagerAdapter.ts`
+- `lib/mcp/reservationsService.ts`
+- `lib/mcp/types.ts`
+- `lib/tools/mcp.ts`
+- `test/integration/reservations.mcp.channel-manager.spec.ts`
+- `test/unit/channelManagerAdapter.registry.spec.ts`
+- `test/unit/messageHandler.availability_inquiry_policy.spec.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `test/unit/messageHandler.slot_ingestion.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `docs/architecture/channel_architecture.md`
+- `docs/architecture/begasist_saas_architecture_blueprint.md`
+- `docs/architecture/message_pipeline.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true` y refresh aplicado
+- `QUOTE_REQUIRED`, `QUOTE_UNAVAILABLE` y `QUOTE_STALE` rechazan mutación
+  durable
+- stale dispara re-quote y segunda confirmación antes de update
+- `priceTotal` y `currency` se persisten desde la respuesta del provider
+- `conv_state` conserva quote como continuidad; no calcula ni autoriza precios
+- tests reportados en verde:
+  `pnpm test:core: 187 files, 1063 tests PASS`
+  `pnpm run ts-check`
+  `git diff --check`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- preserva Channel Manager como fuente de verdad operacional y económica
+- impide update durable con quote ausente, unavailable o stale
+- fortalece la continuidad referencial de reservas entre aliases del mismo
+  guest sin relajar la canonicidad de `reservationId`
