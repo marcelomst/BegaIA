@@ -64,11 +64,20 @@ describe("getCMAdapter registry by hotelId", () => {
       guests: 2,
     })).toEqual([]);
 
+    const quote = await instanceB.quoteReservationModification({
+      hotelId,
+      reservationId: created.reservationId,
+      checkInDate: "2026-04-25",
+      checkOutDate: "2026-04-27",
+    });
+    expect(quote.available).toBe(true);
     const updated = await instanceB.updateReservation({
       hotelId,
       reservationId: created.reservationId,
       checkInDate: "2026-04-25",
       checkOutDate: "2026-04-27",
+      quoteId: quote.quoteId,
+      quoteVersion: quote.quoteVersion,
     });
     expect(updated.checkInDate).toBe("2026-04-25");
     expect((await instanceA.getReservation(hotelId, created.reservationId))?.checkOutDate).toBe("2026-04-27");
@@ -76,6 +85,66 @@ describe("getCMAdapter registry by hotelId", () => {
     const cancelled = await instanceB.cancelReservation({ hotelId, reservationId: created.reservationId });
     expect(cancelled.status).toBe("cancelled");
     expect((await instanceA.getReservation(hotelId, created.reservationId))?.status).toBe("cancelled");
+  });
+
+  it("requires an available current quote before persisting a durable modification", async () => {
+    const hotelId = `hotel-modify-quote-${Date.now()}`;
+    const adapter = getCMAdapter(hotelId);
+    const created = await adapter.createReservation({
+      hotelId,
+      guestName: "Quote Contract",
+      roomType: "double",
+      checkInDate: "2026-04-20",
+      checkOutDate: "2026-04-22",
+    });
+    const patch = { checkInDate: "2026-04-25", checkOutDate: "2026-04-29" };
+    const quote = await adapter.quoteReservationModification({ hotelId, reservationId: created.reservationId, ...patch });
+    expect(quote).toMatchObject({ available: true, currency: "USD" });
+
+    const updated = await adapter.updateReservation({
+      hotelId, reservationId: created.reservationId, ...patch,
+      quoteId: quote.quoteId, quoteVersion: quote.quoteVersion,
+    });
+    expect(updated).toMatchObject({
+      reservationId: created.reservationId,
+      checkInDate: patch.checkInDate,
+      checkOutDate: patch.checkOutDate,
+      priceTotal: quote.priceTotal,
+      currency: quote.currency,
+    });
+
+    const beforeRejectedUpdates = await adapter.getReservation(hotelId, created.reservationId);
+    await expect(adapter.updateReservation({ hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-30" }))
+      .rejects.toThrow("QUOTE_REQUIRED");
+    await expect(adapter.updateReservation({ hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-30", quoteVersion: quote.quoteVersion }))
+      .rejects.toThrow("QUOTE_REQUIRED");
+    await expect(adapter.updateReservation({ hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-30", quoteId: quote.quoteId }))
+      .rejects.toThrow("QUOTE_REQUIRED");
+    await expect(adapter.updateReservation({ hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-30", quoteId: quote.quoteId, quoteVersion: quote.quoteVersion }))
+      .rejects.toThrow("QUOTE_STALE");
+    expect(await adapter.getReservation(hotelId, created.reservationId)).toEqual(beforeRejectedUpdates);
+  });
+
+  it("rejects unavailable quotes without mutating the durable reservation", async () => {
+    const hotelId = `hotel-modify-unavailable-${Date.now()}`;
+    const adapter = getCMAdapter(hotelId);
+    const created = await adapter.createReservation({
+      hotelId,
+      guestName: "Unavailable Quote",
+      roomType: "suite",
+      checkInDate: "2026-04-20",
+      checkOutDate: "2026-04-22",
+    });
+    const quote = await adapter.quoteReservationModification({
+      hotelId, reservationId: created.reservationId, checkInDate: "2026-04-20", checkOutDate: "2026-04-22",
+    });
+    expect(quote).toMatchObject({ available: false, priceTotal: 0 });
+
+    await expect(adapter.updateReservation({
+      hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-22",
+      quoteId: quote.quoteId, quoteVersion: quote.quoteVersion,
+    })).rejects.toThrow("QUOTE_UNAVAILABLE");
+    expect(await adapter.getReservation(hotelId, created.reservationId)).toEqual(created);
   });
 
   it("isolates tenant reads and resets only the requested hotel", async () => {

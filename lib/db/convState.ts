@@ -117,6 +117,11 @@ export type ModifyState = {
     numGuests?: number | string;
     checkIn?: string;
     checkOut?: string;
+    quoteId?: string;
+    quoteVersion?: string;
+    priceTotal?: number;
+    pricePerNight?: number;
+    currency?: string;
   } | null;
   awaitingConfirmation?: boolean;
   updatedAt: string;

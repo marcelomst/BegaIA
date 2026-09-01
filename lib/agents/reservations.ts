@@ -543,7 +543,7 @@ export async function confirmAndCreate(hotelId: string, slots: ReservationSlots,
 }
 
 // === Sprint 3: modificar / cancelar ===
-import { updateReservationTool, cancelReservationTool } from "@/lib/tools/mcp";
+import { updateReservationTool, cancelReservationTool, quoteReservationModificationTool } from "@/lib/tools/mcp";
 
 type _NormSlotsForModify = ReturnType<typeof normalizeBookingSlots>;
 
@@ -567,12 +567,22 @@ export async function modifyReservation(
     guests: (norm as any).guests as number | undefined,
     checkIn: (norm as any).checkIn,
     checkOut: (norm as any).checkOut,
+    quoteId: (slots as any).quoteId,
+    quoteVersion: (slots as any).quoteVersion,
     channel,
   });
   if (!res?.ok || res.status !== "updated") {
     return { ok: false as const, message: res?.error ?? "No pude modificar la reserva. Un recepcionista te ayudará." };
   }
-  return { ok: true as const, message: "✅ Reserva actualizada correctamente." };
+  return { ok: true as const, message: "✅ Reserva actualizada correctamente.", reservation: res.reservation };
+}
+
+export async function quoteReservationModification(hotelId: string, reservationId: string, slots: ModifyReservationSlots) {
+  const norm = normalizeBookingSlots({ ...slots, guests: (slots as any).guests ?? slots.numGuests });
+  return quoteReservationModificationTool({
+    hotelId, reservationId, roomType: norm.roomType, guests: norm.guests,
+    checkIn: norm.checkIn, checkOut: norm.checkOut,
+  });
 }
 
 export async function cancelReservation(hotelId: string, reservationId: string) {

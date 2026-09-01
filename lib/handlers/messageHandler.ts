@@ -1016,7 +1016,11 @@ async function getObjectiveContext(msg: ChannelMessage, options?: { sendReply?: 
   guest = await applyExplicitConversationalActorToGuest(msg, guest, guestId, now);
   const presentedGuestId = String(st?.lastPresentedReservations?.guestId || "").trim();
   const canonicalGuestId = String(getMergedIntoGuestId(guest) || guest?.guestId || guestId).trim();
-  if (presentedGuestId && presentedGuestId !== canonicalGuestId) {
+  if (
+    presentedGuestId &&
+    presentedGuestId !== canonicalGuestId &&
+    !await presentedReservationScopeMatchesCanonicalGuest(msg.hotelId, presentedGuestId, canonicalGuestId)
+  ) {
     // Presentation references are scoped to the canonical guest that received the list.
     st = { ...st, lastPresentedReservations: null };
   }
@@ -1476,6 +1480,20 @@ async function persistModifyPreviewContext(
   const previewTarget = hydrateModifyPreviewTarget(pre, target);
   const pendingPatch = buildModifyPreviewPatch(previewTarget, snapshot);
   if (!pendingPatch) return buildModifyMissingPatchReply(pre.lang);
+  const { quoteReservationModification } = await import("@/lib/agents/reservations");
+  const quote = await quoteReservationModification(pre.msg.hotelId, previewTarget.reservationId!, snapshot);
+  if (!quote.available) {
+    return pre.lang === "es"
+      ? "No puedo cotizar este cambio con disponibilidad actual. La reserva no fue modificada."
+      : "I cannot quote this change with current availability. The booking was not modified.";
+  }
+  Object.assign(pendingPatch, {
+    quoteId: quote.quoteId,
+    quoteVersion: quote.quoteVersion,
+    priceTotal: quote.priceTotal,
+    pricePerNight: quote.pricePerNight,
+    currency: quote.currency,
+  });
   await persistModifyExecutionContext(pre, previewTarget.reservationId, {
     reservationSlots: snapshot,
     modifyState: buildModifyPreviewState(pendingPatch),
@@ -1485,7 +1503,17 @@ async function persistModifyPreviewContext(
     conversationStage: "reservation_confirmed",
     updatedBy: "ai",
   } as any);
-  return buildModifyPreviewReply(pre.lang, previewTarget, snapshot, supplementalLines);
+  const previousPrice = Number((previewTarget as any).priceTotal);
+  const hasPreviousPrice = Number.isFinite(previousPrice) && previousPrice >= 0;
+  const hasNightlyRate = supplementalLines.some((line) => /tarifa por noche|price per night|tarifa por noite/i.test(line));
+  const priceLines = pre.lang === "es"
+    ? [
+        hasPreviousPrice ? `- Precio anterior: ${previousPrice} ${quote.currency}` : null,
+        `- Nuevo precio total: ${quote.priceTotal} ${quote.currency}`,
+        quote.pricePerNight != null && !hasNightlyRate ? `- Tarifa por noche: ${quote.pricePerNight} ${quote.currency}` : null,
+      ].filter((line): line is string => Boolean(line))
+    : [`- New total: ${quote.priceTotal} ${quote.currency}`];
+  return buildModifyPreviewReply(pre.lang, previewTarget, snapshot, [...supplementalLines, ...priceLines]);
 }
 
 function extractModifyAvailabilitySupplementalLines(
@@ -2226,7 +2254,25 @@ async function executeModifyReservationWithSnapshot(
   snapshot: ReservationSlotsStrict
 ): Promise<string> {
   const { modifyReservation } = await import("@/lib/agents/reservations");
-  const mod = await modifyReservation(pre.msg.hotelId, reservationId, snapshot, pre.msg.channel);
+  const quote = pre.st?.modifyState?.pendingPatch;
+  let mod: any;
+  try {
+    mod = await modifyReservation(pre.msg.hotelId, reservationId, {
+      ...snapshot,
+      quoteId: quote?.quoteId,
+      quoteVersion: quote?.quoteVersion,
+    } as any, pre.msg.channel);
+  } catch (error) {
+    if (/QUOTE_STALE|QUOTE_UNAVAILABLE/.test(String((error as Error)?.message || error))) {
+      const target = getReservationReferenceTargetById(pre.st, reservationId);
+      if (target) return persistModifyPreviewContext(pre, target, snapshot, [
+        pre.lang === "es" ? "- La tarifa cambió; revisá la nueva cotización antes de confirmar." : "- The rate changed; review the new quote before confirming.",
+      ]);
+    }
+    throw error;
+  }
+  if (!mod.ok) return mod.message;
+  const updated = mod.reservation as any;
   await persistModifyExecutionContext(pre, reservationId, {
     reservationSlots: snapshot,
     modifyState: null,
@@ -2236,13 +2282,13 @@ async function executeModifyReservationWithSnapshot(
     conversationStage: "reservation_confirmed",
     lastReservation: {
       reservationId,
-      status: mod.ok ? "updated" : "error",
+      status: "updated",
       createdAt: new Date().toISOString(),
       channel: (pre.msg.channel as any) || "web",
-      guestName: snapshot.guestName,
-      roomType: snapshot.roomType,
-      checkIn: snapshot.checkIn,
-      checkOut: snapshot.checkOut,
+      guestName: updated?.guestName ?? snapshot.guestName,
+      roomType: updated?.roomType ?? snapshot.roomType,
+      checkIn: updated?.checkInDate ?? snapshot.checkIn,
+      checkOut: updated?.checkOutDate ?? snapshot.checkOut,
       numGuests: snapshot.numGuests,
     },
     updatedBy: "ai",
@@ -2622,6 +2668,18 @@ async function safeFindGuestByAnyId(hotelId: string, rawId: string) {
   }
 }
 
+async function presentedReservationScopeMatchesCanonicalGuest(
+  hotelId: string,
+  presentedGuestId: string,
+  currentCanonicalGuestId: string,
+): Promise<boolean> {
+  const presentedGuest = await safeFindGuestByAnyId(hotelId, presentedGuestId);
+  const presentedCanonicalGuestId = String(
+    getMergedIntoGuestId(presentedGuest) || presentedGuest?.guestId || "",
+  ).trim();
+  return Boolean(presentedCanonicalGuestId && presentedCanonicalGuestId === currentCanonicalGuestId);
+}
+
 async function safeGetConversationsByGuestId(input: {
   hotelId: string;
   guestId: string;
@@ -2646,11 +2704,15 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
 
   const rawCurrentGuestId = String(pre.guest?.guestId || pre.msg.guestId || "").trim();
   const mergedIntoGuestId = getMergedIntoGuestId(pre.guest);
+  const guestResolvedFromCurrentId = rawCurrentGuestId
+    ? await safeFindGuestByAnyId(pre.msg.hotelId, rawCurrentGuestId)
+    : null;
   const canonicalGuest =
     (mergedIntoGuestId ? await getGuest(pre.msg.hotelId, mergedIntoGuestId) : null) ||
     (mergedIntoGuestId ? await safeFindGuestByAnyId(pre.msg.hotelId, mergedIntoGuestId) : null) ||
+    guestResolvedFromCurrentId ||
     pre.guest ||
-    (rawCurrentGuestId ? await safeFindGuestByAnyId(pre.msg.hotelId, rawCurrentGuestId) : null);
+    null;
   const canonicalGuestId = String(canonicalGuest?.guestId || mergedIntoGuestId || rawCurrentGuestId).trim();
   const conversationalDisplayName = getConversationalDisplayName(canonicalGuest as any);
   if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
@@ -7831,6 +7893,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           candidates,
           reservationListSource.conversationalDisplayName,
         );
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          // The ambiguity reply lists these reservations, so ordinal follow-ups are scoped to them.
+          lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+          updatedBy: "ai",
+        } as any);
       }
       if (finalText) {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
@@ -10503,6 +10570,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               candidates,
               reservationListSource.conversationalDisplayName,
             );
+            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+              // Preserve the read-only list that this ambiguity reply just displayed.
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              lastCategory: "reservation_snapshot",
+              updatedBy: "ai",
+            } as any);
             nextCategory = "reservation_snapshot";
             return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };
           }

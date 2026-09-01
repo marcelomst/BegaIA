@@ -6,6 +6,7 @@ import type {
   CancelReservationInput,
   ListReservationsQuery,
   UpdateReservationInput,
+  QuoteReservationModificationInput,
 } from "./types";
 import { getCMAdapter } from "./channelManagerAdapter";
 
@@ -50,6 +51,8 @@ export function getReservationsCapabilities() {
         roomType: { type: "string", required: false },
         checkInDate: { type: "ISO string", required: false },
         checkOutDate: { type: "ISO string", required: false },
+        quoteId: "string",
+        quoteVersion: "string",
         notes: { type: "string", required: false },
       },
       returns: "Reservation",
@@ -123,6 +126,11 @@ export async function handleMcpCall(name: string, params: any) {
       const p: UpdateReservationInput = ensure(params, ["hotelId", "reservationId"]);
       const cm = getCMAdapter(p.hotelId);
       return cm.updateReservation(p);
+    }
+    case "quoteReservationModification": {
+      const p: QuoteReservationModificationInput = ensure(params, ["hotelId", "reservationId"]);
+      const cm = getCMAdapter(p.hotelId);
+      return cm.quoteReservationModification(p);
     }
     case "getReservation": {
       const { hotelId, reservationId } = ensure(params, ["hotelId", "reservationId"]);

@@ -6,7 +6,7 @@ vi.mock("@/lib/astra/connection", async () => {
   return { getAstraDB: () => ({ collection: (name: string) => mod.getCollection(name), table: (name: string) => mod.getTable(name) }) };
 });
 
-import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation } from "@/lib/agents/reservations";
+import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation, quoteReservationModification } from "@/lib/agents/reservations";
 import { POST as mcpPOST } from "@/app/api/mcp/route";
 
 function mkReq(url: string, body: unknown): Request {
@@ -55,13 +55,22 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
     expect(created.ok).toBe(true);
     expect(created.reservationId).toBeTruthy();
 
+    const modifySlots = { ...slots, checkOut: "2026-03-13", numGuests: 2 } as any;
+    const quote = await quoteReservationModification("hotel999", created.reservationId!, modifySlots);
+    expect(quote).toMatchObject({ available: true, currency: "USD" });
     const updated = await modifyReservation(
       "hotel999",
       created.reservationId!,
-      { ...slots, checkOut: "2026-03-13", numGuests: 3 } as any,
+      { ...modifySlots, quoteId: quote.quoteId, quoteVersion: quote.quoteVersion },
       "web"
     );
     expect(updated.ok).toBe(true);
+    expect(updated.reservation).toMatchObject({
+      reservationId: created.reservationId,
+      checkOutDate: "2026-03-13T00:00:00.000Z",
+      priceTotal: quote.priceTotal,
+      currency: quote.currency,
+    });
 
     const getBeforeCancel = await mcpPOST(
       mkReq("http://localhost/api/mcp", {
@@ -89,5 +98,48 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
     expect(afterJson.data?.status).toBe("cancelled");
 
     expect(fetchSpy).toHaveBeenCalled();
+  });
+
+  it("propagates quote requirements and preserves the complete durable reservation through MCP", async () => {
+    const hotelId = `hotel-mcp-quote-${Date.now()}`;
+    const createdResponse = await mcpPOST(mkReq("http://localhost/api/mcp", {
+      action: "call", name: "createReservation", params: {
+        hotelId, guestName: "MCP Quote", roomType: "double",
+        checkInDate: "2026-05-10T00:00:00.000Z", checkOutDate: "2026-05-12T00:00:00.000Z",
+      },
+    }) as any);
+    const created = await createdResponse.json();
+    const reservationId = created.data.reservationId;
+
+    const missingQuoteResponse = await mcpPOST(mkReq("http://localhost/api/mcp", {
+      action: "call", name: "updateReservation", params: {
+        hotelId, reservationId, checkOutDate: "2026-05-14T00:00:00.000Z",
+      },
+    }) as any);
+    expect(await missingQuoteResponse.json()).toMatchObject({ ok: false, error: "QUOTE_REQUIRED" });
+
+    const quoteResponse = await mcpPOST(mkReq("http://localhost/api/mcp", {
+      action: "call", name: "quoteReservationModification", params: {
+        hotelId, reservationId, checkOutDate: "2026-05-14T00:00:00.000Z",
+      },
+    }) as any);
+    const quote = (await quoteResponse.json()).data;
+    expect(quote).toMatchObject({ available: true, currency: "USD" });
+
+    const updateResponse = await mcpPOST(mkReq("http://localhost/api/mcp", {
+      action: "call", name: "updateReservation", params: {
+        hotelId, reservationId, checkOutDate: "2026-05-14T00:00:00.000Z",
+        quoteId: quote.quoteId, quoteVersion: quote.quoteVersion,
+      },
+    }) as any);
+    expect(await updateResponse.json()).toMatchObject({
+      ok: true,
+      data: {
+        reservationId,
+        checkOutDate: "2026-05-14T00:00:00.000Z",
+        priceTotal: quote.priceTotal,
+        currency: quote.currency,
+      },
+    });
   });
 });

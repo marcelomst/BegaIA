@@ -55,6 +55,10 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
 vi.mock("@/lib/agents/reservations", () => ({
   confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-NEW-01", message: "ok" })),
   modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
+  quoteReservationModification: vi.fn(async (_hotelId: string, reservationId: string, _snapshot: any) => ({
+    available: true, reservationId, patch: {}, currency: "USD", priceTotal: 200, pricePerNight: 100,
+    quoteId: `quote-${reservationId}`, quoteVersion: "test-v1",
+  })),
   askAvailability: vi.fn(async (_hotelId: string, snapshot: any) => ({
     ok: true,
     available: true,

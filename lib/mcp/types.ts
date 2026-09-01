@@ -81,8 +81,11 @@ export type UpdateReservationInput = {
   guestEmail?: string;
   guestPhone?: string;
   roomType?: string;
+  guests?: number;
   checkInDate?: string;
   checkOutDate?: string;
+  quoteId?: string;
+  quoteVersion?: string;
   notes?: string;
 };
 
@@ -93,6 +96,22 @@ export type UpdateReservationOutput = {
   error?: string;
 };
 
+export type ReservationModificationQuote = {
+  available: boolean;
+  reservationId: string;
+  patch: Pick<UpdateReservationInput, "roomType" | "guests" | "checkInDate" | "checkOutDate">;
+  currency: string;
+  priceTotal: number;
+  pricePerNight?: number;
+  quoteId: string;
+  quoteVersion: string;
+};
+
+export type QuoteReservationModificationInput = Pick<
+  UpdateReservationInput,
+  "hotelId" | "reservationId" | "roomType" | "guests" | "checkInDate" | "checkOutDate"
+>;
+
 export interface ChannelManagerAdapter {
   searchAvailability(q: AvailabilityQuery): Promise<AvailabilityItem[]>;
   createReservation(input: CreateReservationInput): Promise<Reservation>;
@@ -100,4 +119,5 @@ export interface ChannelManagerAdapter {
   getReservation(hotelId: string, reservationId: string): Promise<Reservation | null>;
   listReservations(q: ListReservationsQuery): Promise<ListReservationsResult>;
   updateReservation(input: UpdateReservationInput): Promise<Reservation>;
+  quoteReservationModification(input: QuoteReservationModificationInput): Promise<ReservationModificationQuote>;
 }

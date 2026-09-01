@@ -9,6 +9,8 @@ import type {
   ListReservationsQuery,
   ListReservationsResult,
   UpdateReservationInput,
+  QuoteReservationModificationInput,
+  ReservationModificationQuote,
 } from "./types";
 import crypto from "crypto";
 import {
@@ -162,6 +164,12 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
   async updateReservation(input: UpdateReservationInput): Promise<Reservation> {
     const r = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
     if (!r) throw new Error("Reservation not found");
+    if (!input.quoteId || !input.quoteVersion) throw new Error("QUOTE_REQUIRED");
+    const quote = await this.quoteReservationModification(input);
+    if (!quote.available) throw new Error("QUOTE_UNAVAILABLE");
+    if (input.quoteId !== quote.quoteId || input.quoteVersion !== quote.quoteVersion) {
+      throw new Error("QUOTE_STALE");
+    }
     const updated: Reservation = {
       ...r,
       guestName: input.guestName ?? r.guestName,
@@ -170,9 +178,41 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
       roomType: input.roomType ?? r.roomType,
       checkInDate: input.checkInDate ?? r.checkInDate,
       checkOutDate: input.checkOutDate ?? r.checkOutDate,
+      currency: quote.currency,
+      priceTotal: quote.priceTotal,
       updatedAt: new Date().toISOString(),
     };
     return saveDemoChannelManagerReservation(updated);
+  }
+
+  async quoteReservationModification(input: QuoteReservationModificationInput): Promise<ReservationModificationQuote> {
+    const reservation = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
+    if (!reservation) throw new Error("Reservation not found");
+    const patch = {
+      roomType: input.roomType ?? reservation.roomType,
+      guests: input.guests,
+      checkInDate: input.checkInDate ?? reservation.checkInDate,
+      checkOutDate: input.checkOutDate ?? reservation.checkOutDate,
+    };
+    const options = await this.searchAvailability({
+      hotelId: input.hotelId,
+      roomType: patch.roomType,
+      guests: patch.guests,
+      startDate: patch.checkInDate,
+      endDate: patch.checkOutDate,
+    });
+    const option = options[0];
+    const nights = Math.max(1, Math.ceil((Date.parse(patch.checkOutDate) - Date.parse(patch.checkInDate)) / 86400000));
+    const quoteVersion = reservation.updatedAt;
+    const priceTotal = (option?.pricePerNight || 0) * nights;
+    const quoteId = crypto.createHash("sha256")
+      .update(JSON.stringify({ reservationId: reservation.reservationId, quoteVersion, patch, priceTotal }))
+      .digest("hex").slice(0, 24);
+    return {
+      available: Boolean(option), reservationId: reservation.reservationId, patch,
+      currency: option?.currency || reservation.currency, priceTotal, pricePerNight: option?.pricePerNight,
+      quoteId, quoteVersion,
+    };
   }
 
   async debugSnapshot(hotelId: string): Promise<{ hotelKey: string; reservations: Reservation[] }> {

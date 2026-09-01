@@ -62,15 +62,23 @@ export const UpdateReservationInput = z.object({
   reservationId: z.string(),
   roomType: z.string().optional(),
   guests: z.number().int().positive().optional(),
+  quoteId: z.string().optional(),
+  quoteVersion: z.string().optional(),
   checkIn: z.string().datetime().optional(),
   checkOut: z.string().datetime().optional(),
   channel: z.string().default("web").optional(),
 });
 export type UpdateReservationInput = z.infer<typeof UpdateReservationInput>;
 
+export const QuoteReservationModificationInput = UpdateReservationInput.pick({
+  hotelId: true, reservationId: true, roomType: true, guests: true, checkIn: true, checkOut: true,
+});
+export type QuoteReservationModificationInput = z.infer<typeof QuoteReservationModificationInput>;
+
 export const UpdateReservationOutput = z.object({
   ok: z.boolean(),
   status: z.enum(["updated"]).optional(),
+  reservation: z.any().optional(),
   error: z.string().optional(),
 });
 export type UpdateReservationOutput = z.infer<typeof UpdateReservationOutput>;
@@ -153,6 +161,7 @@ export function slotsToMcpParams(
     hotelId,
     reservationId: payload.reservationId,
     roomType,
+    guests,
     checkInDate,
     checkOutDate,
     channel: payload.channel,
@@ -166,7 +175,7 @@ function resolveMcpUrl(): string {
 
 // ===== Helpers HTTP =====
 export async function callMcpTool<TResult = unknown>(
-  name: "searchAvailability" | "createReservation" | "updateReservation" | "cancelReservation" | "getReservation" | "listReservations",
+  name: "searchAvailability" | "createReservation" | "updateReservation" | "quoteReservationModification" | "cancelReservation" | "getReservation" | "listReservations",
   params: Record<string, unknown>
 ): Promise<TResult> {
   let url = resolveMcpUrl();
@@ -267,17 +276,28 @@ export async function createReservationTool(input: CreateReservationInput) {
 
 export async function updateReservationTool(input: UpdateReservationInput) {
   const parsed = UpdateReservationInput.parse(input);
-  const params = slotsToMcpParams("updateReservation", {
+  const params = {
+    ...slotsToMcpParams("updateReservation", {
     hotelId: parsed.hotelId,
     reservationId: parsed.reservationId,
     slots: parsed,
     channel: parsed.channel,
-  });
-  await callMcpTool("updateReservation", params);
+    }),
+    quoteId: parsed.quoteId,
+    quoteVersion: parsed.quoteVersion,
+  };
+  const reservation = await callMcpTool<any>("updateReservation", params);
   return UpdateReservationOutput.parse({
     ok: true,
     status: "updated",
+    reservation,
   });
+}
+
+export async function quoteReservationModificationTool(input: QuoteReservationModificationInput) {
+  const parsed = QuoteReservationModificationInput.parse(input);
+  const params = slotsToMcpParams("updateReservation", { hotelId: parsed.hotelId, reservationId: parsed.reservationId, slots: parsed });
+  return callMcpTool<any>("quoteReservationModification", params);
 }
 
 export async function cancelReservationTool(input: CancelReservationInput) {
