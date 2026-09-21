@@ -13306,3 +13306,45 @@ Impacto:
   versión, tag, release, rama o deployment en este hito
 - fortalece trazabilidad y evita reinterpretar marcadores históricos como
   releases formales
+
+### HARDEN-RUNTIME-WIPE-DEMO-CM-RESERVATIONS-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-21
+Commit: c152e61ce0bfd5a5057970181b7b3618974ff540
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Endurecimiento del tooling manual `runtime:wipe` para que
+`demo_cm_reservations` sólo pueda borrarse mediante selección explícita,
+hotel, `--force` y un `NODE_ENV` autorizado. La tabla permanece excluida del
+wipe genérico.
+
+Archivos afectados:
+
+- `scripts/wipe-conversations-and-messages.ts`
+- `test/unit/wipe-conversations-and-messages.spec.ts`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- selección del target aislada por hotel y protegida por `--force` y entorno
+  autorizado
+- la exclusión histórica de `demo_cm_reservations` del wipe genérico se
+  preserva
+- acceso a datastore en tests: `mocked`
+- tests reportados en verde:
+  `15 tests PASS`
+  `pnpm run ts-check`
+  `pnpm test:core: 188 files, 1069 tests PASS`
+  `git diff --check`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- evita borrado accidental de reservas durables del Channel Manager demo/local
+- mantiene un único target de borrado explícito, controlado por hotel y entorno
+- no altera runtime conversacional ni arquitectura viva
