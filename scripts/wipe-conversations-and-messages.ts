@@ -4,7 +4,7 @@
  * No usar como parte del runtime conversacional ni de flujos automáticos.
  *
  * Fuera de scope de este wipe:
- *   - reservations
+ *   - reservations, salvo --only=demo_cm_reservations explícito
  *   - cualquier otro estado de dominio no listado abajo
  *
  * Uso principal:
@@ -27,6 +27,7 @@
  *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guests --force
  *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guest_aliases --force
  *   pnpm run runtime:wipe -- --hotel=hotel999 --only=guest_aliases_by_guest --force
+ *   pnpm run runtime:wipe -- --hotel=hotel999 --only=demo_cm_reservations --force
  */
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -34,6 +35,7 @@ dotenv.config();
 // Usamos import relativo para evitar problemas con los alias TS en scripts CLI
 import { getAstraDB } from "../lib/astra/connection";
 import { getCassandraClient } from "../lib/astra/connection";
+import { deleteDemoChannelManagerReservationsForHotel } from "../lib/db/demoChannelManagerReservations";
 import type { Client } from "cassandra-driver";
 
 type Args = {
@@ -46,10 +48,11 @@ type Args = {
     | "conv_state"
     | "guests"
     | "guest_aliases"
-    | "guest_aliases_by_guest";
+    | "guest_aliases_by_guest"
+    | "demo_cm_reservations";
 };
 
-function parseArgs(argv: string[]): Args {
+export function parseArgs(argv: string[]): Args {
   const out: Args = { force: false };
   for (const a of argv.slice(2)) {
     if (a === "--force") out.force = true;
@@ -66,11 +69,12 @@ function parseArgs(argv: string[]): Args {
         v === "conv_state" ||
         v === "guests" ||
         v === "guest_aliases" ||
-        v === "guest_aliases_by_guest"
+        v === "guest_aliases_by_guest" ||
+        v === "demo_cm_reservations"
       ) out.only = v as any;
       else {
         console.error(
-          `❌ Valor inválido para --only: ${v}. Usa "messages", "conversations", "conv_state", "guests", "guest_aliases" o "guest_aliases_by_guest".`
+          `❌ Valor inválido para --only: ${v}. Usa "messages", "conversations", "conv_state", "guests", "guest_aliases", "guest_aliases_by_guest" o "demo_cm_reservations".`
         );
         process.exit(2);
       }
@@ -111,8 +115,16 @@ async function listGuestIdsFromGuestAliases(client: Client, hotelId: string): Pr
   return Array.from(new Set(out));
 }
 
-async function main() {
-  const args = parseArgs(process.argv);
+export function isAuthorizedDestructiveEnvironment(nodeEnv = process.env.NODE_ENV): boolean {
+  return nodeEnv === "development" || nodeEnv === "test";
+}
+
+export async function main(argv = process.argv) {
+  const args = parseArgs(argv);
+  if (args.force && !isAuthorizedDestructiveEnvironment()) {
+    console.error("❌ runtime:wipe con --force solo está autorizado en NODE_ENV=development o NODE_ENV=test.");
+    return;
+  }
 
   const db = getAstraDB();
   const cqlClient = getCassandraClient();
@@ -139,7 +151,7 @@ async function main() {
       run: () => Promise<void>;
     }> = [];
     const targetTables: Array<{
-      name: "guest_aliases" | "guest_aliases_by_guest";
+      name: "guest_aliases" | "guest_aliases_by_guest" | "demo_cm_reservations";
       run: () => Promise<void>;
     }> = [];
 
@@ -245,16 +257,35 @@ async function main() {
       });
     }
 
+    if (args.only === "demo_cm_reservations") {
+      targetTables.push({
+        name: "demo_cm_reservations",
+        run: async () => {
+          if (!args.hotel) {
+            console.warn("⚠️ demo_cm_reservations requiere --hotel para borrar por partition key. Saltando.");
+            return;
+          }
+          if (!args.force) {
+            console.log("🧪 [dry-run] Eliminaría reservas de demo_cm_reservations para hotel_id='" + args.hotel + "'");
+            return;
+          }
+          const deletedReservations = await deleteDemoChannelManagerReservationsForHotel(args.hotel);
+          console.log("🗑️ demo_cm_reservations DELETE por hotel_id → deletedCount=" + deletedReservations);
+        },
+      });
+    }
+
     console.log("⚠️ AVISO: Esto borra estado operativo en Astra Data API y tablas CQL.");
     console.log("   Keyspace y URL se toman de tu .env (ASTRA_DB_URL / ASTRA_DB_KEYSPACE).");
     console.log("   Colecciones: 'messages', 'conversations', 'conv_state', 'guests'.");
     console.log("   Tablas CQL: 'guest_aliases', 'guest_aliases_by_guest' (si se provee --hotel).");
+    console.log("   Reserva demo: 'demo_cm_reservations' solo con --only=demo_cm_reservations --hotel=<hotel_id>.");
     console.log("");
     console.log("➡️ Filtro aplicado:", filter);
     console.log(args.force ? "🚨 MODO: BORRADO REAL (--force)" : "🧪 MODO: DRY-RUN (sin borrar)");
 
     if (!args.force) {
-      console.log("\nℹ️ Tip: ejecutá con --force para borrar de verdad. Opcionales: --hotel=hotel999, --conversation=conv-123, --only=messages|conversations|conv_state|guests|guest_aliases|guest_aliases_by_guest");
+      console.log("\nℹ️ Tip: ejecutá con --force para borrar de verdad. Opcionales: --hotel=hotel999, --conversation=conv-123, --only=messages|conversations|conv_state|guests|guest_aliases|guest_aliases_by_guest|demo_cm_reservations");
     }
 
     for (const t of targetCols) {
@@ -303,7 +334,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("💥 Error no manejado:", err);
-  process.exit(1);
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error("💥 Error no manejado:", err);
+    process.exit(1);
+  });
+}
