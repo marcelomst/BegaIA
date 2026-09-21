@@ -30,6 +30,7 @@ SOURCE_OF_TRUTH_SCOPE:
 - reglas de cierre documental
 - protocolo de uso de Runtime Map V1 cuando aplique
 - reglas de actualización documental y arquitectura viva
+- branching, versionado, releases y baselines de piloto
 
 ---
 
@@ -106,6 +107,134 @@ GUIDELINE: ONE_HITO_ONE_INTENTION
 GUIDELINE: RUNTIME_BOX_BEFORE_RUNTIME_FIX  
 GUIDELINE: NO_REFACTOR_WITHOUT_EXPLICIT_HITO  
 GUIDELINE: BOX_ID_STABLE_CODE_REFS_RECALCULABLE
+
+---
+
+## RELEASE AND BASELINE GOVERNANCE
+
+Esta sección es la única fuente canónica para branching, versionado, releases
+y baselines de BegaIA. No crea una release, tag, rama ni deployment por sí
+misma.
+
+### Branching Contract
+
+- `main` es la línea integrada actual del producto.
+- No se establece una rama permanente `develop` ni una rama persistente por
+  etapa de producto.
+- Una etapa de producto no implica automáticamente una rama Git.
+- Pueden usarse ramas cortas cuando el riesgo, aislamiento o naturaleza del
+  hito lo justifique; no son un requisito burocrático para todo hito.
+- Una rama corta no se convierte en fuente paralela permanente y su trabajo
+  vuelve a la línea integrada después de validación.
+- Esta política no presupone PRs, branch protection ni una estrategia concreta
+  de merge hasta que esas prácticas sean adoptadas explícitamente.
+
+### Semantic Versioning Contract
+
+BegaIA adopta Semantic Versioning pre-1.0 con el formato:
+
+```text
+v0.MINOR.PATCH
+```
+
+- `MINOR` identifica una incorporación intencional de capacidad compatible.
+- `PATCH` identifica una corrección compatible.
+- Un cambio incompatible durante `0.x` debe declararse y gobernarse de forma
+  explícita; no implica automáticamente una release.
+- Un refactor interno, un cambio exclusivamente documental o el cierre de un
+  hito no obliga por sí mismo a crear o incrementar una versión.
+- `1.0.0` queda reservado para una decisión explícita posterior sobre
+  estabilidad de contratos y producto.
+- Este contrato no asigna el primer número formal de release.
+
+### Operational Definitions
+
+- **Milestone / hito:** unidad de intención y alcance controlado, materializada
+  en un único commit propio; no equivale a una release.
+- **Technical commit:** commit propio que materializa el cambio técnico o
+  documental principal del hito.
+- **Documentation commit:** commit posterior que registra el cierre trazable
+  cuando corresponde; no constituye un segundo commit técnico del mismo hito
+  ni altera la regla `1 hito = 1 commit`.
+- **Product version:** identidad SemVer formal del producto, asignada sólo por
+  un hito explícito de release.
+- **Git tag:** referencia Git a un commit; sólo un tag SemVer anotado identifica
+  formalmente una versión o candidato según esta política.
+- **GitHub Release:** publicación opcional asociada a un tag; no es la fuente
+  canónica de identidad de producto.
+- **Release candidate (RC):** tag SemVer con sufijo `-rc.N` candidato a release
+  o piloto, aún sujeto a validación explícita.
+- **Deployment:** estado desplegado en un entorno; no implica por sí mismo una
+  release.
+- **Demo baseline:** estado reproducible elegido para una demo; no equivale por
+  sí mismo a una versión formal ni a un piloto.
+- **Pilot candidate:** RC que cumple los controles mínimos para ser evaluado
+  como piloto.
+- **Pilot baseline:** estado de producto elegido explícitamente para un piloto,
+  derivado de un pilot candidate.
+
+### Tags and Releases
+
+- El formato futuro de una release estable es `vMAJOR.MINOR.PATCH`.
+- El formato futuro de un candidato es `vMAJOR.MINOR.PATCH-rc.N`.
+- Todo tag formal debe ser anotado y apuntar a un commit integrado y
+  reproducible.
+- Un GitHub Release puede publicarse asociado al tag, pero el tag es la
+  identidad canónica de la versión.
+- Un deployment no implica una release; cerrar un hito tampoco implica crear
+  un tag. Varios hitos pueden formar una única release.
+- `backup/pre-lfs-clean-20250927-082441` es un tag histórico/operativo sin
+  semántica de product release. No debe reinterpretarse, modificarse ni
+  eliminarse como parte de esta política.
+
+### Historical Package Version
+
+El valor histórico `"version": "0.1.0"` en `package.json` no constituye por
+sí mismo evidencia de una release formal de BegaIA. `package.json` sólo se
+alineará con una versión formal mediante un futuro hito explícito de release.
+
+### Pilot Candidate Contract
+
+Un pilot candidate requiere como mínimo:
+
+- commit identificable en `main`
+- tag SemVer RC anotado
+- suite requerida verde y registrada
+- working tree controlado
+- recorridos críticos validados
+- canales incluidos declarados
+- limitaciones conocidas documentadas
+- rollback o baseline anterior identificable
+- validación explícita de Guardian
+
+El sufijo `-rc.N` identifica un candidato; no implica automáticamente un
+pilot baseline.
+
+### Pilot Baseline Contract
+
+Un pilot baseline deriva de un pilot candidate y requiere una decisión
+explícita posterior. Debe conservar identidad reproducible e identificar
+exactamente qué estado del producto se utiliza en el piloto. No se infiere por
+la mera existencia de un RC o de un deployment.
+
+### Operating Model Integration
+
+Se preserva el flujo vigente:
+
+```text
+Hito -> validación -> Guardian -> commit/hash/push por Marcelo -> HDOC
+```
+
+Release governance se superpone a ese flujo sólo cuando corresponde producir
+un baseline o release. Por lo tanto:
+
+```text
+milestone != release
+commit != product version
+tag != deployment
+release != deployment
+RC != pilot baseline
+```
 
 ---
 
