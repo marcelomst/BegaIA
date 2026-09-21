@@ -13262,3 +13262,47 @@ Impacto:
 - impide update durable con quote ausente, unavailable o stale
 - fortalece la continuidad referencial de reservas entre aliases del mismo
   guest sin relajar la canonicidad de `reservationId`
+
+### DOC-RELEASE-VERSIONING-BASELINE-POLICY-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-21
+Commit: fecba834e0e31f77ecb670eb82ed3232785cae64
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora en el Operating Model la política canónica única de branching,
+versionado SemVer, tags, releases, release candidates y pilot baselines. La
+política preserva `main` como línea integrada, distingue hito, commit, versión,
+tag, release, deployment y baseline, y se superpone al flujo operativo sólo
+cuando corresponde producir una release o baseline.
+
+Archivos afectados:
+
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: false`
+- `roadmap_impact: none`
+- `ONE_HITO_ONE_COMMIT` preservado; el eventual commit documental de cierre no
+  constituye un segundo commit técnico del hito
+- `milestone != release`, `commit != product version`, `tag != deployment`,
+  `release != deployment` y `RC != pilot baseline` registrados explícitamente
+- `package.json` con `"version": "0.1.0"` queda clasificado como marcador
+  histórico, no como evidencia de release formal
+- `backup/pre-lfs-clean-20250927-082441` queda clasificado como tag histórico
+  no-release y permanece intacto
+- `scripts/wipe-conversations-and-messages.ts` preservado fuera de alcance
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- establece una única fuente canónica para gobernanza de release y baseline
+- prepara demos, release candidates y pilotos reproducibles sin crear una
+  versión, tag, release, rama o deployment en este hito
+- fortalece trazabilidad y evita reinterpretar marcadores históricos como
+  releases formales
