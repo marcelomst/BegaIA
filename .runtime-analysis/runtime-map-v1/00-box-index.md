@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
-messageHandler_lines: 13073
+commit_base: c578a5272f21d763fbe286751934b853a24de13f
+messageHandler_lines: 13176
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
-baseline_status: runtime_cancel_canonical_target_validation_validated
+analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
+baseline_status: runtime_reservation_temporal_context_operability_validated
 known_manual_bug: none
 ```
 
@@ -56,23 +56,24 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - canonicalReservationReadPath
+    - reservationSnapshot
+    - reservationReferenceResolution
+    - turnDecision
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.canonicalReservationReadPath
+    - modifyReservation
+    - cancelReservation
+    - canonical cancellation revalidation
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `stale ordinal cancelado bloqueado sin provider`
-      - `ordinal alternativo activo preservado`
-      - `pendingCancellation revalidada al confirmar`
-      - `cancelación activa normal preservada`
+      - `124 tests dirigidos`
+      - `1077 tests core`
       - `pnpm run ts-check`
       - `git diff --check`
-  code_refs_status: fresh
+  code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
@@ -269,7 +270,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5608-L12165
+        range: L5706-L12806
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -345,7 +346,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5608-L12165
+        range: L5706-L12806
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -380,7 +381,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5608-L12165
+        range: L5706-L12806
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -584,6 +585,7 @@ boxes:
       - No abrir create flow cuando el huésped consulta estado.
       - No aplicar date repair de create sobre snapshot.
       - No convertir pregunta post-booking en nueva reserva.
+      - No usar contexto visible u ordinal como autoridad de operabilidad.
 
   - box_id: runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     label: Availability inquiry

@@ -21,15 +21,15 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
-messageHandler_lines: 13073
+commit_base: c578a5272f21d763fbe286751934b853a24de13f
+messageHandler_lines: 13176
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
+analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - focused tests: 120 tests PASS
-    - pnpm test:core: 188 files, 1073 tests PASS
+    - focused tests: 124 tests PASS
+    - pnpm test:core: 188 files, 1077 tests PASS
   full_suite:
     - pnpm run ts-check
     - git diff --check
@@ -41,42 +41,42 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - canonicalReservationReadPath
+    - reservationSnapshot
+    - reservationReferenceResolution
+    - turnDecision
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.canonicalReservationReadPath
+    - modifyReservation
+    - cancelReservation
+    - canonical cancellation revalidation
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `stale ordinal cancelado bloqueado sin provider`
-      - `ordinal alternativo activo preservado`
-      - `pendingCancellation revalidada al confirmar`
-      - `cancelación activa normal preservada`
+      - `124 tests dirigidos`
+      - `1077 tests core`
       - `pnpm run ts-check`
       - `git diff --check`
-  code_refs_status: fresh
+  code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: e87cd783a7738a31d18ff0f32cee68039146565c
-    messageHandler_lines: 13073
+    commit: c578a5272f21d763fbe286751934b853a24de13f
+    messageHandler_lines: 13176
     functions:
-      preLLM: L4745-L5615
-      bodyLLM: L5616-L12703
-      posLLM: L12704-L12748
-      handleIncomingMessage: L12749-L13073
-    cancel_guard_refs:
-      canonical_read_path: L2451-L2533
-      inactive_reply: L1433-L1439
-      pending_creation_guard: L9798-L9810
-      pending_confirmation_guard: L9826-L9838
-      resolved_target_guard: L9948-L9959
+      preLLM: L4835-L5705
+      bodyLLM: L5706-L12806
+      posLLM: L12807-L12851
+      handleIncomingMessage: L12852-L13176
+    relevant_refs:
+      canonical_state: L2451-L2534
+      presented_reference_order: L2507-L2520
+      temporal_contract: L2597-L2874
+      list_and_snapshot_paths: L7939-L8010, L10660-L10722
 ```
 
 ## Cierre diferido: snapshot completo post-modify
@@ -124,10 +124,10 @@ validation:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4745-L5615 |    871 | high      |
-| `bodyLLM`                            | L5616-L12703 |   7088 | high      |
-| `posLLM`                             | L12704-L12748 |     45 | high      |
-| `handleIncomingMessage`              | L12749-L13073 |    325 | high      |
+| `preLLM`                             | L4835-L5705 |    871 | high      |
+| `bodyLLM`                            | L5706-L12806 |   7101 | high      |
+| `posLLM`                             | L12807-L12851 |     45 | high      |
+| `handleIncomingMessage`              | L12852-L13176 |    325 | high      |
 
 ---
 
@@ -136,8 +136,8 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13073 líneas
-bodyLLM:                7088 líneas
+messageHandler.ts total: 13176 líneas
+bodyLLM:                7101 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.

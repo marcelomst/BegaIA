@@ -654,6 +654,22 @@ no reinterpretación temporal contra marcador explícito
 Regla:
 
 No fix sensible de runtime sin test de paridad.
+
+REGLA DE CONTEXTO TEMPORAL Y OPERABILIDAD DE RESERVAS
+
+La temporalidad mostrada en listados y snapshots se deriva de fechas con el
+timezone hotel/UTC y ordena únicamente el contexto presentado. El estado
+material y la operabilidad de una reserva siguen siendo decisión del provider.
+
+`lastPresentedReservations` conserva referencias derivadas de los registros
+visibles en ese mismo orden temporal. No autoriza por sí solo modify o cancel,
+no habilita resolver por ordinal una reserva no visible y no introduce un
+rechazo temporal universal.
+
+Modify y cancel de reservas históricas deben consultar o preservar la decisión
+operativa del provider; cancel mantiene además su revalidación contra Canonical
+State antes de efectos transaccionales.
+
 REGLA DE CODE REFS
 
 code_refs deben tratarse como evidencia recalculable.

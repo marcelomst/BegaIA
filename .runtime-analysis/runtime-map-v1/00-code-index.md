@@ -60,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
-messageHandler_lines: 13073
+commit_base: c578a5272f21d763fbe286751934b853a24de13f
+messageHandler_lines: 13176
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
-baseline_status: runtime_cancel_canonical_target_validation_validated
+analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
+baseline_status: runtime_reservation_temporal_context_operability_validated
 known_manual_bug: none
 ```
 
@@ -73,9 +73,9 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-focused tests: 120 tests PASS
+focused tests: 124 tests PASS
 result: pass
-pnpm test:core: 188 files, 1073 tests PASS
+pnpm test:core: 188 files, 1077 tests PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -87,31 +87,30 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada de revalidación canónica en
-cancel, pero no elimina el riesgo de futuros bugs funcionales fuera de
-cobertura.
+Este refresh documenta una corrección acotada de contexto temporal y
+operabilidad de reservas, pero no elimina el riesgo de futuros bugs funcionales
+fuera de cobertura.
 ```
 
 ---
 
-## Evidencia actual: cancel con target canónico
+## Evidencia actual: contexto temporal y operabilidad
 
-La referencia obtenida por código, ordinal, presentación o foco conserva valor
-para identificar un candidato. Antes de crear `pendingCancellation` y antes de
-ejecutar su confirmación, el corredor de cancel revalida ese candidato contra
-Canonical State. Un target inactivo responde sin provider; un target activo
-conserva el flujo normal de cancelación.
+La lista visible y `lastPresentedReservations` comparten el mismo universo
+canónicamente elegible y orden temporal. Un registro que no fue visible no se
+resuelve por ordinal desde esa presentación. El contexto temporal se deriva de
+fechas con timezone hotel/UTC y no altera status material ni crea rechazo
+temporal universal; modify y cancel conservan la decisión operativa del
+provider y cancel mantiene su revalidación canónica.
 
 ```yaml
-hito_id: FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01
-box_id: runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+hito_id: FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01
 code_refs:
-  canonical_read_path: L2451-L2533
-  inactive_reply: L1433-L1439
-  pending_creation_guard: L9798-L9810
-  pending_confirmation_guard: L9826-L9838
-  resolved_target_guard: L9948-L9959
-invariant: lastPresentedReservations_identifies_only; Canonical_State_decides_actionability
+  canonical_state: L2451-L2534
+  presented_reference_order: L2507-L2520
+  temporal_contract: L2597-L2874
+  list_and_snapshot_paths: L7939-L8010, L10660-L10722
+invariant: visible_context_is_reference_only; provider_decides_material_operability
 ```
 
 ---
@@ -165,7 +164,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13073
+total_lines: 13176
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -174,7 +173,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`.
+del hito `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`.
 ```
 
 ---
@@ -191,10 +190,10 @@ del hito `FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4745-L5615 |    871 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5616-L12703 |   7088 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12704-L12748 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12749-L13073 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4835-L5705 |    871 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5706-L12806 |   7101 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12807-L12851 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12852-L13176 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 

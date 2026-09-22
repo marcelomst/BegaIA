@@ -13396,3 +13396,56 @@ Impacto:
   cancelación
 - evita efectos transaccionales sobre targets que dejaron de ser accionables
 - no introduce arquitectura ni cajas conceptuales nuevas
+
+### FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-22
+Commit: c578a5272f21d763fbe286751934b853a24de13f
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Añade contexto temporal a los listados de reserva, alineando el universo y
+orden temporal de registros visibles con `lastPresentedReservations`. El
+contexto sigue siendo una referencia derivada: la operabilidad material de
+modify y cancel permanece bajo decisión del provider, y cancel conserva su
+revalidación canónica.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`; refresh documental aplicado con `box_id`
+  preservado
+- un registro no visible queda excluido de `lastPresentedReservations` y no se
+  resuelve por ordinal desde esa presentación
+- temporalidad derivada por fechas con timezone hotel/UTC, sin modificar status
+  material ni crear rechazo temporal universal
+- modify y cancel de reservas históricas conservan la decisión del provider;
+  cancel mantiene la revalidación canónica
+- tests reportados en verde:
+  `124 tests dirigidos`
+  `pnpm run ts-check`
+  `pnpm test:core: 188 files, 1077 tests PASS`
+  `git diff --check`
+- `roadmap_impact: none`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- fortalece la separación entre contexto temporal de presentación y estado
+  material del provider
+- evita que una referencia ordinal visible autorice una operación transaccional
+- aporta evidencia para la futura decisión AGPT sobre deuda residual de
+  Canonical State, sin declararla cerrada
