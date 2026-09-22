@@ -1430,6 +1430,14 @@ function buildModifyInactiveTargetReply(lang: "es" | "en" | "pt"): string {
       : "No encuentro una reserva activa para aplicar esa modificación.";
 }
 
+function buildCancelInactiveTargetReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Não encontro uma reserva ativa para cancelar."
+    : lang === "en"
+      ? "I cannot find an active booking to cancel."
+      : "No encuentro una reserva activa para cancelar.";
+}
+
 function buildModifyReservationCodeNotFoundReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "Não encontrei uma reserva ativa com esse código. Pode me passar outro código ou dizer a primeira, segunda ou terceira?"
@@ -9788,6 +9796,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ? pre.st?.activeReservationContext.reservationId
       : undefined);
   if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
+    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, cancelCodeFromUser);
+    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: null,
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        updatedBy: "ai",
+      } as any);
+      finalText = buildCancelInactiveTargetReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
       conversationFocus: buildConversationFocus("cancel"),
@@ -9804,6 +9824,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
   }
   if (pendingCancellation?.reservationId && pendingCancellation.awaitingConfirmation && isPureConfirm(userTxtRaw)) {
+    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, pendingCancellation.reservationId);
+    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: null,
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        updatedBy: "ai",
+      } as any);
+      finalText = buildCancelInactiveTargetReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
       const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);
@@ -9911,6 +9943,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         updatedBy: "ai",
       } as any);
       finalText = buildAskReservationCode(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, resolvedCancelCode);
+    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        pendingCancellation: null,
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        updatedBy: "ai",
+      } as any);
+      finalText = buildCancelInactiveTargetReply(pre.lang);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     }
     if (!(isPureConfirm(userTxtRaw) || hasInlineCancelConfirmation)) {

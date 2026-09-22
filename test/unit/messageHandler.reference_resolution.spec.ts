@@ -296,6 +296,82 @@ function baseSingleReservationState(overrides: Record<string, any> = {}) {
   };
 }
 
+function baseStalePresentedCancellationState(overrides: Record<string, any> = {}) {
+  return baseMultiReservationState({
+    reservationHistory: [
+      {
+        reservationId: "RES-STALE-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "single",
+        checkIn: "2026-03-24",
+        checkOut: "2026-03-26",
+        numGuests: "1",
+      },
+      {
+        reservationId: "RES-ACTIVE-02",
+        status: "created",
+        createdAt: "2026-03-21T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-28",
+        checkOut: "2026-03-30",
+        numGuests: "2",
+      },
+      {
+        reservationId: "RES-STALE-01",
+        status: "cancelled",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+      },
+    ],
+    lastReservation: {
+      reservationId: "RES-STALE-01",
+      status: "cancelled",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+    },
+    activeReservationContext: {
+      kind: "reservation",
+      reservationId: "RES-ACTIVE-02",
+      phase: "confirmed",
+      updatedAt: "2026-03-21T10:00:00.000Z",
+    },
+    lastPresentedReservations: {
+      guestId: "g1",
+      presentedAt: "2026-03-21T12:00:00.000Z",
+      reservations: [
+        {
+          reservationId: "RES-STALE-01",
+          status: "created",
+          createdAt: "2026-03-20T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "single",
+          checkIn: "2026-03-24",
+          checkOut: "2026-03-26",
+          numGuests: "1",
+        },
+        {
+          reservationId: "RES-ACTIVE-02",
+          status: "created",
+          createdAt: "2026-03-21T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-03-28",
+          checkOut: "2026-03-30",
+          numGuests: "2",
+        },
+      ],
+    },
+    ...overrides,
+  });
+}
+
 function baseAmbiguousModifyState(overrides: Record<string, any> = {}) {
   return {
     reservationSlots: {
@@ -508,6 +584,69 @@ describe("messageHandler reference resolution", () => {
       reservationId: "RES-NEW-02",
       awaitingConfirmation: true,
     });
+  });
+
+  it("bloquea la cancelación ordinal cuando la presentación está stale y el canonical state ya la canceló", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-stale-presented-1";
+    stateByConversation.set(conversationId, baseStalePresentedCancellationState());
+
+    await handleIncomingMessage(msg("cancelá la primera", conversationId), { mode: "automatic", sendReply });
+
+    const currentState = stateByConversation.get(conversationId);
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(currentState?.pendingCancellation ?? null).toBeNull();
+    expect(replyText).toMatch(/no encuentro una reserva activa para cancelar/i);
+    expect(currentState?.reservationHistory.filter((item: any) => item.reservationId === "RES-STALE-01")).toHaveLength(2);
+    expect(currentState?.reservationHistory.at(-1)).toMatchObject({
+      reservationId: "RES-STALE-01",
+      status: "cancelled",
+    });
+  });
+
+  it("mantiene seleccionable por ordinal la reserva activa junto a una presentación stale", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-stale-presented-active-1";
+    stateByConversation.set(conversationId, baseStalePresentedCancellationState());
+
+    await handleIncomingMessage(msg("cancelá la segunda", conversationId), { mode: "automatic", sendReply });
+
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+      reservationId: "RES-ACTIVE-02",
+      awaitingConfirmation: true,
+    });
+  });
+
+  it("revalida una cancelación pendiente antes de confirmar contra el provider", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-stale-pending-1";
+    stateByConversation.set(conversationId, baseStalePresentedCancellationState({
+      pendingCancellation: { reservationId: "RES-STALE-01", awaitingConfirmation: true },
+      activeFlow: "cancel_reservation",
+      desiredAction: "cancel",
+    }));
+
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
+
+    const currentState = stateByConversation.get(conversationId);
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(currentState?.pendingCancellation ?? null).toBeNull();
+    expect(replyText).toMatch(/no encuentro una reserva activa para cancelar/i);
+  });
+
+  it("mantiene la cancelación normal de una reserva activa", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-canonical-active-1";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("cancelá RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", conversationId), { mode: "automatic", sendReply });
+
+    expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES-ONLY-01");
+    expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
   });
 
   it("resuelve 'mostrame la primera reserva' con snapshot textual sin abrir nueva reserva", async () => {
