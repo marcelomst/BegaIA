@@ -4,6 +4,9 @@ const stateByConversation = new Map<string, any>();
 const conversationMocks = vi.hoisted(() => ({
   getConversationsForGuestPerspective: vi.fn(async (_input?: unknown) => []),
 }));
+const hotelConfigMocks = vi.hoisted(() => ({
+  getHotelConfig: vi.fn(async () => ({ timezone: "UTC" })),
+}));
 
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
@@ -43,6 +46,9 @@ vi.mock("@/lib/db/convState", () => ({
     }
     return undefined;
   },
+}));
+vi.mock("@/lib/config/hotelConfig.server", () => ({
+  getHotelConfig: hotelConfigMocks.getHotelConfig,
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   updateConversationState: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
@@ -372,6 +378,30 @@ function baseStalePresentedCancellationState(overrides: Record<string, any> = {}
   });
 }
 
+function baseTemporalReservationState(overrides: Record<string, any> = {}) {
+  const reservation = (reservationId: string, checkIn: string, checkOut: string) => ({
+    reservationId,
+    status: "created",
+    createdAt: `${checkIn}T10:00:00.000Z`,
+    channel: "web",
+    guestName: "Marcelo Martinez",
+    roomType: "double",
+    checkIn,
+    checkOut,
+    numGuests: "2",
+  });
+  return baseSingleReservationState({
+    reservationHistory: [
+      reservation("RES-HIST-01", "2026-03-18", "2026-03-20"),
+      reservation("RES-OVERLAP-02", "2026-03-22", "2026-03-24"),
+      reservation("RES-FUTURE-04", "2026-03-27", "2026-03-29"),
+      reservation("RES-FUTURE-03", "2026-03-25", "2026-03-26"),
+    ],
+    lastReservation: reservation("RES-FUTURE-03", "2026-03-25", "2026-03-26"),
+    ...overrides,
+  });
+}
+
 function baseAmbiguousModifyState(overrides: Record<string, any> = {}) {
   return {
     reservationSlots: {
@@ -449,6 +479,7 @@ describe("messageHandler reference resolution", () => {
     (getGuest as any).mockResolvedValue(null);
     (findGuestByAnyId as any).mockResolvedValue(null);
     (getConversationsForGuestPerspective as any).mockResolvedValue([]);
+    hotelConfigMocks.getHotelConfig.mockResolvedValue({ timezone: "UTC" });
   });
 
   afterEach(() => {
@@ -647,6 +678,120 @@ describe("messageHandler reference resolution", () => {
 
     expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES-ONLY-01");
     expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+  });
+
+  it("ordena el listado por relación temporal sin alterar el status material", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-temporal-list-order-1";
+    stateByConversation.set(conversationId, baseTemporalReservationState());
+
+    await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const presentedIds = stateByConversation.get(conversationId)?.lastPresentedReservations?.reservations
+      .map((reservation: any) => reservation.reservationId);
+    expect(replyText.indexOf("RES-OVERLAP-02")).toBeLessThan(replyText.indexOf("RES-FUTURE-03"));
+    expect(replyText.indexOf("RES-FUTURE-03")).toBeLessThan(replyText.indexOf("RES-FUTURE-04"));
+    expect(replyText.indexOf("RES-FUTURE-04")).toBeLessThan(replyText.indexOf("RES-HIST-01"));
+    expect(replyText).toMatch(/RES-HIST-01.*activa.*histórica/i);
+    expect(presentedIds).toEqual(["RES-OVERLAP-02", "RES-FUTURE-03", "RES-FUTURE-04", "RES-HIST-01"]);
+    expect(stateByConversation.get(conversationId)?.reservationHistory[0]).toMatchObject({
+      reservationId: "RES-HIST-01",
+      status: "created",
+    });
+    expect(replyText).not.toMatch(/expired|completed|checked_out/i);
+  });
+
+  it("usa el día local del hotel y no clasifica checkout de hoy como histórico", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-temporal-timezone-boundary-1";
+    vi.setSystemTime(new Date("2026-03-23T02:00:00.000Z"));
+    hotelConfigMocks.getHotelConfig.mockResolvedValue({ timezone: "America/Montevideo" });
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      reservationHistory: [{
+        reservationId: "RES-CHECKOUT-TODAY-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+        guestName: "Marcelo Martinez",
+        roomType: "double",
+        checkIn: "2026-03-20",
+        checkOut: "2026-03-22",
+        numGuests: "2",
+      }],
+      lastReservation: {
+        reservationId: "RES-CHECKOUT-TODAY-01",
+        status: "created",
+        createdAt: "2026-03-20T10:00:00.000Z",
+        channel: "web",
+      },
+    }));
+
+    await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(replyText).toMatch(/RES-CHECKOUT-TODAY-01.*activa.*en curso/i);
+    expect(replyText).not.toMatch(/histórica/i);
+  });
+
+  it("persiste sólo las reservas visibles para que los ordinales no resuelvan un registro sin payload", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-temporal-visible-presentation-1";
+    const reservation = (reservationId: string, checkIn: string, checkOut: string) => ({
+      reservationId,
+      status: "created",
+      createdAt: `${checkIn}T10:00:00.000Z`,
+      channel: "web",
+      guestName: "Marcelo Martinez",
+      roomType: "double",
+      checkIn,
+      checkOut,
+      numGuests: "2",
+    });
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      reservationHistory: [
+        reservation("RES-VISIBLE-01", "2026-03-22", "2026-03-24"),
+        { reservationId: "RES-INVISIBLE-02", status: "created", createdAt: "2026-03-23T10:00:00.000Z", channel: "web" },
+        reservation("RES-VISIBLE-03", "2026-03-25", "2026-03-27"),
+      ],
+      lastReservation: reservation("RES-VISIBLE-03", "2026-03-25", "2026-03-27"),
+    }));
+
+    await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
+
+    const listReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const presentedIds = stateByConversation.get(conversationId)?.lastPresentedReservations?.reservations
+      .map((reservation: any) => reservation.reservationId);
+    expect(listReply).toMatch(/RES-VISIBLE-01.*RES-VISIBLE-03/is);
+    expect(listReply).not.toMatch(/RES-INVISIBLE-02/i);
+    expect(presentedIds).toEqual(["RES-VISIBLE-01", "RES-VISIBLE-03"]);
+
+    await handleIncomingMessage(msg("mostrame la segunda", conversationId), { mode: "automatic", sendReply });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/RES-VISIBLE-03/i);
+
+    await handleIncomingMessage(msg("mostrame la tercera", conversationId), { mode: "automatic", sendReply });
+    const thirdReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(thirdReply).toMatch(/no encontr[eé].*tercera|primera|segunda/i);
+    expect(thirdReply).not.toMatch(/RES-INVISIBLE-02/i);
+  });
+
+  it("conserva el ordinal de una histórica previamente presentada y delega modify/cancel al provider", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-temporal-historical-operability-1";
+    const cancelConversationId = "conv-ref-temporal-historical-cancel-1";
+    stateByConversation.set(conversationId, baseTemporalReservationState());
+
+    await handleIncomingMessage(msg("mostrame mis reservas", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("mostrame la última", conversationId), { mode: "automatic", sendReply });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/RES-HIST-01/i);
+
+    await handleIncomingMessage(msg("modificá RES-HIST-01 habitación triple", conversationId), { mode: "automatic", sendReply });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/antes de aplicar el cambio|confirm[aá]s estos cambios/i);
+
+    stateByConversation.set(cancelConversationId, baseTemporalReservationState());
+    await handleIncomingMessage(msg("cancelá RES-HIST-01", cancelConversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("confirmar", cancelConversationId), { mode: "automatic", sendReply });
+    expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES-HIST-01");
   });
 
   it("resuelve 'mostrame la primera reserva' con snapshot textual sin abrir nueva reserva", async () => {
@@ -1118,7 +1263,7 @@ describe("messageHandler reference resolution", () => {
           channel: "web",
           guestName: "Raul Carsoglio",
           roomType: "triple",
-          checkIn: "2026-06-17",
+          checkIn: "2026-06-15",
           checkOut: "2026-06-20",
           numGuests: "3",
         },
@@ -1305,7 +1450,7 @@ describe("messageHandler reference resolution", () => {
     );
     const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(previewReply).toMatch(/antes de aplicar el cambio/i);
-    expect(previewReply).toMatch(/Huéspedes: 3 -> 3|Titular: Raul Carsoglio -> Raul Carsoglio|Fechas: 17\/06\/2026 → 20\/06\/2026 => 25\/09\/2027 → 27\/09\/2027/i);
+    expect(previewReply).toMatch(/Huéspedes: 3 -> 3|Titular: Raul Carsoglio -> Raul Carsoglio|Fechas: 15\/06\/2026 → 20\/06\/2026 => 25\/09\/2027 → 27\/09\/2027/i);
     expect(stateByConversation.get(currentConversationId)?.modifyState).toMatchObject({
       awaitingConfirmation: true,
       pendingPatch: {

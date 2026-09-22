@@ -2507,7 +2507,15 @@ function buildCanonicalReservationRecords(state: any): CanonicalReservationRecor
 function buildPresentedReservationRecords(state: any): CanonicalReservationRecord[] {
   const presented = state?.lastPresentedReservations;
   if (!Array.isArray(presented?.reservations)) return [];
-  return buildReservationCanonicalState({ reservationHistory: presented.reservations }).records;
+  const canonicalPresented = buildReservationCanonicalState({ reservationHistory: presented.reservations });
+  const seenReservationIds = new Set<string>();
+  return presented.reservations.flatMap((item: LastReservation) => {
+    const reservationId = String(item?.reservationId || "").trim();
+    if (!reservationId || seenReservationIds.has(reservationId)) return [];
+    seenReservationIds.add(reservationId);
+    const record = canonicalPresented.byId.get(reservationId);
+    return record ? [record] : [];
+  });
 }
 
 function collectPersistedReservationRecords(state: any): LastReservation[] {
@@ -2589,13 +2597,85 @@ function resolveConfirmedReservationFollowupSnapshot(
   };
 }
 
+type ReservationTemporalRelation = "historical" | "upcoming" | "date_overlapping" | "unknown";
+
+function getHotelToday(timezone?: string, now = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone || "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+  } catch {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+  }
+}
+
+function normalizeReservationCalendarDate(value?: string): string | undefined {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return undefined;
+  const [year, month, day] = match.slice(1).map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day
+    ? match[0]
+    : undefined;
+}
+
+function getReservationTemporalRelation(
+  reservation: Pick<CanonicalReservationRecord, "checkIn" | "checkOut">,
+  hotelToday: string,
+): ReservationTemporalRelation {
+  const checkIn = normalizeReservationCalendarDate(reservation.checkIn);
+  const checkOut = normalizeReservationCalendarDate(reservation.checkOut);
+  if (!checkIn || !checkOut || checkIn > checkOut) return "unknown";
+  if (checkOut < hotelToday) return "historical";
+  if (checkIn > hotelToday) return "upcoming";
+  return "date_overlapping";
+}
+
+function orderReservationsForTemporalPresentation(
+  reservations: CanonicalReservationRecord[],
+  hotelToday: string,
+): CanonicalReservationRecord[] {
+  const rank: Record<ReservationTemporalRelation, number> = {
+    date_overlapping: 0,
+    upcoming: 1,
+    historical: 2,
+    unknown: 3,
+  };
+  return reservations
+    .map((reservation, index) => ({ reservation, index, relation: getReservationTemporalRelation(reservation, hotelToday) }))
+    .sort((a, b) => {
+      const relationOrder = rank[a.relation] - rank[b.relation];
+      if (relationOrder) return relationOrder;
+      if (a.relation === "upcoming") {
+        return String(a.reservation.checkIn || "").localeCompare(String(b.reservation.checkIn || "")) || a.index - b.index;
+      }
+      if (a.relation === "historical") {
+        return String(b.reservation.checkOut || "").localeCompare(String(a.reservation.checkOut || "")) || a.index - b.index;
+      }
+      return a.index - b.index;
+    })
+    .map(({ reservation }) => reservation);
+}
+
 function buildReservationListAnswer(
   lang: "es" | "en" | "pt",
   reservations: CanonicalReservationRecord[],
   scope: "conversation" | "guest" = "conversation",
-  conversationalDisplayName?: string | null
+  conversationalDisplayName?: string | null,
+  hotelToday = getHotelToday(),
 ): string {
-  const visibleReservations = reservations.filter((item) => isCanonicalReservationRecordEligible(item));
+  const visibleReservations = orderReservationsForTemporalPresentation(
+    reservations.filter((item) => isCanonicalReservationRecordEligible(item)),
+    hotelToday,
+  );
   const safeConversationalDisplayName = String(conversationalDisplayName || "").trim();
   if (!visibleReservations.length) {
     if (scope === "guest") {
@@ -2629,6 +2709,14 @@ function buildReservationListAnswer(
         : item.canonicalStatus === "error"
           ? (lang === "pt" ? "com erro" : lang === "en" ? "error" : "con error")
           : (lang === "pt" ? "ativa" : lang === "en" ? "active" : "activa");
+    const temporalRelation = getReservationTemporalRelation(item, hotelToday);
+    const temporalLabel = temporalRelation === "historical"
+      ? (lang === "pt" ? " · histórica" : lang === "en" ? " · historical" : " · histórica")
+      : temporalRelation === "upcoming"
+        ? (lang === "pt" ? " · futura" : lang === "en" ? " · upcoming" : " · futura")
+        : temporalRelation === "date_overlapping"
+          ? (lang === "pt" ? " · em andamento" : lang === "en" ? " · current dates" : " · en curso")
+          : "";
     const owner = guestName
       ? ` · ${lang === "pt" ? "em nome de" : lang === "en" ? "under" : "a nombre de"} ${guestName}`
       : "";
@@ -2636,7 +2724,7 @@ function buildReservationListAnswer(
       ? ` · ${formatGuestCountLabel(item.numGuests, lang, { includeCount: false })}: ${item.numGuests}`
       : "";
     const room = roomType ? ` · ${lang === "pt" ? "quarto" : lang === "en" ? "room" : "habitación"}: ${roomType}` : "";
-    return `${index + 1}. ${item.reservationId} · ${status}${owner}${room} · ${checkIn} → ${checkOut}${guests}`;
+    return `${index + 1}. ${item.reservationId} · ${status}${temporalLabel}${owner}${room} · ${checkIn} → ${checkOut}${guests}`;
   });
 
   const title =
@@ -2763,12 +2851,13 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
 function buildLastPresentedReservations(source: {
   reservations: CanonicalReservationRecord[];
   canonicalGuestId?: string;
-}) {
+}, hotelToday = getHotelToday()) {
   if (!source.canonicalGuestId) return null;
+  const visibleReservations = source.reservations.filter((item) => isCanonicalReservationRecordEligible(item));
   return {
     guestId: source.canonicalGuestId,
     presentedAt: new Date().toISOString(),
-    reservations: source.reservations.map((item) => ({
+    reservations: orderReservationsForTemporalPresentation(visibleReservations, hotelToday).map((item) => ({
       reservationId: item.reservationId,
       status: item.status,
       createdAt: item.createdAt,
@@ -2792,8 +2881,9 @@ function buildGuestReservationAmbiguityReply(
   lang: "es" | "en" | "pt",
   reservations: CanonicalReservationRecord[],
   conversationalDisplayName?: string,
+  hotelToday = getHotelToday(),
 ) {
-  const list = buildReservationListAnswer(lang, reservations, "guest", conversationalDisplayName);
+  const list = buildReservationListAnswer(lang, reservations, "guest", conversationalDisplayName, hotelToday);
   const prompt =
     lang === "pt"
       ? "Você tem mais de uma reserva. Qual delas quer revisar?"
@@ -7849,15 +7939,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   if (effectiveSnapshotQueryKind === "list") {
     const reservationListSource = await resolveReservationListSource(pre);
+    const hotelToday = getHotelToday((pre.hotelConfig as { timezone?: string } | null)?.timezone);
     finalText = buildReservationListAnswer(
       pre.lang,
       reservationListSource.reservations,
       reservationListSource.scope,
-      reservationListSource.conversationalDisplayName
+      reservationListSource.conversationalDisplayName,
+      hotelToday,
     );
     // A guest-wide read must not turn an old reservation into this conversation's state.
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+      lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
       selectedReservationTarget: null,
       modifyState: null,
       conversationFocus: null,
@@ -7873,6 +7965,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const localConfirmed = getConfirmedGuestReservationCandidates(buildCanonicalReservationRecords(pre.st));
     if (localConfirmed.length === 0) {
       const reservationListSource = await resolveReservationListSource(pre);
+      const hotelToday = getHotelToday((pre.hotelConfig as { timezone?: string } | null)?.timezone);
       const candidates = getConfirmedGuestReservationCandidates(reservationListSource.reservations);
       if (candidates.length === 1) {
         const target = candidates[0];
@@ -7892,7 +7985,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         );
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           // Preserve only the references just shown; do not adopt guest-wide history as this conversation's state.
-          lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+          lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
           updatedBy: "ai",
         } as any);
       } else if (candidates.length > 1) {
@@ -7900,10 +7993,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           pre.lang,
           candidates,
           reservationListSource.conversationalDisplayName,
+          hotelToday,
         );
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           // The ambiguity reply lists these reservations, so ordinal follow-ups are scoped to them.
-          lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+          lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
           updatedBy: "ai",
         } as any);
       }
@@ -10566,6 +10660,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           (postBookingSnapshotQ === "list" || !hasConfirmedBookingContext)
         ) {
           const reservationListSource = await resolveReservationListSource(pre);
+          const hotelToday = getHotelToday((pre.hotelConfig as { timezone?: string } | null)?.timezone);
           const candidates = getConfirmedGuestReservationCandidates(reservationListSource.reservations);
           if (postBookingSnapshotQ === "list") {
             finalText = buildReservationListAnswer(
@@ -10573,9 +10668,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               reservationListSource.reservations,
               reservationListSource.scope,
               reservationListSource.conversationalDisplayName,
+              hotelToday,
             );
             await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
               selectedReservationTarget: null,
               lastCategory: "reservation_snapshot",
               updatedBy: "ai",
@@ -10601,7 +10697,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             );
             await updateConversationState(pre.msg.hotelId, pre.conversationId, {
               // Keep the same read-only reference context as the plural snapshot path.
-              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
               lastCategory: "reservation_snapshot",
               updatedBy: "ai",
             } as any);
@@ -10613,10 +10709,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
               pre.lang,
               candidates,
               reservationListSource.conversationalDisplayName,
+              hotelToday,
             );
             await updateConversationState(pre.msg.hotelId, pre.conversationId, {
               // Preserve the read-only list that this ambiguity reply just displayed.
-              lastPresentedReservations: buildLastPresentedReservations(reservationListSource),
+              lastPresentedReservations: buildLastPresentedReservations(reservationListSource, hotelToday),
               lastCategory: "reservation_snapshot",
               updatedBy: "ai",
             } as any);
@@ -10649,7 +10746,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           postBookingReservationIntent.kind !== "cancel"
         ) {
           if (postBookingSnapshotQ === "list") {
-            finalText = buildReservationListAnswer(pre.lang, buildCanonicalReservationRecords(pre.st));
+            finalText = buildReservationListAnswer(
+              pre.lang,
+              buildCanonicalReservationRecords(pre.st),
+              "conversation",
+              undefined,
+              getHotelToday((pre.hotelConfig as { timezone?: string } | null)?.timezone),
+            );
           } else {
             const canonicalReservationId = pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
               ? pre.st.lastReservation.reservationId
