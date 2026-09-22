@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 63045d886fa3410e60bfa428b9b92feb69d768d0
-messageHandler_lines: 13029
+commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
+messageHandler_lines: 13073
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_63045d886fa3410e60bfa428b9b92feb69d768d0
-baseline_status: runtime_modify_reprice_consistency_validated
+analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
+baseline_status: runtime_cancel_canonical_target_validation_validated
 known_manual_bug: none
 ```
 
@@ -56,19 +56,20 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.canonicalReservationReadPath
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `quote requerida, unavailable y stale sin mutacion durable`
-      - `stale -> re-quote -> segunda confirmacion -> update`
+      - `stale ordinal cancelado bloqueado sin provider`
+      - `ordinal alternativo activo preservado`
+      - `pendingCancellation revalidada al confirmar`
+      - `cancelación activa normal preservada`
       - `pnpm run ts-check`
       - `git diff --check`
   code_refs_status: fresh
@@ -512,10 +513,19 @@ boxes:
       - destructive_action
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L7064-L7563
-        confidence: medium
+        range: L9798-L9810
+        confidence: high
       - file: lib/handlers/messageHandler.ts
-        range: L1929-L2036
+        range: L9826-L9838
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        range: L9948-L9959
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        range: L2451-L2533
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        range: L1433-L1439
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -526,6 +536,7 @@ boxes:
       - No cancelar por afirmación genérica.
       - No dejar que fallback ejecute cancelación.
       - No compartir confirmación con proposal de create sin arbitraje.
+      - No tratar `lastPresentedReservations` como prueba de accionabilidad.
 
   - box_id: runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     label: Snapshot

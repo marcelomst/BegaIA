@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 63045d886fa3410e60bfa428b9b92feb69d768d0
-messageHandler_lines: 13029
+commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
+messageHandler_lines: 13073
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_63045d886fa3410e60bfa428b9b92feb69d768d0
+analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
 ```
 
 ---
@@ -27,7 +27,9 @@ working tree limpio; documentación pendiente al momento del cierre HDOC
 ## Suite local informada
 
 ```text
-pnpm test:core: 187 files, 1063 tests PASS
+pnpm test:core: 188 files, 1073 tests PASS
+result: pass
+focused tests: 120 tests PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -42,22 +44,23 @@ result: pass
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.canonicalReservationReadPath
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - quote requerida, unavailable y stale sin mutacion durable
-      - stale -> re-quote -> segunda confirmacion -> update
+      - stale ordinal cancelado bloqueado sin provider
+      - ordinal alternativo activo preservado
+      - pendingCancellation revalidada al confirmar
+      - cancelación activa normal preservada
       - pnpm run ts-check
       - git diff --check
-  code_refs_status: needs_refresh
+  code_refs_status: fresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
@@ -71,22 +74,29 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 63045d886fa3410e60bfa428b9b92feb69d768d0
-    messageHandler_lines: 13029
+    commit: e87cd783a7738a31d18ff0f32cee68039146565c
+    messageHandler_lines: 13073
     functions:
-      preLLM: L4737-L4949
-      bodyLLM: L5608-L12165
-      posLLM: L12660-L12701
-      handleIncomingMessage: L12705-L12713
+      preLLM: L4745-L5615
+      bodyLLM: L5616-L12703
+      posLLM: L12704-L12748
+      handleIncomingMessage: L12749-L13073
+    cancel_guard_refs:
+      canonical_read_path: L2451-L2533
+      inactive_reply: L1433-L1439
+      pending_creation_guard: L9798-L9810
+      pending_confirmation_guard: L9826-L9838
+      resolved_target_guard: L9948-L9959
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- modify requiere quote vigente emitida por provider antes de persistir
-- confirmación queda ligada a `quoteId` y `quoteVersion`
-- `QUOTE_REQUIRED`, `QUOTE_UNAVAILABLE` y `QUOTE_STALE` no mutan la reserva
-- stale exige re-quote y una segunda confirmación antes de update durable
+- La presentación, el código, el ordinal o el foco pueden identificar el target.
+- Canonical State determina si ese target sigue siendo accionable antes de crear
+  `pendingCancellation` y nuevamente antes de ejecutar la confirmación.
+- Un target inactivo recibe respuesta de inactividad sin invocar el provider.
+- La cancelación normal de un target activo preserva su flujo existente.
 ```
 
 ---
@@ -94,7 +104,7 @@ runtime_map_refresh:
 ## Advertencia de uso
 
 Este snapshot es válido para el hito
-`FIX-RUNTIME-RESERVATION-MODIFY-REPRICE-CONSISTENCY-01`.
+`FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`.
 
 ```text
 box_id = estable
@@ -108,12 +118,13 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline actualizada al commit `63045d886fa3410e60bfa428b9b92feb69d768d0`
+1. Baseline actualizada al commit `e87cd783a7738a31d18ff0f32cee68039146565c`
 2. Rangos top-level de `messageHandler.ts` recalculados
 3. Auditoría de cajas incorporada con veredicto `valid`
 4. code index y box index alineados al scan actual
-5. refresh documental de modify quote, validación provider y continuidad
-   conversacional de quote sin desplazar la autoridad económica al runtime
+5. refresh documental de la revalidación de cancel contra Canonical State antes
+   de pending y confirmación, preservando la presentación sólo como evidencia
+   derivada de identificación
 ```
 
 ---

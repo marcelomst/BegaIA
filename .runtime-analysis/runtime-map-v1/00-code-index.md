@@ -60,11 +60,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 63045d886fa3410e60bfa428b9b92feb69d768d0
-messageHandler_lines: 13029
+commit_base: e87cd783a7738a31d18ff0f32cee68039146565c
+messageHandler_lines: 13073
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_63045d886fa3410e60bfa428b9b92feb69d768d0
-baseline_status: runtime_modify_reprice_consistency_validated
+analysis_scope: commit_e87cd783a7738a31d18ff0f32cee68039146565c
+baseline_status: runtime_cancel_canonical_target_validation_validated
 known_manual_bug: none
 ```
 
@@ -73,7 +73,9 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-pnpm test:core: 187 files, 1063 tests PASS
+focused tests: 120 tests PASS
+result: pass
+pnpm test:core: 188 files, 1073 tests PASS
 result: pass
 pnpm run ts-check
 result: pass
@@ -85,9 +87,31 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada de integridad de precio en modify
-con quote de provider, pero no elimina el riesgo de futuros bugs funcionales
-fuera de cobertura.
+Este refresh documenta una corrección acotada de revalidación canónica en
+cancel, pero no elimina el riesgo de futuros bugs funcionales fuera de
+cobertura.
+```
+
+---
+
+## Evidencia actual: cancel con target canónico
+
+La referencia obtenida por código, ordinal, presentación o foco conserva valor
+para identificar un candidato. Antes de crear `pendingCancellation` y antes de
+ejecutar su confirmación, el corredor de cancel revalida ese candidato contra
+Canonical State. Un target inactivo responde sin provider; un target activo
+conserva el flujo normal de cancelación.
+
+```yaml
+hito_id: FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01
+box_id: runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+code_refs:
+  canonical_read_path: L2451-L2533
+  inactive_reply: L1433-L1439
+  pending_creation_guard: L9798-L9810
+  pending_confirmation_guard: L9826-L9838
+  resolved_target_guard: L9948-L9959
+invariant: lastPresentedReservations_identifies_only; Canonical_State_decides_actionability
 ```
 
 ---
@@ -141,7 +165,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13029
+total_lines: 13073
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -150,7 +174,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-RESERVATION-MODIFY-REPRICE-CONSISTENCY-01`.
+del hito `FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`.
 ```
 
 ---
@@ -167,10 +191,10 @@ del hito `FIX-RUNTIME-RESERVATION-MODIFY-REPRICE-CONSISTENCY-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4737-L4949 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5608-L12165 |   6558 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12660-L12701 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12705-L12713 |      9 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4745-L5615 |    871 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5616-L12703 |   7088 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12704-L12748 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12749-L13073 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 

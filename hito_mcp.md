@@ -13348,3 +13348,51 @@ Impacto:
 - evita borrado accidental de reservas durables del Channel Manager demo/local
 - mantiene un único target de borrado explícito, controlado por hotel y entorno
 - no altera runtime conversacional ni arquitectura viva
+
+### FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-22
+Commit: e87cd783a7738a31d18ff0f32cee68039146565c
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Revalida contra Canonical State el target de cancel identificado por código,
+ordinal, presentación o foco antes de crear `pendingCancellation` y antes de
+ejecutar la confirmación. La evidencia de presentación conserva sólo el rol de
+identificación derivada; Canonical State determina la accionabilidad antes de
+efectos transaccionales.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.reference_resolution.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`; refresh aplicado con `box_id` preservado
+- ordinal stale cancelado bloqueado sin invocar provider
+- ordinal alternativo activo preservado
+- `pendingCancellation` revalidada al confirmar
+- cancelación activa normal preservada
+- tests reportados en verde:
+  `120 tests PASS`
+  `pnpm run ts-check`
+  `pnpm test:core: 188 files, 1073 tests PASS`
+  `git diff --check`
+- `roadmap_impact: none`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- fortalece la jerarquía canónica: la referencia derivada no autoriza una
+  cancelación
+- evita efectos transaccionales sobre targets que dejaron de ser accionables
+- no introduce arquitectura ni cajas conceptuales nuevas
