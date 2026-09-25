@@ -39,18 +39,16 @@ Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus r
 Para el hito actual:
 
 ```yaml
-code_refs_status: fresh_for_impacted_boxes
+code_refs_status: fresh_for_top_level_scan; needs_refresh_for_internal_ranges
 runtime_map_refresh_required: true
 ```
 
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- se documenta el quote obligatorio de provider para modify
-- la confirmación se vincula a `quoteId` y `quoteVersion`
-- stale obliga re-quote y segunda confirmación antes de update durable
-- `conv_state` conserva continuidad de quote y no calcula ni autoriza precios
-- se preservan cajas relacionadas como revisadas, no como cajas tocadas fuera de auditoría
+- los rangos internos no entregados por Guardian permanecen `needs_refresh`
+- se preservan los `box_id` y el mapa conceptual
+- se registran las cajas tocadas y revisadas sin ampliar el alcance técnico
 
 ---
 
@@ -60,11 +58,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c578a5272f21d763fbe286751934b853a24de13f
-messageHandler_lines: 13176
+commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+messageHandler_lines: 13204
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
-baseline_status: runtime_reservation_temporal_context_operability_validated
+analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
+baseline_status: runtime_create_complete_word_date_range_ingress_validated
 known_manual_bug: none
 ```
 
@@ -73,13 +71,13 @@ known_manual_bug: none
 ## Suite local informada
 
 ```text
-focused tests: 124 tests PASS
+focal Guardian: 20/20 PASS
 result: pass
-pnpm test:core: 188 files, 1077 tests PASS
+paridad reportada: 66/66 PASS
 result: pass
-pnpm run ts-check
+core reportado: 1086/1086 PASS
 result: pass
-git diff --check
+ts-check
 result: pass
 ```
 
@@ -87,30 +85,30 @@ Nota:
 
 ```text
 Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada de contexto temporal y
-operabilidad de reservas, pero no elimina el riesgo de futuros bugs funcionales
+Este refresh documenta una corrección acotada del ingreso de rangos de fechas
+en `reservation.create`, pero no elimina el riesgo de futuros bugs funcionales
 fuera de cobertura.
 ```
 
 ---
 
-## Evidencia actual: contexto temporal y operabilidad
+## Evidencia actual: ingreso de rango temporal en reservation.create
 
-La lista visible y `lastPresentedReservations` comparten el mismo universo
-canónicamente elegible y orden temporal. Un registro que no fue visible no se
-resuelve por ordinal desde esa presentación. El contexto temporal se deriva de
-fechas con timezone hotel/UTC y no altera status material ni crea rechazo
-temporal universal; modify y cancel conservan la decisión operativa del
-provider y cancel mantiene su revalidación canónica.
+`reservation.create` rechaza fechas calendario imposibles antes de
+availability/propuesta y preserva un `checkOut` válido al reparar `checkIn` en
+flujos multi-turno con historial y Chrono.
 
 ```yaml
-hito_id: FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01
-code_refs:
-  canonical_state: L2451-L2534
-  presented_reference_order: L2507-L2520
-  temporal_contract: L2597-L2874
-  list_and_snapshot_paths: L7939-L8010, L10660-L10722
-invariant: visible_context_is_reference_only; provider_decides_material_operability
+hito_id: FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
+runtime_boxes_touched:
+  - runtime.messageHandler.bodyLLM.turnDecision
+  - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+top_level_code_refs:
+  preLLM: L4860-L5730
+  bodyLLM: L5731-L12834
+  posLLM: L12835-L12879
+  handleIncomingMessage: L12880-L13204
+internal_code_refs_status: needs_refresh
 ```
 
 ---
@@ -119,7 +117,7 @@ invariant: visible_context_is_reference_only; provider_decides_material_operabil
 
 `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
 contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
-conservan como evidencia histórica porque la baseline actual `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`
+conservan como evidencia histórica porque la baseline actual `efc11b21eb1aabbe881250d6fe0556ba16b113c3`
 es posterior.
 
 ```yaml
@@ -164,7 +162,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13176
+total_lines: 13204
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -173,7 +171,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`.
+del hito `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
 ```
 
 ---
@@ -190,10 +188,10 @@ del hito `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`.
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4835-L5705 |    871 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5706-L12806 |   7101 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12807-L12851 |     45 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12852-L13176 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4860-L5730 |    871 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5731-L12834 |   7104 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12835-L12879 |     45 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12880-L13204 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -203,7 +201,7 @@ del hito `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12705-L12713
+range: L12880-L13204
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -222,8 +220,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4737-L4949
-lines: 213
+range: L4860-L5730
+lines: 871
 confidence: high
 role: context_preparation
 ```
@@ -244,8 +242,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5608-L12165
-lines: 6558
+range: L5731-L12834
+lines: 7104
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -274,7 +272,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12660-L12701
+range: L12835-L12879
 lines: 45
 confidence: high
 role: post_runtime_verification
@@ -467,11 +465,14 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5608-L12165
-bodyLLM_lines: 6558
+bodyLLM_range: L5731-L12834
+bodyLLM_lines: 7104
 bucket_size: 250
-confidence: high_for_full_range
+confidence: needs_refresh_for_internal_buckets
 ```
+
+Los buckets siguientes son evidencia histórica y no constituyen referencias
+exactas para el commit actual. Guardian sólo recalculó los rangos top-level.
 
 Tabla de buckets:
 

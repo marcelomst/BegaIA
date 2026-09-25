@@ -21,18 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c578a5272f21d763fbe286751934b853a24de13f
-messageHandler_lines: 13176
+commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+messageHandler_lines: 13204
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
+analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
 suite_status_reported: targeted_green
 suite_reported:
   commands:
-    - focused tests: 124 tests PASS
-    - pnpm test:core: 188 files, 1077 tests PASS
+    - focal Guardian: 20/20 PASS
+    - paridad reportada: 66/66 PASS
+    - core reportado: 1086/1086 PASS
   full_suite:
-    - pnpm run ts-check
-    - git diff --check
+    - ts-check: PASS
 known_manual_bug: none
 ```
 
@@ -41,23 +41,22 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - canonicalReservationReadPath
-    - reservationSnapshot
-    - reservationReferenceResolution
-    - turnDecision
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
-    - modifyReservation
-    - cancelReservation
-    - canonical cancellation revalidation
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `124 tests dirigidos`
-      - `1077 tests core`
-      - `pnpm run ts-check`
-      - `git diff --check`
+      - `focal Guardian 20/20 PASS`
+      - `paridad reportada 66/66 PASS`
+      - `core reportado 1086/1086 PASS`
+      - `ts-check PASS`
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -65,24 +64,20 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: c578a5272f21d763fbe286751934b853a24de13f
-    messageHandler_lines: 13176
+    commit: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+    messageHandler_lines: 13204
     functions:
-      preLLM: L4835-L5705
-      bodyLLM: L5706-L12806
-      posLLM: L12807-L12851
-      handleIncomingMessage: L12852-L13176
-    relevant_refs:
-      canonical_state: L2451-L2534
-      presented_reference_order: L2507-L2520
-      temporal_contract: L2597-L2874
-      list_and_snapshot_paths: L7939-L8010, L10660-L10722
+      preLLM: L4860-L5730
+      bodyLLM: L5731-L12834
+      posLLM: L12835-L12879
+      handleIncomingMessage: L12880-L13204
+    internal_code_refs_status: needs_refresh
 ```
 
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan vigente de `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`,
+sin reemplazar el scan vigente de `efc11b21eb1aabbe881250d6fe0556ba16b113c3`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -124,10 +119,10 @@ validation:
 | `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
 | `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
 | `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4835-L5705 |    871 | high      |
-| `bodyLLM`                            | L5706-L12806 |   7101 | high      |
-| `posLLM`                             | L12807-L12851 |     45 | high      |
-| `handleIncomingMessage`              | L12852-L13176 |    325 | high      |
+| `preLLM`                             | L4860-L5730 |    871 | high      |
+| `bodyLLM`                            | L5731-L12834 |   7104 | high      |
+| `posLLM`                             | L12835-L12879 |     45 | high      |
+| `handleIncomingMessage`              | L12880-L13204 |    325 | high      |
 
 ---
 
@@ -136,8 +131,8 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13176 líneas
-bodyLLM:                7101 líneas
+messageHandler.ts total: 13204 líneas
+bodyLLM:                7104 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -508,8 +503,8 @@ risk_tags:
 
 ## Rangos tentativos por caja conceptual
 
-Estos rangos NO son definitivos.
-Sirven como primera asociación entre mapa humano y evidencia de código.
+Los rangos top-level siguientes fueron recalculados por Guardian. Los rangos
+internos posteriores siguen siendo tentativos y requieren refresh específico.
 
 Los `box_id` definitivos se crearán en FASE 4.
 
@@ -522,7 +517,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L11007
+    range: L1-L13204
     confidence: high
 ```
 
@@ -535,7 +530,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4279-L4528
+    range: L4860-L5730
     confidence: high
 ```
 
@@ -554,7 +549,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5608-L12165
+    range: L5731-L12834
     confidence: high
 ```
 
@@ -573,7 +568,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12660-L12701
+    range: L12835-L12879
     confidence: high
 ```
 
@@ -592,7 +587,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L11702-L12026
+    range: L12880-L13204
     confidence: high
 ```
 
@@ -605,6 +600,10 @@ Entrada pública al runtime conversacional.
 ---
 
 ## Rangos tentativos internos de bodyLLM
+
+Los rangos de esta sección son evidencia histórica y permanecen
+`needs_refresh`; no deben usarse como referencias físicas exactas del commit
+actual.
 
 ### Zona A — Fast paths iniciales / structured analyze / create temporal
 

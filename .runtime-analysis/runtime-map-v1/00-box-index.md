@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c578a5272f21d763fbe286751934b853a24de13f
-messageHandler_lines: 13176
+commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+messageHandler_lines: 13204
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
-baseline_status: runtime_reservation_temporal_context_operability_validated
+analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
+baseline_status: runtime_create_complete_word_date_range_ingress_validated
 known_manual_bug: none
 ```
 
@@ -56,23 +56,22 @@ known_manual_bug: none
 ```yaml
 runtime_boxes_audit:
   touched:
-    - canonicalReservationReadPath
-    - reservationSnapshot
-    - reservationReferenceResolution
-    - turnDecision
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
-    - modifyReservation
-    - cancelReservation
-    - canonical cancellation revalidation
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - `124 tests dirigidos`
-      - `1077 tests core`
-      - `pnpm run ts-check`
-      - `git diff --check`
+      - `focal Guardian 20/20 PASS`
+      - `paridad reportada 66/66 PASS`
+      - `core reportado 1086/1086 PASS`
+      - `ts-check PASS`
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -83,7 +82,7 @@ runtime_boxes_audit:
 El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 conserva los `box_id` existentes. La evidencia se refiere al commit
 `3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
-mantiene en su descendiente `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`.
+mantiene en su descendiente `efc11b21eb1aabbe881250d6fe0556ba16b113c3`.
 
 ```yaml
 historical_audit:
@@ -177,7 +176,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L13029
+        range: L1-L13204
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -205,7 +204,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12705-L12713
+        range: L12880-L13204
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -235,7 +234,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4737-L4949
+        range: L4860-L5730
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -270,7 +269,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5706-L12806
+        range: L5731-L12834
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -346,7 +345,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5706-L12806
+        range: L5731-L12834
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -381,7 +380,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5706-L12806
+        range: L5731-L12834
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -859,7 +858,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12660-L12701
+        range: L12835-L12879
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

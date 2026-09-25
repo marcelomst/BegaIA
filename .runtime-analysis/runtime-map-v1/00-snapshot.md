@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c578a5272f21d763fbe286751934b853a24de13f
-messageHandler_lines: 13176
+commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+messageHandler_lines: 13204
 working_tree_status: clean_after_technical_commit
-analysis_scope: commit_c578a5272f21d763fbe286751934b853a24de13f
+analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
 ```
 
 ---
@@ -27,13 +27,13 @@ working tree limpio; documentación pendiente al momento del cierre HDOC
 ## Suite local informada
 
 ```text
-pnpm test:core: 188 files, 1077 tests PASS
+focal Guardian: 20/20 PASS
 result: pass
-focused tests: 124 tests PASS
+paridad reportada: 66/66 PASS
 result: pass
-pnpm run ts-check
+core reportado: 1086/1086 PASS
 result: pass
-git diff --check
+ts-check
 result: pass
 ```
 
@@ -44,23 +44,22 @@ result: pass
 ```yaml
 runtime_boxes_audit:
   touched:
-    - canonicalReservationReadPath
-    - reservationSnapshot
-    - reservationReferenceResolution
-    - turnDecision
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   reviewed:
-    - modifyReservation
-    - cancelReservation
-    - canonical cancellation revalidation
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - 124 tests dirigidos
-      - 1077 tests core
-      - pnpm run ts-check
-      - git diff --check
+      - focal Guardian 20/20 PASS
+      - paridad reportada 66/66 PASS
+      - core reportado 1086/1086 PASS
+      - ts-check PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -75,31 +74,24 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: c578a5272f21d763fbe286751934b853a24de13f
-    messageHandler_lines: 13176
+    commit: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+    messageHandler_lines: 13204
     functions:
-      preLLM: L4835-L5705
-      bodyLLM: L5706-L12806
-      posLLM: L12807-L12851
-      handleIncomingMessage: L12852-L13176
-    relevant_refs:
-      canonical_state: L2451-L2534
-      presented_reference_order: L2507-L2520
-      temporal_contract: L2597-L2874
-      list_and_snapshot_paths: L7939-L8010, L10660-L10722
+      preLLM: L4860-L5730
+      bodyLLM: L5731-L12834
+      posLLM: L12835-L12879
+      handleIncomingMessage: L12880-L13204
+    internal_code_refs_status: needs_refresh
 ```
 
 ### Resultado esperado ahora preservado
 
 ```text
-- La lista visible y `lastPresentedReservations` usan el mismo universo canónicamente
-  elegible y el mismo orden temporal.
-- Un registro no visible queda excluido de `lastPresentedReservations` y no puede
-  resolverse mediante un ordinal de esa presentación.
-- La temporalidad se deriva de fechas con timezone hotel/UTC; no cambia status
-  material ni crea rechazo temporal universal.
-- Modify y cancel de reservas históricas conservan la decisión operativa del
-  provider; cancel mantiene su revalidación canónica.
+- `reservation.create` rechaza fechas calendario imposibles antes de
+  availability/propuesta.
+- La reparación de `checkIn` preserva un `checkOut` válido en flujos multi-turno
+  con historial y Chrono.
+- Availability, modify, cancel y snapshot fueron revisados sin quedar tocados.
 ```
 
 ---
@@ -107,7 +99,7 @@ runtime_map_refresh:
 ## Advertencia de uso
 
 Este snapshot es válido para el hito
-`FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`.
+`FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
 
 ```text
 box_id = estable
@@ -121,12 +113,12 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline actualizada al commit `c578a5272f21d763fbe286751934b853a24de13f`
+1. Baseline actualizada al commit `efc11b21eb1aabbe881250d6fe0556ba16b113c3`
 2. Rangos top-level de `messageHandler.ts` recalculados
 3. Auditoría de cajas incorporada con veredicto `valid`
-4. code index y box index alineados al scan actual
-5. refresh documental del contrato temporal de presentación y su separación del
-   estado material del provider, manteniendo el contexto como referencia derivada
+4. `box_id` preservados; referencias internas no recalculadas marcadas
+   `needs_refresh`
+5. Refresh documental acotado a referencias físicas, sin cambio conceptual
 ```
 
 ---
@@ -135,7 +127,7 @@ Refresh aplicado:
 
 El hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 corresponde al commit `3bb821a3240fcf92aebae3424ebde4ba92699780`, antecesor de
-la baseline actual `0b8543ac6bc7c64cdb52fc5a7832d2294bb5e26f`. Se conserva el
+la baseline actual `efc11b21eb1aabbe881250d6fe0556ba16b113c3`. Se conserva el
 snapshot vigente y se registra la evidencia histórica del hito diferido.
 
 ```yaml

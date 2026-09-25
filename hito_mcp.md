@@ -13449,3 +13449,50 @@ Impacto:
 - evita que una referencia ordinal visible autorice una operación transaccional
 - aporta evidencia para la futura decisión AGPT sobre deuda residual de
   Canonical State, sin declararla cerrada
+
+### FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
+
+Estado: COMPLETADO
+Fecha: 2026-09-25
+Commit: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige de forma acotada `reservation.create` para rechazar fechas calendario
+imposibles antes de availability/propuesta y preservar un `checkOut` válido al
+reparar `checkIn` en flujos multi-turno con historial y Chrono.
+
+Archivos afectados:
+
+- `lib/handlers/messageHandler.ts`
+- `test/unit/messageHandler.create_word_dates_no_year.spec.ts`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Validacion:
+
+- commit técnico y push verificados sobre `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `runtime_map.applies: true`; refresh documental de code refs aplicado
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.turnDecision` y
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- availability inquiry, modify, cancel y snapshot revisados sin quedar tocados
+- cajas prohibidas o no declaradas tocadas: ninguna
+- tests de paridad presentes:
+  `focal Guardian 20/20 PASS`, `paridad 66/66 PASS`,
+  `core 1086/1086 PASS` y `ts-check PASS`
+- rangos top-level recalculados para `messageHandler.ts` de 13204 líneas;
+  referencias internas no entregadas por Guardian conservadas como
+  `needs_refresh`
+- `roadmap_impact: none`
+- veredicto Guardian: `valid`
+
+Impacto:
+
+- preserva la validación calendario y el estado canónicos existentes
+- evita consultar disponibilidad o proponer reservas con fechas imposibles
+- mantiene un único runtime y no introduce cajas ni reglas conceptuales nuevas
