@@ -5,6 +5,8 @@ let currentState: any = null;
 let guestRecord: any = null;
 let lastAvailabilityGuestSnapshot: { name?: string; firstName?: string } | null = null;
 let lastAvailabilitySlotsSnapshot: Record<string, unknown> | null = null;
+let persistedMessages: any[] = [];
+let usePersistedHistory = false;
 
 const runAvailabilityCheckMock = vi.hoisted(() =>
   vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => {
@@ -37,9 +39,28 @@ const runAvailabilityCheckMock = vi.hoisted(() =>
   })
 );
 
+const agentGraphInvokeMock = vi.hoisted(() =>
+  vi.fn(async () => ({
+    messages: [{ role: "assistant", content: "Respuesta base" }],
+    category: "reservation",
+    meta: {},
+  }))
+);
+
+const confirmAndCreateMock = vi.hoisted(() =>
+  vi.fn(async () => ({ ok: true, reservationId: "R-WORD-DATES-01", message: "ok" }))
+);
+
 vi.mock("@/lib/db/messages", () => ({
-  saveChannelMessageToAstra: vi.fn(async () => {}),
-  getMessagesByConversation: vi.fn(async () => []),
+  saveChannelMessageToAstra: vi.fn(async (message: any) => {
+    persistedMessages.push({ ...message });
+  }),
+  getMessagesByConversation: vi.fn(async ({ hotelId, conversationId, limit }: any) => {
+    if (!usePersistedHistory) return [];
+    return persistedMessages
+      .filter((message) => message.hotelId === hotelId && message.conversationId === conversationId)
+      .slice(-limit);
+  }),
 }));
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
@@ -73,11 +94,7 @@ vi.mock("@/lib/db/convState", () => ({
 }));
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
-    invoke: vi.fn(async () => ({
-      messages: [{ role: "assistant", content: "Respuesta base" }],
-      category: "reservation",
-      meta: {},
-    })),
+    invoke: agentGraphInvokeMock,
   },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
@@ -86,7 +103,7 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   }),
 }));
 vi.mock("@/lib/agents/reservations", () => ({
-  confirmAndCreate: vi.fn(async () => ({ ok: true, reservationId: "R-WORD-DATES-01", message: "ok" })),
+  confirmAndCreate: confirmAndCreateMock,
   modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
 }));
 vi.mock("@/lib/handlers/pipeline/availability", async () => {
@@ -135,6 +152,14 @@ function restoreEnv(name: string, value: string | undefined) {
   process.env[name] = value;
 }
 
+function testCalendarDate(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function testSystemTime(year = 2026, monthIndex = 8, day = 24): Date {
+  return new Date(Date.UTC(year, monthIndex, day, 15));
+}
+
 function msg(content: string, channel: "web" | "email" | "whatsapp" = "web", detectedLanguage: "es" | "pt" | "en" = "es") {
   return {
     messageId: `m-${Math.random().toString(36).slice(2, 8)}`,
@@ -166,6 +191,8 @@ describe("messageHandler create word dates without explicit year", () => {
     guestRecord = null;
     lastAvailabilityGuestSnapshot = null;
     lastAvailabilitySlotsSnapshot = null;
+    persistedMessages = [];
+    usePersistedHistory = false;
     vi.clearAllMocks();
   });
 
@@ -375,6 +402,339 @@ describe("messageHandler create word dates without explicit year", () => {
     expect(replies[0] || "").toMatch(/doble disponible/i);
     expect(replies[0] || "").toMatch(/Pep Guardiola/i);
     expect(replies.some((text) => /confirmarme también la fecha de check-?out|fecha de check-?out|Anot[eé] nuevas fechas|posibles diferencias/i.test(text))).toBe(false);
+  });
+
+  it("cotiza y persiste create completo aunque el rango válido no coincida con el guard de trazas", async () => {
+    const prevUseGraph = process.env.USE_MH_FLOW_GRAPH;
+    const prevUsePrePos = process.env.USE_PRE_POS_PIPELINE;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime(2026, 8, 22));
+    const dates = futureMonthDayReservationRange(11, 10, 15);
+    process.env.USE_MH_FLOW_GRAPH = "true";
+    process.env.USE_PRE_POS_PIPELINE = "0";
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          "Quiero hacer una reserva para el 10 de noviembre hasta el 15, a nombre de Jorge Lopez, una doble para dos personas",
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      const firstReply = lastReply(sendReply);
+      expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+      expect(agentGraphInvokeMock).not.toHaveBeenCalled();
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(firstReply).toMatch(/tengo doble disponible para Jorge Lopez/i);
+      expect(firstReply).not.toMatch(/fecha de check-?out|fecha de check-?in|tipo de habitaci[oó]n|cantidad de hu[eé]spedes/i);
+      expect(currentState).toMatchObject({
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "quote",
+        conversationStage: "reservation_quoted",
+        reservationSlots: {
+          checkIn: dates.checkInISO,
+          checkOut: dates.checkOutISO,
+          numGuests: "2",
+          roomType: "double",
+          guestName: "Jorge Lopez",
+        },
+      });
+
+      await handleIncomingMessage(msg("15 de noviembre", "web", "es"), {
+        mode: "automatic",
+        sendReply,
+      });
+
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkIn: dates.checkInISO,
+        checkOut: dates.checkOutISO,
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Jorge Lopez",
+      });
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+      restoreEnv("USE_MH_FLOW_GRAPH", prevUseGraph);
+      restoreEnv("USE_PRE_POS_PIPELINE", prevUsePrePos);
+    }
+  });
+
+  it("rechaza el caso Guardian 31 de noviembre sin consultar disponibilidad ni generar propuesta", async () => {
+    const guardianYear = 2026;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime(guardianYear));
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          `Quiero reservar una doble para dos personas del 31 de noviembre al 3 de diciembre de ${guardianYear}, a nombre de Laura Perez.`,
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      const replyText = lastReply(sendReply);
+      expect(replyText).toMatch(/fecha de check-?in no es v[aá]lida/i);
+      expect(replyText).not.toMatch(/disponible|confirm[aá]s la reserva/i);
+      expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(currentState).toMatchObject({
+        salesStage: "qualify",
+        reservationSlots: {
+          checkOut: testCalendarDate(guardianYear, 12, 3),
+          numGuests: "2",
+          roomType: "double",
+          guestName: "Laura Perez",
+        },
+        lastProposal: null,
+      });
+      expect(currentState?.reservationSlots?.checkIn).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([
+    {
+      name: "check-in imposible",
+      text: `Quiero reservar una doble para dos personas del 31 de abril de ${2027} al 3 de mayo de ${2027}, a nombre de Laura Perez.`,
+      invalidField: "checkIn",
+      preservedField: "checkOut",
+      preservedValue: testCalendarDate(2027, 5, 3),
+    },
+    {
+      name: "check-out imposible",
+      text: `Quiero reservar una doble para dos personas del 28 de noviembre de ${2026} al 31 de noviembre de ${2026}, a nombre de Laura Perez.`,
+      invalidField: "checkOut",
+      preservedField: "checkIn",
+      preservedValue: testCalendarDate(2026, 11, 28),
+    },
+    {
+      name: "29 de febrero en año no bisiesto",
+      text: `Quiero reservar una doble para dos personas del 28 de febrero de ${2027} al 29 de febrero de ${2027}, a nombre de Laura Perez.`,
+      invalidField: "checkOut",
+      preservedField: "checkIn",
+      preservedValue: testCalendarDate(2027, 2, 28),
+    },
+  ] as const)("rechaza $name y preserva los slots válidos", async ({ text, invalidField, preservedField, preservedValue }) => {
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime());
+
+    try {
+      await handleIncomingMessage(msg(text, "web", "es"), { mode: "automatic", sendReply });
+
+      expect(lastReply(sendReply)).toMatch(new RegExp(`fecha de ${invalidField === "checkIn" ? "check-?in" : "check-?out"} no es v[aá]lida`, "i"));
+      expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(currentState?.reservationSlots?.[invalidField]).toBeUndefined();
+      expect(currentState?.reservationSlots?.[preservedField]).toBe(preservedValue);
+      expect(currentState?.reservationSlots).toMatchObject({
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("acepta 29 de febrero en año bisiesto", async () => {
+    const leapYear = 2028;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime());
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          `Quiero reservar una doble para dos personas del 28 de febrero de ${leapYear} al 29 de febrero de ${leapYear}, a nombre de Laura Perez.`,
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).toMatch(/doble disponible para Laura Perez/i);
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkIn: testCalendarDate(leapYear, 2, 28),
+        checkOut: testCalendarDate(leapYear, 2, 29),
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("acepta la corrección del check-in inválido y cotiza preservando los demás slots", async () => {
+    const guardianYear = 2026;
+    const prevUseChrono = process.env.USE_CHRONO_LAYER;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime(guardianYear));
+    usePersistedHistory = true;
+    process.env.USE_CHRONO_LAYER = "1";
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          `Quiero reservar una doble para dos personas del 31 de noviembre al 3 de diciembre de ${guardianYear}, a nombre de Laura Perez.`,
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkOut: testCalendarDate(guardianYear, 12, 3),
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+
+      await handleIncomingMessage(msg(`30 de noviembre de ${guardianYear}`, "web", "es"), {
+        mode: "automatic",
+        sendReply,
+      });
+
+      expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).toMatch(/doble disponible para Laura Perez/i);
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkIn: testCalendarDate(guardianYear, 11, 30),
+        checkOut: testCalendarDate(guardianYear, 12, 3),
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+    } finally {
+      vi.useRealTimers();
+      restoreEnv("USE_CHRONO_LAYER", prevUseChrono);
+    }
+  });
+
+  it("preserva el check-out al corregir un 29 de febrero inválido en año no bisiesto", async () => {
+    const nonLeapYear = 2027;
+    const prevUseChrono = process.env.USE_CHRONO_LAYER;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime());
+    usePersistedHistory = true;
+    process.env.USE_CHRONO_LAYER = "1";
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          `Quiero reservar una doble para dos personas del 29 de febrero al 3 de marzo de ${nonLeapYear}, a nombre de Laura Perez.`,
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      expect(lastReply(sendReply)).toMatch(/fecha de check-?in no es v[aá]lida/i);
+      expect(runAvailabilityCheckMock).not.toHaveBeenCalled();
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkOut: testCalendarDate(nonLeapYear, 3, 3),
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+      expect(currentState?.reservationSlots?.checkIn).toBeUndefined();
+
+      await handleIncomingMessage(msg("27 de febrero", "web", "es"), {
+        mode: "automatic",
+        sendReply,
+      });
+
+      expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).toMatch(/doble disponible para Laura Perez/i);
+      expect(currentState?.reservationSlots).toMatchObject({
+        checkIn: testCalendarDate(nonLeapYear, 2, 27),
+        checkOut: testCalendarDate(nonLeapYear, 3, 3),
+        numGuests: "2",
+        roomType: "double",
+        guestName: "Laura Perez",
+      });
+    } finally {
+      vi.useRealTimers();
+      restoreEnv("USE_CHRONO_LAYER", prevUseChrono);
+    }
+  });
+
+  it("no usa el fast-path create persistente sobre contexto de reserva confirmada", async () => {
+    const contextYear = 2026;
+    const sendReply = vi.fn(async () => {});
+    vi.useFakeTimers();
+    vi.setSystemTime(testSystemTime(contextYear));
+    currentState = {
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      lastCategory: "reservation",
+      lastReservation: {
+        reservationId: "R-CONFIRMED-01",
+        status: "created",
+        checkIn: testCalendarDate(contextYear, 10, 10),
+        checkOut: testCalendarDate(contextYear, 10, 12),
+        roomType: "double",
+        numGuests: "2",
+        guestName: "Laura Perez",
+      },
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "R-CONFIRMED-01",
+        updatedAt: new Date().toISOString(),
+      },
+      reservationSlots: {
+        checkIn: testCalendarDate(contextYear, 10, 10),
+        checkOut: testCalendarDate(contextYear, 10, 12),
+        roomType: "double",
+        numGuests: "2",
+        guestName: "Laura Perez",
+        locale: "es",
+      },
+    };
+
+    try {
+      await handleIncomingMessage(
+        msg(
+          "Quiero hacer una reserva para el 10 de noviembre hasta el 15, a nombre de Jorge Lopez, una doble para dos personas",
+          "web",
+          "es"
+        ),
+        { mode: "automatic", sendReply }
+      );
+
+      expect(runAvailabilityCheckMock).toHaveBeenCalledTimes(1);
+      expect(runAvailabilityCheckMock).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          checkIn: testCalendarDate(contextYear, 11, 10),
+          checkOut: testCalendarDate(contextYear, 11, 15),
+          guestName: "Jorge Lopez",
+        }),
+        testCalendarDate(contextYear, 11, 10),
+        testCalendarDate(contextYear, 11, 15),
+        { persistConvState: false }
+      );
+      expect(confirmAndCreateMock).not.toHaveBeenCalled();
+      expect(currentState?.lastReservation?.reservationId).toBe("R-CONFIRMED-01");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("resuelve variante PT con 'até' y cotiza sin pedir check-out", async () => {

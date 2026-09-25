@@ -1652,7 +1652,7 @@ type CreateDraftConsistencyResult =
   | { valid: true; sanitizedSlots: ReservationSlotsStrict }
   | {
       valid: false;
-      reason: "room_capacity" | "date_coherence" | "past_checkin";
+      reason: "room_capacity" | "date_coherence" | "invalid_calendar_date" | "past_checkin";
       sanitizedSlots: ReservationSlotsStrict;
       message: string;
     };
@@ -1738,6 +1738,19 @@ function validateCreateDraftConsistency(
   slots: ReservationSlotsStrict
 ): CreateDraftConsistencyResult {
   const sanitizedSlots = { ...slots };
+  const invalidCheckIn = Boolean(slots.checkIn && !normalizeReservationCalendarDate(slots.checkIn));
+  const invalidCheckOut = Boolean(slots.checkOut && !normalizeReservationCalendarDate(slots.checkOut));
+  if (invalidCheckIn || invalidCheckOut) {
+    if (invalidCheckIn) delete sanitizedSlots.checkIn;
+    if (invalidCheckOut) delete sanitizedSlots.checkOut;
+    const invalidField = invalidCheckIn ? "checkIn" : "checkOut";
+    return {
+      valid: false,
+      reason: "invalid_calendar_date",
+      sanitizedSlots,
+      message: buildInvalidCreateCalendarDateReply(lang, invalidField),
+    };
+  }
   if (slots.checkIn && isPastReservationCheckInISO(slots.checkIn)) {
     const rejectedCheckIn = slots.checkIn;
     delete sanitizedSlots.checkIn;
@@ -4608,6 +4621,18 @@ function buildInvalidReservationDatesReply(lang: "es" | "en" | "pt", reason: "ch
       : "Those dates look inconsistent. Check-out must be after check-in. Can you confirm them?";
 }
 
+function buildInvalidCreateCalendarDateReply(
+  lang: "es" | "en" | "pt",
+  field: "checkIn" | "checkOut"
+): string {
+  const label = field === "checkIn" ? "check-in" : "check-out";
+  return lang === "es"
+    ? `La fecha de ${label} no es válida. ¿Cuál sería la fecha correcta?`
+    : lang === "pt"
+      ? `A data de ${label} não é válida. Qual seria a data correta?`
+      : `The ${label} date is not valid. What is the correct date?`;
+}
+
 function buildInvalidCreateCheckOutReply(lang: "es" | "en" | "pt"): string {
   return lang === "es"
     ? "La fecha de check-out debe ser posterior al check-in. ¿Cuál sería la nueva fecha de check-out? (dd/mm/aaaa)"
@@ -6241,10 +6266,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       nextSlots,
       explicitTurnSlotsFast
     );
+    const hasConfirmedReservationContextFast = Boolean(
+      pre.st?.lastReservation?.reservationId ||
+      pre.st?.activeReservationContext?.kind === "reservation"
+    );
     const currentTurnReadyCreateFast =
       fastPathSubFlow === "create" &&
       explicitCreateIntentFast &&
-      isCreateWordDatesTraceCandidate(userTxtFast) &&
+      !hasConfirmedReservationContextFast &&
       isCreateStateReadyForQuote(currentTurnReadyCreateFastSlots as ReservationSlotsStrict);
     if (currentTurnReadyCreateFast) {
       const createDraftConsistency = validateCreateDraftConsistency(
@@ -6346,8 +6375,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       !drFast.checkOut &&
       !pre.st?.reservationSlots?.checkIn;
     const reservationContextualMissingSideFast =
-      createCheckInRepairContextFast &&
-      reservationContextualMissingSideFastRaw === "checkOut"
+      createCheckInRepairContextFast
         ? "checkIn"
         : reservationContextualMissingSideFastRaw;
     const singleFastISO = drFast.checkIn || drFast.checkOut;
