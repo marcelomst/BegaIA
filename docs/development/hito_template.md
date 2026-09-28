@@ -101,7 +101,30 @@ Si hay conflicto sobre cajas runtime, refrescar Runtime Map V1 antes de usar cod
 - `id`: <HITO_ID>
 - `agent_target`: <asistente_tecnico | repo_guardian | hdoc | arquitecto_sistema | arquitecto_kb>
 - `flow_position`: <analysis | implementation | audit | documentation>
+- `hito_type`: <tipo operativo del hito>
+- `hito_change_classification`: <existing_repo_change | external_operational_change>
 - `classification`: <runtime_bugfix | runtime_refactor | runtime_documentation | kb | ui | auth | docs | other>
+
+---
+
+### HITO CHANGE CLASSIFICATION
+
+Usar únicamente el contrato canónico de `system_operating_model.md`.
+
+```yaml
+hito_change_classification: existing_repo_change | external_operational_change
+```
+
+- `existing_repo_change` domina si el objetivo requiere al menos un cambio
+  material versionable, incluso cuando también incluye acciones externas.
+- `external_operational_change` sólo puede proponerse cuando el alcance material
+  es íntegramente externo y `hito_type` está expresamente permitido.
+- Inicialmente, el único tipo externo permitido es
+  `operating_environment_cutover`.
+- No existe categoría `mixed` ni fallback desde `missing` a `not_applicable`.
+
+Para `external_operational_change`, AGPT debe aportar autorización explícita;
+Guardian determina elegibilidad y HDOC sólo consume esa decisión.
 
 ---
 
@@ -161,6 +184,33 @@ manual_case:
   current_output: <respuesta incorrecta>
   expected_output: <respuesta esperada>
 ```
+
+Para `external_operational_change`, incluir obligatoriamente:
+
+```yaml
+hito_id: <id>
+hito_type: operating_environment_cutover
+hito_change_classification: external_operational_change
+explicit_not_applicable_reason: <motivo objetivo>
+external_material_scope: <alcance íntegramente externo>
+affected_external_resources: <recursos>
+sanitized_before_evidence: <evidencia verificable sin secretos>
+sanitized_after_evidence: <evidencia verificable sin secretos>
+repository_baseline_head: <hash de baseline; nunca identidad del hito>
+repository_working_tree_before: <estado>
+repository_working_tree_after: <estado>
+repository_integrity_result: <resultado>
+validations_performed: <validaciones>
+validations_result: <resultado>
+agpt_transition_authorization: <autorización>
+human_responsible_for_external_actions: <responsable>
+guardian_verdict: <pending hasta auditoría | valid | invalid | split_required>
+rollback_plan_or_explicit_irreversibility_assessment: <plan o evaluación>
+```
+
+Nunca incluir secretos, tokens o valores sensibles sin sanitizar. No usar
+`repository_baseline_head`, `origin/main` ni `working_tree_clean` como sustituto
+de commit, push o hash técnico.
 
 ---
 
@@ -501,6 +551,11 @@ Debe responder usando este formato:
 10. READY_FOR_HDOC
 ```
 
+`COMMIT SUGERIDO` se transporta como `commit_name_sugerido` y nombra el
+documentation commit posterior a la preparación de HDOC. No representa el
+technical commit y permanece aplicable cuando un `external_operational_change`
+produce documentación versionada.
+
 Debe verificar:
 
 ```text
@@ -510,21 +565,29 @@ Debe verificar:
 - cajas prohibidas respetadas
 - ausencia de refactor encubierto
 - pureza del hito
+- hito_change_classification y dominancia de existing_repo_change
+- estados técnicos present | not_applicable | pending | missing | failed
+- pending, missing y failed nunca habilitan ready_for_hdoc
+- elegibilidad y evidencia sustitutiva completa si la rama es external_operational_change
 ```
 
 #### Para `hdoc`
 
-Debe responder usando el contrato vigente de HDOC:
+Debe responder usando el contrato vigente de HDOC y sólo ante `HDOC_INPUT`
+explícito de Guardian con `guardian_verdict: valid` y `ready_for_hdoc: yes`:
 
 ```text
-- validar commit
-- validar hash
-- validar push
+- consumir la rama ya determinada por Guardian
+- recibir commit_name_sugerido para el documentation commit cuando corresponda
+- validar commit, hash y push técnicos para existing_repo_change
+- validar los tres not_applicable y la evidencia sustitutiva para external_operational_change
 - clasificar cierre documental
-- documentar si corresponde
+- preparar la documentación autorizada con documentation_commit: pending
 ```
 
-HDOC no reinterpreta el diff salvo inconsistencia material.
+HDOC no determina elegibilidad, no convierte `missing` en `not_applicable` y no
+reevalúa el alcance técnico. `documentation_commit` no es precondición de
+preparación; el cierre final exige su hash real y push verificado.
 
 #### Para `arquitecto_sistema`
 

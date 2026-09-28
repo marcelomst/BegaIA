@@ -149,13 +149,14 @@ v0.MINOR.PATCH
 
 ### Operational Definitions
 
-- **Milestone / hito:** unidad de intención y alcance controlado, materializada
-  en un único commit propio; no equivale a una release.
+- **Milestone / hito:** unidad de intención y alcance controlado. Si contiene
+  cualquier cambio material versionable, se materializa en un único commit
+  técnico propio; no equivale a una release.
 - **Technical commit:** commit propio que materializa el cambio técnico o
   documental principal del hito.
 - **Documentation commit:** commit posterior que registra el cierre trazable
   cuando corresponde; no constituye un segundo commit técnico del mismo hito
-  ni altera la regla `1 hito = 1 commit`.
+  y conserva identidad Git, hash real y push confirmado propios.
 - **Product version:** identidad SemVer formal del producto, asignada sólo por
   un hito explícito de release.
 - **Git tag:** referencia Git a un commit; sólo un tag SemVer anotado identifica
@@ -219,7 +220,7 @@ la mera existencia de un RC o de un deployment.
 
 ### Operating Model Integration
 
-Se preserva el flujo vigente:
+Para `existing_repo_change` se preserva el flujo vigente:
 
 ```text
 Hito -> validación -> Guardian -> commit/hash/push por Marcelo -> HDOC
@@ -235,6 +236,212 @@ tag != deployment
 release != deployment
 RC != pilot baseline
 ```
+
+---
+
+## HITO CHANGE CLASSIFICATION
+
+`hito_change_classification` es el discriminador canónico y obligatorio del
+hito. Sus únicos valores son:
+
+- `existing_repo_change`: el objetivo materializa cualquier cambio versionable
+  en BegaIA, sea código, configuración, template o documentación canónica.
+  Requiere commit técnico.
+- `external_operational_change`: el objetivo material ocurre íntegramente sobre
+  recursos externos a BegaIA y no requiere un cambio versionable para producir
+  su resultado operativo. No requiere commit técnico.
+
+No existe categoría `mixed`. Si existe al menos un cambio material versionable
+necesario para cumplir el objetivo, todo el hito se clasifica como
+`existing_repo_change`, aunque también incluya acciones externas.
+
+`external_operational_change` queda inicialmente permitido sólo para:
+
+```yaml
+initially_allowed_hito_types:
+  - operating_environment_cutover
+```
+
+Agregar otro `hito_type` requiere una modificación explícita posterior de este
+Operating Model. No se permite inferir elegibilidad por semejanza.
+
+### Technical Artifact States
+
+Los estados contractuales son:
+
+- `present`: el artefacto existe y fue verificado.
+- `not_applicable`: el contrato determinó objetivamente que el artefacto no
+  corresponde.
+- `pending`: el artefacto aplica pero todavía no ocurrió.
+- `missing`: el artefacto ya era obligatorio en el gate pero no fue aportado.
+- `failed`: la ejecución o verificación fue intentada y falló.
+
+`not_applicable` es una decisión contractual auditada; nunca es un fallback.
+`pending`, `missing` y `failed` nunca habilitan `ready_for_hdoc: yes`.
+
+La representación canónica de los artefactos técnicos para un
+`external_operational_change` válido es:
+
+```yaml
+technical_commit: not_applicable
+commit_hash: not_applicable
+technical_push: not_applicable
+```
+
+Se mantiene exclusivamente el nombre `commit_hash`; no se introduce un campo
+alternativo para el hash técnico.
+
+### External Operational Change Eligibility
+
+Guardian sólo puede determinar `external_operational_change` elegible cuando:
+
+- `hito_type` está expresamente permitido por este Operating Model;
+- el alcance material es íntegramente externo al repositorio;
+- no existe cambio material versionable oculto o pendiente;
+- AGPT autorizó la transición operativa;
+- Guardian verificó evidencia sustitutiva completa;
+- Guardian emitió `guardian_verdict: valid`.
+
+Queda prohibido usar `not_applicable` cuando existe código, configuración,
+template o documentación canónica versionable; sólo falta ejecutar el commit;
+el working tree contiene cambios atribuibles al hito; la evidencia externa es
+incompleta; el `hito_type` no está permitido; o se intenta usar el `HEAD` de
+baseline como commit del hito.
+
+### Substitute Evidence
+
+La evidencia sustitutiva obligatoria para `external_operational_change` es:
+
+```yaml
+hito_id: <id>
+hito_type: <allowed_type>
+hito_change_classification: external_operational_change
+explicit_not_applicable_reason: <reason>
+external_material_scope: <scope>
+affected_external_resources: <resources>
+sanitized_before_evidence: <verifiable_evidence>
+sanitized_after_evidence: <verifiable_evidence>
+repository_baseline_head: <hash>
+repository_working_tree_before: <state>
+repository_working_tree_after: <state>
+repository_integrity_result: <result>
+validations_performed: <validations>
+validations_result: <result>
+agpt_transition_authorization: <authorization>
+human_responsible_for_external_actions: <person>
+guardian_verdict: valid
+rollback_plan_or_explicit_irreversibility_assessment: <plan_or_assessment>
+```
+
+Puede agregarse como evidencia contextual: `backup_identifier`,
+`rollback_execution_evidence`, `external_tool_or_service_version`,
+`timestamps`, `immutable_evidence_digests`, `session_identifiers`,
+`approval_references` y `known_limitations`.
+
+No son sustitutos válidos: `HEAD` baseline como technical commit;
+`origin/main` como technical push; `working_tree_clean` como technical hash;
+la aprobación AGPT como reemplazo de auditoría Guardian; un relato no
+verificable como evidencia before/after; ni secretos, tokens o valores
+sensibles sin sanitizar.
+
+No se crea un registro paralelo. La evidencia histórica mínima se incorpora en
+`hito_mcp.md` durante el cierre documental posterior.
+
+### Guardian Gate by Classification
+
+Guardian valida para toda rama la clasificación propuesta o autorizada por
+AGPT y emite, como mínimo:
+
+```yaml
+hito_id: <id>
+hito_type: <type>
+hito_change_classification: <existing_repo_change | external_operational_change>
+scope_real: <scope>
+archivos_afectados: <paths_or_empty>
+commit_name_sugerido: <documentation_commit_name>
+technical_commit: <present | not_applicable | pending | missing | failed>
+commit_hash: <real_hash | not_applicable | pending | missing | failed>
+technical_push: <confirmed | not_applicable | pending | missing | failed>
+doc_classification_proposed: <classification>
+doc_rationale: <rationale>
+canonicality_impact: <impact>
+canonicality_rationale: <rationale>
+architecture_docs_candidates: <candidates>
+roadmap_impact: <impact>
+guardian_verdict: <valid | invalid | split_required>
+ready_for_hdoc: <yes | no>
+```
+
+Para `external_operational_change` agrega:
+
+```yaml
+explicit_not_applicable_reason: <reason>
+substitute_evidence_summary: <summary>
+agpt_transition_authorization: <authorization>
+human_responsible_for_external_actions: <person>
+repository_integrity_result: <result>
+rollback_status: <status>
+```
+
+`commit_name_sugerido` preserva la interfaz histórica Guardian → HDOC y nombra
+el documentation commit que Marcelo ejecutará después de que HDOC prepare la
+documentación autorizada. Es semánticamente distinto de `technical_commit`.
+También se informa para `external_operational_change` cuando habrá cambios
+documentales versionados; no pasa a `not_applicable` por la ausencia intrínseca
+de technical commit.
+
+Además, Guardian valida el `hito_type` permitido; la ausencia intrínseca, no
+temporal, de commit; la ausencia de cambios versionables atribuibles; el
+alcance y los recursos externos; evidencia before/after sanitizada;
+validaciones; integridad del repositorio; autorización AGPT; responsable humano;
+rollback; y la prohibición de usar el baseline como identidad del hito.
+
+`ready_for_hdoc: yes` sólo es válido en uno de estos casos:
+
+```yaml
+# existing_repo_change
+technical_commit: present
+commit_hash: <real_hash>
+technical_push: confirmed
+
+# external_operational_change
+technical_commit: not_applicable
+commit_hash: not_applicable
+technical_push: not_applicable
+guardian_verdict: valid
+substitute_evidence: complete
+```
+
+### HDOC Gate by Classification
+
+HDOC acepta únicamente un `HDOC_INPUT` emitido explícitamente por Guardian con
+`guardian_verdict: valid` y `ready_for_hdoc: yes`.
+
+Para `existing_repo_change`, HDOC mantiene el flujo vigente y exige
+`technical_commit: present`, `commit_hash` real y
+`technical_push: confirmed`.
+
+Para `external_operational_change`, HDOC consume la clasificación auditada, los
+tres valores `not_applicable` y la evidencia sustitutiva completa. HDOC no
+infiere la clasificación, no decide elegibilidad, no convierte `missing` en
+`not_applicable` y no reevalúa el alcance técnico.
+
+La secuencia documental en ambas ramas es:
+
+1. HDOC prepara exclusivamente la documentación autorizada.
+2. `documentation_commit` permanece `pending` durante la preparación.
+3. Marcelo ejecuta Git write.
+4. Se obtiene el hash real del documentation commit.
+5. Se verifica el push documental.
+6. Recién entonces existe cierre documental.
+
+La inexistencia inicial de `documentation_commit` no bloquea la entrada a HDOC.
+El cierre final sí exige hash real y push del documentation commit.
+
+Invariantes: `baseline_head` nunca es technical commit; cualquier cambio
+material versionable fuerza `existing_repo_change`; AGPT propone o autoriza;
+Guardian determina elegibilidad; HDOC consume la decisión; no se registran
+secretos; y se preserva `RULE: MARCELO_ONLY_GIT_WRITE`.
 
 ---
 
@@ -430,13 +637,15 @@ validar coherencia de hito
 sugerir commit
 evaluar canonicidad
 producir salida estructurada para HDOC
+validar hito_change_classification y determinar elegibilidad de external_operational_change
 auditar Runtime Map V1 cuando aplique
 recalcular evidencia read-only de Runtime Map V1 cuando corresponda
 
 FORBIDDEN:
 
 ejecutar Git write
-emitir salida final para HDOC sin hash real
+emitir salida final para HDOC sin hash real cuando hito_change_classification es existing_repo_change
+usar not_applicable fuera de un external_operational_change elegible
 inventar hashes
 inventar rangos
 documentar como HDOC
@@ -458,9 +667,10 @@ FORBIDDEN:
 
 modificar código
 reanalizar el diff salvo inconsistencia material
-documentar sin commit
-documentar sin hash
-documentar sin push
+documentar existing_repo_change sin commit técnico, hash real o push confirmado
+inferir external_operational_change o decidir su elegibilidad
+convertir missing en not_applicable
+cerrar documentación sin hash real y push del documentation commit
 inventar rangos
 inventar cajas
 inventar características
@@ -810,17 +1020,30 @@ Debe incluir:
 
 hito_id
 hito_type
+hito_change_classification
 scope_real
 archivos_afectados
 commit_name_sugerido
+technical_commit
 commit_hash
+technical_push
 doc_classification_proposed
 doc_rationale
 canonicality_impact
 canonicality_rationale
 architecture_docs_candidates
 roadmap_impact
+guardian_verdict
 ready_for_hdoc
+
+Para external_operational_change debe incluir además:
+
+explicit_not_applicable_reason
+substitute_evidence_summary
+agpt_transition_authorization
+human_responsible_for_external_actions
+repository_integrity_result
+rollback_status
 
 Cuando aplique Runtime Map V1, debe incluir además:
 
@@ -840,8 +1063,8 @@ duda documental
 conflicto de evidencia
 falta de datos obligatorios
 Guardian marcó invalid o split_required
-falta hash real
-falta push
+falta hash real o push confirmado en existing_repo_change
+falta evidencia sustitutiva o algún not_applicable contractual en external_operational_change
 falta test de paridad requerido
 DOCUMENT CLASSIFICATION FLOW
 AGPT propone clasificación esperada.
@@ -991,13 +1214,15 @@ declarar cajas si afecta runtime
 declarar tests de paridad si el fix runtime es sensible
 GIT_RULES
 
-RULE: ONE_HITO_ONE_COMMIT
+RULE: VERSIONABLE_CHANGE_REQUIRES_TRACEABLE_TECHNICAL_COMMIT
+RULE: TECHNICAL_AND_DOCUMENTATION_COMMITS_ARE_DISTINCT
 RULE: TRACEABILITY_CHAIN
 RULE: MARCELO_ONLY_GIT_WRITE
 
 FLOW:
 
-CODE → COMMIT → HASH → PUSH → DOC
+existing_repo_change: CODE → COMMIT → HASH → PUSH → DOC
+external_operational_change: EXTERNAL_ACTION → SUBSTITUTE_EVIDENCE → GUARDIAN → DOC
 COMANDOS GIT
 
 Marcelo es el único autorizado a ejecutar comandos Git de escritura.
@@ -1020,25 +1245,33 @@ Reglas:
 no asumir ejecución
 esperar salida real
 usar hash real
-no emitir HDOC_INPUT sin hash
-no documentar sin push
+no emitir HDOC_INPUT de existing_repo_change sin hash real
+no documentar existing_repo_change sin push técnico confirmado
+no emitir HDOC_INPUT de external_operational_change sin evidencia sustitutiva completa y guardian_verdict valid
 DOCUMENTATION_RULES
 
 FORBIDDEN:
 
-documentar sin commit
-documentar sin hash
-documentar sin push
+documentar existing_repo_change sin commit técnico, hash real o push confirmado
+documentar external_operational_change sin los tres not_applicable auditados y evidencia sustitutiva completa
 documentar sin salida estructurada de Guardian
 documentar Runtime Map sin evidencia real
 crear documentación arquitectónica sin clasificación o evidencia
 crear ADR nuevo sin indicación explícita
 NO PARTIAL CLOSURE
 
-Se mantiene sin cambios:
+Se mantiene:
 
-1 hito → 1 commit
-1 hito → 1 cierre documental
+- todo `existing_repo_change` requiere `technical_commit: present`,
+  `commit_hash` real y `technical_push: confirmed`;
+- un `external_operational_change` elegible puede usar los tres valores
+  `not_applicable` sólo con evidencia sustitutiva completa y validación de
+  Guardian;
+- `baseline_head` nunca sustituye al technical commit;
+- technical commit y documentation commit son identidades distintas;
+- todo cambio documental versionado producido por HDOC requiere documentation
+  commit, hash real y push confirmado para cerrar el hito;
+- todo hito conserva un único cierre documental trazable.
 
 NO se introducen:
 
@@ -1049,7 +1282,9 @@ documentación sin trazabilidad completa
 
 Regla:
 
-Si falta CODE, COMMIT, HASH, PUSH o DOC, el hito no está cerrado.
+Si falta un artefacto obligatorio de la rama aplicable o el documentation commit
+final con hash y push verificados, el hito no está cerrado. `pending`, `missing`
+y `failed` nunca son cierre válido.
 CANONICITY RULES
 
 Todo cambio debe preservar o fortalecer canonicidad.
@@ -1170,9 +1405,13 @@ SUMMARY
 
 Este operating model gobierna el trabajo sobre Begasist.
 
-La disciplina central es:
+La disciplina central para `existing_repo_change` es:
 
 CODE → COMMIT → HASH → PUSH → DOC
+
+Para `external_operational_change` es:
+
+EXTERNAL_ACTION → SUBSTITUTE_EVIDENCE → GUARDIAN → DOC
 
 La disciplina para runtime es:
 

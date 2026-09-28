@@ -175,9 +175,11 @@ CHECK:
 
 ### OPERATING MODEL (INVARIANTE)
 
-RULE: ONE_COMMIT_PER_HITO  
+RULE: VERSIONABLE_CHANGE_REQUIRES_TRACEABLE_TECHNICAL_COMMIT
+RULE: TECHNICAL_AND_DOCUMENTATION_COMMITS_ARE_DISTINCT
 RULE: TRACEABILITY_CHAIN  
 RULE: HITO_SINGLE_INTENTION
+RULE: EXISTING_REPO_CHANGE_DOMINATES_VERSIONABLE_CHANGE
 
 FORBIDDEN: CROSS_DOMAIN_HITO
 
@@ -189,6 +191,12 @@ CHECK:
   - sin mezcla de dominios
   - sin refactor encubierto
   - sin expansión de alcance
+- `hito_change_classification` debe ser `existing_repo_change` o
+  `external_operational_change`; no existe categoría `mixed`
+- cualquier cambio material versionable fuerza `existing_repo_change`
+- `external_operational_change` sólo admite inicialmente
+  `hito_type: operating_environment_cutover`
+- `not_applicable` es una decisión auditada, nunca fallback de `missing`
 
 ---
 
@@ -257,8 +265,32 @@ agent_target: <asistente_tecnico | repo_guardian | hdoc | arquitecto_sistema | a
 flow_position: <analysis | implementation | audit | documentation>
 doc_classification_expected: <SOLO_HITO | HITO_PLUS_EVOLUTION | N/A>
 hito_id: <HITO_ID | pendiente>
+hito_type: <tipo operativo>
+hito_change_classification: <existing_repo_change | external_operational_change>
 branch: <branch_si_aplica>
 ```
+
+Si la clasificación propuesta es `external_operational_change`, transportar la
+evidencia sustitutiva obligatoria definida en `system_operating_model.md`:
+
+```yaml
+explicit_not_applicable_reason: <motivo objetivo>
+external_material_scope: <alcance íntegramente externo>
+affected_external_resources: <recursos>
+sanitized_before_evidence: <evidencia verificable sin secretos>
+sanitized_after_evidence: <evidencia verificable sin secretos>
+repository_baseline_head: <baseline; nunca technical commit>
+repository_working_tree_before: <estado>
+repository_working_tree_after: <estado>
+repository_integrity_result: <resultado>
+validations_performed: <validaciones>
+validations_result: <resultado>
+agpt_transition_authorization: <autorización>
+human_responsible_for_external_actions: <responsable>
+rollback_plan_or_explicit_irreversibility_assessment: <plan o evaluación>
+```
+
+Guardian determina elegibilidad. HDOC consume la decisión y no la infiere.
 
 ---
 
@@ -645,15 +677,23 @@ Para `repo_guardian` runtime:
 10. READY_FOR_HDOC
 ```
 
+`COMMIT SUGERIDO` corresponde a `commit_name_sugerido`: identifica el futuro
+documentation commit, no el technical commit. Sigue aplicando a la rama externa
+cuando HDOC producirá documentación versionada.
+
 Para `hdoc`:
 
 ```text
-validar commit
-validar hash
-validar push
+aceptar sólo HDOC_INPUT explícito con guardian_verdict valid y ready_for_hdoc yes
+recibir commit_name_sugerido para el documentation commit cuando corresponda
+validar commit/hash/push técnicos para existing_repo_change
+validar not_applicable y evidencia sustitutiva para external_operational_change
 clasificar cierre documental
-documentar si corresponde
+preparar documentación con documentation_commit pending
 ```
+
+La falta inicial de `documentation_commit` no bloquea la preparación; el cierre
+final exige su hash real y push verificado.
 
 ---
 
@@ -686,6 +726,9 @@ Antes de proponer solución, validar:
 8. Si aplica runtime, ¿declara cajas impactadas?
 9. Si aplica runtime sensible, ¿declara tests de paridad?
 10. Si aplica runtime, ¿declara cajas prohibidas cuando corresponde?
+11. ¿Declara `hito_change_classification` sin categoría adicional?
+12. ¿Fuerza `existing_repo_change` ante cualquier cambio material versionable?
+13. Si propone `external_operational_change`, ¿el tipo está allowlisted y la evidencia está completa y sanitizada?
 
 CHECK:
 
@@ -696,6 +739,9 @@ CHECK:
 - no hay fuente de verdad paralela
 - no hay expansión cross-domain no habilitada
 - no hay refactor encubierto
+- no se convierte `missing` en `not_applicable`
+- `pending`, `missing` y `failed` no habilitan `ready_for_hdoc`
+- `repository_baseline_head` no se usa como technical commit
 
 SI ALGUNA RESPUESTA ES NO:
 
