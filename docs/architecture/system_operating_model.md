@@ -36,7 +36,8 @@ SOURCE_OF_TRUTH_SCOPE:
 
 ## AGENT RUNTIME SOURCE OF TRUTH
 
-La definición operativa vigente de agentes NO vive exclusivamente en este documento.
+La definición operativa vigente de agentes NO vive exclusivamente en este
+documento.
 
 La fuente de verdad para:
 
@@ -47,20 +48,30 @@ La fuente de verdad para:
 - formatos obligatorios de respuesta por agente
 - reglas específicas de Runtime Map V1 por agente
 
-es:
+se distribuye entre:
 
-- `/home/marcelo/.codex/config.toml`
+- `/home/marcelo/.codex/config.toml`, como configuración base y registro de
+  perfiles;
+- `/home/marcelo/.codex/<perfil>.config.toml`, como instrucciones específicas
+  de cada sesión Profile V2;
+- `docs/development/codex_agent_sessions.md`, como guía canónica de apertura,
+  perímetro soportado, permisos y rollback.
 
 REGLA:
 
 - `system_operating_model.md` define el contrato global de operación
-- `config.toml` define la implementación operativa concreta de agentes en VSCode Codex
+- los perfiles externos definen la implementación operativa concreta de cada
+  agente en Codex CLI
+- `codex_agent_sessions.md` documenta cómo abrir y verificar esas sesiones sin
+  versionar los perfiles externos
 
 Si existe conflicto:
 
 - prevalece el contrato global de este operating model
-- la configuración activa de agentes debe leerse desde `config.toml`
-- si el conflicto es de ejecución práctica de un agente, se debe corregir `config.toml`
+- la configuración específica activa debe leerse desde el perfil con el que se
+  abrió la sesión
+- si el conflicto es de ejecución práctica de un agente, se debe corregir su
+  configuración externa mediante un hito autorizado
 - si el conflicto es de gobernanza global, se debe corregir este documento mediante hito documental explícito
 
 ---
@@ -78,6 +89,7 @@ Documentos relacionados:
 - `hito_mcp.md`
 - `hito_mcp_recent.md`
 - `/home/marcelo/.codex/config.toml`
+- `docs/development/codex_agent_sessions.md`
 - `hito_template.md`
 - `docs/CAPSULE_TEMPLATE_V3.md`
 - `Runtime Map V1`
@@ -478,9 +490,10 @@ AGPT NO:
 
 ### Nivel 2 — Agentes VSCode Codex
 
-Definidos en:
+Registrados por la configuración base y ejecutados mediante sus perfiles
+externos específicos. La guía operativa canónica es:
 
-- `/home/marcelo/.codex/config.toml`
+- `docs/development/codex_agent_sessions.md`
 
 Roles principales:
 

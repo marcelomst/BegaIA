@@ -13545,3 +13545,69 @@ Impacto:
   push técnicos cuando corresponden
 - mantiene el Operating Model como única fuente normativa, sin reinterpretar
   menciones históricas de este registro
+
+### OPS-CODEX-SESSION-PROFILES-CUTOVER-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-09-28
+Clasificacion del cambio: EXTERNAL_OPERATIONAL_CHANGE
+Commit tecnico: NOT_APPLICABLE
+Hash tecnico: NOT_APPLICABLE
+Push tecnico: NOT_APPLICABLE
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Registra el cutover operativo externo de cinco perfiles Codex definitivos para
+BegaIA y consolida una única guía canónica de sesiones. La guía fija el
+perímetro soportado, los entry points, permisos, exclusiones, disciplina Git y
+rollback sin copiar ni versionar los perfiles de `~/.codex`.
+
+Perfiles definitivos:
+
+- `asistente_tecnico`
+- `arquitecto_sistema`
+- `arquitecto_kb`
+- `repo_guardian`
+- `hdoc`
+
+Documentacion afectada:
+
+- `docs/development/codex_agent_sessions.md`
+- `docs/agents_workflow.md`
+- `docs/architecture/system_operating_model.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- retiro de `docs-local/codex_agent_sessions.md`
+
+Evidencia externa auditada:
+
+- cinco perfiles definitivos presentes, TOML válidos y cargados
+- matriz 04B con cinco perfiles en `PASS`
+- WSL2, Codex CLI `0.156.1`, Profile V2 y workspace
+  `/home/marcelo/begasist` verificados
+- integridad del repositorio: `valid`
+- responsable de las acciones externas: Marcelo
+- rollback `available_not_executed` mediante cinco perfiles
+  `*_pilot.config.toml` preservados
+
+Validacion:
+
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_type: operating_environment_cutover`
+- `technical_commit`, `commit_hash` y `technical_push`: `not_applicable`
+- guía legacy sustituida por una única guía canónica
+- extensión Codex/OpenAI de VS Code y Codex Windows native fuera del perímetro
+- `runtime_map.applies: false`; Runtime Map sin cambios
+- `roadmap_impact: none`; roadmap sin cambios
+- perfiles externos preservados y fuera del repositorio
+- commit documental pendiente de ejecución, hash y push por Marcelo
+
+Impacto:
+
+- fortalece la canonicidad al sustituir la guía piloto por una única guía
+  operativa definitiva
+- hace explícitos el entorno validado, los permisos efectivos y las superficies
+  excluidas
+- mantiene la configuración externa separada de la documentación versionada

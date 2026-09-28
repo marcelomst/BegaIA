@@ -9,6 +9,11 @@ Objetivo:
 - evitar mezclar implementación, auditoría Git, documentación y arquitectura
 - mantener disciplina de hitos y commits
 
+La apertura, el perímetro soportado y los permisos efectivos de las sesiones
+se documentan en la guía canónica
+`docs/development/codex_agent_sessions.md`. Los perfiles concretos permanecen
+fuera del repositorio, bajo `~/.codex`.
+
 ## Chats Fijos
 
 ### 1. Técnico
