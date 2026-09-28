@@ -13496,3 +13496,52 @@ Impacto:
 - preserva la validación calendario y el estado canónicos existentes
 - evita consultar disponibilidad o proponer reservas con fechas imposibles
 - mantiene un único runtime y no introduce cajas ni reglas conceptuales nuevas
+
+### OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-09-28
+Commit tecnico: 4d18655bb784d1927cb4da6aba327f2613933995
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora al Operating Model canónico el contrato que distingue cambios
+versionables del repositorio de cambios operativos íntegramente externos. El
+discriminador único preserva el gate Git de los cambios versionables y define
+evidencia sustitutiva auditada para la rama externa elegible, manteniendo
+separadas las identidades del commit técnico y del commit documental.
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/system_operating_model.md`
+- `docs/development/hito_template.md`
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/agents_workflow.md`
+
+Evidencia externa del hito:
+
+- `/home/marcelo/.codex/repo_guardian.config.toml`
+- `/home/marcelo/.codex/hdoc.config.toml`
+
+Validacion:
+
+- commit técnico `4d18655bb784d1927cb4da6aba327f2613933995`
+  verificado en `HEAD` y `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- `runtime_map.applies: false`; Runtime Map sin cambios
+- `roadmap_impact: none`; roadmap sin cambios
+- contratos externos conservados como evidencia y fuera del commit documental
+- commit documental pendiente de ejecución, hash y push por Marcelo
+
+Impacto:
+
+- fortalece la canonicidad mediante un discriminador único de hito
+- preserva trazabilidad Git para todo cambio material versionable
+- evita que evidencia externa o estados de baseline sustituyan commit, hash y
+  push técnicos cuando corresponden
+- mantiene el Operating Model como única fuente normativa, sin reinterpretar
+  menciones históricas de este registro
