@@ -509,6 +509,7 @@ REGLA:
 AGPT orquesta.
 Los agentes ejecutan según rol.
 Marcelo conserva la llave Git.
+```
 AGPT HITO DISPATCH RULE
 
 AGPT DEBE emitir todos los hitos con asignación explícita de agente y fase operativa.
@@ -1447,4 +1448,3 @@ Identificar cajas no significa extraer cajas.
 La regla final es:
 
 Si no hay evidencia real, no existe el cierre.
-```
