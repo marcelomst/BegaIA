@@ -13678,3 +13678,38 @@ Impacto:
 
 - fortalece la canonicidad al restaurar la estructura legible del documento
   canónico sin crear otra fuente de verdad ni modificar sus reglas
+
+### OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-09-29
+Commit tecnico: dbb913ae0f96a24a85b10a5c21cf7da5cb7984f6
+Commit documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Reconcilia la guía subordinada de agentes con el lifecycle, las
+clasificaciones, los gates y la autoridad Git definidos por el Operating Model
+canónico, sin introducir reglas nuevas.
+
+Archivos afectados por el commit tecnico:
+
+- `docs/agents_workflow.md`
+
+Validacion:
+
+- commit técnico `dbb913ae0f96a24a85b10a5c21cf7da5cb7984f6`
+  verificado en `HEAD` y `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- `git_diff_check: PASS`
+- Runtime Map no aplicable; sin cambios de roadmap ni arquitectura
+- commit documental pendiente de ejecución, hash y push por Marcelo
+
+Impacto:
+
+- fortalece la canonicidad al declarar la subordinación al Operating Model,
+  eliminar la cadena universal divergente y preservar a Marcelo como única
+  autoridad de Git write
