@@ -13611,3 +13611,36 @@ Impacto:
 - hace explícitos el entorno validado, los permisos efectivos y las superficies
   excluidas
 - mantiene la configuración externa separada de la documentación versionada
+
+### OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-09-29
+Commit tecnico: e2238cc5e316778c3ac2e5ff15f3b38d80b9f3be
+Commit documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Reubica el cierre de un fence Markdown en el Operating Model para limitar el
+bloque `text` a sus tres líneas previstas, sin modificar contenido contractual,
+reglas operativas ni arquitectura viva.
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/system_operating_model.md`
+
+Validacion:
+
+- commit técnico `e2238cc5e316778c3ac2e5ff15f3b38d80b9f3be`
+  verificado en `HEAD` y `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; sin cambios de roadmap ni arquitectura
+- commit documental pendiente de ejecución, hash y push por Marcelo
+
+Impacto:
+
+- mantiene la canonicidad: restaura el alcance Markdown previsto del documento
+  canónico sin crear fuentes paralelas ni modificar contratos
