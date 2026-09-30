@@ -13713,3 +13713,44 @@ Impacto:
 - fortalece la canonicidad al declarar la subordinación al Operating Model,
   eliminar la cadena universal divergente y preservar a Marcelo como única
   autoridad de Git write
+
+### OPS-CODEX-SESSION-LAUNCHER-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-09-30
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 39ee43ce6a8c241c1e7773e6c6842db4dd909f97
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora un launcher de VS Code que abre en paralelo cinco sesiones Codex
+independientes para los agentes BegaIA y reutiliza sus perfiles canónicos.
+
+Archivos afectados por el commit tecnico:
+
+- `.vscode/tasks.json`
+
+Documentacion afectada:
+
+- `docs/development/codex_agent_sessions.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit técnico `39ee43ce6a8c241c1e7773e6c6842db4dd909f97`
+  verificado en `HEAD` y `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- commit documental pendiente de ejecución, hash y push por Marcelo
+
+Impacto:
+
+- fortalece la canonicidad al documentar el punto de entrada operativo en la
+  guía existente, sin duplicar la configuración de los agentes
+- mantiene independientes las cinco sesiones y sus responsabilidades

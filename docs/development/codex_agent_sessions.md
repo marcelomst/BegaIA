@@ -6,7 +6,9 @@ DOCUMENT_TYPE: OPERATING_GUIDE
 STATUS: CANONICAL
 SCOPE: CODEX_SESSION_PROFILES
 HITO: OPS-CODEX-SESSION-PROFILES-CUTOVER-01
+RELATED_HITO: OPS-CODEX-SESSION-LAUNCHER-01
 TECHNICAL_COMMIT: NOT_APPLICABLE
+RELATED_TECHNICAL_COMMIT: 39ee43ce6a8c241c1e7773e6c6842db4dd909f97
 CUTOVER_REFERENCE: 2026-09-28
 
 ## Propósito
@@ -24,6 +26,7 @@ del repositorio, en `~/.codex`, y no deben copiarse ni versionarse en BegaIA.
 
 Entry points soportados:
 
+- tarea compuesta de VS Code `🚀 Abrir agentes BegaIA`;
 - PowerShell o Windows Terminal → WSL → Codex CLI.
 - Terminal integrada de VS Code → WSL → Codex CLI.
 
@@ -62,6 +65,21 @@ Para evitar contexto residual entre hitos, abrir una sesión nueva del perfil
 correspondiente cuando cambie el objetivo de trabajo.
 
 ## Apertura de sesiones
+
+### Launcher de VS Code
+
+Con el workspace BegaIA abierto en VS Code, ejecutar la tarea
+`🚀 Abrir agentes BegaIA`. La tarea inicia en paralelo cinco terminales
+dedicadas, una por cada perfil canónico de esta guía.
+
+El launcher es un punto de entrada operativo: no fusiona contextos ni cambia
+la independencia, permisos o responsabilidad de las sesiones. Las tareas
+individuales `🤖 TECNICO`, `🏗 ARQ-SISTEMA`, `📚 ARQ-KB`, `🛡 GUARDIAN` y
+`📝 HDOC` permiten abrir un único perfil cuando no se necesitan los cinco.
+
+La definición versionada del launcher vive en `.vscode/tasks.json`.
+
+### Apertura manual
 
 Ejecutar desde WSL:
 
@@ -167,3 +185,7 @@ el entorno operativo externo. Al ser un `external_operational_change`, su
 technical commit, hash y push son `not_applicable`; la evidencia sustitutiva fue
 auditada por Guardian. Esta guía registra el perímetro soportado sin convertir
 los perfiles externos en contenido versionado del repositorio.
+
+`OPS-CODEX-SESSION-LAUNCHER-01` incorporó el launcher versionado de VS Code
+para abrir esas cinco sesiones en paralelo. El launcher reutiliza los perfiles
+canónicos existentes y no crea otra fuente de configuración de agentes.
