@@ -6,6 +6,113 @@
       "type": "shell",
       "command": "./fifo.sh",
       "problemMatcher": []
+    },
+    {
+      "label": "🤖 TECNICO",
+      "type": "process",
+      "command": "codex",
+      "args": [
+        "--profile",
+        "asistente_tecnico",
+        "-C",
+        "/home/marcelo/begasist"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "🏗 ARQ-SISTEMA",
+      "type": "process",
+      "command": "codex",
+      "args": [
+        "--profile",
+        "arquitecto_sistema",
+        "-C",
+        "/home/marcelo/begasist"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "📚 ARQ-KB",
+      "type": "process",
+      "command": "codex",
+      "args": [
+        "--profile",
+        "arquitecto_kb",
+        "-C",
+        "/home/marcelo/begasist"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "🛡 GUARDIAN",
+      "type": "process",
+      "command": "codex",
+      "args": [
+        "--profile",
+        "repo_guardian",
+        "-C",
+        "/home/marcelo/begasist"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "📝 HDOC",
+      "type": "process",
+      "command": "codex",
+      "args": [
+        "--profile",
+        "hdoc",
+        "-C",
+        "/home/marcelo/begasist"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "🚀 Abrir agentes BegaIA",
+      "dependsOn": [
+        "🤖 TECNICO",
+        "🏗 ARQ-SISTEMA",
+        "📚 ARQ-KB",
+        "🛡 GUARDIAN",
+        "📝 HDOC"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
     }
   ]
 }
