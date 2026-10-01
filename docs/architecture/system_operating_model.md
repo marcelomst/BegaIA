@@ -31,6 +31,7 @@ SOURCE_OF_TRUTH_SCOPE:
 - protocolo de uso de Runtime Map V1 cuando aplique
 - reglas de actualización documental y arquitectura viva
 - branching, versionado, releases y baselines de piloto
+- receiver-side guard para asignación de agentes Codex
 
 ---
 
@@ -521,6 +522,7 @@ Esto elimina ambigüedad en la ejecución y evita dispatch incorrecto.
 
 Todo hito definido por AGPT debe incluir:
 
+- HITO_ID
 - agent_target
 - flow_position
 
@@ -531,10 +533,10 @@ Todo hito definido por AGPT debe incluir:
 Debe ser uno de:
 
 - asistente_tecnico
-- repo_guardian
-- hdoc
 - arquitecto_sistema
 - arquitecto_kb
+- repo_guardian
+- hdoc
 
 #### flow_position
 
@@ -581,12 +583,113 @@ Si AGPT duda entre agentes:
 
 AGPT NO puede emitir hitos sin:
 
+- HITO_ID
 - agent_target
 - flow_position
 
 ### PRINCIPIO
 
 AGPT decide quién ejecuta antes de definir qué se ejecuta.
+
+## AGENT TARGET RECEIVER GUARD
+
+RULE: AGENT_TARGET_RECEIVER_GUARD_REQUIRED
+RULE: AGENT_TARGET_VALIDATION_PER_OPERATIONAL_PROMPT
+RULE: AGENT_TARGET_FAIL_CLOSED
+
+Todo prompt operativo debe contener exactamente un envelope canónico:
+
+```yaml
+HITO_ID: <non-empty-id>
+agent_target: <asistente_tecnico | arquitecto_sistema | arquitecto_kb | repo_guardian | hdoc>
+flow_position: <analysis | implementation | audit | documentation>
+```
+
+`agent_target` es obligatorio, debe tener una única declaración canónica y su
+comparación es exacta y case-sensitive. La presencia de `HITO_ID`, o la
+intención de diseñar, implementar, auditar o documentar un hito, activa este
+contrato. Conversación general, explicaciones, preguntas sobre identidad o
+responsabilidad y ayuda no operativa no requieren envelope.
+
+### Identidad efectiva
+
+La única fuente autoritativa de identidad estable del agente receptor es
+`BEGASIST_AGENT_ID`, con este enum cerrado:
+
+- `asistente_tecnico`
+- `arquitecto_sistema`
+- `arquitecto_kb`
+- `repo_guardian`
+- `hdoc`
+
+`BEGASIST_PROFILE_ID` registra procedencia o versión del perfil. No establece
+identidad y su ausencia no impide el enforcement cuando existe un
+`BEGASIST_AGENT_ID` válido.
+
+Está prohibido derivar la identidad eliminando sufijos de
+`BEGASIST_PROFILE_ID` o usar como autoridad el nombre de terminal, la task de
+VS Code, el nombre visible de sesión, afirmaciones del prompt, memoria
+conversacional o `/status`.
+
+### Preflight del receptor
+
+Por cada prompt operativo y antes de cualquier análisis material o acción, el
+agente receptor debe:
+
+1. obtener `effective_agent` exclusivamente de `BEGASIST_AGENT_ID`;
+2. identificar exactamente un `agent_target` canónico en el envelope;
+3. validar que `agent_target` pertenece al enum;
+4. comparar de forma exacta y case-sensitive
+   `effective_agent == agent_target`;
+5. sólo después de PASS validar `flow_position`, responsabilidad, permisos y
+   los demás gates aplicables.
+
+Un PASS debe comunicar como mínimo:
+
+```text
+AGENT_TARGET_VALIDATION: PASS
+expected_agent: <agent_target>
+effective_agent: <BEGASIST_AGENT_ID>
+```
+
+No existe PASS permanente por sesión. `codex resume` y `/fork` no son
+excepciones: cada nuevo prompt operativo vuelve a ejecutar el preflight. La
+terminal desde la que se ejecuta `resume` no tiene autoridad y un fork no
+hereda el PASS anterior.
+
+### Fail-closed
+
+El preflight debe emitir `AGENT_TARGET_VALIDATION: FAIL`, el `reason`
+correspondiente y `STATUS: BLOCKED` ante:
+
+- mismatch → `agent_target_mismatch`;
+- target ausente → `missing_agent_target`;
+- target fuera del enum → `unknown_agent_target`;
+- declaraciones duplicadas o contradictorias →
+  `duplicate_or_conflicting_agent_target`;
+- identidad efectiva no disponible → `effective_agent_unavailable`;
+- intención operativa que requiere envelope pero no dispone de uno válido →
+  `operational_intent_requires_hito_envelope`.
+
+Después de FAIL está prohibido inspeccionar el repositorio o archivos del
+hito, ejecutar herramientas, comandos o tests, editar, usar Git, delegar o
+realizar análisis material del objeto del hito.
+
+El `reason` y la decisión `PASS`/`FAIL` son normativos; `STATUS: BLOCKED` es
+obligatorio en FAIL. `expected_agent` es diagnóstico cuando no existe un
+target válido, por lo que puede representarse como `unknown`. El contrato no
+exige un campo `STATUS` en PASS; si se muestra, no reemplaza
+`AGENT_TARGET_VALIDATION: PASS`.
+
+### Launcher y perfiles de rollback
+
+El launcher de VS Code es sólo conveniencia de UX y carece de autoridad. La
+configuración de `.vscode/tasks.json` no participa en la determinación de
+identidad.
+
+Mientras los perfiles `*_pilot` estén soportados como rollback, deben conservar
+el mismo receiver-side guard y el `BEGASIST_AGENT_ID` de su rol. No requieren
+`BEGASIST_PROFILE_ID` para establecer identidad.
 
 ## ROLES
 
@@ -996,7 +1099,7 @@ AGPT debe usar hito_template.md para definir hitos.
 
 Todo hito debe contener:
 
-- id
+- HITO_ID
 - agent_target
 - flow_position
 - classification

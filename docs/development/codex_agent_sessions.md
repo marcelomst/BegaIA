@@ -7,6 +7,9 @@ STATUS: CANONICAL
 SCOPE: CODEX_SESSION_PROFILES
 HITO: OPS-CODEX-SESSION-PROFILES-CUTOVER-01
 RELATED_HITO: OPS-CODEX-SESSION-LAUNCHER-01
+AGENT_TARGET_GUARD_DESIGN: OPS-CODEX-AGENT-TARGET-GUARD-01
+AGENT_TARGET_GUARD_CUTOVER: OPS-CODEX-AGENT-TARGET-GUARD-PROFILE-CUTOVER-01
+AGENT_TARGET_GUARD_CUTOVER_RESULT: COMPLETED_STATIC_CUTOVER
 TECHNICAL_COMMIT: NOT_APPLICABLE
 RELATED_TECHNICAL_COMMIT: 39ee43ce6a8c241c1e7773e6c6842db4dd909f97
 CUTOVER_REFERENCE: 2026-09-28
@@ -79,6 +82,10 @@ individuales `🤖 TECNICO`, `🏗 ARQ-SISTEMA`, `📚 ARQ-KB`, `🛡 GUARDIAN` 
 
 La definición versionada del launcher vive en `.vscode/tasks.json`.
 
+El launcher tiene `role: convenience_only` y `authority: none`. El nombre de
+la terminal o de la task mejora la UX, pero no determina la identidad efectiva
+del agente y no participa en el receiver-side guard.
+
 ### Apertura manual
 
 Ejecutar desde WSL:
@@ -124,13 +131,73 @@ comandos nativos de PowerShell.
 
 ## Verificación de sesión
 
+### Identidad y procedencia
+
+Cada perfil definitivo y cada perfil `*_pilot` soportado debe declarar un
+`BEGASIST_AGENT_ID` perteneciente al enum canónico:
+
+- `asistente_tecnico`
+- `arquitecto_sistema`
+- `arquitecto_kb`
+- `repo_guardian`
+- `hdoc`
+
+`BEGASIST_AGENT_ID` es la única identidad efectiva usada por el receiver-side
+guard. `BEGASIST_PROFILE_ID` identifica procedencia o versión del perfil; no es
+fuente de identidad y puede estar ausente sin impedir el enforcement. Está
+prohibido derivar la identidad recortando sufijos de `BEGASIST_PROFILE_ID`.
+
+### Receiver-side preflight
+
+Por cada prompt operativo, antes de inspeccionar el repositorio o los archivos
+del hito, analizar materialmente el objeto, usar herramientas, ejecutar
+comandos o tests, editar, usar Git o delegar, el receptor debe:
+
+1. leer `effective_agent` exclusivamente desde `BEGASIST_AGENT_ID`;
+2. identificar exactamente un `agent_target` canónico en el envelope;
+3. validar el enum;
+4. comparar exacta y case-sensitive `effective_agent == agent_target`;
+5. continuar con `flow_position`, responsabilidad y permisos sólo después de
+   `AGENT_TARGET_VALIDATION: PASS`.
+
+Mismatch, target ausente, desconocido, duplicado o contradictorio, identidad
+efectiva no disponible, o intención operativa sin envelope válido producen
+`AGENT_TARGET_VALIDATION: FAIL` y `STATUS: BLOCKED`. Los `reason` normativos
+están definidos en `system_operating_model.md`.
+
+No existe PASS permanente. `codex resume` conserva la identidad de la sesión
+restaurada, no la de la terminal desde la que se invoca, y el siguiente prompt
+operativo vuelve a ejecutar el guard. `/fork` tampoco hereda PASS: cada prompt
+operativo del fork repite el preflight.
+
+Los prompts no operativos —conversación general, explicaciones, preguntas
+sobre identidad o responsabilidad y ayuda no orientada a ejecutar un hito— no
+requieren `agent_target`.
+
+### Evidencia de validación del guard
+
+La matriz dinámica posterior al cutover confirmó PASS con target propio para
+los cinco roles y bloqueo fail-closed para mismatch, target ausente, target
+fuera del enum y declaraciones duplicadas o contradictorias. También confirmó
+que `codex resume` conserva la identidad efectiva de la sesión restaurada, que
+`/fork` vuelve a ejecutar el guard y que los prompts no operativos permanecen
+permitidos sin envelope.
+
+La validación del perfil `asistente_tecnico_pilot` sin
+`BEGASIST_PROFILE_ID` confirmó que ese campo no es requisito de enforcement.
+Las variaciones observadas en `expected_agent` para targets no resolubles y en
+el campo `STATUS` de algunos PASS no produjeron bypass; su interpretación
+contractual está fijada en `system_operating_model.md`.
+
+### Comprobación informativa
+
 Al abrir una sesión, ejecutar:
 
 ```text
 /status
 ```
 
-Verificar:
+Verificar como información operativa complementaria:
 
 - perfil e identidad esperados;
 - Codex CLI `0.156.1`;
@@ -138,7 +205,8 @@ Verificar:
 - sandbox y política de aprobación correspondientes al perfil;
 - instrucciones específicas del rol cargadas.
 
-El estado de sesión y el sentinel del perfil son evidencias complementarias:
+`/status` no es fuente autoritativa de identidad para el guard. El estado de
+sesión y el sentinel del perfil son evidencias complementarias:
 el primero muestra el entorno efectivo y el segundo confirma la carga de las
 instrucciones específicas.
 
@@ -174,6 +242,10 @@ repositorio como mecanismo de rollback. Un rollback requiere:
 1. relanzar cada sesión con el perfil piloto correspondiente;
 2. verificar carga, workspace, sandbox y política de aprobación;
 3. repetir la validación operativa aplicable.
+
+Mientras estén soportados, los perfiles piloto deben conservar el mismo
+receiver-side guard y el `BEGASIST_AGENT_ID` de su rol. La presencia de
+`BEGASIST_PROFILE_ID` no es requisito para determinar su identidad.
 
 La disponibilidad de esos archivos no implica que el rollback haya sido
 ejecutado durante el cutover.

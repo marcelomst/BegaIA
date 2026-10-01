@@ -258,13 +258,31 @@ PRINCIPIO:
 
 ### METADATA OPERATIVA (VARIABLE)
 
-Completar cuando corresponda:
+Toda cápsula destinada a una transferencia operativa debe contener una única
+declaración del siguiente envelope canónico, completada con valores reales:
 
 ```yaml
-agent_target: <asistente_tecnico | repo_guardian | hdoc | arquitecto_sistema | arquitecto_kb>
+HITO_ID: <non-empty-id>
+agent_target: <asistente_tecnico | arquitecto_sistema | arquitecto_kb | repo_guardian | hdoc>
 flow_position: <analysis | implementation | audit | documentation>
+```
+
+No duplicar ni contradecir estos campos en otra sección de la cápsula. La
+identidad del receptor no se transporta como afirmación libre: se obtiene en
+destino exclusivamente de `BEGASIST_AGENT_ID` y se compara de forma exacta y
+case-sensitive con `agent_target` antes de consumir materialmente la cápsula.
+El nombre de terminal, la task de VS Code, el nombre visible de sesión, la
+memoria conversacional y `/status` no son autoridad.
+
+`BEGASIST_PROFILE_ID` puede registrar procedencia o versión, pero no establece
+identidad y no es requisito de enforcement. `codex resume` y `/fork` vuelven a
+ejecutar el receiver-side preflight; la cápsula no transporta ni conserva un
+PASS de otra sesión o prompt.
+
+Metadata adicional, completar cuando corresponda:
+
+```yaml
 doc_classification_expected: <SOLO_HITO | HITO_PLUS_EVOLUTION | N/A>
-hito_id: <HITO_ID | pendiente>
 hito_type: <tipo operativo>
 hito_change_classification: <existing_repo_change | external_operational_change>
 branch: <branch_si_aplica>
@@ -729,6 +747,8 @@ Antes de proponer solución, validar:
 11. ¿Declara `hito_change_classification` sin categoría adicional?
 12. ¿Fuerza `existing_repo_change` ante cualquier cambio material versionable?
 13. Si propone `external_operational_change`, ¿el tipo está allowlisted y la evidencia está completa y sanitizada?
+14. ¿Incluye exactamente un envelope operativo canónico con `HITO_ID`, `agent_target` y `flow_position`?
+15. ¿El receptor ejecutará el preflight usando `BEGASIST_AGENT_ID`, sin depender del nombre de terminal ni de un PASS previo?
 
 CHECK:
 

@@ -98,12 +98,41 @@ Si hay conflicto sobre cajas runtime, refrescar Runtime Map V1 antes de usar cod
 
 ### HITO
 
-- `id`: <HITO_ID>
-- `agent_target`: <asistente_tecnico | repo_guardian | hdoc | arquitecto_sistema | arquitecto_kb>
-- `flow_position`: <analysis | implementation | audit | documentation>
+Envelope operativo canónico obligatorio:
+
+```yaml
+HITO_ID: <non-empty-id>
+agent_target: <asistente_tecnico | arquitecto_sistema | arquitecto_kb | repo_guardian | hdoc>
+flow_position: <analysis | implementation | audit | documentation>
+```
+
+Debe existir exactamente una declaración canónica de cada campo. No emitir ni
+ejecutar un hito con `HITO_ID` vacío, `agent_target` ausente, desconocido,
+duplicado o contradictorio. La comparación entre target e identidad efectiva
+es exacta y case-sensitive.
+
+Metadata adicional del hito:
+
 - `hito_type`: <tipo operativo del hito>
 - `hito_change_classification`: <existing_repo_change | external_operational_change>
 - `classification`: <runtime_bugfix | runtime_refactor | runtime_documentation | kb | ui | auth | docs | other>
+
+### AGENT TARGET RECEIVER PREFLIGHT
+
+Antes de inspeccionar el repositorio, leer archivos del hito, analizar su
+objeto, usar herramientas, ejecutar comandos o tests, editar, usar Git o
+delegar, el receptor debe validar el envelope conforme al contrato
+`AGENT TARGET RECEIVER GUARD` de `system_operating_model.md`.
+
+La identidad efectiva proviene exclusivamente de `BEGASIST_AGENT_ID`.
+`BEGASIST_PROFILE_ID` sólo expresa procedencia o versión del perfil. El
+preflight se repite en cada prompt operativo, incluso después de
+`codex resume` o `/fork`; no existe PASS permanente por sesión.
+
+Sólo un `AGENT_TARGET_VALIDATION: PASS` habilita la validación posterior de
+`flow_position`, responsabilidad, permisos y demás gates. Todo FAIL es
+fail-closed, debe terminar con `STATUS: BLOCKED` y no habilita trabajo sobre el
+hito.
 
 ---
 
