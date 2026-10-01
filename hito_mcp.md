@@ -13754,3 +13754,52 @@ Impacto:
 - fortalece la canonicidad al documentar el punto de entrada operativo en la
   guía existente, sin duplicar la configuración de los agentes
 - mantiene independientes las cinco sesiones y sus responsabilidades
+
+### OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-01
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 66b491fe0fcc62e72f5104ebd31de8b146c177c7
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Registra la adopcion versionada del Agent Target Receiver Guard como regla
+operativa transversal. El contrato fija la identidad autoritativa, el envelope
+obligatorio, el comportamiento fail-closed y la validacion independiente para
+resume y fork, preservando las protecciones de pilots y rollback.
+
+Archivos afectados por el commit tecnico:
+
+- `docs/CAPSULE_TEMPLATE_V3.md`
+- `docs/architecture/system_operating_model.md`
+- `docs/development/codex_agent_sessions.md`
+- `docs/development/hito_template.md`
+
+Documentacion de cierre:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `66b491fe0fcc62e72f5104ebd31de8b146c177c7`
+  verificado en `HEAD` y `origin/main`
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- documentos canonicos necesarios actualizados por el commit tecnico; sin
+  arquitectura paralela
+- commit documental pendiente de ejecucion, hash y push por Marcelo
+
+Impacto:
+
+- fortalece la canonicidad al consolidar `BEGASIST_AGENT_ID` como unica
+  autoridad de identidad y evitar derivaciones desde labels o
+  `BEGASIST_PROFILE_ID`
+- mantiene `docs/architecture/system_operating_model.md` como fuente normativa
+  unica y extiende la misma regla a templates y guia operativa

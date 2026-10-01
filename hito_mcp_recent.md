@@ -8,7 +8,16 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. OPS-CODEX-SESSION-LAUNCHER-01
+## 1. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
+
+- Identificador: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
+- Nombre: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
+- Commit técnico: `66b491fe0fcc62e72f5104ebd31de8b146c177c7`
+- Commit documental: `PENDING`
+- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Descripción breve: Adopta el Agent Target Receiver Guard como regla operativa canónica transversal, con identidad autoritativa, envelope obligatorio, fail-closed y validación por prompt.
+
+## 2. OPS-CODEX-SESSION-LAUNCHER-01
 
 - Identificador: `OPS-CODEX-SESSION-LAUNCHER-01`
 - Nombre: `OPS-CODEX-SESSION-LAUNCHER-01`
@@ -17,7 +26,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Incorpora un launcher versionado de VS Code para abrir en paralelo cinco sesiones Codex independientes y documenta el punto de entrada en la guía canónica existente.
 
-## 2. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
+## 3. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
 
 - Identificador: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
 - Nombre: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
@@ -26,7 +35,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Reconcilia la guía subordinada de agentes con el lifecycle, las clasificaciones, los gates y la autoridad Git del Operating Model canónico, sin introducir reglas nuevas.
 
-## 3. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
+## 4. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
 
 - Identificador: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
 - Nombre: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
@@ -35,7 +44,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Restaura headings, listas, separación y bloques fenced Markdown del Operating Model sin alterar contenido contractual, reglas operativas ni arquitectura viva.
 
-## 4. OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
+## 5. OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
 
 - Identificador: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
 - Nombre: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
@@ -44,7 +53,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Reubica el cierre de un fence Markdown para limitar el bloque `text` a sus tres líneas previstas, sin modificar contenido contractual, reglas operativas ni arquitectura viva.
 
-## 5. OPS-CODEX-SESSION-PROFILES-CUTOVER-01
+## 6. OPS-CODEX-SESSION-PROFILES-CUTOVER-01
 
 - Identificador: `OPS-CODEX-SESSION-PROFILES-CUTOVER-01`
 - Nombre: `OPS-CODEX-SESSION-PROFILES-CUTOVER-01`
@@ -53,7 +62,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Promueve cinco perfiles Codex definitivos en el entorno externo y consolida una única guía canónica para WSL2, CLI 0.156.1 y Profile V2, sin versionar configuraciones de `~/.codex`.
 
-## 6. OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01
+## 7. OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01
 
 - Identificador: `OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01`
 - Nombre: `OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01`
@@ -62,7 +71,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Incorpora al Operating Model canónico el discriminador entre cambios versionables y cambios operativos íntegramente externos, con gates trazables distintos y sin crear una fuente normativa paralela.
 
-## 7. FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
+## 8. FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
 
 - Identificador: `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`
 - Nombre: `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`
@@ -70,7 +79,7 @@ No reemplaza el historial completo.
 - Hash: `efc11b21eb1aabbe881250d6fe0556ba16b113c3`
 - Descripción breve: Rechaza fechas calendario imposibles antes de availability/propuesta y preserva el checkOut válido al reparar checkIn en flujos multi-turno con historial y Chrono.
 
-## 8. FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01
+## 9. FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01
 
 - Identificador: `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`
 - Nombre: `FIX-RUNTIME-RESERVATION-TEMPORAL-CONTEXT-AND-OPERABILITY-01`
@@ -78,18 +87,10 @@ No reemplaza el historial completo.
 - Hash: `c578a5272f21d763fbe286751934b853a24de13f`
 - Descripción breve: Alinea listado visible y `lastPresentedReservations` con el mismo universo y orden temporal; el contexto sigue siendo referencia derivada y provider conserva la operabilidad de modify/cancel.
 
-## 9. FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01
+## 10. FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01
 
 - Identificador: `FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`
 - Nombre: `FIX-RUNTIME-CANCEL-CANONICAL-TARGET-VALIDATION-01`
 - Commit message: `fix(runtime): revalidate cancellation target against canonical state`
 - Hash: `e87cd783a7738a31d18ff0f32cee68039146565c`
 - Descripción breve: Revalida contra Canonical State el target de cancel obtenido por código, ordinal, presentación o foco antes de crear y confirmar `pendingCancellation`; la presentación identifica, pero no autoriza efectos transaccionales.
-
-## 10. HARDEN-RUNTIME-WIPE-DEMO-CM-RESERVATIONS-01
-
-- Identificador: `HARDEN-RUNTIME-WIPE-DEMO-CM-RESERVATIONS-01`
-- Nombre: `HARDEN-RUNTIME-WIPE-DEMO-CM-RESERVATIONS-01`
-- Commit message: `fix(tooling): harden demo channel manager reservation wipe`
-- Hash: `c152e61ce0bfd5a5057970181b7b3618974ff540`
-- Descripción breve: Endurece el wipe manual de reservas durables del Channel Manager demo/local: requiere selección explícita, hotel, `--force` y entorno autorizado, y preserva la exclusión del wipe genérico.
