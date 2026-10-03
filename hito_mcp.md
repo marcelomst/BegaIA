@@ -13803,3 +13803,50 @@ Impacto:
   `BEGASIST_PROFILE_ID`
 - mantiene `docs/architecture/system_operating_model.md` como fuente normativa
   unica y extiende la misma regla a templates y guia operativa
+
+### OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-03
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 5adc8cfc23b7eedb2b4072e1b7f61a7a6f3314a6
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora View D INTERNAL como representacion visual derivada del Operating
+Model. La vista presenta conjuntamente O0/P0, el runtime conversacional
+dominante, la operacion hotelera supervisada abstraida mediante P10, el actor
+externo X2 y la relacion operacional R28.
+
+El artefacto declara explicitamente:
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/operating-model-view-d-internal.svg`
+
+Documentacion de cierre:
+
+- `docs/architecture/README.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `5adc8cfc23b7eedb2b4072e1b7f61a7a6f3314a6`
+  y push tecnico confirmados por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- commit documental pendiente de ejecucion, hash y push por Marcelo
+
+Impacto:
+
+- mantiene la canonicidad porque la vista es una representacion derivada y no
+  introduce reglas normativas ni una fuente contractual paralela
+- preserva `docs/architecture/system_operating_model.md` como autoridad

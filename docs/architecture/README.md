@@ -180,6 +180,20 @@ Documenta la deuda arquitectónica aprobada para una gran versión donde
 
 ### Artefactos derivados
 
+#### Operating Model — View D INTERNAL
+
+`operating-model-view-d-internal.svg`
+
+Representa conjuntamente O0/P0, el runtime conversacional dominante y la
+operacion hotelera supervisada abstraida mediante P10, incluyendo el actor
+externo X2 y la relacion operacional R28.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md`.
+
+[Ver View D INTERNAL](./operating-model-view-d-internal.svg)
+
 #### Arquitectura general
 
 `system_overview.mmd`
