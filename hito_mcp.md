@@ -13953,12 +13953,13 @@ Impacto:
 
 ### OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CERRADO
 Fecha: 2026-10-05
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Commit tecnico: adb9546c97bb46faeb5e975305bbc93a1fe97937
 Push tecnico: CONFIRMED
-Commit documental: PENDING
+Commit documental: d5562d707632fa476026a83a004ad06941d6491b
+Push documental: CONFIRMED
 Clasificacion documental: HITO_PLUS_EVOLUCION
 
 Descripcion:
@@ -13992,7 +13993,8 @@ Validacion:
 - Runtime Map no aplicable; `roadmap_impact: none`
 - View D INTERNAL, View D PUBLIC, View E INTERNAL, Operating Model, ADRs,
   roadmap, codigo y runtime sin cambios
-- commit documental pendiente de ejecucion, hash y push por Marcelo
+- commit documental `d5562d707632fa476026a83a004ad06941d6491b`
+  y push documental confirmados
 
 Impacto:
 

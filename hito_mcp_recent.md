@@ -13,8 +13,9 @@ No reemplaza el historial completo.
 - Identificador: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
 - Commit tecnico: `adb9546c97bb46faeb5e975305bbc93a1fe97937`
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `d5562d707632fa476026a83a004ad06941d6491b`
+- Push documental: confirmado.
+- Estado documental: `CERRADO`; commit documental `d5562d707632fa476026a83a004ad06941d6491b`.
 - Descripcion breve: Incorpora e indexa View A INTERNAL como representacion visual derivada y no contractual de la arquitectura de roles del Operating Model.
 
 ## 2. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
