@@ -13950,3 +13950,53 @@ Impacto:
   y no contractual que localiza, pero no sustituye, autoridades documentales
 - preserva `docs/architecture/system_operating_model.md` y las fuentes
   gobernadas de cada ambito como autoridades correspondientes
+
+### OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-05
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: adb9546c97bb46faeb5e975305bbc93a1fe97937
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora e indexa View A INTERNAL como representacion visual derivada y no
+contractual de la arquitectura de roles del Operating Model. La vista presenta
+los siete actores estructurales y sus relaciones funcionales sin introducir
+identidades personales, jerarquias, autoridades, lifecycle ni permisos.
+
+El artefacto mantiene explicitamente:
+
+`representation_status: derived_non_contractual`
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/README.md`
+- `docs/architecture/operating-model-view-a-internal.svg`
+
+Documentacion de cierre:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `adb9546c97bb46faeb5e975305bbc93a1fe97937`
+  y push tecnico confirmados por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- View D INTERNAL, View D PUBLIC, View E INTERNAL, Operating Model, ADRs,
+  roadmap, codigo y runtime sin cambios
+- commit documental pendiente de ejecucion, hash y push por Marcelo
+
+Impacto:
+
+- mantiene la canonicidad porque View A INTERNAL es una representacion
+  derivada y no contractual, sin crear roles, autoridad ni jerarquia nuevos
+- preserva `docs/architecture/system_operating_model.md` como fuente
+  contractual y evita una fuente de verdad paralela
