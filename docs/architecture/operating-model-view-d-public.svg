@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:begasist="https://begasist.com/ns/architecture"
+     id="view-d-public"
+     viewBox="0 0 1920 1080"
+     width="1920"
+     height="1080"
+     role="img"
+     aria-labelledby="view-title view-description">
+  <title id="view-title">BegaIA: producto y evolución controlada</title>
+  <desc id="view-description">
+    BegaIA atiende al huésped y habilita operación hotelera supervisada. El
+    Operating Model gobierna cómo BegaIA puede evolucionar. El equipo del hotel
+    supervisa la operación diaria asistida por BegaIA, mientras que el Control
+    humano autoriza y controla la evolución del producto; son funciones humanas
+    distintas y no están conectadas entre sí.
+  </desc>
+
+  <metadata id="public-view-provenance">
+    <begasist:provenance>
+      <begasist:view_id>operating-model-view-d-public</begasist:view_id>
+      <begasist:representation_status>derived_non_contractual</begasist:representation_status>
+      <begasist:derived_from>docs/architecture/operating-model-view-d-internal.svg</begasist:derived_from>
+      <begasist:internal_technical_commit>5adc8cfc23b7eedb2b4072e1b7f61a7a6f3314a6</begasist:internal_technical_commit>
+      <begasist:internal_documentation_commit>a5915e554df3cb9841af4fe6f7ce4a668b946113</begasist:internal_documentation_commit>
+      <begasist:contractual_source>docs/architecture/system_operating_model.md</begasist:contractual_source>
+    </begasist:provenance>
+  </metadata>
+
+  <defs aria-hidden="true">
+    <filter id="soft-shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000814" flood-opacity="0.32"/>
+    </filter>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 11 6 L 1 11 Z" fill="#35C9BB"/>
+    </marker>
+    <marker id="arrow-coral" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 11 6 L 1 11 Z" fill="#FF8FB3"/>
+    </marker>
+    <marker id="arrow-violet" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 12 6.5 L 1 12 Z" fill="#C5AEFF"/>
+    </marker>
+    <pattern id="guest-pattern" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#35C9BB" stroke-width="2" opacity="0.13"/>
+    </pattern>
+    <pattern id="hotel-pattern" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.4" fill="#FF8FB3" opacity="0.16"/>
+    </pattern>
+    <style>
+      .text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #F4F7FB; }
+      .muted { fill: #BAC6D4; }
+      .eyebrow { font-size: 16px; font-weight: 700; letter-spacing: 2.2px; }
+      .system-label { font-size: 30px; font-weight: 800; letter-spacing: 1.3px; }
+      .node-label { font-size: 25px; font-weight: 750; }
+      .body { font-size: 19px; font-weight: 450; }
+      .relation-label { font-size: 16px; font-weight: 700; letter-spacing: 0.1px; }
+      .footer { font-size: 15px; font-weight: 700; letter-spacing: 1.1px; }
+    </style>
+  </defs>
+
+  <g id="layer-background" role="group" aria-label="Fondo" data-internal-ref="none" data-sequence="0">
+    <rect width="1920" height="1080" fill="#07111F"/>
+    <circle cx="1750" cy="90" r="250" fill="#123B47" opacity="0.10" aria-hidden="true"/>
+    <circle cx="150" cy="970" r="290" fill="#4B3678" opacity="0.08" aria-hidden="true"/>
+  </g>
+
+  <g id="layer-header" role="group" aria-label="Título y tesis" data-internal-ref="none" data-sequence="1">
+    <g id="public-title" role="group" aria-label="Título público" data-internal-ref="none" data-sequence="1.1">
+      <text class="text" x="80" y="72" font-size="46" font-weight="800">BegaIA: producto y evolución controlada</text>
+    </g>
+    <g id="public-thesis" role="group" aria-label="Tesis narrativa" data-internal-ref="P0,O0" data-sequence="1.2">
+      <text class="text muted" x="80" y="122" font-size="20">
+        <tspan>BegaIA atiende al huésped y habilita operación hotelera supervisada.</tspan>
+        <tspan x="80" dy="28">El Operating Model gobierna cómo BegaIA puede evolucionar.</tspan>
+      </text>
+    </g>
+  </g>
+
+  <g id="layer-system-boundaries" role="group" aria-label="Dos límites de sistema" data-internal-ref="P0,O0" data-sequence="2">
+    <g id="public-product-system" class="system-boundary" role="group" aria-label="BegaIA, Product System" data-node-type="system_boundary" data-internal-ref="P0" data-sequence="2.1">
+      <rect x="320" y="190" width="1280" height="500" rx="34" fill="#0D2430" stroke="#35C9BB" stroke-width="4" filter="url(#soft-shadow)"/>
+      <path d="M 350 276 H 1570" stroke="#35C9BB" stroke-width="2" opacity="0.35" stroke-dasharray="8 10" aria-hidden="true"/>
+      <text class="text system-label" x="370" y="238">BEGAIA / PRODUCT SYSTEM</text>
+      <text class="text muted body" x="370" y="266">Un único producto con dos dimensiones complementarias</text>
+    </g>
+
+    <g id="public-operating-model" class="system-boundary" role="group" aria-label="Operating Model System" data-node-type="system_boundary" data-internal-ref="O0" data-sequence="4">
+      <rect x="500" y="790" width="920" height="170" rx="30" fill="#211838" stroke="#9D7BEA" stroke-width="4" filter="url(#soft-shadow)"/>
+      <path d="M 990 812 V 938" stroke="#9D7BEA" stroke-width="2" opacity="0.42" stroke-dasharray="7 9" aria-hidden="true"/>
+      <text class="text system-label" x="550" y="846">OPERATING MODEL SYSTEM</text>
+      <text class="text muted body" x="550" y="884">Gobierna cómo BegaIA puede</text>
+      <text class="text muted body" x="550" y="912">evolucionar</text>
+    </g>
+  </g>
+
+  <g id="layer-product-capabilities" role="group" aria-label="Dos dimensiones del Product System" data-internal-ref="guest_interaction_group,P1-P9,P10" data-sequence="2.5">
+    <g id="public-guest-interaction" role="group" aria-label="Interacción con el huésped" data-node-type="product_capability" data-system="public-product-system" data-internal-ref="guest_interaction_group,P1-P9" data-sequence="2.3">
+      <rect x="410" y="310" width="520" height="250" rx="26" fill="#123B47" stroke="#55E1D4" stroke-width="3"/>
+      <rect x="410" y="310" width="520" height="250" rx="26" fill="url(#guest-pattern)" aria-hidden="true"/>
+      <g transform="translate(455 353)" aria-hidden="true">
+        <path d="M 0 4 Q 0 0 4 0 H 42 Q 46 0 46 4 V 29 Q 46 33 42 33 H 19 L 8 43 V 33 H 4 Q 0 33 0 29 Z" fill="none" stroke="#70E9DE" stroke-width="3"/>
+        <circle cx="13" cy="17" r="2.5" fill="#70E9DE"/>
+        <circle cx="23" cy="17" r="2.5" fill="#70E9DE"/>
+        <circle cx="33" cy="17" r="2.5" fill="#70E9DE"/>
+      </g>
+      <text class="text node-label" x="455" y="430">Interacción con el huésped</text>
+      <text class="text" x="455" y="473" font-size="22" font-weight="700">Conversación multicanal</text>
+      <text class="text muted body" x="455" y="510">Atiende consultas y acompaña gestiones</text>
+    </g>
+
+    <g id="public-hotel-operation" role="group" aria-label="Operación hotelera asistida y supervisada" data-node-type="product_capability" data-system="public-product-system" data-internal-ref="P10" data-sequence="3.3">
+      <rect x="990" y="310" width="520" height="250" rx="26" fill="#38273A" stroke="#FF8FB3" stroke-width="3"/>
+      <rect x="990" y="310" width="520" height="250" rx="26" fill="url(#hotel-pattern)" aria-hidden="true"/>
+      <g transform="translate(1035 347)" aria-hidden="true">
+        <circle cx="18" cy="15" r="11" fill="none" stroke="#FFB5CD" stroke-width="3"/>
+        <path d="M 0 48 C 2 31 34 31 36 48" fill="none" stroke="#FFB5CD" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 44 27 L 55 38 L 75 14" fill="none" stroke="#FFB5CD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <text class="text node-label" x="1035" y="422">Operación hotelera asistida</text>
+      <text class="text node-label" x="1035" y="453">y supervisada</text>
+      <text class="text muted body" x="1035" y="495">El equipo revisa, confirma e interviene</text>
+      <text class="text muted body" x="1035" y="523">cuando corresponde</text>
+      <text class="text" x="1035" y="551" font-size="18" font-weight="750">BegaIA asiste; no sustituye la recepción</text>
+    </g>
+  </g>
+
+  <g id="layer-external-actors" role="group" aria-label="Actores externos" data-internal-ref="X1,X2" data-sequence="3">
+    <g id="public-guest" role="group" aria-label="Actor externo: Huésped" data-node-type="external_actor" data-system="external" data-internal-ref="X1" data-sequence="2.1">
+      <rect x="60" y="340" width="210" height="180" rx="28" fill="#0B1928" stroke="#70E9DE" stroke-width="3" stroke-dasharray="10 7"/>
+      <g transform="translate(123 370)" aria-hidden="true">
+        <circle cx="42" cy="24" r="20" fill="none" stroke="#70E9DE" stroke-width="4"/>
+        <path d="M 5 82 C 9 48 75 48 79 82" fill="none" stroke="#70E9DE" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <text class="text node-label" x="165" y="492" text-anchor="middle">Huésped</text>
+    </g>
+
+    <g id="public-hotel-team" role="group" aria-label="Actor externo: Equipo del hotel" data-node-type="external_actor" data-system="external" data-internal-ref="X2" data-sequence="3.1">
+      <rect x="1650" y="340" width="210" height="180" rx="28" fill="#0B1928" stroke="#FFB5CD" stroke-width="3" stroke-dasharray="10 7"/>
+      <g transform="translate(1705 369)" aria-hidden="true">
+        <circle cx="30" cy="24" r="17" fill="none" stroke="#FFB5CD" stroke-width="4"/>
+        <circle cx="66" cy="29" r="14" fill="none" stroke="#FFB5CD" stroke-width="3"/>
+        <path d="M 0 78 C 4 49 56 49 60 78 M 47 77 C 50 56 88 56 92 77" fill="none" stroke="#FFB5CD" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <text class="text node-label" x="1755" y="484" text-anchor="middle">Equipo del</text>
+      <text class="text node-label" x="1755" y="513" text-anchor="middle">hotel</text>
+    </g>
+  </g>
+
+  <g id="layer-human-control" role="group" aria-label="Control humano de la evolución" data-internal-ref="O7" data-sequence="5">
+    <g id="public-human-control" role="group" aria-label="Control humano dentro del Operating Model" data-node-type="governance_capability" data-system="public-operating-model" data-internal-ref="O7" data-sequence="5.1">
+      <rect x="1030" y="815" width="330" height="105" rx="22" fill="#4B3678" stroke="#F4CF78" stroke-width="3"/>
+      <g transform="translate(1054 838)" aria-hidden="true">
+        <path d="M 25 0 L 48 9 V 27 C 48 43 37 54 25 60 C 13 54 2 43 2 27 V 9 Z" fill="none" stroke="#F4CF78" stroke-width="3"/>
+        <path d="M 14 28 L 22 36 L 37 18" fill="none" stroke="#F4CF78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <text class="text" x="1120" y="855" font-size="23" font-weight="800">Control humano</text>
+      <text class="text muted" x="1120" y="884" font-size="17">Autoriza y controla</text>
+      <text class="text muted" x="1120" y="907" font-size="17">cambios al producto</text>
+    </g>
+  </g>
+
+  <g id="layer-relationships" role="group" aria-label="Tres relaciones públicas" data-internal-ref="R01,R10,R11,R28,R21" data-sequence="5.5">
+    <g id="public-rel-guest" role="group" aria-label="Huésped conversa y recibe asistencia" data-from="public-guest" data-to="public-guest-interaction" data-direction="bidirectional" data-internal-ref="R01,R10,R11" data-sequence="2.2">
+      <title>Relación bidireccional: el huésped conversa y recibe asistencia</title>
+      <path d="M 280 452 H 400" fill="none" stroke="#35C9BB" stroke-width="4" stroke-linecap="round" marker-start="url(#arrow-teal)" marker-end="url(#arrow-teal)"/>
+      <rect x="270" y="373" width="140" height="55" rx="16" fill="#07111F" stroke="#35C9BB" stroke-width="1.5"/>
+      <text class="text relation-label" x="340" y="398" text-anchor="middle">conversa y recibe</text>
+      <text class="text relation-label" x="340" y="421" text-anchor="middle">asistencia</text>
+    </g>
+
+    <g id="public-rel-hotel-team" role="group" aria-label="Equipo del hotel usa, supervisa e interviene" data-from="public-hotel-team" data-to="public-hotel-operation" data-direction="bidirectional" data-internal-ref="R28" data-sequence="3.2">
+      <title>Relación bidireccional: el equipo del hotel usa, supervisa e interviene</title>
+      <path d="M 1520 452 H 1640" fill="none" stroke="#FF8FB3" stroke-width="4" stroke-linecap="round" marker-start="url(#arrow-coral)" marker-end="url(#arrow-coral)"/>
+      <rect x="1510" y="373" width="140" height="55" rx="16" fill="#07111F" stroke="#FF8FB3" stroke-width="1.5"/>
+      <text class="text relation-label" x="1580" y="398" text-anchor="middle">usa · supervisa</text>
+      <text class="text relation-label" x="1580" y="421" text-anchor="middle">· interviene</text>
+    </g>
+
+    <g id="public-rel-governance" role="group" aria-label="El Operating Model gobierna cómo BegaIA puede evolucionar" data-from="public-operating-model" data-to="public-product-system" data-direction="one_way" data-execution-semantics="none" data-internal-ref="R21" data-sequence="5.2">
+      <title>Relación unidireccional de gobierno de evolución, sin semántica de ejecución</title>
+      <path d="M 960 790 V 690" fill="none" stroke="#C5AEFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="10 8" marker-end="url(#arrow-violet)"/>
+      <rect x="1000" y="703" width="432" height="66" rx="18" fill="#131526" stroke="#9D7BEA" stroke-width="2"/>
+      <text class="text relation-label" x="1022" y="729">gobierna la evolución</text>
+      <text class="text muted" x="1022" y="754" font-size="16">fuera de la atención en tiempo real</text>
+    </g>
+  </g>
+
+  <g id="layer-legend" role="group" aria-label="Leyenda de relaciones" data-internal-ref="R01,R10,R11,R28,R21" data-sequence="7">
+    <g transform="translate(80 1000)">
+      <line x1="0" y1="0" x2="52" y2="0" stroke="#35C9BB" stroke-width="4" marker-end="url(#arrow-teal)" aria-hidden="true"/>
+      <text class="text muted" x="68" y="6" font-size="16">Interacción con el huésped</text>
+    </g>
+    <g transform="translate(500 1000)">
+      <line x1="0" y1="0" x2="52" y2="0" stroke="#FF8FB3" stroke-width="4" marker-end="url(#arrow-coral)" aria-hidden="true"/>
+      <text class="text muted" x="68" y="6" font-size="16">Operación asistida/supervisada</text>
+    </g>
+    <g transform="translate(1000 1000)">
+      <line x1="0" y1="0" x2="52" y2="0" stroke="#C5AEFF" stroke-width="4" stroke-dasharray="9 7" marker-end="url(#arrow-violet)" aria-hidden="true"/>
+      <text class="text muted" x="68" y="6" font-size="16">Gobierno de evolución</text>
+    </g>
+  </g>
+
+  <g id="layer-representation-status" role="group" aria-label="Estado de representación derivada" data-internal-ref="docs/architecture/operating-model-view-d-internal.svg" data-sequence="6">
+    <text class="text footer" x="80" y="1050">VISTA PÚBLICA DERIVADA · NO ES FUENTE CONTRACTUAL</text>
+  </g>
+</svg>
