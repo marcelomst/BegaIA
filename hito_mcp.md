@@ -13897,3 +13897,55 @@ Impacto:
 - mantiene la canonicidad porque la vista es una representacion derivada y no
   introduce reglas, runtime alternativo ni una fuente contractual paralela
 - preserva `docs/architecture/system_operating_model.md` como autoridad
+
+### OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-05
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 277109f3f2550a9e528e4e032071fb5c009536ea
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora View E INTERNAL como representacion visual derivada y no contractual
+de la arquitectura documental del Operating Model y sus ambitos de autoridad.
+El artefacto queda indexado entre las representaciones derivadas sin sustituir
+las fuentes gobernadas de cada plano documental.
+
+El artefacto declara explicitamente:
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/README.md`
+- `docs/architecture/operating-model-view-e-internal.svg`
+
+Documentacion de cierre:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `277109f3f2550a9e528e4e032071fb5c009536ea`
+  y push tecnico confirmados por Guardian
+- artefacto tecnico con SHA-256
+  `41d76abd1eedf0e06af5e60ddaf4ffc85fd9df2e7fb0791902be9b26d81b4d65`
+  verificado por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- View D, Operating Model, ADRs, roadmap, codigo y runtime sin cambios
+- commit documental pendiente de ejecucion, hash y push por Marcelo
+
+Impacto:
+
+- mantiene la canonicidad porque View E INTERNAL es una representacion derivada
+  y no contractual que localiza, pero no sustituye, autoridades documentales
+- preserva `docs/architecture/system_operating_model.md` y las fuentes
+  gobernadas de cada ambito como autoridades correspondientes

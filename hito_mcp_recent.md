@@ -8,7 +8,16 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
+## 1. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
+
+- Identificador: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
+- Nombre: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
+- Commit tecnico: `277109f3f2550a9e528e4e032071fb5c009536ea`
+- Commit documental: `PENDING`
+- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Descripcion breve: Incorpora e indexa View E INTERNAL como representacion visual derivada y no contractual de la arquitectura documental del Operating Model y sus ambitos de autoridad.
+
+## 2. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
@@ -17,7 +26,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`.
 - Descripcion breve: Incorpora View D PUBLIC como representacion visual derivada y no contractual del Product System y su gobierno de evolucion.
 
-## 2. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
+## 3. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
@@ -26,7 +35,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `a5915e554df3cb9841af4fe6f7ce4a668b946113`.
 - Descripcion breve: Incorpora View D INTERNAL como representacion visual derivada del Operating Model, sin crear una fuente contractual paralela.
 
-## 3. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
+## 4. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
 
 - Identificador: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
 - Nombre: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
@@ -35,7 +44,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Adopta el Agent Target Receiver Guard como regla operativa canónica transversal, con identidad autoritativa, envelope obligatorio, fail-closed y validación por prompt.
 
-## 4. OPS-CODEX-SESSION-LAUNCHER-01
+## 5. OPS-CODEX-SESSION-LAUNCHER-01
 
 - Identificador: `OPS-CODEX-SESSION-LAUNCHER-01`
 - Nombre: `OPS-CODEX-SESSION-LAUNCHER-01`
@@ -44,7 +53,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Incorpora un launcher versionado de VS Code para abrir en paralelo cinco sesiones Codex independientes y documenta el punto de entrada en la guía canónica existente.
 
-## 5. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
+## 6. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
 
 - Identificador: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
 - Nombre: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
@@ -53,7 +62,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Reconcilia la guía subordinada de agentes con el lifecycle, las clasificaciones, los gates y la autoridad Git del Operating Model canónico, sin introducir reglas nuevas.
 
-## 6. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
+## 7. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
 
 - Identificador: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
 - Nombre: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
@@ -62,7 +71,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Restaura headings, listas, separación y bloques fenced Markdown del Operating Model sin alterar contenido contractual, reglas operativas ni arquitectura viva.
 
-## 7. OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
+## 8. OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
 
 - Identificador: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
 - Nombre: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
@@ -71,7 +80,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Reubica el cierre de un fence Markdown para limitar el bloque `text` a sus tres líneas previstas, sin modificar contenido contractual, reglas operativas ni arquitectura viva.
 
-## 8. OPS-CODEX-SESSION-PROFILES-CUTOVER-01
+## 9. OPS-CODEX-SESSION-PROFILES-CUTOVER-01
 
 - Identificador: `OPS-CODEX-SESSION-PROFILES-CUTOVER-01`
 - Nombre: `OPS-CODEX-SESSION-PROFILES-CUTOVER-01`
@@ -80,7 +89,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Promueve cinco perfiles Codex definitivos en el entorno externo y consolida una única guía canónica para WSL2, CLI 0.156.1 y Profile V2, sin versionar configuraciones de `~/.codex`.
 
-## 9. OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01
+## 10. OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01
 
 - Identificador: `OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01`
 - Nombre: `OPS-OPERATING-MODEL-EXTERNAL-HITO-CONTRACT-01`
@@ -88,11 +97,3 @@ No reemplaza el historial completo.
 - Hash: `4d18655bb784d1927cb4da6aba327f2613933995`
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Incorpora al Operating Model canónico el discriminador entre cambios versionables y cambios operativos íntegramente externos, con gates trazables distintos y sin crear una fuente normativa paralela.
-
-## 10. FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
-
-- Identificador: `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`
-- Nombre: `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`
-- Commit message: `fix(runtime): reject invalid create dates and preserve checkout on repair`
-- Hash: `efc11b21eb1aabbe881250d6fe0556ba16b113c3`
-- Descripción breve: Rechaza fechas calendario imposibles antes de availability/propuesta y preserva el checkOut válido al reparar checkIn en flujos multi-turno con historial y Chrono.
