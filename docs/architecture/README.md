@@ -194,6 +194,19 @@ La autoridad contractual permanece en `system_operating_model.md`.
 
 [Ver View D INTERNAL](./operating-model-view-d-internal.svg)
 
+#### Operating Model — View D PUBLIC
+
+`operating-model-view-d-public.svg`
+
+Representa el Product System y su gobierno de evolucion como vista publica
+derivada del Operating Model.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md`.
+
+[Ver View D PUBLIC](./operating-model-view-d-public.svg)
+
 #### Arquitectura general
 
 `system_overview.mmd`

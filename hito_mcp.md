@@ -13850,3 +13850,48 @@ Impacto:
 - mantiene la canonicidad porque la vista es una representacion derivada y no
   introduce reglas normativas ni una fuente contractual paralela
 - preserva `docs/architecture/system_operating_model.md` como autoridad
+
+### OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-05
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 78dc8a399d08e54b4c738cd44742e358027c38f7
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora View D PUBLIC como representacion visual derivada y no contractual
+del Product System y su gobierno de evolucion.
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/operating-model-view-d-public.svg`
+
+Documentacion de cierre:
+
+- `docs/architecture/README.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `78dc8a399d08e54b4c738cd44742e358027c38f7`
+  y push tecnico confirmados por Guardian
+- artefacto tecnico con SHA-256
+  `e8f56704b8eecbea7979696ee125a338b4ccd4bdaac0a75b31b7220f2fa10977`
+  verificado por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- artefactos protegidos sin cambios, segun validacion de Guardian
+- commit documental pendiente de ejecucion, hash y push por Marcelo
+
+Impacto:
+
+- mantiene la canonicidad porque la vista es una representacion derivada y no
+  introduce reglas, runtime alternativo ni una fuente contractual paralela
+- preserva `docs/architecture/system_operating_model.md` como autoridad
