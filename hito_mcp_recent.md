@@ -13,8 +13,8 @@ No reemplaza el historial completo.
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
 - Commit tecnico: `78dc8a399d08e54b4c738cd44742e358027c38f7`
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`
+- Estado documental: `CERRADO`; commit documental `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`.
 - Descripcion breve: Incorpora View D PUBLIC como representacion visual derivada y no contractual del Product System y su gobierno de evolucion.
 
 ## 2. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
@@ -22,8 +22,8 @@ No reemplaza el historial completo.
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
 - Commit tecnico: `5adc8cfc23b7eedb2b4072e1b7f61a7a6f3314a6`
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `a5915e554df3cb9841af4fe6f7ce4a668b946113`
+- Estado documental: `CERRADO`; commit documental `a5915e554df3cb9841af4fe6f7ce4a668b946113`.
 - Descripcion breve: Incorpora View D INTERNAL como representacion visual derivada del Operating Model, sin crear una fuente contractual paralela.
 
 ## 3. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01

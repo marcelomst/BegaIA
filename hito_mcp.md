@@ -13806,12 +13806,12 @@ Impacto:
 
 ### OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CERRADO
 Fecha: 2026-10-03
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Commit tecnico: 5adc8cfc23b7eedb2b4072e1b7f61a7a6f3314a6
 Push tecnico: CONFIRMED
-Commit documental: PENDING
+Commit documental: a5915e554df3cb9841af4fe6f7ce4a668b946113
 Clasificacion documental: HITO_PLUS_EVOLUCION
 
 Descripcion:
@@ -13843,7 +13843,8 @@ Validacion:
 - `guardian_verdict: valid` y `ready_for_hdoc: yes`
 - `hito_change_classification: existing_repo_change`
 - Runtime Map no aplicable; `roadmap_impact: none`
-- commit documental pendiente de ejecucion, hash y push por Marcelo
+- commit documental `a5915e554df3cb9841af4fe6f7ce4a668b946113`
+  y push documental confirmados
 
 Impacto:
 
@@ -13853,12 +13854,12 @@ Impacto:
 
 ### OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CERRADO
 Fecha: 2026-10-05
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Commit tecnico: 78dc8a399d08e54b4c738cd44742e358027c38f7
 Push tecnico: CONFIRMED
-Commit documental: PENDING
+Commit documental: 540cd5c38686f3eeb95f0eeea274aaf7edf8582b
 Clasificacion documental: HITO_PLUS_EVOLUCION
 
 Descripcion:
@@ -13888,7 +13889,8 @@ Validacion:
 - `hito_change_classification: existing_repo_change`
 - Runtime Map no aplicable; `roadmap_impact: none`
 - artefactos protegidos sin cambios, segun validacion de Guardian
-- commit documental pendiente de ejecucion, hash y push por Marcelo
+- commit documental `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`
+  y push documental confirmados
 
 Impacto:
 
