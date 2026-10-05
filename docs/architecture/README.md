@@ -180,6 +180,21 @@ Documenta la deuda arquitectónica aprobada para una gran versión donde
 
 ### Artefactos derivados
 
+#### Operating Model — View A INTERNAL
+
+`operating-model-view-a-internal.svg`
+
+Representa la arquitectura de roles del Operating Model: autoridad humana,
+orquestacion, especializaciones de arquitectura, implementacion, auditoria y
+documentacion mediante relaciones funcionales no secuenciales.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md`; las fuentes
+operativas gobernadas conservan la identidad efectiva y el binding vigente.
+
+[Ver View A INTERNAL](./operating-model-view-a-internal.svg)
+
 #### Operating Model — View D INTERNAL
 
 `operating-model-view-d-internal.svg`

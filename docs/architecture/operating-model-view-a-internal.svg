@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Path: docs/architecture/operating-model-view-a-internal.svg -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:begasist="https://begasist.com/ns/architecture"
+     id="view-a-internal"
+     width="1920" height="1080" viewBox="0 0 1920 1080"
+     role="img" aria-labelledby="view-title view-description" fill="#eef5ff">
+  <title id="view-title">BegaIA Operating Model — View A — INTERNAL</title>
+  <desc id="view-description">
+    Derived role-architecture view of the Operating Model System. Human Authority provides direction,
+    AGPT coordinates scope and context, and five specialized agents contribute architecture,
+    implementation, audit, validation, documentation and traceability. Relationships are functional,
+    radial and non-sequential; coordination centrality does not imply an authority hierarchy.
+  </desc>
+
+  <metadata id="view-a-provenance">
+    <begasist:provenance>
+      <begasist:view_id>operating-model-view-a-internal</begasist:view_id>
+      <begasist:representation_status>derived_non_contractual</begasist:representation_status>
+      <begasist:derived_from>docs/architecture/system_operating_model.md; docs/development/codex_agent_sessions.md; active governed agent profiles</begasist:derived_from>
+      <begasist:baseline_commit>0986333f3400b90d672f7376e3f06024196b6cd8</begasist:baseline_commit>
+    </begasist:provenance>
+  </metadata>
+
+  <defs>
+    <linearGradient id="background-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0b1424"/>
+    </linearGradient>
+    <linearGradient id="operating-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#211838"/>
+      <stop offset="1" stop-color="#15152b"/>
+    </linearGradient>
+    <linearGradient id="orchestration-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4b3678"/>
+      <stop offset="1" stop-color="#2d2447"/>
+    </linearGradient>
+
+    <marker id="arrow-violet" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#b99cff"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#f7b84b"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#5df4df"/>
+    </marker>
+
+    <style>
+      :root { color-scheme: dark; }
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #eef5ff; }
+      .muted { fill: #aebdd0; }
+      .micro { font-size: 11px; letter-spacing: .02em; }
+      .small { font-size: 13px; }
+      .body { font-size: 15px; }
+      .label { font-size: 16px; font-weight: 700; }
+      .node-title { font-size: 20px; font-weight: 800; }
+      .section-label { font-size: 13px; font-weight: 800; letter-spacing: .11em; }
+      .edge-label { font-size: 11px; font-weight: 700; paint-order: stroke; stroke: #0b1424; stroke-width: 5px; stroke-linejoin: round; }
+      .boundary { stroke-width: 3; rx: 18; vector-effect: non-scaling-stroke; }
+      .group { stroke-width: 1.5; rx: 14; vector-effect: non-scaling-stroke; }
+      .node { stroke-width: 2; rx: 12; vector-effect: non-scaling-stroke; }
+      .node-human { fill: #4d3718; stroke: #f7b84b; stroke-width: 4; }
+      .node-orchestration { fill: url(#orchestration-gradient); stroke: #cebaff; stroke-width: 4; }
+      .node-architecture { fill: #173747; stroke: #5df4df; }
+      .node-implementation { fill: #35265a; stroke: #a98af2; }
+      .node-audit { fill: #2b3441; stroke: #9eacbd; }
+      .node-documentation { fill: #3f311d; stroke: #d7a24b; }
+      .coordination-edge { fill: none; stroke: #b99cff; stroke-width: 2.7; marker-start: url(#arrow-violet); marker-end: url(#arrow-violet); }
+      .human-edge { fill: none; stroke: #f7b84b; stroke-width: 3.2; marker-start: url(#arrow-amber); marker-end: url(#arrow-amber); }
+      .escalation-edge { fill: none; stroke: #5df4df; stroke-width: 2.5; stroke-dasharray: 9 6; marker-end: url(#arrow-teal); }
+      .interface-edge { fill: none; stroke: #d7a24b; stroke-width: 3; stroke-dasharray: 3 7; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect id="canvas-background" width="1920" height="1080" fill="url(#background-gradient)"/>
+
+  <g id="layer-header" aria-label="Title, thesis and provenance">
+    <text x="40" y="34" font-size="27" font-weight="800">BegaIA Operating Model — View A — INTERNAL</text>
+    <text x="40" y="60" class="body">El Operating Model distribuye responsabilidades especializadas entre autoridad humana, coordinación, arquitectura,</text>
+    <text x="40" y="80" class="body">implementación, auditoría y documentación; AGPT articula esas funciones sin convertirlas en una jerarquía ni en una secuencia.</text>
+
+    <g id="representation-metadata" transform="translate(1120 10)" aria-label="Representation metadata">
+      <rect width="760" height="76" rx="8" fill="#101b2d" stroke="#44566d"/>
+      <text x="14" y="18" class="micro">view_id: operating-model-view-a-internal</text>
+      <text x="14" y="36" class="micro">representation_status: derived_non_contractual</text>
+      <text x="14" y="54" class="micro">derived_from: system_operating_model.md · agent sessions · active governed profiles</text>
+      <text x="14" y="70" class="micro">baseline_commit: 0986333f3400b90d672f7376e3f06024196b6cd8</text>
+    </g>
+  </g>
+
+  <g id="layer-context" aria-label="View context">
+    <rect x="40" y="98" width="1840" height="38" rx="8" fill="#111b29" stroke="#52657a" stroke-dasharray="4 7"/>
+    <text x="60" y="122" class="section-label">ROLE ARCHITECTURE</text>
+    <text x="960" y="122" text-anchor="middle" class="label">non-sequential functional relationships</text>
+    <text x="1860" y="122" text-anchor="end" class="small muted">View D → Operating Model System zoom · View E → governed sources</text>
+  </g>
+
+  <g id="layer-operating-model-boundary" aria-label="Operating Model System">
+    <rect class="boundary" x="40" y="154" width="1840" height="786"
+          fill="url(#operating-gradient)" stroke="#9d7bea"/>
+    <text x="66" y="188" font-size="24" font-weight="800" letter-spacing=".08em">OPERATING MODEL SYSTEM</text>
+    <text x="1854" y="186" text-anchor="end" class="small muted">role responsibilities · functional coordination · non-sequential</text>
+
+    <g id="governed-canonical-sources" aria-label="Governed canonical sources context">
+      <rect x="66" y="205" width="1788" height="46" rx="10" fill="#101b2d" stroke="#66788d" stroke-dasharray="7 6"/>
+      <text x="84" y="234" class="section-label">ALL ROLES OPERATE UNDER GOVERNED CANONICAL SOURCES</text>
+      <text x="1834" y="234" text-anchor="end" class="small muted">See View E — governed sources</text>
+    </g>
+  </g>
+
+  <g id="layer-functional-relationships" aria-label="Non-sequential functional relationships">
+    <path id="human-direction-context" class="human-edge" d="M486 510 H650"/>
+    <text x="568" y="478" text-anchor="middle" class="edge-label">human direction</text>
+    <text x="568" y="494" text-anchor="middle" class="edge-label">/ coordinated context</text>
+
+    <path id="coordination-system-architect" class="coordination-edge" d="M1035 410 C1110 360 1134 349 1204 349"/>
+    <path id="coordination-kb-architect" class="coordination-edge" d="M1035 445 C1160 500 1450 515 1671 466"/>
+    <path id="coordination-technical-implementer" class="coordination-edge" d="M1040 515 C1090 545 1120 570 1160 600"/>
+    <path id="coordination-repo-guardian" class="coordination-edge" d="M1040 492 C1210 492 1410 500 1500 590"/>
+    <path id="coordination-hdoc" class="coordination-edge" d="M960 598 C1100 765 1320 818 1500 818"/>
+
+    <path id="kb-to-system-escalation" class="escalation-edge" d="M1530 392 H1482"/>
+    <text x="1506" y="282" text-anchor="middle" class="edge-label">cross-slice escalation</text>
+
+    <path id="guardian-hdoc-interface" class="interface-edge" d="M1650 680 V756"/>
+    <polygon points="1650,710 1660,720 1650,730 1640,720" fill="#3f311d" stroke="#f7b84b" stroke-width="2"/>
+    <text x="1670" y="710" class="edge-label">validated evidence interface</text>
+    <text x="1670" y="727" class="micro muted">non-sequential relation</text>
+  </g>
+
+  <g id="layer-role-actors" aria-label="Exactly seven persistent role actors">
+    <g id="actor-human-authority" data-actor="Human Authority" aria-label="Human Authority">
+      <text x="96" y="372" class="section-label" fill="#f7b84b">HUMAN AUTHORITY</text>
+      <rect class="node node-human" x="86" y="388" width="400" height="244"/>
+      <circle cx="286" cy="434" r="21" fill="#3f311d" stroke="#f7b84b" stroke-width="3"/>
+      <path d="M248 482 C248 450 324 450 324 482 V492 H248 Z" fill="#3f311d" stroke="#f7b84b" stroke-width="3"/>
+      <text x="286" y="532" text-anchor="middle" class="node-title">Human Authority</text>
+      <text x="286" y="565" text-anchor="middle" class="body">Human direction · operational accountability</text>
+      <text x="286" y="600" text-anchor="middle" class="small muted">structural role · identity governed elsewhere</text>
+    </g>
+
+    <g id="actor-agpt-orchestration" data-actor="AGPT / Orchestration" aria-label="AGPT / Orchestration">
+      <text x="670" y="344" class="section-label">ORCHESTRATION</text>
+      <rect class="node node-orchestration" x="650" y="360" width="390" height="238"/>
+      <text x="845" y="409" text-anchor="middle" font-size="24" font-weight="850">AGPT / Orchestration</text>
+      <text x="845" y="448" text-anchor="middle" class="body">Scope · context · dispatch · coordination</text>
+      <line x1="690" y1="474" x2="1000" y2="474" stroke="#7d68ad"/>
+      <text x="845" y="506" text-anchor="middle" class="small">coordinates scope and receives scoped result</text>
+      <text x="845" y="536" text-anchor="middle" class="small muted">designs milestones · consolidates context</text>
+      <rect x="684" y="554" width="322" height="28" rx="14" fill="#17172a" stroke="#f7b84b"/>
+      <text x="845" y="573" text-anchor="middle" class="micro" fill="#f7c86f">coordination centrality ≠ authority hierarchy</text>
+    </g>
+
+    <g id="architecture-specializations" aria-label="Architecture visual class with sibling specializations">
+      <rect class="group" x="1180" y="294" width="650" height="188" fill="none" stroke="#35c9bb" stroke-dasharray="7 5"/>
+      <text x="1204" y="320" class="section-label">ARCHITECTURE · SIBLING SPECIALIZATIONS</text>
+
+      <g id="actor-system-architect" data-actor="System Architect / arquitecto_sistema" aria-label="System Architect / arquitecto_sistema">
+        <rect class="node node-architecture" x="1204" y="326" width="270" height="132"/>
+        <text x="1339" y="355" text-anchor="middle" class="label">System Architect</text>
+        <text x="1339" y="378" text-anchor="middle" class="small">arquitecto_sistema</text>
+        <text x="1339" y="411" text-anchor="middle" class="small muted">Cross-slice architecture · contracts</text>
+        <text x="1339" y="433" text-anchor="middle" class="small muted">boundaries · structural evolution</text>
+      </g>
+
+      <g id="actor-kb-architect" data-actor="KB Architect / arquitecto_kb" aria-label="KB Architect / arquitecto_kb">
+        <rect class="node node-architecture" x="1536" y="326" width="270" height="132"/>
+        <text x="1671" y="355" text-anchor="middle" class="label">KB Architect</text>
+        <text x="1671" y="378" text-anchor="middle" class="small">arquitecto_kb</text>
+        <text x="1671" y="411" text-anchor="middle" class="small muted">KB architecture · config</text>
+        <text x="1671" y="433" text-anchor="middle" class="small muted">templates · retrieval</text>
+      </g>
+    </g>
+
+    <g id="actor-technical-implementer" data-actor="Technical Implementer / asistente_tecnico" aria-label="Technical Implementer / asistente_tecnico">
+      <text x="1180" y="540" class="section-label">IMPLEMENTATION</text>
+      <rect class="node node-implementation" x="1160" y="556" width="318" height="150"/>
+      <text x="1319" y="590" text-anchor="middle" class="label">Technical Implementer</text>
+      <text x="1319" y="615" text-anchor="middle" class="small">asistente_tecnico</text>
+      <text x="1319" y="652" text-anchor="middle" class="small muted">Scoped repository changes</text>
+      <text x="1319" y="675" text-anchor="middle" class="small muted">technical validation evidence</text>
+    </g>
+
+    <g id="actor-repo-guardian" data-actor="Repo Guardian" aria-label="Repo Guardian">
+      <text x="1520" y="540" class="section-label">AUDIT / VALIDATION</text>
+      <rect class="node node-audit" x="1500" y="556" width="300" height="124"/>
+      <text x="1650" y="590" text-anchor="middle" class="label">Repo Guardian</text>
+      <text x="1650" y="618" text-anchor="middle" class="small">Audit · validation · consistency</text>
+      <text x="1650" y="650" text-anchor="middle" class="small muted">Produces validated technical evidence</text>
+    </g>
+
+    <g id="actor-hdoc" data-actor="HDOC" aria-label="HDOC">
+      <text x="1520" y="740" class="section-label">DOCUMENTATION / TRACEABILITY</text>
+      <rect class="node node-documentation" x="1500" y="756" width="300" height="134"/>
+      <text x="1650" y="790" text-anchor="middle" class="label">HDOC</text>
+      <text x="1650" y="818" text-anchor="middle" class="small">Documentation · consolidation · traceability</text>
+      <text x="1650" y="850" text-anchor="middle" class="small muted">Maintains governed documentation</text>
+      <text x="1650" y="872" text-anchor="middle" class="small muted">from validated evidence</text>
+    </g>
+  </g>
+
+  <g id="layer-relationship-legend" aria-label="Functional relationship legend">
+    <rect x="66" y="660" width="980" height="238" rx="14" fill="#101b2d" stroke="#44566d"/>
+    <text x="90" y="690" class="section-label">FUNCTIONAL RELATIONSHIPS · NON-SEQUENTIAL</text>
+
+    <line x1="92" y1="726" x2="160" y2="726" class="human-edge"/>
+    <text x="180" y="731" class="small">human direction / coordinated context</text>
+
+    <line x1="92" y1="766" x2="160" y2="766" class="coordination-edge"/>
+    <text x="180" y="771" class="small">AGPT ↔ specialized role · scope / scoped result</text>
+
+    <line x1="92" y1="806" x2="160" y2="806" class="escalation-edge"/>
+    <text x="180" y="811" class="small">cross-slice escalation · specialization, not hierarchy</text>
+
+    <line x1="92" y1="846" x2="160" y2="846" class="interface-edge"/>
+    <polygon points="126,837 135,846 126,855 117,846" fill="#3f311d" stroke="#f7b84b" stroke-width="2"/>
+    <text x="180" y="851" class="small">validated evidence interface · non-sequential relation</text>
+
+    <text x="90" y="882" class="small muted">Visual classes group responsibilities; they are not additional actors or contractual entities.</text>
+  </g>
+
+  <g id="layer-representation-status" aria-label="Derived representation status">
+    <text x="40" y="975" class="micro muted">Continuity: View D defines the Operating Model System boundary; View A zooms into its persistent roles; View E locates governed documentary truth.</text>
+    <text x="40" y="1000" class="micro muted">Seven explicit persistent roles · visual classes are non-contractual groupings.</text>
+    <text x="960" y="1048" text-anchor="middle" font-size="15" font-weight="800" fill="#f7c86f">
+      DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE
+    </text>
+  </g>
+</svg>
