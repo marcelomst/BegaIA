@@ -207,6 +207,22 @@ La autoridad contractual permanece en `system_operating_model.md`.
 
 [Ver View D PUBLIC](./operating-model-view-d-public.svg)
 
+#### Operating Model — View E INTERNAL
+
+`operating-model-view-e-internal.svg`
+
+Representa la arquitectura documental canonica del Operating Model: distingue
+gobernanza contractual, binding operativo, arquitectura viva, ADRs, ayudas de
+trabajo, representaciones derivadas y trazabilidad historica por ambito de
+autoridad.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md` y cada plano
+documental conserva su fuente gobernada.
+
+[Ver View E INTERNAL](./operating-model-view-e-internal.svg)
+
 #### Arquitectura general
 
 `system_overview.mmd`

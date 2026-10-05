@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Path: docs/architecture/operating-model-view-e-internal.svg -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:begasist="https://begasist.com/ns/architecture"
+     id="view-e-internal"
+     width="1920" height="1080" viewBox="0 0 1920 1080"
+     role="img" aria-labelledby="view-title view-description" fill="#eef5ff">
+  <title id="view-title">BegaIA Operating Model — View E — INTERNAL</title>
+  <desc id="view-description">
+    Derived documentation and canonical-architecture view of the Operating Model System. It distinguishes
+    global contractual governance, scope-limited operational binding, current canonical architecture,
+    structural decisions, navigation and templates, derived runtime and visual representations, and
+    historical traceability. Authority is scoped rather than flattened into one absolute hierarchy.
+  </desc>
+
+  <metadata id="view-e-provenance">
+    <begasist:provenance>
+      <begasist:view_id>operating-model-view-e-internal</begasist:view_id>
+      <begasist:representation_status>derived_non_contractual</begasist:representation_status>
+      <begasist:derived_from>docs/architecture/system_operating_model.md; docs/architecture/ADR-DOC-GOVERNANCE-01.md; governed operational and architecture sources</begasist:derived_from>
+      <begasist:baseline_commit>c98302c8f360d7d7a4fd25257b2e4e9abdfc968d</begasist:baseline_commit>
+    </begasist:provenance>
+  </metadata>
+
+  <defs>
+    <linearGradient id="background-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0b1424"/>
+    </linearGradient>
+    <linearGradient id="core-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d2934"/>
+      <stop offset="1" stop-color="#102033"/>
+    </linearGradient>
+    <linearGradient id="operating-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#302050"/>
+      <stop offset="1" stop-color="#1c1834"/>
+    </linearGradient>
+    <marker id="arrow-violet" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#b99cff"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#9eacbd"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#f7b84b"/>
+    </marker>
+    <style>
+      :root { color-scheme: dark; }
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #eef5ff; }
+      .muted { fill: #aebdd0; }
+      .micro { font-size: 11px; letter-spacing: .02em; }
+      .small { font-size: 13px; }
+      .body { font-size: 15px; }
+      .label { font-size: 16px; font-weight: 700; }
+      .node-title { font-size: 20px; font-weight: 800; }
+      .section-label { font-size: 13px; font-weight: 800; letter-spacing: .11em; }
+      .edge-label { font-size: 11px; font-weight: 700; paint-order: stroke; stroke: #0b1424; stroke-width: 5px; stroke-linejoin: round; }
+      .boundary { stroke-width: 2.5; rx: 18; vector-effect: non-scaling-stroke; }
+      .node { stroke-width: 2; rx: 11; vector-effect: non-scaling-stroke; }
+      .node-governance { fill: #4b3678; stroke: #cebaff; stroke-width: 4; }
+      .node-binding { fill: #2d2447; stroke: #a98af2; }
+      .node-core { fill: #123b47; stroke: #5df4df; }
+      .node-living { fill: #145565; stroke: #70e9de; stroke-width: 3; }
+      .node-roadmap { fill: #4d3718; stroke: #f7b84b; }
+      .node-decision { fill: #35265a; stroke: #b99cff; stroke-width: 3; }
+      .node-aid { fill: #17283a; stroke: #66809d; }
+      .node-derived { fill: #222d3a; stroke: #9eacbd; stroke-dasharray: 8 5; }
+      .node-trace { fill: #3f311d; stroke: #d7a24b; }
+      .node-legacy { fill: #202631; stroke: #687789; stroke-dasharray: 3 7; }
+      .solid-edge { fill: none; stroke: #b99cff; stroke-width: 3; marker-end: url(#arrow-violet); }
+      .dashed-edge { fill: none; stroke: #9eacbd; stroke-width: 2.5; stroke-dasharray: 10 7; marker-end: url(#arrow-gray); }
+      .dotted-edge { fill: none; stroke: #f7b84b; stroke-width: 3; stroke-dasharray: 2 8; stroke-linecap: round; marker-end: url(#arrow-amber); }
+    </style>
+  </defs>
+
+  <rect id="canvas-background" width="1920" height="1080" fill="url(#background-gradient)"/>
+
+  <g id="layer-header" aria-label="Title, thesis and provenance">
+    <text x="40" y="34" font-size="27" font-weight="800">BegaIA Operating Model — View E — INTERNAL</text>
+    <text x="40" y="60" class="body">La verdad arquitectónica reside en fuentes canónicas gobernadas.</text>
+    <text x="40" y="80" class="small muted">Binding concreta su aplicación; mapas, vistas y evidencia hacen visible su evolución sin sustituirla.</text>
+
+    <g id="representation-metadata" transform="translate(1110 12)" aria-label="Representation metadata">
+      <rect width="770" height="72" rx="8" fill="#101b2d" stroke="#44566d"/>
+      <text x="14" y="18" class="micro">view_id: operating-model-view-e-internal</text>
+      <text x="14" y="35" class="micro">representation_status: derived_non_contractual</text>
+      <text x="14" y="52" class="micro">derived_from: system_operating_model.md · governed operational + architecture sources</text>
+      <text x="14" y="68" class="micro">baseline_commit: c98302c8f360d7d7a4fd25257b2e4e9abdfc968d</text>
+    </g>
+  </g>
+
+  <g id="layer-context" aria-label="View context">
+    <rect x="40" y="98" width="1840" height="34" rx="8" fill="#111b29" stroke="#52657a" stroke-dasharray="4 7"/>
+    <text x="60" y="120" class="section-label">DOCUMENTATION / CANONICAL ARCHITECTURE ZOOM OF THE OPERATING MODEL SYSTEM</text>
+    <text x="1860" y="120" text-anchor="end" class="small muted">View D → View E · not a third system</text>
+  </g>
+
+  <g id="layer-core" aria-label="Scoped authority core">
+    <g id="contractual-governance" aria-label="Contractual Governance">
+      <rect class="node node-governance" x="50" y="180" width="470" height="168"/>
+      <text x="74" y="208" class="section-label">CONTRACTUAL GOVERNANCE</text>
+      <text x="285" y="247" text-anchor="middle" class="node-title">System Operating Model</text>
+      <text x="285" y="274" text-anchor="middle" class="label">SOURCE OF TRUTH — GLOBAL OPERATION</text>
+      <text x="285" y="299" text-anchor="middle" class="small muted">contrato global · gobernanza · disciplina</text>
+      <text x="285" y="322" text-anchor="middle" class="small muted">máxima autoridad dentro de su ámbito</text>
+    </g>
+
+    <g id="operational-binding" aria-label="Operational Binding">
+      <rect class="boundary" x="50" y="420" width="500" height="266" fill="url(#operating-gradient)" stroke="#9d7bea"/>
+      <text x="74" y="448" class="section-label">OPERATIONAL BINDING · SEPARATE FROM PRODUCT ARCHITECTURE</text>
+      <text x="300" y="474" text-anchor="middle" class="label">BINDING FOR ACTIVE AGENT EXECUTION — SCOPE LIMITED</text>
+
+      <g id="active-profile">
+        <rect class="node node-binding" x="74" y="494" width="214" height="74"/>
+        <text x="181" y="521" text-anchor="middle" class="label">Active profile</text>
+        <text x="181" y="543" text-anchor="middle" class="small muted">session-specific instructions</text>
+        <text x="181" y="560" text-anchor="middle" class="micro muted">effective configuration</text>
+      </g>
+      <g id="base-registry">
+        <rect class="node node-binding" x="312" y="494" width="214" height="74"/>
+        <text x="419" y="521" text-anchor="middle" class="label">Base / registry</text>
+        <text x="419" y="543" text-anchor="middle" class="small muted">config.toml</text>
+        <text x="419" y="560" text-anchor="middle" class="micro muted">not the sole effective config</text>
+      </g>
+      <g id="session-guide">
+        <rect class="node node-binding" x="74" y="588" width="214" height="72"/>
+        <text x="181" y="615" text-anchor="middle" class="label">Session guide</text>
+        <text x="181" y="637" text-anchor="middle" class="small muted">opening · scope · verification</text>
+      </g>
+      <g id="effective-agent-execution">
+        <rect class="node" x="312" y="588" width="214" height="72" fill="#403268" stroke="#c5adff" stroke-width="3"/>
+        <text x="419" y="614" text-anchor="middle" class="label">Effective agent execution</text>
+        <text x="419" y="637" text-anchor="middle" class="small muted">operational, not product architecture</text>
+      </g>
+      <path class="solid-edge" d="M181 568 V578 H419 V588"/>
+      <text x="300" y="580" text-anchor="middle" class="edge-label">configures effective agent execution</text>
+    </g>
+
+    <g id="canonical-architecture" aria-label="Canonical Architecture">
+      <rect class="boundary" x="610" y="180" width="730" height="506" fill="url(#core-gradient)" stroke="#35c9bb" stroke-width="4"/>
+      <text x="636" y="210" class="section-label">CANONICAL ARCHITECTURE · CONCEPTUAL CENTER</text>
+      <text x="975" y="243" text-anchor="middle" font-size="24" font-weight="850">Canonical Architecture</text>
+      <text x="975" y="269" text-anchor="middle" class="label">CANONICAL DESCRIPTION OF CURRENT ARCHITECTURE</text>
+
+      <g id="living-architecture">
+        <rect class="node node-living" x="646" y="294" width="658" height="128"/>
+        <text x="975" y="326" text-anchor="middle" class="node-title">Living architecture by domain</text>
+        <text x="975" y="353" text-anchor="middle" class="body">describes how the current system works</text>
+        <text x="975" y="378" text-anchor="middle" class="small muted">message pipeline · identity · persistence · channels · admin · other governed domains</text>
+        <text x="975" y="401" text-anchor="middle" class="micro muted">current architecture, maintained against real implementation evidence</text>
+      </g>
+
+      <g id="product-conceptual-plane">
+        <rect class="node node-core" x="646" y="452" width="304" height="118"/>
+        <text x="798" y="483" text-anchor="middle" class="label">Product architecture</text>
+        <text x="798" y="507" text-anchor="middle" class="small">conceptual plane</text>
+        <text x="798" y="532" text-anchor="middle" class="small muted">product meaning and boundaries</text>
+        <text x="798" y="551" text-anchor="middle" class="micro muted">clearly delimited from runtime detail</text>
+      </g>
+
+      <g id="roadmap">
+        <rect class="node node-roadmap" x="986" y="452" width="318" height="118"/>
+        <text x="1145" y="483" text-anchor="middle" class="label">Roadmap</text>
+        <text x="1145" y="507" text-anchor="middle" class="small">planned evolution</text>
+        <text x="1145" y="532" text-anchor="middle" class="small muted">living document · evidence governed</text>
+        <text x="1145" y="551" text-anchor="middle" class="micro muted">not equivalent to an ADR</text>
+      </g>
+
+      <rect x="646" y="602" width="658" height="54" rx="10" fill="#101d2b" stroke="#487383"/>
+      <text x="975" y="625" text-anchor="middle" class="small">Current truth is distributed by architectural domain, not duplicated in this view.</text>
+      <text x="975" y="645" text-anchor="middle" class="micro muted">View E locates authority; it does not replace domain documents.</text>
+    </g>
+
+    <g id="architectural-decisions" aria-label="Architectural Decisions">
+      <rect class="node node-decision" x="1410" y="180" width="460" height="210"/>
+      <text x="1434" y="208" class="section-label">ARCHITECTURAL DECISIONS</text>
+      <text x="1640" y="245" text-anchor="middle" class="node-title">Approved ADRs</text>
+      <text x="1640" y="272" text-anchor="middle" class="label">STRUCTURAL DECISIONS</text>
+      <text x="1640" y="303" text-anchor="middle" class="small muted">decision · rationale · structural constraints</text>
+      <text x="1640" y="326" text-anchor="middle" class="small muted">conditions for reopening</text>
+      <text x="1640" y="358" text-anchor="middle" class="micro muted">ADRs record decisions; roadmap expresses governed evolution.</text>
+    </g>
+  </g>
+
+  <g id="layer-primary-relations" aria-label="Governance and structural relations">
+    <path class="solid-edge" d="M520 246 H610"/>
+    <text x="565" y="232" text-anchor="middle" class="edge-label">governs maintenance of</text>
+
+    <path class="solid-edge" d="M285 348 V420"/>
+    <text x="300" y="388" class="edge-label">constrains</text>
+
+    <path class="solid-edge" d="M520 214 C780 145 1190 145 1410 214"/>
+    <text x="975" y="151" text-anchor="middle" class="edge-label">governs maintenance of</text>
+
+    <path class="solid-edge" d="M1410 296 H1340 V340 H1304"/>
+    <text x="1368" y="326" text-anchor="middle" class="edge-label">records / constrains structural decisions</text>
+
+    <path class="solid-edge" d="M1640 390 V420 H1145 V452"/>
+    <text x="1450" y="414" text-anchor="middle" class="edge-label">constrains planned evolution</text>
+  </g>
+
+  <g id="layer-secondary" aria-label="Access aids, derived representations and traceability">
+    <g id="access-work-aids" aria-label="Access and Work Aids">
+      <rect class="boundary" x="50" y="728" width="500" height="186" fill="#101b2d" stroke="#526b87"/>
+      <text x="74" y="756" class="section-label">ACCESS AND WORK AIDS</text>
+      <text x="300" y="783" text-anchor="middle" class="label">NAVIGATION / TEMPLATE — DOES NOT OVERRIDE</text>
+      <g id="indices-navigation">
+        <rect class="node node-aid" x="74" y="806" width="214" height="78"/>
+        <text x="181" y="834" text-anchor="middle" class="label">Indices / navigation</text>
+        <text x="181" y="856" text-anchor="middle" class="small muted">README maps and links</text>
+        <text x="181" y="874" text-anchor="middle" class="micro muted">find governed sources</text>
+      </g>
+      <g id="work-templates">
+        <rect class="node node-aid" x="312" y="806" width="214" height="78"/>
+        <text x="419" y="834" text-anchor="middle" class="label">Work templates</text>
+        <text x="419" y="856" text-anchor="middle" class="small muted">hito · capsule</text>
+        <text x="419" y="874" text-anchor="middle" class="micro muted">inherit superior rules</text>
+      </g>
+    </g>
+
+    <g id="derived-representations" aria-label="Derived Representations">
+      <rect class="boundary" x="610" y="728" width="730" height="186" fill="#111a28" stroke="#7d8da1" stroke-dasharray="8 5"/>
+      <text x="636" y="756" class="section-label">DERIVED REPRESENTATIONS</text>
+      <g id="runtime-map-v1">
+        <rect class="node node-derived" x="646" y="782" width="316" height="106"/>
+        <text x="804" y="810" text-anchor="middle" class="label">Runtime Map V1</text>
+        <text x="804" y="835" text-anchor="middle" class="small">DERIVED OPERATIONAL REPRESENTATION —</text>
+        <text x="804" y="855" text-anchor="middle" class="small">NOT ARCHITECTURAL SOURCE</text>
+        <text x="804" y="877" text-anchor="middle" class="micro muted">maps runtime for comprehension / audit</text>
+      </g>
+      <g id="visual-views">
+        <rect class="node node-derived" x="986" y="782" width="318" height="106"/>
+        <text x="1145" y="810" text-anchor="middle" class="label">Visual Views · D · E · future</text>
+        <text x="1145" y="835" text-anchor="middle" class="small">DERIVED VISUAL REPRESENTATION —</text>
+        <text x="1145" y="855" text-anchor="middle" class="small">NOT CONTRACTUAL SOURCE</text>
+        <text x="1145" y="877" text-anchor="middle" class="micro muted">communicates the governed canon</text>
+      </g>
+    </g>
+
+    <g id="traceability-archive" aria-label="Traceability and Archive">
+      <rect class="boundary" x="1400" y="728" width="470" height="186" fill="#171a22" stroke="#a0783d"/>
+      <text x="1424" y="756" class="section-label">TRACEABILITY AND ARCHIVE</text>
+      <text x="1635" y="780" text-anchor="middle" class="label">TRACEABILITY / PROVENANCE —</text>
+      <text x="1635" y="799" text-anchor="middle" class="small">NOT CURRENT ARCHITECTURE</text>
+      <g id="hitos-evidence">
+        <rect class="node node-trace" x="1424" y="806" width="210" height="78"/>
+        <text x="1529" y="834" text-anchor="middle" class="label">Hitos / evidence</text>
+        <text x="1529" y="856" text-anchor="middle" class="small muted">provenance · evolution</text>
+        <text x="1529" y="874" text-anchor="middle" class="micro muted">historical record</text>
+      </g>
+      <g id="legacy-history">
+        <rect class="node node-legacy" x="1650" y="806" width="196" height="78"/>
+        <text x="1748" y="834" text-anchor="middle" class="label">Legacy / historical</text>
+        <text x="1748" y="856" text-anchor="middle" class="small muted">peripheral context only</text>
+        <text x="1748" y="874" text-anchor="middle" class="micro muted">no current authority</text>
+      </g>
+    </g>
+  </g>
+
+  <g id="layer-secondary-relations" aria-label="Derivation, navigation and provenance relations">
+    <path class="dashed-edge" d="M181 806 V704 H620 V640"/>
+    <text x="342" y="700" text-anchor="middle" class="edge-label">navigate to · no authority</text>
+
+    <path class="dashed-edge" d="M526 845 H580 V924 H1370 V865 H1424"/>
+    <text x="975" y="922" text-anchor="middle" class="edge-label">structure work artifacts</text>
+
+    <path class="dashed-edge" d="M804 686 V782"/>
+    <text x="790" y="714" text-anchor="end" class="edge-label">mapped by · with real evidence</text>
+
+    <path class="dashed-edge" d="M1145 686 V782"/>
+    <text x="1158" y="738" class="edge-label">governed sources · represented by</text>
+
+    <path class="dotted-edge" d="M1340 640 C1380 640 1380 825 1424 825"/>
+    <text x="1382" y="694" text-anchor="middle" class="edge-label">recorded as provenance</text>
+  </g>
+
+  <g id="layer-legend" aria-label="Relationship legend and derived status">
+    <rect x="40" y="936" width="1840" height="94" rx="12" fill="#0f1927" stroke="#405268"/>
+    <text x="64" y="961" class="section-label">RELATIONSHIP CONVENTION · AUTHORITY IS SCOPED, NOT FLAT</text>
+
+    <line x1="64" y1="988" x2="118" y2="988" class="solid-edge"/>
+    <text x="132" y="993" class="small">governance · conformity · constraint</text>
+
+    <line x1="500" y1="988" x2="554" y2="988" class="dashed-edge"/>
+    <text x="568" y="993" class="small">derivation · mapping · navigation</text>
+
+    <line x1="930" y1="988" x2="984" y2="988" class="dotted-edge"/>
+    <text x="998" y="993" class="small">evidence · provenance</text>
+
+    <text x="1425" y="980" class="small muted">No upward authority from maps, views, history or legacy.</text>
+    <text x="1425" y="1002" class="small muted">ADRs ≠ roadmap · binding ≠ product architecture.</text>
+  </g>
+
+  <g id="layer-representation-status" aria-label="Derived representation status">
+    <text x="40" y="1054" class="micro muted">Continuity: View D shows governance of product evolution; View E locates the governed documentary truth.</text>
+    <text x="960" y="1064" text-anchor="middle" font-size="15" font-weight="800" fill="#f7c86f">
+      DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE
+    </text>
+  </g>
+</svg>
