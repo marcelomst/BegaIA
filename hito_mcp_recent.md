@@ -13,8 +13,8 @@ No reemplaza el historial completo.
 - Identificador: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
 - Commit tecnico: `277109f3f2550a9e528e4e032071fb5c009536ea`
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `d11e7ba544c5857637c2afeada414604ff96b129`
+- Estado documental: `CERRADO`; commit documental `d11e7ba544c5857637c2afeada414604ff96b129`.
 - Descripcion breve: Incorpora e indexa View E INTERNAL como representacion visual derivada y no contractual de la arquitectura documental del Operating Model y sus ambitos de autoridad.
 
 ## 2. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
