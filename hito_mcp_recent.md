@@ -13,9 +13,9 @@ No reemplaza el historial completo.
 - Identificador: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
 - Nombre: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
 - Commit tecnico: `5ce594e68577f6ef21f48565b94ef869e0dcd2c0`
-- Commit documental: `PENDING`
-- Push documental: pendiente.
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `7a23fe9f7e355f5db1b93bfba6cac96824b7a7e6`
+- Push documental: confirmado.
+- Estado documental: `CERRADO`; commit documental `7a23fe9f7e355f5db1b93bfba6cac96824b7a7e6`.
 - Descripcion breve: Incorpora e indexa View C INTERNAL como representacion visual derivada y no contractual de los limites de authority, capability, permission, gates y acciones protegidas del Operating Model.
 
 ## 2. OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
