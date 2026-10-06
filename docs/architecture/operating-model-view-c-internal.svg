@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Path: docs/architecture/operating-model-view-c-internal.svg -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:begasist="https://begasist.com/ns/architecture"
+     id="view-c-internal"
+     width="1920" height="1080" viewBox="0 0 1920 1080"
+     role="img" aria-labelledby="view-title view-description" fill="#eef5ff">
+  <title id="view-title">BegaIA Operating Model — View C — INTERNAL</title>
+  <desc id="view-description">
+    Derived, non-contractual authority and capability boundary view. Seven persistent roles have scoped
+    authority, technical capabilities, explicit restrictions and conditional authority dependencies.
+    Gates validate eligibility without executing actions. Git write and reserved manual actions remain
+    protected Human Authority actions. The composition is relational and does not encode temporal order.
+  </desc>
+
+  <metadata id="view-c-provenance">
+    <begasist:provenance>
+      <begasist:view_id>operating-model-view-c-internal</begasist:view_id>
+      <begasist:representation_status>derived_non_contractual</begasist:representation_status>
+      <begasist:derived_from>docs/architecture/system_operating_model.md#ORCHESTRATION_MODEL; docs/architecture/system_operating_model.md#ROLES; docs/architecture/system_operating_model.md#GIT_RULES; governed agent profiles</begasist:derived_from>
+      <begasist:baseline_commit>21788400cc3bebe212857b22e3bb594a5967d12e</begasist:baseline_commit>
+    </begasist:provenance>
+  </metadata>
+
+  <defs>
+    <linearGradient id="background-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0b1424"/>
+    </linearGradient>
+    <linearGradient id="operating-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#211838"/>
+      <stop offset="1" stop-color="#15152b"/>
+    </linearGradient>
+    <pattern id="protected-pattern" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="12" height="12" fill="#2b231a"/>
+      <line x1="0" y1="0" x2="0" y2="12" stroke="#6c5128" stroke-width="3"/>
+    </pattern>
+    <style>
+      :root { color-scheme: dark; }
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #eef5ff; }
+      .muted { fill: #aebdd0; }
+      .micro { font-size: 11px; letter-spacing: .02em; }
+      .small { font-size: 13px; }
+      .body { font-size: 15px; }
+      .label { font-size: 15px; font-weight: 700; }
+      .role-title { font-size: 18px; font-weight: 800; }
+      .section-label { font-size: 13px; font-weight: 800; letter-spacing: .11em; }
+      .semantic-title { font-size: 27px; font-weight: 850; letter-spacing: .02em; }
+      .boundary { stroke-width: 2.5; rx: 18; vector-effect: non-scaling-stroke; }
+      .role-card { fill: #17283a; stroke: #66809d; stroke-width: 2; rx: 12; vector-effect: non-scaling-stroke; }
+      .role-architecture { fill: #173747; stroke: #5df4df; }
+      .role-implementation { fill: #35265a; stroke: #a98af2; }
+      .role-audit { fill: #2b3441; stroke: #9eacbd; }
+      .role-documentation { fill: #3f311d; stroke: #d7a24b; }
+      .role-orchestration { fill: #2d2447; stroke: #cebaff; }
+      .authority-badge { fill: #101b2d; stroke: #b99cff; stroke-width: 1.5; rx: 11; }
+      .authority-badge-human { fill: #4d3718; stroke: #f7b84b; stroke-width: 2; rx: 11; }
+      .chip { fill: #102033; stroke: #526b87; stroke-width: 1; rx: 10; }
+      .chip-architecture { fill: #10313b; stroke: #35c9bb; }
+      .chip-implementation { fill: #282044; stroke: #8f73ca; }
+      .chip-audit { fill: #202a36; stroke: #8493a6; }
+      .chip-documentation { fill: #302719; stroke: #a98140; }
+      .restriction { fill: #111925; stroke: #ff8fb3; stroke-width: 1.5; rx: 8; }
+      .escalation { fill: none; stroke: #5df4df; stroke-width: 1.5; stroke-dasharray: 7 5; rx: 9; }
+      .gate { fill: #101b2d; stroke: #9eacbd; stroke-width: 2; rx: 8; }
+      .protected { fill: url(#protected-pattern); stroke: #f7b84b; stroke-width: 4; rx: 16; }
+      .protected-action { fill: #3f311d; stroke: #f7b84b; stroke-width: 4; rx: 10; }
+      .protected-action-inner { fill: none; stroke: #f7c86f; stroke-width: 1.5; rx: 6; }
+      .solid-relation { fill: none; stroke: #b99cff; stroke-width: 3; }
+      .human-relation { fill: none; stroke: #f7b84b; stroke-width: 4; }
+      .stop-bar { stroke: #ff8fb3; stroke-width: 5; }
+      .dashed-relation { fill: none; stroke: #5df4df; stroke-width: 2; stroke-dasharray: 8 6; }
+    </style>
+  </defs>
+
+  <rect id="canvas-background" width="1920" height="1080" fill="url(#background-gradient)"/>
+
+  <g id="layer-header" aria-label="Title, thesis and provenance">
+    <text x="40" y="34" font-size="27" font-weight="800">BegaIA Operating Model — View C — INTERNAL</text>
+    <text x="40" y="61" class="body">El Operating Model distribuye capacidades especializadas y autoridad acotada por ámbito;</text>
+    <text x="40" y="81" class="body">los gates validan sin ejecutar, y las acciones protegidas permanecen bajo Human Authority.</text>
+
+    <g id="representation-metadata" transform="translate(1120 10)" aria-label="Representation metadata">
+      <rect width="760" height="76" rx="8" fill="#101b2d" stroke="#44566d"/>
+      <text x="14" y="18" class="micro">view_id: operating-model-view-c-internal</text>
+      <text x="14" y="36" class="micro">representation_status: derived_non_contractual</text>
+      <text x="14" y="54" class="micro">derived_from: system_operating_model.md · governed agent profiles</text>
+      <text x="14" y="70" class="micro">baseline_commit: 21788400cc3bebe212857b22e3bb594a5967d12e</text>
+    </g>
+  </g>
+
+  <g id="layer-semantic-center" aria-label="Semantic center: distinctions between authority, capability, permission and responsibility">
+    <rect x="40" y="102" width="1840" height="122" rx="14" fill="#111b29" stroke="#9d7bea" stroke-width="2.5"/>
+    <text x="64" y="126" class="section-label">AUTHORITY / CAPABILITY BOUNDARIES</text>
+    <text x="64" y="163" class="semantic-title">AUTHORITY ≠ CAPABILITY ≠ PERMISSION</text>
+    <text x="64" y="190" class="label" fill="#f7c86f">AUTHORITY IS SCOPED</text>
+    <text x="300" y="190" class="label">RESPONSIBILITY ≠ AUTHORITY</text>
+    <text x="548" y="190" class="label">GATE VERDICT ≠ EXECUTION</text>
+    <text x="64" y="211" class="micro muted">Responsibility names an accountable domain; View A carries the fuller role-responsibility view.</text>
+
+    <g id="permission-equation" transform="translate(920 119)" aria-label="Permission is the intersection of affordance, role capability, contextual permission and satisfied gates">
+      <rect width="936" height="84" rx="10" fill="#0d1827" stroke="#35c9bb" stroke-dasharray="6 5"/>
+      <text x="468" y="24" text-anchor="middle" class="section-label">ACTION ADMISSIBILITY</text>
+      <text x="468" y="50" text-anchor="middle" class="label">technical affordance ∩ role capability ∩ contextual permission ∩ satisfied gates = action allowed</text>
+      <text x="468" y="72" text-anchor="middle" class="micro muted">Agent capability or sandbox approval ≠ permission to perform Human-Authority-only actions</text>
+    </g>
+  </g>
+
+  <g id="layer-operating-boundary" aria-label="Operating Model System authority and capability zoom">
+    <rect class="boundary" x="40" y="240" width="1840" height="608" fill="url(#operating-gradient)" stroke="#9d7bea"/>
+    <text x="64" y="269" class="section-label">OPERATING MODEL SYSTEM · AUTHORITY / CAPABILITY ZOOM</text>
+    <text x="1856" y="269" text-anchor="end" class="small muted">GOVERNED BY CANONICAL SOURCES</text>
+  </g>
+
+  <g id="layer-human-protected-zone" data-role="Human Authority" aria-label="Human Authority protected zone">
+    <rect class="protected" x="58" y="286" width="340" height="544"/>
+    <text x="80" y="314" class="section-label" fill="#f7c86f">PROTECTED ZONE · HUMAN AUTHORITY</text>
+
+    <g id="role-human-authority">
+      <rect class="role-card" x="76" y="330" width="304" height="174" fill="#3b2d1c" stroke="#f7b84b" stroke-width="3"/>
+      <text x="94" y="358" class="role-title">Human Authority</text>
+      <rect class="authority-badge-human" x="94" y="373" width="190" height="24"/>
+      <text x="189" y="390" text-anchor="middle" class="micro" font-weight="800">HUMAN-ONLY EXECUTE</text>
+      <rect class="chip chip-documentation" x="94" y="410" width="130" height="24"/>
+      <text x="159" y="427" text-anchor="middle" class="micro">MANUAL ACTIONS</text>
+      <rect class="chip chip-documentation" x="232" y="410" width="130" height="24"/>
+      <text x="297" y="427" text-anchor="middle" class="micro">ACCOUNTABILITY</text>
+      <rect class="restriction" x="94" y="448" width="268" height="40"/>
+      <text x="228" y="465" text-anchor="middle" class="micro">scoped reserved authority</text>
+      <text x="228" y="480" text-anchor="middle" class="micro muted">not technical superuser authority</text>
+    </g>
+
+    <path class="human-relation" d="M228 504 V530"/>
+    <g id="protected-git-write" aria-label="Git write is a Human Authority only protected action">
+      <rect class="protected-action" x="76" y="530" width="304" height="104"/>
+      <rect class="protected-action-inner" x="84" y="538" width="288" height="88"/>
+      <path d="M214 566 v-8 a14 14 0 0 1 28 0 v8" fill="none" stroke="#f7c86f" stroke-width="4"/>
+      <rect x="208" y="566" width="40" height="30" rx="5" fill="#4d3718" stroke="#f7c86f" stroke-width="3"/>
+      <circle cx="228" cy="578" r="3" fill="#f7c86f"/>
+      <line x1="228" y1="581" x2="228" y2="589" stroke="#f7c86f" stroke-width="3"/>
+      <text x="228" y="612" text-anchor="middle" class="label">GIT WRITE — HUMAN AUTHORITY ONLY</text>
+    </g>
+
+    <g id="protected-manual-actions" aria-label="Reserved manual actions and operational accountability">
+      <rect x="76" y="654" width="304" height="76" rx="10" fill="#302719" stroke="#d7a24b" stroke-width="2"/>
+      <text x="228" y="679" text-anchor="middle" class="label">RESERVED MANUAL ACTIONS</text>
+      <text x="228" y="701" text-anchor="middle" class="small">explicit human intervention</text>
+      <text x="228" y="719" text-anchor="middle" class="micro muted">operational accountability remains human</text>
+    </g>
+    <text x="228" y="757" text-anchor="middle" class="micro">requires human action</text>
+    <text x="228" y="777" text-anchor="middle" class="micro muted">exclusive protected relation</text>
+    <text x="228" y="807" text-anchor="middle" class="micro muted">No agent execution path crosses this boundary.</text>
+  </g>
+
+  <g id="layer-role-cards" aria-label="Six specialized role cards alongside Human Authority">
+    <g id="role-agpt-orchestration" data-role="AGPT / Orchestration" aria-label="AGPT / Orchestration scoped authority and capabilities">
+      <rect class="role-card role-orchestration" x="422" y="286" width="458" height="204"/>
+      <text x="440" y="314" class="role-title">AGPT / Orchestration</text>
+      <rect class="authority-badge" x="711" y="298" width="151" height="24"/>
+      <text x="786" y="315" text-anchor="middle" class="micro" font-weight="800">COORDINATE</text>
+      <rect class="chip" x="440" y="336" width="197" height="25"/><text x="538" y="353" text-anchor="middle" class="micro">DESIGN · hito / scope</text>
+      <rect class="chip" x="646" y="336" width="216" height="25"/><text x="754" y="353" text-anchor="middle" class="micro">ANALYZE · consolidate context</text>
+      <rect class="chip" x="440" y="369" width="197" height="25"/><text x="538" y="386" text-anchor="middle" class="micro">SELECT · flow / target</text>
+      <rect class="chip" x="646" y="369" width="216" height="25"/><text x="754" y="386" text-anchor="middle" class="micro">PREPARE COMMANDS · prompts</text>
+      <text x="651" y="414" text-anchor="middle" class="micro muted">hito definition · dispatch · contextual authorization · output coordination</text>
+      <rect class="restriction" x="440" y="430" width="422" height="42"/>
+      <text x="651" y="456" text-anchor="middle" class="micro">orchestration ≠ implementation ≠ audit ≠ closure</text>
+    </g>
+
+    <g id="role-system-architect" data-role="System Architect / arquitecto_sistema" aria-label="System Architect scoped structural decision authority and capabilities">
+      <rect class="role-card role-architecture" x="902" y="286" width="458" height="204"/>
+      <text x="920" y="312" class="role-title">System Architect</text>
+      <text x="920" y="329" class="micro muted">arquitecto_sistema</text>
+      <rect class="authority-badge" x="1122" y="298" width="220" height="24"/>
+      <text x="1232" y="315" text-anchor="middle" class="micro" font-weight="800">STRUCTURAL DECISION — SCOPED</text>
+      <rect class="chip chip-architecture" x="920" y="342" width="205" height="25"/><text x="1022" y="359" text-anchor="middle" class="micro">ANALYZE · cross-slice</text>
+      <rect class="chip chip-architecture" x="1134" y="342" width="208" height="25"/><text x="1238" y="359" text-anchor="middle" class="micro">DESIGN · contracts / boundaries</text>
+      <rect class="chip chip-architecture" x="920" y="375" width="422" height="25"/><text x="1131" y="392" text-anchor="middle" class="micro">ANALYZE · structural evolution / roadmap assessment</text>
+      <text x="1131" y="417" text-anchor="middle" class="micro">MAY DECIDE · scoped cross-slice dictámenes / structural roadmap state</text>
+      <rect class="restriction" x="920" y="430" width="422" height="42"/>
+      <text x="1131" y="448" text-anchor="middle" class="micro">structural decision scope ≠ commit / audit /</text>
+      <text x="1131" y="463" text-anchor="middle" class="micro">closure authority</text>
+    </g>
+
+    <g id="role-kb-architect" data-role="KB Architect / arquitecto_kb" aria-label="KB Architect recommendation authority and capabilities">
+      <rect class="role-card role-architecture" x="1382" y="286" width="478" height="204"/>
+      <text x="1400" y="312" class="role-title">KB Architect</text>
+      <text x="1400" y="329" class="micro muted">arquitecto_kb</text>
+      <rect class="authority-badge" x="1664" y="298" width="178" height="24"/>
+      <text x="1753" y="315" text-anchor="middle" class="micro" font-weight="800">DOMAIN RECOMMEND</text>
+      <rect class="chip chip-architecture" x="1400" y="342" width="218" height="25"/><text x="1509" y="359" text-anchor="middle" class="micro">ANALYZE · KB / config / categories</text>
+      <rect class="chip chip-architecture" x="1627" y="342" width="215" height="25"/><text x="1734" y="359" text-anchor="middle" class="micro">DESIGN · templates / hydration</text>
+      <rect class="chip chip-architecture" x="1400" y="375" width="442" height="25"/><text x="1621" y="392" text-anchor="middle" class="micro">ANALYZE · retrieval / gap detection</text>
+      <rect class="escalation" x="1400" y="407" width="442" height="24"/>
+      <text x="1621" y="424" text-anchor="middle" class="micro">cross-slice impact → System Architect authority required</text>
+      <rect class="restriction" x="1400" y="438" width="442" height="34"/>
+      <text x="1621" y="460" text-anchor="middle" class="micro">KB recommendation authority ≠ cross-slice decision authority</text>
+    </g>
+
+    <g id="role-technical-implementer" data-role="Technical Implementer / asistente_tecnico" aria-label="Technical Implementer capabilities and contextual permission boundary">
+      <rect class="role-card role-implementation" x="422" y="506" width="458" height="204"/>
+      <text x="440" y="532" class="role-title">Technical Implementer</text>
+      <text x="440" y="549" class="micro muted">asistente_tecnico</text>
+      <rect class="authority-badge" x="657" y="518" width="205" height="24"/>
+      <text x="759" y="535" text-anchor="middle" class="micro" font-weight="800">CONTEXTUAL PERMISSION</text>
+      <rect class="chip chip-implementation" x="440" y="562" width="205" height="25"/><text x="542" y="579" text-anchor="middle" class="micro">IMPLEMENT · repository changes</text>
+      <rect class="chip chip-implementation" x="654" y="562" width="208" height="25"/><text x="758" y="579" text-anchor="middle" class="micro">ANALYZE · debugging</text>
+      <rect class="chip chip-implementation" x="440" y="595" width="422" height="25"/><text x="651" y="612" text-anchor="middle" class="micro">TEST · technical validation / evidence production</text>
+      <rect class="escalation" x="440" y="627" width="422" height="24"/>
+      <text x="651" y="644" text-anchor="middle" class="micro">structural ambiguity / cross-slice risk → System Architect authority required</text>
+      <rect class="restriction" x="440" y="658" width="422" height="36"/>
+      <text x="651" y="674" text-anchor="middle" class="micro">repository modification capability ≠ Git write authority</text>
+      <text x="651" y="688" text-anchor="middle" class="micro muted">does not redefine scope or architecture</text>
+    </g>
+
+    <g id="role-repo-guardian" data-role="Repo Guardian" aria-label="Repo Guardian audit gate authority and capabilities">
+      <rect class="role-card role-audit" x="902" y="506" width="458" height="204"/>
+      <text x="920" y="534" class="role-title">Repo Guardian</text>
+      <rect class="authority-badge" x="1196" y="518" width="146" height="24"/>
+      <text x="1269" y="535" text-anchor="middle" class="micro" font-weight="800">AUDIT GATE</text>
+      <rect class="chip chip-audit" x="920" y="554" width="205" height="25"/><text x="1022" y="571" text-anchor="middle" class="micro">AUDIT · read-only / scans</text>
+      <rect class="chip chip-audit" x="1134" y="554" width="208" height="25"/><text x="1238" y="571" text-anchor="middle" class="micro">AUDIT · consistency / canonicality</text>
+      <rect class="chip chip-audit" x="920" y="587" width="422" height="25"/><text x="1131" y="604" text-anchor="middle" class="micro">PREPARE COMMANDS · HDOC_INPUT / command preparation</text>
+      <text x="1131" y="630" text-anchor="middle" class="micro muted">valid · invalid · split_required · readiness · eligibility</text>
+      <line class="stop-bar" x1="920" y1="643" x2="1342" y2="643"/>
+      <text x="1131" y="661" text-anchor="middle" class="micro" font-weight="800">GATE VERDICT ≠ EXECUTION</text>
+      <rect class="restriction" x="920" y="670" width="422" height="24"/>
+      <text x="1131" y="687" text-anchor="middle" class="micro">gate authority ≠ Git authority</text>
+    </g>
+
+    <g id="role-hdoc" data-role="HDOC" aria-label="HDOC evidence-bound documentary consolidation authority and capabilities">
+      <rect class="role-card role-documentation" x="1382" y="506" width="478" height="204"/>
+      <text x="1400" y="534" class="role-title">HDOC</text>
+      <rect class="authority-badge" x="1617" y="518" width="225" height="24"/>
+      <text x="1729" y="535" text-anchor="middle" class="micro" font-weight="800">DOCUMENTARY CONSOLIDATE</text>
+      <rect class="chip chip-documentation" x="1400" y="554" width="218" height="25"/><text x="1509" y="571" text-anchor="middle" class="micro">DOCUMENT · classification</text>
+      <rect class="chip chip-documentation" x="1627" y="554" width="215" height="25"/><text x="1734" y="571" text-anchor="middle" class="micro">DOCUMENT · governed history</text>
+      <rect class="chip chip-documentation" x="1400" y="587" width="442" height="25"/><text x="1621" y="604" text-anchor="middle" class="micro">PREPARE COMMANDS · closure preparation</text>
+      <text x="1621" y="630" text-anchor="middle" class="micro">evidence-bound authority · consumes evidence · may reject incomplete input</text>
+      <rect class="escalation" x="1400" y="637" width="442" height="24"/>
+      <text x="1621" y="654" text-anchor="middle" class="micro">documentary consolidation → HDOC authority required</text>
+      <rect class="restriction" x="1400" y="670" width="442" height="24"/>
+      <text x="1621" y="687" text-anchor="middle" class="micro">documentary consolidation ≠ evidence creation · no Git write</text>
+    </g>
+  </g>
+
+  <g id="layer-conditional-boundaries" aria-label="Conditional authority dependencies without temporal order">
+    <text x="422" y="735" class="section-label">CONDITIONAL AUTHORITY DEPENDENCIES</text>
+    <rect class="escalation" x="422" y="748" width="272" height="31"/>
+    <text x="558" y="768" text-anchor="middle" class="micro">KB boundary exceeded → System Architect</text>
+    <rect class="escalation" x="704" y="748" width="292" height="31"/>
+    <text x="850" y="768" text-anchor="middle" class="micro">structural / cross-slice ambiguity → System Architect</text>
+    <rect x="1006" y="748" width="272" height="31" rx="9" fill="#302719" stroke="#f7b84b" stroke-width="2"/>
+    <text x="1142" y="768" text-anchor="middle" class="micro">Git write / reserved action → Human Authority</text>
+    <rect class="escalation" x="1288" y="748" width="272" height="31"/>
+    <text x="1424" y="768" text-anchor="middle" class="micro">missing audited evidence → Guardian authority</text>
+    <rect class="escalation" x="1570" y="748" width="290" height="31"/>
+    <text x="1715" y="768" text-anchor="middle" class="micro">documentary consolidation → HDOC authority</text>
+
+    <g id="gate-model" aria-label="Non-sequential gate model">
+      <rect class="gate" x="422" y="794" width="334" height="38"/>
+      <line class="stop-bar" x1="438" y1="800" x2="438" y2="826"/>
+      <text x="454" y="811" class="micro" font-weight="800">RECEIVER GATE</text>
+      <text x="454" y="825" class="micro muted">admits / blocks contextual permission</text>
+
+      <rect class="gate" x="770" y="794" width="334" height="38"/>
+      <line class="stop-bar" x1="786" y1="800" x2="786" y2="826"/>
+      <text x="802" y="811" class="micro" font-weight="800">GUARDIAN AUDIT GATE</text>
+      <text x="802" y="825" class="micro muted">validates eligibility for governed use</text>
+
+      <rect class="gate" x="1118" y="794" width="334" height="38"/>
+      <line class="stop-bar" x1="1134" y1="800" x2="1134" y2="826"/>
+      <text x="1150" y="811" class="micro" font-weight="800">DOCUMENTARY EVIDENCE GATE</text>
+      <text x="1150" y="825" class="micro muted">admits / blocks evidence-bound consolidation</text>
+
+      <rect x="1466" y="794" width="394" height="38" rx="8" fill="#302719" stroke="#f7b84b" stroke-width="3"/>
+      <path d="M1484 812 v-4 a7 7 0 0 1 14 0 v4" fill="none" stroke="#f7c86f" stroke-width="2"/>
+      <rect x="1482" y="812" width="18" height="14" rx="2" fill="#4d3718" stroke="#f7c86f"/>
+      <text x="1510" y="811" class="micro" font-weight="800">PROTECTED HUMAN ACTION</text>
+      <text x="1510" y="825" class="micro muted">requires explicit Human Authority</text>
+    </g>
+  </g>
+
+  <g id="layer-legends" aria-label="Derived visual legends">
+    <rect x="40" y="868" width="1840" height="112" rx="12" fill="#101b2d" stroke="#44566d"/>
+    <text x="64" y="895" class="section-label">AUTHORITY CLASSES · DERIVED VISUAL LEGEND, NOT CONTRACTUAL ENTITIES</text>
+    <text x="64" y="922" class="small">COORDINATE · STRUCTURAL DECIDE — SCOPED · DOMAIN RECOMMEND · AUDIT GATE</text>
+    <text x="64" y="947" class="small">DOCUMENTARY CONSOLIDATE · HUMAN-ONLY EXECUTE</text>
+    <text x="64" y="967" class="micro muted">Authority is bounded by explicit scope; capability never grants authority or permission.</text>
+
+    <g id="relation-legend" transform="translate(980 886)" aria-label="Relation encoding legend">
+      <text x="0" y="9" class="section-label">RELATION ENCODING · NO TEMPORAL MEANING</text>
+      <line class="solid-relation" x1="0" y1="34" x2="66" y2="34"/>
+      <text x="80" y="39" class="small">may decide · solid labeled relation</text>
+      <line class="stop-bar" x1="390" y1="22" x2="390" y2="46"/>
+      <text x="406" y="39" class="small">validates eligibility · gate / stop-bar</text>
+      <line class="human-relation" x1="0" y1="66" x2="66" y2="66"/>
+      <text x="80" y="71" class="small">requires human action · protected lock relation</text>
+      <line class="dashed-relation" x1="390" y1="66" x2="456" y2="66"/>
+      <text x="470" y="71" class="small">conditional escalation · dashed dependency</text>
+    </g>
+  </g>
+
+  <g id="layer-representation-status" aria-label="Derived representation status">
+    <text x="40" y="1005" class="micro muted">View C is an authority / capability zoom of the Operating Model System. Authority governed by canonical sources.</text>
+    <text x="40" y="1025" class="micro muted">Exactly seven persistent roles · restrictions and classes are visual translations, not new rules or sources of truth.</text>
+    <text x="960" y="1058" text-anchor="middle" font-size="15" font-weight="800" fill="#f7c86f">DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE</text>
+  </g>
+</svg>

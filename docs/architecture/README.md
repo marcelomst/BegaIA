@@ -195,6 +195,21 @@ operativas gobernadas conservan la identidad efectiva y el binding vigente.
 
 [Ver View A INTERNAL](./operating-model-view-a-internal.svg)
 
+#### Operating Model — View C INTERNAL
+
+`operating-model-view-c-internal.svg`
+
+Representa los límites de authority, capability y permission de los siete roles
+persistentes, incluidos gates de admisibilidad, restricciones, escalamiento
+condicional y acciones protegidas bajo Human Authority.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md`; la vista no
+crea roles, permisos ni reglas nuevas.
+
+[Ver View C INTERNAL](./operating-model-view-c-internal.svg)
+
 #### Operating Model — View D INTERNAL
 
 `operating-model-view-d-internal.svg`
