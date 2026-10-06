@@ -14054,3 +14054,54 @@ Impacto:
   derivada y no contractual de reglas existentes
 - preserva `docs/architecture/system_operating_model.md` como fuente
   contractual, sin crear una Git rule, taxonomia o autoridad paralela
+
+### OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-06
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: d42a5ce5bf1fe8a617a5a87eaad76647b294ff93
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora e indexa View B INTERNAL como representacion visual derivada y no
+contractual del lifecycle temporal gobernado de un hito del Operating Model.
+La vista distingue phases, states, verdicts, readiness flags y checkpoints sin
+introducir estados, reglas operativas ni autoridad nuevos.
+
+El artefacto mantiene explicitamente:
+
+`representation_status: derived_non_contractual`
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/README.md`
+- `docs/architecture/operating-model-view-b-hito-lifecycle-internal.svg`
+
+Documentacion de cierre:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `d42a5ce5bf1fe8a617a5a87eaad76647b294ff93`
+  y push tecnico confirmados por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- Views A, C, D y E, Operating Model, perfiles de agentes, ADRs, roadmap,
+  codigo y runtime sin cambios
+- commit documental `PENDING`; cierre final sujeto a hash real y push confirmado
+
+Impacto:
+
+- mantiene la canonicidad porque View B INTERNAL es una representacion
+  derivada y no contractual del lifecycle existente
+- preserva `docs/architecture/system_operating_model.md` como fuente
+  contractual, con un unico terminal `CERRADO` y sin confundir phase, state,
+  verdict, readiness flag o checkpoint

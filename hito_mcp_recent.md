@@ -8,7 +8,16 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01
+## 1. OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01
+
+- Identificador: `OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01`
+- Nombre: `OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01`
+- Commit tecnico: `d42a5ce5bf1fe8a617a5a87eaad76647b294ff93`
+- Commit documental: `PENDING`
+- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Descripcion breve: Incorpora e indexa View B INTERNAL como representacion visual derivada y no contractual del lifecycle temporal gobernado de un hito del Operating Model.
+
+## 2. OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01
 
 - Identificador: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
 - Nombre: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
@@ -18,7 +27,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `7a23fe9f7e355f5db1b93bfba6cac96824b7a7e6`.
 - Descripcion breve: Incorpora e indexa View C INTERNAL como representacion visual derivada y no contractual de los limites de authority, capability, permission, gates y acciones protegidas del Operating Model.
 
-## 2. OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
+## 3. OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
 
 - Identificador: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
@@ -28,7 +37,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `d5562d707632fa476026a83a004ad06941d6491b`.
 - Descripcion breve: Incorpora e indexa View A INTERNAL como representacion visual derivada y no contractual de la arquitectura de roles del Operating Model.
 
-## 3. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
+## 4. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
 
 - Identificador: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
@@ -37,7 +46,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `d11e7ba544c5857637c2afeada414604ff96b129`.
 - Descripcion breve: Incorpora e indexa View E INTERNAL como representacion visual derivada y no contractual de la arquitectura documental del Operating Model y sus ambitos de autoridad.
 
-## 4. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
+## 5. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
@@ -46,7 +55,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`.
 - Descripcion breve: Incorpora View D PUBLIC como representacion visual derivada y no contractual del Product System y su gobierno de evolucion.
 
-## 5. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
+## 6. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
@@ -55,7 +64,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `a5915e554df3cb9841af4fe6f7ce4a668b946113`.
 - Descripcion breve: Incorpora View D INTERNAL como representacion visual derivada del Operating Model, sin crear una fuente contractual paralela.
 
-## 6. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
+## 7. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
 
 - Identificador: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
 - Nombre: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
@@ -64,7 +73,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Adopta el Agent Target Receiver Guard como regla operativa canónica transversal, con identidad autoritativa, envelope obligatorio, fail-closed y validación por prompt.
 
-## 7. OPS-CODEX-SESSION-LAUNCHER-01
+## 8. OPS-CODEX-SESSION-LAUNCHER-01
 
 - Identificador: `OPS-CODEX-SESSION-LAUNCHER-01`
 - Nombre: `OPS-CODEX-SESSION-LAUNCHER-01`
@@ -73,7 +82,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Incorpora un launcher versionado de VS Code para abrir en paralelo cinco sesiones Codex independientes y documenta el punto de entrada en la guía canónica existente.
 
-## 8. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
+## 9. OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02
 
 - Identificador: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
 - Nombre: `OPS-OPERATING-MODEL-WORKFLOW-RECONCILIATION-02`
@@ -82,7 +91,7 @@ No reemplaza el historial completo.
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Reconcilia la guía subordinada de agentes con el lifecycle, las clasificaciones, los gates y la autoridad Git del Operating Model canónico, sin introducir reglas nuevas.
 
-## 9. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
+## 10. OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01
 
 - Identificador: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
 - Nombre: `OPS-OPERATING-MODEL-MARKDOWN-NORMALIZATION-01`
@@ -90,12 +99,3 @@ No reemplaza el historial completo.
 - Hash: `c78227a7737e403c9359f0b5c6299b32d5aeda04`
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripción breve: Restaura headings, listas, separación y bloques fenced Markdown del Operating Model sin alterar contenido contractual, reglas operativas ni arquitectura viva.
-
-## 10. OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01
-
-- Identificador: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
-- Nombre: `OPS-OPERATING-MODEL-MARKDOWN-FENCE-FIX-01`
-- Commit message: `docs(architecture): fix operating model markdown fence`
-- Hash: `e2238cc5e316778c3ac2e5ff15f3b38d80b9f3be`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
-- Descripción breve: Reubica el cierre de un fence Markdown para limitar el bloque `text` a sus tres líneas previstas, sin modificar contenido contractual, reglas operativas ni arquitectura viva.
