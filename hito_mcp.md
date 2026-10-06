@@ -14002,3 +14002,54 @@ Impacto:
   derivada y no contractual, sin crear roles, autoridad ni jerarquia nuevos
 - preserva `docs/architecture/system_operating_model.md` como fuente
   contractual y evita una fuente de verdad paralela
+
+### OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-06
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 5ce594e68577f6ef21f48565b94ef869e0dcd2c0
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Push documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Incorpora e indexa View C INTERNAL como representacion visual derivada y no
+contractual de los limites entre authority, capability, permission, gates y
+acciones protegidas del Operating Model. La vista conserva los siete roles y
+no introduce reglas operativas, taxonomia contractual ni autoridad nueva.
+
+El artefacto mantiene explicitamente:
+
+`representation_status: derived_non_contractual`
+
+Archivos afectados por el commit tecnico:
+
+- `docs/architecture/README.md`
+- `docs/architecture/operating-model-view-c-internal.svg`
+
+Documentacion de cierre:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `5ce594e68577f6ef21f48565b94ef869e0dcd2c0`
+  y push tecnico confirmados por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- Runtime Map no aplicable; `roadmap_impact: none`
+- View A INTERNAL, View D INTERNAL, View D PUBLIC, View E INTERNAL, Operating
+  Model, ADRs, roadmap, codigo y runtime sin cambios
+- commit documental `PENDING`; cierre final sujeto a hash real y push documental
+
+Impacto:
+
+- mantiene la canonicidad porque View C INTERNAL es una representacion
+  derivada y no contractual de reglas existentes
+- preserva `docs/architecture/system_operating_model.md` como fuente
+  contractual, sin crear una Git rule, taxonomia o autoridad paralela
