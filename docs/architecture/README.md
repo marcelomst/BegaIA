@@ -195,6 +195,22 @@ operativas gobernadas conservan la identidad efectiva y el binding vigente.
 
 [Ver View A INTERNAL](./operating-model-view-a-internal.svg)
 
+#### Operating Model — View B — Hito Lifecycle INTERNAL
+
+`operating-model-view-b-hito-lifecycle-internal.svg`
+
+Representa el lifecycle temporal gobernado de un hito mediante flow-position
+phase bands, gates, checkpoints, evidencia, ramas condicionales y boundaries de
+ejecución protegida por Human Authority, con `CERRADO` como único estado
+terminal fuerte.
+
+`DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE`
+
+La autoridad contractual permanece en `system_operating_model.md`; la vista no
+crea estados, permisos ni reglas nuevas.
+
+[Ver View B — Hito Lifecycle INTERNAL](./operating-model-view-b-hito-lifecycle-internal.svg)
+
 #### Operating Model — View C INTERNAL
 
 `operating-model-view-c-internal.svg`

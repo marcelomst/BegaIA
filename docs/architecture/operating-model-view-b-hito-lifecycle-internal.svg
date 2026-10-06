@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Path: docs/architecture/operating-model-view-b-hito-lifecycle-internal.svg -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:begasist="https://begasist.com/ns/architecture"
+     id="view-b-hito-lifecycle-internal"
+     width="1920" height="1080" viewBox="0 0 1920 1080"
+     role="img" aria-labelledby="view-title view-description" fill="#eef5ff">
+  <title id="view-title">BegaIA Operating Model — View B — INTERNAL</title>
+  <desc id="view-description">
+    Derived, non-contractual hybrid lifecycle view of a governed hito. Four horizontal-time flow-position
+    bands organize gates, checkpoints, evidence and protected Human Authority execution boundaries.
+    Gates enable transitions, Human Authority materializes protected actions, and CERRADO is the single
+    terminal hito state after documentary materialization and traceability have been verified.
+  </desc>
+
+  <metadata id="view-b-provenance">
+    <begasist:provenance>
+      <begasist:view_id>operating-model-view-b-hito-lifecycle-internal</begasist:view_id>
+      <begasist:representation_status>derived_non_contractual</begasist:representation_status>
+      <begasist:scope>Operating Model System only</begasist:scope>
+      <begasist:derived_from>docs/architecture/system_operating_model.md; governed operational sources</begasist:derived_from>
+      <begasist:baseline_commit>94533f4a33b8af0c5e9a22bd14982d5eca866c3f</begasist:baseline_commit>
+    </begasist:provenance>
+  </metadata>
+
+  <defs>
+    <linearGradient id="background-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0b1424"/>
+    </linearGradient>
+    <linearGradient id="operating-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#211838"/>
+      <stop offset="1" stop-color="#15152b"/>
+    </linearGradient>
+    <pattern id="protected-pattern" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="12" height="12" fill="#2d251c"/>
+      <rect width="3" height="12" fill="#4d3718" opacity=".78"/>
+    </pattern>
+    <marker id="arrow-violet" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#b99cff"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#5df4df"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#f7b84b"/>
+    </marker>
+    <marker id="arrow-coral" viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#ff8fb3"/>
+    </marker>
+    <style>
+      :root { color-scheme: dark; }
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #eef5ff; }
+      .muted { fill: #aebdd0; }
+      .micro { font-size: 10px; letter-spacing: .02em; }
+      .small { font-size: 12px; }
+      .body { font-size: 14px; }
+      .label { font-size: 15px; font-weight: 700; }
+      .node-title { font-size: 18px; font-weight: 800; }
+      .section-label { font-size: 12px; font-weight: 800; letter-spacing: .11em; }
+      .boundary { stroke-width: 3; rx: 18; vector-effect: non-scaling-stroke; }
+      .phase { stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+      .card { stroke-width: 1.8; rx: 9; vector-effect: non-scaling-stroke; }
+      .gate-card { fill: #111925; stroke: #9eacbd; stroke-width: 2; rx: 9; }
+      .checkpoint-card { fill: #173747; stroke: #5df4df; stroke-width: 2; rx: 9; }
+      .readiness-card { fill: #302050; stroke: #c5adff; stroke-width: 2; rx: 9; }
+      .documentation-card { fill: #3f311d; stroke: #d7a24b; stroke-width: 2; rx: 9; }
+      .terminal { fill: #145565; stroke: #5df4df; stroke-width: 5; rx: 18; }
+      .chip { fill: #17283a; stroke: #66809d; stroke-width: 1.2; rx: 7; }
+      .chip-valid { fill: #143b36; stroke: #5df4df; }
+      .chip-stop { fill: #38273a; stroke: #ff8fb3; }
+      .chip-amber { fill: #3f311d; stroke: #f7b84b; }
+      .spine { fill: none; stroke: #b99cff; stroke-width: 4; marker-end: url(#arrow-violet); }
+      .transition { fill: none; stroke: #b99cff; stroke-width: 2.2; marker-end: url(#arrow-violet); }
+      .conditional { fill: none; stroke: #5df4df; stroke-width: 2; stroke-dasharray: 8 6; marker-end: url(#arrow-teal); }
+      .stop-path { fill: none; stroke: #ff8fb3; stroke-width: 2.2; marker-end: url(#arrow-coral); }
+      .evidence-line { fill: none; stroke: #f7b84b; stroke-width: 2; stroke-dasharray: 2 7; stroke-linecap: round; marker-end: url(#arrow-amber); }
+      .gate-bar { stroke: #9eacbd; stroke-width: 6; vector-effect: non-scaling-stroke; }
+      .human-bar { stroke: #f7b84b; stroke-width: 7; vector-effect: non-scaling-stroke; }
+      .checkpoint { fill: #123b47; stroke: #5df4df; stroke-width: 3; }
+      .evidence-marker { fill: #4d3718; stroke: #f7b84b; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect id="canvas-background" width="1920" height="1080" fill="url(#background-gradient)"/>
+
+  <g id="layer-header" aria-label="Title, thesis and provenance">
+    <text x="40" y="33" font-size="27" font-weight="800">BegaIA Operating Model — View B — INTERNAL</text>
+    <text x="40" y="58" class="body">Un hito avanza sólo cuando la evidencia exigida por su clasificación satisface el gate siguiente;</text>
+    <text x="40" y="78" class="body">los gates habilitan, Human Authority materializa las acciones protegidas y CERRADO existe únicamente tras materialización y trazabilidad documental verificadas.</text>
+
+    <g id="representation-metadata" transform="translate(1120 8)" aria-label="Representation metadata">
+      <rect width="760" height="76" rx="8" fill="#101b2d" stroke="#44566d"/>
+      <text x="14" y="18" class="micro">view_id: operating-model-view-b-hito-lifecycle-internal</text>
+      <text x="14" y="36" class="micro">representation_status: derived_non_contractual</text>
+      <text x="14" y="54" class="micro">scope: Operating Model System only</text>
+      <text x="14" y="70" class="micro">baseline_commit: 94533f4a33b8af0c5e9a22bd14982d5eca866c3f</text>
+    </g>
+  </g>
+
+  <g id="layer-semantic-contract" aria-label="Lifecycle semantic contract">
+    <rect x="40" y="94" width="1840" height="52" rx="10" fill="#111b29" stroke="#52657a" stroke-dasharray="4 7"/>
+    <text x="60" y="126" class="section-label">HITO LIFECYCLE · HYBRID LIFECYCLE · TIME →</text>
+
+    <g transform="translate(400 105)">
+      <rect class="chip chip-valid" width="220" height="29"/>
+      <text x="110" y="19" text-anchor="middle" class="section-label">ONE HITO · ONE INTENTION</text>
+    </g>
+    <text x="650" y="125" class="label">FLOW POSITION ≠ HITO STATE</text>
+    <text x="970" y="125" class="label">GATE VERDICT ≠ EXECUTION</text>
+    <text x="1290" y="125" class="label">EVIDENCE ENABLES TRANSITION</text>
+    <text x="1858" y="116" text-anchor="end" class="micro muted">Runtime Map — when product runtime is affected</text>
+    <text x="1858" y="133" text-anchor="end" class="micro muted">Roadmap impact — when applicable</text>
+  </g>
+
+  <g id="layer-operating-model-boundary" aria-label="Operating Model System only">
+    <rect class="boundary" x="40" y="160" width="1840" height="792" fill="url(#operating-gradient)" stroke="#9d7bea"/>
+    <text x="60" y="183" class="section-label">OPERATING MODEL SYSTEM · TEMPORAL GOVERNANCE VIEW</text>
+    <text x="1858" y="183" text-anchor="end" class="micro muted">phases position work · they do not define hito states</text>
+  </g>
+
+  <g id="layer-phase-bands" aria-label="Exactly four flow-position phase bands">
+    <g id="phase-analysis" aria-label="Flow position analysis">
+      <rect class="phase" x="245" y="195" width="330" height="300" fill="#17283a" fill-opacity=".62" stroke="#66809d"/>
+      <text x="260" y="216" class="section-label">FLOW POSITION · 1 / 4</text>
+      <text x="410" y="239" text-anchor="middle" class="node-title">analysis</text>
+    </g>
+    <g id="phase-implementation" aria-label="Flow position implementation">
+      <rect class="phase" x="575" y="195" width="295" height="300" fill="#302050" fill-opacity=".62" stroke="#a98af2"/>
+      <text x="590" y="216" class="section-label">FLOW POSITION · 2 / 4</text>
+      <text x="722" y="239" text-anchor="middle" class="node-title">implementation</text>
+    </g>
+    <g id="phase-audit" aria-label="Flow position audit">
+      <rect class="phase" x="870" y="195" width="450" height="300" fill="#202b38" fill-opacity=".72" stroke="#9eacbd"/>
+      <text x="885" y="216" class="section-label">FLOW POSITION · 3 / 4</text>
+      <text x="1095" y="239" text-anchor="middle" class="node-title">audit</text>
+    </g>
+    <g id="phase-documentation" aria-label="Flow position documentation">
+      <rect class="phase" x="1320" y="195" width="540" height="300" fill="#33291c" fill-opacity=".72" stroke="#d7a24b"/>
+      <text x="1335" y="216" class="section-label">FLOW POSITION · 4 / 4</text>
+      <text x="1590" y="239" text-anchor="middle" class="node-title">documentation</text>
+    </g>
+  </g>
+
+  <g id="layer-entry" aria-label="Define and dispatch entry event">
+    <rect class="card" x="58" y="224" width="168" height="202" fill="#35265a" stroke="#a98af2"/>
+    <text x="142" y="251" text-anchor="middle" class="section-label">ENTRY EVENT · AGPT</text>
+    <text x="142" y="280" text-anchor="middle" class="node-title">DEFINE / DISPATCH</text>
+    <text x="76" y="309" class="small">• hito definition</text>
+    <text x="76" y="331" class="small">• classification · scope</text>
+    <text x="76" y="353" class="small">• agent_target</text>
+    <text x="76" y="375" class="small">• flow_position</text>
+    <rect class="chip chip-valid" x="72" y="390" width="140" height="24"/>
+    <text x="142" y="406" text-anchor="middle" class="micro" font-weight="800">ONE HITO · ONE INTENTION</text>
+    <text x="142" y="447" text-anchor="middle" class="micro muted">entry event · not a phase</text>
+  </g>
+
+  <g id="layer-lifecycle-spine" aria-label="Nominal existing repository change lifecycle">
+    <path class="spine" d="M226 485 H1845"/>
+
+    <g id="receiver-gate" aria-label="Receiver gate repeated at every handoff">
+      <line class="gate-bar" x1="310" y1="266" x2="310" y2="485"/>
+      <rect class="gate-card" x="258" y="270" width="138" height="142"/>
+      <text x="327" y="290" text-anchor="middle" class="section-label">RECEIVER GATE</text>
+      <text x="327" y="306" text-anchor="middle" class="micro muted">repeat at every handoff</text>
+      <text x="272" y="327" class="micro">envelope + effective identity</text>
+      <text x="272" y="346" class="micro">◆ HITO_ID · agent_target</text>
+      <text x="272" y="365" class="micro">◆ flow_position</text>
+      <text x="272" y="384" class="micro">◆ effective agent</text>
+      <rect class="chip chip-valid" x="270" y="392" width="52" height="21"/>
+      <text x="296" y="406" text-anchor="middle" class="micro">PASS</text>
+      <rect class="chip chip-stop" x="328" y="392" width="58" height="21"/>
+      <text x="357" y="406" text-anchor="middle" class="micro">BLOCKED</text>
+    </g>
+
+    <g id="definition-invariant-gate" aria-label="Definition and invariant gate">
+      <line class="gate-bar" x1="490" y1="266" x2="490" y2="485"/>
+      <rect class="gate-card" x="410" y="270" width="146" height="142"/>
+      <text x="483" y="288" text-anchor="middle" class="section-label">DEFINITION</text>
+      <text x="483" y="302" text-anchor="middle" class="section-label">/ INVARIANT GATE</text>
+      <text x="483" y="321" text-anchor="middle" class="micro">one intention · classification</text>
+      <text x="483" y="337" text-anchor="middle" class="micro">target · coherent phase</text>
+      <rect class="chip chip-valid" x="422" y="346" width="122" height="23"/>
+      <text x="483" y="362" text-anchor="middle" class="micro">hito dispatchable</text>
+      <rect class="chip chip-stop" x="422" y="377" width="122" height="23"/>
+      <text x="483" y="393" text-anchor="middle" class="micro">or redefine</text>
+      <text x="483" y="430" text-anchor="middle" class="micro muted">invariant checked again by Guardian</text>
+    </g>
+
+    <g id="implementation-work" aria-label="Implementation or material artifact preparation">
+      <rect class="card" x="594" y="274" width="142" height="118" fill="#35265a" stroke="#a98af2"/>
+      <text x="665" y="292" text-anchor="middle" class="section-label">TECHNICAL</text>
+      <text x="665" y="307" text-anchor="middle" class="section-label">IMPLEMENTER</text>
+      <text x="665" y="329" text-anchor="middle" class="label">implementation /</text>
+      <text x="665" y="347" text-anchor="middle" class="label">material preparation</text>
+      <text x="665" y="369" text-anchor="middle" class="micro muted">diff / artifact · validations</text>
+      <text x="665" y="384" text-anchor="middle" class="micro muted">implementation report</text>
+    </g>
+
+    <g id="implementation-completion-gate" aria-label="Implementation completion gate">
+      <line class="gate-bar" x1="810" y1="266" x2="810" y2="485"/>
+      <rect class="gate-card" x="748" y="270" width="114" height="142"/>
+      <text x="805" y="288" text-anchor="middle" class="micro" font-weight="800">IMPLEMENTATION</text>
+      <text x="805" y="302" text-anchor="middle" class="micro" font-weight="800">COMPLETION GATE</text>
+      <text x="805" y="321" text-anchor="middle" class="micro">diff / artifact</text>
+      <text x="805" y="337" text-anchor="middle" class="micro">tests / results</text>
+      <text x="805" y="353" text-anchor="middle" class="micro">implementation report</text>
+      <polygon class="checkpoint" points="805,359 817,371 805,383 793,371"/>
+      <text x="805" y="402" text-anchor="middle" class="micro">implementation complete</text>
+      <text x="805" y="431" text-anchor="middle" class="micro" fill="#c5adff">→ READY_FOR_GUARDIAN</text>
+    </g>
+
+    <g id="guardian-pre-commit-gate" aria-label="Guardian pre-commit gate">
+      <line class="gate-bar" x1="940" y1="266" x2="940" y2="485"/>
+      <rect class="gate-card" x="882" y="270" width="142" height="142"/>
+      <text x="953" y="288" text-anchor="middle" class="section-label">GUARDIAN</text>
+      <text x="953" y="302" text-anchor="middle" class="section-label">PRE-COMMIT GATE</text>
+      <text x="953" y="320" text-anchor="middle" class="micro">working tree + evidence</text>
+      <rect class="chip chip-valid" x="892" y="329" width="45" height="22"/>
+      <text x="914" y="344" text-anchor="middle" class="micro">valid</text>
+      <rect class="chip chip-stop" x="941" y="329" width="52" height="22"/>
+      <text x="967" y="344" text-anchor="middle" class="micro">invalid</text>
+      <rect class="chip chip-stop" x="892" y="357" width="101" height="22"/>
+      <text x="942" y="372" text-anchor="middle" class="micro">split_required</text>
+      <text x="953" y="397" text-anchor="middle" class="micro">valid → commit admissible</text>
+      <text x="953" y="431" text-anchor="middle" class="micro" fill="#f7c86f">GATE VERDICT ≠ EXECUTION</text>
+    </g>
+
+    <g id="technical-materialization" aria-label="Human Authority technical Git write boundary">
+      <rect x="1040" y="259" width="152" height="168" rx="12" fill="url(#protected-pattern)" stroke="#f7b84b" stroke-width="3"/>
+      <line class="human-bar" x1="1054" y1="268" x2="1054" y2="418"/>
+      <text x="1116" y="282" text-anchor="middle" class="section-label" fill="#f7c86f">HUMAN AUTHORITY</text>
+      <text x="1116" y="302" text-anchor="middle" class="micro">technical Git write</text>
+      <rect class="chip chip-amber" x="1066" y="317" width="100" height="26"/>
+      <text x="1116" y="335" text-anchor="middle" class="label">COMMIT</text>
+      <text x="1116" y="361" text-anchor="middle" class="label">↓ HASH ↓</text>
+      <rect class="chip chip-amber" x="1066" y="370" width="100" height="26"/>
+      <text x="1116" y="388" text-anchor="middle" class="label">PUSH</text>
+      <polygon class="checkpoint" points="1116,403 1126,413 1116,423 1106,413"/>
+      <text x="1116" y="445" text-anchor="middle" class="micro" fill="#5df4df">technical materialized</text>
+    </g>
+
+    <g id="guardian-post-commit-gate" aria-label="Guardian post-commit gate">
+      <line class="gate-bar" x1="1254" y1="266" x2="1254" y2="485"/>
+      <rect class="gate-card" x="1205" y="270" width="108" height="142"/>
+      <text x="1259" y="288" text-anchor="middle" class="section-label">GUARDIAN</text>
+      <text x="1259" y="302" text-anchor="middle" class="section-label">POST-COMMIT</text>
+      <text x="1259" y="320" text-anchor="middle" class="micro">technical_commit:</text>
+      <text x="1259" y="335" text-anchor="middle" class="micro">present</text>
+      <text x="1259" y="350" text-anchor="middle" class="micro">real hash</text>
+      <text x="1259" y="365" text-anchor="middle" class="micro">push confirmed</text>
+      <rect class="chip chip-valid" x="1216" y="374" width="86" height="21"/>
+      <text x="1259" y="388" text-anchor="middle" class="micro">verdict: valid</text>
+      <text x="1259" y="407" text-anchor="middle" class="micro">→ HDOC_INPUT</text>
+    </g>
+
+    <g id="documentation-chain" aria-label="Documentation chain">
+      <g id="ready-for-hdoc-flag">
+        <rect class="readiness-card" x="1330" y="282" width="92" height="82"/>
+        <text x="1376" y="301" text-anchor="middle" class="section-label">GATE OUTPUT</text>
+        <text x="1376" y="325" text-anchor="middle" font-size="8.5" font-weight="800">READY_FOR_HDOC</text>
+        <text x="1376" y="346" text-anchor="middle" class="micro">ready_for_hdoc: yes</text>
+        <text x="1376" y="380" text-anchor="middle" class="micro" fill="#c5adff">READINESS FLAG</text>
+      </g>
+      <g id="hdoc-input-and-preparation">
+        <rect class="documentation-card" x="1432" y="270" width="102" height="142"/>
+        <text x="1483" y="290" text-anchor="middle" class="section-label">HDOC_INPUT</text>
+        <text x="1483" y="309" text-anchor="middle" class="micro">valid evidence</text>
+        <text x="1483" y="336" text-anchor="middle" class="label">HDOC</text>
+        <text x="1483" y="355" text-anchor="middle" class="micro">classification /</text>
+        <text x="1483" y="372" text-anchor="middle" class="micro">authorized preparation</text>
+        <text x="1483" y="394" text-anchor="middle" class="micro muted">accepted evidence</text>
+        <text x="1483" y="407" text-anchor="middle" class="micro muted">→ preparation admissible</text>
+      </g>
+      <g id="documentation-prepared-checkpoint">
+        <rect class="checkpoint-card" x="1544" y="270" width="128" height="142"/>
+        <text x="1608" y="290" text-anchor="middle" class="section-label">CHECKPOINT</text>
+        <polygon class="checkpoint" points="1608,303 1620,315 1608,327 1596,315"/>
+        <text x="1608" y="347" text-anchor="middle" class="small" font-weight="800">DOCUMENTACION_</text>
+        <text x="1608" y="363" text-anchor="middle" class="small" font-weight="800">PREPARADA</text>
+        <text x="1608" y="382" text-anchor="middle" class="micro" fill="#ff8fb3">not closed</text>
+        <text x="1608" y="399" text-anchor="middle" font-size="8.5" fill="#aebdd0">documentation_commit: pending</text>
+      </g>
+      <g id="documentation-materialization" aria-label="Human Authority documentation Git write">
+        <rect x="1682" y="259" width="96" height="168" rx="12" fill="url(#protected-pattern)" stroke="#f7b84b" stroke-width="3"/>
+        <line class="human-bar" x1="1693" y1="268" x2="1693" y2="418"/>
+        <text x="1734" y="282" text-anchor="middle" class="section-label" fill="#f7c86f">HUMAN</text>
+        <text x="1734" y="299" text-anchor="middle" class="micro">documentation</text>
+        <text x="1734" y="316" text-anchor="middle" class="micro">Git write</text>
+        <text x="1734" y="344" text-anchor="middle" class="micro">COMMIT</text>
+        <text x="1734" y="365" text-anchor="middle" class="micro">↓ real HASH ↓</text>
+        <text x="1734" y="386" text-anchor="middle" class="micro">PUSH</text>
+        <text x="1734" y="406" text-anchor="middle" class="micro muted">confirmed</text>
+      </g>
+      <g id="documentary-materialized-checkpoint" aria-label="Documentary materialized checkpoint">
+        <polygon class="checkpoint" points="1726,429 1738,441 1726,453 1714,441"/>
+        <text x="1726" y="467" text-anchor="middle" class="micro" fill="#5df4df">documentary</text>
+        <text x="1726" y="479" text-anchor="middle" class="micro" fill="#5df4df">materialized</text>
+      </g>
+      <g id="final-closure-gate" aria-label="HDOC verification and final closure gate">
+        <line class="gate-bar" x1="1790" y1="266" x2="1790" y2="485"/>
+        <text x="1790" y="257" text-anchor="middle" class="section-label">FINAL GATE</text>
+        <rect class="gate-card" x="1332" y="425" width="335" height="58"/>
+        <text x="1346" y="444" class="micro">HDOC verifies: authorized docs</text>
+        <text x="1346" y="460" class="micro">doc commit / real hash / push confirmed</text>
+        <text x="1346" y="476" class="micro">no required artifact pending / missing / failed</text>
+        <rect class="chip chip-stop" x="1589" y="431" width="68" height="21"/>
+        <text x="1623" y="445" text-anchor="middle" class="micro">incomplete</text>
+      </g>
+      <g id="closed-terminal-hito-state" aria-label="CERRADO terminal hito state">
+        <rect class="terminal" x="1800" y="438" width="68" height="45"/>
+        <text x="1834" y="458" text-anchor="middle" class="micro">TERMINAL</text>
+        <text x="1834" y="475" text-anchor="middle" class="small" font-weight="900">CERRADO</text>
+      </g>
+    </g>
+  </g>
+
+  <g id="layer-human-execution-boundary" aria-label="Protected Human Authority execution boundary">
+    <rect x="58" y="510" width="1804" height="92" rx="14" fill="url(#protected-pattern)" stroke="#f7b84b" stroke-width="3"/>
+    <text x="78" y="531" class="section-label" fill="#f7c86f">HUMAN EXECUTION BOUNDARY · gates enable · Human Authority materializes</text>
+
+    <g transform="translate(78 545)">
+      <rect class="chip chip-amber" width="275" height="36"/>
+      <text x="137" y="16" text-anchor="middle" class="micro">1 · decide advance / pause / redefine</text>
+      <text x="137" y="29" text-anchor="middle" class="micro muted">when applicable</text>
+    </g>
+    <g transform="translate(372 545)">
+      <rect class="chip chip-amber" width="267" height="36"/>
+      <text x="133" y="22" text-anchor="middle" class="micro">2 · technical Git write</text>
+    </g>
+    <g transform="translate(658 545)">
+      <rect class="chip chip-amber" width="315" height="36"/>
+      <text x="157" y="16" text-anchor="middle" class="micro">4 · external material action</text>
+      <text x="157" y="29" text-anchor="middle" class="micro muted">when applicable</text>
+    </g>
+    <g transform="translate(992 545)">
+      <rect class="chip chip-amber" width="285" height="36"/>
+      <text x="142" y="22" text-anchor="middle" class="micro">3 · documentation Git write</text>
+    </g>
+    <g transform="translate(1296 545)">
+      <rect class="chip chip-amber" width="546" height="36"/>
+      <text x="273" y="16" text-anchor="middle" class="micro">5 · reconciliation Git write</text>
+      <text x="273" y="29" text-anchor="middle" class="micro muted">only if the conditional branch activates</text>
+    </g>
+  </g>
+
+  <g id="layer-conditional-branches" aria-label="Compact conditional and stop branches">
+    <g id="architecture-conditional-branch">
+      <rect class="card" x="58" y="617" width="446" height="128" fill="#102633" stroke="#5df4df" stroke-dasharray="8 6"/>
+      <text x="76" y="638" class="section-label">ARCHITECTURE GATE · CONDITIONAL</text>
+      <circle class="evidence-marker" cx="335" cy="634" r="5"/>
+      <text x="346" y="637" class="micro" fill="#f7c86f">architect verdict · CONDITIONAL</text>
+      <text x="76" y="659" class="micro">structural ambiguity · domain ambiguity · cross-slice impact</text>
+      <path class="conditional" d="M76 676 H474"/>
+      <rect class="chip chip-valid" x="76" y="686" width="76" height="24"/>
+      <text x="114" y="702" text-anchor="middle" class="micro">proceed</text>
+      <rect class="chip" x="160" y="686" width="88" height="24"/>
+      <text x="204" y="702" text-anchor="middle" class="micro">redefine</text>
+      <rect class="chip" x="256" y="686" width="88" height="24"/>
+      <text x="300" y="702" text-anchor="middle" class="micro">escalate</text>
+      <rect class="chip chip-valid" x="352" y="686" width="130" height="24"/>
+      <text x="417" y="702" text-anchor="middle" class="micro">not required → direct</text>
+      <text x="76" y="730" class="micro" fill="#ffb4c8">architectural contradiction → analysis → redefine contract / scope</text>
+    </g>
+
+    <g id="guardian-stop-branches">
+      <rect class="card" x="518" y="617" width="566" height="128" fill="#201c2a" stroke="#ff8fb3"/>
+      <text x="536" y="638" class="section-label">GUARDIAN VERDICTS · CHIPS, NEVER STATES</text>
+      <g transform="translate(536 651)">
+        <rect class="chip chip-stop" width="250" height="76"/>
+        <text x="14" y="20" class="label">invalid → STOP</text>
+        <text x="14" y="40" class="micro">before protected materialization</text>
+        <text x="14" y="58" class="micro">adjust → re-enter explicit</text>
+        <text x="14" y="70" class="micro">Implementation Completion Gate</text>
+      </g>
+      <g transform="translate(800 651)">
+        <rect class="chip chip-stop" width="266" height="76"/>
+        <text x="14" y="20" class="label">split_required → STOP</text>
+        <text x="14" y="41" class="micro">AGPT divides scope</text>
+        <text x="14" y="59" class="micro">→ new hito definitions</text>
+        <text x="14" y="71" class="micro muted">no loop to implementation</text>
+      </g>
+    </g>
+
+    <g id="documentation-exception-branches">
+      <rect class="card" x="1098" y="617" width="764" height="128" fill="#2b261d" stroke="#d7a24b"/>
+      <text x="1116" y="638" class="section-label">DOCUMENTATION EXCEPTIONS · NO PARTIAL CLOSURE</text>
+      <g transform="translate(1116 652)">
+        <rect class="chip chip-stop" width="272" height="72"/>
+        <text x="14" y="20" class="label">HDOC incomplete</text>
+        <text x="14" y="41" class="micro">→ missing evidence / correction</text>
+        <text x="14" y="59" class="micro">→ no CERRADO</text>
+      </g>
+      <g transform="translate(1402 652)">
+        <rect class="chip" width="440" height="72" stroke="#5df4df" stroke-dasharray="8 6"/>
+        <text x="14" y="19" class="label">closure record still contains PENDING?</text>
+        <text x="14" y="39" class="micro">yes → conditional closure-record reconciliation</text>
+        <text x="14" y="56" class="micro">→ Human Authority Git write → CERRADO recorded</text>
+        <text x="420" y="19" text-anchor="end" class="micro" fill="#5df4df">WHEN REQUIRED</text>
+        <circle class="evidence-marker" cx="294" cy="66" r="4"/>
+        <text x="304" y="69" font-size="8.5" fill="#f7c86f">reconciliation hash · CONDITIONAL</text>
+      </g>
+    </g>
+  </g>
+
+  <g id="layer-external-operational-branch" aria-label="External operational change compact branch">
+    <rect x="58" y="758" width="1804" height="80" rx="12" fill="#101b2d" stroke="#5df4df" stroke-dasharray="8 6"/>
+    <text x="76" y="779" class="section-label">EXTERNAL OPERATIONAL CHANGE · CONDITIONAL BRANCH</text>
+    <text x="76" y="809" class="label">AGPT authorization</text>
+    <path class="conditional" d="M212 804 H330"/>
+    <text x="348" y="798" class="label">Human Authority external action</text>
+    <text x="348" y="815" class="micro muted">+ substitute evidence</text>
+    <path class="conditional" d="M590 804 H700"/>
+    <text x="718" y="798" class="label">Guardian eligibility / integrity / rollback validation</text>
+    <text x="718" y="815" class="micro muted">verifies existing AGPT authorization</text>
+    <path class="conditional" d="M1110 804 H1220"/>
+    <text x="1238" y="798" class="label">technical artifacts: not_applicable</text>
+    <text x="1238" y="815" class="micro muted">audited N/A</text>
+    <path class="conditional" d="M1500 804 H1680"/>
+    <text x="1700" y="809" class="label">HDOC</text>
+  </g>
+
+  <g id="layer-evidence-rails" aria-label="Separated evidence rails">
+    <g id="material-evidence-rail">
+      <rect x="58" y="852" width="1238" height="76" rx="11" fill="#111925" stroke="#f7b84b"/>
+      <text x="76" y="873" class="section-label">MATERIAL EVIDENCE RAIL · existing_repo_change · CODE → COMMIT → HASH → PUSH → DOC</text>
+      <path class="evidence-line" d="M82 900 H1268"/>
+      <circle class="evidence-marker" cx="158" cy="900" r="7"/>
+      <text x="158" y="918" text-anchor="middle" class="micro">envelope + classification</text>
+      <circle class="evidence-marker" cx="425" cy="900" r="7"/>
+      <text x="425" y="918" text-anchor="middle" class="micro">diff / artifact</text>
+      <circle class="evidence-marker" cx="640" cy="900" r="7"/>
+      <text x="640" y="918" text-anchor="middle" class="micro">tests / results</text>
+      <circle class="evidence-marker" cx="830" cy="900" r="7"/>
+      <text x="830" y="918" text-anchor="middle" class="micro">Guardian verdict</text>
+      <circle class="evidence-marker" cx="1080" cy="900" r="7"/>
+      <text x="1080" y="918" text-anchor="middle" class="micro">technical commit · real hash · push</text>
+    </g>
+    <g id="documentation-evidence-rail">
+      <rect x="1310" y="852" width="552" height="76" rx="11" fill="#2b261d" stroke="#d7a24b"/>
+      <text x="1328" y="873" class="section-label">DOCUMENTATION EVIDENCE RAIL</text>
+      <path class="evidence-line" d="M1336 900 H1834"/>
+      <circle class="evidence-marker" cx="1360" cy="900" r="7"/>
+      <text x="1360" y="918" text-anchor="middle" class="micro">HDOC_INPUT</text>
+      <circle class="evidence-marker" cx="1495" cy="900" r="7"/>
+      <text x="1495" y="918" text-anchor="middle" class="micro">authorized docs</text>
+      <circle class="evidence-marker" cx="1650" cy="900" r="7"/>
+      <text x="1650" y="918" text-anchor="middle" class="micro">doc commit · hash · push</text>
+      <circle class="evidence-marker" cx="1800" cy="900" r="7"/>
+      <text x="1800" y="918" text-anchor="middle" class="micro">closure record</text>
+    </g>
+  </g>
+
+  <g id="layer-footer" aria-label="Legend, canonicality and derived status">
+    <text x="40" y="976" class="section-label">VISUAL LANGUAGE</text>
+    <line x1="40" y1="997" x2="88" y2="997" class="gate-bar"/>
+    <text x="100" y="1002" class="small">gate / threshold</text>
+    <polygon class="checkpoint" points="280,986 291,997 280,1008 269,997"/>
+    <text x="304" y="1002" class="small">checkpoint</text>
+    <circle class="evidence-marker" cx="470" cy="997" r="7"/>
+    <text x="487" y="1002" class="small">evidence marker</text>
+    <line x1="650" y1="997" x2="702" y2="997" class="conditional"/>
+    <text x="716" y="1002" class="small">conditional branch</text>
+    <rect x="900" y="986" width="30" height="22" rx="5" fill="url(#protected-pattern)" stroke="#f7b84b" stroke-width="2"/>
+    <text x="942" y="1002" class="small">protected Human execution</text>
+    <text x="1170" y="1002" class="small" fill="#5df4df">CERRADO = single terminal_hito_state</text>
+
+    <text x="40" y="1028" class="micro muted">Canonicality: phase ≠ state · verdict ≠ state · readiness ≠ state · artifact state ≠ hito state · reconciliation is conditional.</text>
+    <text x="40" y="1047" class="micro muted">Boundary continuity: View A roles are touchpoints only · View C authority is temporal only · View E remains documentary context · View D scope is Operating Model System only.</text>
+    <text x="1880" y="1028" text-anchor="end" class="label" fill="#f7c86f">DOCUMENTACION_PREPARADA ≠ CERRADO</text>
+    <text x="1880" y="1047" text-anchor="end" class="micro muted">No historical example or identity is elevated to contract; no rule is created.</text>
+    <text x="960" y="1070" text-anchor="middle" font-size="15" font-weight="800" fill="#f7c86f">
+      DERIVED REPRESENTATION — NOT CONTRACTUAL SOURCE
+    </text>
+  </g>
+</svg>
