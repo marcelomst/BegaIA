@@ -59,6 +59,7 @@ describe("reservation golden transcripts", () => {
       hotelId: input.hotelId,
       roomType: input.roomType,
       guestName: input.guestName,
+      numGuests: input.guests ?? null,
       checkInDate: input.checkInDate,
       checkOutDate: input.checkOutDate,
       status: "confirmed",

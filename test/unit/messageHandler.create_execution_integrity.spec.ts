@@ -80,9 +80,28 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   }),
 }));
 vi.mock("@/lib/agents/reservations", () => ({
-  confirmAndCreate: vi.fn(async () => {
+  confirmAndCreate: vi.fn(async (hotelId: string, slots: any) => {
     createdCount += 1;
-    return { ok: true, reservationId: `R-NEW-0${createdCount}`, message: "ok" };
+    const reservationId = `R-NEW-0${createdCount}`;
+    return {
+      ok: true,
+      reservationId,
+      reservation: {
+        reservationId,
+        hotelId,
+        guestName: slots.guestName,
+        roomType: slots.roomType,
+        numGuests: Number(slots.numGuests ?? slots.guests),
+        checkInDate: slots.checkIn,
+        checkOutDate: slots.checkOut,
+        status: "confirmed",
+        currency: "USD",
+        priceTotal: 400,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      message: "ok",
+    };
   }),
   modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
 }));
@@ -187,7 +206,7 @@ describe("messageHandler create execution integrity", () => {
       checkIn: "2026-05-01",
       checkOut: "2026-05-05",
       roomType: "double",
-      numGuests: "2",
+      numGuests: 2,
       guestName: "Ana Gomez",
     });
 

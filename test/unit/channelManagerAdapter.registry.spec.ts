@@ -12,6 +12,8 @@ vi.mock("@/lib/astra/connection", async () => {
 });
 
 import { getCMAdapter, inspectDemoInventory, resetDemoInventory } from "@/lib/mcp/channelManagerAdapter";
+import { DEMO_CHANNEL_MANAGER_RESERVATIONS_TABLE } from "@/lib/db/demoChannelManagerReservations";
+import { getTable } from "../mocks/astra";
 
 describe("getCMAdapter registry by hotelId", () => {
   it("reuses the registry instance while the durable store remains shared across adapter instances", async () => {
@@ -123,6 +125,67 @@ describe("getCMAdapter registry by hotelId", () => {
     await expect(adapter.updateReservation({ hotelId, reservationId: created.reservationId, checkOutDate: "2026-04-30", quoteId: quote.quoteId, quoteVersion: quote.quoteVersion }))
       .rejects.toThrow("QUOTE_STALE");
     expect(await adapter.getReservation(hotelId, created.reservationId)).toEqual(beforeRejectedUpdates);
+  });
+
+  it("round-trips numGuests and preserves it across date and room-only updates", async () => {
+    const hotelId = `hotel-num-guests-${Date.now()}`;
+    const adapter = getCMAdapter(hotelId);
+    const created = await adapter.createReservation({
+      hotelId, guestName: "Guest Authority", roomType: "suite", guests: 3,
+      checkInDate: "2026-06-10", checkOutDate: "2026-06-12",
+    });
+    expect(created.numGuests).toBe(3);
+
+    const datePatch = { checkInDate: "2026-06-15", checkOutDate: "2026-06-17" };
+    const dateQuote = await adapter.quoteReservationModification({ hotelId, reservationId: created.reservationId, ...datePatch });
+    const dateUpdated = await adapter.updateReservation({
+      hotelId, reservationId: created.reservationId, ...datePatch,
+      quoteId: dateQuote.quoteId, quoteVersion: dateQuote.quoteVersion,
+    });
+    expect(dateUpdated.numGuests).toBe(3);
+
+    const roomPatch = { roomType: "triple" };
+    const roomQuote = await adapter.quoteReservationModification({ hotelId, reservationId: created.reservationId, ...roomPatch });
+    const roomUpdated = await adapter.updateReservation({
+      hotelId, reservationId: created.reservationId, ...roomPatch,
+      quoteId: roomQuote.quoteId, quoteVersion: roomQuote.quoteVersion,
+    });
+    expect(roomUpdated).toMatchObject({ roomType: "triple", numGuests: 3 });
+
+    const guestQuote = await adapter.quoteReservationModification({ hotelId, reservationId: created.reservationId, guests: 2 });
+    const guestUpdated = await adapter.updateReservation({
+      hotelId, reservationId: created.reservationId, guests: 2,
+      quoteId: guestQuote.quoteId, quoteVersion: guestQuote.quoteVersion,
+    });
+    expect(guestUpdated.numGuests).toBe(2);
+  });
+
+  it("projects historical rows as null and materializes a later explicit guest update", async () => {
+    const hotelId = `hotel-historical-guests-${Date.now()}`;
+    const reservationId = "RES-HISTORICAL";
+    await getTable(DEMO_CHANNEL_MANAGER_RESERVATIONS_TABLE).insertOne({
+      hotel_id: hotelId, reservation_id: reservationId, room_type: "double", guest_name: "Historical Guest",
+      check_in_date: "2026-07-10", check_out_date: "2026-07-12", status: "confirmed", currency: "USD",
+      price_total: 200, created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z",
+    });
+    const adapter = getCMAdapter(hotelId);
+    expect((await adapter.getReservation(hotelId, reservationId))?.numGuests).toBeNull();
+
+    const quote = await adapter.quoteReservationModification({ hotelId, reservationId, guests: 2 });
+    const updated = await adapter.updateReservation({
+      hotelId, reservationId, guests: 2, quoteId: quote.quoteId, quoteVersion: quote.quoteVersion,
+    });
+    expect(updated.numGuests).toBe(2);
+  });
+
+  it("rejects invalid guest counts without writing a reservation", async () => {
+    const hotelId = `hotel-invalid-guests-${Date.now()}`;
+    const adapter = getCMAdapter(hotelId);
+    await expect(adapter.createReservation({
+      hotelId, guestName: "Invalid Guest Count", roomType: "double", guests: 0,
+      checkInDate: "2026-08-10", checkOutDate: "2026-08-12",
+    })).rejects.toThrow("INVALID_GUESTS");
+    expect((await adapter.listReservations({ hotelId })).items).toEqual([]);
   });
 
   it("rejects unavailable quotes without mutating the durable reservation", async () => {

@@ -54,8 +54,9 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
     const created = await confirmAndCreate("hotel999", slots as any, "web");
     expect(created.ok).toBe(true);
     expect(created.reservationId).toBeTruthy();
+    expect(created.reservation).toMatchObject({ hotelId: "hotel999", numGuests: 2 });
 
-    const modifySlots = { ...slots, checkOut: "2026-03-13", numGuests: 2 } as any;
+    const modifySlots = { ...slots, checkOut: "2026-03-13", numGuests: 1 } as any;
     const quote = await quoteReservationModification("hotel999", created.reservationId!, modifySlots);
     expect(quote).toMatchObject({ available: true, currency: "USD" });
     const updated = await modifyReservation(
@@ -68,6 +69,7 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
     expect(updated.reservation).toMatchObject({
       reservationId: created.reservationId,
       checkOutDate: "2026-03-13T00:00:00.000Z",
+      numGuests: 1,
       priceTotal: quote.priceTotal,
       currency: quote.currency,
     });
@@ -110,6 +112,7 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
     }) as any);
     const created = await createdResponse.json();
     const reservationId = created.data.reservationId;
+    expect(created.data.numGuests).toBeNull();
 
     const missingQuoteResponse = await mcpPOST(mkReq("http://localhost/api/mcp", {
       action: "call", name: "updateReservation", params: {
@@ -137,6 +140,7 @@ describe("reservation pipeline via MCP + ChannelManager adapter", () => {
       data: {
         reservationId,
         checkOutDate: "2026-05-14T00:00:00.000Z",
+        numGuests: null,
         priceTotal: quote.priceTotal,
         currency: quote.currency,
       },

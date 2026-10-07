@@ -1,5 +1,6 @@
 // Path: /root/begasist/lib/tools/mcp.ts
 import { z } from "zod";
+import type { Reservation } from "@/lib/mcp/types";
 
 /**
  * 🧰 Contratos “MCP” (tools) con schemas Zod.
@@ -48,9 +49,27 @@ export const CreateReservationInput = z.object({
 });
 export type CreateReservationInput = z.infer<typeof CreateReservationInput>;
 
+const ReservationResult = z.object({
+  reservationId: z.string().trim().min(1),
+  hotelId: z.string().trim().min(1),
+  roomType: z.string(),
+  guestName: z.string(),
+  guestEmail: z.string().optional(),
+  guestPhone: z.string().optional(),
+  numGuests: z.number().int().positive().nullable(),
+  checkInDate: z.string(),
+  checkOutDate: z.string(),
+  status: z.enum(["confirmed", "cancelled", "pending"]),
+  currency: z.string(),
+  priceTotal: z.number().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const CreateReservationOutput = z.object({
   ok: z.boolean(),
   reservationId: z.string().optional(),
+  reservation: ReservationResult.optional(),
   status: z.enum(["created", "error"]).optional(),
   error: z.string().optional(),
 });
@@ -78,7 +97,7 @@ export type QuoteReservationModificationInput = z.infer<typeof QuoteReservationM
 export const UpdateReservationOutput = z.object({
   ok: z.boolean(),
   status: z.enum(["updated"]).optional(),
-  reservation: z.any().optional(),
+  reservation: ReservationResult.optional(),
   error: z.string().optional(),
 });
 export type UpdateReservationOutput = z.infer<typeof UpdateReservationOutput>;
@@ -151,6 +170,7 @@ export function slotsToMcpParams(
       hotelId,
       guestName: typeof slots.guestName === "string" ? slots.guestName : undefined,
       roomType,
+      guests,
       checkInDate,
       checkOutDate,
       channel: payload.channel,
@@ -266,11 +286,19 @@ export async function checkAvailabilityTool(input: CheckAvailabilityInput) {
 export async function createReservationTool(input: CreateReservationInput) {
   const parsed = CreateReservationInput.parse(input);
   const params = slotsToMcpParams("createReservation", { hotelId: parsed.hotelId, slots: parsed, channel: parsed.channel });
-  const reservation = await callMcpTool<{ reservationId: string }>("createReservation", params);
+  const providerResult = await callMcpTool<unknown>("createReservation", params);
+  const validated = validateProviderReservation(providerResult, {
+    hotelId: parsed.hotelId,
+    guests: parsed.guests,
+  });
+  if (!validated.ok) {
+    return CreateReservationOutput.parse({ ok: false, status: "error", error: validated.error });
+  }
   return CreateReservationOutput.parse({
     ok: true,
     status: "created",
-    reservationId: reservation?.reservationId,
+    reservationId: validated.reservation.reservationId,
+    reservation: validated.reservation,
   });
 }
 
@@ -286,12 +314,39 @@ export async function updateReservationTool(input: UpdateReservationInput) {
     quoteId: parsed.quoteId,
     quoteVersion: parsed.quoteVersion,
   };
-  const reservation = await callMcpTool<any>("updateReservation", params);
+  const providerResult = await callMcpTool<unknown>("updateReservation", params);
+  const validated = validateProviderReservation(providerResult, {
+    hotelId: parsed.hotelId,
+    reservationId: parsed.reservationId,
+    guests: parsed.guests,
+  });
+  if (!validated.ok) {
+    return UpdateReservationOutput.parse({ ok: false, error: validated.error });
+  }
   return UpdateReservationOutput.parse({
     ok: true,
     status: "updated",
-    reservation,
+    reservation: validated.reservation,
   });
+}
+
+function validateProviderReservation(
+  value: unknown,
+  expected: { hotelId: string; reservationId?: string; guests?: number },
+): { ok: true; reservation: Reservation } | { ok: false; error: string } {
+  const parsed = ReservationResult.safeParse(value);
+  if (!parsed.success) return { ok: false, error: "INVALID_PROVIDER_RESERVATION" };
+  const reservation = parsed.data as Reservation;
+  if (reservation.hotelId !== expected.hotelId) {
+    return { ok: false, error: "PROVIDER_HOTEL_ID_MISMATCH" };
+  }
+  if (expected.reservationId !== undefined && reservation.reservationId !== expected.reservationId) {
+    return { ok: false, error: "PROVIDER_RESERVATION_ID_MISMATCH" };
+  }
+  if (expected.guests !== undefined && reservation.numGuests !== expected.guests) {
+    return { ok: false, error: "PROVIDER_NUM_GUESTS_MISMATCH" };
+  }
+  return { ok: true, reservation };
 }
 
 export async function quoteReservationModificationTool(input: QuoteReservationModificationInput) {

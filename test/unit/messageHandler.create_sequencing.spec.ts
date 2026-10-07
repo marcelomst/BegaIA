@@ -39,9 +39,23 @@ vi.mock("@/lib/agents/reservations", () => ({
     proposal: `Tengo ${snapshot.roomType || "doble"} disponible para ${snapshot.guestName || "el huésped"}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
     options: [{ roomType: snapshot.roomType || "double", pricePerNight: 100, currency: "USD" }],
   })),
-  confirmAndCreate: vi.fn(async () => ({
+  confirmAndCreate: vi.fn(async (hotelId: string, slots: any) => ({
     ok: true,
     reservationId: "RES-PLURAL-001",
+    reservation: {
+      reservationId: "RES-PLURAL-001",
+      hotelId,
+      guestName: slots.guestName,
+      roomType: slots.roomType,
+      numGuests: Number(slots.numGuests ?? slots.guests),
+      checkInDate: slots.checkIn,
+      checkOutDate: slots.checkOut,
+      status: "confirmed",
+      currency: "USD",
+      priceTotal: 400,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
     message: "created",
   })),
 }));

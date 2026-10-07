@@ -30,6 +30,7 @@ describe("MCP reservations multi-hotel isolation", () => {
           hotelId: hotelA,
           guestName: "QA Multi Hotel",
           roomType: "double",
+          guests: 2,
           checkInDate: "2026-05-10",
           checkOutDate: "2026-05-12",
         },
@@ -61,6 +62,7 @@ describe("MCP reservations multi-hotel isolation", () => {
     const inA = await getFromA.json();
     expect(inA.ok).toBe(true);
     expect(inA.data?.reservationId).toBe(reservationId);
+    expect(inA.data?.numGuests).toBe(2);
 
     const cancelInA = await mcpPOST(
       mkReq({

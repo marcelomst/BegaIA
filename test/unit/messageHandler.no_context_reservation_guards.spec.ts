@@ -46,9 +46,23 @@ vi.mock("@/lib/agents", () => ({
   },
 }));
 vi.mock("@/lib/agents/reservations", () => ({
-  confirmAndCreate: vi.fn(async () => ({
+  confirmAndCreate: vi.fn(async (hotelId: string, slots: any) => ({
     ok: true,
     reservationId: "R-NEW-01",
+    reservation: {
+      reservationId: "R-NEW-01",
+      hotelId,
+      guestName: slots.guestName,
+      roomType: slots.roomType,
+      numGuests: Number(slots.numGuests ?? slots.guests),
+      checkInDate: slots.checkIn,
+      checkOutDate: slots.checkOut,
+      status: "confirmed",
+      currency: "USD",
+      priceTotal: 400,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
     message: "✅ Reserva creada. ID: R-NEW-01",
   })),
 }));

@@ -12,15 +12,43 @@ vi.mock("@/lib/tools/mcp", () => {
         { roomType: "suite", pricePerNight: 200, currency: "USD" },
       ],
     })),
-    createReservationTool: vi.fn(async () => ({
+    createReservationTool: vi.fn(async (input: any) => ({
       ok: true,
       status: "created",
       reservationId: "R-XYZ",
+      reservation: {
+        reservationId: "R-XYZ",
+        hotelId: input.hotelId,
+        guestName: input.guestName,
+        roomType: input.roomType,
+        numGuests: input.guests,
+        checkInDate: input.checkIn,
+        checkOutDate: input.checkOut,
+        status: "confirmed",
+        currency: "USD",
+        priceTotal: 240,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
     })),
     // S3: mocks para update/cancel
     updateReservationTool: vi.fn(async (_in: any) => ({
       ok: true,
       status: "updated",
+      reservation: {
+        reservationId: _in.reservationId,
+        hotelId: _in.hotelId,
+        guestName: "Ana",
+        roomType: _in.roomType ?? "double",
+        numGuests: _in.guests ?? 2,
+        checkInDate: _in.checkIn ?? "2025-10-19T00:00:00.000Z",
+        checkOutDate: _in.checkOut ?? "2025-10-21T00:00:00.000Z",
+        status: "confirmed",
+        currency: "USD",
+        priceTotal: 240,
+        createdAt: "2025-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-02T00:00:00.000Z",
+      },
     })),
     cancelReservationTool: vi.fn(async (_in: any) => ({
       ok: true,
@@ -121,6 +149,7 @@ describe("agents/reservations - tools wrappers", () => {
 
     expect(out.ok).toBe(true);
     expect(out.reservationId).toBe("R-XYZ");
+    expect(out.reservation?.numGuests).toBe(2);
     expect(out.message).toMatch(/Reserva creada/);
   });
 
@@ -154,6 +183,59 @@ describe("agents/reservations - tools wrappers", () => {
         channel: "web",
       })
     ).toThrow();
+  });
+
+  it("createReservationTool transporta guests y retorna la Reservation validada completa", async () => {
+    const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+    let requestBody: any;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body));
+      return Response.json({ ok: true, data: {
+        reservationId: "RES-FULL", hotelId: "hotel999", guestName: "Ana", roomType: "double", numGuests: 2,
+        checkInDate: "2026-10-10T00:00:00.000Z", checkOutDate: "2026-10-12T00:00:00.000Z",
+        status: "confirmed", currency: "USD", priceTotal: 200,
+        createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+      } });
+    });
+    try {
+      const out = await real.createReservationTool({
+        hotelId: "hotel999", guestName: "Ana", roomType: "double", guests: 2,
+        checkIn: "2026-10-10T00:00:00.000Z", checkOut: "2026-10-12T00:00:00.000Z", channel: "web",
+      });
+      expect(requestBody.params.guests).toBe(2);
+      expect(out).toMatchObject({ ok: true, reservationId: "RES-FULL", reservation: { hotelId: "hotel999", numGuests: 2 } });
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  it.each([
+    ["missing Reservation", undefined, "INVALID_PROVIDER_RESERVATION"],
+    ["reservationId mismatch", { reservationId: "RES-WRONG" }, "PROVIDER_RESERVATION_ID_MISMATCH"],
+    ["hotelId mismatch", { hotelId: "hotel-other" }, "PROVIDER_HOTEL_ID_MISMATCH"],
+    ["numGuests mismatch", { numGuests: 3 }, "PROVIDER_NUM_GUESTS_MISMATCH"],
+  ])("updateReservationTool prohíbe éxito ante %s", async (_label, override, expectedError) => {
+    const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+    const base = {
+      reservationId: "RES-EXPECTED", hotelId: "hotel999", guestName: "Ana", roomType: "double", numGuests: 2,
+      checkInDate: "2026-10-10T00:00:00.000Z", checkOutDate: "2026-10-12T00:00:00.000Z",
+      status: "confirmed", currency: "USD", priceTotal: 200,
+      createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-02T00:00:00.000Z",
+    };
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      ok: true,
+      data: override === undefined ? undefined : { ...base, ...override },
+    }));
+    try {
+      const out = await real.updateReservationTool({
+        hotelId: "hotel999", reservationId: "RES-EXPECTED", guests: 2,
+        quoteId: "quote", quoteVersion: "version", channel: "web",
+      });
+      expect(out).toMatchObject({ ok: false, error: expectedError });
+      expect(out.status).toBeUndefined();
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 
   it("CheckAvailabilityInput requiere datetime ISO válido (no acepta '2025/10/01')", async () => {
