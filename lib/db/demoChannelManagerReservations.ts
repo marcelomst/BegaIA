@@ -12,6 +12,7 @@ type DemoReservationRow = {
   guest_name: string;
   guest_email?: string;
   guest_phone?: string;
+  num_guests?: number | null;
   check_in_date: string;
   check_out_date: string;
   status: Reservation["status"];
@@ -32,6 +33,7 @@ export const DEMO_CHANNEL_MANAGER_RESERVATIONS_SCHEMA = Table.schema({
     guest_name: "text",
     guest_email: "text",
     guest_phone: "text",
+    num_guests: "int",
     check_in_date: "text",
     check_out_date: "text",
     status: "text",
@@ -58,6 +60,7 @@ function toRow(reservation: Reservation): DemoReservationRow {
     guest_name: reservation.guestName,
     guest_email: reservation.guestEmail,
     guest_phone: reservation.guestPhone,
+    num_guests: reservation.numGuests,
     check_in_date: reservation.checkInDate,
     check_out_date: reservation.checkOutDate,
     status: reservation.status,
@@ -77,6 +80,7 @@ function toReservation(row: DemoReservationRow | null): Reservation | null {
     guestName: row.guest_name,
     guestEmail: row.guest_email,
     guestPhone: row.guest_phone,
+    numGuests: typeof row.num_guests === "number" ? row.num_guests : null,
     checkInDate: row.check_in_date,
     checkOutDate: row.check_out_date,
     status: row.status,
@@ -90,7 +94,12 @@ function toReservation(row: DemoReservationRow | null): Reservation | null {
 /** Durable operational store for the local/demo Channel Manager provider. */
 export async function saveDemoChannelManagerReservation(reservation: Reservation): Promise<Reservation> {
   await getTable().insertOne(toRow(reservation));
-  return reservation;
+  const persisted = toReservation(await getTable().findOne({
+    hotel_id: reservation.hotelId,
+    reservation_id: reservation.reservationId,
+  }));
+  if (!persisted) throw new Error("Persisted reservation not found");
+  return persisted;
 }
 
 export async function getDemoChannelManagerReservation(

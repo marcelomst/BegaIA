@@ -107,6 +107,7 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
   }
 
   async createReservation(input: CreateReservationInput): Promise<Reservation> {
+    assertValidOptionalGuests(input.guests);
     const reservationId = await buildHumanReservationId(input.hotelId);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
@@ -129,6 +130,7 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
       guestName: input.guestName,
       guestEmail: input.guestEmail,
       guestPhone: input.guestPhone,
+      numGuests: input.guests ?? null,
       checkInDate: input.checkInDate,
       checkOutDate: input.checkOutDate,
       status: "confirmed",
@@ -162,6 +164,7 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
   }
 
   async updateReservation(input: UpdateReservationInput): Promise<Reservation> {
+    assertValidOptionalGuests(input.guests);
     const r = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
     if (!r) throw new Error("Reservation not found");
     if (!input.quoteId || !input.quoteVersion) throw new Error("QUOTE_REQUIRED");
@@ -176,6 +179,7 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
       guestEmail: input.guestEmail ?? r.guestEmail,
       guestPhone: input.guestPhone ?? r.guestPhone,
       roomType: input.roomType ?? r.roomType,
+      numGuests: input.guests !== undefined ? input.guests : r.numGuests,
       checkInDate: input.checkInDate ?? r.checkInDate,
       checkOutDate: input.checkOutDate ?? r.checkOutDate,
       currency: quote.currency,
@@ -186,11 +190,12 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
   }
 
   async quoteReservationModification(input: QuoteReservationModificationInput): Promise<ReservationModificationQuote> {
+    assertValidOptionalGuests(input.guests);
     const reservation = await getDemoChannelManagerReservation(input.hotelId, input.reservationId);
     if (!reservation) throw new Error("Reservation not found");
     const patch = {
       roomType: input.roomType ?? reservation.roomType,
-      guests: input.guests,
+      guests: input.guests !== undefined ? input.guests : reservation.numGuests ?? undefined,
       checkInDate: input.checkInDate ?? reservation.checkInDate,
       checkOutDate: input.checkOutDate ?? reservation.checkOutDate,
     };
@@ -227,6 +232,12 @@ export class DurableDemoCMAdapter implements ChannelManagerAdapter {
       hotelKey: normalizeHotelKey(hotelId),
       clearedReservations: await deleteDemoChannelManagerReservationsForHotel(hotelId),
     };
+  }
+}
+
+function assertValidOptionalGuests(guests: number | undefined): void {
+  if (guests !== undefined && (!Number.isInteger(guests) || guests <= 0)) {
+    throw new Error("INVALID_GUESTS");
   }
 }
 

@@ -30,6 +30,7 @@ export type CreateReservationInput = {
   guestEmail?: string;
   guestPhone?: string;
   roomType: string;
+  guests?: number;
   checkInDate: string;  // ISO
   checkOutDate: string; // ISO
   notes?: string;
@@ -42,6 +43,7 @@ export type Reservation = {
   guestName: string;
   guestEmail?: string;
   guestPhone?: string;
+  numGuests: number | null;
   checkInDate: string;
   checkOutDate: string;
   status: "confirmed" | "cancelled" | "pending";

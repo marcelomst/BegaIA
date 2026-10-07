@@ -17,7 +17,7 @@ export type ReservationSlots = {
   roomType?: string;
   checkIn?: string;   // YYYY-MM-DD
   checkOut?: string;  // YYYY-MM-DD
-  numGuests?: number | string;
+  numGuests?: number | string | null;
   locale?: string;    // ISO 639-3 (spa/eng/por) - opcional para snapshot
 };
 
@@ -60,7 +60,7 @@ export type LastReservation =
     roomType?: string;
     checkIn?: string;
     checkOut?: string;
-    numGuests?: number | string;
+    numGuests?: number | string | null;
   }
   | {
     reservationId: string; // puede quedar vacío si hubo error
@@ -71,7 +71,7 @@ export type LastReservation =
     roomType?: string;
     checkIn?: string;
     checkOut?: string;
-    numGuests?: number | string;
+    numGuests?: number | string | null;
   };
 
 export type LastPresentedReservations = {

@@ -528,7 +528,7 @@ export async function confirmAndCreate(hotelId: string, slots: ReservationSlots,
     channel,
   });
 
-  if (!res.ok || res.status !== "created" || !res.reservationId) {
+  if (!res.ok || res.status !== "created" || !res.reservationId || !res.reservation) {
     return {
       ok: false as const,
       message: res.error ?? "No pude crear la reserva. Un recepcionista te ayudará a completarla.",
@@ -538,6 +538,7 @@ export async function confirmAndCreate(hotelId: string, slots: ReservationSlots,
   return {
     ok: true as const,
     reservationId: res.reservationId,
+    reservation: res.reservation,
     message: `✅ Reserva creada. ID: ${res.reservationId}`,
   };
 }
@@ -571,7 +572,7 @@ export async function modifyReservation(
     quoteVersion: (slots as any).quoteVersion,
     channel,
   });
-  if (!res?.ok || res.status !== "updated") {
+  if (!res?.ok || res.status !== "updated" || !res.reservation) {
     return { ok: false as const, message: res?.error ?? "No pude modificar la reserva. Un recepcionista te ayudará." };
   }
   return { ok: true as const, message: "✅ Reserva actualizada correctamente.", reservation: res.reservation };

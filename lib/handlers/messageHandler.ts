@@ -1325,7 +1325,7 @@ function hydrateModifyPreviewTarget(
     ...target,
     guestName: target.guestName || slots.guestName,
     roomType: target.roomType || slots.roomType,
-    numGuests: target.numGuests || slots.numGuests,
+    numGuests: Object.prototype.hasOwnProperty.call(target, "numGuests") ? target.numGuests : slots.numGuests,
     checkIn: target.checkIn || slots.checkIn,
     checkOut: target.checkOut || slots.checkOut,
   };
@@ -1489,7 +1489,12 @@ async function persistModifyPreviewContext(
   const pendingPatch = buildModifyPreviewPatch(previewTarget, snapshot);
   if (!pendingPatch) return buildModifyMissingPatchReply(pre.lang);
   const { quoteReservationModification } = await import("@/lib/agents/reservations");
-  const quote = await quoteReservationModification(pre.msg.hotelId, previewTarget.reservationId!, snapshot);
+  const quote = await quoteReservationModification(pre.msg.hotelId, previewTarget.reservationId!, {
+    roomType: pendingPatch.roomType,
+    numGuests: pendingPatch.numGuests,
+    checkIn: pendingPatch.checkIn,
+    checkOut: pendingPatch.checkOut,
+  });
   if (!quote.available) {
     return pre.lang === "es"
       ? "No puedo cotizar este cambio con disponibilidad actual. La reserva no fue modificada."
@@ -2279,7 +2284,10 @@ async function executeModifyReservationWithSnapshot(
   let mod: any;
   try {
     mod = await modifyReservation(pre.msg.hotelId, reservationId, {
-      ...snapshot,
+      roomType: quote?.roomType,
+      numGuests: quote?.numGuests,
+      checkIn: quote?.checkIn,
+      checkOut: quote?.checkOut,
       quoteId: quote?.quoteId,
       quoteVersion: quote?.quoteVersion,
     } as any, pre.msg.channel);
@@ -2294,8 +2302,17 @@ async function executeModifyReservationWithSnapshot(
   }
   if (!mod.ok) return mod.message;
   const updated = mod.reservation as any;
+  if (!updated) return "No pude validar la reserva actualizada. La modificación no se confirmó.";
+  const providerSlots = {
+    guestName: updated.guestName,
+    roomType: updated.roomType,
+    checkIn: normalizeReservationCalendarDate(updated.checkInDate) || updated.checkInDate,
+    checkOut: normalizeReservationCalendarDate(updated.checkOutDate) || updated.checkOutDate,
+    numGuests: updated.numGuests,
+    locale: pre.lang,
+  } as ReservationSlotsStrict;
   await persistModifyExecutionContext(pre, reservationId, {
-    reservationSlots: snapshot,
+    reservationSlots: providerSlots,
     modifyState: null,
     lastProposal: null,
     pendingAvailabilityVerification: null,
@@ -2304,13 +2321,13 @@ async function executeModifyReservationWithSnapshot(
     lastReservation: {
       reservationId,
       status: "updated",
-      createdAt: new Date().toISOString(),
+      createdAt: updated.updatedAt,
       channel: (pre.msg.channel as any) || "web",
-      guestName: updated?.guestName ?? snapshot.guestName,
-      roomType: updated?.roomType ?? snapshot.roomType,
-      checkIn: updated?.checkInDate ?? snapshot.checkIn,
-      checkOut: updated?.checkOutDate ?? snapshot.checkOut,
-      numGuests: snapshot.numGuests,
+      guestName: updated.guestName,
+      roomType: updated.roomType,
+      checkIn: providerSlots.checkIn,
+      checkOut: providerSlots.checkOut,
+      numGuests: updated.numGuests,
     },
     updatedBy: "ai",
   } as any);
@@ -2352,11 +2369,20 @@ type ReservationReferenceTarget = {
   reservationStatus?: LastReservation["status"];
   guestName?: string;
   roomType?: string;
-  numGuests?: number | string;
+  numGuests?: number | string | null;
   checkIn?: string;
   checkOut?: string;
   source: "active" | "history" | "lastReservation" | "presented";
 };
+
+function resolveAuthoritativeNumGuests(
+  target: Pick<ReservationReferenceTarget, "numGuests"> | null | undefined,
+  fallback: string | number | null | undefined,
+): string | number | null | undefined {
+  return target && Object.prototype.hasOwnProperty.call(target, "numGuests")
+    ? target.numGuests
+    : fallback;
+}
 
 type ReservationReferenceResolution =
   | { status: "resolved"; target: ReservationReferenceTarget }
@@ -2476,7 +2502,9 @@ function buildReservationCanonicalState(state: any): {
     roomType: preferred.roomType ?? base.roomType,
     checkIn: preferred.checkIn ?? base.checkIn,
     checkOut: preferred.checkOut ?? base.checkOut,
-    numGuests: preferred.numGuests ?? base.numGuests,
+    numGuests: Object.prototype.hasOwnProperty.call(preferred, "numGuests")
+      ? preferred.numGuests
+      : base.numGuests,
   });
 
   const byId = new Map<string, CanonicalReservationRecord>();
@@ -6065,7 +6093,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const snapshot: ReservationSlotsStrict = {
           guestName: resolvedModifyTarget0.guestName || pre.st?.reservationSlots?.guestName,
           roomType: fastPathSlots.roomType || resolvedModifyTarget0.roomType,
-          numGuests: fastPathSlots.numGuests || resolvedModifyTarget0.numGuests,
+          numGuests: (fastPathTurnSlots.numGuests || resolveAuthoritativeNumGuests(resolvedModifyTarget0, fastPathSlots.numGuests)) as string | number | undefined,
           checkIn: fastPathSlots.checkIn || resolvedModifyTarget0.checkIn,
           checkOut: fastPathSlots.checkOut || resolvedModifyTarget0.checkOut,
           locale: pre.lang,
@@ -7061,7 +7089,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const snapshot: ReservationSlotsStrict = {
         guestName: resolvedFastReservationTarget.guestName || pre.st?.reservationSlots?.guestName,
         roomType: inlineModifyTurnSlotsFast.roomType || resolvedFastReservationTarget.roomType,
-        numGuests: inlineModifyTurnSlotsFast.numGuests || resolvedFastReservationTarget.numGuests,
+        numGuests: (inlineModifyTurnSlotsFast.numGuests || resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests)) as string | number | undefined,
         checkIn: inlineModifyDateRangeFast?.checkIn || resolvedFastReservationTarget.checkIn,
         checkOut: inlineModifyDateRangeFast?.checkOut || resolvedFastReservationTarget.checkOut,
         locale: pre.lang,
@@ -7152,7 +7180,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const snapshot: ReservationSlotsStrict = {
         guestName: resolvedFastReservationTarget.guestName || pre.st?.reservationSlots?.guestName,
         roomType: inlineModifyTurnSlotsFast.roomType,
-        numGuests: resolvedFastReservationTarget.numGuests || pre.st?.reservationSlots?.numGuests,
+        numGuests: resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests) as string | number | undefined,
         checkIn: resolvedFastReservationTarget.checkIn || pre.st?.reservationSlots?.checkIn,
         checkOut: resolvedFastReservationTarget.checkOut || pre.st?.reservationSlots?.checkOut,
         locale: pre.lang,
@@ -8159,7 +8187,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
         roomType: pre.currSlots.roomType || nextSlots.roomType || target.roomType,
-        numGuests: pre.currSlots.numGuests || nextSlots.numGuests || target.numGuests,
+        numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests || nextSlots.numGuests),
         checkIn: pre.currSlots.checkIn || nextSlots.checkIn || target.checkIn,
         checkOut: pre.currSlots.checkOut || nextSlots.checkOut || target.checkOut,
         locale: pre.lang,
@@ -8189,7 +8217,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
         roomType: pre.currSlots.roomType || recentModifyRoomType || nextSlots.roomType || target.roomType,
-        numGuests: pre.currSlots.numGuests || nextSlots.numGuests || target.numGuests,
+        numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests || nextSlots.numGuests),
         checkIn: pre.currSlots.checkIn || nextSlots.checkIn || target.checkIn,
         checkOut: pre.currSlots.checkOut || nextSlots.checkOut || target.checkOut,
         locale: pre.lang,
@@ -8231,7 +8259,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const snapshot: ReservationSlotsStrict = {
         guestName: target.guestName || pre.st?.reservationSlots?.guestName,
         roomType: directModifyTurnSlots.roomType || reservationRoomType || target.roomType,
-        numGuests: directModifyTurnSlots.numGuests || (reservationGuests ? String(reservationGuests) : undefined) || target.numGuests,
+        numGuests: (directModifyTurnSlots.numGuests || resolveAuthoritativeNumGuests(target, reservationGuests ? String(reservationGuests) : undefined)) as string | number | undefined,
         checkIn: rawOrderedDateRange?.checkIn || reservationCheckIn || target.checkIn,
         checkOut: rawOrderedDateRange?.checkOut || reservationCheckOut || target.checkOut,
         locale: pre.lang,
@@ -8283,7 +8311,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
         roomType: reservationRoomType || target.roomType,
-        numGuests: reservationGuests || target.numGuests,
+        numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),
         checkIn: reservationCheckIn || target.checkIn,
         checkOut: reservationCheckOut || target.checkOut,
         locale: pre.lang,
@@ -8307,7 +8335,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         ...(pre.st?.reservationSlots || {}),
         guestName: target.guestName,
         roomType: reservationRoomType || target.roomType,
-        numGuests: reservationGuests || target.numGuests,
+        numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),
         checkIn: reservationCheckIn || target.checkIn,
         checkOut: reservationCheckOut || target.checkOut,
       } as ReservationSlotsStrict;
@@ -8387,7 +8415,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const baseModifyCanonicalRecord = getCanonicalReservationRecordById(pre.st, codeFromModifySubstate);
     const baseGuestName = baseModifyCanonicalRecord?.guestName || baseModifyTarget?.guestName;
     const baseRoomType = nextRoomType || baseModifyTarget?.roomType;
-    const baseGuests = reservationGuests || baseModifyTarget?.numGuests;
+    const baseGuests = resolveAuthoritativeNumGuests(baseModifyTarget, reservationGuests);
     const baseCheckIn = baseModifyTarget?.checkIn || reservationCheckIn;
     const baseCheckOut = baseModifyTarget?.checkOut || reservationCheckOut;
     const currentModifyCheckIn = nextSlots.checkIn || pre.st?.reservationSlots?.checkIn || baseCheckIn;
@@ -10553,19 +10581,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       try {
         const { confirmAndCreate } = await import("@/lib/agents/reservations");
         const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);
-        const hasReservationId = Boolean(String(result.reservationId || "").trim());
+        const providerReservation = result.ok ? result.reservation : undefined;
+        const hasReservationId = Boolean(String(providerReservation?.reservationId || "").trim());
         let replySnapshot: ReservationSlotsStrict = snapshot as ReservationSlotsStrict;
-        if (result.ok && hasReservationId) {
+        if (result.ok && hasReservationId && providerReservation) {
           const createdReservation: LastReservation = {
-            reservationId: result.reservationId || "",
+            reservationId: providerReservation.reservationId,
             status: "created",
-            createdAt: new Date().toISOString(),
+            createdAt: providerReservation.updatedAt,
             channel: (pre.msg.channel as any) || "web",
-            guestName: snapshot.guestName,
-            roomType: snapshot.roomType,
-            checkIn: snapshot.checkIn,
-            checkOut: snapshot.checkOut,
-            numGuests: snapshot.numGuests,
+            guestName: providerReservation.guestName,
+            roomType: providerReservation.roomType,
+            checkIn: normalizeReservationCalendarDate(providerReservation.checkInDate) || providerReservation.checkInDate,
+            checkOut: normalizeReservationCalendarDate(providerReservation.checkOutDate) || providerReservation.checkOutDate,
+            numGuests: providerReservation.numGuests,
           };
           const preservedHistory = mergeReservationHistory(
             mergeReservationHistory(
@@ -10586,11 +10615,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           }).byId.get(createdReservation.reservationId);
           await updateConversationState(pre.msg.hotelId, pre.conversationId, {
             reservationSlots: {
-              guestName: snapshot.guestName,
-              roomType: snapshot.roomType,
-              checkIn: snapshot.checkIn,
-              checkOut: snapshot.checkOut,
-              numGuests: snapshot.numGuests,
+              guestName: createdReservation.guestName,
+              roomType: createdReservation.roomType,
+              checkIn: createdReservation.checkIn,
+              checkOut: createdReservation.checkOut,
+              numGuests: createdReservation.numGuests,
               locale: snapshot.locale,
             },
             reservationHistory: preservedHistory,
@@ -10632,7 +10661,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return {
           finalText,
           nextCategory: "reservation",
-          nextSlots: result.ok && hasReservationId ? { ...nextSlots, ...snapshot } : nextSlots,
+          nextSlots: result.ok && hasReservationId ? { ...nextSlots, ...replySnapshot } : nextSlots,
           needsSupervision,
           graphResult
         };
@@ -10808,7 +10837,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 // The current conversation's dates may be newer than its historical snapshot.
                 checkIn: persistedSlots.checkIn || supplementalSlots.checkIn || canonicalSlots.checkIn,
                 checkOut: persistedSlots.checkOut || supplementalSlots.checkOut || canonicalSlots.checkOut,
-                numGuests: canonicalSlots.numGuests || persistedSlots.numGuests || supplementalSlots.numGuests,
+                numGuests: canonicalSlots.numGuests,
               }
               : {
                 ...persistedSlots,
@@ -12019,7 +12048,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           const modifySnapshot = {
             guestName: modifyTarget.guestName || pre.st?.reservationSlots?.guestName,
             roomType: modifyTarget.roomType || nextSlots.roomType || pre.st?.reservationSlots?.roomType,
-            numGuests: modifyTarget.numGuests || nextSlots.numGuests || pre.st?.reservationSlots?.numGuests,
+            numGuests: resolveAuthoritativeNumGuests(modifyTarget, nextSlots.numGuests || pre.st?.reservationSlots?.numGuests),
             checkIn: ciISO,
             checkOut: coISO,
             locale: pre.lang,
