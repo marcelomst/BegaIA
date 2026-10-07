@@ -14117,6 +14117,8 @@ Commit tecnico: 93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed
 Push tecnico: CONFIRMED
 Commit documental: 6730cc897327ed0df428cd75a807bdb856d54875
 Push documental: CONFIRMED
+closure_reconciliation_commit: 988b72a6f917063a8a389ab57f47a76446305320
+closure_reconciliation_push: CONFIRMED
 Clasificacion documental: SOLO_HITO
 
 Descripcion:

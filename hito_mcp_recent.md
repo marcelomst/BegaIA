@@ -16,6 +16,8 @@ No reemplaza el historial completo.
 - Push tecnico: confirmado.
 - Commit documental: `6730cc897327ed0df428cd75a807bdb856d54875`
 - Push documental: confirmado.
+- closure_reconciliation_commit: `988b72a6f917063a8a389ab57f47a76446305320`
+- closure_reconciliation_push: confirmado.
 - Estado documental: `CERRADO`; commit documental `6730cc897327ed0df428cd75a807bdb856d54875`.
 - Descripcion breve: Registra el refresh versionado de evidencia fisica y code refs del Runtime Map, preservando sus 19 box_id, su estructura conceptual, la arquitectura y el runtime; el siguiente hito permanece bloqueado por la precondicion externa Astra sobre `demo_cm_reservations.num_guests` con estado `pending_external_materialization`.
 
