@@ -14107,3 +14107,63 @@ Impacto:
 - preserva `docs/architecture/system_operating_model.md` como fuente
   contractual, con un unico terminal `CERRADO` y sin confundir phase, state,
   verdict, readiness flag o checkpoint
+
+### PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-07
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Commit tecnico: 93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Push documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Registra el refresh versionado de evidencia fisica y code refs del Runtime Map
+para pilot readiness, sin cambio conceptual, arquitectonico, funcional ni de
+runtime.
+
+Archivos afectados por el commit tecnico:
+
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Validacion:
+
+- commit tecnico `93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed`
+  y push tecnico confirmados por Guardian
+- salida estructurada de Guardian validada como fuente primaria
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+- `runtime_map.applies: true`
+- `runtime_map.conceptual_change: false`
+- `runtime_map.evidence_refresh: true`
+- `runtime_map.code_refs_status: fresh`
+- `runtime_map.refresh_required: false`
+- 19 `box_id` intactos, sin altas, bajas ni renombres
+- cajas prohibidas y no declaradas tocadas: ninguna
+- test de paridad no aplicable por tratarse de un refresh sin cambio de runtime
+- arquitectura, runtime, contratos funcionales, tests y roadmap sin cambios
+- commit y push documentales pendientes
+
+Dependencia externa siguiente:
+
+- el siguiente hito permanece bloqueado hasta que Human Authority agregue
+  `demo_cm_reservations.num_guests` con tipo `int` y `nullable: true`
+- la precondicion externa Astra no se declara resuelta
+
+Impacto:
+
+- mantiene la canonicidad: estructura conceptual, arquitectura y runtime sin
+  cambios; code refs refrescados sin crear una fuente paralela
