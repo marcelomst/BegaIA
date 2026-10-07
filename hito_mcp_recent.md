@@ -14,9 +14,10 @@ No reemplaza el historial completo.
 - Nombre: `PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01`
 - Commit tecnico: `93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed`
 - Push tecnico: confirmado.
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
-- Descripcion breve: Registra el refresh versionado de evidencia fisica y code refs del Runtime Map, preservando sus 19 box_id, su estructura conceptual, la arquitectura y el runtime; el siguiente hito permanece bloqueado por la precondicion externa Astra sobre `demo_cm_reservations.num_guests`.
+- Commit documental: `6730cc897327ed0df428cd75a807bdb856d54875`
+- Push documental: confirmado.
+- Estado documental: `CERRADO`; commit documental `6730cc897327ed0df428cd75a807bdb856d54875`.
+- Descripcion breve: Registra el refresh versionado de evidencia fisica y code refs del Runtime Map, preservando sus 19 box_id, su estructura conceptual, la arquitectura y el runtime; el siguiente hito permanece bloqueado por la precondicion externa Astra sobre `demo_cm_reservations.num_guests` con estado `pending_external_materialization`.
 
 ## 2. OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01
 

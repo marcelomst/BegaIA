@@ -14110,13 +14110,13 @@ Impacto:
 
 ### PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CERRADO
 Fecha: 2026-10-07
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Commit tecnico: 93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed
 Push tecnico: CONFIRMED
-Commit documental: PENDING
-Push documental: PENDING
+Commit documental: 6730cc897327ed0df428cd75a807bdb856d54875
+Push documental: CONFIRMED
 Clasificacion documental: SOLO_HITO
 
 Descripcion:
@@ -14155,12 +14155,14 @@ Validacion:
 - cajas prohibidas y no declaradas tocadas: ninguna
 - test de paridad no aplicable por tratarse de un refresh sin cambio de runtime
 - arquitectura, runtime, contratos funcionales, tests y roadmap sin cambios
-- commit y push documentales pendientes
+- commit documental `6730cc897327ed0df428cd75a807bdb856d54875`
+  y push documental confirmados
 
 Dependencia externa siguiente:
 
 - el siguiente hito permanece bloqueado hasta que Human Authority agregue
   `demo_cm_reservations.num_guests` con tipo `int` y `nullable: true`
+- estado: `pending_external_materialization`
 - la precondicion externa Astra no se declara resuelta
 
 Impacto:
