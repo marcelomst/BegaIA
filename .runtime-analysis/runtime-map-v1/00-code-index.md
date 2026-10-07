@@ -39,14 +39,22 @@ Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus r
 Para el hito actual:
 
 ```yaml
-code_refs_status: fresh_for_top_level_scan; needs_refresh_for_internal_ranges
-runtime_map_refresh_required: true
+code_refs_status: fresh
+runtime_map_refresh_required: false
+conceptual_change: false
+evidence_refresh: true
+runtime_map:
+  applies: true
+  conceptual_change: false
+  evidence_refresh: true
+  code_refs_status: fresh
+  refresh_required: false
 ```
 
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- los rangos internos no entregados por Guardian permanecen `needs_refresh`
+- los rangos internos focales entregados por Guardian quedan frescos
 - se preservan los `box_id` y el mapa conceptual
 - se registran las cajas tocadas y revisadas sin ampliar el alcance técnico
 
@@ -58,17 +66,17 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+commit_base: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
 messageHandler_lines: 13204
-working_tree_status: clean_after_technical_commit
-analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
-baseline_status: runtime_create_complete_word_date_range_ingress_validated
+working_tree_status: clean_before_evidence_refresh
+analysis_scope: commit_59c7f39c95eb2ccea2b1ab74b9490449148642b8
+baseline_status: pilot_readiness_runtime_map_evidence_refreshed
 known_manual_bug: none
 ```
 
 ---
 
-## Suite local informada
+## Suite histórica informada (no reejecutada en este refresh)
 
 ```text
 focal Guardian: 20/20 PASS
@@ -84,31 +92,111 @@ result: pass
 Nota:
 
 ```text
-Los tests dirigidos en verde no implican ausencia de bugs funcionales.
-Este refresh documenta una corrección acotada del ingreso de rangos de fechas
-en `reservation.create`, pero no elimina el riesgo de futuros bugs funcionales
-fuera de cobertura.
+Los tests históricos en verde no implican ausencia de bugs funcionales ni se
+atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 ```
 
 ---
 
-## Evidencia actual: ingreso de rango temporal en reservation.create
-
-`reservation.create` rechaza fechas calendario imposibles antes de
-availability/propuesta y preserva un `checkOut` válido al reparar `checkIn` en
-flujos multi-turno con historial y Chrono.
+## Evidencia focal actual: create, modify y persistenceReply
 
 ```yaml
-hito_id: FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01
-runtime_boxes_touched:
-  - runtime.messageHandler.bodyLLM.turnDecision
+hito_id: PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
+runtime_boxes_evidence_refreshed:
   - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+  - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  - runtime.messageHandler.persistenceReply
 top_level_code_refs:
-  preLLM: L4860-L5730
-  bodyLLM: L5731-L12834
-  posLLM: L12835-L12879
+  preLLM: L4860-L5072
+  bodyLLM: L5731-L12340
+  posLLM: L12835-L12876
   handleIncomingMessage: L12880-L13204
-internal_code_refs_status: needs_refresh
+internal_code_refs_status: fresh
+risk_tags:
+  - state_preservation
+  - persistence
+  - reservation_update_execution
+  - canonical_dominance
+  - stale_state
+  - quote_gating
+  - confirmation_gating
+  - create_vs_modify_contamination
+  - slot_attribution
+  - provider_result_projection
+  - null_preservation
+  - provider_contract
+  - schema_compatibility
+create_code_refs:
+  capture_normalization:
+    - { file: lib/handlers/messageHandler.ts, label: compact_path, range: L1038-L1059 }
+    - { file: lib/handlers/messageHandler.ts, label: preLLM_path, range: L4917-L4939 }
+    - { file: lib/handlers/messageHandler.ts, label: toStrictSlots, range: L3271-L3280 }
+    - { file: lib/handlers/messageHandler.ts, label: mergeReservationSlots, range: L3282-L3295 }
+    - { file: lib/handlers/messageHandler.ts, label: create_ingress_gating, range: L11646-L11719 }
+  confirmation:
+    - { file: lib/handlers/messageHandler.ts, label: context_detection, range: L9878-L9901 }
+    - { file: lib/handlers/messageHandler.ts, label: explicit_CONFIRMAR_guard, range: L10214-L10231 }
+    - { file: lib/handlers/messageHandler.ts, label: create_confirmation_execution, range: L10519-L10555 }
+  provider_call:
+    - { file: lib/handlers/messageHandler.ts, label: confirmAndCreate_call, range: L10554-L10555 }
+    - { file: lib/agents/reservations.ts, label: confirmAndCreate, range: L518-L543 }
+    - { file: lib/tools/mcp.ts, label: createReservationTool, range: L266-L275 }
+  post_create_projection:
+    - { file: lib/handlers/messageHandler.ts, label: createdReservation, range: L10559-L10569 }
+    - { file: lib/handlers/messageHandler.ts, label: reservationHistory_merge, range: L10570-L10581 }
+    - { file: lib/handlers/messageHandler.ts, label: canonical_merge_for_reply, range: L10582-L10586 }
+    - { file: lib/handlers/messageHandler.ts, label: reservationSlots_persistence, range: L10587-L10595 }
+    - { file: lib/handlers/messageHandler.ts, label: lastReservation_persistence, range: L10598 }
+    - { file: lib/handlers/messageHandler.ts, label: canonical_reply_projection, range: L10608-L10617 }
+    - { file: lib/handlers/messageHandler.ts, label: observable_reply, range: L10619-L10638 }
+modify_code_refs:
+  pending_patch:
+    - { file: lib/handlers/messageHandler.ts, label: buildModifyPreviewPatch, range: L1281-L1295 }
+    - { file: lib/handlers/messageHandler.ts, label: applyModifyPreviewPatch, range: L1297-L1310 }
+  preview:
+    - { file: lib/handlers/messageHandler.ts, label: buildModifyPreviewReply, range: L1334-L1407 }
+    - { file: lib/handlers/messageHandler.ts, label: persistModifyPreviewContext, range: L1482-L1525 }
+    - { file: lib/handlers/messageHandler.ts, label: modify_ingress_state, range: L11390-L11567 }
+  confirmation:
+    - { file: lib/handlers/messageHandler.ts, label: preview_confirmation_gate, range: L10282-L10365 }
+    - { file: lib/handlers/messageHandler.ts, label: execution_call, range: L10365-L10367 }
+  execution_provider:
+    - { file: lib/handlers/messageHandler.ts, label: persistModifyExecutionContext, range: L2254-L2270 }
+    - { file: lib/handlers/messageHandler.ts, label: executeModifyReservationWithSnapshot, range: L2272-L2318 }
+    - { file: lib/handlers/messageHandler.ts, label: provider_call, range: L2277-L2285 }
+    - { file: lib/handlers/messageHandler.ts, label: provider_result_reception, range: L2295-L2296 }
+    - { file: lib/handlers/messageHandler.ts, label: post_update_persistence, range: L2297-L2316 }
+  provider_chain:
+    - { file: lib/agents/reservations.ts, range: L550-L578 }
+    - { file: lib/tools/mcp.ts, range: L277-L295 }
+    - { file: lib/mcp/channelManagerAdapter.ts, range: L164-L185 }
+persistence_reply_code_refs:
+  distributed_box: true
+  refs:
+    - { file: lib/handlers/messageHandler.ts, label: transactional_create_persistence_and_reply, range: L10556-L10638 }
+    - { file: lib/handlers/messageHandler.ts, label: transactional_modify_persistence, range: L2297-L2317 }
+    - { file: lib/handlers/messageHandler.ts, label: common_output_boundary, range: L13017-L13203 }
+    - { file: lib/handlers/messageHandler.ts, label: common_message_persistence, range: L13138-L13188 }
+    - { file: lib/handlers/messageHandler.ts, label: channel_reply_emission, range: L13189-L13202 }
+canonical_merge_evidence:
+  buildReservationCanonicalState: L2464-L2514
+  mergeSameReservation: L2472-L2480
+  null_semantics_point:
+    range: L2479
+    expression: "numGuests: preferred.numGuests ?? base.numGuests"
+  canonical_record_selection: L2482-L2503
+  current_non_authoritative_projection:
+    range: L2313
+    expression: "numGuests: snapshot.numGuests"
+external_dependencies:
+  provider_mcp:
+    taxonomy: outside_runtime_boxes
+    role: physical_boundary_for_future_technical_hito
+  astra:
+    field: demo_cm_reservations.num_guests
+    type: int
+    nullable: true
+    existence_status: external_dependency_not_asserted
 ```
 
 ---
@@ -117,7 +205,7 @@ internal_code_refs_status: needs_refresh
 
 `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
 contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
-conservan como evidencia histórica porque la baseline actual `efc11b21eb1aabbe881250d6fe0556ba16b113c3`
+conservan como evidencia histórica porque la baseline actual `59c7f39c95eb2ccea2b1ab74b9490449148642b8`
 es posterior.
 
 ```yaml
@@ -180,17 +268,17 @@ del hito `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
-| `buildReservationCanonicalState`     | L2230-L2730 |    501 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L2731-L3070 |    340 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L3071-L3354 |    284 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L3355-L3526 |    172 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L3527-L3579 |     53 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4860-L5730 |    871 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5731-L12834 |   7104 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12835-L12879 |     45 | high      | Verificación / verdict / cierre            |
+| `buildReservationCanonicalState`     | L2464-L2514 |     51 | high      | Proyección canónica de estado de reserva   |
+| `resolveReservationReference`        | L3143-L3251 |    109 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L3484-L3543 |     60 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L3816-L3851 |     36 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L3988-L4039 |     52 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      | Análisis estructurado semántico            |
+| `preLLM`                             | L4860-L5072 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5731-L12340 |   6610 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12835-L12876 |     42 | high      | Verificación / verdict / cierre            |
 | `handleIncomingMessage`              | L12880-L13204 |    325 | high      | Entrypoint público del runtime             |
 
 ---
@@ -220,8 +308,8 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4860-L5730
-lines: 871
+range: L4860-L5072
+lines: 213
 confidence: high
 role: context_preparation
 ```
@@ -242,8 +330,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5731-L12834
-lines: 7104
+range: L5731-L12340
+lines: 6610
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -272,8 +360,8 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12835-L12879
-lines: 45
+range: L12835-L12876
+lines: 42
 confidence: high
 role: post_runtime_verification
 ```
@@ -465,40 +553,46 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5731-L12834
-bodyLLM_lines: 7104
+bodyLLM_range: L5731-L12340
+bodyLLM_lines: 6610
 bucket_size: 250
-confidence: needs_refresh_for_internal_buckets
+confidence: high_for_generated_scan
 ```
 
-Los buckets siguientes son evidencia histórica y no constituyen referencias
-exactas para el commit actual. Guardian sólo recalculó los rangos top-level.
+Los buckets siguientes fueron regenerados contra el commit actual. Son evidencia
+física de densidad, no fronteras conceptuales ni autorización de refactor.
 
 Tabla de buckets:
 
 | Rango       | Top markers                                                                          | Returns | Awaits | Decisions | Temporal/check markers |
 | ----------- | ------------------------------------------------------------------------------------ | ------: | -----: | --------: | ---------------------: |
-| L4314-L4563 | date/temporal, structured analyze, create, reservationSlots, graph/classifier/policy |       5 |      3 |        13 |                     37 |
-| L4564-L4813 | date/temporal, create, reservationSlots, state/result, modify, availability          |       7 |      7 |        15 |                     48 |
-| L4814-L5063 | date/temporal, reservationSlots, create, state/result, modify, availability          |      10 |     10 |        23 |                     30 |
-| L5064-L5313 | email/whatsapp copy, reservationSlots, date/temporal, modify, state/result           |      11 |     15 |        18 |                     14 |
-| L5314-L5563 | email/whatsapp copy, modify, date/temporal, snapshot/verify, selected target         |       5 |     10 |        12 |                      5 |
-| L5564-L5813 | date/temporal, reservationSlots, modify, snapshot/verify, state/result               |       8 |      6 |        10 |                     22 |
-| L5814-L6063 | date/temporal, modify, reservationSlots, selected target, reply builders             |       5 |      6 |         7 |                     48 |
-| L6064-L6313 | date/temporal, reservationSlots, modify, snapshot/verify, state/result               |      12 |     12 |        14 |                     50 |
-| L6314-L6563 | create, date/temporal, reply builders, availability, reservationSlots                |      14 |      9 |        16 |                     21 |
-| L6564-L6813 | create, date/temporal, reservationSlots, email/whatsapp copy, state/result           |      11 |     10 |        12 |                     46 |
-| L6814-L7063 | email/whatsapp copy, reservationSlots, date/temporal, state/result                   |      11 |     21 |        29 |                     13 |
-| L7064-L7313 | email/whatsapp copy, reservationSlots, cancel, date/temporal, state/result           |       8 |     28 |        20 |                     17 |
-| L7314-L7563 | date/temporal, cancel, reply builders, selected target, reservationSlots             |      13 |     11 |        12 |                     22 |
-| L7564-L7813 | reservationSlots, create, date/temporal, state/result, reply builders                |      17 |     10 |        20 |                     12 |
-| L7814-L8063 | reservationSlots, snapshot/verify, date/temporal, reply builders, canonical state    |      12 |      8 |        15 |                     36 |
-| L8064-L8313 | billing, reply builders, reservationSlots, graph/classifier/policy, date/temporal    |       7 |      7 |        12 |                     10 |
-| L8314-L8563 | graph/classifier/policy, reservationSlots, fallback, state/result, create            |       1 |      7 |        12 |                      3 |
-| L8564-L8813 | date/temporal, modify, reservationSlots, email/whatsapp copy, create                 |       5 |      7 |        11 |                     37 |
-| L8814-L9063 | date/temporal, create, reservationSlots, modify, state/result                        |       8 |      5 |        29 |                     32 |
-| L9064-L9313 | create, reservationSlots, date/temporal, modify, state/result                        |       4 |     11 |        24 |                     14 |
-| L9314-L9367 | create, reservationSlots, snapshot/verify, graph/classifier/policy, date/temporal    |       1 |      1 |         2 |                      6 |
+| L5731-L5980 | date/temporal, structured analyze, create, graph/classifier/policy                   |       7 |      3 |        13 |                     26 |
+| L5981-L6230 | date/temporal, create, reservationSlots, modify, availability                        |      10 |      9 |        16 |                     24 |
+| L6231-L6480 | date/temporal, create, reservationSlots, state/result, modify                        |       3 |      6 |        17 |                     64 |
+| L6481-L6730 | date/temporal, create, reservationSlots, state/result, modify                        |      10 |     10 |        18 |                     18 |
+| L6731-L6980 | modify, date/temporal, create, reservationSlots, state/result                        |       8 |     10 |        11 |                     10 |
+| L6981-L7230 | modify, reservationSlots, selected target, date/temporal, reply builders             |       8 |      7 |        15 |                     17 |
+| L7231-L7480 | email/whatsapp copy, reservationSlots, date/temporal, state/result, modify           |      10 |     18 |        17 |                      8 |
+| L7481-L7730 | modify, date/temporal, snapshot/verify, reservationSlots, confirm                    |      11 |     12 |        12 |                     11 |
+| L7731-L7980 | date/temporal, reservationSlots, create, modify, snapshot/verify                     |       7 |      6 |        10 |                     41 |
+| L7981-L8230 | modify, date/temporal, reservationSlots, selected target, reply builders             |       8 |     11 |        14 |                     22 |
+| L8231-L8480 | date/temporal, modify, reservationSlots, reply builders, selected target             |       7 |      7 |         8 |                     48 |
+| L8481-L8730 | modify, date/temporal, reservationSlots, reply builders, state/result                |      21 |     10 |        22 |                     33 |
+| L8731-L8980 | create, availability, date/temporal, reservationSlots, reply builders                |      10 |      8 |        12 |                     24 |
+| L8981-L9230 | create, date/temporal, reservationSlots, reply builders, snapshot/verify             |      11 |      8 |        12 |                     29 |
+| L9231-L9480 | create, date/temporal, reservationSlots, email/whatsapp copy, state/result           |      11 |     12 |        16 |                     43 |
+| L9481-L9730 | email/whatsapp copy, reservationSlots, state/result, date/temporal, snapshot/verify  |      11 |     24 |        28 |                     14 |
+| L9731-L9980 | email/whatsapp copy, reservationSlots, cancel, date/temporal, state/result           |      10 |     25 |        19 |                     14 |
+| L9981-L10230 | cancel, date/temporal, confirm, create, selected target                            |      13 |     11 |        11 |                     11 |
+| L10231-L10480 | reservationSlots, modify, date/temporal, snapshot/verify, state/result             |      21 |     12 |        24 |                     13 |
+| L10481-L10730 | snapshot/verify, reservationSlots, date/temporal, reply builders, create           |      11 |     12 |        15 |                     23 |
+| L10731-L10980 | date/temporal, reservationSlots, reply builders, snapshot/verify, canonical state  |      10 |      6 |        12 |                     22 |
+| L10981-L11230 | graph/classifier/policy, reply builders, reservationSlots, state/result, create    |       6 |      7 |        11 |                      8 |
+| L11231-L11480 | date/temporal, modify, reservationSlots, fallback, state/result                    |       1 |      8 |        14 |                     14 |
+| L11481-L11730 | date/temporal, modify, create, reservationSlots, reply builders                    |       4 |      5 |         9 |                     46 |
+| L11731-L11980 | date/temporal, create, reservationSlots, modify, state/result                      |       7 |      4 |        28 |                     42 |
+| L11981-L12230 | create, reservationSlots, date/temporal, modify, availability                      |       8 |     10 |        23 |                     21 |
+| L12231-L12340 | create, reservationSlots, snapshot/verify, date/temporal, modify                    |       1 |      4 |         8 |                      6 |
 
 ---
 

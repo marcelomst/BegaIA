@@ -21,11 +21,11 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+commit_base: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
 messageHandler_lines: 13204
-working_tree_status: clean_after_technical_commit
-analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
-suite_status_reported: targeted_green
+working_tree_status: clean_before_evidence_refresh
+analysis_scope: commit_59c7f39c95eb2ccea2b1ab74b9490449148642b8
+suite_status_reported: historical_targeted_green_not_rerun_for_evidence_refresh
 suite_reported:
   commands:
     - focal Guardian: 20/20 PASS
@@ -40,44 +40,104 @@ known_manual_bug: none
 
 ```yaml
 runtime_boxes_audit:
-  touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
+  evidence_refreshed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.persistenceReply
+  related_preserved:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+  conceptually_not_touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
-  parity_tests:
-    status: present
-    details:
-      - `focal Guardian 20/20 PASS`
-      - `paridad reportada 66/66 PASS`
-      - `core reportado 1086/1086 PASS`
-      - `ts-check PASS`
-  code_refs_status: needs_refresh
-  runtime_map_refresh_required: true
+  conceptual_change: false
+  evidence_refresh: true
+  code_refs_status: fresh
+  runtime_map_refresh_required: false
   verdict: valid
 runtime_map_refresh:
-  required: true
+  required: false
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+    commit: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
     messageHandler_lines: 13204
     functions:
-      preLLM: L4860-L5730
-      bodyLLM: L5731-L12834
-      posLLM: L12835-L12879
+      preLLM: L4860-L5072
+      bodyLLM: L5731-L12340
+      posLLM: L12835-L12876
       handleIncomingMessage: L12880-L13204
-    internal_code_refs_status: needs_refresh
+    internal_code_refs_status: fresh
+runtime_map:
+  applies: true
+  conceptual_change: false
+  evidence_refresh: true
+  code_refs_status: fresh
+  refresh_required: false
 ```
+
+## Evidencia focal refrescada
+
+```yaml
+hito_id: PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
+create_refs:
+  capture_normalization: [L1038-L1059, L4917-L4939, L3271-L3280, L3282-L3295, L11646-L11719]
+  confirmation: [L9878-L9901, L10214-L10231, L10519-L10555]
+  provider_boundary:
+    - lib/handlers/messageHandler.ts:L10554-L10555
+    - lib/agents/reservations.ts:L518-L543
+    - lib/tools/mcp.ts:L266-L275
+  post_create_projection: [L10559-L10569, L10570-L10581, L10582-L10586, L10587-L10595, L10598, L10608-L10617, L10619-L10638]
+modify_refs:
+  pending_patch: [L1281-L1295, L1297-L1310]
+  preview: [L1334-L1407, L1482-L1525, L11390-L11567]
+  confirmation: [L10282-L10365, L10365-L10367]
+  execution_provider_persistence: [L2254-L2270, L2272-L2318, L2277-L2285, L2295-L2296, L2297-L2316]
+  provider_boundary:
+    - lib/agents/reservations.ts:L550-L578
+    - lib/tools/mcp.ts:L277-L295
+    - lib/mcp/channelManagerAdapter.ts:L164-L185
+persistenceReply_refs:
+  distributed_box: true
+  refs: [L10556-L10638, L2297-L2317, L13017-L13203, L13138-L13188, L13189-L13202]
+canonical_merge_refs:
+  function: L2464-L2514
+  mergeSameReservation: L2472-L2480
+  null_semantics_point: L2479
+  canonical_record_selection: L2482-L2503
+  current_non_authoritative_projection: L2313
+risk_tags:
+  - state_preservation
+  - persistence
+  - reservation_update_execution
+  - canonical_dominance
+  - stale_state
+  - quote_gating
+  - confirmation_gating
+  - create_vs_modify_contamination
+  - slot_attribution
+  - provider_result_projection
+  - null_preservation
+  - provider_contract
+  - schema_compatibility
+external_dependency:
+  field: demo_cm_reservations.num_guests
+  type: int
+  nullable: true
+  existence_status: external_dependency_not_asserted
+```
+
+Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
+taxonomía de boxes. No se ejecutó ninguna operación contra Astra.
 
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan vigente de `efc11b21eb1aabbe881250d6fe0556ba16b113c3`,
+sin reemplazar el scan vigente de `59c7f39c95eb2ccea2b1ab74b9490449148642b8`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -111,17 +171,17 @@ validation:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2230-L2730 |    501 | high      |
-| `resolveReservationReference`        | L2731-L3070 |    340 | high      |
-| `detectDominantTurnDomain`           | L3071-L3354 |    284 | high      |
-| `getReservationDomainLockSignal`     | L3355-L3526 |    172 | high      |
-| `shouldUseReservationLocalFallback`  | L3527-L3579 |     53 | high      |
-| `buildReservationLocalFallbackReply` | L3580-L3716 |    137 | high      |
-| `assessReservationDateCoherence`     | L3717-L4196 |    480 | high      |
-| `tryStructuredAnalyze`               | L4197-L4385 |    189 | high      |
-| `preLLM`                             | L4860-L5730 |    871 | high      |
-| `bodyLLM`                            | L5731-L12834 |   7104 | high      |
-| `posLLM`                             | L12835-L12879 |     45 | high      |
+| `buildReservationCanonicalState`     | L2464-L2514 |     51 | high      |
+| `resolveReservationReference`        | L3143-L3251 |    109 | high      |
+| `detectDominantTurnDomain`           | L3484-L3543 |     60 | high      |
+| `getReservationDomainLockSignal`     | L3816-L3851 |     36 | high      |
+| `shouldUseReservationLocalFallback`  | L3988-L4039 |     52 | high      |
+| `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      |
+| `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      |
+| `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      |
+| `preLLM`                             | L4860-L5072 |    213 | high      |
+| `bodyLLM`                            | L5731-L12340 |   6610 | high      |
+| `posLLM`                             | L12835-L12876 |     42 | high      |
 | `handleIncomingMessage`              | L12880-L13204 |    325 | high      |
 
 ---
@@ -503,8 +563,9 @@ risk_tags:
 
 ## Rangos tentativos por caja conceptual
 
-Los rangos top-level siguientes fueron recalculados por Guardian. Los rangos
-internos posteriores siguen siendo tentativos y requieren refresh específico.
+Los rangos top-level siguientes y los code refs focales fueron recalculados
+contra la baseline actual. Los envelopes conceptuales históricos posteriores
+se preservan sin tratarlos como fronteras físicas exactas.
 
 Los `box_id` definitivos se crearán en FASE 4.
 
@@ -530,7 +591,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4860-L5730
+    range: L4860-L5072
     confidence: high
 ```
 
@@ -549,7 +610,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5731-L12834
+    range: L5731-L12340
     confidence: high
 ```
 
@@ -568,7 +629,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12835-L12879
+    range: L12835-L12876
     confidence: high
 ```
 
@@ -601,9 +662,9 @@ Entrada pública al runtime conversacional.
 
 ## Rangos tentativos internos de bodyLLM
 
-Los rangos de esta sección son evidencia histórica y permanecen
-`needs_refresh`; no deben usarse como referencias físicas exactas del commit
-actual.
+Los rangos de esta sección son envelopes conceptuales históricos preservados.
+No sustituyen los code refs focales frescos ni deben interpretarse como rangos
+exactos de función del commit actual.
 
 ### Zona A — Fast paths iniciales / structured analyze / create temporal
 

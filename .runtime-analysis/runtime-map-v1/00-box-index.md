@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: efc11b21eb1aabbe881250d6fe0556ba16b113c3
+commit_base: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
 messageHandler_lines: 13204
-working_tree_status: clean_after_technical_commit
-analysis_scope: commit_efc11b21eb1aabbe881250d6fe0556ba16b113c3
-baseline_status: runtime_create_complete_word_date_range_ingress_validated
+working_tree_status: clean_before_evidence_refresh
+analysis_scope: commit_59c7f39c95eb2ccea2b1ab74b9490449148642b8
+baseline_status: pilot_readiness_runtime_map_evidence_refreshed
 known_manual_bug: none
 ```
 
@@ -55,26 +55,44 @@ known_manual_bug: none
 
 ```yaml
 runtime_boxes_audit:
-  touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
+  evidence_refreshed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.persistenceReply
+  related_preserved:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+  conceptually_not_touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
-  parity_tests:
-    status: present
-    details:
-      - `focal Guardian 20/20 PASS`
-      - `paridad reportada 66/66 PASS`
-      - `core reportado 1086/1086 PASS`
-      - `ts-check PASS`
-  code_refs_status: needs_refresh
-  runtime_map_refresh_required: true
+  conceptual_change: false
+  evidence_refresh: true
+  code_refs_status: fresh
+  runtime_map_refresh_required: false
   verdict: valid
+runtime_map:
+  applies: true
+  conceptual_change: false
+  evidence_refresh: true
+  code_refs_status: fresh
+  refresh_required: false
+```
+
+Provider/MCP permanece fuera de la taxonomía de boxes; las referencias listadas
+como `physical_dependencies` son sólo boundaries físicos. Astra se registra
+únicamente como dependencia externa, sin afirmar existencia ni ejecutar cambios:
+
+```yaml
+external_dependency:
+  field: demo_cm_reservations.num_guests
+  type: int
+  nullable: true
+  existence_status: external_dependency_not_asserted
 ```
 
 ## Cierre diferido registrado
@@ -82,7 +100,7 @@ runtime_boxes_audit:
 El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 conserva los `box_id` existentes. La evidencia se refiere al commit
 `3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
-mantiene en su descendiente `efc11b21eb1aabbe881250d6fe0556ba16b113c3`.
+mantiene en su descendiente `59c7f39c95eb2ccea2b1ab74b9490449148642b8`.
 
 ```yaml
 historical_audit:
@@ -234,7 +252,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4860-L5730
+        range: L4860-L5072
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -269,7 +287,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12834
+        range: L5731-L12340
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -345,7 +363,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12834
+        range: L5731-L12340
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -380,7 +398,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12834
+        range: L5731-L12340
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -420,16 +438,82 @@ boxes:
       - confirmation_gating
       - availability
       - create_vs_modify_contamination
+      - state_preservation
+      - persistence
+      - canonical_dominance
+      - stale_state
+      - provider_result_projection
+      - null_preservation
+      - provider_contract
+      - schema_compatibility
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1477-L1867
-        confidence: needs_refresh
+        label: compact_capture
+        range: L1038-L1059
+        confidence: high
       - file: lib/handlers/messageHandler.ts
-        range: L4529-L5040
-        confidence: needs_refresh
+        label: preLLM_capture
+        range: L4917-L4939
+        confidence: high
       - file: lib/handlers/messageHandler.ts
-        range: L5041-L7321
-        confidence: needs_refresh
+        label: toStrictSlots
+        range: L3271-L3280
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: mergeReservationSlots
+        range: L3282-L3295
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: create_ingress_gating
+        range: L11646-L11719
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: confirmation_context_detection
+        range: L9878-L9901
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: explicit_CONFIRMAR_guard
+        range: L10214-L10231
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: create_confirmation_execution
+        range: L10519-L10555
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: confirmAndCreate_provider_call
+        range: L10554-L10555
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: createdReservation
+        range: L10559-L10569
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: reservationHistory_merge
+        range: L10570-L10581
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: canonical_merge_for_reply
+        range: L10582-L10586
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: reservationSlots_persistence
+        range: L10587-L10595
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: lastReservation_persistence
+        range: L10598
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: canonical_reply_projection
+        range: L10608-L10617
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: observable_reply
+        range: L10619-L10638
+        confidence: high
+    physical_dependencies:
+      - { file: lib/agents/reservations.ts, label: confirmAndCreate, range: L518-L543 }
+      - { file: lib/tools/mcp.ts, label: createReservationTool, range: L266-L275 }
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
       - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
@@ -470,16 +554,76 @@ boxes:
       - confirmation_gating
       - reservation_update_execution
       - create_vs_modify_contamination
+      - state_preservation
+      - persistence
+      - canonical_dominance
+      - stale_state
+      - quote_gating
+      - slot_attribution
+      - provider_result_projection
+      - null_preservation
+      - provider_contract
+      - schema_compatibility
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L777-L1813
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L4851-L7030
-        confidence: needs_refresh
-      - file: lib/handlers/messageHandler.ts
-        range: L2447-L2556
+        label: buildModifyPreviewPatch
+        range: L1281-L1295
         confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: applyModifyPreviewPatch
+        range: L1297-L1310
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: preview_reply
+        range: L1334-L1407
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: preview_persistence
+        range: L1482-L1525
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: modify_ingress_state
+        range: L11390-L11567
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: preview_confirmation_gate
+        range: L10282-L10365
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: execution_call
+        range: L10365-L10367
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: persistModifyExecutionContext
+        range: L2254-L2270
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: executeModifyReservationWithSnapshot
+        range: L2272-L2318
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: provider_call
+        range: L2277-L2285
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: provider_result_reception
+        range: L2295-L2296
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: post_update_persistence
+        range: L2297-L2316
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: canonical_merge
+        range: L2464-L2514
+        confidence: high
+    physical_dependencies:
+      - { file: lib/agents/reservations.ts, range: L550-L578 }
+      - { file: lib/tools/mcp.ts, range: L277-L295 }
+      - { file: lib/mcp/channelManagerAdapter.ts, range: L164-L185 }
+    evidence_risks:
+      - "L2479: numGuests: preferred.numGuests ?? base.numGuests"
+      - "L2313: numGuests: snapshot.numGuests (current non-authoritative projection)"
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -828,10 +972,34 @@ boxes:
       - reply_composition
       - state_update
       - observable_response
+      - state_preservation
+      - canonical_dominance
+      - stale_state
+      - provider_result_projection
+      - null_preservation
+      - provider_contract
+      - schema_compatibility
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: needs_refresh
-        confidence: needs_refresh
+        label: transactional_create_persistence_and_reply
+        range: L10556-L10638
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: transactional_modify_persistence
+        range: L2297-L2317
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: common_output_boundary
+        range: L13017-L13203
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: common_message_persistence
+        range: L13138-L13188
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: channel_reply_emission
+        range: L13189-L13202
+        confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
       - runtime.messageHandler.posLLM
@@ -858,7 +1026,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12835-L12879
+        range: L12835-L12876
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply
