@@ -14171,3 +14171,155 @@ Impacto:
 
 - mantiene la canonicidad: estructura conceptual, arquitectura y runtime sin
   cambios; code refs refrescados sin crear una fuente paralela
+
+### PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-08
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: authoritative_numGuests_end_to_end
+Commit tecnico: PRESENT
+Commit hash / technical head: d289914a1b584de2d677ac62ff7ee890e18aadd3
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Push documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Cierra tecnicamente la autoridad end-to-end de `numGuests` mediante una unica
+cadena durable y autoritativa:
+
+```text
+provider persisted Reservation
+>
+validated Reservation returned by provider
+>
+runtime canonical projection
+>
+conv_state
+```
+
+La `Reservation` validada devuelta por el provider domina la proyeccion del
+runtime; `conv_state` permanece derivado y no se crea una fuente de verdad
+paralela. `Reservation.numGuests` admite `number | null`; create transporta
+`guests`; Astra persiste `num_guests`; create devuelve la reserva completa;
+modify explicito actualiza huespedes y los cambios de fechas o room preservan
+el valor durable. Las filas historicas sin valor proyectan `null`; el `null`
+autoritativo domina estado stale; los mismatches impiden success y un
+`reservationId` aislado ya no habilita exito.
+
+Cadena tecnica canonica:
+
+```yaml
+technical_commit_chain:
+  - 7dfdfa7d19b16c685b8bbbb8932ccbe256647f15
+  - d289914a1b584de2d677ac62ff7ee890e18aadd3
+technical_head: d289914a1b584de2d677ac62ff7ee890e18aadd3
+technical_push: confirmed
+aggregate_diff:
+  files_changed: 19
+  insertions: 501
+  deletions: 98
+```
+
+- `7dfdfa7d19b16c685b8bbbb8932ccbe256647f15` —
+  `fix(reservations): make numGuests provider-authoritative`
+- `d289914a1b584de2d677ac62ff7ee890e18aadd3` —
+  `fix(reservations): complete numGuests provider-authoritative change`
+
+Materializacion Astra:
+
+```yaml
+keyspace: hotel_data
+table: demo_cm_reservations
+column: num_guests
+type: int
+nullable: true
+default: none
+backfill: none
+materialized: true
+verified: true
+```
+
+Evidencia registrada: schema previo sin la columna; schema posterior con
+`num_guests int`; primary key `(hotel_id, reservation_id)` preservada; fila
+historica `RES-17EFCB` con `num_guests = null`; preflight Astra de Guardian
+valido. HDOC no ejecuto Astra.
+
+Validacion:
+
+- contractual/focal: 5 archivos, 149 passed, 0 failed
+- consumer compatibility: 6 archivos, 88 passed, 0 failed
+- typecheck: PASS
+- suite completa conocida: 1093 passed, 3 failed
+- los 3 fallos restantes son `preexisting_time_dependent_test_debt`, con
+  independencia del hito probada y `blocking_current_hito: false`
+- `guardian_verdict: valid` y `ready_for_hdoc: true`
+- technical commit chain y pushes confirmados
+- Runtime Map: 19 `box_id` intactos; cajas prohibidas y no declaradas tocadas:
+  ninguna; parity tests presentes
+- `runtime_map.conceptual_change: false`
+- `runtime_map.code_refs_status: fresh`
+- `runtime_map.refresh_required: false`
+
+Runtime Map:
+
+- tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify` y
+  `runtime.messageHandler.persistenceReply`
+- revisada:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- `messageHandler.ts`: 13233 lineas
+- `preLLM`: L4888-L5100
+- `bodyLLM`: L5759-L12369
+- `posLLM`: L12864-L12905
+- `handleIncomingMessage`: L12909-L13233
+- refresh fisico/evidencial, sin cambio conceptual
+
+Deuda conocida no bloqueante:
+
+```yaml
+candidate_hito: TESTS-RESERVATION-DATE-DETERMINISM-01
+intent: eliminate_fixed-past-date brittleness in reservation tests
+classification: preexisting_time_dependent_test_debt
+tests_remaining: 3
+blocking_current_hito: false
+```
+
+El candidato se registra sin crear el hito ni modificar tests.
+
+Incidente Git operacional:
+
+```yaml
+classification: operational_only
+cause: multiline_git_add_not_copy_paste_safe
+effect: technical_materialization_split_into_two_commits
+functional_impact: none
+traceability_impact: controlled
+history_rewrite_required: false
+```
+
+El incidente no constituye deuda arquitectonica ni altera la intencion del
+hito.
+
+Documentacion de cierre preparada:
+
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; `canonicality_impact: none`
+- provider durable preservado como autoridad unica
+- estructura conceptual y arquitectura sin cambios
+- semantica de runtime cambiada exactamente segun lo declarado
+- ninguna fuente de verdad paralela
+- `roadmap_impact: none_structural`; README, roadmap, ADRs y Operating Model
+  permanecen sin cambios

@@ -43,10 +43,10 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
-messageHandler_lines: 13204
+commit_base: d289914a1b584de2d677ac62ff7ee890e18aadd3
+messageHandler_lines: 13233
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_59c7f39c95eb2ccea2b1ab74b9490449148642b8
+analysis_scope: commit_d289914a1b584de2d677ac62ff7ee890e18aadd3
 baseline_status: pilot_readiness_runtime_map_evidence_refreshed
 known_manual_bug: none
 ```
@@ -55,21 +55,19 @@ known_manual_bug: none
 
 ```yaml
 runtime_boxes_audit:
-  evidence_refreshed:
+  touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.persistenceReply
-  related_preserved:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation
+  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-  conceptually_not_touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - 149 contractual/focal tests passed
+      - 88 consumer compatibility tests passed
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
@@ -85,14 +83,19 @@ runtime_map:
 
 Provider/MCP permanece fuera de la taxonomía de boxes; las referencias listadas
 como `physical_dependencies` son sólo boundaries físicos. Astra se registra
-únicamente como dependencia externa, sin afirmar existencia ni ejecutar cambios:
+como dependencia externa materializada y verificada, sin ejecutar cambios:
 
 ```yaml
 external_dependency:
-  field: demo_cm_reservations.num_guests
+  keyspace: hotel_data
+  table: demo_cm_reservations
+  column: num_guests
   type: int
   nullable: true
-  existence_status: external_dependency_not_asserted
+  default: none
+  backfill: none
+  materialized: true
+  verified: true
 ```
 
 ## Cierre diferido registrado
@@ -100,7 +103,7 @@ external_dependency:
 El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 conserva los `box_id` existentes. La evidencia se refiere al commit
 `3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
-mantiene en su descendiente `59c7f39c95eb2ccea2b1ab74b9490449148642b8`.
+mantiene en su descendiente `d289914a1b584de2d677ac62ff7ee890e18aadd3`.
 
 ```yaml
 historical_audit:
@@ -194,7 +197,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L13204
+        range: L1-L13233
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -222,7 +225,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12880-L13204
+        range: L12909-L13233
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -252,7 +255,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4860-L5072
+        range: L4888-L5100
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -287,7 +290,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12340
+        range: L5759-L12369
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -363,7 +366,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12340
+        range: L5759-L12369
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -398,7 +401,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5731-L12340
+        range: L5759-L12369
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -1026,7 +1029,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12835-L12876
+        range: L12864-L12905
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

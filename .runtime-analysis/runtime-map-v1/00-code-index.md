@@ -54,7 +54,7 @@ runtime_map:
 Por eso:
 
 - los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- los rangos internos focales entregados por Guardian quedan frescos
+- los rangos top-level entregados por Guardian quedan frescos
 - se preservan los `box_id` y el mapa conceptual
 - se registran las cajas tocadas y revisadas sin ampliar el alcance técnico
 
@@ -66,10 +66,10 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 59c7f39c95eb2ccea2b1ab74b9490449148642b8
-messageHandler_lines: 13204
+commit_base: d289914a1b584de2d677ac62ff7ee890e18aadd3
+messageHandler_lines: 13233
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_59c7f39c95eb2ccea2b1ab74b9490449148642b8
+analysis_scope: commit_d289914a1b584de2d677ac62ff7ee890e18aadd3
 baseline_status: pilot_readiness_runtime_map_evidence_refreshed
 known_manual_bug: none
 ```
@@ -101,6 +101,54 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 ## Evidencia focal actual: create, modify y persistenceReply
 
 ```yaml
+hito_id: PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
+scope_real: authoritative_numGuests_end_to_end
+technical_commit_chain:
+  - 7dfdfa7d19b16c685b8bbbb8932ccbe256647f15
+  - d289914a1b584de2d677ac62ff7ee890e18aadd3
+technical_head: d289914a1b584de2d677ac62ff7ee890e18aadd3
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - 149 contractual/focal tests passed
+      - 88 consumer compatibility tests passed
+  code_refs_status: fresh
+  runtime_map_refresh_required: false
+  verdict: valid
+top_level_code_refs:
+  preLLM: L4888-L5100
+  bodyLLM: L5759-L12369
+  posLLM: L12864-L12905
+  handleIncomingMessage: L12909-L13233
+evidence_source: guardian_scan
+astra:
+  keyspace: hotel_data
+  table: demo_cm_reservations
+  column: num_guests
+  type: int
+  nullable: true
+  default: none
+  backfill: none
+  materialized: true
+  verified: true
+```
+
+## Evidencia focal histórica del refresh anterior
+
+Los rangos internos siguientes quedan anclados al commit
+`59c7f39c95eb2ccea2b1ab74b9490449148642b8`; no se presentan como rangos
+recalculados por el Guardian scan actual.
+
+```yaml
 hito_id: PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
 runtime_boxes_evidence_refreshed:
   - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -111,7 +159,7 @@ top_level_code_refs:
   bodyLLM: L5731-L12340
   posLLM: L12835-L12876
   handleIncomingMessage: L12880-L13204
-internal_code_refs_status: fresh
+internal_code_refs_status: historical_at_commit
 risk_tags:
   - state_preservation
   - persistence
@@ -205,7 +253,7 @@ external_dependencies:
 
 `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
 contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
-conservan como evidencia histórica porque la baseline actual `59c7f39c95eb2ccea2b1ab74b9490449148642b8`
+conservan como evidencia histórica porque la baseline actual `d289914a1b584de2d677ac62ff7ee890e18aadd3`
 es posterior.
 
 ```yaml
@@ -250,7 +298,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13204
+total_lines: 13233
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -259,7 +307,7 @@ Lectura:
 
 ```text
 messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
+del hito `PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01`.
 ```
 
 ---
@@ -276,10 +324,10 @@ del hito `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
 | `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4860-L5072 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5731-L12340 |   6610 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12835-L12876 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12880-L13204 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4888-L5100 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5759-L12369 |   6611 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12864-L12905 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12909-L13233 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -289,7 +337,7 @@ del hito `FIX-RUNTIME-CREATE-COMPLETE-WORD-DATE-RANGE-INGRESS-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12880-L13204
+range: L12909-L13233
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -308,7 +356,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4860-L5072
+range: L4888-L5100
 lines: 213
 confidence: high
 role: context_preparation
@@ -330,8 +378,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5731-L12340
-lines: 6610
+range: L5759-L12369
+lines: 6611
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -360,7 +408,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12835-L12876
+range: L12864-L12905
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -553,7 +601,7 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5731-L12340
+bodyLLM_range: L5759-L12369
 bodyLLM_lines: 6610
 bucket_size: 250
 confidence: high_for_generated_scan
