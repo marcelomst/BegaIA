@@ -14326,7 +14326,7 @@ Impacto:
 
 ### PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CLOSED
 Fecha: 2026-10-08
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Tipo de hito: RUNTIME_BUGFIX
@@ -14334,8 +14334,8 @@ Intencion unica: complete canonical reservation data projection in observable pr
 Commit tecnico: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
 Parent tecnico: f99111f2ddebbc68527281376d1da052131f2a20
 Push tecnico: CONFIRMED
-Commit documental: PENDING
-Push documental: PENDING
+Commit documental: 9d82d3decb14cefd26904591f10f5ebd62cad9be
+Push documental: CONFIRMED
 Clasificacion documental: SOLO_HITO
 
 Descripcion:

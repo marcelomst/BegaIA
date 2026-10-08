@@ -14,8 +14,9 @@ No reemplaza el historial completo.
 - Nombre: `complete canonical reservation data projection in observable proposal and post-modify responses`
 - Commit tecnico: `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`.
 - Push tecnico: confirmado.
-- Commit documental: `PENDING`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `9d82d3decb14cefd26904591f10f5ebd62cad9be`.
+- Push documental: confirmado.
+- Estado documental: `CLOSED`; commit documental `9d82d3decb14cefd26904591f10f5ebd62cad9be`.
 - Descripcion breve: Completa la proyeccion observable de propuesta, la consistencia de `lastProposal` y la respuesta post-modify desde la Reservation autoritativa del provider; refresca evidencia fisica del Runtime Map sin cambio conceptual y conserva cuatro deudas independientes fuera del scope.
 
 ## 2. PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
