@@ -664,7 +664,8 @@ describe("messageHandler slot ingestion", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/cu[aá]l.*check-?out|confirmame.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 03\/05\/2026.*Check-out: 04\/05\/2026/i);
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 
@@ -680,7 +681,8 @@ describe("messageHandler slot ingestion", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/cu[aá]l.*check-?out|confirmame.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 03\/05\/2026.*Check-out: 04\/05\/2026/i);
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 
@@ -696,7 +698,8 @@ describe("messageHandler slot ingestion", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/cu[aá]l.*check-?out|confirmame.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 05\/05\/2026.*Check-out: 06\/05\/2026/i);
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 
@@ -712,7 +715,8 @@ describe("messageHandler slot ingestion", () => {
     );
 
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/check-?out|salida|fecha de salida/i);
+    expect(replyText).not.toMatch(/cu[aá]l.*check-?out|confirmame.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 05\/05\/2026.*Check-out: 06\/05\/2026/i);
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
   });
 

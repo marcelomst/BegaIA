@@ -167,7 +167,9 @@ describe("Recotización (planner)", () => {
         // Texto: ACK de ajuste + propuesta
         expect(planner.text).toMatch(/Actualicé la capacidad a\s*3 huésped\(es\)/);
         expect(planner.text).toMatch(/ajusté el tipo a\s*triple/i);
-        expect(planner.text).toMatch(/tengo triple disponible para Marcelo Martinez\. Tarifa por noche: 150 USD\./i);
+        expect(planner.text).toMatch(/tengo triple disponible para Marcelo Martinez\./i);
+        expect(planner.text).toMatch(/Check-in: 02\/10\/2025.*Check-out: 04\/10\/2025.*Huéspedes: 3 huéspedes/is);
+        expect(planner.text).toMatch(/Tarifa por noche: 150 USD\./i);
         expect(planner.text).not.toMatch(/^Marcelo,\s*/i);
 
         // Payload askAvailability coherente (ajuste a triple y 3 pax)
@@ -214,7 +216,9 @@ describe("Recotización (planner)", () => {
         expect(planner.text).toMatch(/Actualicé la capacidad a\s*2 huésped\(es\)\./);
         expect(planner.text).not.toMatch(/ajusté el tipo a/i);
         // La versión planner localiza "double" → "doble" en español; aceptamos ambas variantes.
-        expect(planner.text).toMatch(/tengo (double|doble) disponible para Marcelo Martinez\. Tarifa por noche: 120 USD\./i);
+        expect(planner.text).toMatch(/tengo (double|doble) disponible para Marcelo Martinez\./i);
+        expect(planner.text).toMatch(/Check-in: 02\/10\/2025.*Check-out: 04\/10\/2025.*Huéspedes: 2 huéspedes/is);
+        expect(planner.text).toMatch(/Tarifa por noche: 120 USD\./i);
         expect(planner.text).not.toMatch(/^Marcelo,\s*/i);
 
         // Payload askAvailability coherente (mantiene double y 2 pax)

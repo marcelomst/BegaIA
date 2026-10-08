@@ -1,6 +1,7 @@
 
 // Path: /root/begasist/lib/handlers/messageHandler.ts
 import type { ChannelMessage, ChannelMode } from "@/types/channel";
+import type { Reservation } from "@/lib/mcp/types";
 import { incAutosend } from "@/lib/telemetry/metrics";
 import {
   getMessagesByConversation,
@@ -2274,6 +2275,61 @@ async function persistModifyExecutionContext(
   } as any);
 }
 
+function buildInvalidUpdatedReservationReply(lang: "es" | "en" | "pt"): string {
+  if (lang === "pt") return "Não consegui validar a reserva atualizada. A alteração não foi confirmada.";
+  if (lang === "en") return "I couldn't validate the updated booking. The change was not confirmed.";
+  return "No pude validar la reserva actualizada. La modificación no se confirmó.";
+}
+
+function buildModifySuccessReply(lang: "es" | "en" | "pt", updated: Reservation): string {
+  const roomType = localizeRoomType(updated.roomType, lang);
+  const checkIn = isoToDDMMYYYY(updated.checkInDate) || updated.checkInDate;
+  const checkOut = isoToDDMMYYYY(updated.checkOutDate) || updated.checkOutDate;
+  const currency = String(updated.currency || "").trim().toUpperCase();
+  const total = typeof updated.priceTotal === "number"
+    ? `${updated.priceTotal}${currency ? ` ${currency}` : ""}`
+    : undefined;
+  const currencyOnly = !total && currency ? currency : undefined;
+
+  if (lang === "pt") {
+    return [
+      `✅ Reserva ${updated.reservationId} atualizada com sucesso.`,
+      `- Código: ${updated.reservationId}`,
+      `- Nome: ${updated.guestName}`,
+      `- Quarto: ${roomType}`,
+      `- Check-in: ${checkIn}`,
+      `- Check-out: ${checkOut}`,
+      updated.numGuests != null ? `- Hóspedes: ${updated.numGuests}` : "",
+      total ? `- Total: ${total}` : "",
+      currencyOnly ? `- Moeda: ${currencyOnly}` : "",
+    ].filter(Boolean).join("\n");
+  }
+  if (lang === "en") {
+    return [
+      `✅ Booking ${updated.reservationId} updated successfully.`,
+      `- Code: ${updated.reservationId}`,
+      `- Name: ${updated.guestName}`,
+      `- Room: ${roomType}`,
+      `- Check-in: ${checkIn}`,
+      `- Check-out: ${checkOut}`,
+      updated.numGuests != null ? `- Guests: ${updated.numGuests}` : "",
+      total ? `- Total: ${total}` : "",
+      currencyOnly ? `- Currency: ${currencyOnly}` : "",
+    ].filter(Boolean).join("\n");
+  }
+  return [
+    `✅ Modificada ${updated.reservationId}.`,
+    `- Código: ${updated.reservationId}`,
+    `- Nombre: ${updated.guestName}`,
+    `- Habitación: ${roomType}`,
+    `- Check-in: ${checkIn}`,
+    `- Check-out: ${checkOut}`,
+    updated.numGuests != null ? `- Huéspedes: ${updated.numGuests}` : "",
+    total ? `- Total: ${total}` : "",
+    currencyOnly ? `- Moneda: ${currencyOnly}` : "",
+  ].filter(Boolean).join("\n");
+}
+
 async function executeModifyReservationWithSnapshot(
   pre: PreLLMResult,
   reservationId: string,
@@ -2301,8 +2357,17 @@ async function executeModifyReservationWithSnapshot(
     throw error;
   }
   if (!mod.ok) return mod.message;
-  const updated = mod.reservation as any;
-  if (!updated) return "No pude validar la reserva actualizada. La modificación no se confirmó.";
+  const updated = mod.reservation as Reservation | undefined;
+  if (
+    !updated ||
+    updated.reservationId !== reservationId ||
+    !String(updated.guestName || "").trim() ||
+    !String(updated.roomType || "").trim() ||
+    !String(updated.checkInDate || "").trim() ||
+    !String(updated.checkOutDate || "").trim()
+  ) {
+    return buildInvalidUpdatedReservationReply(pre.lang);
+  }
   const providerSlots = {
     guestName: updated.guestName,
     roomType: updated.roomType,
@@ -2331,7 +2396,7 @@ async function executeModifyReservationWithSnapshot(
     },
     updatedBy: "ai",
   } as any);
-  return mod.message;
+  return buildModifySuccessReply(pre.lang, updated);
 }
 
 function getRecentModifyRoomTypeCandidate(

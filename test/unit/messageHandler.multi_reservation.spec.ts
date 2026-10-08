@@ -530,7 +530,8 @@ describe("messageHandler multi reservation", () => {
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|check-?out|salida/i);
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|cu[aá]l.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 03\/05\/2026.*Check-out: 04\/05\/2026/i);
     expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();
@@ -583,7 +584,8 @@ describe("messageHandler multi reservation", () => {
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|check-?out|salida/i);
+    expect(replyText).not.toMatch(/decime las fechas de check-?in y check-?out|cu[aá]l.*check-?out|fecha de salida\?/i);
+    expect(replyText).toMatch(/Check-in: 05\/05\/2026.*Check-out: 06\/05\/2026/i);
     expect(replyText).toMatch(/tarifa por noche|confirm[aá]s la reserva|disponible/i);
     expect(replyText).not.toMatch(/anot[eé] nuevas fechas|verifique disponibilidad/i);
     vi.useRealTimers();

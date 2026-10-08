@@ -1822,6 +1822,7 @@ describe("messageHandler reference resolution", () => {
     });
 
     await handleIncomingMessage(msg("CONFIRMAR", currentConversationId), { mode: "automatic", sendReply });
+    const modifySuccessReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).toHaveBeenCalledWith(
       "hotel999",
       "RES-SINGLE-01",
@@ -1842,6 +1843,13 @@ describe("messageHandler reference resolution", () => {
       checkIn: "2026-10-02",
       checkOut: "2026-10-04",
     });
+    expect(modifySuccessReply).toMatch(/✅.*RES-SINGLE-01/i);
+    expect(modifySuccessReply).toMatch(/Ana Perez/i);
+    expect(modifySuccessReply).toMatch(/Habitación: doble/i);
+    expect(modifySuccessReply).toMatch(/Check-in: 02\/10\/2026/i);
+    expect(modifySuccessReply).toMatch(/Check-out: 04\/10\/2026/i);
+    expect(modifySuccessReply).toMatch(/Huéspedes: 2/i);
+    expect(modifySuccessReply).toMatch(/Total: 240 USD/i);
 
     await handleIncomingMessage(msg("mostrame mi reserva", currentConversationId), { mode: "automatic", sendReply });
     const postModifySnapshot = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -2449,6 +2457,7 @@ describe("messageHandler reference resolution", () => {
       "web"
     );
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Marcelo Martinez.*Habitación: triple.*Check-in: 28\/03\/2026.*Check-out: 30\/03\/2026.*Huéspedes: 3.*Total: 240 USD/is);
   });
 
   it("recognizes unaccented composite modify request and keeps guests pending until the guest count is provided", async () => {
@@ -4536,8 +4545,90 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
 
     const providerPatch = (modifyReservation as any).mock.calls.at(-1)?.[2];
+    const successReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(providerPatch.numGuests).toBeUndefined();
     expect(stateByConversation.get(conversationId)?.reservationSlots?.numGuests).toBe(4);
     expect(stateByConversation.get(conversationId)?.lastReservation?.numGuests).toBe(4);
+    expect(successReply).toMatch(/RES-ONLY-01/i);
+    expect(successReply).toMatch(/Marcelo Martinez/i);
+    expect(successReply).toMatch(/Habitación: triple/i);
+    expect(successReply).toMatch(/Check-in: 28\/03\/2026/i);
+    expect(successReply).toMatch(/Check-out: 30\/03\/2026/i);
+    expect(successReply).toMatch(/Huéspedes: 4/i);
+    expect(successReply).toMatch(/Total: 300 USD/i);
+    expect(successReply).not.toMatch(/Huéspedes: 2/i);
+  });
+
+  it("post-modify preserva numGuests null del provider sin revivir el snapshot", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-provider-null-guest-authority";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+    (modifyReservation as any).mockResolvedValueOnce({
+      ok: true,
+      message: "✅ Modificada RES-ONLY-01",
+      reservation: {
+        reservationId: "RES-ONLY-01", hotelId: "hotel999", guestName: "Marcelo Martinez",
+        roomType: "triple", numGuests: null, checkInDate: "2026-03-28", checkOutDate: "2026-03-30",
+        status: "confirmed", currency: "USD", priceTotal: 300,
+        createdAt: "2026-03-22T10:00:00.000Z", updatedAt: "2026-03-23T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero modificar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar tipo de habitación", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const successReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toHaveProperty("numGuests", null);
+    expect(stateByConversation.get(conversationId)?.lastReservation).toHaveProperty("numGuests", null);
+    expect(successReply).toMatch(/RES-ONLY-01|Marcelo Martinez|Habitación: triple/i);
+    expect(successReply).not.toMatch(/Huéspedes:/i);
+  });
+
+  it("post-modify no compone éxito cuando el provider falla", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-provider-modify-failure";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+    (modifyReservation as any).mockResolvedValueOnce({ ok: false, message: "No pude modificar la reserva." });
+
+    await handleIncomingMessage(msg("quiero modificar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar tipo de habitación", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const failureReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(failureReply).toBe("No pude modificar la reserva.");
+    expect(failureReply).not.toMatch(/✅|actualizada correctamente|Modificada RES/i);
+    expect(stateByConversation.get(conversationId)?.lastReservation?.status).toBe("created");
+  });
+
+  it("post-modify rechaza una Reservation cuyo id no coincide con el target", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-provider-modify-id-mismatch";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+    (modifyReservation as any).mockResolvedValueOnce({
+      ok: true,
+      message: "✅ Modificada RES-OTHER-99",
+      reservation: {
+        reservationId: "RES-OTHER-99", hotelId: "hotel999", guestName: "Otra Persona",
+        roomType: "triple", numGuests: 2, checkInDate: "2026-03-28", checkOutDate: "2026-03-30",
+        status: "confirmed", currency: "USD", priceTotal: 300,
+        createdAt: "2026-03-22T10:00:00.000Z", updatedAt: "2026-03-23T10:00:00.000Z",
+      },
+    });
+
+    await handleIncomingMessage(msg("quiero modificar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar tipo de habitación", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const failureReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(failureReply).toMatch(/No pude validar la reserva actualizada/i);
+    expect(failureReply).not.toMatch(/✅|RES-OTHER-99/i);
+    expect(stateByConversation.get(conversationId)?.lastReservation).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      status: "created",
+    });
   });
 });

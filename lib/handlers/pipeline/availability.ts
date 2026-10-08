@@ -1,7 +1,7 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { askAvailability } from "@/lib/agents/reservations";
 import { upsertConvState } from "@/lib/db/convState";
-import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion, formatNightCountLabel } from "@/lib/agents/helpers";
+import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion, formatGuestCountLabel, formatNightCountLabel } from "@/lib/agents/helpers";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
 export type ReservationSlotsLike = {
@@ -564,44 +564,6 @@ export async function runAvailabilityCheck(
         locale: pre.lang,
     };
     const availability = await askAvailability(pre.msg.hotelId, snapshot);
-    if (persistConvState) {
-        try {
-            await upsertConvState(pre.msg.hotelId, pre.conversationId, {
-                reservationSlots: snapshot,
-                lastProposal: {
-                    text:
-                        (availability as any).proposal ||
-                        (((availability as any).ok === false)
-                            ? (pre.lang === "es" ? "Problema al consultar disponibilidad." : pre.lang === "pt" ? "Problema ao verificar disponibilidade." : "Issue checking availability.")
-                            : (availability.available
-                                ? (pre.lang === "es" ? "Hay disponibilidad." : pre.lang === "pt" ? "Há disponibilidade." : "Availability found.")
-                                : (pre.lang === "es" ? "Sin disponibilidad." : pre.lang === "pt" ? "Sem disponibilidade." : "No availability."))),
-                    available: !!availability.available,
-                    options: availability.options,
-                    suggestedRoomType: availability?.options?.[0]?.roomType,
-                    suggestedPricePerNight: typeof availability?.options?.[0]?.pricePerNight === "number" ? availability.options![0]!.pricePerNight : undefined,
-                    toolCall: {
-                        name: "checkAvailability",
-                        input: {
-                            hotelId: pre.msg.hotelId,
-                            roomType: snapshot.roomType,
-                            numGuests: snapshot.numGuests ? parseInt(String(snapshot.numGuests), 10) || 1 : undefined,
-                            checkIn: snapshot.checkIn,
-                            checkOut: snapshot.checkOut,
-                        },
-                        outputSummary: availability.available ? "available:true" : "available:false",
-                        at: safeNowISO(),
-                    },
-                },
-                salesStage: availability.available ? "quote" : "followup",
-                desiredAction: ((availability as any).ok === false || availability.available === false) ? "notify_reception" : (pre.st?.desiredAction),
-                updatedBy: "ai",
-            } as any);
-        } catch (e) {
-            console.warn("[runAvailabilityCheck] upsertConvState warn:", (e as any)?.message || e);
-        }
-    }
-
     const isError = (availability as any).ok === false;
     let base = (availability as any).proposal ||
         (isError
@@ -610,14 +572,33 @@ export async function runAvailabilityCheck(
                 ? (pre.lang === "es" ? "Tengo disponibilidad." : pre.lang === "pt" ? "Tenho disponibilidade." : "I have availability.")
                 : (pre.lang === "es" ? "No tengo disponibilidad en esas fechas." : pre.lang === "pt" ? "Não tenho disponibilidade nessas datas." : "No availability on those dates.")));
 
-    if (availability.available && Array.isArray(availability.options) && availability.options.length > 0) {
-        const opt: any = availability.options[0];
+    const firstOption: any = Array.isArray(availability.options) ? availability.options[0] : undefined;
+    if (availability.available && (firstOption?.roomType || snapshot.roomType)) {
+        const opt: any = firstOption || {};
         const nights = Math.max(1, Math.round((new Date(coISO).getTime() - new Date(ciISO).getTime()) / (24 * 60 * 60 * 1000)));
         const perNight = typeof opt.pricePerNight === "number" ? opt.pricePerNight : undefined;
         const currency = String(opt.currency || "").toUpperCase();
+        const currencySuffix = currency ? ` ${currency}` : "";
         const total = perNight != null ? perNight * nights : undefined;
         const rtLocalized = localizeRoomType(opt.roomType || snapshot.roomType, pre.lang as any);
         const reservationHolderName = isSafeGuestName(String(snapshot.guestName || "")) ? String(snapshot.guestName || "").trim() : "";
+        const checkIn = isoToDDMMYYYY(snapshot.checkIn);
+        const checkOut = isoToDDMMYYYY(snapshot.checkOut);
+        const parsedGuests = Number.parseInt(String(snapshot.numGuests ?? ""), 10);
+        const guestCount = Number.isFinite(parsedGuests) && parsedGuests > 0
+            ? formatGuestCountLabel(parsedGuests, pre.lang)
+            : undefined;
+        const canonicalDetails = [
+            checkIn ? `Check-in: ${checkIn}.` : "",
+            checkOut ? `Check-out: ${checkOut}.` : "",
+            guestCount
+                ? pre.lang === "es"
+                    ? `Huéspedes: ${guestCount}.`
+                    : pre.lang === "pt"
+                        ? `Hóspedes: ${guestCount}.`
+                        : `Guests: ${guestCount}.`
+                : "",
+        ].filter(Boolean).join(" ");
         const holderSuffix =
             reservationHolderName
                 ? pre.lang === "es"
@@ -628,16 +609,16 @@ export async function runAvailabilityCheck(
                 : "";
         if (perNight != null) {
             base = pre.lang === "es"
-                ? `Tengo ${rtLocalized} disponible${holderSuffix}. Tarifa por noche: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`
+                ? `Tengo ${rtLocalized} disponible${holderSuffix}. ${canonicalDetails} Tarifa por noche: ${perNight}${currencySuffix}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total}${currencySuffix}.`
                 : pre.lang === "pt"
-                    ? `Tenho ${rtLocalized} disponível${holderSuffix}. Tarifa por noite: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`
-                    : `I have a ${rtLocalized} available${holderSuffix}. Rate per night: ${perNight} ${currency}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total} ${currency}.`;
+                    ? `Tenho ${rtLocalized} disponível${holderSuffix}. ${canonicalDetails} Tarifa por noite: ${perNight}${currencySuffix}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total}${currencySuffix}.`
+                    : `I have a ${rtLocalized} available${holderSuffix}. ${canonicalDetails} Rate per night: ${perNight}${currencySuffix}. Total ${formatNightCountLabel(nights, pre.lang)}: ${total}${currencySuffix}.`;
         } else {
             base = pre.lang === "es"
-                ? `Hay disponibilidad para ${rtLocalized}${reservationHolderName ? ` a nombre de ${reservationHolderName}` : ""}.`
+                ? `Hay disponibilidad para ${rtLocalized}${reservationHolderName ? ` a nombre de ${reservationHolderName}` : ""}. ${canonicalDetails} Estadía: ${formatNightCountLabel(nights, pre.lang)}.`
                 : pre.lang === "pt"
-                    ? `Há disponibilidade para ${rtLocalized}${reservationHolderName ? ` em nome de ${reservationHolderName}` : ""}.`
-                    : `Availability for ${rtLocalized}${reservationHolderName ? ` under ${reservationHolderName}` : ""}.`;
+                    ? `Há disponibilidade para ${rtLocalized}${reservationHolderName ? ` em nome de ${reservationHolderName}` : ""}. ${canonicalDetails} Estadia: ${formatNightCountLabel(nights, pre.lang)}.`
+                    : `Availability for ${rtLocalized}${reservationHolderName ? ` under ${reservationHolderName}` : ""}. ${canonicalDetails} Stay: ${formatNightCountLabel(nights, pre.lang)}.`;
         }
     }
     const conversationalDisplayName = getConversationalDisplayName(pre.guest);
@@ -686,6 +667,37 @@ export async function runAvailabilityCheck(
         }
     }
     const finalText = `${base}${actionLine}${handoffLine}`.trim();
+    if (persistConvState) {
+        try {
+            await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+                reservationSlots: snapshot,
+                lastProposal: {
+                    text: finalText,
+                    available: !!availability.available,
+                    options: availability.options,
+                    suggestedRoomType: availability?.options?.[0]?.roomType,
+                    suggestedPricePerNight: typeof availability?.options?.[0]?.pricePerNight === "number" ? availability.options![0]!.pricePerNight : undefined,
+                    toolCall: {
+                        name: "checkAvailability",
+                        input: {
+                            hotelId: pre.msg.hotelId,
+                            roomType: snapshot.roomType,
+                            numGuests: snapshot.numGuests ? parseInt(String(snapshot.numGuests), 10) || 1 : undefined,
+                            checkIn: snapshot.checkIn,
+                            checkOut: snapshot.checkOut,
+                        },
+                        outputSummary: availability.available ? "available:true" : "available:false",
+                        at: safeNowISO(),
+                    },
+                },
+                salesStage: availability.available ? "quote" : "followup",
+                desiredAction: (isError || availability.available === false) ? "notify_reception" : (pre.st?.desiredAction),
+                updatedBy: "ai",
+            } as any);
+        } catch (e) {
+            console.warn("[runAvailabilityCheck] upsertConvState warn:", (e as any)?.message || e);
+        }
+    }
     const nextSlots = { ...slots, checkIn: ciISO, checkOut: coISO } as ReservationSlotsLike;
     return { finalText, nextSlots, needsHandoff: (availability.available === false || isError) };
 }

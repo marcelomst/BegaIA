@@ -181,8 +181,15 @@ describe("reservation handler - persistencia en conv_state", () => {
       reservationSlots: {}, // puede venir vacío
     });
 
-    // mensaje incluye CTA de confirmación
-    expect(String(res.messages?.[0]?.content)).toMatch(/CONFIRMAR/);
+    const emittedProposal = String(res.messages?.[0]?.content || "");
+
+    // mensaje incluye proyección canónica completa y CTA de confirmación
+    expect(emittedProposal).toMatch(/doble disponible/i);
+    expect(emittedProposal).toMatch(/Check-in: 10\/09\/2026/i);
+    expect(emittedProposal).toMatch(/Check-out: 12\/09\/2026/i);
+    expect(emittedProposal).toMatch(/Huéspedes: 2 huéspedes/i);
+    expect(emittedProposal).toMatch(/Total 2 noches: 200 USD/i);
+    expect(emittedProposal).toMatch(/CONFIRMAR/);
 
     // 1) persistió slots completos
     expect(upsertConvState).toHaveBeenCalledWith(
@@ -206,7 +213,7 @@ describe("reservation handler - persistencia en conv_state", () => {
       conversationId,
       expect.objectContaining({
         lastProposal: expect.objectContaining({
-          text: expect.stringContaining("double disponible"),
+          text: emittedProposal,
           available: true,
           options: expect.any(Array),
           toolCall: expect.objectContaining({

@@ -37,8 +37,10 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
       const holder = String(slots.guestName || "").trim();
       const guestName = String(pre?.guest?.name || "").trim();
       const vocative = guestName ? `${guestName}, ` : "";
+      const displayDate = (iso: string) => String(iso).slice(0, 10).split("-").reverse().join("/");
+      const guests = Number(slots.numGuests ?? slots.guests);
       return {
-        finalText: `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
+        finalText: `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Check-in: ${displayDate(ciISO)}. Check-out: ${displayDate(coISO)}. Huéspedes: ${guests} huéspedes. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
         nextSlots: {
           ...slots,
           checkIn: ciISO,
@@ -180,8 +182,30 @@ describe("messageHandler create execution integrity", () => {
       { mode: "automatic", sendReply }
     );
 
-    expect(lastReply(sendReply)).toMatch(/Geronimo,\s+tengo doble disponible para Ana Gomez/i);
-    expect(lastReply(sendReply)).not.toMatch(/Anot[eé] nuevas fechas/i);
+    const emittedProposal = lastReply(sendReply);
+    expect(emittedProposal).toMatch(/Geronimo,\s+tengo doble disponible para Ana Gomez/i);
+    expect(emittedProposal).toMatch(/Check-in: 01\/05\/2026/i);
+    expect(emittedProposal).toMatch(/Check-out: 05\/05\/2026/i);
+    expect(emittedProposal).toMatch(/Huéspedes: 2 huéspedes/i);
+    expect(emittedProposal).toMatch(/CONFIRMAR/i);
+    expect(emittedProposal).not.toMatch(/Anot[eé] nuevas fechas/i);
+    expect(currentState?.lastProposal?.text).toBe(emittedProposal);
+    expect(currentState?.lastProposal?.available).toBe(true);
+    expect(currentState?.reservationSlots).toMatchObject({
+      guestName: "Ana Gomez",
+      roomType: "double",
+      checkIn: "2026-05-01",
+      checkOut: "2026-05-05",
+      numGuests: "2",
+    });
+    expect(currentState).toMatchObject({
+      salesStage: "quote",
+      desiredAction: "create",
+      activeFlow: "reservation",
+      conversationStage: "reservation_quoted",
+      conversationFocus: { domain: "reservation", subFlow: "create", active: true },
+      activeReservationContext: { kind: "draft", phase: "quoted" },
+    });
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();
 

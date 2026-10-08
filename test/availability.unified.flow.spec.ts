@@ -60,8 +60,81 @@ describe('availability unified flow', () => {
         const res = await availabilityPipeline.runAvailabilityCheck(pre as any, snapshotBase as any, snapshotBase.checkIn, snapshotBase.checkOut);
         expect(res.finalText).toMatch(/Tarifa por noche: 100/i);
         expect(res.finalText).toMatch(/para Juan Perez/i);
+        expect(res.finalText).toMatch(/Check-in: 20\/10\/2025/i);
+        expect(res.finalText).toMatch(/Check-out: 22\/10\/2025/i);
+        expect(res.finalText).toMatch(/Huéspedes: 2 huéspedes/i);
+        expect(res.finalText).toMatch(/Total 2 noches: 200 USD/i);
+        expect(res.finalText).toMatch(/CONFIRMAR/i);
         expect(res.finalText).not.toMatch(/^Juan\b/i);
         expect(upsertSpy).toHaveBeenCalled();
+        expect((upsertSpy.mock.calls[0]?.[2] as any)?.lastProposal?.text).toBe(res.finalText);
+    });
+
+    it.each([
+        ['es', 'Huéspedes: 1 huésped', 'Total 2 noches: 200 USD', '¿Confirmás la reserva?'],
+        ['en', 'Guests: 1 guest', 'Total 2 nights: 200 USD', 'Do you confirm the booking?'],
+        ['pt', 'Hóspedes: 1 hóspede', 'Total 2 noites: 200 USD', 'Confirma a reserva'],
+    ] as const)('mantiene proposal completa y localizada en %s', async (lang, guestCopy, nightsCopy, cta) => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'usd' }],
+        } as any);
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState').mockResolvedValue(undefined as any);
+        const snapshot = { ...snapshotBase, numGuests: '1', locale: lang };
+
+        const res = await availabilityPipeline.runAvailabilityCheck(preBase(lang) as any, snapshot as any, snapshot.checkIn, snapshot.checkOut);
+
+        expect(res.finalText).toContain('20/10/2025');
+        expect(res.finalText).toContain('22/10/2025');
+        expect(res.finalText).toContain(guestCopy);
+        expect(res.finalText).toContain(nightsCopy);
+        expect(res.finalText).toContain(cta);
+        expect(res.finalText).not.toMatch(/undefined|null/i);
+        expect((upsertSpy.mock.calls[0]?.[2] as any)?.lastProposal?.text).toBe(res.finalText);
+    });
+
+    it('inquiry disponible no agrega CTA de create ni persiste lastProposal', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'usd' }],
+        } as any);
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState').mockResolvedValue(undefined as any);
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+            { mode: 'inquiry', persistConvState: false },
+        );
+
+        expect(res.finalText).not.toMatch(/CONFIRMAR|¿Confirmás la reserva/i);
+        expect(upsertSpy).not.toHaveBeenCalled();
+    });
+
+    it('proposal confirmable sin pricing conserva datos canónicos sin inventar precio ni moneda', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [],
+            proposal: 'Hay disponibilidad.',
+        } as any);
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+        );
+
+        expect(res.finalText).toMatch(/doble.*Juan Perez/i);
+        expect(res.finalText).toMatch(/20\/10\/2025.*22\/10\/2025/i);
+        expect(res.finalText).toMatch(/2 huéspedes/i);
+        expect(res.finalText).toMatch(/2 noches/i);
+        expect(res.finalText).toMatch(/CONFIRMAR/i);
+        expect(res.finalText).not.toMatch(/Tarifa|Rate|USD|undefined|null/i);
     });
 
     it('create completo usa vocativo solo desde guest canónico y mantiene titular de reserva en el proposal', async () => {
