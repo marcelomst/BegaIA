@@ -43,10 +43,10 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d289914a1b584de2d677ac62ff7ee890e18aadd3
-messageHandler_lines: 13233
+commit_base: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+messageHandler_lines: 13298
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_d289914a1b584de2d677ac62ff7ee890e18aadd3
+analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
 baseline_status: pilot_readiness_runtime_map_evidence_refreshed
 known_manual_bug: none
 ```
@@ -66,8 +66,9 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - 149 contractual/focal tests passed
-      - 88 consumer compatibility tests passed
+      - 7 focal files passed
+      - 191 focal tests passed
+      - response_completeness_failures: 0
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
@@ -79,6 +80,18 @@ runtime_map:
   evidence_refresh: true
   code_refs_status: fresh
   refresh_required: false
+```
+
+Evidencia física focal del hito actual:
+
+```yaml
+hito_id: PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
+technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+focal_refs:
+  buildInvalidUpdatedReservationReply: L2278-L2282
+  buildModifySuccessReply: L2284-L2331
+  executeModifyReservationWithSnapshot: L2333-L2399
+  runAvailabilityCheck: lib/handlers/pipeline/availability.ts:L549-L703
 ```
 
 Provider/MCP permanece fuera de la taxonomía de boxes; las referencias listadas
@@ -103,7 +116,7 @@ external_dependency:
 El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 conserva los `box_id` existentes. La evidencia se refiere al commit
 `3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
-mantiene en su descendiente `d289914a1b584de2d677ac62ff7ee890e18aadd3`.
+mantiene en su descendiente `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`.
 
 ```yaml
 historical_audit:
@@ -197,7 +210,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L13233
+        range: L1-L13298
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -225,7 +238,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12909-L13233
+        range: L12974-L13298
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -255,7 +268,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4888-L5100
+        range: L4953-L5165
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -290,7 +303,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5759-L12369
+        range: L5824-L12434
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -366,7 +379,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5759-L12369
+        range: L5824-L12434
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -401,7 +414,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5759-L12369
+        range: L5824-L12434
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -1029,7 +1042,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L12864-L12905
+        range: L12929-L12970
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

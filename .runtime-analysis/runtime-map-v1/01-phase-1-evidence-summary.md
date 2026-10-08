@@ -21,10 +21,10 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: d289914a1b584de2d677ac62ff7ee890e18aadd3
-messageHandler_lines: 13233
+commit_base: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+messageHandler_lines: 13298
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_d289914a1b584de2d677ac62ff7ee890e18aadd3
+analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
 suite_status_reported: historical_targeted_green_not_rerun_for_evidence_refresh
 suite_reported:
   commands:
@@ -51,8 +51,9 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - 149 contractual/focal tests passed
-      - 88 consumer compatibility tests passed
+      - 7 focal files passed
+      - 191 focal tests passed
+      - response_completeness_failures: 0
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
@@ -62,13 +63,13 @@ runtime_map_refresh:
   required: false
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: d289914a1b584de2d677ac62ff7ee890e18aadd3
-    messageHandler_lines: 13233
+    commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+    messageHandler_lines: 13298
     functions:
-      preLLM: L4888-L5100
-      bodyLLM: L5759-L12369
-      posLLM: L12864-L12905
-      handleIncomingMessage: L12909-L13233
+      preLLM: L4953-L5165
+      bodyLLM: L5824-L12434
+      posLLM: L12929-L12970
+      handleIncomingMessage: L12974-L13298
     top_level_code_refs_status: fresh
 runtime_map:
   applies: true
@@ -81,27 +82,21 @@ runtime_map:
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
-scope_real: authoritative_numGuests_end_to_end
-technical_commit_chain:
-  - 7dfdfa7d19b16c685b8bbbb8932ccbe256647f15
-  - d289914a1b584de2d677ac62ff7ee890e18aadd3
-technical_head: d289914a1b584de2d677ac62ff7ee890e18aadd3
-provider_authority_chain:
-  - provider_persisted_reservation
-  - validated_reservation_returned_by_provider
-  - runtime_canonical_projection
-  - conv_state
-astra:
-  keyspace: hotel_data
-  table: demo_cm_reservations
-  column: num_guests
-  type: int
-  nullable: true
-  default: none
-  backfill: none
-  materialized: true
-  verified: true
+hito_id: PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
+technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+scope_real:
+  - proposal_completeness
+  - lastProposal_consistency
+  - post_modify_completeness
+authority_order:
+  - provider_reservation
+  - runtime_projection
+  - snapshot
+focal_refs:
+  buildInvalidUpdatedReservationReply: L2278-L2282
+  buildModifySuccessReply: L2284-L2331
+  executeModifyReservationWithSnapshot: L2333-L2399
+  runAvailabilityCheck: lib/handlers/pipeline/availability.ts:L549-L703
 ```
 
 Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
@@ -111,7 +106,7 @@ no ejecutó ninguna operación contra Astra.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan vigente de `d289914a1b584de2d677ac62ff7ee890e18aadd3`,
+sin reemplazar el scan vigente de `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -153,10 +148,10 @@ validation:
 | `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      |
 | `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      |
 | `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      |
-| `preLLM`                             | L4888-L5100 |    213 | high      |
-| `bodyLLM`                            | L5759-L12369 |   6611 | high      |
-| `posLLM`                             | L12864-L12905 |     42 | high      |
-| `handleIncomingMessage`              | L12909-L13233 |    325 | high      |
+| `preLLM`                             | L4953-L5165 |    213 | high      |
+| `bodyLLM`                            | L5824-L12434 |   6611 | high      |
+| `posLLM`                             | L12929-L12970 |     42 | high      |
+| `handleIncomingMessage`              | L12974-L13298 |    325 | high      |
 
 ---
 
@@ -165,7 +160,7 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13233 líneas
+messageHandler.ts total: 13298 líneas
 bodyLLM:                6611 líneas
 ```
 
@@ -552,7 +547,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13233
+    range: L1-L13298
     confidence: high
 ```
 
@@ -565,7 +560,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4888-L5100
+    range: L4953-L5165
     confidence: high
 ```
 
@@ -584,7 +579,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5759-L12369
+    range: L5824-L12434
     confidence: high
 ```
 
@@ -603,7 +598,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12864-L12905
+    range: L12929-L12970
     confidence: high
 ```
 
@@ -622,7 +617,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12909-L13233
+    range: L12974-L13298
     confidence: high
 ```
 

@@ -14323,3 +14323,145 @@ Impacto:
 - ninguna fuente de verdad paralela
 - `roadmap_impact: none_structural`; README, roadmap, ADRs y Operating Model
   permanecen sin cambios
+
+### PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-08
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: complete canonical reservation data projection in observable proposal and post-modify responses
+Commit tecnico: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+Parent tecnico: f99111f2ddebbc68527281376d1da052131f2a20
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Push documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Completa la proyeccion canonica observable de datos de reserva en tres puntos
+del mismo flujo: propuesta confirmable, consistencia de `lastProposal` y
+respuesta posterior a modify. La `Reservation` del provider permanece como
+autoridad; la respuesta runtime, `lastProposal` y `conv_state` son derivados y
+no constituyen fuentes paralelas.
+
+Proposal completeness:
+
+- proyecta room type, guest name seguro, check-in, check-out, numGuests,
+  noches, precio por noche cuando existe, currency, total cuando existe y CTA
+  `CONFIRMAR`
+- soporta ES/EN/PT
+- no expone `undefined`, `null` textual ni pricing inventado
+- inquiry permanece separado de create y no emite CTA confirmable
+
+Contrato de `lastProposal`:
+
+```text
+lastProposal.text === finalText emitido
+```
+
+Se preservan `available`, `options`, `suggestedRoomType`,
+`suggestedPricePerNight`, `toolCall`, `salesStage` y `desiredAction`, sin una
+segunda escritura.
+
+Post-modify:
+
+- la respuesta se proyecta desde la `Reservation` actualizada del provider
+- incluye, cuando estan disponibles, reservationId, guestName, roomType,
+  checkIn, checkOut, numGuests, priceTotal y currency
+- orden de autoridad: provider Reservation > runtime projection > snapshot
+- `numGuests: null` autoritativo no revive valores stale
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+technical_commit_message: "fix(reservations): complete proposal and modify responses"
+technical_parent: f99111f2ddebbc68527281376d1da052131f2a20
+technical_push: confirmed
+diff_stats:
+  files_changed: 9
+  insertions: 346
+  deletions: 64
+```
+
+Validacion:
+
+- focal postcommit: 7 archivos passed, 191 tests passed, 0 failed
+- typecheck: PASS
+- commit diff check: PASS
+- suite completa aceptada por Guardian: 185 archivos passed, 3 failed; 1101
+  tests passed, 3 failed, 1104 total
+- los tres fallos corresponden exclusivamente a deuda temporal conocida
+- `guardian_verdict: valid` y `ready_for_hdoc: true`
+- `hito_change_classification: existing_repo_change`
+- 19 `box_id` intactos; forbidden y undeclared touched: ninguno
+- parity tests: present
+- `runtime_map.conceptual_change: false`
+- `runtime_map.code_refs_status: fresh`
+- `runtime_map.refresh_required: false`
+
+Runtime Map:
+
+- touched:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify` y
+  `runtime.messageHandler.persistenceReply`
+- reviewed:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- `messageHandler.ts`: 13298 lineas
+- `preLLM`: L4953-L5165
+- `bodyLLM`: L5824-L12434
+- `posLLM`: L12929-L12970
+- `handleIncomingMessage`: L12974-L13298
+- `buildInvalidUpdatedReservationReply`: L2278-L2282
+- `buildModifySuccessReply`: L2284-L2331
+- `executeModifyReservationWithSnapshot`: L2333-L2399
+- `runAvailabilityCheck`: `lib/handlers/pipeline/availability.ts:L549-L703`
+- refresh fisico/evidencial sin cambio conceptual
+
+Deudas externas conocidas:
+
+```yaml
+known_debt:
+  - id: TESTS-RESERVATION-DATE-DETERMINISM-01
+    classification: preexisting_time_dependent_test_debt
+    status: open
+    blocking_current_hito: false
+    tests_remaining: 3
+  - id: BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01
+    status: open
+    blocking_current_hito: false
+    blocking_real_create_smoke: true
+    symptom: guestEmail null and guestPhone null produce INVALID_PROVIDER_RESERVATION
+  - id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+    status: open
+    blocking_current_hito: false
+  - id: PERF-PROPOSAL-LATENCY-01
+    status: open
+    root_cause_evidence: fillSlotsWithLLM -> repeated OpenAI HTTP 429 -> retry/backoff accumulation
+    astra_bottleneck: false
+    proposal_composition_bottleneck: false
+    blocking_current_hito: false
+```
+
+Estas deudas permanecen fuera de la intencion y no fueron corregidas.
+
+Documentacion de cierre preparada:
+
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; `canonicality_impact: none`
+- provider Reservation preservada como autoridad
+- estructura conceptual y arquitectura sin cambios
+- ninguna fuente de verdad paralela
+- `roadmap_impact: none_structural`; README, roadmap, ADRs, Operating Model y
+  Astra permanecen sin cambios
