@@ -8,7 +8,17 @@ NOTE:
 Este archivo es un recorte operativo de los últimos 10 hitos.  
 No reemplaza el historial completo.
 
-## 1. PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
+## 1. BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01
+
+- Identificador: `BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01`
+- Nombre: `normalize provider optional contact nullability at the provider/runtime boundary`
+- Commit tecnico: `f0d13746986bfc9bec7bb4e81e023bc37f7ca4a6`.
+- Push tecnico: confirmado.
+- Commit documental: `PENDING`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Descripcion breve: Normaliza `guestEmail` y `guestPhone` opcionales de `null` a ausencia runtime en el boundary del provider, mantiene campos obligatorios estrictos y autoridad del provider, registra smoke real exitoso y conserva las deudas independientes fuera del scope.
+
+## 2. PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
 
 - Identificador: `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`
 - Nombre: `complete canonical reservation data projection in observable proposal and post-modify responses`
@@ -19,7 +29,7 @@ No reemplaza el historial completo.
 - Estado documental: `CLOSED`; commit documental `9d82d3decb14cefd26904591f10f5ebd62cad9be`.
 - Descripcion breve: Completa la proyeccion observable de propuesta, la consistencia de `lastProposal` y la respuesta post-modify desde la Reservation autoritativa del provider; refresca evidencia fisica del Runtime Map sin cambio conceptual y conserva cuatro deudas independientes fuera del scope.
 
-## 2. PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
+## 3. PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
 
 - Identificador: `PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01`
 - Nombre: `authoritative_numGuests_end_to_end`
@@ -31,7 +41,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `9a9cf654f09257e5497c5fc7155ab4fd3480ec04`.
 - Descripcion breve: Materializa `numGuests` como dato autoritativo del provider hasta la proyeccion canonica y `conv_state`, con Astra verificada, Runtime Map fisicamente refrescado sin cambio conceptual, deuda temporal no bloqueante e incidente Git exclusivamente operacional.
 
-## 3. PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
+## 4. PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
 
 - Identificador: `PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01`
 - Nombre: `PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01`
@@ -44,7 +54,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `6730cc897327ed0df428cd75a807bdb856d54875`.
 - Descripcion breve: Registra el refresh versionado de evidencia fisica y code refs del Runtime Map, preservando sus 19 box_id, su estructura conceptual, la arquitectura y el runtime; el siguiente hito permanece bloqueado por la precondicion externa Astra sobre `demo_cm_reservations.num_guests` con estado `pending_external_materialization`.
 
-## 4. OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01
+## 5. OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01
 
 - Identificador: `OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01`
 - Nombre: `OM-VISUAL-VIEW-B-HITO-LIFECYCLE-01`
@@ -54,7 +64,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `70729dfb0aec5dfb85fb498653d5ec3fd0a70084`.
 - Descripcion breve: Incorpora e indexa View B INTERNAL como representacion visual derivada y no contractual del lifecycle temporal gobernado de un hito del Operating Model.
 
-## 5. OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01
+## 6. OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01
 
 - Identificador: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
 - Nombre: `OM-VISUAL-VIEW-C-AUTHORITY-CAPABILITY-BOUNDARIES-01`
@@ -64,7 +74,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `7a23fe9f7e355f5db1b93bfba6cac96824b7a7e6`.
 - Descripcion breve: Incorpora e indexa View C INTERNAL como representacion visual derivada y no contractual de los limites de authority, capability, permission, gates y acciones protegidas del Operating Model.
 
-## 6. OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
+## 7. OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01
 
 - Identificador: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-A-ROLE-ARCHITECTURE-01`
@@ -74,7 +84,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `d5562d707632fa476026a83a004ad06941d6491b`.
 - Descripcion breve: Incorpora e indexa View A INTERNAL como representacion visual derivada y no contractual de la arquitectura de roles del Operating Model.
 
-## 7. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
+## 8. OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01
 
 - Identificador: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
 - Nombre: `OM-VISUAL-VIEW-E-CANONICAL-ARCHITECTURE-01`
@@ -83,7 +93,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `d11e7ba544c5857637c2afeada414604ff96b129`.
 - Descripcion breve: Incorpora e indexa View E INTERNAL como representacion visual derivada y no contractual de la arquitectura documental del Operating Model y sus ambitos de autoridad.
 
-## 8. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
+## 9. OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-PUBLIC-01`
@@ -92,7 +102,7 @@ No reemplaza el historial completo.
 - Estado documental: `CERRADO`; commit documental `540cd5c38686f3eeb95f0eeea274aaf7edf8582b`.
 - Descripcion breve: Incorpora View D PUBLIC como representacion visual derivada y no contractual del Product System y su gobierno de evolucion.
 
-## 9. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
+## 10. OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01
 
 - Identificador: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
 - Nombre: `OPS-OPERATING-MODEL-VISUAL-VIEW-D-INTERNAL-01`
@@ -100,12 +110,3 @@ No reemplaza el historial completo.
 - Commit documental: `a5915e554df3cb9841af4fe6f7ce4a668b946113`
 - Estado documental: `CERRADO`; commit documental `a5915e554df3cb9841af4fe6f7ce4a668b946113`.
 - Descripcion breve: Incorpora View D INTERNAL como representacion visual derivada del Operating Model, sin crear una fuente contractual paralela.
-
-## 10. OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01
-
-- Identificador: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
-- Nombre: `OPS-CODEX-AGENT-TARGET-GUARD-CONTRACT-01`
-- Commit técnico: `66b491fe0fcc62e72f5104ebd31de8b146c177c7`
-- Commit documental: `PENDING`
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
-- Descripción breve: Adopta el Agent Target Receiver Guard como regla operativa canónica transversal, con identidad autoritativa, envelope obligatorio, fail-closed y validación por prompt.

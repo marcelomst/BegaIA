@@ -14465,3 +14465,153 @@ Impacto:
 - ninguna fuente de verdad paralela
 - `roadmap_impact: none_structural`; README, roadmap, ADRs, Operating Model y
   Astra permanecen sin cambios
+
+### BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-08
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: normalize provider optional contact nullability at the provider/runtime boundary
+Commit tecnico: f0d13746986bfc9bec7bb4e81e023bc37f7ca4a6
+Parent tecnico: 734c3347e6c67bd659c6444692d56d63b04ae318
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Push documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Normaliza exclusivamente la nulabilidad de contactos opcionales en el boundary
+provider/runtime. Una `Reservation` del provider que contiene `guestEmail` o
+`guestPhone` en `null` se proyecta al runtime con ausencia opcional, sin relajar
+campos obligatorios ni crear estado o una fuente de verdad paralela.
+
+Contrato materializado:
+
+```yaml
+guestEmail:
+  string: preserved
+  undefined: preserved
+  null: normalized_to_undefined
+  other_types: rejected
+guestPhone:
+  string: preserved
+  undefined: preserved
+  null: normalized_to_undefined
+  other_types: rejected
+mandatory_fields_relaxed: false
+incomplete_reservation_result: INVALID_PROVIDER_RESERVATION
+```
+
+Antes del fix, contactos opcionales `null` provocaban rechazo del resultado y
+`INVALID_PROVIDER_RESERVATION`. Después del fix, sólo `null` opcional se
+normaliza a `undefined`; una reserva realmente incompleta continúa fallando.
+
+Autoridad:
+
+```text
+provider Reservation
+>
+validated runtime projection
+>
+conversation state / snapshot
+```
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: f0d13746986bfc9bec7bb4e81e023bc37f7ca4a6
+technical_commit_message: "fix(reservations): normalize optional provider contacts"
+technical_parent: 734c3347e6c67bd659c6444692d56d63b04ae318
+technical_push: confirmed
+diff_stats:
+  files_changed: 2
+  insertions: 129
+  deletions: 2
+```
+
+Validacion:
+
+- focal postcommit: 3 archivos passed, 29 tests passed, 0 failed
+- suite completa: 186 archivos passed, 3 failed; 1107 tests passed, 3 failed,
+  1110 total
+- los tres fallos globales corresponden a deuda temporal preexistente aceptada
+- typecheck: PASS
+- commit diff check: PASS
+- `guardian_verdict: valid` y `ready_for_hdoc: true`
+- `hito_change_classification: existing_repo_change`
+- parity tests: present
+- forbidden y undeclared touched: ninguno
+
+Manual smoke:
+
+```yaml
+evidence_source: supplied_manual_smoke
+status: pass
+real_create: pass
+invalid_provider_reservation_reproduced: false
+reservation_id_observed: RES-2B139E
+```
+
+El create real quedo desbloqueado.
+
+Runtime Map:
+
+- touched:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create` y
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify`
+- reviewed:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot`
+- `conceptual_change: false`
+- `code_refs_status: fresh`
+- `runtime_map_refresh_required: false`
+- no se modifico documentacion del Runtime Map
+
+Deudas externas conocidas:
+
+```yaml
+known_debt:
+  - id: TESTS-RESERVATION-DATE-DETERMINISM-01
+    classification: preexisting_time_dependent_test_debt
+    status: open
+    blocking_current_hito: false
+    tests_remaining: 3
+  - id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+    status: open
+    reproduced_in_manual_smoke: true
+    modified_in_current_commit: false
+    blocking_current_hito: false
+    external: true
+    sanitized_evidence: "Reserva a nombre de **A nombre de Pablo Marmol**"
+  - id: PERF-PROPOSAL-LATENCY-01
+    status: open
+    modified_in_current_commit: false
+    blocking_current_hito: false
+```
+
+Observacion de seguridad externa:
+
+```yaml
+security_observation: external
+logging_modified: false
+config_modified: false
+blocking_current_hito: false
+```
+
+No se registran secretos. Las deudas y la observacion permanecen fuera de la
+intencion del hito y no fueron corregidas.
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; `canonicality_impact: none`
+- la `Reservation` del provider permanece como autoridad
+- estructura conceptual y arquitectura sin cambios
+- ninguna fuente de verdad paralela
+- `roadmap_impact: none_structural`; Runtime Map, README, roadmap, ADRs,
+  Operating Model y Astra permanecen sin cambios
