@@ -15,8 +15,9 @@ No reemplaza el historial completo.
 - Cadena tecnica: `7dfdfa7d19b16c685b8bbbb8932ccbe256647f15` → `d289914a1b584de2d677ac62ff7ee890e18aadd3`.
 - Technical head: `d289914a1b584de2d677ac62ff7ee890e18aadd3`.
 - Push tecnico: confirmado para ambos commits.
-- Commit documental: `PENDING`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
+- Commit documental: `9a9cf654f09257e5497c5fc7155ab4fd3480ec04`.
+- Push documental: confirmado.
+- Estado documental: `CERRADO`; commit documental `9a9cf654f09257e5497c5fc7155ab4fd3480ec04`.
 - Descripcion breve: Materializa `numGuests` como dato autoritativo del provider hasta la proyeccion canonica y `conv_state`, con Astra verificada, Runtime Map fisicamente refrescado sin cambio conceptual, deuda temporal no bloqueante e incidente Git exclusivamente operacional.
 
 ## 2. PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01

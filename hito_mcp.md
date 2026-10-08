@@ -14174,7 +14174,7 @@ Impacto:
 
 ### PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
 
-Estado: DOCUMENTACION_PREPARADA
+Estado: CERRADO
 Fecha: 2026-10-08
 Clasificacion del cambio: EXISTING_REPO_CHANGE
 Tipo de hito: RUNTIME_BUGFIX
@@ -14182,8 +14182,8 @@ Intencion unica: authoritative_numGuests_end_to_end
 Commit tecnico: PRESENT
 Commit hash / technical head: d289914a1b584de2d677ac62ff7ee890e18aadd3
 Push tecnico: CONFIRMED
-Commit documental: PENDING
-Push documental: PENDING
+Commit documental: 9a9cf654f09257e5497c5fc7155ab4fd3480ec04
+Push documental: CONFIRMED
 Clasificacion documental: SOLO_HITO
 
 Descripcion:
