@@ -262,6 +262,39 @@ describe("messageHandler create execution integrity", () => {
     expect(replyText).not.toMatch(/^Marcelo,\s+tengo/i);
   });
 
+  it.each([
+    "a nombre de Martin Pereira",
+    "A nombre de Martin Pereira",
+    "Martin Pereira",
+  ])("preserva el guestName canónico de la propuesta al create confirmado: %s", async (holderInput) => {
+    (getGuest as any).mockResolvedValue({
+      guestId: "g1",
+      hotelId: "hotel999",
+      name: "Jose",
+      firstName: "Jose",
+    });
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("Quiero reservar una habitacion doble"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("para el 25/11/2026 al 27/11/2026"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("2 personas"), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg(holderInput), { mode: "automatic", sendReply });
+
+    const proposal = lastReply(sendReply);
+    expect(proposal).toMatch(/^Jose,\s+tengo doble disponible para Martin Pereira\./i);
+    expect(proposal).toMatch(/¿Confirmás la reserva\?/i);
+    const proposalGuestName = currentState?.reservationSlots?.guestName;
+    expect(proposalGuestName).toBe("Martin Pereira");
+
+    await handleIncomingMessage(msg("confirmar"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).toHaveBeenCalledTimes(1);
+    const createPayload = (confirmAndCreate as any).mock.calls.at(-1)?.[1] || {};
+    expect(createPayload.guestName).toBe(proposalGuestName);
+    expect(lastReply(sendReply)).toMatch(/Reserva a nombre de \*\*Martin Pereira\*\*/i);
+    expect(lastReply(sendReply)).not.toMatch(/Reserva a nombre de \*\*a nombre de Martin Pereira\*\*/i);
+  });
+
   it("ignora residuos activos sin materializar al consolidar el history final del create", async () => {
     const sendReply = vi.fn(async () => {});
     currentState = {

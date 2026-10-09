@@ -12341,8 +12341,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ...mergeReservationSlots(
         pre.st?.reservationSlots,
         createDraftConsistency.sanitizedSlots,
-        nextSlots,
-        isSafeGuestName(String(pre.msg.content || "").trim()) ? { guestName: String(pre.msg.content || "").trim() } : undefined
+        nextSlots
       ),
     locale: pre.lang,
   };
