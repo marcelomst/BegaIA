@@ -21,19 +21,19 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-messageHandler_lines: 13298
+commit_base: a06e3f92258a8aaecbbddc4040a318029401a2f6
+messageHandler_lines: 13297
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-suite_status_reported: historical_targeted_green_not_rerun_for_evidence_refresh
+analysis_scope: commit_a06e3f92258a8aaecbbddc4040a318029401a2f6
+suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - focal Guardian: 20/20 PASS
-    - paridad reportada: 66/66 PASS
-    - core reportado: 1086/1086 PASS
+    - create/confirmation/extraction: 58/58 PASS
+    - create execution integrity: 11/11 PASS
   full_suite:
     - ts-check: PASS
-known_manual_bug: none
+    - 1110/1113 PASS; 3 fallos preexistentes por fechas fijas vencidas
+known_manual_bug: resolved_in_current_hito
 ```
 
 ## Refresh documental aplicado en este hito
@@ -42,61 +42,51 @@ known_manual_bug: none
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - 7 focal files passed
-      - 191 focal tests passed
-      - response_completeness_failures: 0
+      - create execution integrity: 11/11 PASS
   conceptual_change: false
   evidence_refresh: true
-  code_refs_status: fresh
-  runtime_map_refresh_required: false
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
   verdict: valid
 runtime_map_refresh:
-  required: false
+  required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-    messageHandler_lines: 13298
+    commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
+    messageHandler_lines: 13297
     functions:
       preLLM: L4953-L5165
-      bodyLLM: L5824-L12434
-      posLLM: L12929-L12970
-      handleIncomingMessage: L12974-L13298
+      bodyLLM: L5824-L12433
+      posLLM: L12928-L12969
+      handleIncomingMessage: L12973-L12981
     top_level_code_refs_status: fresh
 runtime_map:
   applies: true
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
-  refresh_required: false
+  refresh_required: true
 ```
 
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
-technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+hito_id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
 scope_real:
-  - proposal_completeness
-  - lastProposal_consistency
-  - post_modify_completeness
-authority_order:
-  - provider_reservation
-  - runtime_projection
-  - snapshot
+  - preserve canonical guestName from proposal through confirmed create
 focal_refs:
-  buildInvalidUpdatedReservationReply: L2278-L2282
-  buildModifySuccessReply: L2284-L2331
-  executeModifyReservationWithSnapshot: L2333-L2399
-  runAvailabilityCheck: lib/handlers/pipeline/availability.ts:L549-L703
+  create_confirmation_execution: L10612-L10718
+  confirmAndCreate_provider_call: L10648
+  quoted_snapshot_and_persistence: L12340-L12402
+  parity_test: test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296
 ```
 
 Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
@@ -106,7 +96,7 @@ no ejecutó ninguna operación contra Astra.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan vigente de `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`,
+sin reemplazar el scan vigente de `a06e3f92258a8aaecbbddc4040a318029401a2f6`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -149,9 +139,9 @@ validation:
 | `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      |
 | `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      |
 | `preLLM`                             | L4953-L5165 |    213 | high      |
-| `bodyLLM`                            | L5824-L12434 |   6611 | high      |
-| `posLLM`                             | L12929-L12970 |     42 | high      |
-| `handleIncomingMessage`              | L12974-L13298 |    325 | high      |
+| `bodyLLM`                            | L5824-L12433 |   6610 | high      |
+| `posLLM`                             | L12928-L12969 |     42 | high      |
+| `handleIncomingMessage`              | L12973-L12981 |      9 | high      |
 
 ---
 
@@ -160,8 +150,8 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13298 líneas
-bodyLLM:                6611 líneas
+messageHandler.ts total: 13297 líneas
+bodyLLM:                6610 líneas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -547,7 +537,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13298
+    range: L1-L13297
     confidence: high
 ```
 
@@ -579,7 +569,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5824-L12434
+    range: L5824-L12433
     confidence: high
 ```
 
@@ -598,7 +588,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12929-L12970
+    range: L12928-L12969
     confidence: high
 ```
 
@@ -617,7 +607,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12974-L13298
+    range: L12973-L12981
     confidence: high
 ```
 

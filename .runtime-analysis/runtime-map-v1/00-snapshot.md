@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-messageHandler_lines: 13298
+commit_base: a06e3f92258a8aaecbbddc4040a318029401a2f6
+messageHandler_lines: 13297
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+analysis_scope: commit_a06e3f92258a8aaecbbddc4040a318029401a2f6
 ```
 
 ---
@@ -20,22 +20,19 @@ analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
 
 ```text
 working tree limpio antes de
-`PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`
+`BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01`
 ```
 
 ---
 
-## Suite histórica informada (no reejecutada en este refresh)
+## Validacion tecnica informada
 
 ```text
-focal Guardian: 20/20 PASS
-result: pass
-paridad reportada: 66/66 PASS
-result: pass
-core reportado: 1086/1086 PASS
-result: pass
-ts-check
-result: pass
+create/confirmation/extraction: 58/58 PASS
+create execution integrity: 11/11 PASS
+pnpm run ts-check: PASS
+suite completa: 1110/1113 PASS
+fallos fuera de alcance: 3 pruebas preexistentes por fechas fijas vencidas
 ```
 
 ---
@@ -46,22 +43,18 @@ result: pass
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - 7 focal files passed
-      - 191 focal tests passed
-      - response_completeness_failures: 0
+      - create execution integrity: 11/11 PASS
   conceptual_change: false
   evidence_refresh: true
-  code_refs_status: fresh
-  runtime_map_refresh_required: false
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
   verdict: valid
 ```
 
@@ -71,23 +64,23 @@ runtime_boxes_audit:
 
 ```yaml
 runtime_map_refresh:
-  required: false
+  required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-    messageHandler_lines: 13298
+    commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
+    messageHandler_lines: 13297
     functions:
       preLLM: L4953-L5165
-      bodyLLM: L5824-L12434
-      posLLM: L12929-L12970
-      handleIncomingMessage: L12974-L13298
+      bodyLLM: L5824-L12433
+      posLLM: L12928-L12969
+      handleIncomingMessage: L12973-L12981
     top_level_code_refs_status: fresh
 runtime_map:
   applies: true
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
-  refresh_required: false
+  refresh_required: true
 ```
 
 Los envelopes conceptuales históricos pueden ser más amplios que estas funciones
@@ -96,33 +89,24 @@ y no se reinterpretan como fronteras físicas exactas.
 ## Evidencia focal fresca
 
 ```yaml
-hito_id: PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
-technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+hito_id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
 scope_real:
-  - proposal_completeness
-  - lastProposal_consistency
-  - post_modify_completeness
-authority_order:
-  - provider_reservation
-  - runtime_projection
-  - snapshot
+  - preserve canonical guestName from proposal through confirmed create
 focal_refs:
-  buildInvalidUpdatedReservationReply: L2278-L2282
-  buildModifySuccessReply: L2284-L2331
-  executeModifyReservationWithSnapshot: L2333-L2399
-  runAvailabilityCheck: lib/handlers/pipeline/availability.ts:L549-L703
+  create_confirmation_execution: L10612-L10718
+  confirmAndCreate_provider_call: L10648
+  quoted_snapshot_and_persistence: L12340-L12402
+  parity_test: test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296
 ```
 
 ### Contrato materializado
 
 ```text
-- La propuesta confirmable proyecta datos canónicos completos en ES/EN/PT sin
-  `undefined`, `null` textual ni pricing inventado.
-- `lastProposal.text` coincide con el `finalText` emitido y preserva sus campos.
-- La respuesta post-modify se proyecta desde la Reservation actualizada del
-  provider; snapshot no se convierte en autoridad.
-- `numGuests: null` autoritativo no revive valores stale.
-- Inquiry permanece separado de create y no emite CTA confirmable.
+- `reservationSlots.guestName` permanece canónico desde la propuesta hasta el
+  create confirmado.
+- `msg.content` no se reinyecta durante el postprocesado de la propuesta.
+- Provider contract, confirmation gating e identidad conversacional no cambian.
 ```
 
 ---
@@ -130,7 +114,7 @@ focal_refs:
 ## Advertencia de uso
 
 Este snapshot es válido para el hito
-`PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
+`BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01`.
 
 ```text
 box_id = estable
@@ -144,9 +128,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline actualizada al commit `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`
+1. Baseline actualizada al commit `a06e3f92258a8aaecbbddc4040a318029401a2f6`
 2. Scans y rangos físicos focales recalculados
-3. Evidencia de create, modify, persistencia/reply y merge canónico incorporada
+3. Evidencia focal de create y persistencia del snapshot citado incorporada
 4. `box_id` y relaciones conceptuales preservados
 5. Refresh documental acotado a evidencia física, sin cambio conceptual
 ```
@@ -157,7 +141,7 @@ Refresh aplicado:
 
 El hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 corresponde al commit `3bb821a3240fcf92aebae3424ebde4ba92699780`, antecesor de
-la baseline actual `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`. Se conserva el
+la baseline actual `a06e3f92258a8aaecbbddc4040a318029401a2f6`. Se conserva el
 snapshot vigente y se registra la evidencia histórica del hito diferido.
 
 ```yaml

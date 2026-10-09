@@ -40,7 +40,7 @@ Para el hito actual:
 
 ```yaml
 code_refs_status: fresh
-runtime_map_refresh_required: false
+runtime_map_refresh_required: true
 conceptual_change: false
 evidence_refresh: true
 runtime_map:
@@ -48,7 +48,7 @@ runtime_map:
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: fresh
-  refresh_required: false
+  refresh_required: true
 ```
 
 Por eso:
@@ -66,27 +66,24 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-messageHandler_lines: 13298
+commit_base: a06e3f92258a8aaecbbddc4040a318029401a2f6
+messageHandler_lines: 13297
 working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
-baseline_status: pilot_readiness_runtime_map_evidence_refreshed
-known_manual_bug: none
+analysis_scope: commit_a06e3f92258a8aaecbbddc4040a318029401a2f6
+baseline_status: guest_name_raw_override_evidence_refreshed
+known_manual_bug: resolved_in_current_hito
 ```
 
 ---
 
-## Suite histórica informada (no reejecutada en este refresh)
+## Validacion tecnica informada
 
 ```text
-focal Guardian: 20/20 PASS
-result: pass
-paridad reportada: 66/66 PASS
-result: pass
-core reportado: 1086/1086 PASS
-result: pass
-ts-check
-result: pass
+create/confirmation/extraction: 58/58 PASS
+create execution integrity: 11/11 PASS
+pnpm run ts-check: PASS
+suite completa: 1110/1113 PASS
+fallos fuera de alcance: 3 pruebas preexistentes por fechas fijas vencidas
 ```
 
 Nota:
@@ -98,48 +95,38 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: create, modify y persistenceReply
+## Evidencia focal actual: create y snapshot citado
 
 ```yaml
-hito_id: PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
-technical_commit: 16b88e2c9893480e1d36072f7f4eb1d2b82f66ee
+hito_id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
 scope_real:
-  - proposal_completeness
-  - lastProposal_consistency
-  - post_modify_completeness
+  - preserve canonical guestName from proposal through confirmed create
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - 7 focal files passed
-      - 191 focal tests passed
-      - response_completeness_failures: 0
-  code_refs_status: fresh
-  runtime_map_refresh_required: false
+      - create execution integrity: 11/11 PASS
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
   preLLM: L4953-L5165
-  bodyLLM: L5824-L12434
-  posLLM: L12929-L12970
-  handleIncomingMessage: L12974-L13298
+  bodyLLM: L5824-L12433
+  posLLM: L12928-L12969
+  handleIncomingMessage: L12973-L12981
 evidence_source: guardian_scan
 focal_refs:
-  buildInvalidUpdatedReservationReply: L2278-L2282
-  buildModifySuccessReply: L2284-L2331
-  executeModifyReservationWithSnapshot: L2333-L2399
-  runAvailabilityCheck: lib/handlers/pipeline/availability.ts:L549-L703
-authority_order:
-  - provider_reservation
-  - runtime_projection
-  - snapshot
+  create_confirmation_execution: L10612-L10718
+  confirmAndCreate_provider_call: L10648
+  quoted_snapshot_and_persistence: L12340-L12402
+  parity_test: test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296
 ```
 
 ## Evidencia focal histórica del refresh anterior
@@ -298,7 +285,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13298
+total_lines: 13297
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -325,9 +312,9 @@ del hito `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
 | `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      | Análisis estructurado semántico            |
 | `preLLM`                             | L4953-L5165 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5824-L12434 |   6611 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12929-L12970 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12974-L13298 |    325 | high      | Entrypoint público del runtime             |
+| `bodyLLM`                            | L5824-L12433 |   6610 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12928-L12969 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12973-L12981 |      9 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -337,7 +324,7 @@ del hito `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12974-L13298
+range: L12973-L12981
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -378,7 +365,7 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5824-L12434
+range: L5824-L12433
 lines: 6611
 confidence: high
 role: dominant_sub_runtime
@@ -408,7 +395,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12929-L12970
+range: L12928-L12969
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -601,7 +588,7 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5824-L12434
+bodyLLM_range: L5824-L12433
 bodyLLM_lines: 6611
 bucket_size: 250
 confidence: high_for_generated_scan

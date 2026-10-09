@@ -14704,3 +14704,102 @@ Impacto:
 - `roadmap_impact: none`
 - no se crean ADRs ni documentos arquitectonicos adicionales
 - el cambio del Operating Model ya esta materializado en el commit tecnico
+
+### BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-09
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: BUGFIX
+Intencion unica: preserve canonical reservation guestName from proposal through confirmed create
+Commit tecnico: a06e3f92258a8aaecbbddc4040a318029401a2f6
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Descripcion:
+
+Corrige el override tardio de `guestName` durante el postprocesado de la
+propuesta. Antes del fix, `msg.content` reinyectaba el input raw y sobrescribia
+el valor canonico ya presente; ahora el snapshot conserva `reservationSlots`,
+`sanitizedSlots` y `nextSlots` sin esa reinyeccion.
+
+Invariante preservado:
+
+```text
+proposal.guestName
+=
+confirmed_create.guestName
+=
+"Martin Pereira"
+```
+
+El provider contract, el confirmation gating y la identidad conversacional no
+cambian.
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
+technical_push: confirmed
+files:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.create_execution_integrity.spec.ts
+```
+
+Validacion:
+
+- create/confirmation/extraction: 58/58 PASS
+- create execution integrity: 11/11 PASS
+- `pnpm run ts-check`: PASS
+- suite completa: 1110/1113 PASS
+- tres fallos preexistentes por fechas fijas vencidas, fuera del hito:
+  `test/e2e.reservation.flow.spec.ts`,
+  `messageHandler.create_quote_gating.spec.ts` y
+  `messageHandler.vamos_a_ingresar_followup.test.ts`
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+
+Manual smoke:
+
+```yaml
+status: pass
+raw_guestName_input: "a nombre de Martin Pereira"
+proposal_guestName: "Martin Pereira"
+confirmation: "confirmar"
+reservation_id: RES-47FFC8
+confirmed_create_guestName: "Martin Pereira"
+final_copy: "Reserva a nombre de Martin Pereira"
+raw_prefix_persisted: false
+provider_error: none
+```
+
+Runtime Map:
+
+- caja tocada y revisada:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create`
+- forbidden y undeclared touched: ninguno
+- parity tests: present; create execution integrity 11/11 PASS
+- Guardian reporto `code_refs_status: needs_refresh`; el refresh autorizado
+  deja las referencias recalculadas documentadas como frescas
+- baseline: `a06e3f92258a8aaecbbddc4040a318029401a2f6`
+- `messageHandler.ts`: 13297 lineas
+- `preLLM`: L4953-L5165
+- `bodyLLM`: L5824-L12433
+- `posLLM`: L12928-L12969
+- `handleIncomingMessage`: L12973-L12981
+- `create_confirmation_execution`: L10612-L10718
+- `confirmAndCreate_provider_call`: L10648
+- `quoted_snapshot_and_persistence`: L12340-L12402
+- parity test: `test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296`
+- refresh fisico/evidencial realizado sin cambiar `box_id` ni estructura
+  conceptual
+
+Impacto:
+
+- canonicidad: fortalece; elimina una fuente raw tardia y preserva
+  `reservationSlots.guestName` como valor canonico desde la propuesta hasta el
+  create confirmado
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- no se crean ADRs ni documentacion arquitectonica adicional
+- `PERF-PROPOSAL-LATENCY-01` permanece fuera del alcance como deuda
+  independiente
