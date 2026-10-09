@@ -14615,3 +14615,92 @@ Impacto:
 - ninguna fuente de verdad paralela
 - `roadmap_impact: none_structural`; Runtime Map, README, roadmap, ADRs,
   Operating Model y Astra permanecen sin cambios
+
+### OPS-HDOC-NONRECURSIVE-CLOSURE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-09
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: OPERATING_MODEL_CHANGE
+Intencion unica: restore non-recursive HDOC postcommit closure
+Commit tecnico: 93f50b75462949c19ecf921ff290572a84a0d275
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Descripcion:
+
+Restaura el cierre documental no recursivo mediante dos fases distintas:
+HDOC(1) prepara el contenido documental final versionable y HDOC(CLOSE), una
+vez materializado y publicado el commit documental por Marcelo, valida ese
+commit exclusivamente en modo read-only.
+
+Cambio contractual:
+
+```yaml
+hdoc_1:
+  responsibility: prepare_final_versionable_documentation
+  documentation_commit_hash: not_predeclared
+hdoc_close:
+  responsibility: validate_real_postcommit_git_evidence
+  mode: read_only
+documentation_commit_hash:
+  existence_after_commit: required
+  push_confirmation_after_commit: required
+  hdoc_close_validation: required
+  persistence_inside_same_commit: not_required
+self_hash_persistence: not_required
+reconciliation_for_absent_self_hash: not_required
+```
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 93f50b75462949c19ecf921ff290572a84a0d275
+technical_commit_message: "docs(operations): restore non-recursive HDOC closure"
+technical_push: confirmed
+files:
+  - docs/architecture/system_operating_model.md
+  - docs/development/hito_template.md
+```
+
+Artefacto operativo externo:
+
+```yaml
+path: /home/marcelo/.codex/hdoc.config.toml
+role: effective_hdoc_operational_configuration
+repository_membership: external
+modified_in_scope: true
+included_in_technical_commit: false
+validation:
+  toml: valid
+  contract: aligned
+  guardian: validated
+sha256: 2e54b07d213422ad8ce7c6aff09e90a26fcee913822bb5460d1aed9ef48f2b5a
+```
+
+El artefacto externo no se incorpora al Git del repositorio y su contenido no
+se duplica en este registro.
+
+Validacion:
+
+- Guardian postcommit confirmo `HEAD == origin/main`
+- working tree limpio antes de HDOC(1)
+- alcance del commit tecnico exacto
+- `git diff --check`: PASS
+- `guardian_verdict: valid`
+- `ready_for_hdoc: yes`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; elimina la recursion del self-hash, conserva
+  identidades Git distintas y mantiene hash real y push confirmado como
+  condiciones de cierre
+- `runtime_map.applies: false`; `runtime_map.refresh_required: false`
+- `roadmap_impact: none`
+- no se crean ADRs ni documentos arquitectonicos adicionales
+- el cambio del Operating Model ya esta materializado en el commit tecnico
