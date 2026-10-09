@@ -439,17 +439,47 @@ tres valores `not_applicable` y la evidencia sustitutiva completa. HDOC no
 infiere la clasificación, no decide elegibilidad, no convierte `missing` en
 `not_applicable` y no reevalúa el alcance técnico.
 
-La secuencia documental en ambas ramas es:
+La secuencia documental en ambas ramas se divide en dos fases explícitas:
 
-1. HDOC prepara exclusivamente la documentación autorizada.
-2. `documentation_commit` permanece `pending` durante la preparación.
-3. Marcelo ejecuta Git write.
-4. Se obtiene el hash real del documentation commit.
-5. Se verifica el push documental.
-6. Recién entonces existe cierre documental.
+#### HDOC(1) — preparación documental
 
-La inexistencia inicial de `documentation_commit` no bloquea la entrada a HDOC.
-El cierre final sí exige hash real y push del documentation commit.
+HDOC(1):
+
+- consume un `HDOC_INPUT` válido emitido por Guardian;
+- prepara el contenido documental final autorizado;
+- persiste el technical commit, su hash real y su push cuando corresponda;
+- actualiza `hito_mcp.md`, `hito_mcp_recent.md`, Runtime Map y arquitectura
+  únicamente cuando aplique según clasificación y evidencia;
+- propone el documentation commit que Marcelo ejecutará;
+- no inventa el hash del documentation commit.
+
+Durante HDOC(1), `pending` es un estado de control de fase. No es contenido ni
+metadato obligatorio del payload histórico que será versionado.
+
+#### HDOC(CLOSE) — validación postcommit
+
+HDOC(CLOSE) ocurre después de que Marcelo ejecuta y publica el documentation
+commit. Es una fase exclusivamente read-only que:
+
+- valida el hash real del documentation commit;
+- valida su push;
+- valida parent y ancestry cuando aplique;
+- valida archivos y alcance del commit;
+- valida el working tree;
+- valida la correspondencia entre el contenido documental autorizado y el
+  contenido efectivamente versionado;
+- emite `CLOSED` sólo si todas las validaciones requeridas son correctas.
+
+El hash del documentation commit es evidencia postcommit. No es obligatorio
+persistirlo dentro de `hito_mcp.md`, `hito_mcp_recent.md` ni de otros documentos
+versionados por ese mismo commit. Su ausencia dentro de esos archivos no
+constituye inconsistencia, no requiere un reconciliation commit y no impide el
+cierre. Un reconciliation commit sólo corresponde ante una inconsistencia
+documental material independiente de la ausencia del self-hash.
+
+HDOC(CLOSE) no modifica archivos en el flujo normal. La inexistencia inicial
+del documentation commit no bloquea HDOC(1); el cierre final mantiene como
+requisitos su hash real y su push confirmado.
 
 Invariantes: `baseline_head` nunca es technical commit; cualquier cambio
 material versionable fuerza `existing_repo_change`; AGPT propone o autoriza;
@@ -1443,6 +1473,10 @@ Se mantiene:
 - technical commit y documentation commit son identidades distintas;
 - todo cambio documental versionado producido por HDOC requiere documentation
   commit, hash real y push confirmado para cerrar el hito;
+- el hash del documentation commit es evidencia postcommit y no debe exigirse
+  dentro del payload versionado por ese mismo commit;
+- la ausencia de ese self-hash no constituye inconsistencia ni exige un
+  reconciliation commit;
 - todo hito conserva un único cierre documental trazable.
 
 NO se introducen:

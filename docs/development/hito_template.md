@@ -611,12 +611,15 @@ explícito de Guardian con `guardian_verdict: valid` y `ready_for_hdoc: yes`:
 - validar commit, hash y push técnicos para existing_repo_change
 - validar los tres not_applicable y la evidencia sustitutiva para external_operational_change
 - clasificar cierre documental
-- preparar la documentación autorizada con documentation_commit: pending
+- preparar el contenido documental final autorizado sin inventar el
+  documentation commit
 ```
 
 HDOC no determina elegibilidad, no convierte `missing` en `not_applicable` y no
 reevalúa el alcance técnico. `documentation_commit` no es precondición de
-preparación; el cierre final exige su hash real y push verificado.
+preparación; `pending` es un estado de control de HDOC(1), no un metadato
+obligatorio del payload persistido. El cierre final exige el hash real y el push
+verificado del documentation commit.
 
 #### Para `arquitecto_sistema`
 
