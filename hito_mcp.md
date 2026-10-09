@@ -14803,3 +14803,90 @@ Impacto:
 - no se crean ADRs ni documentacion arquitectonica adicional
 - `PERF-PROPOSAL-LATENCY-01` permanece fuera del alcance como deuda
   independiente
+
+### SEC-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-09
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: SECURITY_BUGFIX
+Intencion unica: contener credenciales en el mirror global de logging y sus salidas persistidas
+Commit tecnico: 399dd8b8105504b77bbe3a408c064fc5980c1452
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Problema:
+
+El mirror global de logging podia propagar credenciales presentes en argumentos
+de consola hacia salidas observables y hacia `debug/log.txt`. El cierre se
+limita a contener esa exposicion; no modifica reservas, retries, persistencia de
+negocio ni comportamiento conversacional.
+
+Causa raiz:
+
+Las salidas espejadas no compartian una sanitizacion centralizada y reutilizable
+que cubriera de forma consistente los tipos de datos y destinos involucrados.
+
+Correccion:
+
+- sanitizacion centralizada y reutilizable en `lib/utils/debugLog.ts`
+- proteccion para strings, objetos, errores, ciclos, `Headers`, `Request` y
+  `Response`
+- sanitizacion de las cinco salidas globales de consola
+- proteccion de la escritura en `debug/log.txt`
+- pruebas asociadas en `test/unit/debugLog.wrapOnce.spec.ts`
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 399dd8b8105504b77bbe3a408c064fc5980c1452
+technical_commit_message: "fix(logging): redact credentials from mirrored output"
+technical_push: confirmed
+files:
+  - lib/utils/debugLog.ts
+  - test/unit/debugLog.wrapOnce.spec.ts
+```
+
+Validacion:
+
+- tests focales: 3/3 PASS
+- comprobacion independiente de bordes: PASS
+- TypeScript: PASS
+- `git diff --check`: PASS
+- suite core: 1112/1115 PASS
+- los tres fallos restantes corresponden a fixtures con fechas vencidas y se
+  conservan como `preexisting_time_dependent_test_debt`, independientes de
+  SEC-01 y no bloqueantes para este hito
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- `hito_change_classification: existing_repo_change`
+
+Riesgos residuales:
+
+- formatos de credenciales nuevos o no contemplados pueden requerir ampliar el
+  sanitizador y sus pruebas
+- cualquier sink futuro que eluda el mirror protegido requiere integracion y
+  validacion especificas
+- el fix no sanea retroactivamente logs historicos generados antes del commit
+- rotacion o revocacion de claves y tratamiento de logs historicos son acciones
+  operativas separadas; no fueron ejecutadas ni acreditadas por este cierre
+
+Separacion de cierre:
+
+- cierre tecnico del codigo: confirmado mediante commit y push tecnicos
+- acciones operativas sobre claves o logs historicos: fuera del commit tecnico
+  y pendientes de decision o evidencia separada cuando correspondan
+- cierre documental definitivo: sujeto a commit documental, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; no introduce estado paralelo ni modifica retries,
+  reservas, persistencia o runtime conversacional
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- README, roadmap, Runtime Map, ADRs y arquitectura viva permanecen sin cambios
