@@ -30,6 +30,7 @@ import crypto from "crypto";
 
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
 import { ChatOpenAI } from "@langchain/openai";
+import { applyLlmRetryPolicy } from "@/lib/llm/retryPolicy";
 import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 import {
   buildAssistantAcknowledgementReply,
@@ -4760,7 +4761,7 @@ function detectRawReservationDateIssue(text: string): { reason: "check_order" | 
 }
 
 // === NEW: intentar structured prompt (enriquecedor/fallback)
-async function tryStructuredAnalyze(params: {
+export async function tryStructuredAnalyze(params: {
   hotelId: string;
   lang: "es" | "en" | "pt";
   channel: string;
@@ -4790,10 +4791,10 @@ async function tryStructuredAnalyze(params: {
       return null;
     }
     const hotel = await getHotelConfigSafe(params.hotelId);
-    const model = new ChatOpenAI({
+    const model = applyLlmRetryPolicy(new ChatOpenAI({
       model: CONFIG.STRUCTURED_MODEL,
       temperature: 0.2,
-    });
+    }));
 
     const servicesText =
       (hotel?.reservations?.forceCanonicalQuestion ? "- Pregunta canónica activa\n" : "") +

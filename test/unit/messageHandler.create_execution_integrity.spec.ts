@@ -128,6 +128,7 @@ vi.mock("@langchain/openai", () => ({
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
 import { getGuest } from "@/lib/db/guests";
+import { runAvailabilityCheck } from "@/lib/handlers/pipeline/availability";
 
 function msg(content: string) {
   return {
@@ -208,17 +209,20 @@ describe("messageHandler create execution integrity", () => {
     });
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();
+    expect(runAvailabilityCheck).toHaveBeenCalledTimes(1);
 
     await handleIncomingMessage(msg("sí"), { mode: "automatic", sendReply });
 
     expect(lastReply(sendReply)).toMatch(/propuesta lista|respond[eé]\s+\*\*confirmar\*\*/i);
     expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(runAvailabilityCheck).toHaveBeenCalledTimes(1);
     expect(currentState?.lastReservation).toBeUndefined();
     expect(currentState?.reservationHistory).toBeUndefined();
 
     await handleIncomingMessage(msg("confirmar"), { mode: "automatic", sendReply });
 
     expect(confirmAndCreate).toHaveBeenCalledTimes(1);
+    expect(runAvailabilityCheck).toHaveBeenCalledTimes(1);
     expect(lastReply(sendReply)).toMatch(/reserva confirmada para|reserva a nombre de/i);
     expect(lastReply(sendReply)).toMatch(/ana gomez/i);
     expect(lastReply(sendReply)).not.toMatch(/gracias,\s*ana/i);

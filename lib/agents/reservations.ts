@@ -1,5 +1,6 @@
 // Path: /root/begasist/lib/agents/reservations.ts
 import { ChatOpenAI } from "@langchain/openai";
+import { applyLlmRetryPolicy } from "@/lib/llm/retryPolicy";
 import { canonicalizeRoomType, reservationSlotsSchema, type ReservationSlots, validateBusinessRules } from "@/lib/schemas/reservation";
 import {
   checkAvailabilityTool,
@@ -153,7 +154,7 @@ export async function fillSlotsWithLLM(
   localeIso6391: "es" | "en" | "pt",
   opts?: { hotelTz?: string; prevSlots?: Partial<ReservationSlots> }
 ): Promise<FillSlotsResult> {
-  const llm = new ChatOpenAI({ model: MODEL_FOR_SLOTS, temperature: 0.1 });
+  const llm = applyLlmRetryPolicy(new ChatOpenAI({ model: MODEL_FOR_SLOTS, temperature: 0.1 }));
   // BP-S1 (antes de invocar al LLM):
   console.debug("[BP-SLOTS1] Prompt to LLM", {
     system: SLOTS_SYSTEM.slice(0, 120) + "...",
