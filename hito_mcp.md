@@ -14890,3 +14890,130 @@ Impacto:
 - `roadmap_impact: none`
 - `architecture_docs_candidates: []`
 - README, roadmap, Runtime Map, ADRs y arquitectura viva permanecen sin cambios
+
+### LAT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-10
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: detener la amplificacion de retries ante errores LLM permanentes
+Commit tecnico: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Problema:
+
+Las fronteras LLM de `fillSlotsWithLLM` y `tryStructuredAnalyze` podian volver a
+intentar errores permanentes de cuota o billing. Ese segundo intento no tenia
+posibilidad razonable de recuperacion y amplificaba costo, latencia y ruido
+operacional.
+
+Correccion:
+
+- politica canonica compartida en `lib/llm/retryPolicy.ts`
+- clasificacion unica de errores permanentes de cuota o billing
+- instalacion en `fillSlotsWithLLM` y `tryStructuredAnalyze`
+- corte antes del segundo intento para errores permanentes
+- retries transitorios y fallbacks operacionales preservados
+
+Fronteras fisicas verificadas:
+
+```yaml
+canonical_retry_policy:
+  classification: lib/llm/retryPolicy.ts:L18-L98
+  installation: lib/llm/retryPolicy.ts:L100-L116
+reservation_create:
+  fill_slots_boundary: lib/agents/reservations.ts:L152-L380
+  retry_policy_installation: lib/agents/reservations.ts:L157
+  llm_invoke: lib/agents/reservations.ts:L165-L168
+graph_classifier_policy:
+  structured_boundary: lib/handlers/messageHandler.ts:L4764-L4891
+  retry_policy_installation: lib/handlers/messageHandler.ts:L4794-L4797
+  structured_invoke: lib/handlers/messageHandler.ts:L4884-L4885
+  active_bodyllm_call: lib/handlers/messageHandler.ts:L11359-L11372
+```
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+technical_push: confirmed
+files:
+  - lib/llm/retryPolicy.ts
+  - lib/agents/reservations.ts
+  - lib/handlers/messageHandler.ts
+  - test/unit/llm.retryPolicy.spec.ts
+  - test/unit/llm.retryPolicy.boundaries.spec.ts
+  - test/unit/messageHandler.create_execution_integrity.spec.ts
+```
+
+Validacion:
+
+- retry policy focal: 13/13 PASS
+- paridad operacional requerida: 76/77 PASS
+- el unico fallo corresponde a una fecha fija vencida, es anterior,
+  independiente y no bloqueante para LAT-01
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+- cajas prohibidas o no declaradas tocadas: ninguna
+
+Runtime Map:
+
+- cajas tocadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create` y
+  `runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy`
+- cajas revisadas: `runtime.messageHandler.bodyLLM.turnDecision`,
+  `runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal` y
+  `runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry`
+- 19 `box_id`, relaciones y diagramas conceptuales preservados
+- baseline focal: `9a46b5f9007ccb204e6982e05c72571ffd8c44da`
+- `messageHandler.ts`: 13298 lineas
+- `tryStructuredAnalyze`: L4764-L4891
+- `preLLM`: L4954-L5166
+- `bodyLLM`: L5825-L12434
+- `posLLM`: L12929-L12970
+- `handleIncomingMessage`: L12974-L13298
+- scans derivados verificados por SHA-256 y actualizados
+- refresh exclusivamente fisico y focal; no se declara frescura global
+
+```yaml
+derived_evidence_normalization:
+  transformation: trailing_horizontal_whitespace_removed_and_single_final_lf
+  semantic_change: false
+  function_size_map:
+    source_sha256: 8e49c101cd61780871f748e79e66cf331fb6c800d701ef3b51ce1823ec1ff8e9
+    normalized_sha256: aaa4176c44c20eb928ebe15415d321a646c04de759320f5e11ecc1063d2af9f9
+  bodyllm_scan:
+    source_sha256: ea87064e58064361150c252d2f915d4735bf4911125fd399ced03b7e825f1911
+    normalized_sha256: 11a6bcda2f28fb6203021dfd0b22ebf92113bbd53cef34607543c90435a9b5be
+  equivalence_validation: presentation_only_verified
+```
+
+Riesgos residuales:
+
+- la clasificacion depende de las formas de error y metadata expuestas por la
+  version instalada de LangChain y sus providers
+- una actualizacion de LangChain puede requerir ampliar fixtures y validaciones
+  si cambia esa interfaz interna
+- errores permanentes nuevos o con firmas no contempladas pueden continuar por
+  la ruta de retry transitorio hasta incorporar evidencia y cobertura
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+
+Impacto:
+
+- canonicidad: fortalece; centraliza la clasificacion de errores permanentes y
+  evita logica duplicada entre clientes LLM
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
+- cierre definitivo sujeto a commit documental, push y HDOC(CLOSE)

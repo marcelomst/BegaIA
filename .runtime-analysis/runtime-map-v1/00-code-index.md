@@ -39,15 +39,16 @@ Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus r
 Para el hito actual:
 
 ```yaml
-code_refs_status: fresh
+code_refs_status: focal_fresh_global_unasserted
 runtime_map_refresh_required: true
 conceptual_change: false
 evidence_refresh: true
+global_freshness_claim_allowed: false
 runtime_map:
   applies: true
   conceptual_change: false
   evidence_refresh: true
-  code_refs_status: fresh
+  code_refs_status: focal_fresh_global_unasserted
   refresh_required: true
 ```
 
@@ -66,12 +67,12 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: a06e3f92258a8aaecbbddc4040a318029401a2f6
-messageHandler_lines: 13297
-working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_a06e3f92258a8aaecbbddc4040a318029401a2f6
-baseline_status: guest_name_raw_override_evidence_refreshed
-known_manual_bug: resolved_in_current_hito
+commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+messageHandler_lines: 13298
+working_tree_status: unrelated_document_change_preserved
+analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
+baseline_status: lat_01_focal_evidence_refreshed
+global_freshness_claim_allowed: false
 ```
 
 ---
@@ -79,11 +80,9 @@ known_manual_bug: resolved_in_current_hito
 ## Validacion tecnica informada
 
 ```text
-create/confirmation/extraction: 58/58 PASS
-create execution integrity: 11/11 PASS
-pnpm run ts-check: PASS
-suite completa: 1110/1113 PASS
-fallos fuera de alcance: 3 pruebas preexistentes por fechas fijas vencidas
+retry policy focal: 13/13 PASS
+required operational parity: 76/77 PASS
+fallo fuera de alcance: 1 prueba preexistente por fecha fija vencida
 ```
 
 Nota:
@@ -95,38 +94,50 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: create y snapshot citado
+## Evidencia focal actual: política canónica de retries
 
 ```yaml
-hito_id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
-technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
+hito_id: LAT-01
+technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
 scope_real:
-  - preserve canonical guestName from proposal through confirmed create
+  - stop permanent quota or billing failures before a second LLM attempt
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create execution integrity: 11/11 PASS
+      - retry policy focal: 13/13 PASS
+      - required operational parity: 76/77 PASS
+      - unico fallo por fecha fija vencida, anterior e independiente
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L4953-L5165
-  bodyLLM: L5824-L12433
-  posLLM: L12928-L12969
-  handleIncomingMessage: L12973-L12981
+  tryStructuredAnalyze: L4764-L4891
+  preLLM: L4954-L5166
+  tryBodyLLMStructuredEnrichment: L5754-L5791
+  tryBodyLLMStructuredFallback: L5793-L5822
+  bodyLLM: L5825-L12434
+  posLLM: L12929-L12970
+  handleIncomingMessage: L12974-L13298
 evidence_source: guardian_scan
 focal_refs:
-  create_confirmation_execution: L10612-L10718
-  confirmAndCreate_provider_call: L10648
-  quoted_snapshot_and_persistence: L12340-L12402
-  parity_test: test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296
+  retry_policy_classification: lib/llm/retryPolicy.ts:L18-L98
+  retry_policy_installation: lib/llm/retryPolicy.ts:L100-L116
+  fill_slots_boundary: lib/agents/reservations.ts:L152-L380
+  fill_slots_retry_policy_installation: lib/agents/reservations.ts:L157
+  structured_boundary: lib/handlers/messageHandler.ts:L4764-L4891
+  structured_retry_policy_installation: lib/handlers/messageHandler.ts:L4794-L4797
+  active_bodyllm_call: lib/handlers/messageHandler.ts:L11359-L11372
+global_freshness_claim_allowed: false
 ```
 
 ## Evidencia focal histórica del refresh anterior
@@ -285,7 +296,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13297
+total_lines: 13298
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -293,8 +304,8 @@ confidence: high
 Lectura:
 
 ```text
-messageHandler.ts sigue siendo el runtime principal vigente en el working tree
-del hito `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
+`messageHandler.ts` sigue siendo el runtime principal. Los rangos listados para
+`LAT-01` son evidencia focal; no constituyen una declaración de frescura global.
 ```
 
 ---
@@ -303,18 +314,18 @@ del hito `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
-| `buildReservationCanonicalState`     | L2464-L2514 |     51 | high      | Proyección canónica de estado de reserva   |
-| `resolveReservationReference`        | L3143-L3251 |    109 | high      | Resolución de referencia a reserva         |
-| `detectDominantTurnDomain`           | L3484-L3543 |     60 | high      | Detección de dominio dominante             |
-| `getReservationDomainLockSignal`     | L3816-L3851 |     36 | high      | Señal de domain lock para reservas         |
-| `shouldUseReservationLocalFallback`  | L3988-L4039 |     52 | high      | Decisión de fallback local de reservas     |
-| `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      | Construcción de fallback local de reservas |
-| `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      | Evaluación de coherencia temporal          |
-| `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4953-L5165 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5824-L12433 |   6610 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12928-L12969 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12973-L12981 |      9 | high      | Entrypoint público del runtime             |
+| `buildReservationCanonicalState`     | L2556-L2608 |     53 | high      | Proyección canónica de estado de reserva   |
+| `resolveReservationReference`        | L3237-L3345 |    109 | high      | Resolución de referencia a reserva         |
+| `detectDominantTurnDomain`           | L3578-L3637 |     60 | high      | Detección de dominio dominante             |
+| `getReservationDomainLockSignal`     | L3910-L3945 |     36 | high      | Señal de domain lock para reservas         |
+| `shouldUseReservationLocalFallback`  | L4082-L4133 |     52 | high      | Decisión de fallback local de reservas     |
+| `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      | Construcción de fallback local de reservas |
+| `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      | Evaluación de coherencia temporal          |
+| `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      | Análisis estructurado semántico            |
+| `preLLM`                             | L4954-L5166 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5825-L12434 |   6610 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L12929-L12970 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L12974-L13298 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -324,7 +335,7 @@ del hito `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`.
 
 ```yaml
 name: handleIncomingMessage
-range: L12973-L12981
+range: L12974-L13298
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -343,7 +354,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4953-L5165
+range: L4954-L5166
 lines: 213
 confidence: high
 role: context_preparation
@@ -365,8 +376,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5824-L12433
-lines: 6611
+range: L5825-L12434
+lines: 6610
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -395,7 +406,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12928-L12969
+range: L12929-L12970
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -565,7 +576,7 @@ Es pequeño pero conceptualmente importante para bugs de fechas.
 
 ```yaml
 name: tryStructuredAnalyze
-range: L4090-L4278
+range: L4764-L4891
 confidence: high
 related_boxes:
   - bodyLLM.turnDecision
@@ -588,16 +599,21 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5824-L12433
-bodyLLM_lines: 6611
+bodyLLM_range: L5825-L12434
+bodyLLM_lines: 6610
 bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-Los buckets siguientes fueron regenerados contra el commit actual. Son evidencia
-física de densidad, no fronteras conceptuales ni autorización de refactor.
+El scan autoritativo recalculado para LAT-01 está versionado en
+`.runtime-analysis/bodyLLM_internal_scan.md` y fue verificado por SHA-256. No
+implica frescura global ni autoriza refactor.
 
-Tabla de buckets:
+La tabla siguiente se conserva como evidencia histórica del scan anterior en
+`59c7f39c95eb2ccea2b1ab74b9490449148642b8`; sus rangos no son referencias
+actuales de LAT-01.
+
+Tabla histórica de buckets:
 
 | Rango       | Top markers                                                                          | Returns | Awaits | Decisions | Temporal/check markers |
 | ----------- | ------------------------------------------------------------------------------------ | ------: | -----: | --------: | ---------------------: |

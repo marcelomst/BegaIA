@@ -21,19 +21,18 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: a06e3f92258a8aaecbbddc4040a318029401a2f6
-messageHandler_lines: 13297
-working_tree_status: clean_before_evidence_refresh
-analysis_scope: commit_a06e3f92258a8aaecbbddc4040a318029401a2f6
+commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+messageHandler_lines: 13298
+working_tree_status: unrelated_document_change_preserved
+analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - create/confirmation/extraction: 58/58 PASS
-    - create execution integrity: 11/11 PASS
+    - retry policy focal: 13/13 PASS
+    - required operational parity: 76/77 PASS
   full_suite:
-    - ts-check: PASS
-    - 1110/1113 PASS; 3 fallos preexistentes por fechas fijas vencidas
-known_manual_bug: resolved_in_current_hito
+    - 1 fallo por fecha fija vencida, anterior e independiente
+global_freshness_claim_allowed: false
 ```
 
 ## Refresh documental aplicado en este hito
@@ -42,14 +41,19 @@ known_manual_bug: resolved_in_current_hito
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - create execution integrity: 11/11 PASS
+      - retry policy focal: 13/13 PASS
+      - required operational parity: 76/77 PASS
+      - unico fallo por fecha fija vencida, anterior e independiente
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -59,34 +63,40 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
-    messageHandler_lines: 13297
+    commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+    messageHandler_lines: 13298
     functions:
-      preLLM: L4953-L5165
-      bodyLLM: L5824-L12433
-      posLLM: L12928-L12969
-      handleIncomingMessage: L12973-L12981
-    top_level_code_refs_status: fresh
+      tryStructuredAnalyze: L4764-L4891
+      preLLM: L4954-L5166
+      tryBodyLLMStructuredEnrichment: L5754-L5791
+      tryBodyLLMStructuredFallback: L5793-L5822
+      bodyLLM: L5825-L12434
+      posLLM: L12929-L12970
+      handleIncomingMessage: L12974-L13298
+    top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
   conceptual_change: false
   evidence_refresh: true
-  code_refs_status: fresh
+  code_refs_status: focal_fresh_global_unasserted
   refresh_required: true
+  global_freshness_claim_allowed: false
 ```
 
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
-technical_commit: a06e3f92258a8aaecbbddc4040a318029401a2f6
+hito_id: LAT-01
+technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
 scope_real:
-  - preserve canonical guestName from proposal through confirmed create
+  - stop permanent quota or billing failures before a second LLM attempt
 focal_refs:
-  create_confirmation_execution: L10612-L10718
-  confirmAndCreate_provider_call: L10648
-  quoted_snapshot_and_persistence: L12340-L12402
-  parity_test: test/unit/messageHandler.create_execution_integrity.spec.ts:L265-L296
+  retry_policy_classification: lib/llm/retryPolicy.ts:L18-L98
+  retry_policy_installation: lib/llm/retryPolicy.ts:L100-L116
+  fill_slots_boundary: lib/agents/reservations.ts:L152-L380
+  structured_boundary: lib/handlers/messageHandler.ts:L4764-L4891
+  structured_retry_policy_installation: lib/handlers/messageHandler.ts:L4794-L4797
+  active_bodyllm_call: lib/handlers/messageHandler.ts:L11359-L11372
 ```
 
 Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
@@ -96,7 +106,7 @@ no ejecutó ninguna operación contra Astra.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan vigente de `a06e3f92258a8aaecbbddc4040a318029401a2f6`,
+sin reemplazar el scan focal vigente de `9a46b5f9007ccb204e6982e05c72571ffd8c44da`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -130,18 +140,18 @@ validation:
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
-| `buildReservationCanonicalState`     | L2464-L2514 |     51 | high      |
-| `resolveReservationReference`        | L3143-L3251 |    109 | high      |
-| `detectDominantTurnDomain`           | L3484-L3543 |     60 | high      |
-| `getReservationDomainLockSignal`     | L3816-L3851 |     36 | high      |
-| `shouldUseReservationLocalFallback`  | L3988-L4039 |     52 | high      |
-| `buildReservationLocalFallbackReply` | L4041-L4176 |    136 | high      |
-| `assessReservationDateCoherence`     | L4178-L4191 |     14 | high      |
-| `tryStructuredAnalyze`               | L4670-L4797 |    128 | high      |
-| `preLLM`                             | L4953-L5165 |    213 | high      |
-| `bodyLLM`                            | L5824-L12433 |   6610 | high      |
-| `posLLM`                             | L12928-L12969 |     42 | high      |
-| `handleIncomingMessage`              | L12973-L12981 |      9 | high      |
+| `buildReservationCanonicalState`     | L2556-L2608 |     53 | high      |
+| `resolveReservationReference`        | L3237-L3345 |    109 | high      |
+| `detectDominantTurnDomain`           | L3578-L3637 |     60 | high      |
+| `getReservationDomainLockSignal`     | L3910-L3945 |     36 | high      |
+| `shouldUseReservationLocalFallback`  | L4082-L4133 |     52 | high      |
+| `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      |
+| `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      |
+| `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      |
+| `preLLM`                             | L4954-L5166 |    213 | high      |
+| `bodyLLM`                            | L5825-L12434 |   6610 | high      |
+| `posLLM`                             | L12929-L12970 |     42 | high      |
+| `handleIncomingMessage`              | L12974-L13298 |    325 | high      |
 
 ---
 
@@ -150,7 +160,7 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13297 líneas
+messageHandler.ts total: 13298 líneas
 bodyLLM:                6610 líneas
 ```
 
@@ -537,7 +547,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13297
+    range: L1-L13298
     confidence: high
 ```
 
@@ -550,7 +560,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4953-L5165
+    range: L4954-L5166
     confidence: high
 ```
 
@@ -569,7 +579,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5824-L12433
+    range: L5825-L12434
     confidence: high
 ```
 
@@ -588,7 +598,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12928-L12969
+    range: L12929-L12970
     confidence: high
 ```
 
@@ -607,7 +617,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12973-L12981
+    range: L12974-L13298
     confidence: high
 ```
 
