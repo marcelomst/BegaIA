@@ -67,11 +67,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
-messageHandler_lines: 13298
+commit_base: de07879f0cc1d69510c5ad87f7f744054ea5d788
+messageHandler_lines: 13483
 working_tree_status: unrelated_document_change_preserved
-analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
-baseline_status: lat_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_pers_01_at_de07879f0cc1d69510c5ad87f7f744054ea5d788
+baseline_status: pers_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -80,9 +80,13 @@ global_freshness_claim_allowed: false
 ## Validacion tecnica informada
 
 ```text
-retry policy focal: 13/13 PASS
-required operational parity: 76/77 PASS
-fallo fuera de alcance: 1 prueba preexistente por fecha fija vencida
+CAS unit contract: 4/4 PASS
+post-Graph dynamic characterization: 22/22 PASS
+LAT-01 compatibility: 13/13 PASS
+Graph create confirmation guard: 14/14 PASS
+focal/regression aggregate: 94/95 PASS
+fallo fuera de alcance: 1 fixture historico vencido, independiente de PERS-01
+Astra real CAS gate: accepted
 ```
 
 Nota:
@@ -94,50 +98,62 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: política canónica de retries
+## Evidencia focal actual: preservacion de metadata de propuesta Graph
 
 ```yaml
-hito_id: LAT-01
-technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+hito_id: PERS-01
+technical_commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
 scope_real:
-  - stop permanent quota or billing failures before a second LLM attempt
+  - preserve rich lastProposal metadata for a proposal attributed to the current Graph invocation
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - retry policy focal: 13/13 PASS
-      - required operational parity: 76/77 PASS
-      - unico fallo por fecha fija vencida, anterior e independiente
+      - CAS unit contract: 4/4 PASS
+      - post-Graph dynamic characterization: 22/22 PASS
+      - LAT-01 compatibility: 13/13 PASS
+      - Graph create confirmation guard: 14/14 PASS
+      - focal/regression aggregate: 94/95 PASS
+      - Astra real CAS gate: accepted
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  tryStructuredAnalyze: L4764-L4891
+  preLLM: L4960-L5172
+  bodyLLM: L5989-L12619
+  posLLM: L13114-L13155
+  handleIncomingMessage: L13159-L13483
+evidence_source: guardian_scan
+focal_refs:
+  attribution_contract: lib/handlers/messageHandler.ts:L5830-L5903
+  canonical_reread_and_cas_dispatch: lib/handlers/messageHandler.ts:L5905-L5986
+  graph_invocation_attribution: lib/handlers/messageHandler.ts:L11426-L11457
+  post_graph_persistence: lib/handlers/messageHandler.ts:L12554-L12590
+  observable_persistence_reply: lib/handlers/messageHandler.ts:L13329-L13477
+  helper_cas: lib/db/convState.ts:L311-L343
+global_freshness_claim_allowed: false
+```
+
+## Snapshot focal anterior preservado
+
+```yaml
+hito_id: LAT-01
+technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+messageHandler_lines: 13298
+provenance: historical_focal_snapshot_preserved
+top_level_code_refs:
   preLLM: L4954-L5166
-  tryBodyLLMStructuredEnrichment: L5754-L5791
-  tryBodyLLMStructuredFallback: L5793-L5822
   bodyLLM: L5825-L12434
   posLLM: L12929-L12970
   handleIncomingMessage: L12974-L13298
-evidence_source: guardian_scan
-focal_refs:
-  retry_policy_classification: lib/llm/retryPolicy.ts:L18-L98
-  retry_policy_installation: lib/llm/retryPolicy.ts:L100-L116
-  fill_slots_boundary: lib/agents/reservations.ts:L152-L380
-  fill_slots_retry_policy_installation: lib/agents/reservations.ts:L157
-  structured_boundary: lib/handlers/messageHandler.ts:L4764-L4891
-  structured_retry_policy_installation: lib/handlers/messageHandler.ts:L4794-L4797
-  active_bodyllm_call: lib/handlers/messageHandler.ts:L11359-L11372
-global_freshness_claim_allowed: false
 ```
 
 ## Evidencia focal histórica del refresh anterior
@@ -251,7 +267,7 @@ external_dependencies:
 
 `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
 contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
-conservan como evidencia histórica porque la baseline actual `16b88e2c9893480e1d36072f7f4eb1d2b82f66ee`
+conservan como evidencia histórica porque la baseline actual `de07879f0cc1d69510c5ad87f7f744054ea5d788`
 es posterior.
 
 ```yaml
@@ -296,7 +312,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13298
+total_lines: 13483
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -305,12 +321,17 @@ Lectura:
 
 ```text
 `messageHandler.ts` sigue siendo el runtime principal. Los rangos listados para
-`LAT-01` son evidencia focal; no constituyen una declaración de frescura global.
+`PERS-01` son evidencia focal; no constituyen una declaracion de frescura global.
 ```
 
 ---
 
 ## 2. Funciones clave detectadas
+
+Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
+`handleIncomingMessage`) fueron recalculadas para PERS-01. Las demas filas se
+conservan como evidencia del snapshot focal anterior y no declaran frescura
+global.
 
 | Función                              |       Rango | Líneas | Confianza | Lectura                                    |
 | ------------------------------------ | ----------: | -----: | --------- | ------------------------------------------ |
@@ -322,10 +343,10 @@ Lectura:
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4954-L5166 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L5825-L12434 |   6610 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L12929-L12970 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L12974-L13298 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4960-L5172 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L5989-L12619 |   6631 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L13114-L13155 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L13159-L13483 |    325 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -335,7 +356,7 @@ Lectura:
 
 ```yaml
 name: handleIncomingMessage
-range: L12974-L13298
+range: L13159-L13483
 lines: 325
 confidence: high
 role: public_entrypoint
@@ -354,7 +375,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4954-L5166
+range: L4960-L5172
 lines: 213
 confidence: high
 role: context_preparation
@@ -376,8 +397,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L5825-L12434
-lines: 6610
+range: L5989-L12619
+lines: 6631
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -406,7 +427,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L12929-L12970
+range: L13114-L13155
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -599,19 +620,19 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L5825-L12434
-bodyLLM_lines: 6610
+bodyLLM_range: L5989-L12619
+bodyLLM_lines: 6631
 bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-El scan autoritativo recalculado para LAT-01 está versionado en
-`.runtime-analysis/bodyLLM_internal_scan.md` y fue verificado por SHA-256. No
-implica frescura global ni autoriza refactor.
+El scan read-only recalculado por Guardian para PERS-01 confirma el rango
+top-level actual. El refresh de este documento es focal, no implica frescura
+global ni autoriza refactor.
 
 La tabla siguiente se conserva como evidencia histórica del scan anterior en
 `59c7f39c95eb2ccea2b1ab74b9490449148642b8`; sus rangos no son referencias
-actuales de LAT-01.
+actuales de PERS-01.
 
 Tabla histórica de buckets:
 

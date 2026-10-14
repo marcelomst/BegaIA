@@ -21,18 +21,37 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
-messageHandler_lines: 13298
+commit_base: de07879f0cc1d69510c5ad87f7f744054ea5d788
+messageHandler_lines: 13483
 working_tree_status: unrelated_document_change_preserved
-analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
+analysis_scope: focal_refresh_pers_01_at_de07879f0cc1d69510c5ad87f7f744054ea5d788
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - retry policy focal: 13/13 PASS
-    - required operational parity: 76/77 PASS
+    - CAS unit contract: 4/4 PASS
+    - post-Graph dynamic characterization: 22/22 PASS
+    - LAT-01 compatibility: 13/13 PASS
+    - Graph create confirmation guard: 14/14 PASS
+    - Astra real CAS gate: accepted
   full_suite:
-    - 1 fallo por fecha fija vencida, anterior e independiente
+    - 94/95 PASS
+    - 1 fallo por fixture historico vencido, independiente de PERS-01
 global_freshness_claim_allowed: false
+```
+
+Snapshot focal anterior preservado:
+
+```yaml
+commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+messageHandler_lines: 13298
+analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
+provenance: historical_focal_snapshot_preserved
+snapshot_ancestor_verified: true
+functions:
+  preLLM: L4954-L5166
+  bodyLLM: L5825-L12434
+  posLLM: L12929-L12970
+  handleIncomingMessage: L12974-L13298
 ```
 
 ## Refresh documental aplicado en este hito
@@ -41,19 +60,22 @@ global_freshness_claim_allowed: false
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - retry policy focal: 13/13 PASS
-      - required operational parity: 76/77 PASS
-      - unico fallo por fecha fija vencida, anterior e independiente
+      - CAS unit contract: 4/4 PASS
+      - post-Graph dynamic characterization: 22/22 PASS
+      - LAT-01 compatibility: 13/13 PASS
+      - Graph create confirmation guard: 14/14 PASS
+      - focal/regression aggregate: 94/95 PASS
+      - unico fallo por fixture historico vencido, independiente de PERS-01
+      - Astra real CAS gate: accepted
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -63,16 +85,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
-    messageHandler_lines: 13298
+    commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
+    messageHandler_lines: 13483
     functions:
-      tryStructuredAnalyze: L4764-L4891
-      preLLM: L4954-L5166
-      tryBodyLLMStructuredEnrichment: L5754-L5791
-      tryBodyLLMStructuredFallback: L5793-L5822
-      bodyLLM: L5825-L12434
-      posLLM: L12929-L12970
-      handleIncomingMessage: L12974-L13298
+      preLLM: L4960-L5172
+      bodyLLM: L5989-L12619
+      posLLM: L13114-L13155
+      handleIncomingMessage: L13159-L13483
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -86,17 +105,17 @@ runtime_map:
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: LAT-01
-technical_commit: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
+hito_id: PERS-01
+technical_commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
 scope_real:
-  - stop permanent quota or billing failures before a second LLM attempt
+  - preserve rich lastProposal metadata for a proposal attributed to the current Graph invocation
 focal_refs:
-  retry_policy_classification: lib/llm/retryPolicy.ts:L18-L98
-  retry_policy_installation: lib/llm/retryPolicy.ts:L100-L116
-  fill_slots_boundary: lib/agents/reservations.ts:L152-L380
-  structured_boundary: lib/handlers/messageHandler.ts:L4764-L4891
-  structured_retry_policy_installation: lib/handlers/messageHandler.ts:L4794-L4797
-  active_bodyllm_call: lib/handlers/messageHandler.ts:L11359-L11372
+  attribution_contract: lib/handlers/messageHandler.ts:L5830-L5903
+  canonical_reread_and_cas_dispatch: lib/handlers/messageHandler.ts:L5905-L5986
+  graph_invocation_attribution: lib/handlers/messageHandler.ts:L11426-L11457
+  post_graph_persistence: lib/handlers/messageHandler.ts:L12554-L12590
+  observable_persistence_reply: lib/handlers/messageHandler.ts:L13329-L13477
+  helper_cas: lib/db/convState.ts:L311-L343
 ```
 
 Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
@@ -106,7 +125,7 @@ no ejecutó ninguna operación contra Astra.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan focal vigente de `9a46b5f9007ccb204e6982e05c72571ffd8c44da`,
+sin reemplazar el scan focal vigente de `de07879f0cc1d69510c5ad87f7f744054ea5d788`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -136,7 +155,12 @@ validation:
   - git diff --check: PASS
 ```
 
-## Funciones clave actuales
+## Funciones clave historicas y top-level actuales
+
+Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
+`handleIncomingMessage`) fueron recalculadas para PERS-01. Las demas filas se
+preservan como evidencia del snapshot focal anterior y no declaran frescura
+global.
 
 | Función                              |       Rango | Líneas | Confianza |
 | ------------------------------------ | ----------: | -----: | --------- |
@@ -148,10 +172,10 @@ validation:
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      |
-| `preLLM`                             | L4954-L5166 |    213 | high      |
-| `bodyLLM`                            | L5825-L12434 |   6610 | high      |
-| `posLLM`                             | L12929-L12970 |     42 | high      |
-| `handleIncomingMessage`              | L12974-L13298 |    325 | high      |
+| `preLLM`                             | L4960-L5172 |    213 | high      |
+| `bodyLLM`                            | L5989-L12619 |   6631 | high      |
+| `posLLM`                             | L13114-L13155 |     42 | high      |
+| `handleIncomingMessage`              | L13159-L13483 |    325 | high      |
 
 ---
 
@@ -160,8 +184,8 @@ validation:
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13298 líneas
-bodyLLM:                6610 líneas
+messageHandler.ts total: 13483 lineas
+bodyLLM:                6631 lineas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -547,7 +571,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13298
+    range: L1-L13483
     confidence: high
 ```
 
@@ -560,7 +584,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4954-L5166
+    range: L4960-L5172
     confidence: high
 ```
 
@@ -579,7 +603,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5825-L12434
+    range: L5989-L12619
     confidence: high
 ```
 
@@ -598,7 +622,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12929-L12970
+    range: L13114-L13155
     confidence: high
 ```
 
@@ -617,7 +641,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L12974-L13298
+    range: L13159-L13483
     confidence: high
 ```
 

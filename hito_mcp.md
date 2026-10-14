@@ -15017,3 +15017,143 @@ Impacto:
 - `architecture_docs_candidates: []`
 - sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
 - cierre definitivo sujeto a commit documental, push y HDOC(CLOSE)
+
+### PERS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-14
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: preservar metadata rica de `lastProposal` en el postprocesado de una propuesta atribuida a la invocacion Graph actual
+Commit tecnico: de07879f0cc1d69510c5ad87f7f744054ea5d788
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Objetivo y causa raiz:
+
+El postprocesado de una propuesta de create podia sustituir `lastProposal` por
+una representacion sparse y perder `toolCall` y metadata ya persistida por
+Graph. La correccion atribuye la propuesta a la invocacion Graph actual,
+relee `conv_state` y aplica un CAS atomico que modifica exclusivamente
+`lastProposal.text` cuando identidad temporal, tool call, input y snapshot
+canonico siguen coincidiendo.
+
+Decision arquitectonica e invariantes:
+
+- `conv_state` permanece como fuente canonica local; no se introduce estado
+  paralelo
+- la atribucion y coordinacion permanecen en
+  `lib/handlers/messageHandler.ts`
+- el helper CAS reside en `lib/db/convState.ts`
+- una propuesta sustituida no puede ser sobrescrita por postprocesado tardio
+- un mismatch o fallo de lectura/CAS conserva el estado existente
+- la unica mutacion autorizada es `$set` sobre `lastProposal.text`; el resto de
+  la metadata permanece sin cambios
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
+technical_commit_message: "fix(pers-01): preserve rich Graph proposal metadata"
+technical_push: confirmed
+files:
+  - lib/db/convState.ts
+  - lib/handlers/messageHandler.ts
+  - test/unit/convState.lastProposalTextCas.spec.ts
+  - test/unit/messageHandler.create_quote_gating.spec.ts
+  - test/unit/messageHandler.lat02_dynamic_characterization.spec.ts
+```
+
+Validacion automatizada auditada por Guardian:
+
+- CAS unitario: 4/4 PASS
+- caracterizacion dinamica post-Graph: 22/22 PASS
+- compatibilidad LAT-01: 13/13 PASS
+- guard de confirmacion Graph create: 14/14 PASS
+- validacion focal y regresion: 94/95 PASS
+- el unico fallo corresponde a un fixture historico independiente con
+  `checkIn: 2026-10-01`, vencido al validar el 2026-10-14; no es atribuible a
+  PERS-01
+- TypeScript: PASS
+- `git diff --check`: PASS
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+
+Evidencia de integracion Astra ejecutada por `asistente_tecnico` y aceptada por
+Guardian, sin reproduccion directa de la prueba real por Guardian:
+
+```yaml
+environment_reported_by_astra: prod
+database: Begasist
+namespace: hotel_data
+collection: conv_state
+logical_test_partition: hotel999
+physical_isolation: none_reported
+document: synthetic_only
+effective_cas: { matchedCount: 1, modifiedCount: 1 }
+idempotent_repeat: { matchedCount: 1, modifiedCount: 0 }
+wrong_timestamp: { matchedCount: 0, modifiedCount: 0 }
+wrong_input: { matchedCount: 0, modifiedCount: 0 }
+stale_a_after_b: { matchedCount: 0, modifiedCount: 0, proposal_b_preserved: true }
+metadata_preserved: true
+only_lastProposal_text_changed: true
+cleanup: { deletedCount: 1, post_delete_read: null }
+guardian_acceptance: accepted_reported_integration_evidence
+```
+
+No se afirma una validacion manual completa del corredor Graph contra Astra.
+
+Runtime Map:
+
+- cajas tocadas y revisadas:
+  `runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create` y
+  `runtime.messageHandler.persistenceReply`
+- cajas prohibidas o no declaradas tocadas: ninguna
+- parity tests: present
+- `box_id` y relaciones conceptuales preservados
+- refresh fisico focal al commit
+  `de07879f0cc1d69510c5ad87f7f744054ea5d788`
+- `messageHandler.ts`: 13483 lineas fisicas
+- `preLLM`: L4960-L5172
+- `bodyLLM`: L5989-L12619
+- `posLLM`: L13114-L13155
+- `handleIncomingMessage`: L13159-L13483
+- atribucion y matching: `messageHandler.ts:L5830-L5903`
+- relectura canonica y despacho CAS: `messageHandler.ts:L5905-L5986`
+- atribucion de invocacion Graph: `messageHandler.ts:L11426-L11457`
+- persistencia post-Graph y CAS: `messageHandler.ts:L12554-L12590`
+- persistencia/reply observable: `messageHandler.ts:L13329-L13477`
+- helper CAS: `convState.ts:L311-L343`
+- frescura resultante: exclusivamente `pers_01_focal_only`; no se declara
+  frescura global
+
+Limites funcionales y riesgos residuales:
+
+- no resuelve integridad global de `lastProposal`
+- no resuelve cotizaciones deterministicas de `reservation.create`, captura o
+  correccion deterministica del titular, reserva adicional ni recotizaciones
+- no resuelve `available:true` no derivado del provider, handoff negativo ni
+  bypass LAT-02
+- la prueba manual del 2026-10-13 con Martin Silva evidencio degradacion de
+  metadata en un corredor deterministico que retorna antes de Graph; pertenece
+  al candidato PERS-02 y no es regresion de PERS-01
+- PERS-02 permanece separado y sin autorizacion de implementacion
+- LAT-02 mantiene NO-GO para el bypass estructurado bajo el contrato vigente de
+  supervision
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; preserva metadata rica en la fuente canonica y evita
+  sobrescrituras tardias sin crear una fuente paralela
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
+- cierre definitivo sujeto a commit documental, push y HDOC(CLOSE)
