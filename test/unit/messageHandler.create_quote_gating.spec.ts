@@ -20,6 +20,31 @@ vi.mock("@/lib/db/convState", () => ({
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
+  updateLastProposalTextIfCurrent: vi.fn(async (
+    hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const proposal = currentState?.lastProposal;
+    const input = proposal?.toolCall?.input;
+    const matched = Boolean(
+      proposal?.available === true &&
+      (proposal?.text === identity.sourceText || proposal?.text === text) &&
+      proposal?.toolCall?.name === "checkAvailability" &&
+      proposal?.toolCall?.outputSummary === "available:true" &&
+      proposal?.toolCall?.at === identity.toolCallAt &&
+      input?.hotelId === hotelId &&
+      input?.roomType === identity.input.roomType &&
+      input?.numGuests === identity.input.numGuests &&
+      input?.checkIn === identity.input.checkIn &&
+      input?.checkOut === identity.input.checkOut
+    );
+    if (!matched) return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    const modified = proposal.text !== text;
+    currentState = { ...currentState, lastProposal: { ...proposal, text } };
+    return { matched: true, modified, matchedCount: 1, modifiedCount: modified ? 1 : 0 };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn((st: any) => {
     if (!st) return undefined;
@@ -51,14 +76,37 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
 });
 vi.mock("@/lib/agents", () => ({
   agentGraph: {
-    invoke: vi.fn(async () => ({
-      messages: [{
-        role: "assistant",
-        content: "Tengo doble disponible. Tarifa por noche: 100 USD. Total 5 noches: 500 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-      }],
-      category: "reservation",
-      meta: {},
-    })),
+    invoke: vi.fn(async () => {
+      const text = "Tengo doble disponible. Tarifa por noche: 100 USD. Total 5 noches: 500 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.";
+      const slots = currentState?.reservationSlots || {};
+      currentState = {
+        ...(currentState || {}),
+        lastProposal: {
+          text,
+          available: true,
+          options: [{ roomType: slots.roomType, pricePerNight: 100, currency: "USD" }],
+          suggestedRoomType: slots.roomType,
+          suggestedPricePerNight: 100,
+          toolCall: {
+            name: "checkAvailability",
+            input: {
+              hotelId: "hotel999",
+              roomType: slots.roomType,
+              numGuests: Number(slots.numGuests),
+              checkIn: slots.checkIn,
+              checkOut: slots.checkOut,
+            },
+            outputSummary: "available:true",
+            at: new Date().toISOString(),
+          },
+        },
+      };
+      return {
+        messages: [{ role: "assistant", content: text }],
+        category: "reservation",
+        meta: {},
+      };
+    }),
   },
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({

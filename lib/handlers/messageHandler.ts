@@ -17,10 +17,16 @@ import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages
 import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
-import { getConvState, CONVSTATE_VERSION, resolveGuestState } from "@/lib/db/convState";
+import {
+  getConvState,
+  updateLastProposalTextIfCurrent,
+  CONVSTATE_VERSION,
+  resolveGuestState,
+} from "@/lib/db/convState";
 import type {
   ReservationSlots as DbReservationSlots,
   LastReservation,
+  ConversationFlowState,
   ActiveReservationContext,
   SelectedReservationTarget,
   ModifyState,
@@ -5821,6 +5827,164 @@ async function tryBodyLLMStructuredFallback(pre: PreLLMResult, state: BodyLLMSta
   if (structured.handoff === true) state.needsSupervision = true;
 }
 
+type GraphProposalAttribution = {
+  startedAtMs: number;
+  completedAtMs: number;
+  sourceText: string;
+};
+
+type CanonicalCreateProposalSnapshot = {
+  guestName: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  numGuests: number;
+};
+
+function isCanonicalIsoDateValue(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function normalizeCanonicalCreateProposalSnapshot(
+  slots?: Partial<ReservationSlotsStrict> | DbReservationSlots | null
+): CanonicalCreateProposalSnapshot | null {
+  if (!slots || !isCreateStateReadyForQuote(slots as ReservationSlotsStrict)) return null;
+  const guestName = String(slots.guestName || "").trim();
+  const roomType = String(slots.roomType || "").trim();
+  const checkIn = String(slots.checkIn || "").trim();
+  const checkOut = String(slots.checkOut || "").trim();
+  const rawNumGuests = String(slots.numGuests ?? "").trim();
+  const numGuests = Number(rawNumGuests);
+  const coherence = assessReservationDateCoherence(checkIn, checkOut);
+  if (
+    !isSafeGuestName(guestName) ||
+    !roomType ||
+    !isCanonicalIsoDateValue(checkIn) ||
+    !isCanonicalIsoDateValue(checkOut) ||
+    !/^\d+$/.test(rawNumGuests) ||
+    !Number.isSafeInteger(numGuests) ||
+    numGuests <= 0 ||
+    (coherence && !coherence.ok)
+  ) {
+    return null;
+  }
+  return { guestName, roomType, checkIn, checkOut, numGuests };
+}
+
+function proposalInputMatchesSnapshot(
+  input: Record<string, unknown>,
+  hotelId: string,
+  snapshot: CanonicalCreateProposalSnapshot
+): boolean {
+  return (
+    input.hotelId === hotelId &&
+    input.roomType === snapshot.roomType &&
+    input.numGuests === snapshot.numGuests &&
+    input.checkIn === snapshot.checkIn &&
+    input.checkOut === snapshot.checkOut
+  );
+}
+
+function canonicalStateMatchesCreateSnapshot(
+  canonicalState: ConversationFlowState,
+  snapshot: CanonicalCreateProposalSnapshot
+): boolean {
+  const persisted = normalizeCanonicalCreateProposalSnapshot(canonicalState.reservationSlots);
+  return Boolean(
+    persisted &&
+    persisted.guestName === snapshot.guestName &&
+    persisted.roomType === snapshot.roomType &&
+    persisted.checkIn === snapshot.checkIn &&
+    persisted.checkOut === snapshot.checkOut &&
+    persisted.numGuests === snapshot.numGuests
+  );
+}
+
+async function tryUpdateAttributedCreateProposalText(params: {
+  pre: PreLLMResult;
+  attribution: GraphProposalAttribution | null;
+  snapshot: ReservationSlotsStrict;
+  finalText: string;
+}): Promise<void> {
+  const { pre, attribution, snapshot: rawSnapshot, finalText } = params;
+  if (!attribution || !finalText) return;
+  const snapshot = normalizeCanonicalCreateProposalSnapshot(rawSnapshot);
+  if (!snapshot) return;
+
+  let canonicalState: ConversationFlowState | null;
+  try {
+    canonicalState = await getConvState(pre.msg.hotelId, pre.conversationId);
+  } catch (error) {
+    console.warn("[lastProposal] canonical read failed; preserving existing proposal:", (error as any)?.message || error);
+    return;
+  }
+
+  const proposal = canonicalState?.lastProposal;
+  const toolCall = proposal?.toolCall;
+  const toolInput = toolCall?.input as Record<string, unknown> | undefined;
+  const toolCallAtMs = Date.parse(String(toolCall?.at || ""));
+  const belongsToCurrentGraphInvocation =
+    Number.isFinite(toolCallAtMs) &&
+    toolCallAtMs >= attribution.startedAtMs &&
+    toolCallAtMs <= attribution.completedAtMs;
+  const hasCanonicalCreateContext = Boolean(
+    canonicalState &&
+    canonicalState.lastCategory === "reservation" &&
+    canonicalState.desiredAction === "create" &&
+    canonicalState.activeFlow === "reservation" &&
+    canonicalState.conversationFocus?.domain === "reservation" &&
+    canonicalState.conversationFocus?.subFlow === "create" &&
+    canonicalState.conversationFocus?.active === true
+  );
+  const matches = Boolean(
+    canonicalState &&
+    proposal?.available === true &&
+    (proposal.text === attribution.sourceText || proposal.text === finalText) &&
+    toolCall?.name === "checkAvailability" &&
+    toolCall.outputSummary === "available:true" &&
+    toolCall.at &&
+    toolInput &&
+    belongsToCurrentGraphInvocation &&
+    hasCanonicalCreateContext &&
+    canonicalStateMatchesCreateSnapshot(canonicalState, snapshot) &&
+    proposalInputMatchesSnapshot(toolInput, pre.msg.hotelId, snapshot)
+  );
+  if (!matches || !toolCall || !toolInput) {
+    debugLog("[lastProposal] attribution mismatch; preserving existing proposal", {
+      conversationId: pre.conversationId,
+      hasCanonicalCreateContext,
+      belongsToCurrentGraphInvocation,
+    });
+    return;
+  }
+
+  try {
+    const result = await updateLastProposalTextIfCurrent(
+      pre.msg.hotelId,
+      pre.conversationId,
+      {
+        sourceText: attribution.sourceText,
+        toolCallAt: toolCall.at,
+        input: {
+          hotelId: pre.msg.hotelId,
+          roomType: snapshot.roomType,
+          numGuests: snapshot.numGuests,
+          checkIn: snapshot.checkIn,
+          checkOut: snapshot.checkOut,
+        },
+      },
+      finalText
+    );
+    if (!result.matched) {
+      console.warn("[lastProposal] conditional text update lost proposal correspondence; preserving current state");
+    }
+  } catch (error) {
+    console.warn("[lastProposal] conditional text update failed; preserving current state:", (error as any)?.message || error);
+  }
+}
+
 // ===== Agent: Orchestrator/Planner (bodyLLM + agentGraph) =====
 async function bodyLLM(pre: PreLLMResult): Promise<any> {
   debugLog("[bodyLLM] IN", { pre });
@@ -5831,6 +5995,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   let needsSupervision = state.needsSupervision;
   let graphResult = state.graphResult;
   let explicitRich = state.explicitRich;
+  let graphProposalAttribution: GraphProposalAttribution | null = null;
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   const guestState = resolveGuestState(pre.st);
   const rawTurnText = String(pre.msg.content || "");
@@ -11258,6 +11423,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           new HumanMessage(String(pre.msg.content || "")),
         ];
 
+        const graphInvocationStartedAtMs = Date.now();
         graphResult = await withTimeout(
           agentGraph.invoke({
             hotelId: pre.msg.hotelId,
@@ -11274,6 +11440,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           CONFIG.GRAPH_TIMEOUT_MS,
           "agentGraph.invoke"
         );
+        const graphInvocationCompletedAtMs = Date.now();
 
         debugLog("[bodyLLM] graphResult", graphResult);
         const last = (graphResult as any)?.messages?.at?.(-1);
@@ -11281,6 +11448,13 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         const lastAiText = extractLastAIText((graphResult as any)?.messages);
         finalText = ((lastAiText || lastText) || "").trim();
         nextCategory = (graphResult as any).category ?? pre.prevCategory ?? null;
+        if (nextCategory === "reservation" && finalText) {
+          graphProposalAttribution = {
+            startedAtMs: graphInvocationStartedAtMs,
+            completedAtMs: graphInvocationCompletedAtMs,
+            sourceText: finalText,
+          };
+        }
         debugLog("[messageHandler] resolved category", {
           nextCategory,
           promptKey: (graphResult as any)?.classified?.promptKey,
@@ -12377,6 +12551,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   ) {
     finalText = applyConversationalProposalVocative(String(finalText || ""), pre.lang, availabilityPre.guest);
   }
+  const normalizedFinalTextForOutput = stripGlobalTailNoise(String(finalText || ""));
   if (
     !modifyExecutionActive &&
     isQuoteOrConfirmText(String(finalText || ""), pre.lang) &&
@@ -12388,10 +12563,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   ) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       reservationSlots: quotedReservationSnapshot,
-      lastProposal: {
-        text: String(finalText || ""),
-        available: true,
-      },
+      ...(graphProposalAttribution
+        ? {}
+        : {
+          lastProposal: {
+            text: normalizedFinalTextForOutput,
+            available: true,
+          },
+        }),
       conversationFocus: buildConversationFocus("create"),
       activeReservationContext: buildDraftReservationContext("quoted"),
       activeFlow: "reservation",
@@ -12401,8 +12580,14 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "reservation",
       updatedBy: "ai",
     } as any);
+    await tryUpdateAttributedCreateProposalText({
+      pre,
+      attribution: graphProposalAttribution,
+      snapshot: quotedReservationSnapshot as ReservationSlotsStrict,
+      finalText: normalizedFinalTextForOutput,
+    });
   }
-  finalText = stripGlobalTailNoise(String(finalText || ""));
+  finalText = normalizedFinalTextForOutput;
   const rich = explicitRich ?? (graphResult as any)?.meta?.rich;
   traceCreateWordDates("final_output_boundary", {
     force: isCreateWordDatesTraceCandidate(String(pre.msg.content || "")),

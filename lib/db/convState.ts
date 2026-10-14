@@ -50,6 +50,25 @@ export type LastProposal = {
   };
 };
 
+export type LastProposalTextIdentity = {
+  sourceText: string;
+  toolCallAt: string;
+  input: {
+    hotelId: string;
+    roomType: string;
+    numGuests: number;
+    checkIn: string;
+    checkOut: string;
+  };
+};
+
+export type LastProposalTextUpdateResult = {
+  matched: boolean;
+  modified: boolean;
+  matchedCount: 0 | 1;
+  modifiedCount: 0 | 1;
+};
+
 export type LastReservation =
   | {
     reservationId: string;
@@ -287,6 +306,40 @@ export async function getConvState(
   console.log("[BP-CS1]", hotelId, conversationId, _id);
   const doc = await col().findOne({ _id });
   return doc ?? null;
+}
+
+export async function updateLastProposalTextIfCurrent(
+  hotelId: string,
+  conversationId: string,
+  identity: LastProposalTextIdentity,
+  text: string
+): Promise<LastProposalTextUpdateResult> {
+  const _id = key(hotelId, conversationId);
+  const collection: any = col() as any;
+  const res = await collection.updateOne(
+    {
+      _id,
+      "lastProposal.available": true,
+      "lastProposal.text": { $in: [identity.sourceText, text] },
+      "lastProposal.toolCall.name": "checkAvailability",
+      "lastProposal.toolCall.outputSummary": "available:true",
+      "lastProposal.toolCall.at": identity.toolCallAt,
+      "lastProposal.toolCall.input.hotelId": identity.input.hotelId,
+      "lastProposal.toolCall.input.roomType": identity.input.roomType,
+      "lastProposal.toolCall.input.numGuests": identity.input.numGuests,
+      "lastProposal.toolCall.input.checkIn": identity.input.checkIn,
+      "lastProposal.toolCall.input.checkOut": identity.input.checkOut,
+    },
+    { $set: { "lastProposal.text": text } }
+  );
+  const matchedCount: 0 | 1 = res?.matchedCount === 1 ? 1 : 0;
+  const modifiedCount: 0 | 1 = res?.modifiedCount === 1 ? 1 : 0;
+  return {
+    matched: matchedCount === 1,
+    modified: modifiedCount === 1,
+    matchedCount,
+    modifiedCount,
+  };
 }
 
 /* =========================
