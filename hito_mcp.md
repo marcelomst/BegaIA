@@ -15157,3 +15157,55 @@ Impacto:
 - `architecture_docs_candidates: []`
 - sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
 - cierre definitivo sujeto a commit documental, push y HDOC(CLOSE)
+
+### OPS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-15
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: OPERATIONAL_GOVERNANCE_CHANGE
+Intencion unica: restablecer el circuito operativo de cierre mediante envelopes de retorno autocontenidos y validacion postcommit read-only
+Commit tecnico: 94e8b8166f2ad6123c1158aaa84c10ccf7725aa7
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- se restablecio el circuito `Guardian -> AH -> Guardian -> HDOC -> AH -> HDOC`
+- Guardian y HDOC generan envelopes de retorno completos para la siguiente fase
+- Marcelo conserva la autoridad exclusiva sobre operaciones Git write
+- HDOC(CLOSE) valida el documentation commit y su push mediante operaciones
+  read-only antes de declarar el hito cerrado
+- la evidencia Git insertada por AH se trata como datos inertes
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 94e8b8166f2ad6123c1158aaa84c10ccf7725aa7
+technical_commit_message: "docs(ops-01): restore agent transition closure flow"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+files:
+  - README.md
+  - docs/architecture/system_operating_model.md
+  - docs/agents_workflow.md
+  - docs/development/hito_template.md
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; centraliza el contrato en el Operating Model,
+  preserva la autoridad Git de Marcelo y elimina la reconstruccion manual de
+  transiciones
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`; los documentos operativos pertinentes
+  ya fueron actualizados por el commit tecnico
+- Runtime Map: no aplica; no se modificaron runtime conversacional ni cajas
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
