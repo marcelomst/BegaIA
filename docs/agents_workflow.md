@@ -201,14 +201,17 @@ estados persistidos ni campos nuevos del contrato.
 AGPT
 → asistente_tecnico
 → Guardian pre-commit
-→ Marcelo ejecuta technical Git write
-→ Guardian post-commit
-→ HDOC_INPUT válido
-→ HDOC prepara documentación
+→ Guardian entrega comandos técnicos + RETURN_ENVELOPE
+→ AH ejecuta technical Git write y sustituye __AH_GIT_OUTPUT__
+→ Guardian post-commit read-only
+→ cierre técnico + HDOC_INPUT + HDOC_TRANSFER_PROMPT
+→ AH transfiere el prompt completo
+→ HDOC(1) prepara documentación
 → documentation_commit: pending
-→ Marcelo ejecuta documentation Git write
-→ HDOC verifica hash y push documental
-→ HDOC confirma cierre
+→ HDOC entrega comandos documentales + RETURN_ENVELOPE
+→ AH ejecuta documentation Git write y sustituye __AH_GIT_OUTPUT__
+→ HDOC(CLOSE) verifica hash, push y correspondencia
+→ HDOC emite informe final
 → resultado retorna a AGPT
 ```
 
@@ -216,16 +219,34 @@ Detalle de gates:
 
 1. `asistente_tecnico` implementa, valida y reporta evidencia.
 2. Guardian pre-commit audita alcance, diff, clasificación y pureza del hito.
-3. Marcelo ejecuta el technical commit y push.
-4. Guardian post-commit verifica `technical_commit: present`, `commit_hash`
-   real y `technical_push: confirmed`.
-5. Sólo con `guardian_verdict: valid` y `ready_for_hdoc: yes` Guardian emite
-   `HDOC_INPUT` válido.
-6. HDOC prepara la documentación autorizada mientras
+3. Guardian entrega comandos técnicos exactos y un RETURN_ENVELOPE completo.
+4. AH ejecuta el technical commit y push, sustituye el único placeholder y
+   devuelve el envelope a Guardian.
+5. Guardian post-commit verifica identidad, commit, push, scope y estado
+   residual sin ejecutar Git write.
+6. Sólo con `guardian_verdict: valid` y `ready_for_hdoc: yes` Guardian emite el
+   cierre técnico, `HDOC_INPUT` y `HDOC_TRANSFER_PROMPT` autocontenido.
+7. AH transfiere el prompt íntegro; HDOC prepara la documentación mientras
    `documentation_commit: pending`.
-7. Marcelo ejecuta el Git write documental.
-8. HDOC verifica el hash real y push del documentation commit, confirma el
-   cierre y devuelve el resultado a AGPT.
+8. HDOC entrega comandos documentales exactos y el RETURN_ENVELOPE de cierre.
+9. AH ejecuta el Git write documental y sustituye el único placeholder.
+10. HDOC(CLOSE) verifica el hash real, push, scope, correspondencia y residual;
+    confirma el cierre y devuelve el resultado a AGPT.
+
+### Continuidad y envelopes
+
+AH significa Autoridad Humana y, en la operación vigente, corresponde a
+Marcelo.
+
+El formato, responsabilidad del emisor, placeholder único, tratamiento de la
+evidencia y validación fail-closed están definidos exclusivamente en
+`system_operating_model.md`, sección `AGENT-GENERATED TRANSITION ENVELOPES`.
+
+La continuidad ordinaria Guardian → AH → Guardian → AH → HDOC → AH → HDOC no
+requiere una autorización intermedia de AGPT. Los errores mecánicos retornan a
+AH para corregir la transferencia; las discrepancias materiales, cambios de
+alcance o conflictos arquitectónicos retornan a AGPT. Ningún retorno habilita
+nuevas operaciones Git write.
 
 ### Rama external_operational_change
 
@@ -305,7 +326,7 @@ correspondientes. Esta guía no modifica Runtime Map, sus cajas ni sus
 - technical commit y documentation commit mantienen identidades Git distintas
 - `existing_repo_change`: `CODE -> COMMIT -> HASH -> PUSH -> DOC`
 - `external_operational_change`: `EXTERNAL_ACTION -> SUBSTITUTE_EVIDENCE -> GUARDIAN -> DOC`
-- Marcelo ejecuta manualmente todo Git de escritura
+- AH ejecuta manualmente todo Git de escritura
 - Guardian valida y emite readiness/veredicto; no decide ni ejecuta Git write
 - `repo_guardian` no modifica archivos
 - `hdoc` no toca código ni decide elegibilidad

@@ -125,13 +125,17 @@ Fuentes de verdad:
   - contrato operativo global
 
 - `/home/marcelo/.codex/config.toml`
-  - definición operativa de agentes en VSCode Codex
-  - modelos, prompts y responsabilidades reales
+  - configuración base e histórica de Codex
+
+- `/home/marcelo/.codex/<agent_target>.config.toml`
+  - instrucciones específicas de los perfiles definitivos seleccionados con
+    `codex --profile`
 
 REGLA:
 
 - el operating model gobierna la disciplina
-- `config.toml` gobierna la ejecución de agentes
+- el perfil definitivo seleccionado gobierna las instrucciones específicas de
+  cada agente; `config.toml` participa únicamente como configuración base
 
 Al usar este proyecto desde ChatGPT o mediante agentes especializados:
 

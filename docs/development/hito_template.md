@@ -585,6 +585,24 @@ documentation commit posterior a la preparación de HDOC. No representa el
 technical commit y permanece aplicable cuando un `external_operational_change`
 produce documentación versionada.
 
+Cuando Guardian aprueba el precommit debe entregar dos bloques separados:
+
+```text
+COMANDOS_GIT_TECNICOS_PARA_AH
+RETURN_ENVELOPE
+```
+
+El RETURN_ENVELOPE se rige por la sección
+`AGENT-GENERATED TRANSITION ENVELOPES` de `system_operating_model.md`: usa
+`agent_target: repo_guardian`, `flow_position: audit`, resuelve todos los
+campos técnicos esperados y deja únicamente `__AH_GIT_OUTPUT__` para AH.
+
+Después del postcommit válido, Guardian debe entregar conjuntamente el informe
+técnico, `HDOC_INPUT` completo y un `HDOC_TRANSFER_PROMPT` autocontenido que
+comience con el `HITO_ID` efectivo, `agent_target: hdoc` y
+`flow_position: documentation`. El prompt no puede contener placeholders ni
+referencias a mensajes previos.
+
 Debe verificar:
 
 ```text
@@ -620,6 +638,21 @@ reevalúa el alcance técnico. `documentation_commit` no es precondición de
 preparación; `pending` es un estado de control de HDOC(1), no un metadato
 obligatorio del payload persistido. El cierre final exige el hash real y el push
 verificado del documentation commit.
+
+Después de preparar la documentación, HDOC(1) debe entregar dos bloques
+separados:
+
+```text
+COMANDOS_GIT_DOCUMENTALES_PARA_AH
+RETURN_ENVELOPE
+```
+
+El RETURN_ENVELOPE se rige por la sección canónica del Operating Model: usa
+`agent_target: hdoc`, `flow_position: documentation`,
+`PURPOSE: documentation_close`, resuelve todos los valores documentales
+esperados y deja únicamente `__AH_GIT_OUTPUT__` para AH. HDOC(CLOSE) consume
+ese retorno en modo read-only, no modifica archivos y conserva
+`self_hash_persistence: not_required`.
 
 #### Para `arquitecto_sistema`
 
