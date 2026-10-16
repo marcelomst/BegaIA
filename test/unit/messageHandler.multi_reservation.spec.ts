@@ -32,10 +32,50 @@ const confirmedState = {
     channel: "web",
   },
 };
+let publishedProposal: any = null;
 
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => confirmedState),
   upsertConvState: vi.fn(async () => {}),
+  publishDeterministicCreateProposalIfLatest: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    identity: any,
+    proposal: any
+  ) => {
+    publishedProposal = proposal;
+    const { updateConversationState } = await import("@/lib/agents/stateUpdaterAgent");
+    await updateConversationState(hotelId, conversationId, {
+      reservationSlots: identity.snapshot,
+      lastProposal: proposal,
+      activeFlow: "reservation",
+      desiredAction: identity.available ? "create" : "notify_reception",
+      salesStage: identity.available ? "qualify" : "followup",
+      conversationStage: "reservation_collecting",
+      lastCategory: "reservation",
+    });
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    identity: any,
+    text: string,
+    options?: { reservationHistory?: any[] | null }
+  ) => {
+    const { updateConversationState } = await import("@/lib/agents/stateUpdaterAgent");
+    await updateConversationState(hotelId, conversationId, {
+      ...(options && "reservationHistory" in options ? { reservationHistory: options.reservationHistory } : {}),
+      reservationSlots: identity.snapshot,
+      lastProposal: { ...publishedProposal, text },
+      activeFlow: "reservation",
+      desiredAction: identity.available ? "create" : "notify_reception",
+      salesStage: identity.available ? "quote" : "followup",
+      conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+      lastCategory: "reservation",
+    });
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
   CONVSTATE_VERSION: "convstate-test",
   resolveGuestState: (st: any) => {
     if (!st) return undefined;
@@ -108,6 +148,7 @@ import { modifyReservation } from "@/lib/agents/reservations";
 describe("messageHandler multi reservation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    publishedProposal = null;
     (getConvState as any).mockResolvedValue({
       ...confirmedState,
       reservationSlots: { ...confirmedState.reservationSlots },
@@ -317,15 +358,39 @@ describe("messageHandler multi reservation", () => {
         lastCategory: "reservation",
         lastProposal: expect.objectContaining({
           available: true,
+          availabilityStatus: "available",
+          options: expect.arrayContaining([
+            expect.objectContaining({ roomType: "triple", pricePerNight: 150, currency: "USD" }),
+          ]),
+          suggestedRoomType: "triple",
+          suggestedPricePerNight: 150,
+          toolCall: expect.objectContaining({
+            name: "checkAvailability",
+            outputSummary: "available:true",
+            input: expect.objectContaining({
+              hotelId: "hotel999",
+              roomType: "triple",
+              numGuests: 3,
+              checkIn: dates.checkInISO,
+              checkOut: dates.checkOutISO,
+            }),
+          }),
+          snapshot: expect.objectContaining({
+            guestName: "Pablo Roca",
+            roomType: "triple",
+            numGuests: "3",
+            checkIn: dates.checkInISO,
+            checkOut: dates.checkOutISO,
+          }),
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: dates.checkInISO,
           checkOut: dates.checkOutISO,
           guestName: "Pablo Roca",
           numGuests: "3",
           roomType: "triple",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -370,13 +435,13 @@ describe("messageHandler multi reservation", () => {
           available: true,
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: dates.checkInISO,
           checkOut: dates.checkOutISO,
           guestName: "Raul Olivera",
           numGuests: "1",
           roomType: "single",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -421,13 +486,13 @@ describe("messageHandler multi reservation", () => {
           available: true,
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: "2026-05-02",
           checkOut: "2026-05-03",
           guestName: "Raul Olivera",
           numGuests: "3",
           roomType: "triple",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -467,13 +532,13 @@ describe("messageHandler multi reservation", () => {
           available: true,
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: "2026-05-02",
           checkOut: "2026-05-03",
           guestName: "Raul Olivera",
           numGuests: "3",
           roomType: "triple",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -520,13 +585,13 @@ describe("messageHandler multi reservation", () => {
           available: true,
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: "2026-05-03",
           checkOut: "2026-05-04",
           guestName: "Raul Olivera",
           numGuests: "3",
           roomType: "triple",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
@@ -574,13 +639,13 @@ describe("messageHandler multi reservation", () => {
           available: true,
         }),
         salesStage: "quote",
-        reservationSlots: {
+        reservationSlots: expect.objectContaining({
           checkIn: "2026-05-05",
           checkOut: "2026-05-06",
           guestName: "Marcelo Martinez",
           numGuests: "2",
           roomType: "double",
-        },
+        }),
       })
     );
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");

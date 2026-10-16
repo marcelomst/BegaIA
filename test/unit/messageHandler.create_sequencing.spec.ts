@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let currentState: any = null;
 
@@ -19,6 +19,101 @@ vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => currentState),
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
+  }),
+  publishDeterministicCreateProposalIfLatest: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    identity: any,
+    proposal: any
+  ) => {
+    const exactProposalIdentity = Boolean(
+      identity?.input?.hotelId === hotelId &&
+      proposal?.text === identity?.sourceText &&
+      proposal?.available === identity?.available &&
+      proposal?.availabilityStatus === identity?.availabilityStatus &&
+      proposal?.toolCall?.name === "checkAvailability" &&
+      proposal?.toolCall?.at === identity?.toolCallAt &&
+      proposal?.toolCall?.outputSummary === identity?.outputSummary &&
+      JSON.stringify(proposal?.toolCall?.input) === JSON.stringify(identity?.input) &&
+      JSON.stringify(proposal?.snapshot) === JSON.stringify(identity?.snapshot)
+    );
+    if (!exactProposalIdentity) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const currentAt = currentState?.lastProposal?.toolCall?.at;
+    if (currentAt && currentAt > identity.toolCallAt) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    if (currentAt === identity.toolCallAt) {
+      const idempotent = JSON.stringify(currentState?.lastProposal) === JSON.stringify(proposal);
+      return {
+        matched: idempotent,
+        modified: false,
+        matchedCount: idempotent ? 1 : 0,
+        modifiedCount: 0,
+      };
+    }
+    currentState = {
+      ...(currentState || {}),
+      hotelId,
+      conversationId,
+      reservationSlots: { ...identity.snapshot },
+      lastProposal: proposal,
+      activeFlow: "reservation",
+      desiredAction: identity.available ? "create" : "notify_reception",
+      salesStage: identity.available ? "qualify" : "followup",
+      conversationStage: "reservation_collecting",
+      activeReservationContext: { kind: "draft", phase: "collecting", updatedAt: identity.toolCallAt },
+    };
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const proposal = currentState?.lastProposal;
+    const exactCurrentIdentity = Boolean(
+      currentState?.hotelId === hotelId &&
+      currentState?.conversationId === conversationId &&
+      identity?.input?.hotelId === hotelId &&
+      proposal?.available === identity?.available &&
+      proposal?.availabilityStatus === identity?.availabilityStatus &&
+      [identity?.sourceText, text].includes(proposal?.text) &&
+      proposal?.toolCall?.name === "checkAvailability" &&
+      proposal?.toolCall?.at === identity?.toolCallAt &&
+      proposal?.toolCall?.outputSummary === identity?.outputSummary &&
+      JSON.stringify(proposal?.toolCall?.input) === JSON.stringify(identity?.input) &&
+      JSON.stringify(proposal?.snapshot) === JSON.stringify(identity?.snapshot) &&
+      JSON.stringify(currentState?.reservationSlots) === JSON.stringify(identity?.snapshot)
+    );
+    if (!exactCurrentIdentity) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const finalStage = identity.available ? "quote" : "followup";
+    const finalConversationStage = identity.available ? "reservation_quoted" : "reservation_collecting";
+    const idempotent = proposal.text === text &&
+      currentState.salesStage === finalStage &&
+      currentState.conversationStage === finalConversationStage;
+    currentState = {
+      ...currentState,
+      lastProposal: { ...proposal, text },
+      desiredAction: identity.available ? "create" : "notify_reception",
+      salesStage: finalStage,
+      conversationStage: finalConversationStage,
+      activeReservationContext: {
+        kind: "draft",
+        phase: identity.available ? "quoted" : "collecting",
+        updatedAt: identity.toolCallAt,
+      },
+    };
+    return {
+      matched: true,
+      modified: !idempotent,
+      matchedCount: 1,
+      modifiedCount: idempotent ? 0 : 1,
+    };
   }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn(() => undefined),
@@ -116,6 +211,11 @@ describe("messageHandler create sequencing", () => {
   beforeEach(() => {
     currentState = null;
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
     vi.useRealTimers();
   });
 
@@ -208,6 +308,40 @@ describe("messageHandler create sequencing", () => {
       msg(`Quiero hacer una reserva, a nombre de Ana Perez, para el ${FUTURE_CHECKIN_TEXT} al ${FUTURE_CHECKOUT_TEXT} una doble para 1 persona`),
       { mode: "automatic", sendReply }
     );
+    expect(currentState).toMatchObject({
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      reservationSlots: {
+        guestName: "Ana Perez",
+        roomType: "double",
+        checkIn: "2027-07-18",
+        checkOut: "2027-07-20",
+        numGuests: "1",
+      },
+      lastProposal: {
+        available: true,
+        availabilityStatus: "available",
+        snapshot: {
+          guestName: "Ana Perez",
+          roomType: "double",
+          checkIn: "2027-07-18",
+          checkOut: "2027-07-20",
+          numGuests: "1",
+        },
+        options: [expect.objectContaining({ roomType: "double", pricePerNight: 100, currency: "USD" })],
+        toolCall: expect.objectContaining({
+          name: "checkAvailability",
+          outputSummary: "available:true",
+          input: expect.objectContaining({
+            hotelId: "hotel999",
+            roomType: "double",
+            numGuests: 1,
+            checkIn: "2027-07-18",
+            checkOut: "2027-07-20",
+          }),
+        }),
+      },
+    });
     await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
 
     const replyText = lastReply(sendReply);

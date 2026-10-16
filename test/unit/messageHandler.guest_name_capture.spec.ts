@@ -36,6 +36,29 @@ vi.mock("@/lib/db/convState", () => ({
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    _hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt;
+    if (matched) {
+      currentState = {
+        ...currentState,
+        reservationSlots: identity.snapshot,
+        lastProposal: { ...currentState.lastProposal, text },
+        conversationFocus: { domain: "reservation", subFlow: "create", active: true, updatedAt: identity.toolCallAt },
+        activeReservationContext: { kind: "draft", phase: identity.available ? "quoted" : "collecting", updatedAt: identity.toolCallAt },
+        activeFlow: "reservation",
+        desiredAction: identity.available ? "create" : "notify_reception",
+        salesStage: identity.available ? "quote" : "followup",
+        conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+        lastCategory: "reservation",
+      };
+    }
+    return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn((st: any) => {
     if (!st) return undefined;
@@ -69,15 +92,41 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
           needsHandoff: false,
         };
       }
-      return {
-        finalText: `${vocative}Tengo ${roomLabel} disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: ${perNight} USD. Total ${nights} noche${nights === 1 ? "" : "s"}: ${total} USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-        nextSlots: {
-          ...slots,
-          checkIn: ciISO,
-          checkOut: coISO,
-          roomType,
+      const finalText = `${vocative}Tengo ${roomLabel} disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: ${perNight} USD. Total ${nights} noche${nights === 1 ? "" : "s"}: ${total} USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+      const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, roomType };
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: true,
+        availabilityStatus: "available",
+        snapshot,
+        options: [{ roomType, pricePerNight: perNight, currency: "USD" }],
+        toolCall: {
+          name: "checkAvailability",
+          input: { hotelId: "hotel999", roomType, numGuests: Number(slots.numGuests), checkIn: ciISO, checkOut: coISO },
+          outputSummary: "available:true",
+          at: toolCallAt,
         },
+      };
+      currentState = { ...(currentState || {}), reservationSlots: snapshot, lastProposal: richProposal, salesStage: "quote" };
+      return {
+        finalText,
+        nextSlots: snapshot,
         needsHandoff: false,
+        status: "available" as const,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: true,
+          availabilityStatus: "available" as const,
+          toolCallAt,
+          outputSummary: "available:true" as const,
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+        providerResult: { ok: true, available: true },
       };
     }),
   };
@@ -532,19 +581,6 @@ describe("messageHandler guest conversational name capture", () => {
   it("captura actor inline en un body email multilinea y preserva guestName", async () => {
     const dates = futureBookingText(75, 2);
     const sendReply = vi.fn(async () => {});
-    const { runAvailabilityCheck } = await import("@/lib/handlers/pipeline/availability");
-    vi.mocked(runAvailabilityCheck).mockResolvedValueOnce({
-      finalText: "Tengo triple disponible para Ana Rodríguez. Tarifa por noche: 130 USD. Total 2 noches: 260 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.",
-      nextSlots: {
-        guestName: "Ana Rodríguez",
-        roomType: "triple",
-        checkIn: dates.checkInISO,
-        checkOut: dates.checkOutISO,
-        numGuests: "3",
-      },
-      needsHandoff: false,
-    });
-
     await handleIncomingMessage(
       msg(
         `Hola, soy Martín P. Quisiera reservar una triple ${dates.delAlText} para\ntres personas, a nombre de Ana Rodríguez.`,

@@ -48,6 +48,8 @@ describe("reservation golden transcripts", () => {
   const mcpCalls: AnyObj[] = [];
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-30T12:00:00.000Z"));
     vi.clearAllMocks();
     convStateStore.clear();
     mcpCalls.length = 0;
@@ -102,6 +104,7 @@ describe("reservation golden transcripts", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 

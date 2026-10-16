@@ -120,6 +120,38 @@ vi.mock("@/lib/db/convState", async () => {
       convStateStore.set(key, next);
       return next;
     }),
+    finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+      hotelId: string,
+      conversationId: string,
+      identity: any,
+      text: string
+    ) => {
+      const key = `${hotelId}:${conversationId}`;
+      const prev = convStateStore.get(key) || { _id: key, hotelId, conversationId };
+      const next = {
+        ...prev,
+        reservationSlots: identity.snapshot,
+        lastProposal: {
+          text,
+          available: identity.available,
+          availabilityStatus: identity.availabilityStatus,
+          snapshot: identity.snapshot,
+          toolCall: {
+            name: "checkAvailability",
+            input: identity.input,
+            outputSummary: identity.outputSummary,
+            at: identity.toolCallAt,
+          },
+        },
+        activeFlow: "reservation",
+        desiredAction: identity.available ? "create" : "notify_reception",
+        salesStage: identity.available ? "quote" : "followup",
+        conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+        lastCategory: "reservation",
+      };
+      convStateStore.set(key, next);
+      return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+    }),
     resolveGuestState: vi.fn((st: any) => {
       if (!st) return undefined;
       if (st.salesStage === "close" || st.conversationStage === "reservation_confirmed") return "booked";
@@ -134,15 +166,40 @@ const runAvailabilityCheck = vi.fn(async (pre: any, slots: any, ciISO: string, c
   const holder = String(slots.guestName || "").trim();
   const guestName = String(pre?.guest?.name || "").trim();
   const vocative = guestName ? `${guestName}, ` : "";
-  return {
-    finalText: `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-    nextSlots: {
-      ...slots,
-      checkIn: ciISO,
-      checkOut: coISO,
-      roomType: slots.roomType || "double",
+  const finalText = `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+  const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, roomType: slots.roomType || "double" };
+  const toolCallAt = new Date().toISOString();
+  const richProposal = {
+    text: finalText,
+    available: true,
+    availabilityStatus: "available",
+    snapshot,
+    options: [{ roomType: snapshot.roomType, pricePerNight: 100, currency: "USD" }],
+    toolCall: {
+      name: "checkAvailability",
+      input: { hotelId: pre.msg.hotelId, roomType: snapshot.roomType, numGuests: Number(snapshot.numGuests), checkIn: ciISO, checkOut: coISO },
+      outputSummary: "available:true",
+      at: toolCallAt,
     },
+  };
+  return {
+    finalText,
+    nextSlots: snapshot,
     needsHandoff: false,
+    status: "available" as const,
+    snapshot,
+    richProposal,
+    proposalIdentity: {
+      sourceText: finalText,
+      available: true,
+      availabilityStatus: "available" as const,
+      toolCallAt,
+      outputSummary: "available:true" as const,
+      input: richProposal.toolCall.input,
+      snapshot,
+    },
+    proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+    providerResult: { ok: true, available: true },
   };
 });
 

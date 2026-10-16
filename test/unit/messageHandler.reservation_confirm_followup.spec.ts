@@ -31,6 +31,26 @@ vi.mock("@/lib/db/convState", () => ({
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    _hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt;
+    if (matched) {
+      currentState = {
+        ...currentState,
+        reservationSlots: identity.snapshot,
+        lastProposal: { ...currentState.lastProposal, text },
+        salesStage: identity.available ? "quote" : "followup",
+        conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+        desiredAction: identity.available ? "create" : "notify_reception",
+        activeFlow: "reservation",
+      };
+    }
+    return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: (st: any) => {
     if (!st) return undefined;
@@ -77,16 +97,41 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
     runAvailabilityCheck: vi.fn(async (_pre: any, slots: any, ciISO: string, coISO: string) => {
       const roomType = slots.roomType || "double";
       const guests = String(slots.numGuests || "2");
-      return {
-        finalText: `Tengo ${roomType} disponible. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-        nextSlots: {
-          ...slots,
-          checkIn: ciISO,
-          checkOut: coISO,
-          roomType,
-          numGuests: guests,
+      const finalText = `Tengo ${roomType} disponible. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+      const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, roomType, numGuests: guests };
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: true,
+        availabilityStatus: "available",
+        snapshot,
+        options: [{ roomType, pricePerNight: 100, currency: "USD" }],
+        toolCall: {
+          name: "checkAvailability",
+          input: { hotelId: "hotel999", roomType, numGuests: Number(guests), checkIn: ciISO, checkOut: coISO },
+          outputSummary: "available:true",
+          at: toolCallAt,
         },
+      };
+      currentState = { ...(currentState || {}), reservationSlots: snapshot, lastProposal: richProposal, salesStage: "quote" };
+      return {
+        finalText,
+        nextSlots: snapshot,
         needsHandoff: false,
+        status: "available" as const,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: true,
+          availabilityStatus: "available" as const,
+          toolCallAt,
+          outputSummary: "available:true" as const,
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+        providerResult: { ok: true, available: true },
       };
     }),
   };
@@ -121,8 +166,10 @@ import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
 import { getConvState } from "@/lib/db/convState";
 import { getMessagesByConversation } from "@/lib/db/messages";
+import { saveChannelMessageToAstra } from "@/lib/db/messages";
 import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { getGuest } from "@/lib/db/guests";
+import { runAvailabilityCheck } from "@/lib/handlers/pipeline/availability";
 
 function msg(content: string, conversationId = "conv-confirm-1", channel = "web") {
   return {
@@ -208,6 +255,128 @@ describe("messageHandler reservation confirm follow-up", () => {
     expect(replyText).toMatch(/Reserva a nombre de \*\*Marcelo Martinez\*\*/i);
     expect(replyText).not.toContain("contenido generico");
     expect(replyText).not.toMatch(/^Marcelo,/i);
+  });
+
+  it("mantiene compatibilidad con proposal positiva legacy que ya tenía toolCall", async () => {
+    currentState = {
+      ...currentState,
+      conversationStage: undefined,
+      lastProposal: {
+        text: "Tengo doble disponible. Respondé CONFIRMAR.",
+        available: true,
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId: "hotel999",
+            roomType: "double",
+            numGuests: 2,
+            checkIn: "2027-03-21",
+            checkOut: "2027-03-25",
+          },
+          outputSummary: "available:true",
+          at: "2026-04-02T10:00:00.000Z",
+        },
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["unavailable", false, "available:false"],
+    ["error", false, "error"],
+  ] as const)("bloquea CONFIRMAR cuando la propuesta vigente tiene status %s", async (availabilityStatus, available, outputSummary) => {
+    currentState = {
+      ...currentState,
+      lastProposal: {
+        ...currentState.lastProposal,
+        available,
+        availabilityStatus,
+        snapshot: { ...currentState.reservationSlots },
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId: "hotel999",
+            roomType: "double",
+            numGuests: 2,
+            checkIn: "2027-03-21",
+            checkOut: "2027-03-25",
+          },
+          outputSummary,
+          at: "2026-10-15T12:00:00.000Z",
+        },
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(lastReply(sendReply)).toMatch(/todav[ií]a no tengo una propuesta lista|fechas.*tipo de habitaci[oó]n/i);
+  });
+
+  it.each(["unavailable", "error"] as const)(
+    "no reutiliza la propuesta positiva anterior después de una respuesta conservadora por %s no persistido",
+    async () => {
+      currentState = {
+        ...currentState,
+        activeReservationContext: { kind: "draft", phase: "quoted" },
+        lastProposal: {
+          text: "Tengo doble disponible. ¿Confirmás la reserva? Respondé CONFIRMAR.",
+          available: true,
+        },
+      };
+      vi.mocked(getMessagesByConversation).mockResolvedValueOnce([
+        {
+          messageId: "m-conservative",
+          hotelId: "hotel999",
+          channel: "web",
+          sender: "assistant",
+          role: "ai",
+          content: "No pude mantener esa propuesta como vigente de forma segura. Recepción revisará la disponibilidad.",
+          timestamp: new Date(Date.now() - 1000).toISOString(),
+          conversationId: "conv-confirm-1",
+        } as any,
+      ]);
+      const sendReply = vi.fn(async () => {});
+
+      await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+      expect(lastReply(sendReply)).not.toMatch(/Reserva confirmada|R-0001/i);
+    }
+  );
+
+  it("bloquea CONFIRMAR cuando la identidad rica no coincide con el snapshot vigente", async () => {
+    currentState = {
+      ...currentState,
+      lastProposal: {
+        ...currentState.lastProposal,
+        available: true,
+        availabilityStatus: "available",
+        snapshot: { ...currentState.reservationSlots, roomType: "triple" },
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId: "hotel999",
+            roomType: "triple",
+            numGuests: 2,
+            checkIn: "2027-03-21",
+            checkOut: "2027-03-25",
+          },
+          outputSummary: "available:true",
+          at: "2026-10-15T12:00:00.000Z",
+        },
+      },
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(msg("CONFIRMAR"), { mode: "automatic", sendReply });
+
+    expect(confirmAndCreate).not.toHaveBeenCalled();
   });
 
   it("mantiene el cierre de reserva en canal email con confirmación limpia", async () => {
@@ -371,6 +540,80 @@ describe("messageHandler reservation confirm follow-up", () => {
       checkIn: "2026-05-11",
       checkOut: "2026-05-12",
     });
+    vi.useRealTimers();
+  });
+
+  it("propaga handoff cuando la recotización por fechas resulta negativa", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-06T12:00:00.000Z"));
+    const sendReply = vi.fn(async () => {});
+    (runAvailabilityCheck as any).mockImplementationOnce(async (pre: any, slots: any, ciISO: string, coISO: string) => {
+      const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, locale: pre.lang };
+      const finalText = "No hay disponibilidad para esas fechas. Recepción revisará alternativas.";
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: false,
+        availabilityStatus: "unavailable",
+        snapshot,
+        options: [{ roomType: "triple", pricePerNight: 140, currency: "USD" }],
+        suggestedRoomType: "triple",
+        suggestedPricePerNight: 140,
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId: pre.msg.hotelId,
+            roomType: snapshot.roomType,
+            numGuests: Number(snapshot.numGuests),
+            checkIn: ciISO,
+            checkOut: coISO,
+          },
+          outputSummary: "available:false",
+          at: toolCallAt,
+        },
+      };
+      currentState = {
+        ...currentState,
+        reservationSlots: snapshot,
+        lastProposal: richProposal,
+        salesStage: "followup",
+        conversationStage: "reservation_collecting",
+      };
+      return {
+        finalText,
+        nextSlots: snapshot,
+        needsHandoff: true,
+        status: "unavailable",
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: false,
+          availabilityStatus: "unavailable",
+          toolCallAt,
+          outputSummary: "available:false",
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+        providerResult: { ok: true, available: false },
+      };
+    });
+
+    await handleIncomingMessage(msg("mejor del lunes al martes"), { mode: "automatic", sendReply });
+
+    const assistantSave = (saveChannelMessageToAstra as any).mock.calls
+      .map((call: any[]) => call[0])
+      .filter((message: any) => message?.sender === "assistant")
+      .at(-1);
+    expect(assistantSave).toMatchObject({ status: "pending", respondedBy: "assistant" });
+    expect(assistantSave.content).toMatch(/no hay disponibilidad|recepci[oó]n/i);
+    expect(currentState?.lastProposal).toMatchObject({
+      available: false,
+      availabilityStatus: "unavailable",
+      options: [expect.objectContaining({ currency: "USD" })],
+    });
+    expect(currentState?.salesStage).toBe("followup");
     vi.useRealTimers();
   });
 

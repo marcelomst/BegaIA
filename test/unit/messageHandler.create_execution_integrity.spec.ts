@@ -21,6 +21,29 @@ vi.mock("@/lib/db/convState", () => ({
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    _hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt;
+    if (matched) {
+      currentState = {
+        ...currentState,
+        reservationSlots: identity.snapshot,
+        lastProposal: { ...currentState.lastProposal, text },
+        salesStage: identity.available ? "quote" : "followup",
+        conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+        desiredAction: identity.available ? "create" : "notify_reception",
+        activeFlow: "reservation",
+        lastCategory: "reservation",
+        conversationFocus: { domain: "reservation", subFlow: "create", active: true, updatedAt: identity.toolCallAt },
+        activeReservationContext: { kind: "draft", phase: identity.available ? "quoted" : "collecting", updatedAt: identity.toolCallAt },
+      };
+    }
+    return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn((st: any) => {
     if (!st) return undefined;
@@ -39,15 +62,41 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
       const vocative = guestName ? `${guestName}, ` : "";
       const displayDate = (iso: string) => String(iso).slice(0, 10).split("-").reverse().join("/");
       const guests = Number(slots.numGuests ?? slots.guests);
-      return {
-        finalText: `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Check-in: ${displayDate(ciISO)}. Check-out: ${displayDate(coISO)}. Huéspedes: ${guests} huéspedes. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-        nextSlots: {
-          ...slots,
-          checkIn: ciISO,
-          checkOut: coISO,
-          roomType: slots.roomType || "double",
+      const finalText = `${vocative}Tengo doble disponible${holder ? ` para ${holder}` : ""}. Check-in: ${displayDate(ciISO)}. Check-out: ${displayDate(coISO)}. Huéspedes: ${guests} huéspedes. Tarifa por noche: 100 USD. Total 4 noches: 400 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+      const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, roomType: slots.roomType || "double" };
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: true,
+        availabilityStatus: "available",
+        snapshot,
+        options: [{ roomType: snapshot.roomType, pricePerNight: 100, currency: "USD" }],
+        toolCall: {
+          name: "checkAvailability",
+          input: { hotelId: "hotel999", roomType: snapshot.roomType, numGuests: guests, checkIn: ciISO, checkOut: coISO },
+          outputSummary: "available:true",
+          at: toolCallAt,
         },
+      };
+      currentState = { ...(currentState || {}), reservationSlots: snapshot, lastProposal: richProposal, salesStage: "quote" };
+      return {
+        finalText,
+        nextSlots: snapshot,
         needsHandoff: false,
+        status: "available" as const,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: true,
+          availabilityStatus: "available" as const,
+          toolCallAt,
+          outputSummary: "available:true" as const,
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+        providerResult: { ok: true, available: true },
       };
     }),
   };
@@ -128,6 +177,7 @@ vi.mock("@langchain/openai", () => ({
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { confirmAndCreate } from "@/lib/agents/reservations";
 import { getGuest } from "@/lib/db/guests";
+import { finalizeDeterministicCreateProposalIfCurrent } from "@/lib/db/convState";
 import { runAvailabilityCheck } from "@/lib/handlers/pipeline/availability";
 
 function msg(content: string) {
@@ -243,6 +293,41 @@ describe("messageHandler create execution integrity", () => {
     const replyText = lastReply(sendReply);
     expect(replyText).toMatch(/R-NEW-01/);
     expect(replyText).not.toMatch(/sin fecha → sin fecha/i);
+  });
+
+  it("no emite CTA confirmable cuando la finalización pierde correspondencia", async () => {
+    vi.mocked(finalizeDeterministicCreateProposalIfCurrent).mockResolvedValueOnce({
+      matched: false,
+      modified: false,
+      matchedCount: 0,
+      modifiedCount: 0,
+    });
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 01/05/2026 al 05/05/2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const reply = lastReply(sendReply);
+    expect(reply).not.toMatch(/CONFIRMAR|confirm[aá]s la reserva|tengo .* disponible/i);
+    expect(reply).toMatch(/revisad|recepci[oó]n/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
+  it("no emite CTA confirmable cuando falla la finalización CAS", async () => {
+    vi.mocked(finalizeDeterministicCreateProposalIfCurrent).mockRejectedValueOnce(new Error("CAS write failed"));
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("quiero reservar del 01/05/2026 al 05/05/2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      { mode: "automatic", sendReply }
+    );
+
+    const reply = lastReply(sendReply);
+    expect(reply).not.toMatch(/CONFIRMAR|confirm[aá]s la reserva|tengo .* disponible/i);
+    expect(reply).toMatch(/revisad|recepci[oó]n/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
   });
 
   it("create incremental usa vocativo desde guest canónico y conserva el titular transaccional", async () => {

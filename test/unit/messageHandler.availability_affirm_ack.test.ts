@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { convStateStore, getConvStateMock, upsertConvStateMock } = vi.hoisted(() => {
+const { convStateStore, getConvStateMock, upsertConvStateMock, finalizeProposalMock } = vi.hoisted(() => {
     const store = new Map<string, any>();
     return {
         convStateStore: store,
@@ -15,6 +15,25 @@ const { convStateStore, getConvStateMock, upsertConvStateMock } = vi.hoisted(() 
             const next = { ...prev, ...patch, hotelId, conversationId };
             store.set(key, next);
             return next;
+        }),
+        finalizeProposalMock: vi.fn(async (hotelId: string, conversationId: string, identity: any, text: string) => {
+            const key = `${hotelId}:${conversationId}`;
+            const current = store.get(key);
+            const matched = current?.lastProposal?.toolCall?.at === identity.toolCallAt;
+            if (matched) {
+                store.set(key, {
+                    ...current,
+                    lastProposal: { ...current.lastProposal, text },
+                    salesStage: identity.available ? "quote" : "followup",
+                    conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+                    activeReservationContext: {
+                        kind: "draft",
+                        phase: identity.available ? "quoted" : "collecting",
+                        updatedAt: identity.toolCallAt,
+                    },
+                });
+            }
+            return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 };
         }),
     };
 });
@@ -34,14 +53,63 @@ vi.mock("@/lib/handlers/pipeline/availability", async (importOriginal) => {
     const actual = await importOriginal<typeof import("@/lib/handlers/pipeline/availability")>();
     return {
         ...actual,
-        runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => ({
-            finalText:
+        runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string, options?: any) => {
+            const finalText = [
+                options?.textPrefix,
                 pre?.lang === "es"
                     ? `Disponibilidad confirmada para ${actual.isoToDDMMYYYY(ciISO)} → ${actual.isoToDDMMYYYY(coISO)}.`
                     : `Availability confirmed for ${ciISO} → ${coISO}.`,
-            nextSlots: { ...slots, checkIn: ciISO, checkOut: coISO },
-            needsHandoff: false,
-        })),
+            ].filter(Boolean).join("\n\n");
+            const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, locale: pre.lang };
+            const toolCallAt = new Date().toISOString();
+            const richProposal = {
+                text: finalText,
+                available: true,
+                availabilityStatus: "available" as const,
+                snapshot,
+                options: [{ roomType: snapshot.roomType || "double", pricePerNight: 100, currency: "USD" }],
+                toolCall: {
+                    name: "checkAvailability" as const,
+                    input: {
+                        hotelId: pre.msg.hotelId,
+                        roomType: snapshot.roomType,
+                        numGuests: snapshot.numGuests ? Number(snapshot.numGuests) : undefined,
+                        checkIn: ciISO,
+                        checkOut: coISO,
+                    },
+                    outputSummary: "available:true" as const,
+                    at: toolCallAt,
+                },
+            };
+            const key = `${pre.msg.hotelId}:${pre.conversationId}`;
+            const current = convStateStore.get(key) || {};
+            convStateStore.set(key, {
+                ...current,
+                reservationSlots: snapshot,
+                lastProposal: richProposal,
+                salesStage: "qualify",
+                conversationStage: "reservation_collecting",
+                pendingAvailabilityVerification: null,
+            });
+            return {
+                finalText,
+                nextSlots: snapshot,
+                needsHandoff: false,
+                status: "available" as const,
+                snapshot,
+                richProposal,
+                proposalIdentity: {
+                    sourceText: finalText,
+                    available: true,
+                    availabilityStatus: "available" as const,
+                    toolCallAt,
+                    outputSummary: "available:true" as const,
+                    input: richProposal.toolCall.input,
+                    snapshot,
+                },
+                proposalPersistence: { matched: true, modified: true, matchedCount: 1 as const, modifiedCount: 1 as const },
+            };
+        }),
     };
 });
 
@@ -75,6 +143,7 @@ import { getHotelConfig } from "@/lib/config/hotelConfig.server";
 vi.mock("@/lib/db/convState", () => ({
     getConvState: getConvStateMock,
     upsertConvState: upsertConvStateMock,
+    finalizeDeterministicCreateProposalIfCurrent: finalizeProposalMock,
     resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: "convstate-test",
 }));

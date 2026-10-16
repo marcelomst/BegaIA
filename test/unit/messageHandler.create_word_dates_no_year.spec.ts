@@ -27,14 +27,41 @@ const runAvailabilityCheckMock = vi.hoisted(() =>
       checkIn: ciISO,
       checkOut: coISO,
     };
-    return {
-      finalText: `Tengo ${roomLabel} disponible para ${String(slots.guestName || "el huésped")}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-      nextSlots: {
-        ...slots,
-        checkIn: ciISO,
-        checkOut: coISO,
+    const finalText = `Tengo ${roomLabel} disponible para ${String(slots.guestName || "el huésped")}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+    const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO };
+    const toolCallAt = new Date().toISOString();
+    const richProposal = {
+      text: finalText,
+      available: true,
+      availabilityStatus: "available",
+      snapshot,
+      options: [{ roomType: slots.roomType, pricePerNight: 100, currency: "USD" }],
+      toolCall: {
+        name: "checkAvailability",
+        input: { hotelId: "hotel999", roomType: slots.roomType, numGuests: Number(slots.numGuests), checkIn: ciISO, checkOut: coISO },
+        outputSummary: "available:true",
+        at: toolCallAt,
       },
+    };
+    currentState = { ...(currentState || {}), reservationSlots: snapshot, lastProposal: richProposal, salesStage: "quote" };
+    return {
+      finalText,
+      nextSlots: snapshot,
       needsHandoff: false,
+      status: "available" as const,
+      snapshot,
+      richProposal,
+      proposalIdentity: {
+        sourceText: finalText,
+        available: true,
+        availabilityStatus: "available" as const,
+        toolCallAt,
+        outputSummary: "available:true" as const,
+        input: richProposal.toolCall.input,
+        snapshot,
+      },
+      proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+      providerResult: { ok: true, available: true },
     };
   })
 );
@@ -83,6 +110,29 @@ vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => currentState),
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
+  }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    _hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string
+  ) => {
+    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt;
+    if (matched) {
+      currentState = {
+        ...currentState,
+        reservationSlots: identity.snapshot,
+        lastProposal: { ...currentState.lastProposal, text },
+        conversationFocus: { domain: "reservation", subFlow: "create", active: true, updatedAt: identity.toolCallAt },
+        activeReservationContext: { kind: "draft", phase: "quoted", updatedAt: identity.toolCallAt },
+        activeFlow: "reservation",
+        desiredAction: "create",
+        salesStage: "quote",
+        conversationStage: "reservation_quoted",
+        lastCategory: "reservation",
+      };
+    }
+    return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 };
   }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn((st: any) => {
@@ -230,7 +280,8 @@ describe("messageHandler create word dates without explicit year", () => {
           guestName: "Ana Rodríguez",
         }),
         dates.checkInISO,
-        dates.checkOutISO
+        dates.checkOutISO,
+        expect.objectContaining({ deterministicCreate: true })
       );
     }
   );
@@ -728,7 +779,7 @@ describe("messageHandler create word dates without explicit year", () => {
         }),
         testCalendarDate(contextYear, 11, 10),
         testCalendarDate(contextYear, 11, 15),
-        { persistConvState: false }
+        expect.objectContaining({ deterministicCreate: true })
       );
       expect(confirmAndCreateMock).not.toHaveBeenCalled();
       expect(currentState?.lastReservation?.reservationId).toBe("R-CONFIRMED-01");

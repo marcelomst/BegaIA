@@ -5,6 +5,8 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages';
 vi.mock('@/lib/db/convState', () => ({
     getConvState: vi.fn(),
     upsertConvState: vi.fn(),
+    publishDeterministicCreateProposalIfLatest: vi.fn(),
+    finalizeDeterministicCreateProposalIfCurrent: vi.fn(),
     resolveGuestState: vi.fn(() => undefined),
     CONVSTATE_VERSION: 'convstate-test'
 }));
@@ -20,7 +22,12 @@ vi.mock('@/lib/classifier', async (importOriginal) => {
 import * as availabilityPipeline from '@/lib/handlers/pipeline/availability';
 import * as reservations from '@/lib/agents/reservations';
 import { agentGraph } from '@/lib/agents';
-import { getConvState, upsertConvState } from '@/lib/db/convState';
+import {
+    getConvState,
+    finalizeDeterministicCreateProposalIfCurrent,
+    publishDeterministicCreateProposalIfLatest,
+    upsertConvState,
+} from '@/lib/db/convState';
 
 // Minimal pre-like stub
 const preBase = (lang: 'es' | 'en' | 'pt' = 'es') => ({
@@ -66,8 +73,299 @@ describe('availability unified flow', () => {
         expect(res.finalText).toMatch(/Total 2 noches: 200 USD/i);
         expect(res.finalText).toMatch(/CONFIRMAR/i);
         expect(res.finalText).not.toMatch(/^Juan\b/i);
+        expect(res.status).toBe('available');
+        expect(res.needsHandoff).toBe(false);
+        expect(res.richProposal).toMatchObject({
+            available: true,
+            availabilityStatus: 'available',
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'usd' }],
+            suggestedRoomType: 'double',
+            suggestedPricePerNight: 100,
+            snapshot: snapshotBase,
+            toolCall: { outputSummary: 'available:true' },
+        });
+        expect(res.proposalIdentity?.snapshot).toMatchObject(snapshotBase);
+        expect(res.providerResult).toMatchObject({ ok: true, available: true });
         expect(upsertSpy).toHaveBeenCalled();
         expect((upsertSpy.mock.calls[0]?.[2] as any)?.lastProposal?.text).toBe(res.finalText);
+    });
+
+    it('publica create determinístico con persistencia rica condicional y sin upsert incondicional', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }],
+        } as any);
+        vi.mocked(publishDeterministicCreateProposalIfLatest).mockResolvedValue({
+            matched: true,
+            modified: true,
+            matchedCount: 1,
+            modifiedCount: 1,
+        });
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState');
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+            { deterministicCreate: true },
+        );
+
+        expect(upsertSpy).not.toHaveBeenCalled();
+        expect(publishDeterministicCreateProposalIfLatest).toHaveBeenCalledWith(
+            'hotel999',
+            'hotel999-web-guest',
+            expect.objectContaining({
+                availabilityStatus: 'available',
+                input: expect.objectContaining({ hotelId: 'hotel999', roomType: 'double', numGuests: 2 }),
+                snapshot: expect.objectContaining(snapshotBase),
+            }),
+            expect.objectContaining({
+                options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }],
+                suggestedRoomType: 'double',
+                suggestedPricePerNight: 100,
+            }),
+        );
+        expect(res.proposalPersistence).toMatchObject({ matched: true, modified: true });
+    });
+
+    it('protege la carrera completa de publicación: B vigente rechaza a A tardía', async () => {
+        let resolveA!: (value: any) => void;
+        let resolveB!: (value: any) => void;
+        const providerA = new Promise((resolve) => { resolveA = resolve; });
+        const providerB = new Promise((resolve) => { resolveB = resolve; });
+        vi.spyOn(reservations, 'askAvailability').mockImplementation(async (_hotelId: string, slots: any) => (
+            slots.roomType === 'double' ? providerA : providerB
+        ) as any);
+
+        let persisted: any;
+        vi.mocked(publishDeterministicCreateProposalIfLatest).mockImplementation(async (
+            _hotelId: string,
+            _conversationId: string,
+            identity: any,
+            proposal: any,
+        ) => {
+            if (!persisted || persisted.identity.toolCallAt < identity.toolCallAt) {
+                persisted = { identity, proposal };
+                return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+            }
+            return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+        });
+
+        const runA = availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+            { deterministicCreate: true },
+        );
+        await Promise.resolve();
+        const snapshotB = { ...snapshotBase, roomType: 'suite' };
+        const runB = availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotB as any,
+            snapshotB.checkIn,
+            snapshotB.checkOut,
+            { deterministicCreate: true },
+        );
+
+        resolveB({ ok: true, available: false, options: [{ roomType: 'triple', currency: 'USD' }] });
+        const resultB = await runB;
+        resolveA({ ok: true, available: true, options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }] });
+        const resultA = await runA;
+
+        expect(resultB.proposalPersistence?.matched).toBe(true);
+        expect(resultA.proposalPersistence?.matched).toBe(false);
+        expect(persisted.proposal).toMatchObject({
+            available: false,
+            availabilityStatus: 'unavailable',
+            snapshot: expect.objectContaining({ roomType: 'suite' }),
+            options: [{ roomType: 'triple', currency: 'USD' }],
+        });
+    });
+
+    it('recorre create completo desde disponibilidad hasta CAS y conserva el estado final rico', async () => {
+        let canonicalState: any = {
+            hotelId: 'hotel999',
+            conversationId: 'conv-full-sequence',
+            reservationSlots: {},
+        };
+        vi.mocked(getConvState).mockImplementation(async () => canonicalState);
+        vi.mocked(publishDeterministicCreateProposalIfLatest).mockImplementation(async (
+            _hotelId,
+            _conversationId,
+            identity: any,
+            proposal: any,
+        ) => {
+            canonicalState = {
+                ...canonicalState,
+                reservationSlots: identity.snapshot,
+                lastProposal: proposal,
+                salesStage: 'qualify',
+                conversationStage: 'reservation_collecting',
+            };
+            return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+        });
+        vi.mocked(finalizeDeterministicCreateProposalIfCurrent).mockImplementation(async (
+            _hotelId,
+            _conversationId,
+            identity: any,
+            finalText: string,
+        ) => {
+            const matched = canonicalState.lastProposal?.toolCall?.at === identity.toolCallAt;
+            if (matched) {
+                canonicalState = {
+                    ...canonicalState,
+                    lastProposal: { ...canonicalState.lastProposal, text: finalText },
+                    salesStage: 'quote',
+                    conversationStage: 'reservation_quoted',
+                    activeReservationContext: { kind: 'draft', phase: 'quoted' },
+                };
+            }
+            return { matched, modified: matched, matchedCount: matched ? 1 : 0, modifiedCount: matched ? 1 : 0 } as any;
+        });
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }],
+        } as any);
+        vi.spyOn(reservations, 'fillSlotsWithLLM').mockResolvedValue({
+            need: 'none',
+            slots: {
+                guestName: 'Juan Perez',
+                roomType: 'double',
+                numGuests: '2',
+                checkIn: '2027-12-20',
+                checkOut: '2027-12-22',
+                locale: 'es',
+            },
+        } as any);
+        const { handleIncomingMessage } = await import('@/lib/handlers/messageHandler');
+        const replies: string[] = [];
+
+        await handleIncomingMessage({
+            messageId: 'm-full-sequence',
+            hotelId: 'hotel999',
+            channel: 'web',
+            sender: 'guest',
+            conversationId: 'conv-full-sequence',
+            content: 'Quiero reservar una doble del 20/12/2027 al 22/12/2027 para 2 personas a nombre de Juan Perez',
+            detectedLanguage: 'es',
+            timestamp: new Date().toISOString(),
+        } as any, { mode: 'automatic', sendReply: async (text: string) => { replies.push(text); } });
+
+        expect(publishDeterministicCreateProposalIfLatest).toHaveBeenCalledTimes(1);
+        expect(finalizeDeterministicCreateProposalIfCurrent).toHaveBeenCalledTimes(1);
+        expect(canonicalState).toMatchObject({
+            salesStage: 'quote',
+            conversationStage: 'reservation_quoted',
+            lastProposal: {
+                available: true,
+                availabilityStatus: 'available',
+                options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }],
+                suggestedRoomType: 'double',
+                suggestedPricePerNight: 100,
+                snapshot: {
+                    guestName: 'Juan Perez',
+                    roomType: 'double',
+                    numGuests: '2',
+                    checkIn: '2027-12-20',
+                    checkOut: '2027-12-22',
+                },
+                toolCall: {
+                    name: 'checkAvailability',
+                    outputSummary: 'available:true',
+                },
+            },
+        });
+        expect(replies.at(-1)).toBe(canonicalState.lastProposal.text);
+        expect(replies.at(-1)).toMatch(/CONFIRMAR/i);
+    });
+
+    it('expone fallo conservador de publicación determinística sin ejecutar upsert alternativo', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: false,
+            message: 'provider timeout',
+        } as any);
+        vi.mocked(publishDeterministicCreateProposalIfLatest).mockRejectedValue(new Error('write failed'));
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState');
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+            { deterministicCreate: true },
+        );
+
+        expect(upsertSpy).not.toHaveBeenCalled();
+        expect(res.status).toBe('error');
+        expect(res.proposalPersistence).toEqual({
+            matched: false,
+            modified: false,
+            matchedCount: 0,
+            modifiedCount: 0,
+            error: true,
+        });
+    });
+
+    it('preserva una negativa autoritativa sin convertirla en quote', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: false,
+            proposal: 'No hay doble; puedo ofrecer twin.',
+            options: [{ roomType: 'twin', pricePerNight: 90, currency: 'USD' }],
+        } as any);
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState').mockResolvedValue(undefined as any);
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+        );
+
+        expect(res.status).toBe('unavailable');
+        expect(res.needsHandoff).toBe(true);
+        expect(res.finalText).not.toMatch(/CONFIRMAR/i);
+        expect(res.richProposal).toMatchObject({
+            available: false,
+            availabilityStatus: 'unavailable',
+            suggestedRoomType: 'twin',
+            suggestedPricePerNight: 90,
+            toolCall: { outputSummary: 'available:false' },
+        });
+        expect((upsertSpy.mock.calls[0]?.[2] as any)).toMatchObject({
+            salesStage: 'followup',
+            desiredAction: 'notify_reception',
+        });
+    });
+
+    it('clasifica error de proveedor sin declarar indisponibilidad autoritativa', async () => {
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: false,
+            message: 'provider timeout',
+        } as any);
+        const upsertSpy = vi.spyOn(await import('@/lib/db/convState'), 'upsertConvState').mockResolvedValue(undefined as any);
+
+        const res = await availabilityPipeline.runAvailabilityCheck(
+            preBase('es') as any,
+            snapshotBase as any,
+            snapshotBase.checkIn,
+            snapshotBase.checkOut,
+        );
+
+        expect(res.status).toBe('error');
+        expect(res.needsHandoff).toBe(true);
+        expect(res.finalText).toMatch(/problema al consultar/i);
+        expect(res.finalText).not.toMatch(/no tengo disponibilidad|CONFIRMAR/i);
+        expect(res.richProposal).toMatchObject({
+            available: false,
+            availabilityStatus: 'error',
+            toolCall: { outputSummary: 'error' },
+        });
+        expect((upsertSpy.mock.calls[0]?.[2] as any)?.lastProposal?.availabilityStatus).toBe('error');
     });
 
     it.each([
@@ -179,6 +477,8 @@ describe('availability unified flow', () => {
 
     it('graph reservation path uses runAvailabilityCheck downstream (slots complete)', async () => {
         // fill slots so graph sees a complete snapshot
+        vi.mocked((await import('@/lib/config/hotelConfig.server')).getHotelConfig)
+            .mockResolvedValue({ timezone: 'UTC' } as any);
         const fsSpy = vi.spyOn(reservations, 'fillSlotsWithLLM').mockResolvedValue({ need: 'none', slots: { ...snapshotBase } } as any);
         // ensure availability pipeline downstream call is exercised and stable
         const aaSpy = vi.spyOn(reservations, 'askAvailability').mockResolvedValue({ ok: true, available: true, options: [], proposal: 'Tengo disponibilidad.' } as any);

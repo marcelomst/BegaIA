@@ -41,12 +41,41 @@ import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { getCollection } from "../mocks/astra";
 import { getConvState, upsertConvState } from "@/lib/db/convState";
 
-vi.mock("@/lib/db/convState", () => ({
-    getConvState: vi.fn(),
-    upsertConvState: vi.fn(),
-    resolveGuestState: vi.fn(() => undefined),
-    CONVSTATE_VERSION: "convstate-test",
-}));
+vi.mock("@/lib/db/convState", () => {
+    const upsertConvState = vi.fn();
+    return {
+        getConvState: vi.fn(),
+        upsertConvState,
+        publishDeterministicCreateProposalIfLatest: vi.fn(async (
+            hotelId: string,
+            conversationId: string,
+            identity: any,
+            proposal: any,
+        ) => {
+            await upsertConvState(hotelId, conversationId, {
+                reservationSlots: identity.snapshot,
+                lastProposal: proposal,
+                salesStage: identity.available ? "qualify" : "followup",
+                conversationStage: "reservation_collecting",
+            });
+            return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+        }),
+        finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+            hotelId: string,
+            conversationId: string,
+            identity: any,
+        ) => {
+            await upsertConvState(hotelId, conversationId, {
+                salesStage: identity.available ? "quote" : "followup",
+                conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+                desiredAction: identity.available ? "create" : "notify_reception",
+            });
+            return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+        }),
+        resolveGuestState: vi.fn(() => undefined),
+        CONVSTATE_VERSION: "convstate-test",
+    };
+});
 
 const hotelId = "hotel999";
 const channel = "web" as const;
@@ -116,14 +145,36 @@ describe("messageHandler: follow-up de estado ('pudiste confirmar?') ejecuta ver
         expect(text).toMatch(/Total\s+2\s+noches:\s*240\s+USD/i);
         expect(text).toMatch(/CONFIRMAR/i);
 
-        // Persistió lastProposal y salesStage adecuado
+        // Verifica el estado lógico final compuesto por todas las escrituras,
+        // no una posición accidental dentro del historial de llamadas mockeadas.
         expect(upsertConvState).toHaveBeenCalled();
-        const call = (upsertConvState as any).mock.calls.at(-1);
-        expect(call?.[0]).toBe(hotelId);
-        expect(call?.[1]).toBe(conversationId);
-        const payload = call?.[2];
-        expect(payload?.lastProposal?.available).toBe(true);
-        expect(payload?.salesStage).toBe("quote");
+        const finalPersistedState = (upsertConvState as any).mock.calls
+            .filter((call: any[]) => call?.[0] === hotelId && call?.[1] === conversationId)
+            .reduce((state: any, call: any[]) => {
+                const patch = call[2] || {};
+                return {
+                    ...state,
+                    ...patch,
+                    reservationSlots: patch.reservationSlots
+                        ? { ...(state.reservationSlots || {}), ...patch.reservationSlots }
+                        : state.reservationSlots,
+                };
+            }, {});
+        expect(finalPersistedState.lastProposal).toMatchObject({
+            available: true,
+            availabilityStatus: "available",
+            options: [{ roomType: "double", pricePerNight: 120, currency: "USD" }],
+            suggestedRoomType: "double",
+            suggestedPricePerNight: 120,
+            snapshot: expect.objectContaining({
+                guestName: "Marcelo Martinez",
+                roomType: "double",
+                checkIn: "2025-10-03",
+                checkOut: "2025-10-05",
+            }),
+            toolCall: expect.objectContaining({ outputSummary: "available:true" }),
+        });
+        expect(finalPersistedState.salesStage).toBe("quote");
     });
 
     it("si faltan fechas, pide explícitamente la que falta en lugar de derivar", async () => {

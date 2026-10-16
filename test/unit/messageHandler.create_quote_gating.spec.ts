@@ -45,6 +45,36 @@ vi.mock("@/lib/db/convState", () => ({
     currentState = { ...currentState, lastProposal: { ...proposal, text } };
     return { matched: true, modified, matchedCount: 1, modifiedCount: modified ? 1 : 0 };
   }),
+  finalizeDeterministicCreateProposalIfCurrent: vi.fn(async (
+    _hotelId: string,
+    _conversationId: string,
+    identity: any,
+    text: string,
+    options?: { reservationHistory?: any[] | null }
+  ) => {
+    const proposal = currentState?.lastProposal;
+    const matched = Boolean(
+      proposal?.toolCall?.at === identity.toolCallAt &&
+      proposal?.toolCall?.outputSummary === identity.outputSummary &&
+      proposal?.availabilityStatus === identity.availabilityStatus &&
+      proposal?.snapshot?.guestName === identity.snapshot.guestName
+    );
+    if (!matched) return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    currentState = {
+      ...currentState,
+      ...(options && "reservationHistory" in options ? { reservationHistory: options.reservationHistory } : {}),
+      reservationSlots: { ...identity.snapshot },
+      lastProposal: { ...proposal, text },
+      conversationFocus: { domain: "reservation", subFlow: "create", active: true, updatedAt: identity.toolCallAt },
+      activeReservationContext: { kind: "draft", phase: identity.available ? "quoted" : "collecting", updatedAt: identity.toolCallAt },
+      activeFlow: "reservation",
+      desiredAction: identity.available ? "create" : "notify_reception",
+      salesStage: identity.available ? "quote" : "followup",
+      conversationStage: identity.available ? "reservation_quoted" : "reservation_collecting",
+      lastCategory: "reservation",
+    };
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
   CONVSTATE_VERSION: "test",
   resolveGuestState: vi.fn((st: any) => {
     if (!st) return undefined;
@@ -61,15 +91,54 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
       const roomType = String(slots.roomType || "double");
       const guestName = String(slots.guestName || "").trim();
       const roomLabel = roomType === "triple" ? "triple" : roomType === "single" ? "simple" : "doble";
-      return {
-        finalText: `Tengo ${roomLabel} disponible${guestName ? ` para ${guestName}` : ""}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`,
-        nextSlots: {
-          ...slots,
-          checkIn: ciISO,
-          checkOut: coISO,
-          roomType,
+      const finalText = `Tengo ${roomLabel} disponible${guestName ? ` para ${guestName}` : ""}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+      const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO, roomType };
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: true,
+        availabilityStatus: "available",
+        snapshot,
+        options: [{ roomType, pricePerNight: 100, currency: "USD" }],
+        suggestedRoomType: roomType,
+        suggestedPricePerNight: 100,
+        toolCall: {
+          name: "checkAvailability",
+          input: {
+            hotelId: "hotel999",
+            roomType,
+            numGuests: Number(slots.numGuests),
+            checkIn: ciISO,
+            checkOut: coISO,
+          },
+          outputSummary: "available:true",
+          at: toolCallAt,
         },
+      };
+      currentState = {
+        ...(currentState || {}),
+        reservationSlots: snapshot,
+        lastProposal: richProposal,
+        salesStage: "quote",
+      };
+      return {
+        finalText,
+        nextSlots: snapshot,
         needsHandoff: false,
+        status: "available" as const,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: true,
+          availabilityStatus: "available" as const,
+          toolCallAt,
+          outputSummary: "available:true" as const,
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 },
+        providerResult: { ok: true, available: true, options: richProposal.options },
       };
     }),
   };
@@ -168,14 +237,22 @@ function formatDateDDMMYYYY(date: Date) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function futureDateRange(daysFromToday = 1) {
+function formatDateISO(date: Date) {
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}
+
+function futureDateRange(daysFromToday = 1, nights = 1) {
   const checkIn = addDays(new Date(), daysFromToday);
-  const checkOut = addDays(checkIn, 1);
+  const checkOut = addDays(checkIn, nights);
   return {
     checkIn,
     checkOut,
     checkInText: formatDateDDMMYYYY(checkIn),
     checkOutText: formatDateDDMMYYYY(checkOut),
+    checkInISO: formatDateISO(checkIn),
+    checkOutISO: formatDateISO(checkOut),
   };
 }
 
@@ -238,9 +315,10 @@ describe("messageHandler create quote gating", () => {
 
   it("con turno rico completo e inline guestName no cae en confirm prematuro y cotiza normalmente", async () => {
     const sendReply = vi.fn(async () => {});
+    const { checkInText, checkOutText, checkInISO, checkOutISO } = futureDateRange(30, 4);
 
     await handleIncomingMessage(
-      msg("quiero reservar del 1 al 5 de octubre de 2026 para 2 personas en una doble a nombre de Ana Gomez"),
+      msg(`quiero reservar del ${checkInText} al ${checkOutText} para 2 personas en una doble a nombre de Ana Gomez`),
       { mode: "automatic", sendReply }
     );
 
@@ -250,8 +328,8 @@ describe("messageHandler create quote gating", () => {
     expect(replyText).not.toMatch(/a nombre de qui[eé]n|nombre y apellido/i);
     expect(currentState?.lastProposal?.available).toBe(true);
     expect(currentState?.reservationSlots).toMatchObject({
-      checkIn: "2026-10-01",
-      checkOut: "2026-10-05",
+      checkIn: checkInISO,
+      checkOut: checkOutISO,
       numGuests: "2",
       roomType: "double",
       guestName: "Ana Gomez",

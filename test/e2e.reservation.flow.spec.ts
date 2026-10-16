@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/db/convState", () => ({ getConvState: vi.fn(), upsertConvState: vi.fn() }));
 vi.mock("@/lib/agents/reservations", () => ({ fillSlotsWithLLM: vi.fn(), askAvailability: vi.fn(), confirmAndCreate: vi.fn() }));
@@ -14,6 +14,8 @@ const conversationId = "conv-e2e-1";
 
 describe("e2e reservation flow (single-slot Q, guests and checkout mapping)", () => {
     beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-09-30T12:00:00.000Z"));
         vi.clearAllMocks();
         (getConvState as any).mockResolvedValue(null);
         // Mock robusto: nunca devuelve pregunta 'undefined', vacía o incoherente
@@ -50,6 +52,10 @@ describe("e2e reservation flow (single-slot Q, guests and checkout mapping)", ()
             // Fallback: nunca pregunta 'undefined'
             return { need: "question", partial, question: "¿Cuál es el tipo de habitación que preferís?" };
         });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it("collects slots turn by turn and confirms, localizing roomType in ES", async () => {

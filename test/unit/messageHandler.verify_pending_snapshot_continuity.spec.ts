@@ -56,16 +56,69 @@ vi.mock("@/lib/handlers/pipeline/availability", async () => {
   const actual = await vi.importActual<typeof import("@/lib/handlers/pipeline/availability")>("@/lib/handlers/pipeline/availability");
   return {
     ...actual,
-    runAvailabilityCheck: vi.fn(async (_pre: any, slots: any, ciISO: string, coISO: string) => ({
-      finalText: "Tengo doble disponible. Tarifa por noche: 115 USD. Total 4 noches: 460 USD.\n\n¿Cuántos huéspedes se alojarán?",
-      nextSlots: {
+    runAvailabilityCheck: vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string, options?: any) => {
+      const key = `${pre.msg.hotelId}:${pre.conversationId}`;
+      const previous = convStateStore.get(key) || {};
+      const finalText = [
+        options?.textPrefix,
+        "Tengo doble disponible. Tarifa por noche: 115 USD. Total 4 noches: 460 USD.\n\n¿Cuántos huéspedes se alojarán?",
+      ].filter(Boolean).join("\n\n");
+      const snapshot = {
         ...slots,
         roomType: slots.roomType || "double",
         checkIn: ciISO,
         checkOut: coISO,
-      },
-      needsHandoff: false,
-    })),
+        locale: pre.lang,
+      };
+      const toolCallAt = new Date().toISOString();
+      const richProposal = {
+        text: finalText,
+        available: true,
+        availabilityStatus: "available" as const,
+        snapshot,
+        options: [{ roomType: "double", pricePerNight: 115, currency: "USD" }],
+        suggestedRoomType: "double",
+        suggestedPricePerNight: 115,
+        toolCall: {
+          name: "checkAvailability" as const,
+          input: {
+            hotelId: pre.msg.hotelId,
+            roomType: snapshot.roomType,
+            numGuests: undefined,
+            checkIn: ciISO,
+            checkOut: coISO,
+          },
+          outputSummary: "available:true" as const,
+          at: toolCallAt,
+        },
+      };
+      convStateStore.set(key, {
+        ...previous,
+        reservationSlots: { ...(previous.reservationSlots || {}), ...snapshot },
+        lastProposal: richProposal,
+        salesStage: "qualify",
+        conversationStage: "reservation_collecting",
+        pendingAvailabilityVerification: null,
+      });
+      return {
+        finalText,
+        nextSlots: snapshot,
+        needsHandoff: false,
+        status: "available" as const,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+          sourceText: finalText,
+          available: true,
+          availabilityStatus: "available" as const,
+          toolCallAt,
+          outputSummary: "available:true" as const,
+          input: richProposal.toolCall.input,
+          snapshot,
+        },
+        proposalPersistence: { matched: true, modified: true, matchedCount: 1 as const, modifiedCount: 1 as const },
+      };
+    }),
   };
 });
 

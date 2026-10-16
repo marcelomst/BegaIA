@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 process.env.STRUCTURED_ENABLED = "false";
 
@@ -50,6 +50,8 @@ function msg(content: string) {
 
 describe("messageHandler: follow-up 'vamos a ingresar 03/10/2026' → luego '05/10/2026' consolida y no deriva", () => {
     beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-10-01T12:00:00.000Z"));
         vi.clearAllMocks();
         (getConvState as any).mockResolvedValue({
             hotelId,
@@ -64,6 +66,10 @@ describe("messageHandler: follow-up 'vamos a ingresar 03/10/2026' → luego '05/
             salesStage: "close",
             updatedAt: new Date().toISOString(),
         });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it("pide check-out y luego confirma 03/10/2026 → 05/10/2026 sin retrieval", async () => {
