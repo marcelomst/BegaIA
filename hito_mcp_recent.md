@@ -10,7 +10,17 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. OPS-01
+## 1. PERS-02
+
+- Identificador: `PERS-02`
+- Nombre: `preserve rich deterministic create proposals`
+- Cadena tecnica: `229bf02fa8db71fe8ef84357e66cb1d4441729b9` → `7cb9178bc03277a0e54cb8b8bb350627cf793220`.
+- Technical head: `7cb9178bc03277a0e54cb8b8bb350627cf793220`.
+- Push tecnico: confirmado.
+- Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Preserva propuestas ricas durante `reservation.create` deterministico, publica y finaliza `lastProposal` mediante CAS de identidad completa, bloquea confirmaciones invalidas o stale, mantiene continuidad tras consultas laterales y refresca evidencia fisica focal sin cambio conceptual ni afirmacion de frescura global.
+
+## 2. OPS-01
 
 - Identificador: `OPS-01`
 - Nombre: `restore agent transition closure flow`
@@ -19,7 +29,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Restablece el circuito `Guardian -> AH -> Guardian -> HDOC -> AH -> HDOC` mediante envelopes de retorno autocontenidos, autoridad Git write exclusiva de Marcelo y validacion postcommit read-only; consolida el contrato operativo sin impacto en Runtime Map ni roadmap.
 
-## 2. PERS-01
+## 3. PERS-01
 
 - Identificador: `PERS-01`
 - Nombre: `preserve rich Graph proposal metadata`
@@ -28,7 +38,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Preserva la metadata rica de `lastProposal` para propuestas atribuidas a la invocacion Graph actual mediante relectura canonica y CAS exclusivo sobre `lastProposal.text`; registra evidencia focal y Astra aceptada, y refresca dos boxes estables sin cambio conceptual ni afirmacion de frescura global.
 
-## 3. LAT-01
+## 4. LAT-01
 
 - Identificador: `LAT-01`
 - Nombre: `canonical LLM retry policy`
@@ -37,7 +47,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Centraliza la clasificacion de errores LLM permanentes de cuota o billing, corta antes del segundo intento en `fillSlotsWithLLM` y `tryStructuredAnalyze`, preserva retries transitorios y fallbacks, registra 13/13 pruebas focales y 76/77 de paridad, y refresca evidencia fisica focal del Runtime Map sin cambio conceptual ni afirmacion de frescura global.
 
-## 4. SEC-01
+## 5. SEC-01
 
 - Identificador: `SEC-01`
 - Nombre: `credential logging containment`
@@ -46,7 +56,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Centraliza la sanitizacion del mirror global, protege las cinco salidas de consola y `debug/log.txt`, conserva tres fallos temporales preexistentes fuera del alcance y separa el cierre tecnico de las acciones operativas sobre claves o logs historicos.
 
-## 5. BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
+## 6. BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01
 
 - Identificador: `BUG-RESERVATION-GUESTNAME-RAW-OVERRIDE-01`
 - Nombre: `preserve canonical reservation guestName from proposal through confirmed create`
@@ -55,7 +65,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Elimina la reinyeccion tardia de `msg.content`, preserva `reservationSlots.guestName` desde la propuesta hasta el create confirmado, registra smoke manual PASS y refresca referencias fisicas del box estable de create sin cambio conceptual.
 
-## 6. OPS-HDOC-NONRECURSIVE-CLOSURE-01
+## 7. OPS-HDOC-NONRECURSIVE-CLOSURE-01
 
 - Identificador: `OPS-HDOC-NONRECURSIVE-CLOSURE-01`
 - Nombre: `restore non-recursive HDOC postcommit closure`
@@ -64,7 +74,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Separa HDOC(1) de HDOC(CLOSE), elimina la persistencia recursiva del self-hash, registra la configuracion operativa externa validada y fortalece la trazabilidad sin impacto en Runtime Map ni roadmap.
 
-## 7. BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01
+## 8. BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01
 
 - Identificador: `BUG-PROVIDER-OPTIONAL-CONTACTS-NULL-01`
 - Nombre: `normalize provider optional contact nullability at the provider/runtime boundary`
@@ -74,7 +84,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING`.
 - Descripcion breve: Normaliza `guestEmail` y `guestPhone` opcionales de `null` a ausencia runtime en el boundary del provider, mantiene campos obligatorios estrictos y autoridad del provider, registra smoke real exitoso y conserva las deudas independientes fuera del scope.
 
-## 8. PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
+## 9. PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01
 
 - Identificador: `PILOT-READINESS-RESERVATION-RESPONSE-COMPLETENESS-01`
 - Nombre: `complete canonical reservation data projection in observable proposal and post-modify responses`
@@ -85,7 +95,7 @@ recent_hitos_count: 10
 - Estado documental: `CLOSED`; commit documental `9d82d3decb14cefd26904591f10f5ebd62cad9be`.
 - Descripcion breve: Completa la proyeccion observable de propuesta, la consistencia de `lastProposal` y la respuesta post-modify desde la Reservation autoritativa del provider; refresca evidencia fisica del Runtime Map sin cambio conceptual y conserva cuatro deudas independientes fuera del scope.
 
-## 9. PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
+## 10. PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01
 
 - Identificador: `PILOT-READINESS-MODIFY-NUMGUESTS-AUTHORITY-01`
 - Nombre: `authoritative_numGuests_end_to_end`
@@ -96,16 +106,3 @@ recent_hitos_count: 10
 - Push documental: confirmado.
 - Estado documental: `CERRADO`; commit documental `9a9cf654f09257e5497c5fc7155ab4fd3480ec04`.
 - Descripcion breve: Materializa `numGuests` como dato autoritativo del provider hasta la proyeccion canonica y `conv_state`, con Astra verificada, Runtime Map fisicamente refrescado sin cambio conceptual, deuda temporal no bloqueante e incidente Git exclusivamente operacional.
-
-## 10. PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01
-
-- Identificador: `PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01`
-- Nombre: `PILOT-READINESS-RUNTIME-MAP-EVIDENCE-REFRESH-01`
-- Commit tecnico: `93b0cb2852c64ba50f4aa078339f6a4f4f0b58ed`
-- Push tecnico: confirmado.
-- Commit documental: `6730cc897327ed0df428cd75a807bdb856d54875`
-- Push documental: confirmado.
-- closure_reconciliation_commit: `988b72a6f917063a8a389ab57f47a76446305320`
-- closure_reconciliation_push: confirmado.
-- Estado documental: `CERRADO`; commit documental `6730cc897327ed0df428cd75a807bdb856d54875`.
-- Descripcion breve: Registra el refresh versionado de evidencia fisica y code refs del Runtime Map, preservando sus 19 box_id, su estructura conceptual, la arquitectura y el runtime; el siguiente hito permanece bloqueado por la precondicion externa Astra sobre `demo_cm_reservations.num_guests` con estado `pending_external_materialization`.

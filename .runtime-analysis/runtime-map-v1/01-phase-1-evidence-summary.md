@@ -21,37 +21,36 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: de07879f0cc1d69510c5ad87f7f744054ea5d788
-messageHandler_lines: 13483
-working_tree_status: unrelated_document_change_preserved
-analysis_scope: focal_refresh_pers_01_at_de07879f0cc1d69510c5ad87f7f744054ea5d788
+commit_base: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+messageHandler_lines: 13577
+working_tree_status: clean_at_documentation_preparation_start
+analysis_scope: focal_refresh_pers_02_at_7cb9178bc03277a0e54cb8b8bb350627cf793220
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - CAS unit contract: 4/4 PASS
-    - post-Graph dynamic characterization: 22/22 PASS
-    - LAT-01 compatibility: 13/13 PASS
-    - Graph create confirmation guard: 14/14 PASS
-    - Astra real CAS gate: accepted
+    - suite global: 1178/1178 PASS
+    - TypeScript: PASS
+    - seguridad local del validador: 15/15 PASS
+    - Astra CAS gate: 16/16 PASS
+    - E2E manual web: PASS
   full_suite:
-    - 94/95 PASS
-    - 1 fallo por fixture historico vencido, independiente de PERS-01
+    - 1178/1178 PASS
 global_freshness_claim_allowed: false
 ```
 
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: 9a46b5f9007ccb204e6982e05c72571ffd8c44da
-messageHandler_lines: 13298
-analysis_scope: focal_refresh_lat_01_at_9a46b5f9007ccb204e6982e05c72571ffd8c44da
+commit_base: de07879f0cc1d69510c5ad87f7f744054ea5d788
+messageHandler_lines: 13483
+analysis_scope: focal_refresh_pers_01_at_de07879f0cc1d69510c5ad87f7f744054ea5d788
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L4954-L5166
-  bodyLLM: L5825-L12434
-  posLLM: L12929-L12970
-  handleIncomingMessage: L12974-L13298
+  preLLM: L4960-L5172
+  bodyLLM: L5989-L12619
+  posLLM: L13114-L13155
+  handleIncomingMessage: L13159-L13483
 ```
 
 ## Refresh documental aplicado en este hito
@@ -62,20 +61,18 @@ runtime_boxes_audit:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - corredor post-Graph de PERS-01
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - CAS unit contract: 4/4 PASS
-      - post-Graph dynamic characterization: 22/22 PASS
-      - LAT-01 compatibility: 13/13 PASS
-      - Graph create confirmation guard: 14/14 PASS
-      - focal/regression aggregate: 94/95 PASS
-      - unico fallo por fixture historico vencido, independiente de PERS-01
-      - Astra real CAS gate: accepted
+      - suite global: 1178/1178 PASS
+      - CAS publication/finalization and A/B race covered
+      - persistence failure and supervision parity covered
+      - legacy confirmation compatibility covered
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -85,13 +82,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
-    messageHandler_lines: 13483
+    commit: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+    messageHandler_lines: 13577
     functions:
-      preLLM: L4960-L5172
-      bodyLLM: L5989-L12619
-      posLLM: L13114-L13155
-      handleIncomingMessage: L13159-L13483
+      preLLM: L4963-L5175
+      bodyLLM: L6187-L12713
+      posLLM: L13208-L13249
+      handleIncomingMessage: L13253-L13577
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -105,17 +102,18 @@ runtime_map:
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: PERS-01
-technical_commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
+hito_id: PERS-02
+technical_commit: 7cb9178bc03277a0e54cb8b8bb350627cf793220
 scope_real:
-  - preserve rich lastProposal metadata for a proposal attributed to the current Graph invocation
-focal_refs:
-  attribution_contract: lib/handlers/messageHandler.ts:L5830-L5903
-  canonical_reread_and_cas_dispatch: lib/handlers/messageHandler.ts:L5905-L5986
-  graph_invocation_attribution: lib/handlers/messageHandler.ts:L11426-L11457
-  post_graph_persistence: lib/handlers/messageHandler.ts:L12554-L12590
-  observable_persistence_reply: lib/handlers/messageHandler.ts:L13329-L13477
-  helper_cas: lib/db/convState.ts:L311-L343
+  - preserve rich proposals during deterministic reservation.create
+  - publish and finalize lastProposal through full-identity CAS
+  - preserve continuity after lateral inquiries
+top_level_code_refs:
+  preLLM: L4963-L5175
+  bodyLLM: L6187-L12713
+  posLLM: L13208-L13249
+  handleIncomingMessage: L13253-L13577
+internal_code_refs_status: not_recalculated_by_guardian
 ```
 
 Provider/MCP es sólo boundary/dependencia física y permanece fuera de la
@@ -125,7 +123,7 @@ no ejecutó ninguna operación contra Astra.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan focal vigente de `de07879f0cc1d69510c5ad87f7f744054ea5d788`,
+sin reemplazar el scan focal vigente de `7cb9178bc03277a0e54cb8b8bb350627cf793220`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -158,7 +156,7 @@ validation:
 ## Funciones clave historicas y top-level actuales
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
-`handleIncomingMessage`) fueron recalculadas para PERS-01. Las demas filas se
+`handleIncomingMessage`) fueron recalculadas para PERS-02. Las demas filas se
 preservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 
@@ -172,10 +170,10 @@ global.
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      |
-| `preLLM`                             | L4960-L5172 |    213 | high      |
-| `bodyLLM`                            | L5989-L12619 |   6631 | high      |
-| `posLLM`                             | L13114-L13155 |     42 | high      |
-| `handleIncomingMessage`              | L13159-L13483 |    325 | high      |
+| `preLLM`                             | L4963-L5175 |    213 | high      |
+| `bodyLLM`                            | L6187-L12713 |   6527 | high      |
+| `posLLM`                             | L13208-L13249 |     42 | high      |
+| `handleIncomingMessage`              | L13253-L13577 |    325 | high      |
 
 ---
 
@@ -184,8 +182,8 @@ global.
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13483 lineas
-bodyLLM:                6631 lineas
+messageHandler.ts total: 13577 lineas
+bodyLLM:                6527 lineas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -571,7 +569,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13483
+    range: L1-L13577
     confidence: high
 ```
 
@@ -584,7 +582,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4960-L5172
+    range: L4963-L5175
     confidence: high
 ```
 
@@ -603,7 +601,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L5989-L12619
+    range: L6187-L12713
     confidence: high
 ```
 
@@ -622,7 +620,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L13114-L13155
+    range: L13208-L13249
     confidence: high
 ```
 
@@ -641,7 +639,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L13159-L13483
+    range: L13253-L13577
     confidence: high
 ```
 

@@ -15136,7 +15136,9 @@ Limites funcionales y riesgos residuales:
 - la prueba manual del 2026-10-13 con Martin Silva evidencio degradacion de
   metadata en un corredor deterministico que retorna antes de Graph; pertenece
   al candidato PERS-02 y no es regresion de PERS-01
-- PERS-02 permanece separado y sin autorizacion de implementacion
+- al cierre de PERS-01, PERS-02 permanecia separado y sin autorizacion de
+  implementacion; su materializacion posterior se registra en la seccion
+  `PERS-02`
 - LAT-02 mantiene NO-GO para el bypass estructurado bajo el contrato vigente de
   supervision
 
@@ -15209,3 +15211,107 @@ Impacto:
 - Runtime Map: no aplica; no se modificaron runtime conversacional ni cajas
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### PERS-02
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-16
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: preservar propuestas ricas durante `reservation.create` deterministico y consumirlas solo mediante CAS de identidad completa
+Technical head: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- `conv_state.lastProposal` conserva snapshot, opciones, moneda, precio y
+  trazabilidad de `checkAvailability` durante el create deterministico
+- publicacion y finalizacion usan CAS de identidad completa para impedir
+  sobrescrituras stale o inconsistentes
+- la confirmacion queda bloqueada ante propuesta negativa, erronea, stale o
+  incompatible con el estado vigente
+- las consultas laterales no rompen la continuidad de la propuesta pendiente
+- `conv_state` permanece como fuente canonica y no se introduce estado paralelo
+
+Materializacion tecnica:
+
+```yaml
+technical_commits:
+  - hash: 229bf02fa8db71fe8ef84357e66cb1d4441729b9
+    subject: "fix(pers-02): preserve rich deterministic create proposals"
+  - hash: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+    subject: "test(pers-02): complete deterministic proposal regression coverage"
+technical_head: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+```
+
+Validacion aceptada por Guardian:
+
+- suite global: 1178/1178 PASS
+- TypeScript: PASS
+- seguridad local del validador: 15/15 PASS
+- compatibilidad PERS-01 y LAT-02 preservada
+- gate Astra: 16/16 escenarios PASS y cleanup 7/7 DELETED
+- E2E manual web: PASS; reserva `RES-EAD7EB` confirmada para Ana Furtado,
+  habitacion double, 2026-11-20 a 2026-11-23, 2 huespedes, USD 345
+- propuesta rica, snapshot, opciones, continuidad lateral, confirmacion
+  explicita y consumo final de `lastProposal` verificados
+- `lastReservation` y `reservationHistory` presentes
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - corredor post-Graph de PERS-01
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `7cb9178bc03277a0e54cb8b8bb350627cf793220`
+- `messageHandler.ts`: 13577 lineas fisicas
+- `preLLM`: L4963-L5175
+- `bodyLLM`: L6187-L12713
+- `posLLM`: L13208-L13249
+- `handleIncomingMessage`: L13253-L13577
+- `box_id`, relaciones y diagramas conceptuales preservados
+- frescura resultante: exclusivamente `pers_02_focal_only`; no se declara
+  frescura global
+
+Follow-up no bloqueante:
+
+- la respuesta final omite el importe aunque USD 345 quedo correctamente
+  persistido
+- se registra como mejora futura de presentacion y no amplia PERS-02
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; `conv_state` conserva la propuesta rica como fuente
+  canonica y los CAS evitan mutaciones stale sin crear estado paralelo
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
+- cierre definitivo sujeto a documentation commit, push y HDOC(CLOSE)
