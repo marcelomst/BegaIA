@@ -20,6 +20,7 @@ import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import {
   getConvState,
   updateLastProposalTextIfCurrent,
+  finalizeDeterministicCreateProposalIfCurrent,
   CONVSTATE_VERSION,
   resolveGuestState,
 } from "@/lib/db/convState";
@@ -31,6 +32,7 @@ import type {
   SelectedReservationTarget,
   ModifyState,
   ConversationFocus,
+  DeterministicCreateProposalIdentity,
 } from "@/lib/db/convState";
 import crypto from "crypto";
 
@@ -84,6 +86,7 @@ import {
   buildEarlyCheckinResponse,
   isPureAffirmative,
   askedToConfirmCheckTime,
+  type AvailabilityCheckResult,
 } from "./pipeline/availability";
 import { runStableIntentsGuard } from "./pipeline/stableIntentsGuard";
 import { isConfirmableReservationState } from "./pipeline/reservationState";
@@ -5985,6 +5988,201 @@ async function tryUpdateAttributedCreateProposalText(params: {
   }
 }
 
+type DeterministicCreateFinalizationResult = AvailabilityCheckResult & {
+  nextSlots: ReservationSlotsStrict;
+  proposalMatched: boolean;
+};
+
+function buildConservativeCreatePersistenceReply(lang: "es" | "en" | "pt"): string {
+  if (lang === "pt") {
+    return "Não consegui manter essa proposta como vigente com segurança. A recepção revisará a disponibilidade e entrará em contato em breve.";
+  }
+  if (lang === "en") {
+    return "I couldn't safely keep that proposal as the current one. Reception will review availability and contact you shortly.";
+  }
+  return "No pude mantener esa propuesta como vigente de forma segura. Recepción revisará la disponibilidad y se pondrá en contacto a la brevedad.";
+}
+
+async function finalizeDeterministicCreateProposal(params: {
+  pre: PreLLMResult;
+  availabilityPre: PreLLMResult;
+  slots: ReservationSlotsStrict;
+  checkIn: string;
+  checkOut: string;
+  prefixText?: string;
+  reservationHistory?: LastReservation[] | null;
+}): Promise<DeterministicCreateFinalizationResult> {
+  const {
+    pre,
+    availabilityPre,
+    slots,
+    checkIn,
+    checkOut,
+    prefixText,
+    reservationHistory,
+  } = params;
+  const availabilityResult = prefixText
+    ? await runAvailabilityCheck(
+        availabilityPre,
+        slots,
+        checkIn,
+        checkOut,
+        { textPrefix: prefixText, deterministicCreate: true }
+      )
+    : await runAvailabilityCheck(
+        availabilityPre,
+        slots,
+        checkIn,
+        checkOut,
+        { deterministicCreate: true }
+      );
+  const nextSlots = {
+    ...mergeReservationSlots(pre.st?.reservationSlots, availabilityResult.nextSlots, slots),
+    locale: pre.lang,
+  } as ReservationSlotsStrict;
+  const sourceText = availabilityResult.finalText;
+  const proposalText = applyConversationalProposalVocative(
+    sourceText,
+    pre.lang,
+    availabilityPre.guest
+  );
+  const canonicalSnapshot = normalizeCanonicalCreateProposalSnapshot(nextSlots);
+  const proposalIdentity = availabilityResult.proposalIdentity;
+  const conservativeReply = buildConservativeCreatePersistenceReply(pre.lang);
+  if (
+    !proposalIdentity ||
+    !availabilityResult.richProposal?.toolCall ||
+    !availabilityResult.proposalPersistence?.matched
+  ) {
+    return {
+      ...availabilityResult,
+      finalText: conservativeReply,
+      nextSlots,
+      needsHandoff: true,
+      proposalMatched: false,
+    };
+  }
+  if (!canonicalSnapshot) {
+    return {
+      ...availabilityResult,
+      finalText: proposalText,
+      nextSlots,
+      proposalMatched: true,
+    };
+  }
+  const identity: DeterministicCreateProposalIdentity = {
+    sourceText: proposalIdentity.sourceText,
+    available: proposalIdentity.available,
+    availabilityStatus: proposalIdentity.availabilityStatus,
+    toolCallAt: proposalIdentity.toolCallAt,
+    outputSummary: proposalIdentity.outputSummary,
+    input: {
+      hotelId: pre.msg.hotelId,
+      roomType: canonicalSnapshot.roomType,
+      numGuests: canonicalSnapshot.numGuests,
+      checkIn: canonicalSnapshot.checkIn,
+      checkOut: canonicalSnapshot.checkOut,
+    },
+    snapshot: {
+      guestName: canonicalSnapshot.guestName,
+      roomType: canonicalSnapshot.roomType,
+      numGuests: proposalIdentity.snapshot.numGuests as number | string,
+      checkIn: canonicalSnapshot.checkIn,
+      checkOut: canonicalSnapshot.checkOut,
+      locale: pre.lang,
+    },
+  };
+  try {
+    const finalized = await finalizeDeterministicCreateProposalIfCurrent(
+      pre.msg.hotelId,
+      pre.conversationId,
+      identity,
+      proposalText,
+      reservationHistory === undefined ? undefined : { reservationHistory }
+    );
+    return {
+      ...availabilityResult,
+      finalText: finalized.matched ? proposalText : conservativeReply,
+      nextSlots,
+      needsHandoff: finalized.matched ? availabilityResult.needsHandoff : true,
+      proposalMatched: finalized.matched,
+    };
+  } catch (error) {
+    console.warn(
+      "[lastProposal] deterministic create finalization failed; preserving current proposal:",
+      (error as any)?.message || error
+    );
+    return {
+      ...availabilityResult,
+      finalText: conservativeReply,
+      nextSlots,
+      needsHandoff: true,
+      proposalMatched: false,
+    };
+  }
+}
+
+function isCreateProposalConfirmationEligible(
+  state: ConversationFlowState | null | undefined,
+  nextSlots: ReservationSlotsStrict,
+  hotelId: string,
+  conservativePersistenceFailureActive: boolean
+): boolean {
+  const proposal = state?.lastProposal;
+  if (!proposal) return true;
+  if (proposal.available !== true) return false;
+  if (proposal.availabilityStatus && proposal.availabilityStatus !== "available") return false;
+  if (conservativePersistenceFailureActive) return false;
+
+  const hasRichIdentity = Boolean(
+    proposal.availabilityStatus || proposal.snapshot
+  );
+  if (
+    hasRichIdentity &&
+    (
+      state?.salesStage !== "quote" ||
+      state?.conversationStage !== "reservation_quoted" ||
+      (state?.activeReservationContext?.kind === "draft" &&
+        state.activeReservationContext.phase !== "quoted")
+    )
+  ) {
+    return false;
+  }
+
+  const currentSnapshot = normalizeCanonicalCreateProposalSnapshot(
+    mergeReservationSlots(state?.reservationSlots, nextSlots)
+  );
+  if (!currentSnapshot) return false;
+  const toolCall = proposal.toolCall;
+  if (toolCall) {
+    if (
+      toolCall.name !== "checkAvailability" ||
+      toolCall.outputSummary !== "available:true" ||
+      !proposalInputMatchesSnapshot(
+        toolCall.input as Record<string, unknown>,
+        hotelId,
+        currentSnapshot
+      )
+    ) {
+      return false;
+    }
+  }
+  if (proposal.snapshot) {
+    const proposalSnapshot = normalizeCanonicalCreateProposalSnapshot(proposal.snapshot);
+    if (
+      !proposalSnapshot ||
+      proposalSnapshot.guestName !== currentSnapshot.guestName ||
+      proposalSnapshot.roomType !== currentSnapshot.roomType ||
+      proposalSnapshot.checkIn !== currentSnapshot.checkIn ||
+      proposalSnapshot.checkOut !== currentSnapshot.checkOut ||
+      proposalSnapshot.numGuests !== currentSnapshot.numGuests
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // ===== Agent: Orchestrator/Planner (bodyLLM + agentGraph) =====
 async function bodyLLM(pre: PreLLMResult): Promise<any> {
   debugLog("[bodyLLM] IN", { pre });
@@ -6551,34 +6749,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
       const ciISO = createDraftConsistency.sanitizedSlots.checkIn;
       const coISO = createDraftConsistency.sanitizedSlots.checkOut;
-      const readyCreateResult = await runAvailabilityCheck(
+      const readyCreateResult = await finalizeDeterministicCreateProposal({
+        pre,
         availabilityPre,
-        createDraftConsistency.sanitizedSlots,
-        ciISO!,
-        coISO!
-      );
-      const readyCreateSnapshot = {
-        ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, createDraftConsistency.sanitizedSlots),
-        locale: pre.lang,
-      } as ReservationSlotsStrict;
-      finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
-      nextSlots = readyCreateSnapshot;
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        reservationSlots: readyCreateSnapshot,
-        lastProposal: {
-          text: finalText,
-          available: true,
-        },
-        conversationFocus: buildConversationFocus("create"),
-        activeReservationContext: buildDraftReservationContext("quoted"),
-        activeFlow: "reservation",
-        desiredAction: "create",
-        salesStage: "quote",
-        conversationStage: "reservation_quoted",
-        pendingAvailabilityVerification: null,
-        lastCategory: "reservation",
-        updatedBy: "ai",
-      } as any);
+        slots: createDraftConsistency.sanitizedSlots,
+        checkIn: ciISO!,
+        checkOut: coISO!,
+      });
+      finalText = readyCreateResult.finalText;
+      nextSlots = readyCreateResult.nextSlots;
       traceCreateWordDates("final_output_boundary", {
         force: isCreateWordDatesTraceCandidate(userTxtFast),
         sourceFunction: "bodyLLM.fastPath.currentTurnReadyCreate",
@@ -6810,34 +6989,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             };
           }
           if (canAutoQuoteCreateFast && isCreateStateReadyForQuote(normalizedFastPathSlots) && ciISO && coISO) {
-            const readyCreateResult = await runAvailabilityCheck(
+            const readyCreateResult = await finalizeDeterministicCreateProposal({
+              pre,
               availabilityPre,
-              normalizedFastPathSlots,
-              ciISO,
-              coISO
-            );
-            const readyCreateSnapshot = {
-              ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, normalizedFastPathSlots),
-              locale: pre.lang,
-            } as ReservationSlotsStrict;
-            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-              reservationSlots: readyCreateSnapshot,
-              lastProposal: {
-                text: readyCreateResult.finalText,
-                available: true,
-              },
-              conversationFocus: buildConversationFocus("create"),
-              activeReservationContext: buildDraftReservationContext("quoted"),
-              activeFlow: "reservation",
-              desiredAction: "create",
-              salesStage: "quote",
-              conversationStage: "reservation_quoted",
-              pendingAvailabilityVerification: null,
-              lastCategory: "reservation",
-              updatedBy: "ai",
-            } as any);
-            finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
-            nextSlots = readyCreateSnapshot;
+              slots: normalizedFastPathSlots,
+              checkIn: ciISO,
+              checkOut: coISO,
+            });
+            finalText = readyCreateResult.finalText;
+            nextSlots = readyCreateResult.nextSlots;
             return {
               finalText,
               nextCategory: "reservation",
@@ -7015,34 +7175,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             };
           }
           if (canAutoQuoteCreateFast) {
-            const readyCreateResult = await runAvailabilityCheck(
+            const readyCreateResult = await finalizeDeterministicCreateProposal({
+              pre,
               availabilityPre,
-              fastPathSlots,
-              ciISO,
-              coISO
-            );
-            const readyCreateSnapshot = {
-              ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, fastPathSlots),
-              locale: pre.lang,
-            } as ReservationSlotsStrict;
-            await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-              reservationSlots: readyCreateSnapshot,
-              lastProposal: {
-                text: readyCreateResult.finalText,
-                available: true,
-              },
-              conversationFocus: buildConversationFocus("create"),
-              activeReservationContext: buildDraftReservationContext("quoted"),
-              activeFlow: "reservation",
-              desiredAction: "create",
-              salesStage: "quote",
-              conversationStage: "reservation_quoted",
-              pendingAvailabilityVerification: null,
-              lastCategory: "reservation",
-              updatedBy: "ai",
-            } as any);
-            finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
-            nextSlots = readyCreateSnapshot;
+              slots: fastPathSlots,
+              checkIn: ciISO,
+              checkOut: coISO,
+            });
+            finalText = readyCreateResult.finalText;
+            nextSlots = readyCreateResult.nextSlots;
             return {
               finalText,
               nextCategory: "reservation",
@@ -9053,32 +9194,16 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : `Perfect, we will keep the current booking and open a new one. ${buildCreateFlowPrompt(pre.lang, missingField, pre.msg.channel, additionalReservationDraft)}`;
         return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
       }
-      const availabilityResult = await runAvailabilityCheck(
+      const availabilityResult = await finalizeDeterministicCreateProposal({
+        pre,
         availabilityPre,
-        additionalReservationDraft,
-        additionalReservationDraft.checkIn!,
-        additionalReservationDraft.checkOut!,
-        { persistConvState: false }
-      );
-      nextSlots = availabilityResult.nextSlots as ReservationSlotsStrict;
-      finalText = applyConversationalProposalVocative(availabilityResult.finalText, pre.lang, availabilityPre.guest);
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        slots: additionalReservationDraft,
+        checkIn: additionalReservationDraft.checkIn!,
+        checkOut: additionalReservationDraft.checkOut!,
         reservationHistory: preservedHistory,
-        reservationSlots: availabilityResult.nextSlots as any,
-        lastProposal: {
-          text: availabilityResult.finalText,
-          available: !availabilityResult.needsHandoff,
-        },
-        conversationFocus: buildConversationFocus("create"),
-        activeReservationContext: buildDraftReservationContext("quoted"),
-        activeFlow: "reservation",
-        desiredAction: "create",
-        salesStage: availabilityResult.needsHandoff ? "followup" : "quote",
-        conversationStage: availabilityResult.needsHandoff ? pre.st?.conversationStage : "reservation_quoted",
-        pendingAvailabilityVerification: null,
-        lastCategory: "reservation",
-        updatedBy: "ai",
-      } as any);
+      });
+      nextSlots = availabilityResult.nextSlots;
+      finalText = availabilityResult.finalText;
       return {
         finalText,
         nextCategory: "reservation",
@@ -9308,37 +9433,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (pendingCreateProposal || isCreateStateReadyForQuote(updatedHolderSnapshot));
 
     if (shouldQuoteUpdatedHolder) {
-      const holderQuoteResult = await runAvailabilityCheck(
+      const holderQuoteResult = await finalizeDeterministicCreateProposal({
+        pre,
         availabilityPre,
-        updatedHolderSnapshot,
-        updatedHolderSnapshot.checkIn!,
-        updatedHolderSnapshot.checkOut!
-      );
-      const holderQuotedSnapshot = {
-        ...mergeReservationSlots(pre.st?.reservationSlots, holderQuoteResult.nextSlots, updatedHolderSnapshot),
-        locale: pre.lang,
-      } as ReservationSlotsStrict;
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        reservationSlots: holderQuotedSnapshot,
-        lastProposal: {
-          text: holderQuoteResult.finalText,
-          available: true,
-        },
-        conversationFocus: buildConversationFocus("create"),
-        activeReservationContext: buildDraftReservationContext("quoted"),
-        activeFlow: "reservation",
-        desiredAction: "create",
-        salesStage: "quote",
-        conversationStage: "reservation_quoted",
-        pendingAvailabilityVerification: null,
-        lastCategory: "reservation",
-        updatedBy: "ai",
-      } as any);
-      finalText = applyConversationalProposalVocative(holderQuoteResult.finalText, pre.lang, availabilityPre.guest);
+        slots: updatedHolderSnapshot,
+        checkIn: updatedHolderSnapshot.checkIn!,
+        checkOut: updatedHolderSnapshot.checkOut!,
+      });
+      finalText = holderQuoteResult.finalText;
       return {
         finalText,
         nextCategory: "reservation",
-        nextSlots: holderQuotedSnapshot,
+        nextSlots: holderQuoteResult.nextSlots,
         needsSupervision: needsSupervision || holderQuoteResult.needsHandoff,
         graphResult,
       };
@@ -9373,34 +9479,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildInvalidReservationDatesReply(pre.lang, readyCreateDateCoherence.reason);
       return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
     }
-    const readyCreateResult = await runAvailabilityCheck(
+    const readyCreateResult = await finalizeDeterministicCreateProposal({
+      pre,
       availabilityPre,
-      createDraftConsistency.sanitizedSlots,
-      readyCreateCheckIn!,
-      readyCreateCheckOut!
-    );
-    const readyCreateSnapshot = {
-      ...mergeReservationSlots(pre.st?.reservationSlots, readyCreateResult.nextSlots, createDraftConsistency.sanitizedSlots),
-      locale: pre.lang,
-    } as ReservationSlotsStrict;
-    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      reservationSlots: readyCreateSnapshot,
-      lastProposal: {
-        text: readyCreateResult.finalText,
-        available: true,
-      },
-      conversationFocus: buildConversationFocus("create"),
-      activeReservationContext: buildDraftReservationContext("quoted"),
-      activeFlow: "reservation",
-      desiredAction: "create",
-      salesStage: "quote",
-      conversationStage: "reservation_quoted",
-      pendingAvailabilityVerification: null,
-      lastCategory: "reservation",
-      updatedBy: "ai",
-    } as any);
-    finalText = applyConversationalProposalVocative(readyCreateResult.finalText, pre.lang, availabilityPre.guest);
-    nextSlots = readyCreateSnapshot;
+      slots: createDraftConsistency.sanitizedSlots,
+      checkIn: readyCreateCheckIn!,
+      checkOut: readyCreateCheckOut!,
+    });
+    finalText = readyCreateResult.finalText;
+    nextSlots = readyCreateResult.nextSlots;
     return { finalText, nextCategory: "reservation", nextSlots, needsSupervision: needsSupervision || readyCreateResult.needsHandoff, graphResult };
   }
   if (pendingCreateProposal && !modifyExecutionActive) {
@@ -9557,35 +9644,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             finalText = buildInvalidReservationDatesReply(pre.lang, requoteCoherence.reason);
             return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
           }
-          const requoteResult = await runAvailabilityCheck(
+          const requoteResult = await finalizeDeterministicCreateProposal({
+            pre,
             availabilityPre,
-            quotedDraftConsistency.sanitizedSlots,
-            requoteCheckIn,
-            requoteCheckOut
-          );
-          const requotedSnapshot = {
-            ...mergeReservationSlots(pre.st?.reservationSlots, requoteResult.nextSlots, quotedDraftConsistency.sanitizedSlots),
-            locale: pre.lang,
-          } as ReservationSlotsStrict;
-          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-            reservationSlots: requotedSnapshot,
-            lastProposal: {
-              text: requoteResult.finalText,
-              available: true,
-            },
-            conversationFocus: buildConversationFocus("create"),
-            activeReservationContext: buildDraftReservationContext("quoted"),
-            activeFlow: "reservation",
-            desiredAction: "create",
-            salesStage: "quote",
-            conversationStage: "reservation_quoted",
-            pendingAvailabilityVerification: null,
-            lastCategory: "reservation",
-            updatedBy: "ai",
-          } as any);
-          finalText = applyConversationalProposalVocative(requoteResult.finalText, pre.lang, availabilityPre.guest);
-          nextSlots = requotedSnapshot;
-          return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
+            slots: quotedDraftConsistency.sanitizedSlots,
+            checkIn: requoteCheckIn,
+            checkOut: requoteCheckOut,
+          });
+          finalText = requoteResult.finalText;
+          nextSlots = requoteResult.nextSlots;
+          return {
+            finalText,
+            nextCategory: "reservation",
+            nextSlots,
+            needsSupervision: needsSupervision || requoteResult.needsHandoff,
+            graphResult,
+          };
         }
 
         await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);
@@ -10150,14 +10224,28 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isVerifyAvailabilityAffirmative =
     (Boolean(pendingAvailabilityVerification) || askedToVerifyAvailability(pre.lcHistory, pre.lang)) &&
     isPureAffirmative(String(pre.msg.content || ""), pre.lang);
-  const hasCreateQuoteConfirmationContext = hasCreateQuoteConfirmationContextSignal({
+  const quotePromptActive = askedToConfirmReservation(pre.lcHistory);
+  const lastAiBeforeConfirmation = [...pre.lcHistory]
+    .reverse()
+    .find((message) => message instanceof AIMessage) as AIMessage | undefined;
+  const conservativePersistenceFailureActive =
+    /no pude mantener esa propuesta como vigente|não consegui manter essa proposta como vigente|couldn't safely keep that proposal as the current one/i
+      .test(String(lastAiBeforeConfirmation?.content || ""));
+  const proposalAllowsCreateConfirmation = isCreateProposalConfirmationEligible(
+    pre.st,
+    nextSlots,
+    pre.msg.hotelId,
+    conservativePersistenceFailureActive
+  );
+  const hasCreateQuoteConfirmationContext = proposalAllowsCreateConfirmation && hasCreateQuoteConfirmationContextSignal({
     inModifyMode: pre.inModifyMode,
-    quotePromptActive: askedToConfirmReservation(pre.lcHistory),
+    quotePromptActive,
     lastProposal: pre.st?.lastProposal,
     salesStage: pre.st?.salesStage,
     conversationStage: pre.st?.conversationStage,
   });
-  const { flow: reservationFlow, confirmable: isReservationConfirmable } = isConfirmableReservationState(pre.st, nextSlots);
+  const { flow: reservationFlow, confirmable: reservationStateConfirmable } = isConfirmableReservationState(pre.st, nextSlots);
+  const isReservationConfirmable = proposalAllowsCreateConfirmation && reservationStateConfirmable;
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw) || extractReservationCodeLikeToken(userTxtRaw);
@@ -12306,32 +12394,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             : pre.lang === "pt"
               ? `Perfeito, vou verificar a disponibilidade para ${ci} → ${co}.`
               : `Great, I'll check availability for ${ci} → ${co}.`;
-          const res = await runAvailabilityCheck(availabilityPre, nextSlots, ciISO!, coISO!);
-          finalText = `${ackLine}\n\n${res.finalText}`.trim();
+          const res = await finalizeDeterministicCreateProposal({
+            pre,
+            availabilityPre,
+            slots: {
+              ...mergeReservationSlots(pre.st?.reservationSlots, nextSlots, {
+                checkIn: ciISO,
+                checkOut: coISO,
+              }),
+              locale: pre.lang,
+            } as ReservationSlotsStrict,
+            checkIn: ciISO!,
+            checkOut: coISO!,
+            prefixText: ackLine,
+          });
+          finalText = res.finalText;
           nextSlots = res.nextSlots;
-          const quotedCreateSnapshot = {
-            ...mergeReservationSlots(pre.st?.reservationSlots, res.nextSlots, {
-              checkIn: ciISO,
-              checkOut: coISO,
-            }),
-            locale: pre.lang,
-          } as ReservationSlotsStrict;
-          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-            reservationSlots: quotedCreateSnapshot,
-            lastProposal: {
-              text: finalText,
-              available: true,
-            },
-            conversationFocus: buildConversationFocus("create"),
-            activeReservationContext: buildDraftReservationContext("quoted"),
-            activeFlow: "reservation",
-            desiredAction: "create",
-            salesStage: "quote",
-            conversationStage: "reservation_quoted",
-            pendingAvailabilityVerification: null,
-            lastCategory: "reservation",
-            updatedBy: "ai",
-          } as any);
           availabilityNeedsHandoff = Boolean(res.needsHandoff);
         }
         if (availabilityNeedsHandoff) {
@@ -12408,10 +12486,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           finalText = buildInvalidReservationDatesReply(pre.lang, availabilityStatusDateCoherence.reason);
           return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };
         }
-        const res = await runAvailabilityCheck(availabilityPre, { ...nextSlots }, ciISO, coISO);
-        finalText = applyConversationalProposalVocative(res.finalText, pre.lang, availabilityPre.guest);
-        nextSlots = { ...nextSlots, ...res.nextSlots };
         if (modifyExecutionActive) {
+          const res = await runAvailabilityCheck(availabilityPre, { ...nextSlots }, ciISO, coISO);
+          finalText = applyConversationalProposalVocative(res.finalText, pre.lang, availabilityPre.guest);
+          nextSlots = { ...nextSlots, ...res.nextSlots };
           const modifyReservationId = getModifyExecutionReservationId(pre, reservationReference, resolvedModifyTarget);
           await persistModifyExecutionContext(pre, modifyReservationId, {
             reservationSlots: {
@@ -12427,9 +12505,25 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             conversationStage: "reservation_quoted",
           });
           nextCategory = "modify_reservation";
-        }
-        if (res.needsHandoff) {
-          needsSupervision = true;
+          if (res.needsHandoff) {
+            needsSupervision = true;
+          }
+        } else {
+          const res = await finalizeDeterministicCreateProposal({
+            pre,
+            availabilityPre,
+            slots: {
+              ...createQuoteSlots,
+              locale: pre.lang,
+            } as ReservationSlotsStrict,
+            checkIn: ciISO,
+            checkOut: coISO,
+          });
+          finalText = res.finalText;
+          nextSlots = res.nextSlots;
+          if (res.needsHandoff) {
+            needsSupervision = true;
+          }
         }
       } else {
         // Si faltan fechas aún, pedir explícitamente

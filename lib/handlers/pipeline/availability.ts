@@ -1,6 +1,10 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { askAvailability } from "@/lib/agents/reservations";
-import { upsertConvState } from "@/lib/db/convState";
+import {
+    publishDeterministicCreateProposalIfLatest,
+    upsertConvState,
+} from "@/lib/db/convState";
+import type { LastProposal } from "@/lib/db/convState";
 import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion, formatGuestCountLabel, formatNightCountLabel } from "@/lib/agents/helpers";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
@@ -22,7 +26,40 @@ export interface PreLike {
     guest?: { name?: string; firstName?: string; lastName?: string };
 }
 
-function safeNowISO() { return new Date().toISOString(); }
+let lastAvailabilityIdentityMs = 0;
+function safeNowISO() {
+    const nextMs = Math.max(Date.now(), lastAvailabilityIdentityMs + 1);
+    lastAvailabilityIdentityMs = nextMs;
+    return new Date(nextMs).toISOString();
+}
+
+export type AvailabilityStatus = "available" | "unavailable" | "error";
+
+export type AvailabilityCheckResult = {
+    finalText: string;
+    nextSlots: ReservationSlotsLike;
+    needsHandoff: boolean;
+    status?: AvailabilityStatus;
+    snapshot?: ReservationSlotsLike;
+    richProposal?: LastProposal;
+    proposalIdentity?: {
+        sourceText: string;
+        available: boolean;
+        availabilityStatus: AvailabilityStatus;
+        toolCallAt: string;
+        outputSummary: "available:true" | "available:false" | "error";
+        input: NonNullable<LastProposal["toolCall"]>["input"];
+        snapshot: ReservationSlotsLike;
+    };
+    providerResult?: unknown;
+    proposalPersistence?: {
+        matched: boolean;
+        modified: boolean;
+        matchedCount: 0 | 1;
+        modifiedCount: 0 | 1;
+        error?: boolean;
+    };
+};
 
 function applyConversationalVocative(
     base: string,
@@ -551,10 +588,16 @@ export async function runAvailabilityCheck(
     slots: ReservationSlotsLike,
     ciISO: string,
     coISO: string,
-    options?: { mode?: "proposal" | "inquiry"; persistConvState?: boolean }
-): Promise<{ finalText: string; nextSlots: ReservationSlotsLike; needsHandoff: boolean }> {
+    options?: {
+        mode?: "proposal" | "inquiry";
+        persistConvState?: boolean;
+        textPrefix?: string;
+        deterministicCreate?: boolean;
+    }
+): Promise<AvailabilityCheckResult> {
     const mode = options?.mode || "proposal";
     const persistConvState = options?.persistConvState ?? (mode === "proposal");
+    const toolCallAt = safeNowISO();
     const snapshot: any = {
         guestName: slots.guestName || pre.st?.reservationSlots?.guestName,
         roomType: slots.roomType || pre.st?.reservationSlots?.roomType,
@@ -564,16 +607,24 @@ export async function runAvailabilityCheck(
         locale: pre.lang,
     };
     const availability = await askAvailability(pre.msg.hotelId, snapshot);
-    const isError = (availability as any).ok === false;
+    const status: AvailabilityStatus =
+        (availability as any)?.ok === false
+            ? "error"
+            : (availability as any)?.available === true
+                ? "available"
+                : (availability as any)?.available === false
+                    ? "unavailable"
+                    : "error";
+    const isError = status === "error";
     let base = (availability as any).proposal ||
         (isError
             ? (pre.lang === "es" ? "Tuve un problema al consultar la disponibilidad." : pre.lang === "pt" ? "Tive um problema ao verificar a disponibilidade." : "I had an issue checking availability.")
-            : (availability.available
+            : (status === "available"
                 ? (pre.lang === "es" ? "Tengo disponibilidad." : pre.lang === "pt" ? "Tenho disponibilidade." : "I have availability.")
                 : (pre.lang === "es" ? "No tengo disponibilidad en esas fechas." : pre.lang === "pt" ? "Não tenho disponibilidade nessas datas." : "No availability on those dates.")));
 
     const firstOption: any = Array.isArray(availability.options) ? availability.options[0] : undefined;
-    if (availability.available && (firstOption?.roomType || snapshot.roomType)) {
+    if (status === "available" && (firstOption?.roomType || snapshot.roomType)) {
         const opt: any = firstOption || {};
         const nights = Math.max(1, Math.round((new Date(coISO).getTime() - new Date(ciISO).getTime()) / (24 * 60 * 60 * 1000)));
         const perNight = typeof opt.pricePerNight === "number" ? opt.pricePerNight : undefined;
@@ -639,7 +690,7 @@ export async function runAvailabilityCheck(
         ...(needsRoomType ? ["roomType"] : []),
         ...(needsName ? ["guestName"] : []),
     ];
-    const actionLine = mode === "proposal" && availability.available
+    const actionLine = mode === "proposal" && status === "available"
         ? (pre.msg.channel === "email" && emailMissing.length >= 2
             ? `\n\n${buildReservationMissingQuestion(emailMissing, pre.lang, "email", false)}`
             : (needsGuests
@@ -654,7 +705,7 @@ export async function runAvailabilityCheck(
         : "";
 
     let handoffLine = "";
-    if (availability.available === false || isError) {
+    if (status !== "available") {
         const lastAi = [...pre.lcHistory].reverse().find((m) => m instanceof AIMessage) as AIMessage | undefined;
         const lastText = String((lastAi as any)?.content || "").toLowerCase();
         const alreadyHandoff = /recepcion|receptionist|humano|human|contato|contacto/.test(lastText);
@@ -666,38 +717,113 @@ export async function runAvailabilityCheck(
                     : "\n\nA receptionist will contact you shortly.";
         }
     }
-    const finalText = `${base}${actionLine}${handoffLine}`.trim();
+    const coreFinalText = `${base}${actionLine}${handoffLine}`.trim();
+    const finalText = options?.textPrefix
+        ? `${options.textPrefix}\n\n${coreFinalText}`.trim()
+        : coreFinalText;
+    const outputSummary = status === "available"
+        ? "available:true"
+        : status === "unavailable"
+            ? "available:false"
+            : "error";
+    const parsedNumGuests = snapshot.numGuests
+        ? parseInt(String(snapshot.numGuests), 10) || 1
+        : undefined;
+    const richProposal: LastProposal = {
+        text: finalText,
+        available: status === "available",
+        availabilityStatus: status,
+        snapshot,
+        options: Array.isArray((availability as any)?.options) ? (availability as any).options : undefined,
+        suggestedRoomType: (availability as any)?.options?.[0]?.roomType,
+        suggestedPricePerNight: typeof (availability as any)?.options?.[0]?.pricePerNight === "number"
+            ? (availability as any).options[0].pricePerNight
+            : undefined,
+        toolCall: {
+            name: "checkAvailability",
+            input: {
+                hotelId: pre.msg.hotelId,
+                roomType: snapshot.roomType,
+                numGuests: parsedNumGuests,
+                checkIn: snapshot.checkIn,
+                checkOut: snapshot.checkOut,
+            },
+            outputSummary,
+            at: toolCallAt,
+        },
+    };
+    let proposalPersistence: AvailabilityCheckResult["proposalPersistence"];
     if (persistConvState) {
         try {
-            await upsertConvState(pre.msg.hotelId, pre.conversationId, {
-                reservationSlots: snapshot,
-                lastProposal: {
-                    text: finalText,
-                    available: !!availability.available,
-                    options: availability.options,
-                    suggestedRoomType: availability?.options?.[0]?.roomType,
-                    suggestedPricePerNight: typeof availability?.options?.[0]?.pricePerNight === "number" ? availability.options![0]!.pricePerNight : undefined,
-                    toolCall: {
-                        name: "checkAvailability",
+            if (options?.deterministicCreate) {
+                proposalPersistence = await publishDeterministicCreateProposalIfLatest(
+                    pre.msg.hotelId,
+                    pre.conversationId,
+                    {
+                        sourceText: finalText,
+                        available: richProposal.available,
+                        availabilityStatus: status,
+                        toolCallAt,
+                        outputSummary,
                         input: {
                             hotelId: pre.msg.hotelId,
                             roomType: snapshot.roomType,
-                            numGuests: snapshot.numGuests ? parseInt(String(snapshot.numGuests), 10) || 1 : undefined,
+                            numGuests: parsedNumGuests,
                             checkIn: snapshot.checkIn,
                             checkOut: snapshot.checkOut,
                         },
-                        outputSummary: availability.available ? "available:true" : "available:false",
-                        at: safeNowISO(),
+                        snapshot: {
+                            guestName: snapshot.guestName,
+                            roomType: snapshot.roomType,
+                            numGuests: snapshot.numGuests,
+                            checkIn: snapshot.checkIn,
+                            checkOut: snapshot.checkOut,
+                            locale: snapshot.locale,
+                        },
                     },
-                },
-                salesStage: availability.available ? "quote" : "followup",
-                desiredAction: (isError || availability.available === false) ? "notify_reception" : (pre.st?.desiredAction),
-                updatedBy: "ai",
-            } as any);
+                    richProposal
+                );
+            } else {
+                await upsertConvState(pre.msg.hotelId, pre.conversationId, {
+                    reservationSlots: snapshot,
+                    lastProposal: richProposal,
+                    salesStage: status === "available" ? "quote" : "followup",
+                    desiredAction: status === "available" ? pre.st?.desiredAction : "notify_reception",
+                    pendingAvailabilityVerification: null,
+                    updatedBy: "ai",
+                } as any);
+            }
         } catch (e) {
             console.warn("[runAvailabilityCheck] upsertConvState warn:", (e as any)?.message || e);
+            if (options?.deterministicCreate) {
+                proposalPersistence = {
+                    matched: false,
+                    modified: false,
+                    matchedCount: 0,
+                    modifiedCount: 0,
+                    error: true,
+                };
+            }
         }
     }
     const nextSlots = { ...slots, checkIn: ciISO, checkOut: coISO } as ReservationSlotsLike;
-    return { finalText, nextSlots, needsHandoff: (availability.available === false || isError) };
+    return {
+        finalText,
+        nextSlots,
+        needsHandoff: status !== "available",
+        status,
+        snapshot,
+        richProposal,
+        proposalIdentity: {
+            sourceText: finalText,
+            available: richProposal.available,
+            availabilityStatus: status,
+            toolCallAt,
+            outputSummary,
+            input: richProposal.toolCall!.input,
+            snapshot,
+        },
+        providerResult: availability,
+        proposalPersistence,
+    };
 }

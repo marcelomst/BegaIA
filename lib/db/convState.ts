@@ -32,6 +32,8 @@ export type ProposalOption = {
 export type LastProposal = {
   text: string;
   available: boolean;
+  availabilityStatus?: "available" | "unavailable" | "error";
+  snapshot?: ReservationSlots;
   options?: ProposalOption[];
   // Sugerencias rápidas para siguiente turno
   suggestedRoomType?: string;
@@ -67,6 +69,47 @@ export type LastProposalTextUpdateResult = {
   modified: boolean;
   matchedCount: 0 | 1;
   modifiedCount: 0 | 1;
+};
+
+export type DeterministicCreateProposalIdentity = {
+  sourceText: string;
+  available: boolean;
+  availabilityStatus: "available" | "unavailable" | "error";
+  toolCallAt: string;
+  outputSummary: "available:true" | "available:false" | "error";
+  input: {
+    hotelId: string;
+    roomType: string;
+    numGuests: number;
+    checkIn: string;
+    checkOut: string;
+  };
+  snapshot: {
+    guestName: string;
+    roomType: string;
+    numGuests: number | string;
+    checkIn: string;
+    checkOut: string;
+    locale?: string;
+  };
+};
+
+export type DeterministicCreateProposalFinalizeResult = {
+  matched: boolean;
+  modified: boolean;
+  matchedCount: 0 | 1;
+  modifiedCount: 0 | 1;
+};
+
+export type DeterministicCreateProposalPublishResult =
+  DeterministicCreateProposalFinalizeResult;
+
+export type DeterministicCreateProposalPublishIdentity = Omit<
+  DeterministicCreateProposalIdentity,
+  "input" | "snapshot"
+> & {
+  input: NonNullable<LastProposal["toolCall"]>["input"];
+  snapshot: ReservationSlots;
 };
 
 export type LastReservation =
@@ -340,6 +383,231 @@ export async function updateLastProposalTextIfCurrent(
     matchedCount,
     modifiedCount,
   };
+}
+
+export async function finalizeDeterministicCreateProposalIfCurrent(
+  hotelId: string,
+  conversationId: string,
+  identity: DeterministicCreateProposalIdentity,
+  finalText: string,
+  options?: { reservationHistory?: LastReservation[] | null }
+): Promise<DeterministicCreateProposalFinalizeResult> {
+  if (identity.input.hotelId !== hotelId) {
+    return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+  }
+  const _id = key(hotelId, conversationId);
+  const collection: any = col() as any;
+  const isAvailable = identity.availabilityStatus === "available";
+  const now = identity.toolCallAt;
+  const $set: Record<string, unknown> = {
+    "lastProposal.text": finalText,
+    conversationFocus: {
+      domain: "reservation",
+      subFlow: "create",
+      active: true,
+      updatedAt: now,
+    },
+    activeReservationContext: {
+      kind: "draft",
+      phase: isAvailable ? "quoted" : "collecting",
+      updatedAt: now,
+    },
+    activeFlow: "reservation",
+    desiredAction: isAvailable ? "create" : "notify_reception",
+    salesStage: isAvailable ? "quote" : "followup",
+    conversationStage: isAvailable ? "reservation_quoted" : "reservation_collecting",
+    lastCategory: "reservation",
+    updatedAt: now,
+    updatedBy: "ai",
+  };
+  if (options && "reservationHistory" in options) {
+    $set.reservationHistory = options.reservationHistory;
+  }
+  const filter: Record<string, unknown> = {
+    _id,
+    hotelId,
+    conversationId,
+    "lastProposal.available": identity.available,
+    "lastProposal.availabilityStatus": identity.availabilityStatus,
+    "lastProposal.text": { $in: [identity.sourceText, finalText] },
+    "lastProposal.toolCall.name": "checkAvailability",
+    "lastProposal.toolCall.outputSummary": identity.outputSummary,
+    "lastProposal.toolCall.at": identity.toolCallAt,
+    "lastProposal.toolCall.input.hotelId": identity.input.hotelId,
+    "lastProposal.toolCall.input.roomType": identity.input.roomType,
+    "lastProposal.toolCall.input.numGuests": identity.input.numGuests,
+    "lastProposal.toolCall.input.checkIn": identity.input.checkIn,
+    "lastProposal.toolCall.input.checkOut": identity.input.checkOut,
+    "lastProposal.snapshot.guestName": identity.snapshot.guestName,
+    "lastProposal.snapshot.roomType": identity.snapshot.roomType,
+    "lastProposal.snapshot.numGuests": identity.snapshot.numGuests,
+    "lastProposal.snapshot.checkIn": identity.snapshot.checkIn,
+    "lastProposal.snapshot.checkOut": identity.snapshot.checkOut,
+    "reservationSlots.guestName": identity.snapshot.guestName,
+    "reservationSlots.roomType": identity.snapshot.roomType,
+    "reservationSlots.numGuests": identity.snapshot.numGuests,
+    "reservationSlots.checkIn": identity.snapshot.checkIn,
+    "reservationSlots.checkOut": identity.snapshot.checkOut,
+  };
+  if (identity.snapshot.locale) {
+    filter["lastProposal.snapshot.locale"] = identity.snapshot.locale;
+    filter["reservationSlots.locale"] = identity.snapshot.locale;
+  }
+  const res = await collection.updateOne(
+    filter,
+    {
+      $set,
+      $unset: { pendingAvailabilityVerification: true },
+    }
+  );
+  const matchedCount: 0 | 1 = res?.matchedCount === 1 ? 1 : 0;
+  const modifiedCount: 0 | 1 = res?.modifiedCount === 1 ? 1 : 0;
+  return {
+    matched: matchedCount === 1,
+    modified: modifiedCount === 1,
+    matchedCount,
+    modifiedCount,
+  };
+}
+
+function deterministicCreateProposalIdentityFilter(
+  identity: DeterministicCreateProposalPublishIdentity,
+  texts: string | { $in: string[] } = identity.sourceText
+): Record<string, unknown> {
+  const filter: Record<string, unknown> = {
+    "lastProposal.available": identity.available,
+    "lastProposal.availabilityStatus": identity.availabilityStatus,
+    "lastProposal.text": texts,
+    "lastProposal.toolCall.name": "checkAvailability",
+    "lastProposal.toolCall.outputSummary": identity.outputSummary,
+    "lastProposal.toolCall.at": identity.toolCallAt,
+    "lastProposal.toolCall.input.hotelId": identity.input.hotelId,
+  };
+  const exactOptionalFields: Array<[string, unknown]> = [
+    ["lastProposal.toolCall.input.roomType", identity.input.roomType],
+    ["lastProposal.toolCall.input.numGuests", identity.input.numGuests],
+    ["lastProposal.toolCall.input.checkIn", identity.input.checkIn],
+    ["lastProposal.toolCall.input.checkOut", identity.input.checkOut],
+    ["lastProposal.snapshot.guestName", identity.snapshot.guestName],
+    ["lastProposal.snapshot.roomType", identity.snapshot.roomType],
+    ["lastProposal.snapshot.numGuests", identity.snapshot.numGuests],
+    ["lastProposal.snapshot.checkIn", identity.snapshot.checkIn],
+    ["lastProposal.snapshot.checkOut", identity.snapshot.checkOut],
+  ];
+  for (const [path, value] of exactOptionalFields) {
+    filter[path] = value === undefined || value === null || value === ""
+      ? { $exists: false }
+      : value;
+  }
+  if (identity.snapshot.locale) {
+    filter["lastProposal.snapshot.locale"] = identity.snapshot.locale;
+  }
+  return filter;
+}
+
+export async function publishDeterministicCreateProposalIfLatest(
+  hotelId: string,
+  conversationId: string,
+  identity: DeterministicCreateProposalPublishIdentity,
+  proposal: LastProposal
+): Promise<DeterministicCreateProposalPublishResult> {
+  const proposalIdentity = proposal.toolCall;
+  const proposalSnapshot = proposal.snapshot;
+  const identityMatchesProposal = Boolean(
+    identity.input.hotelId === hotelId &&
+    proposal.text === identity.sourceText &&
+    proposal.available === identity.available &&
+    proposal.availabilityStatus === identity.availabilityStatus &&
+    proposalIdentity?.name === "checkAvailability" &&
+    proposalIdentity.outputSummary === identity.outputSummary &&
+    proposalIdentity.at === identity.toolCallAt &&
+    proposalIdentity.input.hotelId === identity.input.hotelId &&
+    proposalIdentity.input.roomType === identity.input.roomType &&
+    proposalIdentity.input.numGuests === identity.input.numGuests &&
+    proposalIdentity.input.checkIn === identity.input.checkIn &&
+    proposalIdentity.input.checkOut === identity.input.checkOut &&
+    proposalSnapshot?.guestName === identity.snapshot.guestName &&
+    proposalSnapshot?.roomType === identity.snapshot.roomType &&
+    proposalSnapshot?.numGuests === identity.snapshot.numGuests &&
+    proposalSnapshot?.checkIn === identity.snapshot.checkIn &&
+    proposalSnapshot?.checkOut === identity.snapshot.checkOut &&
+    (!identity.snapshot.locale || proposalSnapshot?.locale === identity.snapshot.locale)
+  );
+  if (!identityMatchesProposal) {
+    return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+  }
+
+  const _id = key(hotelId, conversationId);
+  const collection: any = col() as any;
+  const chronologicalEligibility = {
+    $and: [
+      {
+        $or: [
+          { "lastProposal.toolCall.at": { $lt: identity.toolCallAt } },
+          { "lastProposal.toolCall.at": { $exists: false } },
+        ],
+      },
+      {
+        $or: [
+          { updatedAt: { $lte: identity.toolCallAt } },
+          { updatedAt: { $exists: false } },
+        ],
+      },
+    ],
+  };
+  const reservationSlotSet: Record<string, unknown> = {};
+  for (const [field, value] of Object.entries(identity.snapshot)) {
+    if (value !== undefined && value !== null && value !== "") {
+      reservationSlotSet[`reservationSlots.${field}`] = value;
+    }
+  }
+  const res = await collection.updateOne(
+    {
+      _id,
+      hotelId,
+      conversationId,
+      ...chronologicalEligibility,
+    },
+    {
+      $set: {
+        lastProposal: proposal,
+        ...reservationSlotSet,
+        conversationFocus: {
+          domain: "reservation",
+          subFlow: "create",
+          active: true,
+          updatedAt: identity.toolCallAt,
+        },
+        activeReservationContext: {
+          kind: "draft",
+          phase: "collecting",
+          updatedAt: identity.toolCallAt,
+        },
+        activeFlow: "reservation",
+        desiredAction: identity.available ? "create" : "notify_reception",
+        salesStage: identity.available ? "qualify" : "followup",
+        conversationStage: "reservation_collecting",
+        lastCategory: "reservation",
+        updatedAt: identity.toolCallAt,
+        updatedBy: "ai",
+      },
+      $unset: { pendingAvailabilityVerification: true },
+    }
+  );
+  if (res?.matchedCount === 1) {
+    const modifiedCount: 0 | 1 = res?.modifiedCount === 1 ? 1 : 0;
+    return { matched: true, modified: modifiedCount === 1, matchedCount: 1, modifiedCount };
+  }
+
+  const current = await collection.findOne({
+    _id,
+    hotelId,
+    conversationId,
+    ...deterministicCreateProposalIdentityFilter(identity),
+  });
+  return current
+    ? { matched: true, modified: false, matchedCount: 1, modifiedCount: 0 }
+    : { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
 }
 
 /* =========================
