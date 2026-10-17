@@ -15315,3 +15315,62 @@ Impacto:
 - `architecture_docs_candidates: []`
 - sin cambios de arquitectura conceptual, roadmap, boxes o diagramas
 - cierre definitivo sujeto a documentation commit, push y HDOC(CLOSE)
+
+### OPS-02-GIT-WRITE-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-17
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: OPERATING_MODEL_EVOLUTION
+Intencion unica: establecer el contrato canonico de Git write en tres fases independientes, fail-closed y ejecutadas exclusivamente por AH
+Commit tecnico: 7ad995a18851e404072ccf4fba79cf60b126abb0
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- el Operating Model conserva la fuente normativa unica del contrato de Git
+  write
+- Guardian y HDOC entregan staging, commit y push como tres fases completas e
+  independientes para ejecucion exclusiva por AH
+- cada fase valida identidad, alcance y estado aplicable antes de cualquier
+  operacion Git write
+- el conjunto documental y el residual se comparan exactamente mediante
+  streams NUL-delimited; no se admite reconstruccion manual ni recuperacion
+  automatica
+- los workflows y templates subordinados exponen la interfaz operativa sin
+  crear una fuente normativa paralela
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 7ad995a18851e404072ccf4fba79cf60b126abb0
+technical_parent: 3583da2a8e36e60f48595f36b09935c2a70f3821
+technical_commit_message: "docs(ops): enforce three-phase Git write contract"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+validation:
+  normative_audit: passed
+  active_profiles_audit: passed
+  e2e_scenarios: 20/20
+  e2e_checks: 32/32
+  postpush_validation: passed
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; mantiene `system_operating_model.md` como fuente
+  normativa unica y elimina ambiguedad en staging, commit, residual y push
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`; la evolucion operativa ya fue
+  materializada por el commit tecnico y no se duplica aqui
+- Runtime Map: no aplica
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
