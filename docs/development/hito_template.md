@@ -585,12 +585,23 @@ documentation commit posterior a la preparación de HDOC. No representa el
 technical commit y permanece aplicable cuando un `external_operational_change`
 produce documentación versionada.
 
-Cuando Guardian aprueba el precommit debe entregar dos bloques separados:
+Cuando Guardian aprueba el precommit debe entregar cuatro unidades separadas:
 
 ```text
-COMANDOS_GIT_TECNICOS_PARA_AH
+FASE 1 — STAGING Y VERIFICACIÓN (fence bash)
+FASE 2 — COMMIT Y VERIFICACIÓN LOCAL (fence bash)
+FASE 3 — PUSH Y EVIDENCIA (fence bash)
 RETURN_ENVELOPE
 ```
+
+Cada fase debe ser completa y directamente copiable, sin prosa dentro del
+fence, y debe aplicar el fail-closed para Bash interactivo y la comparación de
+conjuntos NUL-delimited definidos en el Operating Model. Los arrays técnicos
+deben coincidir exactamente con `expected_files`. La fase 2 debe rechazar
+diferencias unstaged sobre esos archivos y comparar el residual real con
+`expected_residual_worktree` antes del commit; la fase 3 debe repetir la
+comparación residual inmediatamente antes del push. El campo residual usa la
+representación porcelain NUL-delimited canónica, sin campos auxiliares.
 
 El RETURN_ENVELOPE se rige por la sección
 `AGENT-GENERATED TRANSITION ENVELOPES` de `system_operating_model.md`: usa
@@ -639,13 +650,25 @@ preparación; `pending` es un estado de control de HDOC(1), no un metadato
 obligatorio del payload persistido. El cierre final exige el hash real y el push
 verificado del documentation commit.
 
-Después de preparar la documentación, HDOC(1) debe entregar dos bloques
-separados:
+Después de preparar la documentación, HDOC(1) debe entregar cuatro unidades
+separadas:
 
 ```text
-COMANDOS_GIT_DOCUMENTALES_PARA_AH
+FASE 1 — STAGING Y VERIFICACIÓN (fence bash)
+FASE 2 — COMMIT Y VERIFICACIÓN LOCAL (fence bash)
+FASE 3 — PUSH Y EVIDENCIA (fence bash)
 RETURN_ENVELOPE
 ```
+
+Cada fase debe ser completa y directamente copiable, sin prosa dentro del
+fence, y debe aplicar el fail-closed para Bash interactivo y la comparación de
+conjuntos NUL-delimited definidos en el Operating Model. Los arrays
+documentales deben coincidir exactamente con `expected_documentation_files`.
+La fase 2 debe rechazar diferencias unstaged sobre esos documentos y comparar
+el residual real con `expected_residual_worktree` antes del commit; la fase 3
+debe repetir la comparación residual inmediatamente antes del push. El campo
+residual usa la representación porcelain NUL-delimited canónica, sin campos
+auxiliares.
 
 El RETURN_ENVELOPE se rige por la sección canónica del Operating Model: usa
 `agent_target: hdoc`, `flow_position: documentation`,

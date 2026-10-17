@@ -201,15 +201,17 @@ estados persistidos ni campos nuevos del contrato.
 AGPT
 → asistente_tecnico
 → Guardian pre-commit
-→ Guardian entrega comandos técnicos + RETURN_ENVELOPE
-→ AH ejecuta technical Git write y sustituye __AH_GIT_OUTPUT__
+→ Guardian entrega tres fases técnicas + RETURN_ENVELOPE
+→ AH decide y ejecuta cada fase técnica por separado
+→ AH sustituye __AH_GIT_OUTPUT__ con la evidencia real
 → Guardian post-commit read-only
 → cierre técnico + HDOC_INPUT + HDOC_TRANSFER_PROMPT
 → AH transfiere el prompt completo
 → HDOC(1) prepara documentación
 → documentation_commit: pending
-→ HDOC entrega comandos documentales + RETURN_ENVELOPE
-→ AH ejecuta documentation Git write y sustituye __AH_GIT_OUTPUT__
+→ HDOC entrega tres fases documentales + RETURN_ENVELOPE
+→ AH decide y ejecuta cada fase documental por separado
+→ AH sustituye __AH_GIT_OUTPUT__ con la evidencia real
 → HDOC(CLOSE) verifica hash, push y correspondencia
 → HDOC emite informe final
 → resultado retorna a AGPT
@@ -219,17 +221,20 @@ Detalle de gates:
 
 1. `asistente_tecnico` implementa, valida y reporta evidencia.
 2. Guardian pre-commit audita alcance, diff, clasificación y pureza del hito.
-3. Guardian entrega comandos técnicos exactos y un RETURN_ENVELOPE completo.
-4. AH ejecuta el technical commit y push, sustituye el único placeholder y
-   devuelve el envelope a Guardian.
+3. Guardian entrega tres bloques `bash` técnicos exactos — staging y
+   verificación, commit y verificación local, push y evidencia — y un
+   RETURN_ENVELOPE completo separado.
+4. AH decide y ejecuta cada fase de forma independiente, sustituye el único
+   placeholder con la evidencia real y devuelve el envelope a Guardian.
 5. Guardian post-commit verifica identidad, commit, push, scope y estado
    residual sin ejecutar Git write.
 6. Sólo con `guardian_verdict: valid` y `ready_for_hdoc: yes` Guardian emite el
    cierre técnico, `HDOC_INPUT` y `HDOC_TRANSFER_PROMPT` autocontenido.
 7. AH transfiere el prompt íntegro; HDOC prepara la documentación mientras
    `documentation_commit: pending`.
-8. HDOC entrega comandos documentales exactos y el RETURN_ENVELOPE de cierre.
-9. AH ejecuta el Git write documental y sustituye el único placeholder.
+8. HDOC entrega las tres fases documentales exactas y el RETURN_ENVELOPE de
+   cierre separado.
+9. AH decide y ejecuta cada fase documental y sustituye el único placeholder.
 10. HDOC(CLOSE) verifica el hash real, push, scope, correspondencia y residual;
     confirma el cierre y devuelve el resultado a AGPT.
 
@@ -241,6 +246,17 @@ Marcelo.
 El formato, responsabilidad del emisor, placeholder único, tratamiento de la
 evidencia y validación fail-closed están definidos exclusivamente en
 `system_operating_model.md`, sección `AGENT-GENERATED TRANSITION ENVELOPES`.
+
+Guardian y HDOC aplican además el contrato canónico de tres fases de esa misma
+sección. Cada fase es un fence `bash` completo y copiable por separado; el
+RETURN_ENVELOPE nunca contiene los comandos ejecutables.
+
+Antes del commit, la fase 2 valida por separado el conjunto staged, la ausencia
+de diferencias unstaged sobre los archivos esperados y el residual exacto. La
+fase 3 vuelve a validar identidad, limpieza de los archivos esperados y el
+mismo `expected_residual_worktree` inmediatamente antes del push. Ambas
+comparaciones residuales usan la representación porcelain NUL-delimited del
+Operating Model y fallan de forma independiente.
 
 La continuidad ordinaria Guardian → AH → Guardian → AH → HDOC → AH → HDOC no
 requiere una autorización intermedia de AGPT. Los errores mecánicos retornan a

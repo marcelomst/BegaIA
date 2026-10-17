@@ -66,7 +66,9 @@ Este trabajo debe evaluarse y ejecutarse alineado a:
 - ADR-PIPELINE-RUNTIME-TARGET.md → dirección evolutiva del runtime
 - roadmap.md → etapa vigente del roadmap, restricciones de evolución y orden operativo actual
 - hito_mcp_recent.md → contexto histórico reciente (no normativo)
-- config.toml → definición operativa vigente de agentes en VSCode Codex
+- perfil definitivo `/home/marcelo/.codex/<agent_target>.config.toml` →
+  instrucciones específicas vigentes del agente en VSCode Codex
+- `/home/marcelo/.codex/config.toml` → configuración base e histórica
 - Runtime Map V1 → mapa operativo de cajas, corredores, riesgos y code_refs cuando aplique
 
 #### Runtime Map V1 — archivos de referencia cuando aplique
@@ -118,7 +120,8 @@ REGLA:
 
 - si hay conflicto entre esta cápsula y los documentos, prevalecen los documentos
 - si hay conflicto operativo, prevalece `system_operating_model.md`
-- si hay conflicto sobre agentes, leer `config.toml`
+- si hay conflicto sobre agentes, leer el perfil definitivo seleccionado; el
+  `config.toml` base no sustituye sus instrucciones específicas
 - si hay conflicto sobre cajas runtime, refrescar Runtime Map V1 antes de usar `code_refs`
 
 ---
@@ -212,7 +215,8 @@ AGPT:
 
 Agentes VSCode Codex:
 
-- ejecutan según su rol operativo vigente en `config.toml`
+- ejecutan según su perfil definitivo vigente en
+  `/home/marcelo/.codex/<agent_target>.config.toml`
 
 REGLA:
 
@@ -244,7 +248,7 @@ PROHIBIDO:
 
 - copiar reasoning completo de agentes
 - repetir system prompts
-- duplicar reglas de `config.toml`
+- duplicar reglas del perfil definitivo seleccionado
 - incluir contexto histórico innecesario
 - pegar diffs completos sin necesidad
 - expandir explicaciones técnicas largas
@@ -282,7 +286,7 @@ PASS de otra sesión o prompt.
 Metadata adicional, completar cuando corresponda:
 
 ```yaml
-doc_classification_expected: <SOLO_HITO | HITO_PLUS_EVOLUTION | N/A>
+doc_classification_expected: <solo_hito | hito_plus_evolucion | N/A>
 hito_type: <tipo operativo>
 hito_change_classification: <existing_repo_change | external_operational_change>
 branch: <branch_si_aplica>

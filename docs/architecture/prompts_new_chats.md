@@ -167,7 +167,8 @@ HITO: N/A
 
 6. SIGUIENTE PASO RECOMENDADO
 
-- proponer el siguiente comando Git para Marcelo, uno por vez
+- cuando el gate esté aprobado, entregar las tres fases Git completas,
+  independientes y copiables definidas por `system_operating_model.md`
 ```
 
 ## GIT-HITOS / HDOC
@@ -188,7 +189,8 @@ Regla central:
 Autoridad Git:
 - Marcelo es el unico autorizado a ejecutar comandos Git de escritura
 - HDOC nunca ejecuta `git add`, `git commit` ni `git push`
-- si hace falta accion Git, HDOC entrega un solo comando por vez
+- si hace falta accion Git, HDOC entrega las tres fases completas,
+  independientes y copiables definidas por `system_operating_model.md`
 
 Verificacion obligatoria:
 - confirmar si el codigo existe
