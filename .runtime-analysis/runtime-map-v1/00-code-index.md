@@ -67,11 +67,11 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 7cb9178bc03277a0e54cb8b8bb350627cf793220
-messageHandler_lines: 13577
+commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+messageHandler_lines: 13628
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_pers_02_at_7cb9178bc03277a0e54cb8b8bb350627cf793220
-baseline_status: pers_02_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+baseline_status: fix_reservation_proposal_fresh_state_cas_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -80,13 +80,13 @@ global_freshness_claim_allowed: false
 ## Validacion tecnica informada
 
 ```text
-suite global: 1178/1178 PASS
-TypeScript: PASS
-seguridad local del validador: 15/15 PASS
-compatibilidad PERS-01 y LAT-02: preservada
-Astra CAS gate: 16/16 PASS
-Astra cleanup: 7/7 DELETED
-E2E manual web: PASS
+focused tests: 193/193 PASS
+TypeScript: PASS mediante tsc --noEmit --incremental false
+core suite reportada: 1192/1192 PASS
+Guardian core environment: 1188/1192; cuatro EROFS al crear temporales, sin fallo funcional
+git diff check: PASS
+postcommit scope: PASS
+remote ref verification: PASS
 ```
 
 Nota:
@@ -98,41 +98,38 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: propuestas ricas en create deterministico
+## Evidencia focal actual: frescura newest-wins de propuestas create
 
 ```yaml
-hito_id: PERS-02
-technical_commit: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+hito_id: FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
+technical_commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
 scope_real:
-  - preserve rich proposals during deterministic reservation.create
-  - publish and finalize lastProposal through full-identity CAS
-  - preserve snapshot, options, currency, price and checkAvailability traceability
-  - preserve continuity after lateral inquiries
+  - initialize and publish reservation.create proposals through a logical turn revision
+  - guarantee newest-wins under concurrent persistence or availability completion
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.persistenceReply
   reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - corredor post-Graph de PERS-01
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - suite global: 1178/1178 PASS
-      - CAS publication/finalization and A/B race covered
-      - persistence failure and supervision parity covered
-      - legacy confirmation compatibility covered
+      - Inicializacion atomica y carreras stale/newest cubiertas
+      - Confirmation gating y corredores existentes conservan cobertura
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L4963-L5175
-  bodyLLM: L6187-L12713
-  posLLM: L13208-L13249
-  handleIncomingMessage: L13253-L13577
+  preLLM: L4966-L5178
+  bodyLLM: L6193-L12759
+  posLLM: L13254-L13295
+  handleIncomingMessage: L13299-L13628
 evidence_source: guardian_scan
 internal_code_refs_status: not_recalculated_by_guardian
 global_freshness_claim_allowed: false
@@ -141,15 +138,15 @@ global_freshness_claim_allowed: false
 ## Snapshot focal anterior preservado
 
 ```yaml
-hito_id: PERS-01
-technical_commit: de07879f0cc1d69510c5ad87f7f744054ea5d788
-messageHandler_lines: 13483
+hito_id: PERS-02
+technical_commit: 7cb9178bc03277a0e54cb8b8bb350627cf793220
+messageHandler_lines: 13577
 provenance: historical_focal_snapshot_preserved
 top_level_code_refs:
-  preLLM: L4960-L5172
-  bodyLLM: L5989-L12619
-  posLLM: L13114-L13155
-  handleIncomingMessage: L13159-L13483
+  preLLM: L4963-L5175
+  bodyLLM: L6187-L12713
+  posLLM: L13208-L13249
+  handleIncomingMessage: L13253-L13577
 ```
 
 ## Evidencia focal histórica del refresh anterior
@@ -263,7 +260,7 @@ external_dependencies:
 
 `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01` queda cerrado
 contra el commit `3bb821a3240fcf92aebae3424ebde4ba92699780`. Sus code refs se
-conservan como evidencia histórica porque la baseline actual `7cb9178bc03277a0e54cb8b8bb350627cf793220`
+conservan como evidencia histórica porque la baseline actual `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`
 es posterior.
 
 ```yaml
@@ -308,7 +305,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13577
+total_lines: 13628
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -317,7 +314,7 @@ Lectura:
 
 ```text
 `messageHandler.ts` sigue siendo el runtime principal. Los rangos listados para
-`PERS-02` son evidencia focal; no constituyen una declaracion de frescura global.
+`FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01` son evidencia focal; no constituyen una declaracion de frescura global.
 ```
 
 ---
@@ -325,7 +322,7 @@ Lectura:
 ## 2. Funciones clave detectadas
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
-`handleIncomingMessage`) fueron recalculadas para PERS-02. Las demas filas se
+`handleIncomingMessage`) fueron recalculadas para FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01. Las demas filas se
 conservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 
@@ -339,10 +336,10 @@ global.
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L4963-L5175 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L6187-L12713 |   6527 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L13208-L13249 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L13253-L13577 |    325 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L4966-L5178 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L6193-L12759 |   6567 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L13254-L13295 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L13299-L13628 |    330 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -352,8 +349,8 @@ global.
 
 ```yaml
 name: handleIncomingMessage
-range: L13253-L13577
-lines: 325
+range: L13299-L13628
+lines: 330
 confidence: high
 role: public_entrypoint
 ```
@@ -371,7 +368,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L4963-L5175
+range: L4966-L5178
 lines: 213
 confidence: high
 role: context_preparation
@@ -393,8 +390,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L6187-L12713
-lines: 6527
+range: L6193-L12759
+lines: 6567
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -423,7 +420,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L13208-L13249
+range: L13254-L13295
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -616,19 +613,19 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L6187-L12713
-bodyLLM_lines: 6527
+bodyLLM_range: L6193-L12759
+bodyLLM_lines: 6567
 bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-El scan read-only recalculado por Guardian para PERS-02 confirma el rango
+El scan read-only recalculado por Guardian para FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01 confirma el rango
 top-level actual. El refresh de este documento es focal, no implica frescura
 global ni autoriza refactor.
 
 La tabla siguiente se conserva como evidencia histórica del scan anterior en
 `59c7f39c95eb2ccea2b1ab74b9490449148642b8`; sus rangos no son referencias
-actuales de PERS-02.
+actuales de FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01.
 
 Tabla histórica de buckets:
 

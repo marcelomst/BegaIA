@@ -15374,3 +15374,102 @@ Impacto:
 - Runtime Map: no aplica
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-19
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: BUGFIX
+Intencion unica: garantizar newest-wins al inicializar y publicar propuestas `reservation.create` mediante una revision logica del turno
+Commit tecnico: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- la inicializacion y publicacion de propuestas `reservation.create` quedan
+  vinculadas a una revision logica del turno
+- una persistencia o disponibilidad stale no puede sobrescribir la propuesta
+  mas nueva
+- `conv_state` permanece como unica fuente canonica; la revision vive dentro
+  del documento canonico y no introduce estado paralelo
+- confirmation gating y los corredores existentes conservan cobertura
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+residual_worktree: []
+```
+
+Validacion aceptada por Guardian:
+
+- pruebas focales: 193/193 PASS
+- TypeScript: PASS mediante `tsc --noEmit --incremental false`
+- suite core reportada: 1192/1192 PASS
+- ejecucion core de Guardian: 1188/1192; cuatro incidencias EROFS al crear
+  temporales, sin fallo funcional
+- `git diff --check`, alcance postcommit y remote ref: PASS
+- prueba manual secuencial A→B: continuidad funcional confirmada como evidencia
+  complementaria
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`
+- `messageHandler.ts`: 13628 lineas fisicas
+- `preLLM`: L4966-L5178
+- `bodyLLM`: L6193-L12759
+- `posLLM`: L13254-L13295
+- `handleIncomingMessage`: L13299-L13628
+- `box_id`, relaciones y diagramas conceptuales preservados
+- frescura resultante: exclusivamente
+  `fix_reservation_proposal_fresh_state_cas_01_focal_only`; no se declara
+  frescura global
+
+Residual no bloqueante:
+
+- la interpretacion de "cambiemos la reserva" en
+  `normalizeReservationIntent` permanece separada del alcance
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; la revision logica refuerza newest-wins dentro de
+  `conv_state` sin crear otra fuente de verdad
+- `roadmap_impact: none`
+- Runtime Map: refresh factual de rangos top-level sin cambio conceptual
+- sin cambios de codigo, tests, inventario, roadmap ni otros documentos
+- cierre definitivo sujeto a documentation commit, push y HDOC(CLOSE)
