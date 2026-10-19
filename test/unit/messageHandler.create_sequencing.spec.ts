@@ -17,8 +17,56 @@ vi.mock("@/lib/db/guests", () => ({
 }));
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => currentState),
-  upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
-    currentState = { ...(currentState || {}), ...patch };
+  initializeCreateDraftIfLatest: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    revision: any,
+    patch: any
+  ) => {
+    const currentRevision = currentState?.createDraftRevision;
+    if (currentRevision) {
+      const comparison = revision.startedAt === currentRevision.startedAt
+        ? revision.messageId.localeCompare(currentRevision.messageId)
+        : revision.startedAt.localeCompare(currentRevision.startedAt);
+      if (comparison < 0) {
+        return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
+      }
+      if (comparison === 0) {
+        return { accepted: true, idempotent: true, inserted: false, matchedCount: 1, modifiedCount: 0 };
+      }
+    } else if (currentState?.lastProposal) {
+      return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const inserted = currentState === null;
+    currentState = {
+      ...(currentState || {}),
+      ...patch,
+      hotelId,
+      conversationId,
+      createDraftRevision: revision,
+      lastProposal: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    return {
+      accepted: true,
+      idempotent: false,
+      inserted,
+      matchedCount: 1,
+      modifiedCount: 1,
+    };
+  }),
+  upsertConvState: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
+    const previous = currentState || {};
+    currentState = {
+      ...previous,
+      ...patch,
+      hotelId,
+      conversationId,
+      updatedAt: new Date().toISOString(),
+      ...(patch.reservationSlots
+        ? { reservationSlots: { ...(previous.reservationSlots || {}), ...patch.reservationSlots } }
+        : {}),
+    };
   }),
   publishDeterministicCreateProposalIfLatest: vi.fn(async (
     hotelId: string,
@@ -38,6 +86,16 @@ vi.mock("@/lib/db/convState", () => ({
       JSON.stringify(proposal?.snapshot) === JSON.stringify(identity?.snapshot)
     );
     if (!exactProposalIdentity) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    if (
+      !currentState ||
+      currentState.hotelId !== hotelId ||
+      currentState.conversationId !== conversationId ||
+      (identity.createDraftRevision &&
+        JSON.stringify(currentState.createDraftRevision) !== JSON.stringify(identity.createDraftRevision)) ||
+      (currentState.updatedAt && currentState.updatedAt > identity.toolCallAt)
+    ) {
       return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
     }
     const currentAt = currentState?.lastProposal?.toolCall?.at;
@@ -77,6 +135,8 @@ vi.mock("@/lib/db/convState", () => ({
     const exactCurrentIdentity = Boolean(
       currentState?.hotelId === hotelId &&
       currentState?.conversationId === conversationId &&
+      (!identity.createDraftRevision ||
+        JSON.stringify(currentState.createDraftRevision) === JSON.stringify(identity.createDraftRevision)) &&
       identity?.input?.hotelId === hotelId &&
       proposal?.available === identity?.available &&
       proposal?.availabilityStatus === identity?.availabilityStatus &&
@@ -155,8 +215,9 @@ vi.mock("@/lib/agents/reservations", () => ({
   })),
 }));
 vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
-  updateConversationState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
-    currentState = { ...(currentState || {}), ...patch };
+  updateConversationState: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
+    const { upsertConvState } = await import("@/lib/db/convState");
+    return upsertConvState(hotelId, conversationId, patch);
   }),
 }));
 vi.mock("@/lib/prompts", () => ({
@@ -178,6 +239,12 @@ vi.mock("@langchain/openai", () => ({
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+import { askAvailability, confirmAndCreate } from "@/lib/agents/reservations";
+import {
+  finalizeDeterministicCreateProposalIfCurrent,
+  initializeCreateDraftIfLatest,
+  publishDeterministicCreateProposalIfLatest,
+} from "@/lib/db/convState";
 
 function msg(content: string) {
   return {
@@ -273,6 +340,93 @@ describe("messageHandler create sequencing", () => {
     expect(replyText).toMatch(/Total 2 noches/i);
     expect(replyText).not.toMatch(/Total 2 noche:/i);
     expect(replyText).toMatch(/confirm[aá]s la reserva|respond[eé]\s+["“]?confirmar["”]?/i);
+  });
+
+  it("inicializa conv_state antes de publicar una propuesta completa del primer turno", async () => {
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Hola, quiero hacer una reserva para el 19 de noviembre de 2027 hasta el 22 de noviembre de 2027, una doble para dos personas a nombre de Sergio Ramos"),
+      { mode: "automatic", sendReply }
+    );
+
+    const replyText = lastReply(sendReply);
+    expect(initializeCreateDraftIfLatest).toHaveBeenCalledTimes(1);
+    expect(askAvailability).toHaveBeenCalledTimes(1);
+    expect(publishDeterministicCreateProposalIfLatest).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(initializeCreateDraftIfLatest).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(askAvailability).mock.invocationCallOrder[0]
+    );
+    expect(vi.mocked(askAvailability).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(publishDeterministicCreateProposalIfLatest).mock.invocationCallOrder[0]
+    );
+    const initializedRevision = vi.mocked(initializeCreateDraftIfLatest).mock.calls[0]?.[2];
+    expect(initializedRevision).toEqual({
+      startedAt: "2026-04-24T12:00:00.000Z",
+      messageId: expect.any(String),
+    });
+    expect(vi.mocked(publishDeterministicCreateProposalIfLatest).mock.calls[0]?.[2]).toMatchObject({
+      createDraftRevision: initializedRevision,
+    });
+    expect(vi.mocked(finalizeDeterministicCreateProposalIfCurrent).mock.calls[0]?.[2]).toMatchObject({
+      createDraftRevision: initializedRevision,
+    });
+    expect(currentState).toMatchObject({
+      hotelId: "hotel999",
+      conversationId: "conv-create-sequencing-1",
+      createDraftRevision: expect.objectContaining({ messageId: expect.any(String) }),
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      reservationSlots: {
+        guestName: "Sergio Ramos",
+        roomType: "double",
+        numGuests: "2",
+        checkIn: "2027-11-19",
+        checkOut: "2027-11-22",
+      },
+      lastProposal: {
+        available: true,
+        availabilityStatus: "available",
+        snapshot: { guestName: "Sergio Ramos" },
+        toolCall: { name: "checkAvailability", outputSummary: "available:true" },
+      },
+    });
+    expect(replyText).toMatch(/Sergio Ramos/i);
+    expect(replyText).toMatch(/CONFIRMAR/i);
+    expect(replyText).not.toMatch(/no pude mantener|recepci[oó]n revisar[aá]/i);
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+  });
+
+  it("rechaza un turno stale antes de consultar disponibilidad", async () => {
+    const vigenteB = {
+      text: "Propuesta vigente de B",
+      available: true,
+      availabilityStatus: "available",
+      toolCall: { at: "2026-04-24T12:00:02.000Z" },
+    };
+    currentState = {
+      hotelId: "hotel999",
+      conversationId: "conv-create-sequencing-1",
+      createDraftRevision: {
+        startedAt: "2026-04-24T12:00:01.000Z",
+        messageId: "message-b",
+      },
+      lastProposal: vigenteB,
+    };
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage(
+      msg("Quiero reservar una doble del 19/11/2027 al 22/11/2027 para 2 personas a nombre de Sergio Ramos"),
+      { mode: "automatic", sendReply }
+    );
+
+    expect(askAvailability).not.toHaveBeenCalled();
+    expect(publishDeterministicCreateProposalIfLatest).not.toHaveBeenCalled();
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(currentState.lastProposal).toEqual(vigenteB);
+    expect(currentState.createDraftRevision.messageId).toBe("message-b");
+    expect(lastReply(sendReply)).toMatch(/revisada por un recepcionista/i);
+    expect(lastReply(sendReply)).not.toMatch(/CONFIRMAR/i);
   });
 
   it("la cotización activa usa pluralización natural para 1 noche", async () => {

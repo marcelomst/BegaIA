@@ -4,7 +4,7 @@ import {
     publishDeterministicCreateProposalIfLatest,
     upsertConvState,
 } from "@/lib/db/convState";
-import type { LastProposal } from "@/lib/db/convState";
+import type { CreateDraftRevision, LastProposal } from "@/lib/db/convState";
 import { localizeRoomType, isSafeGuestName, buildReservationMissingQuestion, formatGuestCountLabel, formatNightCountLabel } from "@/lib/agents/helpers";
 import { getConversationalDisplayName } from "@/lib/utils/conversationalDisplayName";
 
@@ -43,6 +43,7 @@ export type AvailabilityCheckResult = {
     snapshot?: ReservationSlotsLike;
     richProposal?: LastProposal;
     proposalIdentity?: {
+        createDraftRevision?: Readonly<CreateDraftRevision>;
         sourceText: string;
         available: boolean;
         availabilityStatus: AvailabilityStatus;
@@ -593,6 +594,7 @@ export async function runAvailabilityCheck(
         persistConvState?: boolean;
         textPrefix?: string;
         deterministicCreate?: boolean;
+        createDraftRevision?: Readonly<CreateDraftRevision>;
     }
 ): Promise<AvailabilityCheckResult> {
     const mode = options?.mode || "proposal";
@@ -760,6 +762,9 @@ export async function runAvailabilityCheck(
                     pre.msg.hotelId,
                     pre.conversationId,
                     {
+                        ...(options.createDraftRevision
+                            ? { createDraftRevision: options.createDraftRevision }
+                            : {}),
                         sourceText: finalText,
                         available: richProposal.available,
                         availabilityStatus: status,
@@ -815,6 +820,9 @@ export async function runAvailabilityCheck(
         snapshot,
         richProposal,
         proposalIdentity: {
+            ...(options?.createDraftRevision
+                ? { createDraftRevision: options.createDraftRevision }
+                : {}),
             sourceText: finalText,
             available: richProposal.available,
             availabilityStatus: status,

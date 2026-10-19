@@ -28,6 +28,49 @@ vi.mock("@/lib/db/guests", () => ({
 }));
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => currentState),
+  initializeCreateDraftIfLatest: vi.fn(async (
+    hotelId: string,
+    conversationId: string,
+    revision: any,
+    patch: any
+  ) => {
+    if (
+      !revision?.startedAt ||
+      new Date(revision.startedAt).toISOString() !== revision.startedAt ||
+      !revision?.messageId ||
+      revision.messageId.trim() !== revision.messageId
+    ) {
+      throw new Error("invalid createDraftRevision");
+    }
+    const currentRevision = currentState?.createDraftRevision;
+    if (currentRevision) {
+      const comparison = revision.startedAt === currentRevision.startedAt
+        ? revision.messageId === currentRevision.messageId
+          ? 0
+          : revision.messageId < currentRevision.messageId ? -1 : 1
+        : revision.startedAt < currentRevision.startedAt ? -1 : 1;
+      if (comparison < 0) {
+        return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
+      }
+      if (comparison === 0) {
+        return { accepted: true, idempotent: true, inserted: false, matchedCount: 1, modifiedCount: 0 };
+      }
+    } else if (currentState?.lastProposal) {
+      return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const inserted = currentState === null;
+    currentState = {
+      ...(currentState || {}),
+      ...patch,
+      hotelId,
+      conversationId,
+      createDraftRevision: { ...revision },
+      lastProposal: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    return { accepted: true, idempotent: false, inserted, matchedCount: 1, modifiedCount: 1 };
+  }),
+
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
@@ -37,7 +80,9 @@ vi.mock("@/lib/db/convState", () => ({
     identity: any,
     text: string
   ) => {
-    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt;
+    const matched = currentState?.lastProposal?.toolCall?.at === identity.toolCallAt &&
+      (!identity.createDraftRevision ||
+        JSON.stringify(currentState?.createDraftRevision) === JSON.stringify(identity.createDraftRevision));
     if (matched) {
       currentState = {
         ...currentState,

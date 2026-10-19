@@ -4,6 +4,7 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages';
 // Mock modules early to ensure spies attach before imports
 vi.mock('@/lib/db/convState', () => ({
     getConvState: vi.fn(),
+    initializeCreateDraftIfLatest: vi.fn(),
     upsertConvState: vi.fn(),
     publishDeterministicCreateProposalIfLatest: vi.fn(),
     finalizeDeterministicCreateProposalIfCurrent: vi.fn(),
@@ -11,6 +12,12 @@ vi.mock('@/lib/db/convState', () => ({
     CONVSTATE_VERSION: 'convstate-test'
 }));
 vi.mock('@/lib/agents/reservations', () => ({ askAvailability: vi.fn(), fillSlotsWithLLM: vi.fn(), confirmAndCreate: vi.fn() }));
+vi.mock('@/lib/agents/stateUpdaterAgent', () => ({
+    updateConversationState: vi.fn(async (hotelId: string, conversationId: string, patch: any) => {
+        const { upsertConvState } = await import('@/lib/db/convState');
+        return upsertConvState(hotelId, conversationId, patch);
+    }),
+}));
 vi.mock('@/lib/config/hotelConfig.server', () => ({ getHotelConfig: vi.fn().mockResolvedValue({ timezone: 'UTC' }) }));
 vi.mock('@/lib/classifier', async (importOriginal) => {
     const actual = await importOriginal<typeof import("@/lib/classifier")>();
@@ -22,11 +29,12 @@ vi.mock('@/lib/classifier', async (importOriginal) => {
 import * as availabilityPipeline from '@/lib/handlers/pipeline/availability';
 import * as reservations from '@/lib/agents/reservations';
 import { agentGraph } from '@/lib/agents';
+import { updateConversationState } from '@/lib/agents/stateUpdaterAgent';
 import {
     getConvState,
+    initializeCreateDraftIfLatest,
     finalizeDeterministicCreateProposalIfCurrent,
     publishDeterministicCreateProposalIfLatest,
-    upsertConvState,
 } from '@/lib/db/convState';
 
 // Minimal pre-like stub
@@ -131,6 +139,8 @@ describe('availability unified flow', () => {
     });
 
     it('protege la carrera completa de publicación: B vigente rechaza a A tardía', async () => {
+        const revisionA = { startedAt: '2026-10-19T12:00:00.000Z', messageId: 'message-a' };
+        const revisionB = { startedAt: '2026-10-19T12:00:01.000Z', messageId: 'message-b' };
         let resolveA!: (value: any) => void;
         let resolveB!: (value: any) => void;
         const providerA = new Promise((resolve) => { resolveA = resolve; });
@@ -146,7 +156,7 @@ describe('availability unified flow', () => {
             identity: any,
             proposal: any,
         ) => {
-            if (!persisted || persisted.identity.toolCallAt < identity.toolCallAt) {
+            if (JSON.stringify(identity.createDraftRevision) === JSON.stringify(revisionB)) {
                 persisted = { identity, proposal };
                 return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
             }
@@ -158,7 +168,7 @@ describe('availability unified flow', () => {
             snapshotBase as any,
             snapshotBase.checkIn,
             snapshotBase.checkOut,
-            { deterministicCreate: true },
+            { deterministicCreate: true, createDraftRevision: revisionA },
         );
         await Promise.resolve();
         const snapshotB = { ...snapshotBase, roomType: 'suite' };
@@ -167,7 +177,7 @@ describe('availability unified flow', () => {
             snapshotB as any,
             snapshotB.checkIn,
             snapshotB.checkOut,
-            { deterministicCreate: true },
+            { deterministicCreate: true, createDraftRevision: revisionB },
         );
 
         resolveB({ ok: true, available: false, options: [{ roomType: 'triple', currency: 'USD' }] });
@@ -177,6 +187,8 @@ describe('availability unified flow', () => {
 
         expect(resultB.proposalPersistence?.matched).toBe(true);
         expect(resultA.proposalPersistence?.matched).toBe(false);
+        expect(resultB.proposalIdentity?.createDraftRevision).toEqual(revisionB);
+        expect(resultA.proposalIdentity?.createDraftRevision).toEqual(revisionA);
         expect(persisted.proposal).toMatchObject({
             available: false,
             availabilityStatus: 'unavailable',
@@ -186,18 +198,34 @@ describe('availability unified flow', () => {
     });
 
     it('recorre create completo desde disponibilidad hasta CAS y conserva el estado final rico', async () => {
-        let canonicalState: any = {
-            hotelId: 'hotel999',
-            conversationId: 'conv-full-sequence',
-            reservationSlots: {},
-        };
+        let canonicalState: any = null;
         vi.mocked(getConvState).mockImplementation(async () => canonicalState);
+        vi.mocked(initializeCreateDraftIfLatest).mockImplementation(async (hotelId, conversationId, revision, patch: any) => {
+            canonicalState = {
+                ...(canonicalState || {}),
+                ...patch,
+                hotelId,
+                conversationId,
+                createDraftRevision: revision,
+                updatedAt: new Date().toISOString(),
+            };
+            return { accepted: true, idempotent: false, inserted: true, matchedCount: 1, modifiedCount: 1 };
+        });
         vi.mocked(publishDeterministicCreateProposalIfLatest).mockImplementation(async (
-            _hotelId,
-            _conversationId,
+            hotelId,
+            conversationId,
             identity: any,
             proposal: any,
         ) => {
+            if (
+                !canonicalState ||
+                canonicalState.hotelId !== hotelId ||
+                canonicalState.conversationId !== conversationId ||
+                JSON.stringify(canonicalState.createDraftRevision) !== JSON.stringify(identity.createDraftRevision) ||
+                (canonicalState.updatedAt && canonicalState.updatedAt > identity.toolCallAt)
+            ) {
+                return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+            }
             canonicalState = {
                 ...canonicalState,
                 reservationSlots: identity.snapshot,
@@ -213,7 +241,8 @@ describe('availability unified flow', () => {
             identity: any,
             finalText: string,
         ) => {
-            const matched = canonicalState.lastProposal?.toolCall?.at === identity.toolCallAt;
+            const matched = canonicalState.lastProposal?.toolCall?.at === identity.toolCallAt &&
+                JSON.stringify(canonicalState.createDraftRevision) === JSON.stringify(identity.createDraftRevision);
             if (matched) {
                 canonicalState = {
                     ...canonicalState,
@@ -257,6 +286,21 @@ describe('availability unified flow', () => {
 
         expect(publishDeterministicCreateProposalIfLatest).toHaveBeenCalledTimes(1);
         expect(finalizeDeterministicCreateProposalIfCurrent).toHaveBeenCalledTimes(1);
+        expect(initializeCreateDraftIfLatest).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(initializeCreateDraftIfLatest).mock.invocationCallOrder[0]).toBeLessThan(
+            vi.mocked(publishDeterministicCreateProposalIfLatest).mock.invocationCallOrder[0]
+        );
+        const initializedRevision = vi.mocked(initializeCreateDraftIfLatest).mock.calls[0]?.[2];
+        expect(initializedRevision).toEqual({
+            startedAt: expect.any(String),
+            messageId: 'm-full-sequence',
+        });
+        expect(vi.mocked(publishDeterministicCreateProposalIfLatest).mock.calls[0]?.[2]).toMatchObject({
+            createDraftRevision: initializedRevision,
+        });
+        expect(vi.mocked(finalizeDeterministicCreateProposalIfCurrent).mock.calls[0]?.[2]).toMatchObject({
+            createDraftRevision: initializedRevision,
+        });
         expect(canonicalState).toMatchObject({
             salesStage: 'quote',
             conversationStage: 'reservation_quoted',
@@ -281,6 +325,35 @@ describe('availability unified flow', () => {
         });
         expect(replies.at(-1)).toBe(canonicalState.lastProposal.text);
         expect(replies.at(-1)).toMatch(/CONFIRMAR/i);
+        expect(reservations.confirmAndCreate).not.toHaveBeenCalled();
+    });
+
+    it('falla cerrado si no puede inicializar conv_state antes de disponibilidad', async () => {
+        vi.mocked(getConvState).mockResolvedValueOnce(null);
+        vi.mocked(initializeCreateDraftIfLatest).mockRejectedValueOnce(new Error('draft persistence failed'));
+        vi.spyOn(reservations, 'askAvailability').mockResolvedValue({
+            ok: true,
+            available: true,
+            options: [{ roomType: 'double', pricePerNight: 100, currency: 'USD' }],
+        } as any);
+        const { handleIncomingMessage } = await import('@/lib/handlers/messageHandler');
+        const replies: string[] = [];
+
+        await handleIncomingMessage({
+            messageId: 'm-init-failure',
+            hotelId: 'hotel999',
+            channel: 'web',
+            sender: 'guest',
+            conversationId: 'conv-init-failure',
+            content: 'Quiero reservar una doble del 20/12/2027 al 22/12/2027 para 2 personas a nombre de Juan Perez',
+            detectedLanguage: 'es',
+            timestamp: new Date().toISOString(),
+        } as any, { mode: 'automatic', sendReply: async (text: string) => { replies.push(text); } });
+        expect(initializeCreateDraftIfLatest).toHaveBeenCalledTimes(1);
+        expect(reservations.askAvailability).not.toHaveBeenCalled();
+        expect(publishDeterministicCreateProposalIfLatest).not.toHaveBeenCalled();
+        expect(reservations.confirmAndCreate).not.toHaveBeenCalled();
+        expect(replies.join('\n')).not.toMatch(/CONFIRMAR/i);
     });
 
     it('expone fallo conservador de publicación determinística sin ejecutar upsert alternativo', async () => {

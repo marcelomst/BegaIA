@@ -19,6 +19,7 @@ import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import {
   getConvState,
+  initializeCreateDraftIfLatest,
   updateLastProposalTextIfCurrent,
   finalizeDeterministicCreateProposalIfCurrent,
   CONVSTATE_VERSION,
@@ -32,6 +33,7 @@ import type {
   SelectedReservationTarget,
   ModifyState,
   ConversationFocus,
+  CreateDraftRevision,
   DeterministicCreateProposalIdentity,
 } from "@/lib/db/convState";
 import crypto from "crypto";
@@ -4930,6 +4932,7 @@ function runQueued<T>(convId: string, fn: () => Promise<T>): Promise<T> {
 // === División en preLLM, bodyLLM, posLLM ===
 // ===== Agent: InputNormalizer (preLLM) =====
 type PreLLMResult = {
+  readonly createDraftRevision?: Readonly<CreateDraftRevision>;
   lang: "es" | "en" | "pt";
   hotelConfig?: {
     defaultLanguage?: string | null;
@@ -6006,6 +6009,7 @@ function buildConservativeCreatePersistenceReply(lang: "es" | "en" | "pt"): stri
 async function finalizeDeterministicCreateProposal(params: {
   pre: PreLLMResult;
   availabilityPre: PreLLMResult;
+  createDraftRevision?: Readonly<CreateDraftRevision>;
   slots: ReservationSlotsStrict;
   checkIn: string;
   checkOut: string;
@@ -6015,6 +6019,7 @@ async function finalizeDeterministicCreateProposal(params: {
   const {
     pre,
     availabilityPre,
+    createDraftRevision,
     slots,
     checkIn,
     checkOut,
@@ -6027,14 +6032,14 @@ async function finalizeDeterministicCreateProposal(params: {
         slots,
         checkIn,
         checkOut,
-        { textPrefix: prefixText, deterministicCreate: true }
+        { textPrefix: prefixText, deterministicCreate: true, createDraftRevision }
       )
     : await runAvailabilityCheck(
         availabilityPre,
         slots,
         checkIn,
         checkOut,
-        { deterministicCreate: true }
+        { deterministicCreate: true, createDraftRevision }
       );
   const nextSlots = {
     ...mergeReservationSlots(pre.st?.reservationSlots, availabilityResult.nextSlots, slots),
@@ -6071,6 +6076,7 @@ async function finalizeDeterministicCreateProposal(params: {
     };
   }
   const identity: DeterministicCreateProposalIdentity = {
+    ...(createDraftRevision ? { createDraftRevision } : {}),
     sourceText: proposalIdentity.sourceText,
     available: proposalIdentity.available,
     availabilityStatus: proposalIdentity.availabilityStatus,
@@ -6749,9 +6755,49 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       }
       const ciISO = createDraftConsistency.sanitizedSlots.checkIn;
       const coISO = createDraftConsistency.sanitizedSlots.checkOut;
+      let draftInitialization;
+      try {
+        draftInitialization = await initializeCreateDraftIfLatest(
+          pre.msg.hotelId,
+          pre.conversationId,
+          pre.createDraftRevision as CreateDraftRevision,
+          {
+            reservationSlots: {
+              ...(pre.st?.reservationSlots || {}),
+              ...createDraftConsistency.sanitizedSlots,
+              locale: pre.lang,
+            },
+            pendingAvailabilityVerification: null,
+            selectedReservationTarget: null,
+            modifyState: null,
+            conversationFocus: buildConversationFocus("create"),
+            activeReservationContext: buildDraftReservationContext("collecting"),
+            activeFlow: "reservation",
+            desiredAction: "create",
+            salesStage: "qualify",
+            lastCategory: "reservation",
+            updatedBy: "ai",
+          }
+        );
+      } catch (error) {
+        console.warn(
+          "[createDraftRevision] initialization failed; skipping availability:",
+          (error as any)?.message || error
+        );
+      }
+      if (!draftInitialization?.accepted) {
+        return {
+          finalText: buildConservativeCreatePersistenceReply(pre.lang),
+          nextCategory: "reservation",
+          nextSlots: { ...createDraftConsistency.sanitizedSlots },
+          needsSupervision: true,
+          graphResult: null,
+        };
+      }
       const readyCreateResult = await finalizeDeterministicCreateProposal({
         pre,
         availabilityPre,
+        createDraftRevision: pre.createDraftRevision,
         slots: createDraftConsistency.sanitizedSlots,
         checkIn: ciISO!,
         checkOut: coISO!,
@@ -13260,6 +13306,10 @@ export async function handleIncomingMessage(
     preLLMInput?: PreLLMResult;
   }
 ): Promise<void> {
+  const createDraftRevision = Object.freeze<CreateDraftRevision>({
+    startedAt: safeNowISO(),
+    messageId: msg.messageId,
+  });
   if (process.env.DEBUG_ROUTING === "1") {
     debugLog("[routing] handleIncomingMessage input", {
       conversationId: msg.conversationId,
@@ -13337,6 +13387,7 @@ export async function handleIncomingMessage(
       // Asegura que pre.options exista aunque preLLM no lo devuelva (retrocompatibilidad)
       if (!pre.options) pre.options = options ?? {};
     }
+    pre = { ...pre, createDraftRevision };
     // --- bodyLLM OR grafo completo (Fase 3) ---
     let body: any;
     let auditFromGraph: { verdictInfo?: any; llmInterp?: any; needsSupervision?: boolean } | null = null;

@@ -71,7 +71,13 @@ export type LastProposalTextUpdateResult = {
   modifiedCount: 0 | 1;
 };
 
+export type CreateDraftRevision = {
+  startedAt: string;
+  messageId: string;
+};
+
 export type DeterministicCreateProposalIdentity = {
+  createDraftRevision?: CreateDraftRevision;
   sourceText: string;
   available: boolean;
   availabilityStatus: "available" | "unavailable" | "error";
@@ -214,6 +220,7 @@ export type ConversationFlowState = {
 
   // Slots vivos del borrador
   reservationSlots?: ReservationSlots;
+  createDraftRevision?: CreateDraftRevision;
 
   // Ultima propuesta mostrada al huésped
   lastProposal?: LastProposal;
@@ -337,6 +344,195 @@ function key(hotelId: string, conversationId: string) {
   return `${hotelId}:${conversationId}`;
 }
 
+export type CreateDraftInitializationPatch = Pick<
+  Partial<ConversationFlowState>,
+  | "reservationSlots"
+  | "pendingAvailabilityVerification"
+  | "selectedReservationTarget"
+  | "modifyState"
+  | "conversationFocus"
+  | "activeReservationContext"
+  | "activeFlow"
+  | "desiredAction"
+  | "salesStage"
+  | "conversationStage"
+  | "lastCategory"
+  | "updatedBy"
+> & { reservationSlots: ReservationSlots };
+
+export type CreateDraftInitializationResult = {
+  accepted: boolean;
+  idempotent: boolean;
+  inserted: boolean;
+  matchedCount: 0 | 1;
+  modifiedCount: 0 | 1;
+};
+
+export function compareCreateDraftRevisions(
+  left: CreateDraftRevision,
+  right: CreateDraftRevision
+): -1 | 0 | 1 {
+  if (left.startedAt !== right.startedAt) {
+    return left.startedAt < right.startedAt ? -1 : 1;
+  }
+  if (left.messageId === right.messageId) return 0;
+  return left.messageId < right.messageId ? -1 : 1;
+}
+
+function assertCanonicalCreateDraftRevision(revision: CreateDraftRevision): void {
+  const parsed = Date.parse(revision.startedAt);
+  if (!Number.isFinite(parsed) || new Date(parsed).toISOString() !== revision.startedAt) {
+    throw new Error("createDraftRevision.startedAt must be a canonical ISO timestamp");
+  }
+  if (!revision.messageId || revision.messageId.trim() !== revision.messageId) {
+    throw new Error("createDraftRevision.messageId must be a non-empty stable identifier");
+  }
+}
+
+function createDraftRevisionExactFilter(
+  revision?: CreateDraftRevision
+): Record<string, unknown> {
+  return revision
+    ? {
+      "createDraftRevision.startedAt": revision.startedAt,
+      "createDraftRevision.messageId": revision.messageId,
+    }
+    : {};
+}
+
+function createDraftRevisionAcceptanceFilter(
+  revision: CreateDraftRevision
+): Record<string, unknown> {
+  return {
+    $or: [
+      { "createDraftRevision.startedAt": { $lt: revision.startedAt } },
+      {
+        "createDraftRevision.startedAt": revision.startedAt,
+        "createDraftRevision.messageId": { $lt: revision.messageId },
+      },
+      {
+        createDraftRevision: { $exists: false },
+        lastProposal: { $exists: false },
+      },
+    ],
+  };
+}
+
+function isDuplicateDocumentError(error: unknown): boolean {
+  const candidate = error as {
+    code?: unknown;
+    message?: unknown;
+    errorDescriptors?: Array<{ errorCode?: unknown }>;
+    rawResponse?: { errors?: Array<{ errorCode?: unknown }> };
+  };
+  const code = String(candidate?.code ?? "").toUpperCase();
+  const message = String(candidate?.message ?? "").toUpperCase();
+  const descriptors = candidate?.errorDescriptors ?? candidate?.rawResponse?.errors ?? [];
+  return candidate?.code === 11000 ||
+    descriptors.some((descriptor) => descriptor?.errorCode === "DOCUMENT_ALREADY_EXISTS") ||
+    code.includes("DUPLICATE") ||
+    code.includes("ALREADY_EXISTS") ||
+    message.includes("DUPLICATE") ||
+    message.includes("ALREADY EXISTS");
+}
+
+function createDraftInitializationUpdate(
+  hotelId: string,
+  conversationId: string,
+  revision: CreateDraftRevision,
+  patch: CreateDraftInitializationPatch
+): { $set: Record<string, unknown>; $unset: Record<string, true> } {
+  const $set: Record<string, unknown> = {
+    hotelId,
+    conversationId,
+    createDraftRevision: revision,
+    updatedAt: new Date().toISOString(),
+  };
+  const $unset: Record<string, true> = { lastProposal: true };
+  const fields: Array<keyof CreateDraftInitializationPatch> = [
+    "reservationSlots",
+    "pendingAvailabilityVerification",
+    "selectedReservationTarget",
+    "modifyState",
+    "conversationFocus",
+    "activeReservationContext",
+    "activeFlow",
+    "desiredAction",
+    "salesStage",
+    "conversationStage",
+    "lastCategory",
+    "updatedBy",
+  ];
+  for (const field of fields) {
+    if (!(field in patch)) continue;
+    const value = patch[field];
+    if (value === undefined || value === null) {
+      $unset[field] = true;
+    } else {
+      $set[field] = value;
+    }
+  }
+  return { $set, $unset };
+}
+
+export async function initializeCreateDraftIfLatest(
+  hotelId: string,
+  conversationId: string,
+  revision: CreateDraftRevision,
+  patch: CreateDraftInitializationPatch
+): Promise<CreateDraftInitializationResult> {
+  assertCanonicalCreateDraftRevision(revision);
+  const _id = key(hotelId, conversationId);
+  const collection: any = col() as any;
+  const update = createDraftInitializationUpdate(hotelId, conversationId, revision, patch);
+  const conditionalFilter = {
+    _id,
+    hotelId,
+    conversationId,
+    ...createDraftRevisionAcceptanceFilter(revision),
+  };
+
+  const applyConditionalUpdate = async (): Promise<CreateDraftInitializationResult | null> => {
+    const result = await collection.updateOne(conditionalFilter, update);
+    if (result?.matchedCount !== 1) return null;
+    const modifiedCount: 0 | 1 = result?.modifiedCount === 1 ? 1 : 0;
+    return {
+      accepted: true,
+      idempotent: false,
+      inserted: false,
+      matchedCount: 1,
+      modifiedCount,
+    };
+  };
+  const findExactRevision = async (): Promise<boolean> => Boolean(await collection.findOne({
+    _id,
+    hotelId,
+    conversationId,
+    ...createDraftRevisionExactFilter(revision),
+  }));
+
+  const updated = await applyConditionalUpdate();
+  if (updated) return updated;
+  if (await findExactRevision()) {
+    return { accepted: true, idempotent: true, inserted: false, matchedCount: 1, modifiedCount: 0 };
+  }
+
+  const document = { _id, ...update.$set };
+  try {
+    await collection.insertOne(document);
+    return { accepted: true, idempotent: false, inserted: true, matchedCount: 1, modifiedCount: 1 };
+  } catch (error) {
+    if (!isDuplicateDocumentError(error)) throw error;
+  }
+
+  const retried = await applyConditionalUpdate();
+  if (retried) return retried;
+  if (await findExactRevision()) {
+    return { accepted: true, idempotent: true, inserted: false, matchedCount: 1, modifiedCount: 0 };
+  }
+  return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
+}
+
 /* =========================
  *         Reads
  * ========================= */
@@ -448,6 +644,7 @@ export async function finalizeDeterministicCreateProposalIfCurrent(
     "reservationSlots.numGuests": identity.snapshot.numGuests,
     "reservationSlots.checkIn": identity.snapshot.checkIn,
     "reservationSlots.checkOut": identity.snapshot.checkOut,
+    ...createDraftRevisionExactFilter(identity.createDraftRevision),
   };
   if (identity.snapshot.locale) {
     filter["lastProposal.snapshot.locale"] = identity.snapshot.locale;
@@ -502,6 +699,7 @@ function deterministicCreateProposalIdentityFilter(
   if (identity.snapshot.locale) {
     filter["lastProposal.snapshot.locale"] = identity.snapshot.locale;
   }
+  Object.assign(filter, createDraftRevisionExactFilter(identity.createDraftRevision));
   return filter;
 }
 
@@ -566,6 +764,7 @@ export async function publishDeterministicCreateProposalIfLatest(
       _id,
       hotelId,
       conversationId,
+      ...createDraftRevisionExactFilter(identity.createDraftRevision),
       ...chronologicalEligibility,
     },
     {
