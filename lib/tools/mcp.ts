@@ -357,12 +357,22 @@ export async function quoteReservationModificationTool(input: QuoteReservationMo
 
 export async function cancelReservationTool(input: CancelReservationInput) {
   const parsed = CancelReservationInput.parse(input);
-  const reservation = await callMcpTool<{ status?: string }>("cancelReservation", {
+  const providerResult = await callMcpTool<unknown>("cancelReservation", {
     hotelId: parsed.hotelId,
     reservationId: parsed.reservationId,
   });
+  const validated = validateProviderReservation(providerResult, {
+    hotelId: parsed.hotelId,
+    reservationId: parsed.reservationId,
+  });
+  if (!validated.ok) {
+    return CancelReservationOutput.parse({ ok: false, error: validated.error });
+  }
+  if (validated.reservation.status !== "cancelled") {
+    return CancelReservationOutput.parse({ ok: false, error: "PROVIDER_RESERVATION_NOT_CANCELLED" });
+  }
   return CancelReservationOutput.parse({
     ok: true,
-    status: reservation?.status === "cancelled" ? "cancelled" : "cancelled",
+    status: "cancelled",
   });
 }

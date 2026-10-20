@@ -61,6 +61,22 @@ vi.mock("@/lib/tools/mcp", () => {
 import { askAvailability, confirmAndCreate, modifyReservation, cancelReservation } from "@/lib/agents/reservations";
 import { checkAvailabilityTool, updateReservationTool, cancelReservationTool } from "@/lib/tools/mcp";
 
+const providerReservation = (override: Record<string, unknown> = {}) => ({
+  reservationId: "RES-EXPECTED",
+  hotelId: "hotel999",
+  guestName: "Ana",
+  roomType: "double",
+  numGuests: 2,
+  checkInDate: "2026-10-10T00:00:00.000Z",
+  checkOutDate: "2026-10-12T00:00:00.000Z",
+  status: "cancelled",
+  currency: "USD",
+  priceTotal: 200,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-02T00:00:00.000Z",
+  ...override,
+});
+
 describe("agents/reservations - tools wrappers", () => {
   it("askAvailability arma propuesta con alternativas cuando no hay disponibilidad", async () => {
     const out = await askAvailability("hotel999", {
@@ -236,6 +252,103 @@ describe("agents/reservations - tools wrappers", () => {
     } finally {
       fetchSpy.mockRestore();
     }
+  });
+
+  describe("cancelReservationTool provider result", () => {
+    it("acepta únicamente una Reservation cancelada con la identidad solicitada", async () => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+        ok: true,
+        data: providerReservation(),
+      }));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: true, status: "cancelled" });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it.each(["confirmed", "pending"])("rechaza el estado canónico no cancelado %s", async (status) => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+        ok: true,
+        data: providerReservation({ status }),
+      }));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: false, error: "PROVIDER_RESERVATION_NOT_CANCELLED" });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it.each(["active", "noop"])("rechaza el estado externo no reconocido %s", async (status) => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+        ok: true,
+        data: providerReservation({ status }),
+      }));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: false, error: "INVALID_PROVIDER_RESERVATION" });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it.each([
+      ["payload incompleto", { reservationId: "RES-EXPECTED", hotelId: "hotel999", status: "cancelled" }, "INVALID_PROVIDER_RESERVATION"],
+      ["envelope sin data", undefined, "INVALID_PROVIDER_RESERVATION"],
+      ["hotelId incorrecto", providerReservation({ hotelId: "hotel-other" }), "PROVIDER_HOTEL_ID_MISMATCH"],
+      ["reservationId incorrecto", providerReservation({ reservationId: "RES-WRONG" }), "PROVIDER_RESERVATION_ID_MISMATCH"],
+    ])("falla cerrado ante %s", async (_label, data, expectedError) => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ok: true, data }));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: false, error: expectedError });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it("preserva la excepción de transporte MCP", async () => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("transport failed"));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).rejects.toThrow("transport failed");
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it("preserva el error declarado por MCP", async () => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json({
+        ok: false,
+        error: "provider rejected cancellation",
+      }));
+      try {
+        await expect(real.cancelReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).rejects.toThrow("MCP call cancelReservation failed: provider rejected cancellation");
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
   });
 
   it("CheckAvailabilityInput requiere datetime ISO válido (no acepta '2025/10/01')", async () => {
