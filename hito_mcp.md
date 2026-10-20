@@ -15473,3 +15473,77 @@ Impacto:
 - Runtime Map: refresh factual de rangos top-level sin cambio conceptual
 - sin cambios de codigo, tests, inventario, roadmap ni otros documentos
 - cierre definitivo sujeto a documentation commit, push y HDOC(CLOSE)
+
+### FIX-RESERVATION-CANCEL-MCP-RESULT-VALIDATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-20
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: validar fail-closed el resultado del proveedor en `cancelReservationTool`, exigiendo una `Reservation` canonica con identidad coincidente y estado `cancelled`
+Commit tecnico: 7111f9aa6f039f4fc12f881b8f661499cea23a94
+Push tecnico: CONFIRMED
+Commit documental: PENDING
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- `cancelReservationTool` solo devuelve exito cuando el proveedor entrega una
+  `Reservation` canonica
+- `hotelId` y `reservationId` deben coincidir con la cancelacion solicitada
+- `status` debe ser exactamente `cancelled`; payloads invalidos, identidades
+  divergentes o estados distintos fallan de forma cerrada
+- no se introducen decisiones arquitectonicas ni cambios al Operating Model
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 7111f9aa6f039f4fc12f881b8f661499cea23a94
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+validation:
+  focal_tests: 26/26
+  core_tests: 1203/1203
+  test_files: 193/193
+  typecheck: pass
+  git_diff_check: pass
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- el wrapper real valida payload, identidad y estado antes de devolver exito
+- `messageHandler.ts` permanecio intacto y no se desplazaron sus rangos
+- no corresponde modificar Runtime Map en este cierre
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; el exito de cancelacion queda subordinado al estado
+  e identidad canonicos confirmados por el proveedor
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, roadmap, Runtime Map, codigo ni tests
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
