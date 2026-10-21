@@ -1435,6 +1435,44 @@ function buildModifyPreviewRejectedReply(lang: "es" | "en" | "pt"): string {
       : "Perfecto, no apliqué cambios. La reserva sigue igual.";
 }
 
+function buildModifyPreviewCancellationHandoffReply(
+  lang: "es" | "en" | "pt",
+  reservationId: string
+): string {
+  return lang === "pt"
+    ? `Descartei a alteração pendente. Sua reserva continua ativa. Para cancelar a reserva ${reservationId}, responda CONFIRMAR.`
+    : lang === "en"
+      ? `I discarded the pending change. Your booking remains active. To cancel booking ${reservationId}, reply CONFIRMAR.`
+      : `Descarté el cambio pendiente. Tu reserva sigue activa. Para cancelar la reserva ${reservationId}, respondé CONFIRMAR.`;
+}
+
+function buildModifyPreviewCancellationClarificationReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Você quer cancelar a alteração pendente ou a reserva?"
+    : lang === "en"
+      ? "Do you want to cancel the pending change or the booking?"
+      : "¿Querés cancelar el cambio pendiente o la reserva?";
+}
+
+function buildCompetingReservationConfirmationsReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Encontrei confirmações incompatíveis e suspendi ambas. Diga se quer alterar ou cancelar a reserva."
+    : lang === "en"
+      ? "I found incompatible confirmations and suspended both. Tell me whether you want to modify or cancel the booking."
+      : "Encontré confirmaciones incompatibles y suspendí ambas. Decime si querés modificar o cancelar la reserva.";
+}
+
+function isExplicitModifyPreviewRejection(text: string): boolean {
+  const normalized = normalizeReferenceText(text).trim();
+  return /^(?:cancela|cancelar|anula|anular)\s+(?:el|la)\s+(?:cambio|modificacion|alteracion)$/i.test(normalized) ||
+    /^(?:cancel|discard)\s+(?:the\s+)?(?:change|modification)$/i.test(normalized) ||
+    /^(?:cancela|cancelar)\s+(?:a\s+)?(?:alteracao|mudanca)$/i.test(normalized);
+}
+
+function isBareModifyPreviewCancellation(text: string): boolean {
+  return /^(?:cancela|cancelar|anula|anular|cancel)$/i.test(normalizeReferenceText(text).trim());
+}
+
 function buildModifyInactiveTargetReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "No encontro uma reserva ativa para aplicar essa modificação."
@@ -2656,6 +2694,23 @@ function getCanonicalReservationRecordById(
 ): CanonicalReservationRecord | undefined {
   if (!reservationId) return undefined;
   return buildReservationCanonicalState(state).byId.get(reservationId);
+}
+
+function buildCanonicalReservationSlots(
+  state: any,
+  reservationId: string | undefined,
+  lang: "es" | "en" | "pt"
+): ReservationSlotsStrict | null {
+  const record = getCanonicalReservationRecordById(state, reservationId);
+  if (!record) return null;
+  return {
+    guestName: record.guestName,
+    roomType: record.roomType,
+    numGuests: record.numGuests,
+    checkIn: record.checkIn,
+    checkOut: record.checkOut,
+    locale: lang,
+  } as ReservationSlotsStrict;
 }
 
 function buildCanonicalReservationTarget(
@@ -7956,6 +8011,32 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(pre.st?.modifyState?.awaitingConfirmation && pendingModifyPatchEarly?.reservationId);
   if (awaitingModifyPreviewConfirmationEarly && pendingModifyPatchEarly?.reservationId) {
     const pendingTarget = getReservationReferenceTargetById(pre.st, pendingModifyPatchEarly.reservationId);
+    const canonicalPreviewRecord = getCanonicalReservationRecordById(pre.st, pendingModifyPatchEarly.reservationId);
+    const canonicalPreviewSlots = buildCanonicalReservationSlots(pre.st, pendingModifyPatchEarly.reservationId, pre.lang);
+    const competingPendingCancellation = pre.st?.pendingCancellation as
+      | { reservationId?: string; awaitingConfirmation?: boolean }
+      | null
+      | undefined;
+    if (competingPendingCancellation?.reservationId && competingPendingCancellation.awaitingConfirmation) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: canonicalPreviewSlots,
+        modifyState: null,
+        pendingCancellation: null,
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        selectedReservationTarget: null,
+        activeReservationContext: canonicalPreviewRecord?.reservationId
+          ? buildFocusedReservationContext(canonicalPreviewRecord.reservationId, "confirmed")
+          : null,
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildCompetingReservationConfirmationsReply(pre.lang);
+      return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
+    }
     if (!pendingTarget?.reservationId || pendingTarget.reservationStatus === "cancelled" || pendingTarget.reservationStatus === "error") {
       await persistModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId, {
         modifyState: null,
@@ -7974,7 +8055,134 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       previewResolutionIntent.kind === "affirmative";
     const previewReject =
       previewResolutionIntent.kind === "deny_confirm" ||
-      /^(no|no gracias|mejor no|cancela|cancelar|dejalo asi|dejalo así)$/i.test(normalizeReferenceText(userTxtRaw));
+      /^(no|no gracias|mejor no|dejalo asi|dejalo así)$/i.test(normalizeReferenceText(userTxtRaw));
+    const explicitPreviewRejection = isExplicitModifyPreviewRejection(userTxtRaw);
+    const barePreviewCancellation = isBareModifyPreviewCancellation(userTxtRaw);
+    const wantsReservationCancellationFromPreview =
+      previewResolutionIntent.kind === "cancel" &&
+      !explicitPreviewRejection &&
+      !barePreviewCancellation;
+
+    if (explicitPreviewRejection) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: canonicalPreviewSlots,
+        modifyState: null,
+        pendingCancellation: null,
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(pendingTarget.reservationId, "active_focus", "weak"),
+        activeReservationContext: buildFocusedReservationContext(pendingTarget.reservationId, "confirmed"),
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildModifyPreviewRejectedReply(pre.lang);
+      return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
+    }
+
+    if (barePreviewCancellation) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: canonicalPreviewSlots,
+        modifyState: null,
+        pendingCancellation: null,
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(pendingTarget.reservationId, "active_focus", "weak"),
+        activeReservationContext: buildFocusedReservationContext(pendingTarget.reservationId, "confirmed"),
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildModifyPreviewCancellationClarificationReply(pre.lang);
+      return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
+    }
+
+    if (wantsReservationCancellationFromPreview) {
+      const cancellationReferenceBlocked =
+        Boolean(explicitReservationCode && !explicitIdReservationTarget?.reservationId) ||
+        (!explicitIdReservationTarget?.reservationId &&
+          (resolution.status === "ambiguous" || resolution.status === "out_of_range"));
+      const cancellationTarget = cancellationReferenceBlocked
+        ? null
+        : explicitIdReservationTarget ||
+          explicitOrdinalReservationTarget ||
+          resolvedReferenceReservationTarget ||
+          selectedReservationTarget ||
+          (buildActionableReservationCandidates(pre.st).length === 1
+            ? buildActionableReservationCandidates(pre.st)[0]
+            : null);
+      const canonicalCancellationRecord = getCanonicalReservationRecordById(
+        pre.st,
+        cancellationTarget?.reservationId
+      );
+      const canonicalCancellationSlots = buildCanonicalReservationSlots(
+        pre.st,
+        canonicalCancellationRecord?.reservationId,
+        pre.lang
+      );
+      if (
+        cancellationTarget?.reservationId &&
+        canonicalCancellationRecord?.canonicalStatus === "active" &&
+        canonicalCancellationSlots
+      ) {
+        const cancellationSource = explicitIdReservationTarget
+          ? "explicit_id"
+          : explicitOrdinalReservationTarget
+            ? "ordinal"
+            : hasAnaphoraReference
+              ? "anaphora"
+              : "active_focus";
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          reservationSlots: canonicalCancellationSlots,
+          modifyState: null,
+          pendingCancellation: {
+            reservationId: canonicalCancellationRecord.reservationId,
+            awaitingConfirmation: true,
+          },
+          lastProposal: null,
+          pendingAvailabilityVerification: null,
+          selectedReservationTarget: buildSelectedReservationTargetFromReference(
+            canonicalCancellationRecord.reservationId,
+            cancellationSource,
+            explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
+          ),
+          activeReservationContext: buildFocusedReservationContext(canonicalCancellationRecord.reservationId, "confirmed"),
+          conversationFocus: buildConversationFocus("cancel"),
+          activeFlow: "cancel_reservation",
+          desiredAction: "cancel",
+          lastCategory: "cancel_reservation",
+          updatedBy: "ai",
+        } as any);
+        finalText = buildModifyPreviewCancellationHandoffReply(pre.lang, canonicalCancellationRecord.reservationId);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalCancellationSlots, needsSupervision, graphResult };
+      }
+
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: canonicalPreviewSlots,
+        modifyState: null,
+        pendingCancellation: null,
+        lastProposal: null,
+        pendingAvailabilityVerification: null,
+        selectedReservationTarget: null,
+        activeReservationContext: canonicalPreviewRecord?.reservationId
+          ? buildFocusedReservationContext(canonicalPreviewRecord.reservationId, "confirmed")
+          : null,
+        conversationFocus: buildConversationFocus("cancel"),
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = cancellationReferenceBlocked
+        ? buildReservationReferenceGuardReply(pre.lang, resolution)
+        : buildCancelInactiveTargetReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
+    }
+
     const correctionTurnSlots = toStrictSlots(extractSlotsFromText(userTxtRaw, pre.lang));
     const correctionGuestCount = extractGuests(userTxtRaw);
     const correctionDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);
@@ -7994,14 +8202,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       String(updatedPreviewSnapshot.checkOut || "") !== String(currentPreviewSnapshot.checkOut || "");
 
     if (previewReject) {
-      await persistModifyExecutionContext(pre, pendingTarget.reservationId, {
-        reservationSlots: applyModifyPreviewPatch(currentPreviewTarget, { reservationId: pendingTarget.reservationId }, pre.lang),
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        reservationSlots: canonicalPreviewSlots,
         modifyState: null,
+        pendingCancellation: null,
+        lastProposal: null,
         pendingAvailabilityVerification: null,
+        selectedReservationTarget: buildSelectedReservationTargetFromReference(pendingTarget.reservationId, "active_focus", "weak"),
+        activeReservationContext: buildFocusedReservationContext(pendingTarget.reservationId, "confirmed"),
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "reservation",
         updatedBy: "ai",
       } as any);
       finalText = buildModifyPreviewRejectedReply(pre.lang);
-      return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };
+      return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
     }
 
     if (hasPreviewCorrections && !previewConfirm) {
