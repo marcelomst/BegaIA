@@ -43,20 +43,20 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
+commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
+messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-baseline_status: fix_reservation_proposal_fresh_state_cas_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
+baseline_status: fix_modify_cancel_precedence_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: 7cb9178bc03277a0e54cb8b8bb350627cf793220
-messageHandler_lines: 13577
-analysis_scope: focal_refresh_pers_02_at_7cb9178bc03277a0e54cb8b8bb350627cf793220
+commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+messageHandler_lines: 13628
+analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
 provenance: historical_focal_snapshot_preserved
 ```
 
@@ -65,20 +65,27 @@ provenance: historical_focal_snapshot_preserved
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.persistenceReply
   reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.graph
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Inicializacion atomica y carreras stale/newest cubiertas
-      - Confirmation gating y corredores existentes conservan cobertura
+      - Exclusion mutua modify/cancel y confirmacion obsoleta bloqueada
+      - Target explicito, referencia ambigua y conflicto fail-closed cubiertos
+      - Continuidad FAQ, modify normal y restauracion de slots canonicos cubiertas
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -96,13 +103,13 @@ runtime_map:
 Evidencia física focal del hito actual:
 
 ```yaml
-hito_id: FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
-technical_commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
+technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
 top_level_code_refs:
-  preLLM: L4966-L5178
-  bodyLLM: L6193-L12759
-  posLLM: L13254-L13295
-  handleIncomingMessage: L13299-L13628
+  preLLM: L5021-L5233
+  bodyLLM: L6248-L12975
+  posLLM: L13470-L13511
+  handleIncomingMessage: L13515-L13844
 internal_code_refs_status: not_recalculated_by_guardian
 ```
 
@@ -128,7 +135,7 @@ external_dependency:
 El cierre de `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 conserva los `box_id` existentes. La evidencia se refiere al commit
 `3bb821a3240fcf92aebae3424ebde4ba92699780`; el snapshot operativo actual se
-mantiene en su descendiente `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`.
+mantiene en su descendiente `0da07bc606a962a0ce39c9e924e158435a520e83`.
 
 ```yaml
 historical_audit:
@@ -222,7 +229,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L13628
+        range: L1-L13844
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -250,7 +257,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13299-L13628
+        range: L13515-L13844
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -280,7 +287,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L4966-L5178
+        range: L5021-L5233
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -315,7 +322,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6193-L12759
+        range: L6248-L12975
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -391,7 +398,7 @@ boxes:
       - regression_sensitive
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6193-L12759
+        range: L6248-L12975
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -426,7 +433,7 @@ boxes:
       - reservation_context
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6193-L12759
+        range: L6248-L12975
         confidence: medium
     related_boxes:
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -1094,7 +1101,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13254-L13295
+        range: L13470-L13511
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

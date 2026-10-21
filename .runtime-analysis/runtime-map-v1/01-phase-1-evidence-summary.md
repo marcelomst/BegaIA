@@ -21,35 +21,34 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
+commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
+messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - focused tests: 193/193 PASS
-    - TypeScript: PASS mediante tsc --noEmit --incremental false
-    - core suite reportada: 1192/1192 PASS
-    - Guardian core environment: 1188/1192; cuatro EROFS al crear temporales
+    - related tests: PASS
+    - TypeScript: PASS
+    - core suite: 1214/1214 PASS
   full_suite:
-    - 1192/1192 PASS reportada
+    - 1214/1214 PASS
 global_freshness_claim_allowed: false
 ```
 
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: 7cb9178bc03277a0e54cb8b8bb350627cf793220
-messageHandler_lines: 13577
-analysis_scope: focal_refresh_pers_02_at_7cb9178bc03277a0e54cb8b8bb350627cf793220
+commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+messageHandler_lines: 13628
+analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L4963-L5175
-  bodyLLM: L6187-L12713
-  posLLM: L13208-L13249
-  handleIncomingMessage: L13253-L13577
+  preLLM: L4966-L5178
+  bodyLLM: L6193-L12759
+  posLLM: L13254-L13295
+  handleIncomingMessage: L13299-L13628
 ```
 
 ## Refresh documental aplicado en este hito
@@ -57,20 +56,27 @@ functions:
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.persistenceReply
   reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.graph
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Inicializacion atomica y carreras stale/newest cubiertas
-      - Confirmation gating y corredores existentes conservan cobertura
+      - Exclusion mutua modify/cancel y confirmacion obsoleta bloqueada
+      - Target explicito, referencia ambigua y conflicto fail-closed cubiertos
+      - Continuidad FAQ, modify normal y restauracion de slots canonicos cubiertas
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -80,13 +86,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-    messageHandler_lines: 13628
+    commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    messageHandler_lines: 13844
     functions:
-      preLLM: L4966-L5178
-      bodyLLM: L6193-L12759
-      posLLM: L13254-L13295
-      handleIncomingMessage: L13299-L13628
+      preLLM: L5021-L5233
+      bodyLLM: L6248-L12975
+      posLLM: L13470-L13511
+      handleIncomingMessage: L13515-L13844
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -100,16 +106,16 @@ runtime_map:
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
-technical_commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
+technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
 scope_real:
-  - initialize and publish reservation.create proposals through a logical turn revision
-  - guarantee newest-wins under concurrent persistence or availability completion
+  - arbitrate a later cancellation over a pending modify preview
+  - preserve exclusive confirmations, canonical target and original slots
 top_level_code_refs:
-  preLLM: L4966-L5178
-  bodyLLM: L6193-L12759
-  posLLM: L13254-L13295
-  handleIncomingMessage: L13299-L13628
+  preLLM: L5021-L5233
+  bodyLLM: L6248-L12975
+  posLLM: L13470-L13511
+  handleIncomingMessage: L13515-L13844
 internal_code_refs_status: not_recalculated_by_guardian
 ```
 
@@ -119,7 +125,7 @@ limita a los rangos top-level recalculados por Guardian.
 ## Cierre diferido: snapshot completo post-modify
 
 La evidencia del commit `3bb821a3240fcf92aebae3424ebde4ba92699780` se registra
-sin reemplazar el scan focal vigente de `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`,
+sin reemplazar el scan focal vigente de `0da07bc606a962a0ce39c9e924e158435a520e83`,
 que es su descendiente en `main`.
 
 ```yaml
@@ -152,7 +158,7 @@ validation:
 ## Funciones clave historicas y top-level actuales
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
-`handleIncomingMessage`) fueron recalculadas para FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01. Las demas filas se
+`handleIncomingMessage`) fueron recalculadas para FIX-MODIFY-CANCEL-PRECEDENCE-01. Las demas filas se
 preservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 
@@ -166,10 +172,10 @@ global.
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      |
-| `preLLM`                             | L4966-L5178 |    213 | high      |
-| `bodyLLM`                            | L6193-L12759 |   6567 | high      |
-| `posLLM`                             | L13254-L13295 |     42 | high      |
-| `handleIncomingMessage`              | L13299-L13628 |    330 | high      |
+| `preLLM`                             | L5021-L5233 |    213 | high      |
+| `bodyLLM`                            | L6248-L12975 |   6728 | high      |
+| `posLLM`                             | L13470-L13511 |     42 | high      |
+| `handleIncomingMessage`              | L13515-L13844 |    330 | high      |
 
 ---
 
@@ -178,8 +184,8 @@ global.
 `bodyLLM` concentra el sub-runtime dominante del archivo `messageHandler.ts`.
 
 ```text
-messageHandler.ts total: 13628 lineas
-bodyLLM:                6567 lineas
+messageHandler.ts total: 13844 lineas
+bodyLLM:                6728 lineas
 ```
 
 Esto confirma que `bodyLLM` debe tratarse como un sub-runtime dominante.
@@ -565,7 +571,7 @@ label: messageHandler.ts
 kind: runtime_principal
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L1-L13628
+    range: L1-L13844
     confidence: high
 ```
 
@@ -578,7 +584,7 @@ label: preLLM
 kind: pre_runtime_context
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L4966-L5178
+    range: L5021-L5233
     confidence: high
 ```
 
@@ -597,7 +603,7 @@ label: bodyLLM
 kind: sub_runtime_dominant
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L6193-L12759
+    range: L6248-L12975
     confidence: high
 ```
 
@@ -616,7 +622,7 @@ label: posLLM
 kind: post_runtime_verification
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L13254-L13295
+    range: L13470-L13511
     confidence: high
 ```
 
@@ -635,7 +641,7 @@ label: handleIncomingMessage
 kind: public_entrypoint
 code_refs:
   - file: lib/handlers/messageHandler.ts
-    range: L13299-L13628
+    range: L13515-L13844
     confidence: high
 ```
 

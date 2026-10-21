@@ -15547,3 +15547,103 @@ Impacto:
 - sin cambios de arquitectura viva, roadmap, Runtime Map, codigo ni tests
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-MODIFY-CANCEL-PRECEDENCE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-21
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: RUNTIME_BUGFIX
+Intencion unica: corregir la precedencia de una cancelacion posterior sobre un preview de modificacion pendiente
+Commit tecnico: 0da07bc606a962a0ce39c9e924e158435a520e83
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- una intencion explicita de cancelar domina sobre el preview de modificacion
+  pendiente
+- las confirmaciones de modificar y cancelar permanecen mutuamente excluyentes
+- el target se conserva por `reservationId` y los slots originales se restauran
+  desde Canonical State
+- O1 (pregunta redundante sobre `roomType`) y O2 (visibilidad de `numGuests`
+  en el preview) quedan registrados como posibles defectos independientes y no
+  forman parte de este hito
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+technical_parent: 5782a78f2fd7774cc3b3b3120167be77698e8f44
+technical_commit_message: "fix(runtime): arbitrate modify preview cancellation"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+validation:
+  related_tests: pass
+  core_tests: 1214/1214
+  typecheck: pass
+  git_diff_check: pass
+  manual_cases:
+    - RES-D55717: pass
+    - RES-E3A1CF: pass
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.graph
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `0da07bc606a962a0ce39c9e924e158435a520e83`
+- `messageHandler.ts`: 13844 lineas fisicas
+- `preLLM`: L5021-L5233
+- `bodyLLM`: L6248-L12975
+- `posLLM`: L13470-L13511
+- `handleIncomingMessage`: L13515-L13844
+- `conceptual_change: false`; `box_id`, relaciones y diagramas conceptuales
+  preservados
+- frescura resultante: exclusivamente focal; los rangos internos no entregados
+  por Guardian no se recalculan ni se presentan como actuales
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; preserva target y slots canonicos, evita
+  confirmaciones incompatibles y no introduce fuentes de verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: refresh factual de rangos top-level sin cambio conceptual
+- sin cambios de codigo, tests, roadmap, ADRs ni diagramas conceptuales
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

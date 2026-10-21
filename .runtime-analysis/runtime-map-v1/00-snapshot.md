@@ -8,10 +8,10 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
+commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
+messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
 ```
 
 ---
@@ -19,7 +19,7 @@ analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01` parte de `HEAD = origin/main` y working tree
+El refresh focal de `FIX-MODIFY-CANCEL-PRECEDENCE-01` parte de `HEAD = origin/main` y working tree
 limpio, verificados read-only al inicio de la preparacion documental.
 ```
 
@@ -28,17 +28,16 @@ limpio, verificados read-only al inicio de la preparacion documental.
 ## Snapshot anterior preservado
 
 ```yaml
-commit_base: 7cb9178bc03277a0e54cb8b8bb350627cf793220
-messageHandler_lines: 13577
-analysis_scope: focal_refresh_pers_02_at_7cb9178bc03277a0e54cb8b8bb350627cf793220
+commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+messageHandler_lines: 13628
+analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
-commits_after_snapshot: 4
 functions:
-  preLLM: L4963-L5175
-  bodyLLM: L6187-L12713
-  posLLM: L13208-L13249
-  handleIncomingMessage: L13253-L13577
+  preLLM: L4966-L5178
+  bodyLLM: L6193-L12759
+  posLLM: L13254-L13295
+  handleIncomingMessage: L13299-L13628
 ```
 
 ---
@@ -46,10 +45,9 @@ functions:
 ## Validacion tecnica informada
 
 ```text
-focused tests: 193/193 PASS
-TypeScript: PASS mediante tsc --noEmit --incremental false
-core suite reportada: 1192/1192 PASS
-Guardian core environment: 1188/1192; cuatro EROFS al crear temporales, sin fallo funcional
+related tests: PASS
+TypeScript: PASS
+core suite: 1214/1214 PASS
 git diff check: PASS
 postcommit scope: PASS
 remote ref verification: PASS
@@ -62,20 +60,27 @@ remote ref verification: PASS
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
     - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.persistenceReply
   reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.graph
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Inicializacion atomica y carreras stale/newest cubiertas
-      - Confirmation gating y corredores existentes conservan cobertura
+      - Exclusion mutua modify/cancel y confirmacion obsoleta bloqueada
+      - Target explicito, referencia ambigua y conflicto fail-closed cubiertos
+      - Continuidad FAQ, modify normal y restauracion de slots canonicos cubiertas
   conceptual_change: false
   evidence_refresh: true
   code_refs_status: needs_refresh
@@ -92,13 +97,13 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-    messageHandler_lines: 13628
+    commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    messageHandler_lines: 13844
     functions:
-      preLLM: L4966-L5178
-      bodyLLM: L6193-L12759
-      posLLM: L13254-L13295
-      handleIncomingMessage: L13299-L13628
+      preLLM: L5021-L5233
+      bodyLLM: L6248-L12975
+      posLLM: L13470-L13511
+      handleIncomingMessage: L13515-L13844
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -115,32 +120,32 @@ y no se reinterpretan como fronteras físicas exactas.
 ## Evidencia focal fresca
 
 ```yaml
-hito_id: FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
-technical_commit: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
+technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
 scope_real:
-  - initialize and publish reservation.create proposals through a logical turn revision
-  - guarantee newest-wins under concurrent persistence or availability completion
+  - arbitrate a later cancellation over a pending modify preview
+  - preserve exclusive confirmations, canonical target and original slots
 top_level_code_refs:
-  preLLM: L4966-L5178
-  bodyLLM: L6193-L12759
-  posLLM: L13254-L13295
-  handleIncomingMessage: L13299-L13628
+  preLLM: L5021-L5233
+  bodyLLM: L6248-L12975
+  posLLM: L13470-L13511
+  handleIncomingMessage: L13515-L13844
 internal_code_refs_status: not_recalculated_by_guardian
 ```
 
 ### Contrato materializado
 
 ```text
-- `conv_state` permanece como fuente canonica de la propuesta.
-- La revision logica vive dentro del documento canonico y no crea estado paralelo.
-- La publicacion newest-wins impide que una finalizacion stale sobrescriba el turno vigente.
+- La cancelacion explicita domina sobre el preview de modificacion pendiente.
+- Las confirmaciones de modificar y cancelar permanecen mutuamente excluyentes.
+- El target por `reservationId` y los slots originales provienen de Canonical State.
 ```
 
 ---
 
 ## Advertencia de uso
 
-Este snapshot registra exclusivamente el refresh focal de `FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01`; no declara
+Este snapshot registra exclusivamente el refresh focal de `FIX-MODIFY-CANCEL-PRECEDENCE-01`; no declara
 frescura global del Runtime Map.
 
 ```text
@@ -155,9 +160,9 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline focal actualizada al commit `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`
-2. Snapshot focal previo de `PERS-01` preservado con su procedencia original
-3. Rangos top-level de FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01 reconciliados con evidencia de Guardian
+1. Baseline focal actualizada al commit `0da07bc606a962a0ce39c9e924e158435a520e83`
+2. Snapshot focal previo de `FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01` preservado con su procedencia original
+3. Rangos top-level de FIX-MODIFY-CANCEL-PRECEDENCE-01 reconciliados con evidencia de Guardian
 4. `box_id` y relaciones conceptuales preservados
 5. Refresh documental acotado a evidencia fisica, sin cambio conceptual ni
    afirmacion de frescura global
@@ -169,7 +174,7 @@ Refresh aplicado:
 
 El hito `FIX-RUNTIME-RESERVATION-SNAPSHOT-COMPLETENESS-AFTER-MODIFY-01`
 corresponde al commit `3bb821a3240fcf92aebae3424ebde4ba92699780`, antecesor de
-la baseline focal actual `cbf72a9f7cbc701faaea424ad474a08a49b8e7d1`. Se conserva el
+la baseline focal actual `0da07bc606a962a0ce39c9e924e158435a520e83`. Se conserva el
 snapshot vigente y se registra la evidencia histórica del hito diferido.
 
 ```yaml
