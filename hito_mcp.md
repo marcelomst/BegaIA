@@ -15707,3 +15707,56 @@ Impacto:
 - sin cambios en perfiles externos durante esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion read-only
   posterior mediante HDOC(CLOSE)
+
+### DOC-CONVERSATIONAL-GOVERNANCE-INVARIANTS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-22
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar canonicamente las invariantes conversacionales GC-01 a GC-04 en la arquitectura viva del pipeline, acotadas al comportamiento demostrado por `FIX-MODIFY-CANCEL-PRECEDENCE-01` y `FIX-RESERVATION-CANCEL-MCP-RESULT-VALIDATION-01`
+Commit tecnico: 236b227281b9d2a453122cbd374821ee35c8241e
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- GC-01 a GC-04 quedan registradas como invariantes conversacionales en la
+  arquitectura viva del pipeline
+- GC-02 se limita al desplazamiento de una modificacion pendiente por una
+  intencion explicita de cancelar
+- GC-03 se limita a modificar o cancelar reservas existentes; la obligacion
+  previa de identificar el target queda integrada sin duplicacion y la
+  ambiguedad conserva su aclaracion independiente
+- el alcance documental refleja exclusivamente los comportamientos ya
+  implementados, probados y cerrados por los dos hitos relacionados
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 236b227281b9d2a453122cbd374821ee35c8241e
+technical_parent: 1314074185dbf43fd9cccc139cb4151485926fdf
+technical_commit_message: "docs(architecture): codify conversational governance invariants"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+residual_worktree: []
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; consolida en la arquitectura viva reglas demostradas
+  y acotadas, sin duplicar obligaciones ni ampliar su semantica
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`; la evolucion arquitectonica ya fue
+  materializada por el commit tecnico
+- Runtime Map: no aplica
+- sin cambios adicionales de arquitectura viva, roadmap, ADRs, Runtime Map,
+  codigo ni tests
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
