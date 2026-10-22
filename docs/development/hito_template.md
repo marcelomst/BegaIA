@@ -111,11 +111,19 @@ ejecutar un hito con `HITO_ID` vacío, `agent_target` ausente, desconocido,
 duplicado o contradictorio. La comparación entre target e identidad efectiva
 es exacta y case-sensitive.
 
-Metadata adicional del hito:
+Metadata obligatoria del hito:
 
-- `hito_type`: <tipo operativo del hito>
 - `hito_change_classification`: <existing_repo_change | external_operational_change>
+
+Metadata condicional del hito:
+
+- `hito_type`: <tipo operativo del hito>, sólo cuando una regla canónica
+  específica lo exige; es obligatorio para `external_operational_change`
 - `classification`: <runtime_bugfix | runtime_refactor | runtime_documentation | kb | ui | auth | docs | other>
+
+En `existing_repo_change`, omitir `hito_type` cuando ninguna regla canónica
+específica lo exige. No usar sentinels ni valores artificiales para representar
+su ausencia.
 
 ### AGENT TARGET RECEIVER PREFLIGHT
 
@@ -145,9 +153,12 @@ hito_change_classification: existing_repo_change | external_operational_change
 ```
 
 - `existing_repo_change` domina si el objetivo requiere al menos un cambio
-  material versionable, incluso cuando también incluye acciones externas.
+  material versionable, incluso cuando también incluye acciones externas. En
+  esta rama, `hito_type` puede omitirse cuando ninguna regla canónica específica
+  lo exige.
 - `external_operational_change` sólo puede proponerse cuando el alcance material
-  es íntegramente externo y `hito_type` está expresamente permitido.
+  es íntegramente externo; `hito_type` es obligatorio y debe estar expresamente
+  permitido.
 - Inicialmente, el único tipo externo permitido es
   `operating_environment_cutover`.
 - No existe categoría `mixed` ni fallback desde `missing` a `not_applicable`.
@@ -624,6 +635,8 @@ Debe verificar:
 - ausencia de refactor encubierto
 - pureza del hito
 - hito_change_classification y dominancia de existing_repo_change
+- condicionalidad de hito_type: omisión legítima en existing_repo_change y
+  presencia allowlisted obligatoria en external_operational_change
 - estados técnicos present | not_applicable | pending | missing | failed
 - pending, missing y failed nunca habilitan ready_for_hdoc
 - elegibilidad y evidencia sustitutiva completa si la rama es external_operational_change
@@ -637,8 +650,10 @@ explícito de Guardian con `guardian_verdict: valid` y `ready_for_hdoc: yes`:
 ```text
 - consumir la rama ya determinada por Guardian
 - recibir commit_name_sugerido para el documentation commit cuando corresponda
-- validar commit, hash y push técnicos para existing_repo_change
-- validar los tres not_applicable y la evidencia sustitutiva para external_operational_change
+- aceptar la omisión de hito_type en existing_repo_change cuando ninguna regla
+  canónica específica lo exige y validar commit, hash y push técnicos
+- exigir hito_type permitido, los tres not_applicable y la evidencia sustitutiva
+  para external_operational_change
 - clasificar cierre documental
 - preparar el contenido documental final autorizado sin inventar el
   documentation commit

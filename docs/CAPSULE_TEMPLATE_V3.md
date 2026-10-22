@@ -197,6 +197,8 @@ CHECK:
 - `hito_change_classification` debe ser `existing_repo_change` o
   `external_operational_change`; no existe categoría `mixed`
 - cualquier cambio material versionable fuerza `existing_repo_change`
+- en `existing_repo_change`, `hito_type` puede omitirse cuando ninguna regla
+  canónica específica lo exige
 - `external_operational_change` sólo admite inicialmente
   `hito_type: operating_environment_cutover`
 - `not_applicable` es una decisión auditada, nunca fallback de `missing`
@@ -283,19 +285,30 @@ identidad y no es requisito de enforcement. `codex resume` y `/fork` vuelven a
 ejecutar el receiver-side preflight; la cápsula no transporta ni conserva un
 PASS de otra sesión o prompt.
 
-Metadata adicional, completar cuando corresponda:
+Metadata universal adicional:
+
+```yaml
+hito_change_classification: <existing_repo_change | external_operational_change>
+```
+
+Metadata condicional, completar sólo cuando corresponda:
 
 ```yaml
 doc_classification_expected: <solo_hito | hito_plus_evolucion | N/A>
-hito_type: <tipo operativo>
-hito_change_classification: <existing_repo_change | external_operational_change>
+hito_type: <tipo operativo exigido por una regla canónica>
 branch: <branch_si_aplica>
 ```
+
+En `existing_repo_change`, omitir `hito_type` cuando ninguna regla canónica
+específica lo exige. En `external_operational_change`, incluirlo
+obligatoriamente con un valor de la allowlist vigente. No usar sentinels ni
+valores artificiales para representar ausencia.
 
 Si la clasificación propuesta es `external_operational_change`, transportar la
 evidencia sustitutiva obligatoria definida en `system_operating_model.md`:
 
 ```yaml
+hito_type: operating_environment_cutover
 explicit_not_applicable_reason: <motivo objetivo>
 external_material_scope: <alcance íntegramente externo>
 affected_external_resources: <recursos>
@@ -708,8 +721,8 @@ Para `hdoc`:
 ```text
 aceptar sólo HDOC_INPUT explícito con guardian_verdict valid y ready_for_hdoc yes
 recibir commit_name_sugerido para el documentation commit cuando corresponda
-validar commit/hash/push técnicos para existing_repo_change
-validar not_applicable y evidencia sustitutiva para external_operational_change
+aceptar omisión legítima de hito_type y validar commit/hash/push técnicos para existing_repo_change
+exigir hito_type permitido, not_applicable y evidencia sustitutiva para external_operational_change
 clasificar cierre documental
 preparar documentación con documentation_commit pending
 ```

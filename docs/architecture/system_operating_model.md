@@ -269,6 +269,16 @@ No existe categoría `mixed`. Si existe al menos un cambio material versionable
 necesario para cumplir el objetivo, todo el hito se clasifica como
 `existing_repo_change`, aunque también incluya acciones externas.
 
+`hito_type` es metadata condicional, no universal:
+
+- en `existing_repo_change` puede omitirse cuando ninguna regla canónica
+  específica lo exige;
+- en `external_operational_change` es obligatorio y debe pertenecer a la
+  allowlist vigente.
+
+La ausencia legítima de `hito_type` se representa omitiendo el campo. No se
+usan sentinels ni valores artificiales para expresar ausencia.
+
 `external_operational_change` queda inicialmente permitido sólo para:
 
 ```yaml
@@ -368,7 +378,6 @@ AGPT y emite, como mínimo:
 
 ```yaml
 hito_id: <id>
-hito_type: <type>
 hito_change_classification: <existing_repo_change | external_operational_change>
 scope_real: <scope>
 archivos_afectados: <paths_or_empty>
@@ -389,6 +398,7 @@ ready_for_hdoc: <yes | no>
 Para `external_operational_change` agrega:
 
 ```yaml
+hito_type: <allowed_type>
 explicit_not_applicable_reason: <reason>
 substitute_evidence_summary: <summary>
 agpt_transition_authorization: <authorization>
@@ -404,11 +414,15 @@ También se informa para `external_operational_change` cuando habrá cambios
 documentales versionados; no pasa a `not_applicable` por la ausencia intrínseca
 de technical commit.
 
-Además, Guardian valida el `hito_type` permitido; la ausencia intrínseca, no
+Además, para `external_operational_change`, Guardian exige `hito_type`, valida
+que esté permitido y rechaza tanto su ausencia como cualquier valor fuera de
+la allowlist. Para `existing_repo_change`, acepta su omisión cuando ninguna
+regla canónica específica lo exige. También valida la ausencia intrínseca, no
 temporal, de commit; la ausencia de cambios versionables atribuibles; el
 alcance y los recursos externos; evidencia before/after sanitizada;
-validaciones; integridad del repositorio; autorización AGPT; responsable humano;
-rollback; y la prohibición de usar el baseline como identidad del hito.
+validaciones; integridad del repositorio; autorización AGPT; responsable
+humano; rollback; y la prohibición de usar el baseline como identidad del
+hito.
 
 `ready_for_hdoc: yes` sólo es válido en uno de estos casos:
 
@@ -433,12 +447,14 @@ HDOC acepta únicamente un `HDOC_INPUT` emitido explícitamente por Guardian con
 
 Para `existing_repo_change`, HDOC mantiene el flujo vigente y exige
 `technical_commit: present`, `commit_hash` real y
-`technical_push: confirmed`.
+`technical_push: confirmed`. HDOC acepta que `hito_type` esté omitido cuando
+ninguna regla canónica específica lo exige.
 
 Para `external_operational_change`, HDOC consume la clasificación auditada, los
-tres valores `not_applicable` y la evidencia sustitutiva completa. HDOC no
-infiere la clasificación, no decide elegibilidad, no convierte `missing` en
-`not_applicable` y no reevalúa el alcance técnico.
+tres valores `not_applicable`, el `hito_type` permitido y la evidencia
+sustitutiva completa. La ausencia de `hito_type` en esta rama invalida el
+`HDOC_INPUT`. HDOC no infiere la clasificación, no decide elegibilidad, no
+convierte `missing` en `not_applicable` y no reevalúa el alcance técnico.
 
 La secuencia documental en ambas ramas se divide en dos fases explícitas:
 
@@ -1514,7 +1530,6 @@ HDOC consume la salida estructurada de Guardian como fuente primaria.
 Debe incluir:
 
 - hito_id
-- hito_type
 - hito_change_classification
 - scope_real
 - archivos_afectados
@@ -1533,6 +1548,7 @@ Debe incluir:
 
 Para external_operational_change debe incluir además:
 
+- hito_type
 - explicit_not_applicable_reason
 - substitute_evidence_summary
 - agpt_transition_authorization
@@ -1560,6 +1576,7 @@ EXCEPCIÓN:
 - falta de datos obligatorios
 - Guardian marcó invalid o split_required
 - falta hash real o push confirmado en existing_repo_change
+- falta hito_type permitido en external_operational_change
 - falta evidencia sustitutiva o algún not_applicable contractual en external_operational_change
 - falta test de paridad requerido
 
