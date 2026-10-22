@@ -15647,3 +15647,63 @@ Impacto:
 - sin cambios de codigo, tests, roadmap, ADRs ni diagramas conceptuales
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### GOV-FIX-CONDITIONAL-HITO-TYPE-01-CUTOVER
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-22
+Clasificacion del cambio: EXTERNAL_OPERATIONAL_CHANGE
+Tipo de hito: OPERATING_ENVIRONMENT_CUTOVER
+Clasificacion documental: SOLO_HITO
+
+Relacion con el hito padre:
+
+- hito padre: `GOV-FIX-CONDITIONAL-HITO-TYPE-01`
+- clasificacion del padre: `existing_repo_change`
+- commit tecnico publicado del padre:
+  `ae773c469804bc3b6794b5a07af6013353ef5f43`
+- push tecnico del padre: confirmado
+
+Artefactos tecnicos del cutover subordinado:
+
+```yaml
+technical_commit: not_applicable
+commit_hash: not_applicable
+technical_push: not_applicable
+```
+
+Resultado:
+
+- se activo el contrato condicional de `hito_type` en los perfiles externos de
+  Repo Guardian, HDOC y el perfil base historico
+- `hito_type` puede omitirse en `existing_repo_change` cuando ninguna regla
+  canonica especifica lo exige y permanece obligatorio y allowlisted en
+  `external_operational_change`
+- el cutover ocurrio integramente sobre perfiles Codex externos no versionados;
+  no corresponde atribuirle un cambio material del repositorio
+
+Evidencia sustitutiva auditada:
+
+- hashes SHA-256 before/after verificados para los tres perfiles
+- perfiles activos iguales byte a byte a los candidatos autorizados y cambios
+  exactos coincidentes con la evidencia historica
+- sintaxis TOML valida, propietario `marcelo:marcelo` y permisos `0600`
+- modelos, roles, sandbox y politicas de aprobacion preservados
+- integridad del repositorio validada sobre baseline
+  `ae773c469804bc3b6794b5a07af6013353ef5f43`, con `origin/main` coincidente y
+  worktree e indice limpios
+- responsable de la accion externa: Marcelo Martinez (AH)
+- rollback disponible como restauracion atomica de los tres perfiles desde
+  `/home/marcelo/.codex/backups/GOV-FIX-CONDITIONAL-HITO-TYPE-01-20261022T113510Z`;
+  no ejecutado
+- `guardian_verdict: valid` y `ready_for_hdoc: yes`
+
+Impacto:
+
+- canonicidad: fortalece; elimina la divergencia entre el contrato condicional
+  canonico y los perfiles activos sin crear otra fuente de verdad
+- `roadmap_impact: none`
+- Runtime Map no aplicable
+- sin cambios en perfiles externos durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion read-only
+  posterior mediante HDOC(CLOSE)
