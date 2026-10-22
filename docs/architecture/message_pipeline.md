@@ -737,8 +737,28 @@ LLM-driven. Es un runtime híbrido controlado.
 - si `faq` o `policies` dominan el turno tras romper el domain lock, la
   respuesta final debe quedar pura en ese dominio sin concatenar follow-ups de
   `reservation`
+- `GC-01 — Arbitraje de intención explícita`: una intención operacional nueva
+  y explícita debe arbitrar antes de ejecutar y puede desplazar una
+  confirmación pendiente de modificación cuando compite con ella. El alcance
+  vigente validado cubre el paso de un preview de `modify` a una cancelación
+  explícita; una consulta lateral genuina de `faq` o `policies` no sustituye por
+  sí sola la operación pendiente
+- `GC-02 — Autorización sensible revocable`: en el corredor comprobado donde
+  una modificación (`modify`) queda pendiente de confirmación y aparece una
+  nueva intención explícita de cancelación (`cancel`), desplazar o descartar la
+  modificación invalida su confirmación pendiente y los estados derivados de
+  esa propuesta. Si coexisten confirmaciones incompatibles de `modify` y
+  `cancel`, el runtime falla cerrado y no ejecuta ninguna
+- `GC-03 — Objetivo canónico inequívoco`: las operaciones comprobadas de
+  `modify` y `cancel` sobre reservas existentes requieren un target canónico
+  existente, accionable y suficiente antes de ejecutar. Ante ambigüedad, el
+  runtime no ejecuta ni selecciona arbitrariamente una reserva
+- `GC-04 — Validación de cancelación`: el runtime no informa cancelación
+  exitosa salvo que la respuesta válida del proveedor corresponda al `hotelId`
+  y `reservationId` solicitados y devuelva `status === "cancelled"`. Esta
+  invariante se limita a cancelación y no se generaliza automáticamente a otras
+  operaciones
 - ante ambigüedad fuerte en referencias, se pide aclaración
-- las acciones sobre reservas requieren target existente y suficiente antes de ejecutar
 
 ## 10. Límites actuales
 
