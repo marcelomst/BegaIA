@@ -54,10 +54,10 @@ runtime_map:
 
 Por eso:
 
-- los rangos top-level de `messageHandler.ts` se recalculan para el estado nuevo
-- los rangos top-level entregados por Guardian quedan frescos
+- los dos scans base se regeneran contra el código vigente
+- los rangos internos de las tres cajas focales quedan frescos
 - se preservan los `box_id` y el mapa conceptual
-- se registran las cajas tocadas y revisadas sin ampliar el alcance técnico
+- no se afirma frescura para referencias no focales
 
 ---
 
@@ -68,16 +68,21 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_blob_matches_repository_baseline: true
 messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
-baseline_status: fix_modify_cancel_precedence_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
+baseline_status: ref_runtime_map_modify_preview_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
 ---
 
-## Validacion tecnica informada
+## Validación técnica histórica informada
 
 ```text
 related tests: PASS
@@ -97,7 +102,7 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: precedencia modify/cancel
+## Evidencia focal histórica preservada: precedencia modify/cancel
 
 ```yaml
 hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
@@ -139,6 +144,88 @@ top_level_code_refs:
 evidence_source: guardian_scan
 internal_code_refs_status: not_recalculated_by_guardian
 global_freshness_claim_allowed: false
+```
+
+## Evidencia focal actual: modify preview
+
+```yaml
+hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_blob_matches_repository_baseline: true
+focal_refresh_complete: true
+code_refs_status: focal_fresh_global_unasserted
+runtime_map_refresh_required: true
+refresh_required: true
+global_freshness_claim_allowed: false
+runtime_boxes_evidence_refreshed:
+  - runtime.messageHandler.bodyLLM.turnDecision
+  - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  - runtime.messageHandler.persistenceReply
+turn_decision_code_refs:
+  - { file: lib/handlers/messageHandler.ts, label: early_modify_confirmation_arbitration, range: L8009-L8272 }
+  - { file: lib/handlers/messageHandler.ts, label: late_modify_confirmation_arbitration, range: L10890-L10991 }
+modify_code_refs:
+  preview_composition:
+    - { file: lib/handlers/messageHandler.ts, label: buildModifyPreviewPatch, range: L1294-L1308 }
+    - { file: lib/handlers/messageHandler.ts, label: applyModifyPreviewPatch, range: L1310-L1323 }
+    - { file: lib/handlers/messageHandler.ts, label: buildModifyPreviewReply, range: L1347-L1420 }
+  proposal_persistence:
+    - { file: lib/handlers/messageHandler.ts, label: persistModifyPreviewContext, range: L1533-L1581 }
+  ingress:
+    - { file: lib/handlers/messageHandler.ts, label: modify_ingress_state, range: L12002-L12187 }
+  confirmation_arbitration:
+    - { file: lib/handlers/messageHandler.ts, label: early_confirmation_path, range: L8009-L8272 }
+    - { file: lib/handlers/messageHandler.ts, label: late_confirmation_path, range: L10890-L10991 }
+  execution:
+    - { file: lib/handlers/messageHandler.ts, label: persistModifyExecutionContext, range: L2310-L2326 }
+    - { file: lib/handlers/messageHandler.ts, label: executeModifyReservationWithSnapshot, range: L2383-L2450 }
+    - { file: lib/handlers/messageHandler.ts, label: provider_call, range: L2391-L2399 }
+    - { file: lib/handlers/messageHandler.ts, label: provider_result_projection, range: L2409-L2449 }
+  canonical_state:
+    - { file: lib/handlers/messageHandler.ts, label: buildReservationCanonicalState, range: L2605-L2657 }
+persistence_reply_code_refs:
+  distributed_box: true
+  refs:
+    - { file: lib/handlers/messageHandler.ts, label: modify_preview_state_and_reply, range: L1533-L1581 }
+    - { file: lib/handlers/messageHandler.ts, label: modify_execution_context, range: L2310-L2326 }
+    - { file: lib/handlers/messageHandler.ts, label: post_modify_provider_projection_and_reply, range: L2429-L2449 }
+    - { file: lib/db/convState.ts, label: pers_01_lastProposal_text_cas, range: L550-L582 }
+evidence_source:
+  - regenerated_function_size_map
+  - regenerated_bodyLLM_internal_scan
+  - direct_line_verification
+generated_scan_limitations:
+  - function-size-map reports 13845 split entries for a 13844-line file with trailing newline
+  - handleIncomingMessage is undercounted because its signature contains a multiline type literal
+  - canonical output contains Markdown hard-break spaces and a final blank line
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 387d0c5cf6d9bf26fe6ae1a248c69429775ae89b40be82c6824ecffb2477428f
+    bodyLLM_internal_scan_sha256: 9bf36b55738707fca753d77a00e4e16a411169f20901c2ae09232c694469bf57
+    byte_compare_second_generation: true
+  normalization:
+    applied_after_raw_generation: true
+    trim_trailing_horizontal_whitespace: true
+    exactly_one_final_lf: true
+    semantic_content_changed: false
+  normalized_artifacts:
+    function_size_map_sha256: 3905d281269304c5f4f9c9b8078a4e3b14a6b83f88fc55584ae10925345a7a97
+    bodyLLM_internal_scan_sha256: 37bb917926791b86dae743f76fd129cb4daf1086444ea601bd75ac977de6e3a0
+  raw_to_normalized_pipeline:
+    deterministic: true
+    function_size_map_byte_compare: true
+    bodyLLM_internal_scan_byte_compare: true
+  git_diff_check_exit: 0
+  git_diff_check_scope: accumulated_hito_diff
+internal_code_refs_status: focal_fresh_global_unasserted
+remaining_stale_references:
+  - non-focal code refs in this index were not recalculated
+  - historical code refs and bucket tables remain historical
+  - non-focal persistenceReply ranges remain needs_refresh in box-index
+  - availabilityInquiry and fallbackLocal refs marked needs_refresh in box-index remain unchanged
 ```
 
 ## Snapshot focal anterior preservado
@@ -451,7 +538,7 @@ Estos helpers no están dentro del rango físico de `bodyLLM`, pero influyen en 
 
 ```yaml
 name: buildReservationCanonicalState
-range: L2123-L2623
+range: L2605-L2657
 confidence: high
 related_boxes:
   - reservation.snapshot
@@ -625,9 +712,9 @@ bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-El scan read-only recalculado por Guardian para FIX-MODIFY-CANCEL-PRECEDENCE-01 confirma el rango
-top-level actual. El refresh de este documento es focal, no implica frescura
-global ni autoriza refactor.
+El scan read-only regenerado para `REF-RUNTIME-MAP-MODIFY-PREVIEW-01` confirma
+el rango top-level actual de `bodyLLM`. El refresh de este documento es focal,
+no implica frescura global ni autoriza refactor.
 
 La tabla siguiente se conserva como evidencia histórica del scan anterior en
 `59c7f39c95eb2ccea2b1ab74b9490449148642b8`; sus rangos no son referencias

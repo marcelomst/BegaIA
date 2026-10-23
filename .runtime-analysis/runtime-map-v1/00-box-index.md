@@ -46,8 +46,8 @@ base_file: lib/handlers/messageHandler.ts
 commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
 messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
-baseline_status: fix_modify_cancel_precedence_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
+baseline_status: ref_runtime_map_modify_preview_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,7 +60,7 @@ analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Refresh documental aplicado en este hito
+## Auditoría histórica preservada: FIX-MODIFY-CANCEL-PRECEDENCE-01
 
 ```yaml
 runtime_boxes_audit:
@@ -103,14 +103,41 @@ runtime_map:
 Evidencia física focal del hito actual:
 
 ```yaml
-hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
-technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_blob_matches_repository_baseline: true
+focal_refresh_complete: true
+runtime_map_refresh_required: true
+refresh_required: true
+global_freshness_claim_allowed: false
 top_level_code_refs:
   preLLM: L5021-L5233
   bodyLLM: L6248-L12975
   posLLM: L13470-L13511
   handleIncomingMessage: L13515-L13844
-internal_code_refs_status: not_recalculated_by_guardian
+focal_internal_code_refs:
+  preview_composition: L1294-L1420
+  preview_persistence: L1533-L1581
+  modify_ingress_state: L12002-L12187
+  modify_execution_context: L2310-L2326
+  modify_execution: L2383-L2450
+  canonical_merge: L2605-L2657
+  last_proposal_text_cas: lib/db/convState.ts:L550-L582
+  early_confirmation_arbitration: L8009-L8272
+  late_confirmation_arbitration: L10890-L10991
+internal_code_refs_status: focal_fresh_global_unasserted
+generated_scan_limitations:
+  - function-size-map reports 13845 split entries for a 13844-line file with trailing newline
+  - handleIncomingMessage is undercounted because its signature contains a multiline type literal
+  - canonical output contains Markdown hard-break spaces and a final blank line
+remaining_stale_references:
+  - non-focal code refs were not recalculated
+  - non-focal persistenceReply ranges remain needs_refresh
+  - availabilityInquiry refs marked needs_refresh remain unchanged
+  - fallbackLocal ref marked needs_refresh remains unchanged
 ```
 
 Provider/MCP permanece fuera de la taxonomía de boxes; las referencias listadas
@@ -361,7 +388,12 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L9883-L10104
+        label: early_modify_confirmation_arbitration
+        range: L8009-L8272
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: late_modify_confirmation_arbitration
+        range: L10890-L10991
         confidence: high
       - file: lib/agents/classify/keywords.ts
         range: L6-L6
@@ -500,7 +532,7 @@ boxes:
         confidence: high
       - file: lib/db/convState.ts
         label: pers_01_lastProposal_text_cas
-        range: L311-L343
+        range: L550-L582
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: compact_capture
@@ -630,63 +662,62 @@ boxes:
     code_refs:
       - file: lib/handlers/messageHandler.ts
         label: buildModifyPreviewPatch
-        range: L1281-L1295
+        range: L1294-L1308
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: applyModifyPreviewPatch
-        range: L1297-L1310
+        range: L1310-L1323
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: preview_reply
-        range: L1334-L1407
+        range: L1347-L1420
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: preview_persistence
-        range: L1482-L1525
+        range: L1533-L1581
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: modify_ingress_state
-        range: L11390-L11567
+        range: L12002-L12187
         confidence: high
       - file: lib/handlers/messageHandler.ts
-        label: preview_confirmation_gate
-        range: L10282-L10365
+        label: early_preview_confirmation_arbitration
+        range: L8009-L8272
         confidence: high
       - file: lib/handlers/messageHandler.ts
-        label: execution_call
-        range: L10365-L10367
+        label: late_preview_confirmation_arbitration
+        range: L10890-L10991
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: persistModifyExecutionContext
-        range: L2254-L2270
+        range: L2310-L2326
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: executeModifyReservationWithSnapshot
-        range: L2272-L2318
+        range: L2383-L2450
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: provider_call
-        range: L2277-L2285
+        range: L2391-L2399
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: provider_result_reception
-        range: L2295-L2296
+        range: L2409-L2410
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: post_update_persistence
-        range: L2297-L2316
+        range: L2429-L2448
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: canonical_merge
-        range: L2464-L2514
+        range: L2605-L2657
         confidence: high
     physical_dependencies:
       - { file: lib/agents/reservations.ts, range: L550-L578 }
       - { file: lib/tools/mcp.ts, range: L277-L295 }
       - { file: lib/mcp/channelManagerAdapter.ts, range: L164-L185 }
     evidence_risks:
-      - "L2479: numGuests: preferred.numGuests ?? base.numGuests"
-      - "L2313: numGuests: snapshot.numGuests (current non-authoritative projection)"
+      - 'L2620-L2622: numGuests uses Object.prototype.hasOwnProperty.call(preferred, "numGuests") before choosing preferred.numGuests or base.numGuests'
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
       - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
@@ -1044,37 +1075,45 @@ boxes:
       - schema_compatibility
     code_refs:
       - file: lib/handlers/messageHandler.ts
+        label: modify_preview_state_and_reply
+        range: L1533-L1581
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: modify_execution_context
+        range: L2310-L2326
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: post_modify_provider_projection_and_reply
+        range: L2429-L2449
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
         label: pers_01_post_graph_persistence
         range: L12554-L12590
-        confidence: high
+        confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
         label: pers_01_observable_persistence_reply
         range: L13329-L13477
-        confidence: high
+        confidence: needs_refresh
       - file: lib/db/convState.ts
         label: pers_01_lastProposal_text_cas
-        range: L311-L343
+        range: L550-L582
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: transactional_create_persistence_and_reply
         range: L10556-L10638
-        confidence: high
-      - file: lib/handlers/messageHandler.ts
-        label: transactional_modify_persistence
-        range: L2297-L2317
-        confidence: high
+        confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
         label: common_output_boundary
         range: L13017-L13203
-        confidence: high
+        confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
         label: common_message_persistence
         range: L13138-L13188
-        confidence: high
+        confidence: needs_refresh
       - file: lib/handlers/messageHandler.ts
         label: channel_reply_emission
         range: L13189-L13202
-        confidence: high
+        confidence: needs_refresh
     related_boxes:
       - runtime.messageHandler.bodyLLM
       - runtime.messageHandler.posLLM

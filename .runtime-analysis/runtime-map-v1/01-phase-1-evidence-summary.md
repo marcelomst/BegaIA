@@ -24,7 +24,7 @@ base_file: lib/handlers/messageHandler.ts
 commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
 messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
+analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
@@ -33,6 +33,7 @@ suite_reported:
     - core suite: 1214/1214 PASS
   full_suite:
     - 1214/1214 PASS
+validation_scope: documentation_and_generated_scans_only
 global_freshness_claim_allowed: false
 ```
 
@@ -51,7 +52,7 @@ functions:
   handleIncomingMessage: L13299-L13628
 ```
 
-## Refresh documental aplicado en este hito
+## Auditoría histórica preservada y refresh focal actual
 
 ```yaml
 runtime_boxes_audit:
@@ -86,13 +87,18 @@ runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+    source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    source_blob_matches_repository_baseline: true
     messageHandler_lines: 13844
+    function_map_reported_lines: 13845
     functions:
       preLLM: L5021-L5233
       bodyLLM: L6248-L12975
       posLLM: L13470-L13511
-      handleIncomingMessage: L13515-L13844
+    generated_scan_note: trailing newline adds one split entry in function-size-map output
+    generated_scan_limitations: handleIncomingMessage is undercounted because its multiline signature closes a type literal before the function body
+    generated_scan_raw_whitespace: canonical output contains Markdown hard-break spaces and a final blank line
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -106,21 +112,63 @@ runtime_map:
 ## Evidencia focal refrescada
 
 ```yaml
-hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
-technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+source_blob_matches_repository_baseline: true
+focal_refresh_complete: true
+runtime_map_refresh_required: true
+refresh_required: true
+global_freshness_claim_allowed: false
 scope_real:
-  - arbitrate a later cancellation over a pending modify preview
-  - preserve exclusive confirmations, canonical target and original slots
+  - refresh modify preview composition and proposal persistence references
+  - preserve both early and late confirmation arbitration references
+  - refresh modification execution and focal persistence/reply references
 top_level_code_refs:
   preLLM: L5021-L5233
   bodyLLM: L6248-L12975
   posLLM: L13470-L13511
   handleIncomingMessage: L13515-L13844
-internal_code_refs_status: not_recalculated_by_guardian
+focal_internal_code_refs:
+  preview_patch: L1294-L1323
+  preview_reply: L1347-L1420
+  preview_persistence: L1533-L1581
+  modify_ingress_state: L12002-L12187
+  modify_execution_context: L2310-L2326
+  modify_execution: L2383-L2450
+  canonical_merge: L2605-L2657
+  last_proposal_text_cas: lib/db/convState.ts:L550-L582
+  early_confirmation_arbitration: L8009-L8272
+  late_confirmation_arbitration: L10890-L10991
+internal_code_refs_status: focal_fresh_global_unasserted
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 387d0c5cf6d9bf26fe6ae1a248c69429775ae89b40be82c6824ecffb2477428f
+    bodyLLM_internal_scan_sha256: 9bf36b55738707fca753d77a00e4e16a411169f20901c2ae09232c694469bf57
+    byte_compare_second_generation: true
+  normalization:
+    applied_after_raw_generation: true
+    trim_trailing_horizontal_whitespace: true
+    exactly_one_final_lf: true
+    semantic_content_changed: false
+  normalized_artifacts:
+    function_size_map_sha256: 3905d281269304c5f4f9c9b8078a4e3b14a6b83f88fc55584ae10925345a7a97
+    bodyLLM_internal_scan_sha256: 37bb917926791b86dae743f76fd129cb4daf1086444ea601bd75ac977de6e3a0
+  raw_to_normalized_pipeline:
+    deterministic: true
+    function_size_map_byte_compare: true
+    bodyLLM_internal_scan_byte_compare: true
+  git_diff_check_exit: 0
+  git_diff_check_scope: accumulated_hito_diff
+remaining_stale_references:
+  - non-focal ranges and historical bucket tables were not recalculated
+  - non-focal persistenceReply ranges remain needs_refresh
+  - availabilityInquiry refs marked needs_refresh remain unchanged
+  - fallbackLocal ref marked needs_refresh remains unchanged
 ```
 
-Provider/MCP permanece fuera de la taxonomia de boxes. El refresh actual se
-limita a los rangos top-level recalculados por Guardian.
+Provider/MCP permanece fuera de la taxonomía de boxes. El refresh actual se
+limita a los rangos focales indicados y a la regeneración de los dos scans base.
 
 ## Cierre diferido: snapshot completo post-modify
 
@@ -158,7 +206,7 @@ validation:
 ## Funciones clave historicas y top-level actuales
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
-`handleIncomingMessage`) fueron recalculadas para FIX-MODIFY-CANCEL-PRECEDENCE-01. Las demas filas se
+`handleIncomingMessage`) permanecen verificadas para la baseline actual. Las demás filas se
 preservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 

@@ -9,9 +9,14 @@ map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
 commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+source_blob_matches_repository_baseline: true
 messageHandler_lines: 13844
 working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a0ce39c9e924e158435a520e83
+analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
 ```
 
 ---
@@ -19,8 +24,9 @@ analysis_scope: focal_refresh_fix_modify_cancel_precedence_01_at_0da07bc606a962a
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-MODIFY-CANCEL-PRECEDENCE-01` parte de `HEAD = origin/main` y working tree
-limpio, verificados read-only al inicio de la preparacion documental.
+El refresh focal de `REF-RUNTIME-MAP-MODIFY-PREVIEW-01` parte de
+`HEAD = 0a413160c4e44a2632f0b4ff054ebc113048fef9` y working tree limpio,
+verificados read-only al inicio de la preparación documental.
 ```
 
 ---
@@ -42,7 +48,7 @@ functions:
 
 ---
 
-## Validacion tecnica informada
+## Validación técnica histórica informada
 
 ```text
 related tests: PASS
@@ -55,7 +61,7 @@ remote ref verification: PASS
 
 ---
 
-## Runtime boxes audit
+## Runtime boxes audit histórico
 
 ```yaml
 runtime_boxes_audit:
@@ -90,20 +96,25 @@ runtime_boxes_audit:
 
 ---
 
-## Top-level scan actual
+## Refresh focal actual
 
 ```yaml
 runtime_map_refresh:
   required: true
   scanned_file: lib/handlers/messageHandler.ts
   current_scan:
-    commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+    source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+    source_blob_matches_repository_baseline: true
     messageHandler_lines: 13844
+    function_map_reported_lines: 13845
     functions:
       preLLM: L5021-L5233
       bodyLLM: L6248-L12975
       posLLM: L13470-L13511
-      handleIncomingMessage: L13515-L13844
+    generated_scan_note: function-size-map counts the trailing newline as an extra split entry
+    generated_scan_limitations: handleIncomingMessage is undercounted because its multiline signature closes a type literal before the function body
+    generated_scan_raw_whitespace: canonical output contains Markdown hard-break spaces and a final blank line
     top_level_code_refs_status: focal_fresh
 runtime_map:
   applies: true
@@ -120,17 +131,58 @@ y no se reinterpretan como fronteras físicas exactas.
 ## Evidencia focal fresca
 
 ```yaml
-hito_id: FIX-MODIFY-CANCEL-PRECEDENCE-01
-technical_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+source_blob_matches_repository_baseline: true
+focal_refresh_complete: true
+runtime_map_refresh_required: true
+refresh_required: true
+global_freshness_claim_allowed: false
 scope_real:
-  - arbitrate a later cancellation over a pending modify preview
-  - preserve exclusive confirmations, canonical target and original slots
+  - refresh modify preview composition and proposal persistence references
+  - preserve both early and late modify confirmation arbitration references
+  - refresh modify execution and focal persistence/reply references
 top_level_code_refs:
   preLLM: L5021-L5233
   bodyLLM: L6248-L12975
   posLLM: L13470-L13511
   handleIncomingMessage: L13515-L13844
-internal_code_refs_status: not_recalculated_by_guardian
+internal_code_refs:
+  preview_composition: L1294-L1420
+  preview_persistence: L1533-L1581
+  modify_ingress_state: L12002-L12187
+  modify_execution_context: L2310-L2326
+  modify_execution: L2383-L2450
+  canonical_merge: L2605-L2657
+  last_proposal_text_cas: lib/db/convState.ts:L550-L582
+  early_confirmation_arbitration: L8009-L8272
+  late_confirmation_arbitration: L10890-L10991
+internal_code_refs_status: focal_fresh_global_unasserted
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 387d0c5cf6d9bf26fe6ae1a248c69429775ae89b40be82c6824ecffb2477428f
+    bodyLLM_internal_scan_sha256: 9bf36b55738707fca753d77a00e4e16a411169f20901c2ae09232c694469bf57
+    byte_compare_second_generation: true
+  normalization:
+    applied_after_raw_generation: true
+    trim_trailing_horizontal_whitespace: true
+    exactly_one_final_lf: true
+    semantic_content_changed: false
+  normalized_artifacts:
+    function_size_map_sha256: 3905d281269304c5f4f9c9b8078a4e3b14a6b83f88fc55584ae10925345a7a97
+    bodyLLM_internal_scan_sha256: 37bb917926791b86dae743f76fd129cb4daf1086444ea601bd75ac977de6e3a0
+  raw_to_normalized_pipeline:
+    deterministic: true
+    function_size_map_byte_compare: true
+    bodyLLM_internal_scan_byte_compare: true
+  git_diff_check_exit: 0
+  git_diff_check_scope: accumulated_hito_diff
+remaining_stale_references:
+  - non-focal code refs were not recalculated
+  - non-focal persistenceReply ranges remain needs_refresh
+  - availabilityInquiry refs marked needs_refresh remain unchanged
+  - fallbackLocal ref marked needs_refresh remains unchanged
 ```
 
 ### Contrato materializado
@@ -145,7 +197,7 @@ internal_code_refs_status: not_recalculated_by_guardian
 
 ## Advertencia de uso
 
-Este snapshot registra exclusivamente el refresh focal de `FIX-MODIFY-CANCEL-PRECEDENCE-01`; no declara
+Este snapshot registra exclusivamente el refresh focal de `REF-RUNTIME-MAP-MODIFY-PREVIEW-01`; no declara
 frescura global del Runtime Map.
 
 ```text
@@ -160,12 +212,12 @@ code_refs = recalculables
 Refresh aplicado:
 
 ```text
-1. Baseline focal actualizada al commit `0da07bc606a962a0ce39c9e924e158435a520e83`
-2. Snapshot focal previo de `FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01` preservado con su procedencia original
-3. Rangos top-level de FIX-MODIFY-CANCEL-PRECEDENCE-01 reconciliados con evidencia de Guardian
-4. `box_id` y relaciones conceptuales preservados
-5. Refresh documental acotado a evidencia fisica, sin cambio conceptual ni
-   afirmacion de frescura global
+1. Baseline focal confirmada en `0da07bc606a962a0ce39c9e924e158435a520e83`
+2. Scans base regenerados contra el código vigente
+3. Rangos focales de modify preview, persistencia, confirmación temprana y
+   tardía, y ejecución reconciliados con el archivo real
+4. `box_id`, responsabilidades, relaciones y taxonomía preservados
+5. Referencias no focales preservadas sin afirmar frescura global
 ```
 
 ---
