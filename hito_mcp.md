@@ -15760,3 +15760,86 @@ Impacto:
   codigo ni tests
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-23
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: refrescar factual y focalmente scans y code refs de reservation.modify, turnDecision y persistenceReply
+Commit tecnico: d495004bb7c7df97cf5b03fbef5a50674d2bfc41
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- el refresh focal de scans y code refs es valido, reproducible y fue publicado
+- se preservan los 19 `box_id`, sus responsabilidades, relaciones y taxonomia
+- la frescura resultante es exclusivamente focal; no se afirma frescura global
+- no hay cambios funcionales, de runtime, arquitectura conceptual ni reglas
+  operativas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: d495004bb7c7df97cf5b03fbef5a50674d2bfc41
+technical_parent: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+technical_commit_message: "docs(runtime-map): refresh modify preview references"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
+repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
+freshness_limit: focal_fresh_global_unasserted
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: not_applicable
+  code_refs_status: fresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- artefactos focales publicados: scans de `bodyLLM` y tamanos de funciones,
+  snapshot, resumen de evidencia, indice de codigo e indice de cajas
+- `messageHandler.ts`: 13844 lineas fisicas
+- `preLLM`: L5021-L5233
+- `bodyLLM`: L6248-L12975
+- `posLLM`: L13470-L13511
+- `handleIncomingMessage`: L13515-L13844
+- hashes normalizados: function map
+  `3905d281269304c5f4f9c9b8078a4e3b14a6b83f88fc55584ae10925345a7a97`
+  y scan de `bodyLLM`
+  `37bb917926791b86dae743f76fd129cb4daf1086444ea601bd75ac977de6e3a0`
+- no corresponde volver a modificar Runtime Map V1 ni los scans en este cierre
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; preserva las 19 cajas y limita explicitamente la
+  frescura al alcance focal verificado
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios adicionales de Runtime Map, scans, codigo, tests, generadores,
+  roadmap, ADRs ni arquitectura viva
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
