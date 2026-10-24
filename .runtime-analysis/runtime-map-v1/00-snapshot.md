@@ -8,15 +8,15 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
-repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
-source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
-repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
-source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+commit_base: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+repository_baseline_head: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+source_code_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+repository_baseline_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
+source_code_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
 source_blob_matches_repository_baseline: true
-messageHandler_lines: 13844
-working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
+messageHandler_lines: 13914
+working_tree_status: exact_excluded_residual_present
+analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
 ```
 
 ---
@@ -24,10 +24,75 @@ analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `REF-RUNTIME-MAP-MODIFY-PREVIEW-01` parte de
-`HEAD = 0a413160c4e44a2632f0b4ff054ebc113048fef9` y working tree limpio,
-verificados read-only al inicio de la preparación documental.
+El refresh focal de `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` parte de
+`HEAD = 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83`. El único residual es
+` M lib/mcp/channelManagerAdapter.ts`; permanece excluido del hito y de esta
+evidencia.
 ```
+
+---
+
+## Refresh focal actual
+
+```yaml
+hito_id: FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
+technical_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+technical_parent: ae0e57f40ad3d040380f0505ca183c22b4b1e4a5
+technical_subject: "fix(runtime): preserve multifield modify previews"
+technical_push: confirmed
+source_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
+source_blob_matches_commit: true
+messageHandler_lines: 13914
+function_map_reported_lines: 13915
+functions:
+  preLLM: L5056-L5268
+  bodyLLM: L6283-L13045
+  posLLM: L13540-L13581
+  handleIncomingMessage: L13585-L13914
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf
+    bodyLLM_internal_scan_sha256: fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592
+  normalization:
+    trim_trailing_horizontal_whitespace: true
+    exactly_one_final_lf: true
+    semantic_content_changed: false
+  normalized_artifacts:
+    function_size_map_sha256: 9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8
+    bodyLLM_internal_scan_sha256: 82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c
+conceptual_change: false
+global_freshness_claim_allowed: false
+```
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - M1/M3/M4/M5
+      - capacity no-quote
+      - canonical numGuests null
+      - quoted pendingPatch confirmation
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+Los rangos top-level y los scans base quedan refrescados. Los rangos internos
+no entregados por Guardian permanecen `needs_refresh`; no se inventan rangos ni
+se altera la taxonomia conceptual.
 
 ---
 
@@ -96,7 +161,7 @@ runtime_boxes_audit:
 
 ---
 
-## Refresh focal actual
+## Refresh focal anterior preservado
 
 ```yaml
 runtime_map_refresh:
@@ -128,7 +193,7 @@ runtime_map:
 Los envelopes conceptuales históricos pueden ser más amplios que estas funciones
 y no se reinterpretan como fronteras físicas exactas.
 
-## Evidencia focal fresca
+## Evidencia focal anterior preservada
 
 ```yaml
 hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01

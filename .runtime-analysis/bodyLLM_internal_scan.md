@@ -1,8 +1,8 @@
 # bodyLLM internal scan
 
 Archivo: `lib/handlers/messageHandler.ts`
-Rango analizado: L6248-L12975
-Tamaño estimado: 6728 líneas
+Rango analizado: L6283-L13045
+Tamaño estimado: 6763 líneas
 Bucket size: 250
 
 > Scan estático readonly. Sirve para mapear densidad interna de `bodyLLM`, no para modificar código.
@@ -13,33 +13,34 @@ Bucket size: 250
 
 | Rango | Top markers | returns | awaits | decisions | temporal/check markers |
 | --- | --- | ---: | ---: | ---: | ---: |
-| 6248-6497 | `date/temporal:72`, `structured analyze:52`, `create:27`, `graph/classifier/policy:26`, `state/result:20`, `reservationSlots:20`, `reply builders:16`, `faq/policies/amenities:13` | 7 | 3 | 13 | 25 |
-| 6498-6747 | `date/temporal:76`, `create:51`, `reservationSlots:46`, `modify:44`, `availability:27`, `state/result:18`, `graph/classifier/policy:17`, `reply builders:16` | 10 | 9 | 16 | 25 |
-| 6748-6997 | `date/temporal:120`, `create:76`, `reservationSlots:52`, `state/result:35`, `modify:22`, `structured analyze:11`, `availability:9`, `graph/classifier/policy:6` | 3 | 4 | 16 | 64 |
-| 6998-7247 | `date/temporal:56`, `reservationSlots:43`, `create:42`, `state/result:40`, `modify:27`, `availability:25`, `reply builders:20`, `graph/classifier/policy:18` | 11 | 11 | 19 | 22 |
-| 7248-7497 | `modify:89`, `date/temporal:72`, `reservationSlots:29`, `state/result:27`, `create:24`, `reply builders:16`, `email/whatsapp copy:13`, `early return:9` | 9 | 9 | 13 | 12 |
-| 7498-7747 | `reservationSlots:84`, `modify:68`, `selected target:58`, `date/temporal:54`, `email/whatsapp copy:40`, `reply builders:26`, `state/result:22`, `snapshot/verify:13` | 7 | 11 | 15 | 20 |
-| 7748-7997 | `email/whatsapp copy:105`, `reservationSlots:31`, `date/temporal:31`, `modify:28`, `structured analyze:21`, `state/result:20`, `selected target:17`, `snapshot/verify:15` | 10 | 14 | 16 | 5 |
-| 7998-8247 | `cancel:50`, `date/temporal:46`, `modify:42`, `reservationSlots:37`, `reply builders:36`, `canonical state:32`, `snapshot/verify:28`, `selected target:26` | 10 | 11 | 12 | 7 |
-| 8248-8497 | `date/temporal:126`, `reservationSlots:67`, `modify:59`, `create:35`, `state/result:27`, `snapshot/verify:20`, `reply builders:18`, `confirm:12` | 9 | 8 | 8 | 36 |
-| 8498-8747 | `snapshot/verify:51`, `date/temporal:47`, `reservationSlots:35`, `reply builders:30`, `selected target:27`, `modify:24`, `confirm:17`, `structured analyze:11` | 7 | 10 | 14 | 15 |
-| 8748-8997 | `modify:127`, `date/temporal:114`, `reservationSlots:108`, `reply builders:30`, `selected target:29`, `state/result:27`, `email/whatsapp copy:21`, `early return:11` | 11 | 10 | 13 | 32 |
-| 8998-9247 | `date/temporal:173`, `modify:131`, `reservationSlots:84`, `state/result:25`, `reply builders:25`, `selected target:14`, `email/whatsapp copy:12`, `early return:9` | 9 | 6 | 12 | 50 |
-| 9248-9497 | `modify:87`, `reservationSlots:79`, `date/temporal:71`, `reply builders:40`, `state/result:33`, `create:25`, `early return:18`, `availability:18` | 18 | 8 | 17 | 31 |
-| 9498-9747 | `create:109`, `date/temporal:87`, `reservationSlots:39`, `availability:33`, `state/result:18`, `reply builders:18`, `snapshot/verify:16`, `graph/classifier/policy:15` | 9 | 9 | 12 | 25 |
-| 9748-9997 | `create:195`, `date/temporal:182`, `reply builders:41`, `reservationSlots:29`, `state/result:19`, `confirm:16`, `early return:14`, `email/whatsapp copy:11` | 14 | 9 | 15 | 45 |
-| 9998-10247 | `email/whatsapp copy:156`, `reservationSlots:76`, `date/temporal:40`, `state/result:31`, `early return:14`, `graph/classifier/policy:11`, `snapshot/verify:10`, `create:4` | 13 | 18 | 24 | 18 |
-| 10248-10497 | `email/whatsapp copy:188`, `reservationSlots:108`, `state/result:43`, `date/temporal:38`, `snapshot/verify:14`, `early return:9`, `create:9`, `graph/classifier/policy:9` | 9 | 29 | 27 | 17 |
-| 10498-10747 | `cancel:116`, `selected target:30`, `confirm:30`, `date/temporal:28`, `reservationSlots:27`, `reply builders:26`, `email/whatsapp copy:21`, `create:20` | 10 | 14 | 10 | 6 |
-| 10748-10997 | `date/temporal:57`, `reservationSlots:49`, `modify:44`, `create:42`, `snapshot/verify:35`, `confirm:33`, `state/result:25`, `early return:19` | 19 | 13 | 21 | 14 |
-| 10998-11247 | `reservationSlots:93`, `date/temporal:72`, `snapshot/verify:57`, `reply builders:52`, `create:45`, `modify:32`, `state/result:23`, `early return:16` | 16 | 10 | 18 | 24 |
-| 11248-11497 | `date/temporal:66`, `reservationSlots:40`, `snapshot/verify:33`, `state/result:24`, `canonical state:21`, `reply builders:20`, `confirm:18`, `graph/classifier/policy:14` | 12 | 7 | 13 | 28 |
-| 11498-11747 | `reply builders:38`, `billing:34`, `reservationSlots:25`, `graph/classifier/policy:23`, `state/result:15`, `email/whatsapp copy:14`, `create:13`, `fallback:9` | 6 | 9 | 14 | 6 |
-| 11748-11997 | `graph/classifier/policy:53`, `reservationSlots:35`, `fallback:34`, `state/result:29`, `create:26`, `reply builders:24`, `email/whatsapp copy:15`, `date/temporal:12` | 1 | 7 | 13 | 3 |
-| 11998-12247 | `date/temporal:137`, `modify:115`, `reservationSlots:54`, `reply builders:24`, `state/result:20`, `email/whatsapp copy:15`, `selected target:13`, `conversationFocus:9` | 5 | 7 | 11 | 22 |
-| 12248-12497 | `date/temporal:200`, `create:71`, `reservationSlots:40`, `modify:32`, `confirm:15`, `state/result:14`, `reply builders:13`, `structured analyze:12` | 4 | 4 | 17 | 71 |
-| 12498-12747 | `create:103`, `date/temporal:95`, `reservationSlots:64`, `availability:28`, `modify:24`, `state/result:22`, `reply builders:13`, `email/whatsapp copy:12` | 10 | 6 | 27 | 25 |
-| 12748-12975 | `create:60`, `reservationSlots:37`, `date/temporal:27`, `snapshot/verify:22`, `reply builders:20`, `modify:19`, `state/result:16`, `graph/classifier/policy:12` | 2 | 9 | 17 | 14 |
+| 6283-6532 | `date/temporal:72`, `structured analyze:52`, `create:27`, `graph/classifier/policy:26`, `state/result:20`, `reservationSlots:20`, `reply builders:16`, `faq/policies/amenities:13` | 7 | 3 | 13 | 25 |
+| 6533-6782 | `date/temporal:76`, `create:51`, `reservationSlots:46`, `modify:44`, `availability:27`, `state/result:18`, `graph/classifier/policy:17`, `reply builders:16` | 10 | 9 | 16 | 25 |
+| 6783-7032 | `date/temporal:120`, `create:76`, `reservationSlots:52`, `state/result:35`, `modify:22`, `structured analyze:11`, `availability:9`, `graph/classifier/policy:6` | 3 | 4 | 16 | 64 |
+| 7033-7282 | `date/temporal:56`, `reservationSlots:43`, `create:42`, `state/result:40`, `modify:27`, `availability:25`, `reply builders:20`, `graph/classifier/policy:18` | 11 | 11 | 19 | 22 |
+| 7283-7532 | `modify:79`, `date/temporal:43`, `reservationSlots:32`, `create:24`, `state/result:21`, `reply builders:19`, `snapshot/verify:16`, `email/whatsapp copy:13` | 12 | 11 | 16 | 6 |
+| 7533-7782 | `modify:83`, `date/temporal:81`, `reservationSlots:67`, `selected target:51`, `state/result:25`, `reply builders:21`, `snapshot/verify:10`, `email/whatsapp copy:10` | 7 | 7 | 10 | 23 |
+| 7783-8032 | `email/whatsapp copy:137`, `reservationSlots:51`, `date/temporal:37`, `state/result:27`, `modify:22`, `structured analyze:18`, `graph/classifier/policy:16`, `selected target:15` | 11 | 18 | 21 | 8 |
+| 8033-8282 | `cancel:50`, `modify:42`, `selected target:34`, `date/temporal:32`, `canonical state:30`, `reservationSlots:30`, `reply builders:30`, `confirm:20` | 6 | 8 | 8 | 5 |
+| 8283-8532 | `date/temporal:130`, `modify:60`, `reservationSlots:58`, `create:34`, `snapshot/verify:33`, `state/result:25`, `reply builders:20`, `confirm:13` | 11 | 11 | 10 | 36 |
+| 8533-8782 | `date/temporal:51`, `reservationSlots:44`, `snapshot/verify:42`, `modify:28`, `reply builders:27`, `confirm:18`, `state/result:15`, `selected target:12` | 8 | 9 | 15 | 14 |
+| 8783-9032 | `modify:117`, `date/temporal:102`, `reservationSlots:94`, `selected target:37`, `reply builders:30`, `state/result:26`, `email/whatsapp copy:21`, `snapshot/verify:19` | 10 | 10 | 13 | 28 |
+| 9033-9282 | `date/temporal:188`, `modify:129`, `reservationSlots:88`, `selected target:20`, `reply builders:19`, `state/result:17`, `email/whatsapp copy:11`, `structured analyze:10` | 6 | 6 | 9 | 58 |
+| 9283-9532 | `modify:119`, `date/temporal:65`, `reservationSlots:60`, `reply builders:56`, `state/result:36`, `snapshot/verify:30`, `create:24`, `early return:22` | 22 | 11 | 23 | 21 |
+| 9533-9782 | `create:81`, `date/temporal:77`, `availability:45`, `reservationSlots:41`, `state/result:20`, `graph/classifier/policy:15`, `snapshot/verify:12`, `reply builders:12` | 9 | 7 | 10 | 24 |
+| 9783-10032 | `create:206`, `date/temporal:198`, `reply builders:43`, `reservationSlots:31`, `state/result:19`, `confirm:18`, `early return:14`, `graph/classifier/policy:11` | 14 | 9 | 15 | 48 |
+| 10033-10282 | `email/whatsapp copy:123`, `reservationSlots:75`, `date/temporal:40`, `state/result:30`, `create:22`, `early return:13`, `snapshot/verify:12`, `graph/classifier/policy:9` | 12 | 17 | 25 | 18 |
+| 10283-10532 | `email/whatsapp copy:214`, `reservationSlots:87`, `state/result:39`, `date/temporal:32`, `snapshot/verify:12`, `early return:11`, `graph/classifier/policy:11` | 11 | 32 | 28 | 12 |
+| 10533-10782 | `cancel:100`, `reservationSlots:44`, `confirm:35`, `email/whatsapp copy:30`, `create:29`, `date/temporal:29`, `reply builders:24`, `selected target:23` | 11 | 12 | 10 | 8 |
+| 10783-11032 | `date/temporal:58`, `reservationSlots:52`, `create:42`, `modify:35`, `confirm:34`, `snapshot/verify:32`, `cancel:28`, `state/result:22` | 16 | 12 | 20 | 17 |
+| 11033-11282 | `reservationSlots:69`, `date/temporal:63`, `create:43`, `snapshot/verify:42`, `modify:41`, `reply builders:24`, `state/result:23`, `early return:18` | 18 | 13 | 18 | 18 |
+| 11283-11532 | `date/temporal:70`, `reservationSlots:66`, `snapshot/verify:56`, `reply builders:48`, `canonical state:27`, `state/result:25`, `confirm:18`, `graph/classifier/policy:13` | 11 | 7 | 14 | 30 |
+| 11533-11782 | `billing:34`, `reply builders:28`, `reservationSlots:24`, `graph/classifier/policy:18`, `date/temporal:16`, `state/result:14`, `email/whatsapp copy:13`, `create:12` | 7 | 8 | 12 | 10 |
+| 11783-12032 | `graph/classifier/policy:60`, `reservationSlots:37`, `fallback:34`, `state/result:31`, `reply builders:30`, `create:25`, `email/whatsapp copy:16`, `structured analyze:7` | 2 | 7 | 12 | 2 |
+| 12033-12282 | `date/temporal:105`, `modify:104`, `reservationSlots:51`, `reply builders:24`, `state/result:21`, `email/whatsapp copy:14`, `selected target:13`, `structured analyze:8` | 5 | 6 | 13 | 19 |
+| 12283-12532 | `date/temporal:209`, `create:66`, `modify:48`, `reservationSlots:34`, `reply builders:14`, `confirm:13`, `structured analyze:12`, `availability:8` | 4 | 6 | 14 | 64 |
+| 12533-12782 | `date/temporal:115`, `create:67`, `reservationSlots:64`, `state/result:28`, `modify:24`, `availability:23`, `reply builders:14`, `confirm:10` | 8 | 4 | 25 | 32 |
+| 12783-13032 | `create:101`, `reservationSlots:45`, `date/temporal:39`, `snapshot/verify:24`, `reply builders:20`, `modify:19`, `state/result:16`, `availability:16` | 3 | 11 | 23 | 18 |
+| 13033-13045 | `graph/classifier/policy:6`, `reply builders:3`, `state/result:2`, `reservationSlots:2`, `early return:1`, `fallback:1` | 1 | 0 | 0 | 0 |
 
 ---
 
@@ -47,33 +48,34 @@ Bucket size: 250
 
 ```mermaid
 flowchart TD
-  B0["6248-6497<br/>date/temporal<br/>structured analyze<br/>create"]
-  B1["6498-6747<br/>date/temporal<br/>create<br/>reservationSlots"]
-  B2["6748-6997<br/>date/temporal<br/>create<br/>reservationSlots"]
-  B3["6998-7247<br/>date/temporal<br/>reservationSlots<br/>create"]
-  B4["7248-7497<br/>modify<br/>date/temporal<br/>reservationSlots"]
-  B5["7498-7747<br/>reservationSlots<br/>modify<br/>selected target"]
-  B6["7748-7997<br/>email/whatsapp copy<br/>reservationSlots<br/>date/temporal"]
-  B7["7998-8247<br/>cancel<br/>date/temporal<br/>modify"]
-  B8["8248-8497<br/>date/temporal<br/>reservationSlots<br/>modify"]
-  B9["8498-8747<br/>snapshot/verify<br/>date/temporal<br/>reservationSlots"]
-  B10["8748-8997<br/>modify<br/>date/temporal<br/>reservationSlots"]
-  B11["8998-9247<br/>date/temporal<br/>modify<br/>reservationSlots"]
-  B12["9248-9497<br/>modify<br/>reservationSlots<br/>date/temporal"]
-  B13["9498-9747<br/>create<br/>date/temporal<br/>reservationSlots"]
-  B14["9748-9997<br/>create<br/>date/temporal<br/>reply builders"]
-  B15["9998-10247<br/>email/whatsapp copy<br/>reservationSlots<br/>date/temporal"]
-  B16["10248-10497<br/>email/whatsapp copy<br/>reservationSlots<br/>state/result"]
-  B17["10498-10747<br/>cancel<br/>selected target<br/>confirm"]
-  B18["10748-10997<br/>date/temporal<br/>reservationSlots<br/>modify"]
-  B19["10998-11247<br/>reservationSlots<br/>date/temporal<br/>snapshot/verify"]
-  B20["11248-11497<br/>date/temporal<br/>reservationSlots<br/>snapshot/verify"]
-  B21["11498-11747<br/>reply builders<br/>billing<br/>reservationSlots"]
-  B22["11748-11997<br/>graph/classifier/policy<br/>reservationSlots<br/>fallback"]
-  B23["11998-12247<br/>date/temporal<br/>modify<br/>reservationSlots"]
-  B24["12248-12497<br/>date/temporal<br/>create<br/>reservationSlots"]
-  B25["12498-12747<br/>create<br/>date/temporal<br/>reservationSlots"]
-  B26["12748-12975<br/>create<br/>reservationSlots<br/>date/temporal"]
+  B0["6283-6532<br/>date/temporal<br/>structured analyze<br/>create"]
+  B1["6533-6782<br/>date/temporal<br/>create<br/>reservationSlots"]
+  B2["6783-7032<br/>date/temporal<br/>create<br/>reservationSlots"]
+  B3["7033-7282<br/>date/temporal<br/>reservationSlots<br/>create"]
+  B4["7283-7532<br/>modify<br/>date/temporal<br/>reservationSlots"]
+  B5["7533-7782<br/>modify<br/>date/temporal<br/>reservationSlots"]
+  B6["7783-8032<br/>email/whatsapp copy<br/>reservationSlots<br/>date/temporal"]
+  B7["8033-8282<br/>cancel<br/>modify<br/>selected target"]
+  B8["8283-8532<br/>date/temporal<br/>modify<br/>reservationSlots"]
+  B9["8533-8782<br/>date/temporal<br/>reservationSlots<br/>snapshot/verify"]
+  B10["8783-9032<br/>modify<br/>date/temporal<br/>reservationSlots"]
+  B11["9033-9282<br/>date/temporal<br/>modify<br/>reservationSlots"]
+  B12["9283-9532<br/>modify<br/>date/temporal<br/>reservationSlots"]
+  B13["9533-9782<br/>create<br/>date/temporal<br/>availability"]
+  B14["9783-10032<br/>create<br/>date/temporal<br/>reply builders"]
+  B15["10033-10282<br/>email/whatsapp copy<br/>reservationSlots<br/>date/temporal"]
+  B16["10283-10532<br/>email/whatsapp copy<br/>reservationSlots<br/>state/result"]
+  B17["10533-10782<br/>cancel<br/>reservationSlots<br/>confirm"]
+  B18["10783-11032<br/>date/temporal<br/>reservationSlots<br/>create"]
+  B19["11033-11282<br/>reservationSlots<br/>date/temporal<br/>create"]
+  B20["11283-11532<br/>date/temporal<br/>reservationSlots<br/>snapshot/verify"]
+  B21["11533-11782<br/>billing<br/>reply builders<br/>reservationSlots"]
+  B22["11783-12032<br/>graph/classifier/policy<br/>reservationSlots<br/>fallback"]
+  B23["12033-12282<br/>date/temporal<br/>modify<br/>reservationSlots"]
+  B24["12283-12532<br/>date/temporal<br/>create<br/>modify"]
+  B25["12533-12782<br/>date/temporal<br/>create<br/>reservationSlots"]
+  B26["12783-13032<br/>create<br/>reservationSlots<br/>date/temporal"]
+  B27["13033-13045<br/>graph/classifier/policy<br/>reply builders<br/>state/result"]
 
   B0 --> B1
   B1 --> B2
@@ -101,6 +103,7 @@ flowchart TD
   B23 --> B24
   B24 --> B25
   B25 --> B26
+  B26 --> B27
 
   classDef darkBox fill:#111111,stroke:#d1d5db,stroke-width:1px,color:#ffffff;
   class B0 darkBox;
@@ -130,1874 +133,1890 @@ flowchart TD
   class B24 darkBox;
   class B25 darkBox;
   class B26 darkBox;
+  class B27 darkBox;
 ```
 
 ---
 
 ## 3. Returns por bucket
 
-### 6248-6497
+### 6283-6532
 
-- L6276: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
-- L6329: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
-- L6389: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
-- L6416: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
-- L6433: `return {`
-- L6444: `return {`
-- L6465: `return {`
+- L6311: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
+- L6364: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
+- L6424: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
+- L6451: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
+- L6468: `return {`
+- L6479: `return {`
+- L6500: `return {`
 
-### 6498-6747
+### 6533-6782
 
-- L6540: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
-- L6604: `return {`
-- L6612: `return {`
-- L6634: `return {`
-- L6662: `return {`
-- L6674: `return {`
-- L6685: `return {`
-- L6698: `return {`
-- L6724: `return {`
-- L6745: `return {`
+- L6575: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null };`
+- L6639: `return {`
+- L6647: `return {`
+- L6669: `return {`
+- L6697: `return {`
+- L6709: `return {`
+- L6720: `return {`
+- L6733: `return {`
+- L6759: `return {`
+- L6780: `return {`
 
-### 6748-6997
+### 6783-7032
 
-- L6803: `return {`
-- L6844: `return {`
-- L6871: `return {`
+- L6838: `return {`
+- L6879: `return {`
+- L6906: `return {`
 
-### 6998-7247
+### 7033-7282
 
-- L7001: `return {`
-- L7025: `return {`
-- L7054: `return {`
-- L7073: `return {`
-- L7084: `return {`
-- L7102: `return {`
-- L7116: `return {`
-- L7147: `return {`
-- L7183: `return {`
-- L7214: `return {`
-- L7226: `return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };`
+- L7036: `return {`
+- L7060: `return {`
+- L7089: `return {`
+- L7108: `return {`
+- L7119: `return {`
+- L7137: `return {`
+- L7151: `return {`
+- L7182: `return {`
+- L7218: `return {`
+- L7249: `return {`
+- L7261: `return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };`
 
-### 7248-7497
+### 7283-7532
 
-- L7259: `return {`
-- L7270: `return {`
-- L7288: `return {`
-- L7301: `return {`
-- L7327: `return {`
-- L7362: `return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };`
-- L7402: `return {`
-- L7438: `return { finalText, nextCategory: "retrieval_based", nextSlots, needsSupervision, graphResult: null };`
-- L7491: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };`
+- L7294: `return {`
+- L7305: `return {`
+- L7323: `return {`
+- L7336: `return {`
+- L7362: `return {`
+- L7397: `return { finalText, nextCategory: modifyContextActiveFast ? "modify_reservation" : (pre.prevCategory ?? null), nextSlots, needsSupervision, graphResult: null };`
+- L7440: `return {`
+- L7450: `return {`
+- L7467: `return {`
+- L7477: `return {`
+- L7485: `return {`
+- L7520: `return { finalText, nextCategory: "retrieval_based", nextSlots, needsSupervision, graphResult: null };`
 
-### 7498-7747
+### 7533-7782
 
-- L7527: `return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult: null };`
-- L7553: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult: null };`
-- L7583: `return {`
-- L7591: `return {`
-- L7635: `return {`
-- L7666: `return {`
-- L7716: `return { finalText, nextCategory: "modify_reservation", nextSlots: knownSlots, needsSupervision, graphResult: null };`
+- L7573: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult: null };`
+- L7609: `return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult: null };`
+- L7635: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult: null };`
+- L7665: `return {`
+- L7673: `return {`
+- L7717: `return {`
+- L7748: `return {`
 
-### 7748-7997
+### 7783-8032
 
-- L7767: `return { finalText: finalTextWA, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: false, graphResult: null };`
-- L7776: `return { finalText: failText, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: code && code !== 'WA_NOT_READY', graphResult: null };`
-- L7786: `return { finalText: askNum, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: false, graphResult: null };`
-- L7802: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L7811: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L7814: `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso; };`
-- L7857: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L7874: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L7896: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L7905: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7798: `return { finalText, nextCategory: "modify_reservation", nextSlots: knownSlots, needsSupervision, graphResult: null };`
+- L7849: `return { finalText: finalTextWA, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: false, graphResult: null };`
+- L7858: `return { finalText: failText, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: code && code !== 'WA_NOT_READY', graphResult: null };`
+- L7868: `return { finalText: askNum, nextCategory: 'send_whatsapp_copy', nextSlots: pre.currSlots, needsSupervision: false, graphResult: null };`
+- L7884: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7893: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7896: `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso; };`
+- L7939: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7956: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7978: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L7987: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
 
-### 7998-8247
+### 8033-8282
 
-- L8038: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
-- L8047: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8082: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
-- L8101: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
-- L8161: `return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalCancellationSlots, needsSupervision, graphResult };`
-- L8183: `return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
-- L8220: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
-- L8233: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
-- L8236: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
-- L8241: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L8120: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
+- L8129: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8164: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
+- L8183: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
+- L8243: `return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalCancellationSlots, needsSupervision, graphResult };`
+- L8265: `return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
 
-### 8248-8497
+### 8283-8532
 
-- L8253: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L8257: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L8270: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L8289: `return {`
-- L8334: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8377: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8396: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8468: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8480: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8302: `return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots \|\| {}, needsSupervision, graphResult };`
+- L8315: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
+- L8318: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
+- L8323: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L8335: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L8339: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L8352: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L8371: `return {`
+- L8416: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8459: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8478: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
 
-### 8498-8747
+### 8533-8782
 
-- L8520: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8544: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8553: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8627: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8652: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8700: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L8730: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8550: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8562: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8602: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8626: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8635: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8709: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8734: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8782: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
 
-### 8748-8997
+### 8783-9032
 
-- L8749: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8800: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8817: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8841: `return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult };`
-- L8889: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8904: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8922: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
-- L8927: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
-- L8940: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8965: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L8977: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8812: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L8831: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8882: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8899: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8923: `return { finalText, nextCategory: "modify_reservation", nextSlots: holderGuardSlots, needsSupervision, graphResult };`
+- L8971: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L8986: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9004: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L9009: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L9022: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
 
-### 8998-9247
+### 9033-9282
 
-- L9019: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9150: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9156: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9176: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9207: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9213: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9219: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9225: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9247: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9047: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9059: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9101: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9237: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9243: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9263: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
 
-### 9248-9497
+### 9283-9532
 
-- L9268: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9282: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9286: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9292: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9294: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9300: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9306: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
 - L9312: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9326: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9330: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9336: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9341: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9362: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9376: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9382: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9390: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L9439: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9447: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9457: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9469: `return {`
-- L9483: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9321: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9331: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L9351: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9355: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9361: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9370: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9380: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L9400: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9404: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9410: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9415: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9436: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9442: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9452: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9460: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L9509: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9517: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9527: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
 
-### 9498-9747
+### 9533-9782
 
-- L9518: `return {`
-- L9533: `return { finalText, nextCategory: "availability_inquiry", nextSlots, needsSupervision, graphResult };`
-- L9557: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L9562: `return {`
-- L9617: `return {`
-- L9679: `return {`
-- L9706: `return {`
-- L9720: `return {`
-- L9742: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9539: `return {`
+- L9553: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9588: `return {`
+- L9603: `return { finalText, nextCategory: "availability_inquiry", nextSlots, needsSupervision, graphResult };`
+- L9627: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L9632: `return {`
+- L9687: `return {`
+- L9749: `return {`
+- L9776: `return {`
 
-### 9748-9997
+### 9783-10032
 
-- L9753: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision: needsSupervision \|\| readyCreateResult.needsHandoff, graphResult };`
-- L9769: `return { finalText, nextCategory: "reservation", nextSlots: pausedDraft, needsSupervision, graphResult };`
-- L9774: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9783: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9809: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
-- L9812: `if (typeof startWeekday !== "number" \|\| typeof endWeekday !== "number") return {};`
-- L9816: `return checkIn && checkOut ? { checkIn, checkOut } : {};`
-- L9878: `return {`
-- L9892: `return {`
-- L9907: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L9918: `return {`
-- L9945: `return {`
-- L9975: `return {`
-- L9993: `return {`
+- L9790: `return {`
+- L9812: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9823: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision: needsSupervision \|\| readyCreateResult.needsHandoff, graphResult };`
+- L9839: `return { finalText, nextCategory: "reservation", nextSlots: pausedDraft, needsSupervision, graphResult };`
+- L9844: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9853: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9879: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
+- L9882: `if (typeof startWeekday !== "number" \|\| typeof endWeekday !== "number") return {};`
+- L9886: `return checkIn && checkOut ? { checkIn, checkOut } : {};`
+- L9948: `return {`
+- L9962: `return {`
+- L9977: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L9988: `return {`
+- L10015: `return {`
 
-### 9998-10247
+### 10033-10282
 
-- L10030: `return { finalText: buildAskGuestName(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10044: `return { finalText, nextCategory: "send_email_copy", nextSlots, needsSupervision, graphResult };`
-- L10047: `if (!iso) return iso;`
-- L10048: `const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
-- L10077: `return { finalText, nextCategory: "send_email_copy", nextSlots, needsSupervision, graphResult };`
-- L10094: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L10115: `return { finalText: ask, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L10118: `if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
-- L10145: `return { finalText: ok, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L10161: `return { finalText: fail, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
-- L10220: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
-- L10232: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
-- L10241: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10045: `return {`
+- L10063: `return {`
+- L10100: `return { finalText: buildAskGuestName(pre.lang), nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10114: `return { finalText, nextCategory: "send_email_copy", nextSlots, needsSupervision, graphResult };`
+- L10117: `if (!iso) return iso;`
+- L10118: `const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
+- L10147: `return { finalText, nextCategory: "send_email_copy", nextSlots, needsSupervision, graphResult };`
+- L10164: `return { finalText, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L10185: `return { finalText: ask, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L10188: `if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
+- L10215: `return { finalText: ok, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
+- L10231: `return { finalText: fail, nextCategory: 'send_email_copy', nextSlots, needsSupervision, graphResult };`
 
-### 10248-10497
+### 10283-10532
 
-- L10276: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
-- L10288: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
-- L10341: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10353: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10363: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10398: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10410: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10455: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
-- L10467: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10290: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10302: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10311: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10346: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10358: `return { finalText, nextCategory: 'send_whatsapp_copy', nextSlots, needsSupervision, graphResult };`
+- L10411: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10423: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10433: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10468: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10480: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10525: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
 
-### 10498-10747
+### 10533-10782
 
-- L10540: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10555: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10568: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10613: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10626: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10661: `return { finalText, nextCategory: "cancel_reservation", nextSlots: {}, needsSupervision, graphResult };`
-- L10666: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10677: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10689: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10709: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10537: `return { finalText, nextCategory: "send_whatsapp_copy", nextSlots, needsSupervision, graphResult };`
+- L10610: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10625: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10638: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10683: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10696: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10731: `return { finalText, nextCategory: "cancel_reservation", nextSlots: {}, needsSupervision, graphResult };`
+- L10736: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10747: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10759: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10779: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
 
-### 10748-10997
+### 10783-11032
 
-- L10754: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10767: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
-- L10794: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10802: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10814: `return {`
-- L10832: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L10847: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L10859: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L10865: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10868: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10888: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L10904: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L10939: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L10952: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
-- L10955: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
-- L10960: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L10972: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L10976: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
-- L10989: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L10824: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10837: `return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };`
+- L10864: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10872: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10884: `return {`
+- L10902: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L10917: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L10929: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L10935: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10938: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10958: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L10974: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11009: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11022: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
+- L11025: `return { finalText, nextCategory: "modify_reservation", nextSlots: updatedPreviewSnapshot, needsSupervision, graphResult };`
+- L11030: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
 
-### 10998-11247
+### 11033-11282
 
-- L11030: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11037: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11060: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11065: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11068: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11074: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11079: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11084: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11108: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
-- L11112: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
-- L11125: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L11137: `return {`
-- L11150: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11155: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11160: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11242: `return {`
+- L11042: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L11046: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L11059: `return { finalText, nextCategory: "modify_reservation", nextSlots: currentPreviewSnapshot, needsSupervision, graphResult };`
+- L11100: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11107: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11130: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11135: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11138: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11144: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11149: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11154: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11178: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L11182: `return { finalText, nextCategory: "modify_reservation", nextSlots: snapshot, needsSupervision, graphResult };`
+- L11195: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L11207: `return {`
+- L11220: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11225: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11230: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
 
-### 11248-11497
+### 11283-11532
 
-- L11256: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L11267: `return toBodyLLMResult(state);`
-- L11318: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11343: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11359: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11369: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11378: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11436: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11441: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11451: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11471: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
-- L11479: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11312: `return {`
+- L11326: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L11337: `return toBodyLLMResult(state);`
+- L11388: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11413: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11429: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11439: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11448: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11506: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11511: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11521: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
 
-### 11498-11747
+### 11533-11782
 
-- L11498: `return keys.some((k) => hay.includes(k));`
-- L11597: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L11622: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L11658: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich: explicitRich };`
-- L11680: `debugLog("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });`
-- L11732: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L11541: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11549: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult: null, rich: undefined };`
+- L11568: `return keys.some((k) => hay.includes(k));`
+- L11667: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L11692: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L11728: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich: explicitRich };`
+- L11750: `debugLog("[KB] fastpath return", { ok: kb.ok, safeCat, hasText: Boolean(text) });`
 
-### 11748-11997
+### 11783-12032
 
-- L11760: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L11802: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L11830: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
 
-### 11998-12247
+### 12033-12282
 
-- L12083: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L12123: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L12135: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L12156: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L12182: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12153: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12193: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12205: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12226: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12252: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
 
-### 12248-12497
+### 12283-12532
 
-- L12352: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L12361: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L12387: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
-- L12395: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L12422: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L12431: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L12457: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
+- L12465: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult };`
 
-### 12498-12747
+### 12533-12782
 
-- L12510: `if (!iso) return iso \|\| '';`
-- L12512: `return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
-- L12551: `const [dd, mm, yyyy] = d.split(/[\/\-]/); return '${yyyy}-${mm}-${dd}';`
-- L12602: `return {`
-- L12616: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L12625: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L12636: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
-- L12693: `return {`
-- L12728: `return {`
-- L12742: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L12580: `if (!iso) return iso \|\| '';`
+- L12582: `return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
+- L12621: `const [dd, mm, yyyy] = d.split(/[\/\-]/); return '${yyyy}-${mm}-${dd}';`
+- L12672: `return {`
+- L12686: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L12695: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L12706: `return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };`
+- L12763: `return {`
 
-### 12748-12975
+### 12783-13032
 
-- L12749: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
-- L12974: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich };`
+- L12798: `return {`
+- L12812: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+- L12819: `return { finalText, nextCategory: "reservation", nextSlots, needsSupervision, graphResult };`
+
+### 13033-13045
+
+- L13044: `return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich };`
 
 
 ---
 
 ## 4. Awaits por bucket
 
-### 6248-6497
+### 6283-6532
 
-- L6280: `const stableIntent = await runStableIntentsGuard({`
-- L6368: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L6399: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L6315: `const stableIntent = await runStableIntentsGuard({`
+- L6403: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L6434: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
 
-### 6498-6747
+### 6533-6782
 
-- L6594: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L6613: `finalText: await persistModifyPreviewContext(pre, resolvedModifyTarget0, snapshot),`
-- L6622: `await persistAvailabilityInquiry(pre, fastPathSlots);`
-- L6642: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, dr0.checkIn, dr0.checkOut, {`
-- L6651: `await persistAvailabilityInquiry(pre, nextSlots);`
-- L6673: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L6684: `await persistCreateDraft(pre, fastPathSlots);`
-- L6697: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
-- L6715: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L6629: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L6648: `finalText: await persistModifyPreviewContext(pre, resolvedModifyTarget0, snapshot),`
+- L6657: `await persistAvailabilityInquiry(pre, fastPathSlots);`
+- L6677: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, dr0.checkIn, dr0.checkOut, {`
+- L6686: `await persistAvailabilityInquiry(pre, nextSlots);`
+- L6708: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L6719: `await persistCreateDraft(pre, fastPathSlots);`
+- L6732: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
+- L6750: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 6748-6997
+### 6783-7032
 
-- L6753: `const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);`
-- L6802: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L6815: `draftInitialization = await initializeCreateDraftIfLatest(`
-- L6852: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
+- L6788: `const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);`
+- L6837: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L6850: `draftInitialization = await initializeCreateDraftIfLatest(`
+- L6887: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
 
-### 6998-7247
+### 7033-7282
 
-- L7000: `await persistCreateDraftSnapshot(pre, sanitizedCreateSlots);`
-- L7013: `await persistAvailabilityInquiry(pre, normalizedFastPathSlots);`
-- L7034: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, ciISO, coISO, {`
-- L7043: `await persistAvailabilityInquiry(pre, nextSlots);`
-- L7072: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L7082: `await persistCreateDraft(pre, normalizedFastPathSlots);`
-- L7093: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
-- L7115: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
-- L7133: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7167: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7212: `await persistCreateDraftSnapshot(pre, sanitizedCreateSlots);`
+- L7035: `await persistCreateDraftSnapshot(pre, sanitizedCreateSlots);`
+- L7048: `await persistAvailabilityInquiry(pre, normalizedFastPathSlots);`
+- L7069: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, ciISO, coISO, {`
+- L7078: `await persistAvailabilityInquiry(pre, nextSlots);`
+- L7107: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L7117: `await persistCreateDraft(pre, normalizedFastPathSlots);`
+- L7128: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
+- L7150: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
+- L7168: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7202: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7247: `await persistCreateDraftSnapshot(pre, sanitizedCreateSlots);`
 
-### 7248-7497
+### 7283-7532
 
-- L7258: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L7269: `await persistCreateDraft(pre, fastPathSlots);`
-- L7279: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
-- L7300: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
-- L7318: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7339: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7389: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7424: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7467: `const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
+- L7293: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L7304: `await persistCreateDraft(pre, fastPathSlots);`
+- L7314: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
+- L7335: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, fastPathSlots);`
+- L7353: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7374: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7427: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7462: `await persistModifyExecutionContext(pre, previewTarget.reservationId, {`
+- L7476: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, snapshot);`
+- L7486: `finalText: await persistModifyPreviewContext(pre, previewTarget, snapshot),`
+- L7506: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 7498-7747
+### 7533-7782
 
-- L7515: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7536: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7573: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7592: `finalText: await persistModifyPreviewContext(pre, resolvedFastReservationTarget, snapshot),`
-- L7612: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L7661: `await persistModifyExecutionContext(pre, resolvedFastReservationTarget.reservationId, {`
-- L7714: `await updateConversationState(pre.msg.hotelId, pre.conversationId, modifyMenuPatch as any);`
-- L7734: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
-- L7735: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L7736: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
-- L7747: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L7549: `const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
+- L7597: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7618: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7655: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7674: `finalText: await persistModifyPreviewContext(pre, resolvedFastReservationTarget, snapshot),`
+- L7694: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7743: `await persistModifyExecutionContext(pre, resolvedFastReservationTarget.reservationId, {`
 
-### 7748-7997
+### 7783-8032
 
-- L7749: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
-- L7752: `const { redis } = await import('@/lib/services/redis');`
-- L7755: `const ack = await redis.get('wa:ack:${requestId}');`
-- L7757: `await new Promise(r => setTimeout(r, 120));`
-- L7796: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', updatedBy: 'ai' } as any);`
-- L7816: `const { sendReservationCopy } = await import('@/lib/email/sendReservationCopy');`
-- L7831: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: lastEmail, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L7839: `const { classifyEmailError } = await import('@/lib/email/classifyEmailError');`
-- L7847: `if (attempt < 2 && !sent) await new Promise(r => setTimeout(r, 150));`
-- L7851: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: 0, updatedAt: new Date().toISOString(), lastErrorType: undefined }, lastCategory: `
-- L7860: `const { classifyEmailError } = await import('@/lib/email/classifyEmailError');`
-- L7868: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new `
-- L7876: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorTyp`
-- L7965: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L7796: `await updateConversationState(pre.msg.hotelId, pre.conversationId, modifyMenuPatch as any);`
+- L7816: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
+- L7817: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
+- L7818: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L7829: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L7831: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
+- L7834: `const { redis } = await import('@/lib/services/redis');`
+- L7837: `const ack = await redis.get('wa:ack:${requestId}');`
+- L7839: `await new Promise(r => setTimeout(r, 120));`
+- L7878: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', updatedBy: 'ai' } as any);`
+- L7898: `const { sendReservationCopy } = await import('@/lib/email/sendReservationCopy');`
+- L7913: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: lastEmail, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L7921: `const { classifyEmailError } = await import('@/lib/email/classifyEmailError');`
+- L7929: `if (attempt < 2 && !sent) await new Promise(r => setTimeout(r, 150));`
+- L7933: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: 0, updatedAt: new Date().toISOString(), lastErrorType: undefined }, lastCategory: `
+- L7942: `const { classifyEmailError } = await import('@/lib/email/classifyEmailError');`
+- L7950: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { supervised: true, desiredAction: 'notify_reception', lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new `
+- L7958: `await updateConversationState(pre.msg.hotelId, pre.conversationId, { lastEmailCopyAttempt: { to: lastEmail, failures: prevFailures, updatedAt: new Date().toISOString(), lastError: rawMsg, lastErrorTyp`
 
-### 7998-8247
+### 8033-8282
 
-- L8021: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8041: `await persistModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId, {`
-- L8067: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8086: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8139: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8164: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8188: `const correctionDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8205: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8226: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
-- L8235: `finalText = await persistModifyPreviewContext(pre, pendingTarget, updatedPreviewSnapshot);`
-- L8246: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L8047: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8103: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8123: `await persistModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId, {`
+- L8149: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8168: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8221: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8246: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8270: `const correctionDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
 
-### 8248-8497
+### 8283-8532
 
-- L8256: `finalText = await executeModifyReservationWithSnapshot(pre, pendingTarget.reservationId, currentPreviewSnapshot);`
-- L8260: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8313: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8342: `const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8360: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8381: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8410: `const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8495: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8287: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8308: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L8317: `finalText = await persistModifyPreviewContext(pre, pendingTarget, updatedPreviewSnapshot);`
+- L8328: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L8338: `finalText = await executeModifyReservationWithSnapshot(pre, pendingTarget.reservationId, currentPreviewSnapshot);`
+- L8342: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8395: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8424: `const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8442: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8463: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8492: `const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
 
-### 8498-8747
+### 8533-8782
 
-- L8524: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8621: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8631: `const reservationListSource = await resolveReservationListSource(pre);`
-- L8641: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8657: `const reservationListSource = await resolveReservationListSource(pre);`
-- L8676: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8688: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8695: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8715: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8741: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8577: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8606: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8703: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8713: `const reservationListSource = await resolveReservationListSource(pre);`
+- L8723: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8739: `const reservationListSource = await resolveReservationListSource(pre);`
+- L8758: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8770: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8777: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 8748-8997
+### 8783-9032
 
-- L8775: `const directModifyUserDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8804: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8829: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8849: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8880: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8912: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8926: `finalText = await persistModifyPreviewContext(pre, target, snapshot);`
-- L8930: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8953: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L8987: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8797: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8823: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8857: `const directModifyUserDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8886: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8911: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8931: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8962: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L8994: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9008: `finalText = await persistModifyPreviewContext(pre, target, snapshot);`
+- L9012: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 8998-9247
+### 9033-9282
 
-- L9061: `? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)`
-- L9134: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9152: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, ingestedSlots);`
-- L9191: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9209: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, correctedSlots);`
-- L9232: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9035: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9069: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9148: `? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)`
+- L9221: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9239: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, ingestedSlots);`
+- L9278: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 9248-9497
+### 9283-9532
 
-- L9257: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9284: `finalText = await persistModifyPreviewContext(pre, previewTarget, snapshot);`
-- L9301: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9328: `finalText = await persistModifyPreviewContext(pre, previewTarget, snapshot);`
-- L9351: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9378: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, snapshot);`
-- L9412: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9459: `const availabilityResult = await finalizeDeterministicCreateProposal({`
+- L9296: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, correctedSlots);`
+- L9326: `await persistModifyExecutionContext(pre, previewTarget.reservationId, {`
+- L9340: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9353: `finalText = await persistModifyPreviewContext(pre, previewTarget, snapshot);`
+- L9375: `await persistModifyExecutionContext(pre, previewTarget.reservationId, {`
+- L9389: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9402: `finalText = await persistModifyPreviewContext(pre, previewTarget, snapshot);`
+- L9425: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9448: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, snapshot);`
+- L9482: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9529: `const availabilityResult = await finalizeDeterministicCreateProposal({`
 
-### 9498-9747
+### 9533-9782
 
-- L9506: `await persistAvailabilityInquiry(pre, availabilityInquirySlots);`
-- L9535: `const availabilityResult = await runAvailabilityCheck(availabilityPre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {`
-- L9544: `await persistAvailabilityInquiry(pre, nextSlots);`
-- L9561: `await persistAvailabilityInquiry(pre, availabilityInquirySlots);`
-- L9615: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L9665: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L9698: `const holderQuoteResult = await finalizeDeterministicCreateProposal({`
-- L9715: `await persistCreateDraft(pre, updatedHolderSnapshot);`
-- L9744: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
+- L9576: `await persistAvailabilityInquiry(pre, availabilityInquirySlots);`
+- L9605: `const availabilityResult = await runAvailabilityCheck(availabilityPre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {`
+- L9614: `await persistAvailabilityInquiry(pre, nextSlots);`
+- L9631: `await persistAvailabilityInquiry(pre, availabilityInquirySlots);`
+- L9685: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L9735: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L9768: `const holderQuoteResult = await finalizeDeterministicCreateProposal({`
 
-### 9748-9997
+### 9783-10032
 
-- L9767: `await persistCreateDraft(pre, pausedDraft);`
-- L9818: `const quotedTurnSupportedDates = await extractSupportedTemporalDateRange(trimmedQuotedReply, pre.lang);`
-- L9876: `await persistCreateDraftSnapshot(pre, quotedDraftConsistency.sanitizedSlots);`
-- L9888: `await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);`
-- L9909: `const requoteResult = await finalizeDeterministicCreateProposal({`
-- L9927: `await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);`
-- L9943: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
-- L9973: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
-- L9991: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
+- L9785: `await persistCreateDraft(pre, updatedHolderSnapshot);`
+- L9814: `const readyCreateResult = await finalizeDeterministicCreateProposal({`
+- L9837: `await persistCreateDraft(pre, pausedDraft);`
+- L9888: `const quotedTurnSupportedDates = await extractSupportedTemporalDateRange(trimmedQuotedReply, pre.lang);`
+- L9946: `await persistCreateDraftSnapshot(pre, quotedDraftConsistency.sanitizedSlots);`
+- L9958: `await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);`
+- L9979: `const requoteResult = await finalizeDeterministicCreateProposal({`
+- L9997: `await persistCreateDraft(pre, quotedDraftConsistency.sanitizedSlots);`
+- L10013: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
 
-### 9998-10247
+### 10033-10282
 
-- L10012: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10050: `const { sendReservationCopy } = await import("@/lib/email/sendReservationCopy");`
-- L10065: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: email, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10068: `lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150));`
-- L10120: `const { sendReservationCopy } = await import('@/lib/email/sendReservationCopy');`
-- L10135: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: explicitEmail, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10137: `} catch (err) { lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150)); }`
-- L10186: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
-- L10187: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L10188: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
-- L10199: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jidInline, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10201: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jidInline, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
-- L10205: `const { redis } = await import('@/lib/services/redis');`
-- L10208: `const ack = await redis.get('wa:ack:${requestId}');`
-- L10210: `await new Promise(r => setTimeout(r, 120));`
-- L10244: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
-- L10245: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L10246: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L10043: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
+- L10061: `await persistCreateDraft(pre, createDraftConsistency.sanitizedSlots);`
+- L10082: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10120: `const { sendReservationCopy } = await import("@/lib/email/sendReservationCopy");`
+- L10135: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: email, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10138: `lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150));`
+- L10190: `const { sendReservationCopy } = await import('@/lib/email/sendReservationCopy');`
+- L10205: `await sendReservationCopy({ hotelId: pre.msg.hotelId, to: explicitEmail, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10207: `} catch (err) { lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150)); }`
+- L10256: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
+- L10257: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
+- L10258: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L10269: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jidInline, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10271: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jidInline, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
+- L10275: `const { redis } = await import('@/lib/services/redis');`
+- L10278: `const ack = await redis.get('wa:ack:${requestId}');`
+- L10280: `await new Promise(r => setTimeout(r, 120));`
 
-### 10248-10497
+### 10283-10532
 
-- L10257: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10259: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
-- L10262: `const { redis } = await import('@/lib/services/redis');`
-- L10265: `const ack = await redis.get('wa:ack:${requestId}');`
-- L10267: `await new Promise(r => setTimeout(r, 120));`
-- L10308: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
-- L10309: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L10310: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
-- L10321: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jidInline, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10323: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jidInline, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
-- L10326: `const { redis } = await import('@/lib/services/redis');`
-- L10329: `const ack = await redis.get('wa:ack:${requestId}');`
-- L10331: `await new Promise(r => setTimeout(r, 120));`
-- L10366: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
-- L10367: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L10368: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
-- L10379: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
-- L10381: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
-- L10384: `const { redis } = await import('@/lib/services/redis');`
-- L10387: `const ack = await redis.get('wa:ack:${requestId}');`
-- L10389: `await new Promise(r => setTimeout(r, 120));`
-- L10422: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
-- L10423: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
-- L10424: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
-- L10435: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10314: `const { sendReservationCopyWA } = await import('@/lib/whatsapp/sendReservationCopyWA');`
+- L10315: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
+- L10316: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L10327: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10329: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
+- L10332: `const { redis } = await import('@/lib/services/redis');`
+- L10335: `const ack = await redis.get('wa:ack:${requestId}');`
+- L10337: `await new Promise(r => setTimeout(r, 120));`
+- L10378: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
+- L10379: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
+- L10380: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L10391: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jidInline, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10393: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jidInline, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
+- L10396: `const { redis } = await import('@/lib/services/redis');`
+- L10399: `const ack = await redis.get('wa:ack:${requestId}');`
+- L10401: `await new Promise(r => setTimeout(r, 120));`
+- L10436: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
+- L10437: `const { isWhatsAppReady } = await import('@/lib/adapters/whatsappBaileysAdapter');`
+- L10438: `const { publishSendReservationCopy } = await import('@/lib/whatsapp/dispatch');`
+- L10449: `await sendReservationCopyWA({ hotelId: pre.msg.hotelId, toJid: jid, summary, conversationId: pre.conversationId, channel: pre.msg.channel });`
+- L10451: `const { published, requestId } = await publishSendReservationCopy({ hotelId: pre.msg.hotelId, toJid: jid, conversationId: pre.conversationId, channel: pre.msg.channel, summary });`
+- L10454: `const { redis } = await import('@/lib/services/redis');`
+- L10457: `const ack = await redis.get('wa:ack:${requestId}');`
+- L10459: `await new Promise(r => setTimeout(r, 120));`
+- L10492: `const { sendReservationCopyWA } = await import("@/lib/whatsapp/sendReservationCopyWA");`
 
-### 10498-10747
+### 10533-10782
 
-- L10532: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10542: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10560: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10571: `const { cancelReservation } = await import("@/lib/agents/reservations");`
-- L10572: `const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);`
-- L10579: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10616: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10644: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10668: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10681: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10692: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10712: `const { cancelReservation } = await import("@/lib/agents/reservations");`
-- L10713: `const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);`
-- L10720: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10602: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10612: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10630: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10641: `const { cancelReservation } = await import("@/lib/agents/reservations");`
+- L10642: `const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);`
+- L10649: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10686: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10714: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10738: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10751: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10762: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10782: `const { cancelReservation } = await import("@/lib/agents/reservations");`
 
-### 10748-10997
+### 10783-11032
 
-- L10757: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10775: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
-- L10812: `await persistCreateDraft(pre, createDraftSlots);`
-- L10850: `await persistCreateDraft(pre, createDraftSlots);`
-- L10863: `await persistCreateDraft(pre, createDraftSlots);`
-- L10872: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L10898: `await persistModifyExecutionContext(pre, pendingModifyPatch.reservationId, {`
-- L10932: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
-- L10945: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
-- L10954: `finalText = await persistModifyPreviewContext(pre, pendingTarget, updatedPreviewSnapshot);`
-- L10965: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
-- L10975: `finalText = await executeModifyReservationWithSnapshot(pre, pendingTarget.reservationId, currentPreviewSnapshot);`
-- L10979: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10783: `const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);`
+- L10790: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10827: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10845: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L10882: `await persistCreateDraft(pre, createDraftSlots);`
+- L10920: `await persistCreateDraft(pre, createDraftSlots);`
+- L10933: `await persistCreateDraft(pre, createDraftSlots);`
+- L10942: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L10968: `await persistModifyExecutionContext(pre, pendingModifyPatch.reservationId, {`
+- L11002: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L11015: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L11024: `finalText = await persistModifyPreviewContext(pre, pendingTarget, updatedPreviewSnapshot);`
 
-### 10998-11247
+### 11033-11282
 
-- L11021: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11039: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11097: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11111: `finalText = await persistModifyPreviewContext(pre, genericModifyTarget, snapshot);`
-- L11115: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11135: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L11148: `await persistCreateDraft(pre, snapshot as ReservationSlotsStrict);`
-- L11163: `const { confirmAndCreate } = await import("@/lib/agents/reservations");`
-- L11164: `const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);`
-- L11197: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11035: `await persistModifyExecutionContext(pre, pendingTarget.reservationId, {`
+- L11045: `finalText = await executeModifyReservationWithSnapshot(pre, pendingTarget.reservationId, currentPreviewSnapshot);`
+- L11049: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11091: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11109: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11167: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11181: `finalText = await persistModifyPreviewContext(pre, genericModifyTarget, snapshot);`
+- L11185: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11205: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L11218: `await persistCreateDraft(pre, snapshot as ReservationSlotsStrict);`
+- L11233: `const { confirmAndCreate } = await import("@/lib/agents/reservations");`
+- L11234: `const result = await confirmAndCreate(pre.msg.hotelId, snapshot as any, pre.msg.channel);`
+- L11267: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 11248-11497
+### 11283-11532
 
-- L11266: `if (await tryConversationalGuestNameCapture(pre, state)) {`
-- L11300: `const reservationListSource = await resolveReservationListSource(pre);`
-- L11311: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11336: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11352: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11444: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
-- L11455: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L11336: `if (await tryConversationalGuestNameCapture(pre, state)) {`
+- L11370: `const reservationListSource = await resolveReservationListSource(pre);`
+- L11381: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11406: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11422: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L11514: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L11525: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
 
-### 11498-11747
+### 11533-11782
 
-- L11558: `const kbForced = await answerWithKnowledge({`
-- L11567: `finalText = await harmonizeBillingCurrencyAnswer(finalText, kbUserText, pre.msg.hotelId, pre.lang);`
-- L11573: `finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);`
-- L11603: `finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);`
-- L11636: `hasRoomImages: await hotelHasRenderableRoomInventoryVisuals(pre),`
-- L11641: `const richResolved = await runKbPrecedenceRichPath(pre, kbPrecedence.promptKey);`
-- L11661: `const kb = await answerWithKnowledge({`
-- L11709: `await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);`
-- L11744: `await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);`
+- L11628: `const kbForced = await answerWithKnowledge({`
+- L11637: `finalText = await harmonizeBillingCurrencyAnswer(finalText, kbUserText, pre.msg.hotelId, pre.lang);`
+- L11643: `finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);`
+- L11673: `finalText = await buildDeterministicBillingReply(pre.msg.hotelId, pre.lang, kbUserText);`
+- L11706: `hasRoomImages: await hotelHasRenderableRoomInventoryVisuals(pre),`
+- L11711: `const richResolved = await runKbPrecedenceRichPath(pre, kbPrecedence.promptKey);`
+- L11731: `const kb = await answerWithKnowledge({`
+- L11779: `await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);`
 
-### 11748-11997
+### 11783-12032
 
-- L11777: `graphResult = await withTimeout(`
-- L11856: `const rbState = await retrievalBased({`
-- L11887: `await tryBodyLLMStructuredEnrichment(pre, state);`
-- L11903: `await tryBodyLLMStructuredFallback(pre, state);`
-- L11938: `await persistCreateDraft(pre, createGatingSlots);`
-- L11950: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L11982: `await persistCreateLateralCategoryIfNeeded(pre, rawTurnText, dominantTurnDomain, nextCategory);`
+- L11814: `await persistCreateLateralCategoryIfNeeded(pre, kbUserText, dominantTurnDomain, nextCategory);`
+- L11847: `graphResult = await withTimeout(`
+- L11926: `const rbState = await retrievalBased({`
+- L11957: `await tryBodyLLMStructuredEnrichment(pre, state);`
+- L11973: `await tryBodyLLMStructuredFallback(pre, state);`
+- L12008: `await persistCreateDraft(pre, createGatingSlots);`
+- L12020: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 11998-12247
+### 12033-12282
 
-- L12038: `const temporalUserDates = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
-- L12067: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12107: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12131: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, ingestedSlots);`
-- L12158: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12220: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12236: `const userDates = await extractSupportedTemporalDateRange(String(pre.msg.content \|\| ""), pre.lang);`
+- L12052: `await persistCreateLateralCategoryIfNeeded(pre, rawTurnText, dominantTurnDomain, nextCategory);`
+- L12108: `const temporalUserDates = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
+- L12137: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L12177: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L12201: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, previewTarget, ingestedSlots);`
+- L12228: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
 
-### 12248-12497
+### 12283-12532
 
-- L12354: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
-- L12369: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
-- L12426: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12459: `const cons = (await import('./pipeline/dateConsolidation')).consolidateDates({`
+- L12290: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L12306: `const userDates = await extractSupportedTemporalDateRange(String(pre.msg.content \|\| ""), pre.lang);`
+- L12424: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L12439: `const hotel = await getHotelConfigSafe(pre.msg.hotelId);`
+- L12496: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L12529: `const cons = (await import('./pipeline/dateConsolidation')).consolidateDates({`
 
-### 12498-12747
+### 12533-12782
 
-- L12600: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L12614: `await persistCreateDraft(pre, createQuoteSlots);`
-- L12646: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, modifyTarget, modifySnapshot);`
-- L12659: `const res = await finalizeDeterministicCreateProposal({`
-- L12726: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L12740: `await persistCreateDraft(pre, createQuoteSlots);`
+- L12670: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L12684: `await persistCreateDraft(pre, createQuoteSlots);`
+- L12716: `const previewResult = await buildModifyDatesPreviewWithAvailability(pre, modifyTarget, modifySnapshot);`
+- L12729: `const res = await finalizeDeterministicCreateProposal({`
 
-### 12748-12975
+### 12783-13032
 
-- L12752: `const res = await runAvailabilityCheck(availabilityPre, { ...nextSlots }, ciISO, coISO);`
-- L12756: `await persistModifyExecutionContext(pre, modifyReservationId, {`
-- L12774: `const res = await finalizeDeterministicCreateProposal({`
-- L12820: `finalText = await harmonizeBillingCurrencyAnswer(`
-- L12865: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12887: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
-- L12893: `await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);`
-- L12920: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
-- L12939: `await tryUpdateAttributedCreateProposalText({`
+- L12796: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L12810: `await persistCreateDraft(pre, createQuoteSlots);`
+- L12822: `const res = await runAvailabilityCheck(availabilityPre, { ...nextSlots }, ciISO, coISO);`
+- L12826: `await persistModifyExecutionContext(pre, modifyReservationId, {`
+- L12844: `const res = await finalizeDeterministicCreateProposal({`
+- L12890: `finalText = await harmonizeBillingCurrencyAnswer(`
+- L12935: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L12957: `await persistCreateDraftSnapshot(pre, createDraftConsistency.sanitizedSlots);`
+- L12963: `await persistCreateDraft(pre, quotedReservationSnapshot as ReservationSlotsStrict);`
+- L12990: `await updateConversationState(pre.msg.hotelId, pre.conversationId, {`
+- L13009: `await tryUpdateAttributedCreateProposalText({`
+
+### 13033-13045
+
+- sin awaits detectados
 
 
 ---
 
 ## 5. Decisiones por bucket
 
-### 6248-6497
+### 6283-6532
 
-- L6262: `if (correctedGuestName) {`
-- L6304: `if (stableIntent.matched && stableIntent.response && !shouldSuppressStableIntent) {`
-- L6314: `if (stableIntent.intentKey === "farewell") {`
-- L6346: `if (`
-- L6354: `if (continuation) finalText = '${String(finalText \|\| "").trim()} ${continuation}'.trim();`
-- L6356: `if (shouldClearSelectedReservationTargetForCategory(nextCategory, null)) {`
-- L6367: `if (!shouldPreserveModifyTarget) {`
-- L6392: `if (`
-- L6419: `if (rawCreateDateIssue) {`
-- L6432: `if (!isNonReservationFollowup && rawCreateSubFlow === "create" && rawCreateIntent.kind !== "modify" && rawCreateIntent.kind !== "cancel" && hasExplicitCreateContext) {`
-- L6442: `if (dominantTurnDomain.dominant === "pricing" && !dominantTurnDomain.hasReservation) {`
-- L6463: `if (vagueWeekendReservationIntent) {`
-- L6473: `// Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately`
+- L6297: `if (correctedGuestName) {`
+- L6339: `if (stableIntent.matched && stableIntent.response && !shouldSuppressStableIntent) {`
+- L6349: `if (stableIntent.intentKey === "farewell") {`
+- L6381: `if (`
+- L6389: `if (continuation) finalText = '${String(finalText \|\| "").trim()} ${continuation}'.trim();`
+- L6391: `if (shouldClearSelectedReservationTargetForCategory(nextCategory, null)) {`
+- L6402: `if (!shouldPreserveModifyTarget) {`
+- L6427: `if (`
+- L6454: `if (rawCreateDateIssue) {`
+- L6467: `if (!isNonReservationFollowup && rawCreateSubFlow === "create" && rawCreateIntent.kind !== "modify" && rawCreateIntent.kind !== "cancel" && hasExplicitCreateContext) {`
+- L6477: `if (dominantTurnDomain.dominant === "pricing" && !dominantTurnDomain.hasReservation) {`
+- L6498: `if (vagueWeekendReservationIntent) {`
+- L6508: `// Fast-path 0: if the user provides an explicit full date range in the same message, confirm immediately`
 
-### 6498-6747
+### 6533-6782
 
-- L6531: `if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage && !hasCompleteRichCreatePayloadInTurn0) {`
-- L6537: `if (dr0Coherence && !dr0Coherence.ok) {`
-- L6573: `if (shouldBypassRichCreateFastPath \|\| shouldBypassRichModifyFastPath) {`
-- L6577: `if (`
-- L6592: `if (!fastModifyValidation.ok) {`
-- L6593: `if (fastModifyValidation.nextField) {`
-- L6620: `if (availabilityInquiryPolicy0) {`
-- L6623: `if (inquiryMissingField) {`
-- L6647: `if (!availabilityResult.needsHandoff) {`
-- L6670: `if (fastPathSubFlow === "create") {`
-- L6672: `if (!createDraftConsistency.valid) {`
-- L6683: `if (missingField) {`
-- L6694: `if (fastPathSubFlow === "modify") {`
-- L6696: `if (previewTarget?.reservationId) {`
-- L6714: `if (fastPathSubFlow === "modify") {`
-- L6744: `if (ambiguousQuotedProposalConfirmationFast) {`
+- L6566: `if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage && !hasCompleteRichCreatePayloadInTurn0) {`
+- L6572: `if (dr0Coherence && !dr0Coherence.ok) {`
+- L6608: `if (shouldBypassRichCreateFastPath \|\| shouldBypassRichModifyFastPath) {`
+- L6612: `if (`
+- L6627: `if (!fastModifyValidation.ok) {`
+- L6628: `if (fastModifyValidation.nextField) {`
+- L6655: `if (availabilityInquiryPolicy0) {`
+- L6658: `if (inquiryMissingField) {`
+- L6682: `if (!availabilityResult.needsHandoff) {`
+- L6705: `if (fastPathSubFlow === "create") {`
+- L6707: `if (!createDraftConsistency.valid) {`
+- L6718: `if (missingField) {`
+- L6729: `if (fastPathSubFlow === "modify") {`
+- L6731: `if (previewTarget?.reservationId) {`
+- L6749: `if (fastPathSubFlow === "modify") {`
+- L6779: `if (ambiguousQuotedProposalConfirmationFast) {`
 
-### 6748-6997
+### 6783-7032
 
-- L6778: `if (fastPathSubFlow === "create" && !explicitTurnSlotsFast.guestName) {`
-- L6780: `if (safeLeadGuestName) explicitTurnSlotsFast.guestName = safeLeadGuestName;`
-- L6796: `if (currentTurnReadyCreateFast) {`
-- L6801: `if (!createDraftConsistency.valid) {`
-- L6843: `if (!draftInitialization?.accepted) {`
-- L6938: `if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {`
-- L6939: `if (singleFastISO && reservationContextualMissingSideFast) {`
-- L6949: `if (`
-- L6957: `if (!normalizedFastPathSlots.numGuests) {`
-- L6959: `if (explicitGuestCount) normalizedFastPathSlots.numGuests = explicitGuestCount;`
-- L6962: `if (`
-- L6974: `if (inheritedCheckOutCoherence && !inheritedCheckOutCoherence.ok) {`
-- L6980: `if (`
-- L6988: `if (isPastReservationDateISO(coISO) \|\| (checkOutCoherence && !checkOutCoherence.ok)) {`
-- L6994: `if (!sanitizedCreateSlots.numGuests) {`
-- L6996: `if (explicitGuestCount) sanitizedCreateSlots.numGuests = explicitGuestCount;`
+- L6813: `if (fastPathSubFlow === "create" && !explicitTurnSlotsFast.guestName) {`
+- L6815: `if (safeLeadGuestName) explicitTurnSlotsFast.guestName = safeLeadGuestName;`
+- L6831: `if (currentTurnReadyCreateFast) {`
+- L6836: `if (!createDraftConsistency.valid) {`
+- L6878: `if (!draftInitialization?.accepted) {`
+- L6973: `if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {`
+- L6974: `if (singleFastISO && reservationContextualMissingSideFast) {`
+- L6984: `if (`
+- L6992: `if (!normalizedFastPathSlots.numGuests) {`
+- L6994: `if (explicitGuestCount) normalizedFastPathSlots.numGuests = explicitGuestCount;`
+- L6997: `if (`
+- L7009: `if (inheritedCheckOutCoherence && !inheritedCheckOutCoherence.ok) {`
+- L7015: `if (`
+- L7023: `if (isPastReservationDateISO(coISO) \|\| (checkOutCoherence && !checkOutCoherence.ok)) {`
+- L7029: `if (!sanitizedCreateSlots.numGuests) {`
+- L7031: `if (explicitGuestCount) sanitizedCreateSlots.numGuests = explicitGuestCount;`
 
-### 6998-7247
+### 7033-7282
 
-- L7011: `if (availabilityInquiryPolicyFast) {`
-- L7014: `if (inquiryMissingField) {`
-- L7033: `if (ciISO && coISO) {`
-- L7039: `if (!availabilityResult.needsHandoff) {`
-- L7063: `if (fastPathSubFlow === "create") {`
-- L7071: `if (!createDraftConsistency.valid) {`
-- L7083: `if (missingField) {`
-- L7092: `if (canAutoQuoteCreateFast && isCreateStateReadyForQuote(normalizedFastPathSlots) && ciISO && coISO) {`
-- L7111: `if (ciISO && coISO) {`
-- L7112: `if (fastPathSubFlow === "modify") {`
-- L7114: `if (previewTarget?.reservationId) {`
-- L7132: `if (fastPathSubFlow === "modify") {`
-- L7156: `if (singleFastISO && fastPathSubFlow === "modify" && fastTemporalSideIntent) {`
-- L7192: `if (`
-- L7205: `if (`
-- L7222: `if (drFast.checkIn && !explicitCheckOutFast && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {`
-- L7231: `if (last instanceof HumanMessage) {`
-- L7233: `if (lastTxt.trim() === userTxtFast.trim()) hist.pop();`
-- L7238: `if (prevISO && currISO) {`
+- L7046: `if (availabilityInquiryPolicyFast) {`
+- L7049: `if (inquiryMissingField) {`
+- L7068: `if (ciISO && coISO) {`
+- L7074: `if (!availabilityResult.needsHandoff) {`
+- L7098: `if (fastPathSubFlow === "create") {`
+- L7106: `if (!createDraftConsistency.valid) {`
+- L7118: `if (missingField) {`
+- L7127: `if (canAutoQuoteCreateFast && isCreateStateReadyForQuote(normalizedFastPathSlots) && ciISO && coISO) {`
+- L7146: `if (ciISO && coISO) {`
+- L7147: `if (fastPathSubFlow === "modify") {`
+- L7149: `if (previewTarget?.reservationId) {`
+- L7167: `if (fastPathSubFlow === "modify") {`
+- L7191: `if (singleFastISO && fastPathSubFlow === "modify" && fastTemporalSideIntent) {`
+- L7227: `if (`
+- L7240: `if (`
+- L7257: `if (drFast.checkIn && !explicitCheckOutFast && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {`
+- L7266: `if (last instanceof HumanMessage) {`
+- L7268: `if (lastTxt.trim() === userTxtFast.trim()) hist.pop();`
+- L7273: `if (prevISO && currISO) {`
 
-### 7248-7497
+### 7283-7532
 
-- L7249: `if (fastPathSubFlow === "create") {`
-- L7257: `if (!createDraftConsistency.valid) {`
-- L7268: `if (missingField) {`
-- L7278: `if (canAutoQuoteCreateFast) {`
-- L7297: `if (fastPathSubFlow === "modify") {`
-- L7299: `if (previewTarget?.reservationId) {`
-- L7317: `if (fastPathSubFlow === "modify") {`
-- L7338: `if (modifyContextActiveFast) {`
-- L7368: `if (`
-- L7385: `if (hasValueForQueuedField) {`
-- L7388: `if (nextQueuedModifyState) {`
-- L7423: `if (explicitModifyExitFast) {`
-- L7489: `if (genericModify && (resolutionFast.status === "ambiguous" \|\| resolutionFast.status === "out_of_range")) {`
+- L7284: `if (fastPathSubFlow === "create") {`
+- L7292: `if (!createDraftConsistency.valid) {`
+- L7303: `if (missingField) {`
+- L7313: `if (canAutoQuoteCreateFast) {`
+- L7332: `if (fastPathSubFlow === "modify") {`
+- L7334: `if (previewTarget?.reservationId) {`
+- L7352: `if (fastPathSubFlow === "modify") {`
+- L7373: `if (modifyContextActiveFast) {`
+- L7403: `if (`
+- L7422: `if (satisfiedQueuedFields.length > 0) {`
+- L7426: `if (nextQueuedModifyState) {`
+- L7449: `if (!previewTarget?.reservationId) {`
+- L7460: `if (!snapshotValidation.ok) {`
+- L7461: `if (snapshotValidation.nextField) {`
+- L7475: `if (queuedFields.includes("dates")) {`
+- L7505: `if (explicitModifyExitFast) {`
 
-### 7498-7747
+### 7533-7782
 
-- L7501: `if (`
-- L7529: `if (`
-- L7555: `if (`
-- L7571: `if (!fastInlineValidation.ok) {`
-- L7572: `if (fastInlineValidation.nextField) {`
-- L7599: `if (`
-- L7611: `if (activeFieldFast) {`
-- L7644: `if (`
-- L7683: `if (canOpenModifyMenu) {`
-- L7706: `if (resolvedFastReservationTarget?.reservationId) {`
-- L7720: `if (pre.prevCategory === 'send_email_copy') {`
-- L7724: `if (wantsWhatsApp) {`
-- L7727: `if (phoneMatchWA) {`
-- L7730: `if (norm.normalized) {`
-- L7746: `if (isWhatsAppReady()) {`
+- L7571: `if (genericModify && (resolutionFast.status === "ambiguous" \|\| resolutionFast.status === "out_of_range")) {`
+- L7583: `if (`
+- L7611: `if (`
+- L7637: `if (`
+- L7653: `if (!fastInlineValidation.ok) {`
+- L7654: `if (fastInlineValidation.nextField) {`
+- L7681: `if (`
+- L7693: `if (activeFieldFast) {`
+- L7726: `if (`
+- L7765: `if (canOpenModifyMenu) {`
 
-### 7748-7997
+### 7783-8032
 
-- L7750: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L7751: `if (requestId) {`
-- L7756: `if (ack) break;`
-- L7794: `if (wantsEscalate) {`
-- L7804: `if (emailInMsg \|\| wantsRetry) {`
-- L7805: `if (!lastEmail) {`
-- L7814: `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso; };`
-- L7826: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
-- L7827: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
-- L7842: `if (cLoop.isNotConfigured \|\| cLoop.isQuota) {`
-- L7847: `if (attempt < 2 && !sent) await new Promise(r => setTimeout(r, 150));`
-- L7850: `if (sent) {`
-- L7866: `if (prevFailures >= escalationThreshold) {`
-- L7877: `if (isNotConfigured) {`
-- L7883: `} else if (isQuota) {`
-- L7964: `if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget && !shouldPreserveReservationSelectionForOverride) {`
+- L7788: `if (resolvedFastReservationTarget?.reservationId) {`
+- L7802: `if (pre.prevCategory === 'send_email_copy') {`
+- L7806: `if (wantsWhatsApp) {`
+- L7809: `if (phoneMatchWA) {`
+- L7812: `if (norm.normalized) {`
+- L7828: `if (isWhatsAppReady()) {`
+- L7832: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L7833: `if (requestId) {`
+- L7838: `if (ack) break;`
+- L7876: `if (wantsEscalate) {`
+- L7886: `if (emailInMsg \|\| wantsRetry) {`
+- L7887: `if (!lastEmail) {`
+- L7896: `const toDDMMYYYY = (iso?: string) => { if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso; };`
+- L7908: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
+- L7909: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
+- L7924: `if (cLoop.isNotConfigured \|\| cLoop.isQuota) {`
+- L7929: `if (attempt < 2 && !sent) await new Promise(r => setTimeout(r, 150));`
+- L7932: `if (sent) {`
+- L7948: `if (prevFailures >= escalationThreshold) {`
+- L7959: `if (isNotConfigured) {`
+- L7965: `} else if (isQuota) {`
 
-### 7998-8247
+### 8033-8282
 
-- L8012: `if (awaitingModifyPreviewConfirmationEarly && pendingModifyPatchEarly?.reservationId) {`
-- L8020: `if (competingPendingCancellation?.reservationId && competingPendingCancellation.awaitingConfirmation) {`
-- L8040: `if (!pendingTarget?.reservationId \|\| pendingTarget.reservationStatus === "cancelled" \|\| pendingTarget.reservationStatus === "error") {`
-- L8066: `if (explicitPreviewRejection) {`
-- L8085: `if (barePreviewCancellation) {`
-- L8104: `if (wantsReservationCancellationFromPreview) {`
-- L8127: `if (`
-- L8204: `if (previewReject) {`
-- L8223: `if (hasPreviewCorrections && !previewConfirm) {`
-- L8225: `if (!previewValidation.ok) {`
-- L8239: `if (!previewConfirm) {`
-- L8245: `if (!previewValidation.ok) {`
+- L8046: `if (looksNonReservationDomainTurn && pre.st?.selectedReservationTarget && !shouldPreserveReservationSelectionForOverride) {`
+- L8094: `if (awaitingModifyPreviewConfirmationEarly && pendingModifyPatchEarly?.reservationId) {`
+- L8102: `if (competingPendingCancellation?.reservationId && competingPendingCancellation.awaitingConfirmation) {`
+- L8122: `if (!pendingTarget?.reservationId \|\| pendingTarget.reservationStatus === "cancelled" \|\| pendingTarget.reservationStatus === "error") {`
+- L8148: `if (explicitPreviewRejection) {`
+- L8167: `if (barePreviewCancellation) {`
+- L8186: `if (wantsReservationCancellationFromPreview) {`
+- L8209: `if (`
 
-### 8248-8497
+### 8283-8532
 
-- L8282: `if (`
-- L8297: `if (`
-- L8336: `if (`
-- L8344: `if (`
-- L8380: `if (explicitModifyExit) {`
-- L8459: `if (`
-- L8470: `if (`
-- L8483: `if (`
+- L8286: `if (previewReject) {`
+- L8305: `if (hasPreviewCorrections && !previewConfirm) {`
+- L8307: `if (!previewValidation.ok) {`
+- L8321: `if (!previewConfirm) {`
+- L8327: `if (!previewValidation.ok) {`
+- L8364: `if (`
+- L8379: `if (`
+- L8418: `if (`
+- L8426: `if (`
+- L8462: `if (explicitModifyExit) {`
 
-### 8498-8747
+### 8533-8782
 
-- L8514: `if (`
-- L8522: `if (ambiguousReservationAction) {`
-- L8523: `if (ambiguousReservationAction === "modify") {`
-- L8546: `if (`
-- L8590: `if (`
-- L8605: `if (targetId && target) {`
-- L8630: `if (effectiveSnapshotQueryKind === "list") {`
-- L8654: `if (effectiveSnapshotQueryKind && !resolvedSnapshotTarget) {`
-- L8656: `if (localConfirmed.length === 0) {`
-- L8660: `if (candidates.length === 1) {`
-- L8681: `} else if (candidates.length > 1) {`
-- L8694: `if (finalText) {`
-- L8704: `if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {`
-- L8739: `if (modifyFocusActiveEarly && explicitReservationCode && !explicitIdReservationTarget && !explicitOrdinalReservationTarget) {`
+- L8541: `if (`
+- L8552: `if (`
+- L8565: `if (`
+- L8596: `if (`
+- L8604: `if (ambiguousReservationAction) {`
+- L8605: `if (ambiguousReservationAction === "modify") {`
+- L8628: `if (`
+- L8672: `if (`
+- L8687: `if (targetId && target) {`
+- L8712: `if (effectiveSnapshotQueryKind === "list") {`
+- L8736: `if (effectiveSnapshotQueryKind && !resolvedSnapshotTarget) {`
+- L8738: `if (localConfirmed.length === 0) {`
+- L8742: `if (candidates.length === 1) {`
+- L8763: `} else if (candidates.length > 1) {`
+- L8776: `if (finalText) {`
 
-### 8748-8997
+### 8783-9032
 
-- L8793: `if (`
-- L8798: `if (!target?.reservationId) {`
-- L8802: `if (target.reservationStatus === "cancelled" \|\| target.reservationStatus === "error") {`
-- L8819: `if (wantsConfirmedHolderChange) {`
-- L8872: `if (!hasImmediateModifyValue && hasExplicitModifyFieldRequest && hasExplicitModifyTarget) {`
-- L8879: `if (activeField) {`
-- L8892: `if (hasImmediateModifyValue && hasExplicitModifyTarget && target.reservationId && directImmediateModifyFields.length > 0) {`
-- L8902: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
-- L8909: `if (nextRoomTypeForCapacity && hasValidGuestCount) {`
-- L8911: `if (capacity > 0 && nextGuestCountNumber > capacity) {`
-- L8943: `if (!hasImmediateModifyValue && hasTemporalModifySignal) {`
-- L8967: `if (!hasImmediateModifyValue) {`
-- L8980: `if (`
+- L8786: `if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {`
+- L8821: `if (modifyFocusActiveEarly && explicitReservationCode && !explicitIdReservationTarget && !explicitOrdinalReservationTarget) {`
+- L8875: `if (`
+- L8880: `if (!target?.reservationId) {`
+- L8884: `if (target.reservationStatus === "cancelled" \|\| target.reservationStatus === "error") {`
+- L8901: `if (wantsConfirmedHolderChange) {`
+- L8954: `if (!hasImmediateModifyValue && hasExplicitModifyFieldRequest && hasExplicitModifyTarget) {`
+- L8961: `if (activeField) {`
+- L8974: `if (hasImmediateModifyValue && hasExplicitModifyTarget && target.reservationId && directImmediateModifyFields.length > 0) {`
+- L8984: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
+- L8991: `if (nextRoomTypeForCapacity && hasValidGuestCount) {`
+- L8993: `if (capacity > 0 && nextGuestCountNumber > capacity) {`
+- L9025: `if (!hasImmediateModifyValue && hasTemporalModifySignal) {`
 
-### 8998-9247
+### 9033-9282
 
-- L9021: `if (`
-- L9112: `if (`
-- L9148: `if (!previewTarget?.reservationId) {`
-- L9159: `if (activeModifyField === "dates" && hasModifyDateCorrection) {`
-- L9169: `if (correctedTemporalISO) {`
-- L9174: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
-- L9205: `if (!previewTarget?.reservationId) {`
-- L9217: `if (!hasTurnLevelModifyValue && !awaitingModifyExecutionContinuation) {`
-- L9222: `if (activeModifyField === "guests" && nextGuestCount) {`
-- L9223: `if (!codeFromModifySubstate) {`
-- L9229: `if (baseRoomType && hasValidGuestCount) {`
-- L9231: `if (capacity > 0 && nextGuestCountNumber > capacity) {`
+- L9049: `if (!hasImmediateModifyValue) {`
+- L9062: `if (`
+- L9103: `if (`
+- L9129: `if (explicitGuestCount && !explicitModifyTurnSlots.numGuests) {`
+- L9199: `if (`
+- L9235: `if (!previewTarget?.reservationId) {`
+- L9246: `if (activeModifyField === "dates" && hasModifyDateCorrection) {`
+- L9256: `if (correctedTemporalISO) {`
+- L9261: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
 
-### 9248-9497
+### 9283-9532
 
-- L9251: `if (queuedModifyState) {`
-- L9280: `if (!previewTarget?.reservationId) {`
-- L9289: `if (activeModifyField === "roomType" && nextRoomType && String(nextRoomType) !== String(pre.st?.reservationSlots?.roomType \|\| "")) {`
-- L9290: `if (!codeFromModifySubstate) {`
-- L9295: `if (queuedModifyState) {`
-- L9324: `if (!previewTarget?.reservationId) {`
-- L9333: `if (activeModifyField === "dates" && hasExplicitDateRange && nextCheckIn && nextCheckOut) {`
-- L9334: `if (!codeFromModifySubstate) {`
-- L9339: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
-- L9344: `if (queuedModifyState) {`
-- L9374: `if (!previewTarget?.reservationId) {`
-- L9385: `if (awaitingModifyExecutionContinuation) {`
-- L9404: `if (additionalReservationIntent && hasConfirmedBookingContext) {`
-- L9433: `if (hasCheckIn && !hasCheckOut) {`
-- L9441: `if (!hasCheckIn && hasCheckOut) {`
-- L9449: `if (hasCheckIn && hasCheckOut) {`
-- L9451: `if (missingField) {`
+- L9292: `if (!previewTarget?.reservationId) {`
+- L9304: `if (!hasTurnLevelModifyValue && !awaitingModifyExecutionContinuation) {`
+- L9309: `if (activeModifyField === "guests" && nextGuestCount) {`
+- L9310: `if (!codeFromModifySubstate) {`
+- L9319: `if (!previewTarget?.reservationId) {`
+- L9325: `if (!snapshotValidation.ok) {`
+- L9334: `if (queuedModifyState) {`
+- L9358: `if (activeModifyField === "roomType" && explicitModifyTurnSlots.roomType) {`
+- L9359: `if (!codeFromModifySubstate) {`
+- L9368: `if (!previewTarget?.reservationId) {`
+- L9374: `if (!snapshotValidation.ok) {`
+- L9383: `if (queuedModifyState) {`
+- L9407: `if (activeModifyField === "dates" && hasExplicitDateRange && nextCheckIn && nextCheckOut) {`
+- L9408: `if (!codeFromModifySubstate) {`
+- L9413: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
+- L9418: `if (queuedModifyState) {`
+- L9440: `if (!previewTarget?.reservationId) {`
+- L9455: `if (awaitingModifyExecutionContinuation) {`
+- L9474: `if (additionalReservationIntent && hasConfirmedBookingContext) {`
+- L9503: `if (hasCheckIn && !hasCheckOut) {`
+- L9511: `if (!hasCheckIn && hasCheckOut) {`
+- L9519: `if (hasCheckIn && hasCheckOut) {`
+- L9521: `if (missingField) {`
 
-### 9498-9747
+### 9533-9782
 
-- L9503: `if (shouldHandleAvailabilityInquiry) {`
-- L9505: `if (inquiryMissingField) {`
-- L9529: `if (inquiryCheckIn && inquiryCheckOut) {`
-- L9531: `if (inquiryDateCoherence && !inquiryDateCoherence.ok) {`
-- L9540: `if (!availabilityResult.needsHandoff) {`
-- L9560: `if (availabilityInquiryAmbiguousAdvance) {`
-- L9614: `if (!createDraftConsistency.valid) {`
-- L9660: `if (draftHolderCorrectionActive) {`
-- L9664: `if (!holderCandidate) {`
-- L9697: `if (shouldQuoteUpdatedHolder) {`
-- L9728: `if (`
-- L9740: `if (readyCreateDateCoherence && !readyCreateDateCoherence.ok) {`
+- L9573: `if (shouldHandleAvailabilityInquiry) {`
+- L9575: `if (inquiryMissingField) {`
+- L9599: `if (inquiryCheckIn && inquiryCheckOut) {`
+- L9601: `if (inquiryDateCoherence && !inquiryDateCoherence.ok) {`
+- L9610: `if (!availabilityResult.needsHandoff) {`
+- L9630: `if (availabilityInquiryAmbiguousAdvance) {`
+- L9684: `if (!createDraftConsistency.valid) {`
+- L9730: `if (draftHolderCorrectionActive) {`
+- L9734: `if (!holderCandidate) {`
+- L9767: `if (shouldQuoteUpdatedHolder) {`
 
-### 9748-9997
+### 9783-10032
 
-- L9755: `if (pendingCreateProposal && !modifyExecutionActive) {`
-- L9765: `if (quotedReplyIsNegative) {`
-- L9772: `if (!strictQuotedConfirmation && quotedReplyHasConfirmWord) {`
-- L9777: `if (!strictQuotedConfirmation && quotedReplyIsBareAffirmative) {`
-- L9786: `if (!strictQuotedConfirmation) {`
-- L9809: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
-- L9812: `if (typeof startWeekday !== "number" \|\| typeof endWeekday !== "number") return {};`
-- L9873: `if (hasQuotedProposalCorrection) {`
-- L9875: `if (!quotedDraftConsistency.valid) {`
-- L9886: `if (!isCreateStateReadyForQuote(quotedDraftConsistency.sanitizedSlots)) {`
-- L9903: `if (hasQuotedProposalDateCorrection && requoteCheckIn && requoteCheckOut) {`
-- L9905: `if (requoteCoherence && !requoteCoherence.ok) {`
-- L9932: `if (`
-- L9967: `if (`
-- L9983: `if (`
+- L9798: `if (`
+- L9810: `if (readyCreateDateCoherence && !readyCreateDateCoherence.ok) {`
+- L9825: `if (pendingCreateProposal && !modifyExecutionActive) {`
+- L9835: `if (quotedReplyIsNegative) {`
+- L9842: `if (!strictQuotedConfirmation && quotedReplyHasConfirmWord) {`
+- L9847: `if (!strictQuotedConfirmation && quotedReplyIsBareAffirmative) {`
+- L9856: `if (!strictQuotedConfirmation) {`
+- L9879: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
+- L9882: `if (typeof startWeekday !== "number" \|\| typeof endWeekday !== "number") return {};`
+- L9943: `if (hasQuotedProposalCorrection) {`
+- L9945: `if (!quotedDraftConsistency.valid) {`
+- L9956: `if (!isCreateStateReadyForQuote(quotedDraftConsistency.sanitizedSlots)) {`
+- L9973: `if (hasQuotedProposalDateCorrection && requoteCheckIn && requoteCheckOut) {`
+- L9975: `if (requoteCoherence && !requoteCoherence.ok) {`
+- L10002: `if (`
 
-### 9998-10247
+### 10033-10282
 
-- L10001: `if (`
-- L10035: `if (emailAskRE.test(userTxtRaw)) {`
-- L10038: `if (!email) {`
-- L10047: `if (!iso) return iso;`
-- L10060: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
-- L10061: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
-- L10068: `lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150));`
-- L10071: `if (sentOK) {`
-- L10107: `if (!emailAskRE.test(userTxtRaw) && recentReservationMention && lightVerb && (hasEmailAddr \|\| mentionsEmailWord)) {`
-- L10109: `if (!explicitEmail) {`
-- L10118: `if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
+- L10037: `if (`
+- L10053: `if (`
+- L10071: `if (`
+- L10105: `if (emailAskRE.test(userTxtRaw)) {`
+- L10108: `if (!email) {`
+- L10117: `if (!iso) return iso;`
 - L10130: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
 - L10131: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
-- L10137: `} catch (err) { lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150)); }`
-- L10139: `if (sentOK) {`
-- L10173: `if (!waAskRE.test(userTxtRaw) && waLightAskRE.test(userTxtRaw) && (pre.st?.lastReservation \|\| recentReservationMention)) {`
-- L10178: `if (!jid) {`
-- L10180: `if (phoneInline) {`
-- L10182: `if (attempt.normalized) {`
-- L10198: `if (isWhatsAppReady()) {`
-- L10202: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L10204: `if (requestId) {`
-- L10209: `if (ack) break;`
-- L10224: `if (code !== 'WA_NOT_READY') {`
+- L10138: `lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150));`
+- L10141: `if (sentOK) {`
+- L10177: `if (!emailAskRE.test(userTxtRaw) && recentReservationMention && lightVerb && (hasEmailAddr \|\| mentionsEmailWord)) {`
+- L10179: `if (!explicitEmail) {`
+- L10188: `if (!iso) return iso; const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? '${m[3]}/${m[2]}/${m[1]}' : iso;`
+- L10200: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
+- L10201: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
+- L10207: `} catch (err) { lastErr = err; attempt++; if (attempt < 2) await new Promise(r => setTimeout(r, 150)); }`
+- L10209: `if (sentOK) {`
+- L10243: `if (!waAskRE.test(userTxtRaw) && waLightAskRE.test(userTxtRaw) && (pre.st?.lastReservation \|\| recentReservationMention)) {`
+- L10248: `if (!jid) {`
+- L10250: `if (phoneInline) {`
+- L10252: `if (attempt.normalized) {`
+- L10268: `if (isWhatsAppReady()) {`
+- L10272: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L10274: `if (requestId) {`
+- L10279: `if (ack) break;`
 
-### 10248-10497
+### 10283-10532
 
-- L10256: `if (isWhatsAppReady()) {`
-- L10260: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L10261: `if (requestId) {`
-- L10266: `if (ack) break;`
-- L10280: `if (code !== 'WA_NOT_READY') {`
-- L10293: `if (waAskRE.test(userTxtRaw)) {`
-- L10299: `if (!jid) {`
-- L10302: `if (phoneInline) {`
-- L10304: `if (attempt.normalized) {`
-- L10320: `if (isWhatsAppReady()) {`
-- L10324: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L10325: `if (requestId) {`
-- L10330: `if (ack) break;`
-- L10345: `if (code !== 'WA_NOT_READY') {`
-- L10378: `if (isWhatsAppReady()) {`
-- L10382: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L10383: `if (requestId) {`
-- L10388: `if (ack) break;`
-- L10402: `if (code !== 'WA_NOT_READY') {`
-- L10415: `if (pre.prevCategory === "send_whatsapp_copy") {`
-- L10417: `if (phoneMatch) {`
-- L10419: `if (digits.length >= 6) {`
-- L10434: `if (isWhatsAppReady()) {`
-- L10438: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
-- L10439: `if (requestId) {`
-- L10444: `if (ack) break;`
-- L10459: `if (code !== 'WA_NOT_READY') {`
+- L10294: `if (code !== 'WA_NOT_READY') {`
+- L10326: `if (isWhatsAppReady()) {`
+- L10330: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L10331: `if (requestId) {`
+- L10336: `if (ack) break;`
+- L10350: `if (code !== 'WA_NOT_READY') {`
+- L10363: `if (waAskRE.test(userTxtRaw)) {`
+- L10369: `if (!jid) {`
+- L10372: `if (phoneInline) {`
+- L10374: `if (attempt.normalized) {`
+- L10390: `if (isWhatsAppReady()) {`
+- L10394: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L10395: `if (requestId) {`
+- L10400: `if (ack) break;`
+- L10415: `if (code !== 'WA_NOT_READY') {`
+- L10448: `if (isWhatsAppReady()) {`
+- L10452: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L10453: `if (requestId) {`
+- L10458: `if (ack) break;`
+- L10472: `if (code !== 'WA_NOT_READY') {`
+- L10485: `if (pre.prevCategory === "send_whatsapp_copy") {`
+- L10487: `if (phoneMatch) {`
+- L10489: `if (digits.length >= 6) {`
+- L10504: `if (isWhatsAppReady()) {`
+- L10508: `if (!published) throw Object.assign(new Error('Remote dispatch publish failed'), { code: 'WA_REMOTE_DISPATCH_FAILED' });`
+- L10509: `if (requestId) {`
+- L10514: `if (ack) break;`
+- L10529: `if (code !== 'WA_NOT_READY') {`
 
-### 10498-10747
+### 10533-10782
 
-- L10529: `if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {`
-- L10531: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
-- L10557: `if (pendingCancellation?.reservationId && pendingCancellation.awaitingConfirmation && isPureConfirm(userTxtRaw)) {`
-- L10559: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
-- L10629: `if (wantsCancel) {`
-- L10630: `if (`
-- L10663: `if (!resolvedCancelCode) {`
-- L10664: `if (reservationReference.status === "ambiguous" \|\| reservationReference.status === "out_of_range") {`
-- L10680: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
-- L10691: `if (!(isPureConfirm(userTxtRaw) \|\| hasInlineCancelConfirmation)) {`
+- L10599: `if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {`
+- L10601: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
+- L10627: `if (pendingCancellation?.reservationId && pendingCancellation.awaitingConfirmation && isPureConfirm(userTxtRaw)) {`
+- L10629: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
+- L10699: `if (wantsCancel) {`
+- L10700: `if (`
+- L10733: `if (!resolvedCancelCode) {`
+- L10734: `if (reservationReference.status === "ambiguous" \|\| reservationReference.status === "out_of_range") {`
+- L10750: `if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {`
+- L10761: `if (!(isPureConfirm(userTxtRaw) \|\| hasInlineCancelConfirmation)) {`
 
-### 10748-10997
+### 10783-11032
 
-- L10772: `if (offeredTimeSide && isPureAffirmative(userTxtRaw, pre.lang)) {`
-- L10778: `if (time && typeof time === "string") {`
-- L10805: `if (`
-- L10822: `if (`
-- L10834: `if (`
-- L10840: `if (!isReservationConfirmable && !modifyExecutionActive && !hasCreateQuoteConfirmationContext) {`
-- L10841: `if (reservationFlow === "confirmed") {`
-- L10846: `: "There is already a confirmed booking on this conversation. Tell me if you want to modify or cancel it.";`
-- L10849: `if (activeCreateFlow && nextCreateMissingField) {`
-- L10861: `if (!hasGuests) {`
-- L10862: `if (activeCreateFlow && pre.msg.channel === "email" && nextCreateMissingField) {`
-- L10870: `if (!hasGuestName) {`
-- L10871: `if (!modifyExecutionActive) {`
-- L10891: `if (modifyExecutionActive) {`
-- L10895: `if (awaitingModifyPreviewConfirmation && pendingModifyPatch?.reservationId) {`
-- L10897: `if (!pendingTarget?.reservationId \|\| pendingTarget.reservationStatus === "cancelled" \|\| pendingTarget.reservationStatus === "error") {`
-- L10931: `if (previewReject) {`
-- L10942: `if (hasPreviewCorrections && !previewConfirm) {`
-- L10944: `if (!previewValidation.ok) {`
-- L10958: `if (!previewConfirm) {`
-- L10964: `if (!previewValidation.ok) {`
+- L10842: `if (offeredTimeSide && isPureAffirmative(userTxtRaw, pre.lang)) {`
+- L10848: `if (time && typeof time === "string") {`
+- L10875: `if (`
+- L10892: `if (`
+- L10904: `if (`
+- L10910: `if (!isReservationConfirmable && !modifyExecutionActive && !hasCreateQuoteConfirmationContext) {`
+- L10911: `if (reservationFlow === "confirmed") {`
+- L10916: `: "There is already a confirmed booking on this conversation. Tell me if you want to modify or cancel it.";`
+- L10919: `if (activeCreateFlow && nextCreateMissingField) {`
+- L10931: `if (!hasGuests) {`
+- L10932: `if (activeCreateFlow && pre.msg.channel === "email" && nextCreateMissingField) {`
+- L10940: `if (!hasGuestName) {`
+- L10941: `if (!modifyExecutionActive) {`
+- L10961: `if (modifyExecutionActive) {`
+- L10965: `if (awaitingModifyPreviewConfirmation && pendingModifyPatch?.reservationId) {`
+- L10967: `if (!pendingTarget?.reservationId \|\| pendingTarget.reservationStatus === "cancelled" \|\| pendingTarget.reservationStatus === "error") {`
+- L11001: `if (previewReject) {`
+- L11012: `if (hasPreviewCorrections && !previewConfirm) {`
+- L11014: `if (!previewValidation.ok) {`
+- L11028: `if (!previewConfirm) {`
 
-### 10998-11247
+### 11033-11282
 
-- L11011: `if (`
-- L11019: `if (!hasChanges) {`
-- L11020: `if (hasDraftHolderCorrectionIntent(userTxtRaw)) {`
-- L11062: `if (!codeFromUser) {`
-- L11063: `if (reservationReference.status === "ambiguous" \|\| reservationReference.status === "out_of_range") {`
-- L11070: `if (!hasChanges) {`
-- L11077: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
-- L11082: `if (!genericModifyTarget?.reservationId \|\| genericModifyTarget.reservationStatus === "cancelled" \|\| genericModifyTarget.reservationStatus === "error") {`
-- L11095: `if (!genericModifyValidation.ok) {`
-- L11096: `if (genericModifyValidation.nextField) {`
-- L11128: `if (hasCreateQuoteConfirmationContext) {`
-- L11134: `if (!createDraftConsistency.valid) {`
-- L11145: `if (!isCreateStateReadyForQuote(snapshot as ReservationSlotsStrict)) {`
-- L11147: `if (missingField) {`
-- L11153: `if (!snapshot.roomType \|\| !snapshot.checkIn \|\| !snapshot.checkOut) {`
-- L11158: `if (createDateCoherence && !createDateCoherence.ok) {`
-- L11168: `if (result.ok && hasReservationId && providerReservation) {`
-- L11218: `if (canonicalRecordForReply) {`
+- L11034: `if (!previewValidation.ok) {`
+- L11081: `if (`
+- L11089: `if (!hasChanges) {`
+- L11090: `if (hasDraftHolderCorrectionIntent(userTxtRaw)) {`
+- L11132: `if (!codeFromUser) {`
+- L11133: `if (reservationReference.status === "ambiguous" \|\| reservationReference.status === "out_of_range") {`
+- L11140: `if (!hasChanges) {`
+- L11147: `if (modifyDateCoherence && !modifyDateCoherence.ok) {`
+- L11152: `if (!genericModifyTarget?.reservationId \|\| genericModifyTarget.reservationStatus === "cancelled" \|\| genericModifyTarget.reservationStatus === "error") {`
+- L11165: `if (!genericModifyValidation.ok) {`
+- L11166: `if (genericModifyValidation.nextField) {`
+- L11198: `if (hasCreateQuoteConfirmationContext) {`
+- L11204: `if (!createDraftConsistency.valid) {`
+- L11215: `if (!isCreateStateReadyForQuote(snapshot as ReservationSlotsStrict)) {`
+- L11217: `if (missingField) {`
+- L11223: `if (!snapshot.roomType \|\| !snapshot.checkIn \|\| !snapshot.checkOut) {`
+- L11228: `if (createDateCoherence && !createDateCoherence.ok) {`
+- L11238: `if (result.ok && hasReservationId && providerReservation) {`
 
-### 11248-11497
+### 11283-11532
 
-- L11266: `if (await tryConversationalGuestNameCapture(pre, state)) {`
-- L11270: `if (!tryBodyLLMTestGreetingFastpath(pre, state)) {`
-- L11294: `if (`
-- L11303: `if (postBookingSnapshotQ === "list") {`
-- L11320: `if (candidates.length === 1) {`
-- L11345: `if (candidates.length > 1) {`
-- L11362: `if (postBookingSnapshotQ && !hasConfirmedBookingContext) {`
-- L11371: `if (`
-- L11380: `if (`
-- L11386: `if (postBookingSnapshotQ === "list") {`
-- L11438: `if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {`
-- L11443: `if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {`
-- L11453: `if (postBookingTimeQ && hasConfirmedBookingContext) {`
+- L11288: `if (canonicalRecordForReply) {`
+- L11336: `if (await tryConversationalGuestNameCapture(pre, state)) {`
+- L11340: `if (!tryBodyLLMTestGreetingFastpath(pre, state)) {`
+- L11364: `if (`
+- L11373: `if (postBookingSnapshotQ === "list") {`
+- L11390: `if (candidates.length === 1) {`
+- L11415: `if (candidates.length > 1) {`
+- L11432: `if (postBookingSnapshotQ && !hasConfirmedBookingContext) {`
+- L11441: `if (`
+- L11450: `if (`
+- L11456: `if (postBookingSnapshotQ === "list") {`
+- L11508: `if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {`
+- L11513: `if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {`
+- L11523: `if (postBookingTimeQ && hasConfirmedBookingContext) {`
 
-### 11498-11747
+### 11533-11782
 
-- L11551: `if (wantsNearby) {`
-- L11554: `if (looksBillingByRule) {`
-- L11565: `if (kbForced.ok && forcedText) {`
-- L11572: `if (/(actividad\|actividades\|zona\|lugares para visitar\|restaurants? cercanos\|atracciones)/i.test(finalText)) {`
-- L11602: `if (!forcedBillingResolved) {`
-- L11625: `if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {`
-- L11627: `if (skipKbFastpath) {`
-- L11640: `if (kbPrecedence?.promptKey === "room_info_img" && !kbPrecedence.defersToRuntimeAction) {`
-- L11642: `if (richResolved) {`
-- L11678: `if (kb.ok && safeCat && text) {`
-- L11693: `if (`
-- L11705: `if (continuation) {`
-- L11738: `if (pureCreateLateralTurn && !pureCreateLateralKbResolved) {`
-- L11740: `if (failsafeReply) {`
+- L11621: `if (wantsNearby) {`
+- L11624: `if (looksBillingByRule) {`
+- L11635: `if (kbForced.ok && forcedText) {`
+- L11642: `if (/(actividad\|actividades\|zona\|lugares para visitar\|restaurants? cercanos\|atracciones)/i.test(finalText)) {`
+- L11672: `if (!forcedBillingResolved) {`
+- L11695: `if (!hasReservationContext && !wantsNearby && !looksEventIntent && !looksTransactionalPricing) {`
+- L11697: `if (skipKbFastpath) {`
+- L11710: `if (kbPrecedence?.promptKey === "room_info_img" && !kbPrecedence.defersToRuntimeAction) {`
+- L11712: `if (richResolved) {`
+- L11748: `if (kb.ok && safeCat && text) {`
+- L11763: `if (`
+- L11775: `if (continuation) {`
 
-### 11748-11997
+### 11783-12032
 
-- L11801: `if (nextCategory === "reservation" && finalText) {`
-- L11835: `if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {`
-- L11853: `if (noContent && isNearby) {`
-- L11869: `if (rbRich) explicitRich = rbRich;`
-- L11870: `if (rbText) {`
-- L11913: `if (!finalText) {`
-- L11915: `if (!(pre as any).__orchestratorActive) {`
-- L11937: `if (createFlowActive && createMissingField === "guestName" && nextCategory === "reservation") {`
-- L11944: `if (reservationLocalFallbackNeeded) {`
-- L11949: `if (Object.keys(fallbackSlots).length > 0) {`
-- L11984: `if (pre.inModifyMode) {`
-- L11986: `if (isContactHotelText(finalText, pre.lang)) {`
-- L11997: `if (!ackedVerifyInThisReply && noNewChangeData && isQuoteOrConfirmText(finalText, pre.lang)) {`
+- L11808: `if (pureCreateLateralTurn && !pureCreateLateralKbResolved) {`
+- L11810: `if (failsafeReply) {`
+- L11871: `if (nextCategory === "reservation" && finalText) {`
+- L11905: `if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {`
+- L11923: `if (noContent && isNearby) {`
+- L11939: `if (rbRich) explicitRich = rbRich;`
+- L11940: `if (rbText) {`
+- L11983: `if (!finalText) {`
+- L11985: `if (!(pre as any).__orchestratorActive) {`
+- L12007: `if (createFlowActive && createMissingField === "guestName" && nextCategory === "reservation") {`
+- L12014: `if (reservationLocalFallbackNeeded) {`
+- L12019: `if (Object.keys(fallbackSlots).length > 0) {`
 
-### 11998-12247
+### 12033-12282
 
-- L12058: `if (`
-- L12085: `if (!activeModifyField && (requestedChangeDates \|\| requestedChangeRoom \|\| requestedChangeGuests \|\| hasImplicitModifyValueFollowup)) {`
-- L12086: `if ((pre.inModifyMode \|\| pre.prevCategory === "modify_reservation") && (hasBoundReservationTarget \|\| pre.prevCategory === "modify_reservation")) {`
-- L12102: `if (hasImmediateFieldValue) {`
-- L12120: `if (pendingRequestedFields.length > 0) {`
-- L12125: `if (activeField === "dates" && ingestedSlots.checkIn && ingestedSlots.checkOut) {`
-- L12130: `if (previewTarget?.reservationId) {`
-- L12166: `if (activeField === "dates") {`
-- L12168: `} else if (activeField === "guests") {`
-- L12204: `if (pre.inModifyMode && wantsGenericModify(String(pre.msg.content \|\| ""), pre.lang) && (nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.chec`
-- L12219: `if (resolvedModifyTarget?.reservationId) {`
+- L12054: `if (pre.inModifyMode) {`
+- L12056: `if (isContactHotelText(finalText, pre.lang)) {`
+- L12067: `if (!ackedVerifyInThisReply && noNewChangeData && isQuoteOrConfirmText(finalText, pre.lang)) {`
+- L12128: `if (`
+- L12155: `if (!activeModifyField && (requestedChangeDates \|\| requestedChangeRoom \|\| requestedChangeGuests \|\| hasImplicitModifyValueFollowup)) {`
+- L12156: `if ((pre.inModifyMode \|\| pre.prevCategory === "modify_reservation") && (hasBoundReservationTarget \|\| pre.prevCategory === "modify_reservation")) {`
+- L12172: `if (hasImmediateFieldValue) {`
+- L12190: `if (pendingRequestedFields.length > 0) {`
+- L12195: `if (activeField === "dates" && ingestedSlots.checkIn && ingestedSlots.checkOut) {`
+- L12200: `if (previewTarget?.reservationId) {`
+- L12236: `if (activeField === "dates") {`
+- L12238: `} else if (activeField === "guests") {`
+- L12274: `if (pre.inModifyMode && wantsGenericModify(String(pre.msg.content \|\| ""), pre.lang) && (nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.chec`
 
-### 12248-12497
+### 12283-12532
 
-- L12349: `if (lateCheckoutQ) {`
-- L12353: `} else if (earlyCheckinQ) {`
-- L12362: `} else if (timeQ) {`
-- L12367: `if (hasConfirmedBookingContext) {`
-- L12373: `if (time && typeof time === "string") {`
-- L12400: `if (!nextCategory) nextCategory = "retrieval_based";`
-- L12402: `} else if (triggerDateFlow) {`
-- L12416: `if (shouldPersistPartialModifyDate && modifyTemporalSideIntent) {`
-- L12443: `if (!hasDateTokenInMsg) {`
-- L12445: `if (modifyTemporalSideIntent && (userDates.checkIn \|\| userDates.checkOut)) {`
-- L12450: `} else if (sideIntent) {`
-- L12452: `if (sideIntent === 'checkIn') preserveAskCheckIn = finalText; // preservar si luego se genera confirmación accidental`
-- L12453: `} else if (mentionsNewDates \|\| mentionsDates) {`
-- L12471: `if (cons.changed) {`
-- L12475: `if (!userModifiesCheckInWithoutDate && (isEmpty \|\| cons.finalText)) {`
-- L12477: `if (cons.finalText) finalText = cons.finalText;`
-- L12479: `if (cons.preservedPrompt && /anot[eé] nuevas fechas\|anotei as novas datas\|noted the new dates/i.test(finalText \|\| '')) {`
+- L12289: `if (resolvedModifyTarget?.reservationId) {`
+- L12419: `if (lateCheckoutQ) {`
+- L12423: `} else if (earlyCheckinQ) {`
+- L12432: `} else if (timeQ) {`
+- L12437: `if (hasConfirmedBookingContext) {`
+- L12443: `if (time && typeof time === "string") {`
+- L12470: `if (!nextCategory) nextCategory = "retrieval_based";`
+- L12472: `} else if (triggerDateFlow) {`
+- L12486: `if (shouldPersistPartialModifyDate && modifyTemporalSideIntent) {`
+- L12513: `if (!hasDateTokenInMsg) {`
+- L12515: `if (modifyTemporalSideIntent && (userDates.checkIn \|\| userDates.checkOut)) {`
+- L12520: `} else if (sideIntent) {`
+- L12522: `if (sideIntent === 'checkIn') preserveAskCheckIn = finalText; // preservar si luego se genera confirmación accidental`
+- L12523: `} else if (mentionsNewDates \|\| mentionsDates) {`
 
-### 12498-12747
+### 12533-12782
 
-- L12503: `if (newCI && newCO && (newCI !== prevCI \|\| newCO !== prevCO)) {`
-- L12508: `if ((!txt \|\| genericAck \|\| !hasDatesMentioned)) {`
-- L12510: `if (!iso) return iso \|\| '';`
-- L12517: `if (!modifyExecutionActive && !createQuoteReady && !/¿cu[aá]l es la fecha de check\-?out\|what is the check\-?out date\|qual é a data de check\-?out/i.test(txt)) {`
-- L12535: `if (hasDuplicateRange) {`
-- L12542: `if (m instanceof HumanMessage) {`
-- L12545: `if (dates.length === 1 && dates[0] !== currentDate) { previousSingle = dates[0]; break; }`
-- L12548: `if (previousSingle && currentDate) {`
-- L12562: `if (!modifyExecutionActive) {`
-- L12580: `if (isVerifyAvailabilityAffirmative) {`
-- L12597: `if (quoteGatedCreateFlow) {`
-- L12599: `if (!createDraftConsistency.valid) {`
-- L12611: `if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {`
-- L12613: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
-- L12621: `if (ci && co) {`
-- L12623: `if (availabilityDateCoherence && !availabilityDateCoherence.ok) {`
-- L12629: `if (modifyExecutionActive) {`
-- L12634: `if (!modifyTarget?.reservationId) {`
-- L12677: `if (availabilityNeedsHandoff) {`
-- L12691: `if (missing) finalText = buildAskMissingDate(pre.lang, missing as any, modifyExecutionActive ? "modify" : "create");`
-- L12705: `if (isAskAvailabilityStatusQuery(String(pre.msg.content \|\| ""), pre.lang)) {`
-- L12723: `if (quoteGatedCreateFlow) {`
-- L12725: `if (!createDraftConsistency.valid) {`
-- L12737: `if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {`
-- L12739: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
-- L12745: `if (ciISO && coISO) {`
-- L12747: `if (availabilityStatusDateCoherence && !availabilityStatusDateCoherence.ok) {`
+- L12541: `if (cons.changed) {`
+- L12545: `if (!userModifiesCheckInWithoutDate && (isEmpty \|\| cons.finalText)) {`
+- L12547: `if (cons.finalText) finalText = cons.finalText;`
+- L12549: `if (cons.preservedPrompt && /anot[eé] nuevas fechas\|anotei as novas datas\|noted the new dates/i.test(finalText \|\| '')) {`
+- L12573: `if (newCI && newCO && (newCI !== prevCI \|\| newCO !== prevCO)) {`
+- L12578: `if ((!txt \|\| genericAck \|\| !hasDatesMentioned)) {`
+- L12580: `if (!iso) return iso \|\| '';`
+- L12587: `if (!modifyExecutionActive && !createQuoteReady && !/¿cu[aá]l es la fecha de check\-?out\|what is the check\-?out date\|qual é a data de check\-?out/i.test(txt)) {`
+- L12605: `if (hasDuplicateRange) {`
+- L12612: `if (m instanceof HumanMessage) {`
+- L12615: `if (dates.length === 1 && dates[0] !== currentDate) { previousSingle = dates[0]; break; }`
+- L12618: `if (previousSingle && currentDate) {`
+- L12632: `if (!modifyExecutionActive) {`
+- L12650: `if (isVerifyAvailabilityAffirmative) {`
+- L12667: `if (quoteGatedCreateFlow) {`
+- L12669: `if (!createDraftConsistency.valid) {`
+- L12681: `if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {`
+- L12683: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
+- L12691: `if (ci && co) {`
+- L12693: `if (availabilityDateCoherence && !availabilityDateCoherence.ok) {`
+- L12699: `if (modifyExecutionActive) {`
+- L12704: `if (!modifyTarget?.reservationId) {`
+- L12747: `if (availabilityNeedsHandoff) {`
+- L12761: `if (missing) finalText = buildAskMissingDate(pre.lang, missing as any, modifyExecutionActive ? "modify" : "create");`
+- L12775: `if (isAskAvailabilityStatusQuery(String(pre.msg.content \|\| ""), pre.lang)) {`
 
-### 12748-12975
+### 12783-13032
 
-- L12751: `if (modifyExecutionActive) {`
-- L12770: `if (res.needsHandoff) {`
-- L12786: `if (res.needsHandoff) {`
-- L12815: `if (isAmenitiesTurn) {`
-- L12819: `if (isBillingTurn) {`
-- L12829: `if (isSupportTurn) {`
-- L12842: `if (`
-- L12849: `if (continuation) {`
-- L12853: `if (shouldClearSelectedReservationTargetForCategory(nextCategory, promptKeyUsed)) {`
-- L12864: `if (!shouldPreserveModifyTarget) {`
-- L12879: `if (`
-- L12886: `if (!createDraftConsistency.valid) {`
-- L12890: `} else if (!isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict)) {`
-- L12892: `if (missingField) {`
-- L12899: `if (`
-- L12911: `if (`
-- L12958: `if (!(graphResult as any)?.meta?.debug?.route_source && finalText) {`
+- L12793: `if (quoteGatedCreateFlow) {`
+- L12795: `if (!createDraftConsistency.valid) {`
+- L12807: `if (quoteGatedCreateFlow && !isCreateStateReadyForQuote(createQuoteSlots)) {`
+- L12809: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
+- L12815: `if (ciISO && coISO) {`
+- L12817: `if (availabilityStatusDateCoherence && !availabilityStatusDateCoherence.ok) {`
+- L12821: `if (modifyExecutionActive) {`
+- L12840: `if (res.needsHandoff) {`
+- L12856: `if (res.needsHandoff) {`
+- L12885: `if (isAmenitiesTurn) {`
+- L12889: `if (isBillingTurn) {`
+- L12899: `if (isSupportTurn) {`
+- L12912: `if (`
+- L12919: `if (continuation) {`
+- L12923: `if (shouldClearSelectedReservationTargetForCategory(nextCategory, promptKeyUsed)) {`
+- L12934: `if (!shouldPreserveModifyTarget) {`
+- L12949: `if (`
+- L12956: `if (!createDraftConsistency.valid) {`
+- L12960: `} else if (!isCreateStateReadyForQuote(quotedReservationSnapshot as ReservationSlotsStrict)) {`
+- L12962: `if (missingField) {`
+- L12969: `if (`
+- L12981: `if (`
+- L13028: `if (!(graphResult as any)?.meta?.debug?.route_source && finalText) {`
+
+### 13033-13045
+
+- sin decisiones detectadas
 
 
 ---
 
 ## 6. Líneas relevantes para temporal/checkIn/checkOut/numGuests
 
-### 6248-6497
+### 6283-6532
 
-- L6310: `? "checkout_info"`
-- L6312: `? "checkin_info"`
-- L6334: `stableTurnSlots.checkIn \|\|`
-- L6335: `stableTurnSlots.checkOut \|\|`
-- L6337: `stableTurnSlots.numGuests \|\|`
-- L6339: `extractRawOrderedDateRange(rawTurnText)?.checkIn`
-- L6349: `isLateralTurn: nextCategory === "amenities_info" \|\| nextCategory === "checkin_info" \|\| nextCategory === "checkout_info",`
-- L6391: `const earlyCheckinShortcutQ = detectEarlyCheckinQuestion(rawTurnText, pre.lang);`
-- L6393: `earlyCheckinShortcutQ &&`
-- L6400: `const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);`
-- L6401: `finalText = buildEarlyCheckinResponse(pre.lang, guestState, {`
-- L6402: `checkInTime: confCheckIn,`
-- L6405: `nextCategory = "checkin_info";`
-- L6407: `decision_layer: "early_checkin_heuristic",`
-- L6408: `route_source: "early_checkin_heuristic",`
-- L6409: `route_match: "early_checkin",`
-- L6459: `!extractSlotsFromText(rawTurnText, pre.lang).checkIn &&`
-- L6460: `!extractSlotsFromText(rawTurnText, pre.lang).checkOut &&`
-- L6488: `Boolean(explicitDr0.checkIn && explicitDr0.checkOut) &&`
-- L6489: `assessReservationDateCoherence(explicitDr0.checkIn, explicitDr0.checkOut)?.ok === true;`
-- L6491: `Boolean(rawDr0?.checkIn && rawDr0?.checkOut) &&`
-- L6492: `assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut)?.ok === true;`
-- L6494: `Boolean(lightDr0.checkIn && lightDr0.checkOut) &&`
-- L6495: `assessReservationDateCoherence(lightDr0.checkIn, lightDr0.checkOut)?.ok === true;`
-- L6497: `Boolean(relativeWeekendDr0.checkIn && relativeWeekendDr0.checkOut) &&`
+- L6345: `? "checkout_info"`
+- L6347: `? "checkin_info"`
+- L6369: `stableTurnSlots.checkIn \|\|`
+- L6370: `stableTurnSlots.checkOut \|\|`
+- L6372: `stableTurnSlots.numGuests \|\|`
+- L6374: `extractRawOrderedDateRange(rawTurnText)?.checkIn`
+- L6384: `isLateralTurn: nextCategory === "amenities_info" \|\| nextCategory === "checkin_info" \|\| nextCategory === "checkout_info",`
+- L6426: `const earlyCheckinShortcutQ = detectEarlyCheckinQuestion(rawTurnText, pre.lang);`
+- L6428: `earlyCheckinShortcutQ &&`
+- L6435: `const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);`
+- L6436: `finalText = buildEarlyCheckinResponse(pre.lang, guestState, {`
+- L6437: `checkInTime: confCheckIn,`
+- L6440: `nextCategory = "checkin_info";`
+- L6442: `decision_layer: "early_checkin_heuristic",`
+- L6443: `route_source: "early_checkin_heuristic",`
+- L6444: `route_match: "early_checkin",`
+- L6494: `!extractSlotsFromText(rawTurnText, pre.lang).checkIn &&`
+- L6495: `!extractSlotsFromText(rawTurnText, pre.lang).checkOut &&`
+- L6523: `Boolean(explicitDr0.checkIn && explicitDr0.checkOut) &&`
+- L6524: `assessReservationDateCoherence(explicitDr0.checkIn, explicitDr0.checkOut)?.ok === true;`
+- L6526: `Boolean(rawDr0?.checkIn && rawDr0?.checkOut) &&`
+- L6527: `assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut)?.ok === true;`
+- L6529: `Boolean(lightDr0.checkIn && lightDr0.checkOut) &&`
+- L6530: `assessReservationDateCoherence(lightDr0.checkIn, lightDr0.checkOut)?.ok === true;`
+- L6532: `Boolean(relativeWeekendDr0.checkIn && relativeWeekendDr0.checkOut) &&`
 
-### 6498-6747
+### 6533-6782
 
-- L6498: `assessReservationDateCoherence(relativeWeekendDr0.checkIn, relativeWeekendDr0.checkOut)?.ok === true;`
-- L6500: `Boolean(relativeWeekdayRangeDr0.checkIn && relativeWeekdayRangeDr0.checkOut) &&`
-- L6501: `assessReservationDateCoherence(relativeWeekdayRangeDr0.checkIn, relativeWeekdayRangeDr0.checkOut)?.ok === true;`
-- L6503: `Boolean(anchoredCreateDr0.checkIn && anchoredCreateDr0.checkOut) &&`
-- L6504: `assessReservationDateCoherence(anchoredCreateDr0.checkIn, anchoredCreateDr0.checkOut)?.ok === true;`
-- L6518: `: explicitDr0.checkIn \|\| explicitDr0.checkOut`
-- L6525: `turnCreateSlots0.checkIn &&`
-- L6526: `turnCreateSlots0.checkOut &&`
-- L6528: `turnCreateSlots0.numGuests &&`
-- L6531: `if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage && !hasCompleteRichCreatePayloadInTurn0) {`
-- L6535: `assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) \|\|`
-- L6536: `assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);`
-- L6545: `checkIn: dr0.checkIn,`
-- L6546: `checkOut: dr0.checkOut,`
-- L6560: `fastPathSlots.checkIn &&`
-- L6561: `fastPathSlots.checkOut &&`
-- L6563: `fastPathSlots.numGuests &&`
-- L6571: `Boolean(fastPathTurnSlots.roomType \|\| fastPathTurnSlots.numGuests);`
-- L6581: `(fastPathTurnSlots.roomType \|\| fastPathTurnSlots.numGuests)`
-- L6586: `numGuests: (fastPathTurnSlots.numGuests \|\| resolveAuthoritativeNumGuests(resolvedModifyTarget0, fastPathSlots.numGuests)) as string \| number \| undefined,`
-- L6587: `checkIn: fastPathSlots.checkIn \|\| resolvedModifyTarget0.checkIn,`
-- L6588: `checkOut: fastPathSlots.checkOut \|\| resolvedModifyTarget0.checkOut,`
-- L6642: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, dr0.checkIn, dr0.checkOut, {`
-- L6707: `const ciTxt = isoToDDMMYYYY(dr0.checkIn) \|\| dr0.checkIn;`
-- L6708: `const coTxt = isoToDDMMYYYY(dr0.checkOut) \|\| dr0.checkOut;`
+- L6533: `assessReservationDateCoherence(relativeWeekendDr0.checkIn, relativeWeekendDr0.checkOut)?.ok === true;`
+- L6535: `Boolean(relativeWeekdayRangeDr0.checkIn && relativeWeekdayRangeDr0.checkOut) &&`
+- L6536: `assessReservationDateCoherence(relativeWeekdayRangeDr0.checkIn, relativeWeekdayRangeDr0.checkOut)?.ok === true;`
+- L6538: `Boolean(anchoredCreateDr0.checkIn && anchoredCreateDr0.checkOut) &&`
+- L6539: `assessReservationDateCoherence(anchoredCreateDr0.checkIn, anchoredCreateDr0.checkOut)?.ok === true;`
+- L6553: `: explicitDr0.checkIn \|\| explicitDr0.checkOut`
+- L6560: `turnCreateSlots0.checkIn &&`
+- L6561: `turnCreateSlots0.checkOut &&`
+- L6563: `turnCreateSlots0.numGuests &&`
+- L6566: `if (dr0.checkIn && dr0.checkOut && !isEventLikeMessage && !hasCompleteRichCreatePayloadInTurn0) {`
+- L6570: `assessReservationDateCoherence(rawDr0?.checkIn, rawDr0?.checkOut) \|\|`
+- L6571: `assessReservationDateCoherence(dr0.checkIn, dr0.checkOut);`
+- L6580: `checkIn: dr0.checkIn,`
+- L6581: `checkOut: dr0.checkOut,`
+- L6595: `fastPathSlots.checkIn &&`
+- L6596: `fastPathSlots.checkOut &&`
+- L6598: `fastPathSlots.numGuests &&`
+- L6606: `Boolean(fastPathTurnSlots.roomType \|\| fastPathTurnSlots.numGuests);`
+- L6616: `(fastPathTurnSlots.roomType \|\| fastPathTurnSlots.numGuests)`
+- L6621: `numGuests: (fastPathTurnSlots.numGuests \|\| resolveAuthoritativeNumGuests(resolvedModifyTarget0, fastPathSlots.numGuests)) as string \| number \| undefined,`
+- L6622: `checkIn: fastPathSlots.checkIn \|\| resolvedModifyTarget0.checkIn,`
+- L6623: `checkOut: fastPathSlots.checkOut \|\| resolvedModifyTarget0.checkOut,`
+- L6677: `const availabilityResult = await runAvailabilityCheck(availabilityPre, fastPathSlots, dr0.checkIn, dr0.checkOut, {`
+- L6742: `const ciTxt = isoToDDMMYYYY(dr0.checkIn) \|\| dr0.checkIn;`
+- L6743: `const coTxt = isoToDDMMYYYY(dr0.checkOut) \|\| dr0.checkOut;`
 
-### 6748-6997
+### 6783-7032
 
-- L6753: `const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);`
-- L6757: `supportedDrFastRaw.checkIn && supportedDrFastRaw.checkOut`
-- L6759: `: relativeWeekdayRangeFast.checkIn && relativeWeekdayRangeFast.checkOut`
-- L6761: `: supportedDrFastRaw.checkIn \|\| supportedDrFastRaw.checkOut`
-- L6779: `const safeLeadGuestName = extractSafeCreateTemporalLeadGuestName(userTxtFast);`
-- L6811: `const ciISO = createDraftConsistency.sanitizedSlots.checkIn;`
-- L6812: `const coISO = createDraftConsistency.sanitizedSlots.checkOut;`
-- L6857: `checkIn: ciISO!,`
-- L6858: `checkOut: coISO!,`
-- L6879: `const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);`
-- L6880: `const explicitCheckOutFast =`
-- L6881: `fastTemporalSideIntent === "checkOut" \|\|`
-- L6882: `Boolean(explicitTurnSlotsFast.checkOut && !explicitTurnSlotsFast.checkIn);`
-- L6890: `? !inquiryKnownFastSlots.checkIn`
-- L6891: `? "checkIn"`
-- L6892: `: !inquiryKnownFastSlots.checkOut`
-- L6893: `? "checkOut"`
-- L6900: `const createCheckOutRepairContextFast =`
-- L6902: `explicitCheckOutFast &&`
-- L6903: `Boolean(pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn) &&`
-- L6904: `!Boolean(pre.st?.reservationSlots?.checkOut);`
-- L6907: `(createCheckOutRepairContextFast ? "checkOut" : undefined) \|\|`
-- L6909: `(inquiryMissingSideFast === "checkIn" \|\| inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);`
-- L6910: `const createCheckInRepairContextFast =`
-- L6912: `!explicitCheckOutFast &&`
-- L6913: `drFast.checkIn &&`
-- L6914: `!drFast.checkOut &&`
-- L6915: `!pre.st?.reservationSlots?.checkIn;`
-- L6917: `createCheckInRepairContextFast`
-- L6918: `? "checkIn"`
-- L6920: `const singleFastISO = drFast.checkIn \|\| drFast.checkOut;`
-- L6921: `const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);`
-- L6932: `Boolean((pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn) && (pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut));`
-- L6937: `!fastTemporalSideIntent;`
-- L6941: `fastPathSubFlow === "create" && explicitCheckOutFast`
-- L6942: `? "checkOut"`
-- L6944: `const contextualFastDates = createSingleDateSideFast === "checkIn"`
-- L6945: `? { checkIn: singleFastISO }`
-- L6946: `: { checkOut: singleFastISO };`
-- L6951: `createSingleDateSideFast === "checkOut" &&`
+- L6788: `const supportedDrFastRaw = await extractSupportedTemporalDateRange(userTxtFast, pre.lang);`
+- L6792: `supportedDrFastRaw.checkIn && supportedDrFastRaw.checkOut`
+- L6794: `: relativeWeekdayRangeFast.checkIn && relativeWeekdayRangeFast.checkOut`
+- L6796: `: supportedDrFastRaw.checkIn \|\| supportedDrFastRaw.checkOut`
+- L6814: `const safeLeadGuestName = extractSafeCreateTemporalLeadGuestName(userTxtFast);`
+- L6846: `const ciISO = createDraftConsistency.sanitizedSlots.checkIn;`
+- L6847: `const coISO = createDraftConsistency.sanitizedSlots.checkOut;`
+- L6892: `checkIn: ciISO!,`
+- L6893: `checkOut: coISO!,`
+- L6914: `const fastTemporalSideIntent = detectModifyTemporalSideIntent(userTxtFast, drFast);`
+- L6915: `const explicitCheckOutFast =`
+- L6916: `fastTemporalSideIntent === "checkOut" \|\|`
+- L6917: `Boolean(explicitTurnSlotsFast.checkOut && !explicitTurnSlotsFast.checkIn);`
+- L6925: `? !inquiryKnownFastSlots.checkIn`
+- L6926: `? "checkIn"`
+- L6927: `: !inquiryKnownFastSlots.checkOut`
+- L6928: `? "checkOut"`
+- L6935: `const createCheckOutRepairContextFast =`
+- L6937: `explicitCheckOutFast &&`
+- L6938: `Boolean(pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn) &&`
+- L6939: `!Boolean(pre.st?.reservationSlots?.checkOut);`
+- L6942: `(createCheckOutRepairContextFast ? "checkOut" : undefined) \|\|`
+- L6944: `(inquiryMissingSideFast === "checkIn" \|\| inquiryMissingSideFast === "checkOut" ? inquiryMissingSideFast : undefined);`
+- L6945: `const createCheckInRepairContextFast =`
+- L6947: `!explicitCheckOutFast &&`
+- L6948: `drFast.checkIn &&`
+- L6949: `!drFast.checkOut &&`
+- L6950: `!pre.st?.reservationSlots?.checkIn;`
+- L6952: `createCheckInRepairContextFast`
+- L6953: `? "checkIn"`
+- L6955: `const singleFastISO = drFast.checkIn \|\| drFast.checkOut;`
+- L6956: `const hasOneDateOnly = Boolean(singleFastISO) && !(drFast.checkIn && drFast.checkOut);`
+- L6967: `Boolean((pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn) && (pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut));`
+- L6972: `!fastTemporalSideIntent;`
+- L6976: `fastPathSubFlow === "create" && explicitCheckOutFast`
+- L6977: `? "checkOut"`
+- L6979: `const contextualFastDates = createSingleDateSideFast === "checkIn"`
+- L6980: `? { checkIn: singleFastISO }`
+- L6981: `: { checkOut: singleFastISO };`
+- L6986: `createSingleDateSideFast === "checkOut" &&`
 
-### 6998-7247
+### 7033-7282
 
-- L6998: `delete sanitizedCreateSlots.checkOut;`
-- L7002: `finalText: buildInvalidCreateCheckOutReply(pre.lang),`
-- L7097: `checkIn: ciISO,`
-- L7098: `checkOut: coISO,`
-- L7156: `if (singleFastISO && fastPathSubFlow === "modify" && fastTemporalSideIntent) {`
-- L7164: `fastTemporalSideIntent`
-- L7181: `fastTemporalSideIntent === "checkIn" ? "checkOut" : "checkIn"`
-- L7194: `drFast.checkIn &&`
-- L7195: `!explicitCheckOutFast &&`
-- L7197: `isPastReservationCheckInISO(drFast.checkIn)`
-- L7204: `delete sanitizedCreateSlots.checkOut;`
-- L7206: `sanitizedCreateSlots.checkIn &&`
-- L7207: `isPastReservationCheckInISO(sanitizedCreateSlots.checkIn)`
-- L7209: `delete sanitizedCreateSlots.checkIn;`
-- L7213: `finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);`
-- L7222: `if (drFast.checkIn && !explicitCheckOutFast && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {`
-- L7223: `finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);`
-- L7224: `const { checkIn: _dropInvalidCheckIn, ...restNextSlots } = nextSlots;`
-- L7236: `const prevISO = prevSingle.checkIn \|\| prevSingle.checkOut;`
-- L7237: `const currISO = drFast.checkIn \|\| drFast.checkOut;`
-- L7245: `checkIn: ciISO,`
-- L7246: `checkOut: coISO,`
+- L7033: `delete sanitizedCreateSlots.checkOut;`
+- L7037: `finalText: buildInvalidCreateCheckOutReply(pre.lang),`
+- L7132: `checkIn: ciISO,`
+- L7133: `checkOut: coISO,`
+- L7191: `if (singleFastISO && fastPathSubFlow === "modify" && fastTemporalSideIntent) {`
+- L7199: `fastTemporalSideIntent`
+- L7216: `fastTemporalSideIntent === "checkIn" ? "checkOut" : "checkIn"`
+- L7229: `drFast.checkIn &&`
+- L7230: `!explicitCheckOutFast &&`
+- L7232: `isPastReservationCheckInISO(drFast.checkIn)`
+- L7239: `delete sanitizedCreateSlots.checkOut;`
+- L7241: `sanitizedCreateSlots.checkIn &&`
+- L7242: `isPastReservationCheckInISO(sanitizedCreateSlots.checkIn)`
+- L7244: `delete sanitizedCreateSlots.checkIn;`
+- L7248: `finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);`
+- L7257: `if (drFast.checkIn && !explicitCheckOutFast && !isConfirmedBooking && isPastReservationCheckInISO(drFast.checkIn)) {`
+- L7258: `finalText = buildPastReservationCheckInPrompt(pre.lang, drFast.checkIn);`
+- L7259: `const { checkIn: _dropInvalidCheckIn, ...restNextSlots } = nextSlots;`
+- L7271: `const prevISO = prevSingle.checkIn \|\| prevSingle.checkOut;`
+- L7272: `const currISO = drFast.checkIn \|\| drFast.checkOut;`
+- L7280: `checkIn: ciISO,`
+- L7281: `checkOut: coISO,`
 
-### 7248-7497
+### 7283-7532
 
-- L7283: `checkIn: ciISO,`
-- L7284: `checkOut: coISO,`
-- L7336: `const missingSide = drFast.checkIn ? "checkOut" : "checkIn";`
-- L7350: `fastTemporalSideIntent`
-- L7383: `(activeQueuedModifyField === "guests" && Boolean(queuedTurnSlots.numGuests)) \|\|`
-- L7384: `(activeQueuedModifyField === "dates" && Boolean(queuedDateRange?.checkIn && queuedDateRange?.checkOut));`
-- L7467: `const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
-- L7468: `const sideIntentFast = detectModifyTemporalSideIntent(userTxt, userDatesFast);`
-- L7471: `const isDateTopicFast = Boolean(sideIntentFast \|\| userDatesFast.checkIn \|\| userDatesFast.checkOut \|\| hasAnyDateTokenFast \|\| mentionsDatesFast);`
-- L7475: `const mentionsGuestsFieldFast = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxtFast);`
-- L7478: `inlineModifyTurnSlotsFast.numGuests \|\|`
-- L7479: `(inlineModifyDateRangeFast?.checkIn && inlineModifyDateRangeFast?.checkOut)`
+- L7318: `checkIn: ciISO,`
+- L7319: `checkOut: coISO,`
+- L7371: `const missingSide = drFast.checkIn ? "checkOut" : "checkIn";`
+- L7385: `fastTemporalSideIntent`
+- L7419: `(field === "guests" && Boolean(queuedTurnSlots.numGuests)) \|\|`
+- L7420: `(field === "dates" && Boolean(queuedDateRange?.checkIn && queuedDateRange?.checkOut));`
 
-### 7498-7747
+### 7533-7782
 
-- L7510: `numGuests: resolvedFastReservationTarget.numGuests,`
-- L7511: `checkIn: resolvedFastReservationTarget.checkIn,`
-- L7512: `checkOut: resolvedFastReservationTarget.checkOut,`
-- L7565: `numGuests: (inlineModifyTurnSlotsFast.numGuests \|\| resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests)) as string \| number \| undefined,`
-- L7566: `checkIn: inlineModifyDateRangeFast?.checkIn \|\| resolvedFastReservationTarget.checkIn,`
-- L7567: `checkOut: inlineModifyDateRangeFast?.checkOut \|\| resolvedFastReservationTarget.checkOut,`
-- L7617: `numGuests: resolvedFastReservationTarget.numGuests,`
-- L7618: `checkIn: resolvedFastReservationTarget.checkIn,`
-- L7619: `checkOut: resolvedFastReservationTarget.checkOut,`
-- L7650: `!inlineModifyTurnSlotsFast.numGuests &&`
-- L7651: `!(inlineModifyDateRangeFast?.checkIn && inlineModifyDateRangeFast?.checkOut)`
-- L7656: `numGuests: resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests) as string \| number \| undefined,`
-- L7657: `checkIn: resolvedFastReservationTarget.checkIn \|\| pre.st?.reservationSlots?.checkIn,`
-- L7658: `checkOut: resolvedFastReservationTarget.checkOut \|\| pre.st?.reservationSlots?.checkOut,`
-- L7691: `numGuests: resolvedFastReservationTarget.numGuests,`
-- L7692: `checkIn: resolvedFastReservationTarget.checkIn,`
-- L7693: `checkOut: resolvedFastReservationTarget.checkOut,`
-- L7740: `checkIn: pre.st?.reservationSlots?.checkIn \|\| pre.currSlots.checkIn,`
-- L7741: `checkOut: pre.st?.reservationSlots?.checkOut \|\| pre.currSlots.checkOut,`
-- L7742: `numGuests: pre.st?.reservationSlots?.numGuests \|\| pre.currSlots.numGuests,`
+- L7549: `const userDatesFast = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
+- L7550: `const sideIntentFast = detectModifyTemporalSideIntent(userTxt, userDatesFast);`
+- L7553: `const isDateTopicFast = Boolean(sideIntentFast \|\| userDatesFast.checkIn \|\| userDatesFast.checkOut \|\| hasAnyDateTokenFast \|\| mentionsDatesFast);`
+- L7557: `const mentionsGuestsFieldFast = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxtFast);`
+- L7560: `inlineModifyTurnSlotsFast.numGuests \|\|`
+- L7561: `(inlineModifyDateRangeFast?.checkIn && inlineModifyDateRangeFast?.checkOut)`
+- L7592: `numGuests: resolvedFastReservationTarget.numGuests,`
+- L7593: `checkIn: resolvedFastReservationTarget.checkIn,`
+- L7594: `checkOut: resolvedFastReservationTarget.checkOut,`
+- L7647: `numGuests: (inlineModifyTurnSlotsFast.numGuests \|\| resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests)) as string \| number \| undefined,`
+- L7648: `checkIn: inlineModifyDateRangeFast?.checkIn \|\| resolvedFastReservationTarget.checkIn,`
+- L7649: `checkOut: inlineModifyDateRangeFast?.checkOut \|\| resolvedFastReservationTarget.checkOut,`
+- L7699: `numGuests: resolvedFastReservationTarget.numGuests,`
+- L7700: `checkIn: resolvedFastReservationTarget.checkIn,`
+- L7701: `checkOut: resolvedFastReservationTarget.checkOut,`
+- L7732: `!inlineModifyTurnSlotsFast.numGuests &&`
+- L7733: `!(inlineModifyDateRangeFast?.checkIn && inlineModifyDateRangeFast?.checkOut)`
+- L7738: `numGuests: resolveAuthoritativeNumGuests(resolvedFastReservationTarget, pre.st?.reservationSlots?.numGuests) as string \| number \| undefined,`
+- L7739: `checkIn: resolvedFastReservationTarget.checkIn \|\| pre.st?.reservationSlots?.checkIn,`
+- L7740: `checkOut: resolvedFastReservationTarget.checkOut \|\| pre.st?.reservationSlots?.checkOut,`
+- L7773: `numGuests: resolvedFastReservationTarget.numGuests,`
+- L7774: `checkIn: resolvedFastReservationTarget.checkIn,`
+- L7775: `checkOut: resolvedFastReservationTarget.checkOut,`
 
-### 7748-7997
+### 7783-8032
 
-- L7820: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L7821: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L7822: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L7826: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
-- L7827: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
+- L7822: `checkIn: pre.st?.reservationSlots?.checkIn \|\| pre.currSlots.checkIn,`
+- L7823: `checkOut: pre.st?.reservationSlots?.checkOut \|\| pre.currSlots.checkOut,`
+- L7824: `numGuests: pre.st?.reservationSlots?.numGuests \|\| pre.currSlots.numGuests,`
+- L7902: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L7903: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L7904: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L7908: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
+- L7909: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
 
-### 7998-8247
+### 8033-8282
 
-- L8188: `const correctionDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8192: `numGuests: correctionTurnSlots.numGuests \|\| correctionGuestCount \|\| currentPreviewSnapshot.numGuests,`
-- L8193: `checkIn: correctionDates.checkIn \|\| currentPreviewSnapshot.checkIn,`
-- L8194: `checkOut: correctionDates.checkOut \|\| currentPreviewSnapshot.checkOut,`
-- L8200: `String(updatedPreviewSnapshot.numGuests \|\| "") !== String(currentPreviewSnapshot.numGuests \|\| "") \|\|`
-- L8201: `String(updatedPreviewSnapshot.checkIn \|\| "") !== String(currentPreviewSnapshot.checkIn \|\| "") \|\|`
-- L8202: `String(updatedPreviewSnapshot.checkOut \|\| "") !== String(currentPreviewSnapshot.checkOut \|\| "");`
+- L8270: `const correctionDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8274: `numGuests: correctionTurnSlots.numGuests \|\| correctionGuestCount \|\| currentPreviewSnapshot.numGuests,`
+- L8275: `checkIn: correctionDates.checkIn \|\| currentPreviewSnapshot.checkIn,`
+- L8276: `checkOut: correctionDates.checkOut \|\| currentPreviewSnapshot.checkOut,`
+- L8282: `String(updatedPreviewSnapshot.numGuests \|\| "") !== String(currentPreviewSnapshot.numGuests \|\| "") \|\|`
 
-### 8248-8497
+### 8283-8532
 
-- L8342: `const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8343: `const earlyModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, earlyModifyDates);`
-- L8346: `(earlyModifyDates.checkIn \|\| earlyModifyDates.checkOut) &&`
-- L8374: `earlyModifySideIntent === "checkIn" ? "checkOut" : "checkIn"`
-- L8401: `const reservationCheckIn = nextSlots.checkIn \|\| pre.currSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
-- L8402: `const reservationCheckOut = nextSlots.checkOut \|\| pre.currSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
-- L8403: `const reservationGuests = nextSlots.numGuests \|\| pre.currSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests;`
-- L8410: `const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8415: `turnCreateSlots.checkIn \|\|`
-- L8416: `turnCreateSlots.checkOut \|\|`
-- L8418: `turnCreateSlots.numGuests \|\|`
-- L8420: `createDraftTemporalDates.checkIn \|\|`
-- L8421: `createDraftTemporalDates.checkOut \|\|`
-- L8422: `createDraftRawOrderedDates?.checkIn \|\|`
-- L8423: `createDraftRawOrderedDates?.checkOut \|\|`
-- L8424: `createDraftRelativeWeekendRange.checkIn \|\|`
-- L8425: `createDraftRelativeWeekendRange.checkOut`
-- L8427: `const createDraftCheckIn =`
-- L8428: `reservationCheckIn \|\|`
-- L8429: `createDraftTemporalDates.checkIn \|\|`
-- L8430: `createDraftRawOrderedDates?.checkIn \|\|`
-- L8431: `createDraftRelativeWeekendRange.checkIn;`
-- L8432: `const createDraftCheckOut =`
-- L8433: `reservationCheckOut \|\|`
-- L8434: `createDraftTemporalDates.checkOut \|\|`
-- L8435: `createDraftRawOrderedDates?.checkOut \|\|`
-- L8436: `createDraftRelativeWeekendRange.checkOut;`
-- L8440: `Boolean(turnCreateSlots.checkIn && turnCreateSlots.checkOut) &&`
-- L8441: `Boolean(turnCreateSlots.roomType \|\| turnCreateSlots.numGuests \|\| isSafeGuestName(turnCreateSlots.guestName \|\| ""));`
-- L8444: `const explicitTurnDateCoherence = assessReservationDateCoherence(rawOrderedDateRange?.checkIn, rawOrderedDateRange?.checkOut);`
-- L8445: `const reservationDateCoherence = assessReservationDateCoherence(reservationCheckIn, reservationCheckOut);`
-- L8447: `pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn \|\|`
-- L8448: `pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut \|\|`
-- L8449: `Boolean(extractDateRangeFromText(userTxtRaw).checkIn \|\| extractDateRangeFromText(userTxtRaw).checkOut);`
-- L8489: `reservationCheckIn &&`
-- L8490: `reservationCheckOut &&`
+- L8283: `String(updatedPreviewSnapshot.checkIn \|\| "") !== String(currentPreviewSnapshot.checkIn \|\| "") \|\|`
+- L8284: `String(updatedPreviewSnapshot.checkOut \|\| "") !== String(currentPreviewSnapshot.checkOut \|\| "");`
+- L8424: `const earlyModifyDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8425: `const earlyModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, earlyModifyDates);`
+- L8428: `(earlyModifyDates.checkIn \|\| earlyModifyDates.checkOut) &&`
+- L8456: `earlyModifySideIntent === "checkIn" ? "checkOut" : "checkIn"`
+- L8483: `const reservationCheckIn = nextSlots.checkIn \|\| pre.currSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
+- L8484: `const reservationCheckOut = nextSlots.checkOut \|\| pre.currSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
+- L8485: `const reservationGuests = nextSlots.numGuests \|\| pre.currSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests;`
+- L8492: `const createDraftTemporalDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8497: `turnCreateSlots.checkIn \|\|`
+- L8498: `turnCreateSlots.checkOut \|\|`
+- L8500: `turnCreateSlots.numGuests \|\|`
+- L8502: `createDraftTemporalDates.checkIn \|\|`
+- L8503: `createDraftTemporalDates.checkOut \|\|`
+- L8504: `createDraftRawOrderedDates?.checkIn \|\|`
+- L8505: `createDraftRawOrderedDates?.checkOut \|\|`
+- L8506: `createDraftRelativeWeekendRange.checkIn \|\|`
+- L8507: `createDraftRelativeWeekendRange.checkOut`
+- L8509: `const createDraftCheckIn =`
+- L8510: `reservationCheckIn \|\|`
+- L8511: `createDraftTemporalDates.checkIn \|\|`
+- L8512: `createDraftRawOrderedDates?.checkIn \|\|`
+- L8513: `createDraftRelativeWeekendRange.checkIn;`
+- L8514: `const createDraftCheckOut =`
+- L8515: `reservationCheckOut \|\|`
+- L8516: `createDraftTemporalDates.checkOut \|\|`
+- L8517: `createDraftRawOrderedDates?.checkOut \|\|`
+- L8518: `createDraftRelativeWeekendRange.checkOut;`
+- L8522: `Boolean(turnCreateSlots.checkIn && turnCreateSlots.checkOut) &&`
+- L8523: `Boolean(turnCreateSlots.roomType \|\| turnCreateSlots.numGuests \|\| isSafeGuestName(turnCreateSlots.guestName \|\| ""));`
+- L8526: `const explicitTurnDateCoherence = assessReservationDateCoherence(rawOrderedDateRange?.checkIn, rawOrderedDateRange?.checkOut);`
+- L8527: `const reservationDateCoherence = assessReservationDateCoherence(reservationCheckIn, reservationCheckOut);`
+- L8529: `pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn \|\|`
+- L8530: `pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut \|\|`
+- L8531: `Boolean(extractDateRangeFromText(userTxtRaw).checkIn \|\| extractDateRangeFromText(userTxtRaw).checkOut);`
 
-### 8498-8747
+### 8533-8782
 
-- L8499: `checkIn: reservationCheckIn,`
-- L8500: `checkOut: reservationCheckOut,`
-- L8501: `numGuests: String(reservationGuests),`
-- L8574: `numGuests: confirmedSnapshotFallback.slots.numGuests,`
-- L8575: `checkIn: confirmedSnapshotFallback.slots.checkIn,`
-- L8576: `checkOut: confirmedSnapshotFallback.slots.checkOut,`
-- L8614: `numGuests: target.numGuests,`
-- L8615: `checkIn: target.checkIn,`
-- L8616: `checkOut: target.checkOut,`
-- L8669: `numGuests: target.numGuests,`
-- L8670: `checkIn: target.checkIn,`
-- L8671: `checkOut: target.checkOut,`
-- L8711: `numGuests: target.numGuests,`
-- L8712: `checkIn: target.checkIn,`
-- L8713: `checkOut: target.checkOut,`
+- L8571: `reservationCheckIn &&`
+- L8572: `reservationCheckOut &&`
+- L8581: `checkIn: reservationCheckIn,`
+- L8582: `checkOut: reservationCheckOut,`
+- L8583: `numGuests: String(reservationGuests),`
+- L8656: `numGuests: confirmedSnapshotFallback.slots.numGuests,`
+- L8657: `checkIn: confirmedSnapshotFallback.slots.checkIn,`
+- L8658: `checkOut: confirmedSnapshotFallback.slots.checkOut,`
+- L8696: `numGuests: target.numGuests,`
+- L8697: `checkIn: target.checkIn,`
+- L8698: `checkOut: target.checkOut,`
+- L8751: `numGuests: target.numGuests,`
+- L8752: `checkIn: target.checkIn,`
+- L8753: `checkOut: target.checkOut,`
 
-### 8748-8997
+### 8783-9032
 
-- L8752: `const mentionsModifyDatesField = /\b(fechas\|fecha\|dates\|date\|datas\|data\|check-in\|check out\|check-out\|entrada\|salida\|ingreso)\b/i.test(normalizedUserTxtForModify);`
-- L8754: `const mentionsModifyGuestsField = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxtForModify);`
-- L8771: `Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) \|\|`
-- L8772: `Boolean(directModifyTurnSlots.numGuests) \|\|`
-- L8775: `const directModifyUserDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
-- L8776: `const directModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, directModifyUserDates);`
-- L8777: `const hasTemporalModifySignal = hasModifyDatesEntrySignal(`
-- L8790: `(hasExplicitModifyFieldRequest \|\| hasImmediateModifyValue \|\| hasTemporalModifySignal \|\| Boolean(explicitReservationCode))`
-- L8824: `numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests \|\| nextSlots.numGuests),`
-- L8825: `checkIn: pre.currSlots.checkIn \|\| nextSlots.checkIn \|\| target.checkIn,`
-- L8826: `checkOut: pre.currSlots.checkOut \|\| nextSlots.checkOut \|\| target.checkOut,`
-- L8845: `rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut ? "dates" : null,`
-- L8846: `directModifyTurnSlots.numGuests ? "guests" : null,`
-- L8854: `numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests \|\| nextSlots.numGuests),`
-- L8855: `checkIn: pre.currSlots.checkIn \|\| nextSlots.checkIn \|\| target.checkIn,`
-- L8856: `checkOut: pre.currSlots.checkOut \|\| nextSlots.checkOut \|\| target.checkOut,`
-- L8896: `numGuests: (directModifyTurnSlots.numGuests \|\| resolveAuthoritativeNumGuests(target, reservationGuests ? String(reservationGuests) : undefined)) as string \| number \| undefined,`
-- L8897: `checkIn: rawOrderedDateRange?.checkIn \|\| reservationCheckIn \|\| target.checkIn,`
-- L8898: `checkOut: rawOrderedDateRange?.checkOut \|\| reservationCheckOut \|\| target.checkOut,`
-- L8901: `const modifyDateCoherence = assessReservationDateCoherence(snapshot.checkIn, snapshot.checkOut);`
-- L8906: `const nextGuestCountNumber = Number.parseInt(String(snapshot.numGuests \|\| ""), 10);`
-- L8943: `if (!hasImmediateModifyValue && hasTemporalModifySignal) {`
-- L8948: `numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),`
-- L8949: `checkIn: reservationCheckIn \|\| target.checkIn,`
-- L8950: `checkOut: reservationCheckOut \|\| target.checkOut,`
-- L8963: `? buildAskMissingDate(pre.lang, directModifySideIntent === "checkIn" ? "checkOut" : "checkIn")`
-- L8972: `numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),`
-- L8973: `checkIn: reservationCheckIn \|\| target.checkIn,`
-- L8974: `checkOut: reservationCheckOut \|\| target.checkOut,`
-- L8992: `numGuests: target?.numGuests,`
-- L8993: `checkIn: target?.checkIn,`
-- L8994: `checkOut: target?.checkOut,`
+- L8793: `numGuests: target.numGuests,`
+- L8794: `checkIn: target.checkIn,`
+- L8795: `checkOut: target.checkOut,`
+- L8834: `const mentionsModifyDatesField = /\b(fechas\|fecha\|dates\|date\|datas\|data\|check-in\|check out\|check-out\|entrada\|salida\|ingreso)\b/i.test(normalizedUserTxtForModify);`
+- L8836: `const mentionsModifyGuestsField = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxtForModify);`
+- L8853: `Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut) \|\|`
+- L8854: `Boolean(directModifyTurnSlots.numGuests) \|\|`
+- L8857: `const directModifyUserDates = await extractSupportedTemporalDateRange(userTxtRaw, pre.lang);`
+- L8858: `const directModifySideIntent = detectModifyTemporalSideIntent(userTxtRaw, directModifyUserDates);`
+- L8859: `const hasTemporalModifySignal = hasModifyDatesEntrySignal(`
+- L8872: `(hasExplicitModifyFieldRequest \|\| hasImmediateModifyValue \|\| hasTemporalModifySignal \|\| Boolean(explicitReservationCode))`
+- L8906: `numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests \|\| nextSlots.numGuests),`
+- L8907: `checkIn: pre.currSlots.checkIn \|\| nextSlots.checkIn \|\| target.checkIn,`
+- L8908: `checkOut: pre.currSlots.checkOut \|\| nextSlots.checkOut \|\| target.checkOut,`
+- L8927: `rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut ? "dates" : null,`
+- L8928: `directModifyTurnSlots.numGuests ? "guests" : null,`
+- L8936: `numGuests: resolveAuthoritativeNumGuests(target, pre.currSlots.numGuests \|\| nextSlots.numGuests),`
+- L8937: `checkIn: pre.currSlots.checkIn \|\| nextSlots.checkIn \|\| target.checkIn,`
+- L8938: `checkOut: pre.currSlots.checkOut \|\| nextSlots.checkOut \|\| target.checkOut,`
+- L8978: `numGuests: (directModifyTurnSlots.numGuests \|\| resolveAuthoritativeNumGuests(target, reservationGuests ? String(reservationGuests) : undefined)) as string \| number \| undefined,`
+- L8979: `checkIn: rawOrderedDateRange?.checkIn \|\| reservationCheckIn \|\| target.checkIn,`
+- L8980: `checkOut: rawOrderedDateRange?.checkOut \|\| reservationCheckOut \|\| target.checkOut,`
+- L8983: `const modifyDateCoherence = assessReservationDateCoherence(snapshot.checkIn, snapshot.checkOut);`
+- L8988: `const nextGuestCountNumber = Number.parseInt(String(snapshot.numGuests \|\| ""), 10);`
+- L9025: `if (!hasImmediateModifyValue && hasTemporalModifySignal) {`
+- L9030: `numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),`
+- L9031: `checkIn: reservationCheckIn \|\| target.checkIn,`
+- L9032: `checkOut: reservationCheckOut \|\| target.checkOut,`
 
-### 8998-9247
+### 9033-9282
 
-- L9014: `numGuests: target?.numGuests,`
-- L9015: `checkIn: target?.checkIn,`
-- L9016: `checkOut: target?.checkOut,`
-- L9039: `const rawGuestCount = extractSlotsFromText(userTxtRaw, pre.lang).numGuests \|\| extractGuests(userTxtRaw);`
-- L9048: `const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);`
-- L9052: `const baseGuests = resolveAuthoritativeNumGuests(baseModifyTarget, reservationGuests);`
-- L9053: `const baseCheckIn = baseModifyTarget?.checkIn \|\| reservationCheckIn;`
-- L9054: `const baseCheckOut = baseModifyTarget?.checkOut \|\| reservationCheckOut;`
-- L9055: `const currentModifyCheckIn = nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn \|\| baseCheckIn;`
-- L9056: `const currentModifyCheckOut = nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut \|\| baseCheckOut;`
-- L9057: `const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : baseCheckIn;`
-- L9058: `const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : baseCheckOut;`
-- L9059: `const modifyTemporalDatesRaw =`
-- L9061: `? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)`
-- L9063: `const modifyTemporalDates =`
-- L9065: `? anchorModifyRelativeDateToContext(pre, userTxtRaw, modifyTemporalDatesRaw, nextSlots)`
-- L9066: `: modifyTemporalDatesRaw;`
-- L9072: `checkIn: nextCheckIn,`
-- L9073: `checkOut: nextCheckOut,`
-- L9076: `const modifySingleTemporalISO =`
-- L9077: `modifyTemporalDates.checkIn \|\| modifyTemporalDates.checkOut;`
-- L9080: `Boolean(currentModifyCheckIn && currentModifyCheckOut) &&`
-- L9082: `Boolean(modifySingleTemporalISO) &&`
-- L9087: `Boolean(modifySingleTemporalISO) &&`
-- L9088: `!(modifyTemporalDates.checkIn && modifyTemporalDates.checkOut);`
-- L9115: `modifySingleTemporalISO &&`
-- L9118: `const contextualDateSlots = contextualMissingModifySide === "checkIn"`
-- L9119: `? { checkIn: modifySingleTemporalISO }`
-- L9120: `: { checkOut: modifySingleTemporalISO };`
-- L9126: `numGuests: baseGuests,`
-- L9127: `checkIn: baseCheckIn,`
-- L9128: `checkOut: baseCheckOut,`
-- L9160: `const correctionSideIntent = detectModifyTemporalSideIntent(userTxtRaw, modifyTemporalDates) \|\| "checkOut";`
-- L9161: `const correctionTemporalDates =`
-- L9162: `correctionSideIntent === "checkOut"`
-- L9163: `? anchorRelativeWeekdayToCheckOutAfterCheckIn(userTxtRaw, modifyTemporalDates, currentModifyCheckIn)`
-- L9164: `: modifyTemporalDates;`
-- L9165: `const correctedTemporalISO =`
-- L9166: `correctionSideIntent === "checkIn"`
-- L9167: `? (correctionTemporalDates.checkIn \|\| correctionTemporalDates.checkOut)`
+- L9045: `? buildAskMissingDate(pre.lang, directModifySideIntent === "checkIn" ? "checkOut" : "checkIn")`
+- L9054: `numGuests: resolveAuthoritativeNumGuests(target, reservationGuests),`
+- L9055: `checkIn: reservationCheckIn \|\| target.checkIn,`
+- L9056: `checkOut: reservationCheckOut \|\| target.checkOut,`
+- L9074: `numGuests: target?.numGuests,`
+- L9075: `checkIn: target?.checkIn,`
+- L9076: `checkOut: target?.checkOut,`
+- L9096: `numGuests: target?.numGuests,`
+- L9097: `checkIn: target?.checkIn,`
+- L9098: `checkOut: target?.checkOut,`
+- L9122: `const extractedGuestCount = explicitModifyTurnSlots.numGuests \|\| extractGuests(userTxtRaw);`
+- L9129: `if (explicitGuestCount && !explicitModifyTurnSlots.numGuests) {`
+- L9130: `explicitModifyTurnSlots.numGuests = explicitGuestCount;`
+- L9135: `const hasExplicitDateRange = Boolean(rawOrderedDateRange?.checkIn && rawOrderedDateRange?.checkOut);`
+- L9139: `const baseGuests = resolveAuthoritativeNumGuests(baseModifyTarget, reservationGuests);`
+- L9140: `const baseCheckIn = baseModifyTarget?.checkIn \|\| reservationCheckIn;`
+- L9141: `const baseCheckOut = baseModifyTarget?.checkOut \|\| reservationCheckOut;`
+- L9142: `const currentModifyCheckIn = nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn \|\| baseCheckIn;`
+- L9143: `const currentModifyCheckOut = nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut \|\| baseCheckOut;`
+- L9144: `const nextCheckIn = hasExplicitDateRange ? rawOrderedDateRange?.checkIn : baseCheckIn;`
+- L9145: `const nextCheckOut = hasExplicitDateRange ? rawOrderedDateRange?.checkOut : baseCheckOut;`
+- L9146: `const modifyTemporalDatesRaw =`
+- L9148: `? await extractSupportedTemporalDateRange(userTxtRaw, pre.lang)`
+- L9150: `const modifyTemporalDates =`
+- L9152: `? anchorModifyRelativeDateToContext(pre, userTxtRaw, modifyTemporalDatesRaw, nextSlots)`
+- L9153: `: modifyTemporalDatesRaw;`
+- L9159: `checkIn: nextCheckIn,`
+- L9160: `checkOut: nextCheckOut,`
+- L9163: `const modifySingleTemporalISO =`
+- L9164: `modifyTemporalDates.checkIn \|\| modifyTemporalDates.checkOut;`
+- L9167: `Boolean(currentModifyCheckIn && currentModifyCheckOut) &&`
+- L9169: `Boolean(modifySingleTemporalISO) &&`
+- L9174: `Boolean(modifySingleTemporalISO) &&`
+- L9175: `!(modifyTemporalDates.checkIn && modifyTemporalDates.checkOut);`
+- L9202: `modifySingleTemporalISO &&`
+- L9205: `const contextualDateSlots = contextualMissingModifySide === "checkIn"`
+- L9206: `? { checkIn: modifySingleTemporalISO }`
+- L9207: `: { checkOut: modifySingleTemporalISO };`
+- L9213: `numGuests: baseGuests,`
+- L9214: `checkIn: baseCheckIn,`
 
-### 9248-9497
+### 9283-9532
 
-- L9254: `numGuests: nextGuestCount,`
-- L9273: `numGuests: nextGuestCount,`
-- L9274: `checkIn: nextCheckIn,`
-- L9275: `checkOut: nextCheckOut,`
-- L9285: `nextSlots = { ...nextSlots, numGuests: nextGuestCount } as ReservationSlotsStrict;`
-- L9317: `numGuests: baseGuests,`
-- L9318: `checkIn: baseCheckIn,`
-- L9319: `checkOut: baseCheckOut,`
-- L9333: `if (activeModifyField === "dates" && hasExplicitDateRange && nextCheckIn && nextCheckOut) {`
-- L9338: `const modifyDateCoherence = assessReservationDateCoherence(nextCheckIn, nextCheckOut);`
-- L9347: `checkIn: nextCheckIn,`
-- L9348: `checkOut: nextCheckOut,`
-- L9367: `numGuests: baseGuests,`
-- L9368: `checkIn: nextCheckIn,`
-- L9369: `checkOut: nextCheckOut,`
-- L9399: `checkIn: createDraftCheckIn,`
-- L9400: `checkOut: createDraftCheckOut,`
-- L9401: `numGuests: reservationGuests ? String(reservationGuests) : undefined,`
-- L9431: `const hasCheckIn = Boolean(additionalReservationDraft.checkIn);`
-- L9432: `const hasCheckOut = Boolean(additionalReservationDraft.checkOut);`
-- L9433: `if (hasCheckIn && !hasCheckOut) {`
-- L9435: `? 'Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}'`
-- L9437: `? 'Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut", "create")}'`
-- L9438: `: 'Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut", "create")}';`
-- L9441: `if (!hasCheckIn && hasCheckOut) {`
-- L9443: `? 'Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn", "create")}'`
-- L9445: `? 'Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}'`
-- L9446: `: 'Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}';`
-- L9449: `if (hasCheckIn && hasCheckOut) {`
-- L9463: `checkIn: additionalReservationDraft.checkIn!,`
-- L9464: `checkOut: additionalReservationDraft.checkOut!,`
+- L9337: `numGuests: nextGuestCount,`
+- L9407: `if (activeModifyField === "dates" && hasExplicitDateRange && nextCheckIn && nextCheckOut) {`
+- L9412: `const modifyDateCoherence = assessReservationDateCoherence(nextCheckIn, nextCheckOut);`
+- L9421: `checkIn: nextCheckIn,`
+- L9422: `checkOut: nextCheckOut,`
+- L9445: `checkIn: nextCheckIn,`
+- L9446: `checkOut: nextCheckOut,`
+- L9469: `checkIn: createDraftCheckIn,`
+- L9470: `checkOut: createDraftCheckOut,`
+- L9471: `numGuests: reservationGuests ? String(reservationGuests) : undefined,`
+- L9501: `const hasCheckIn = Boolean(additionalReservationDraft.checkIn);`
+- L9502: `const hasCheckOut = Boolean(additionalReservationDraft.checkOut);`
+- L9503: `if (hasCheckIn && !hasCheckOut) {`
+- L9505: `? 'Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkOut", "create")}'`
+- L9507: `? 'Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkOut", "create")}'`
+- L9508: `: 'Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkOut", "create")}';`
+- L9511: `if (!hasCheckIn && hasCheckOut) {`
+- L9513: `? 'Perfecto, mantenemos la reserva anterior y abrimos una nueva. ${buildAskMissingDate(pre.lang, "checkIn", "create")}'`
+- L9515: `? 'Perfeito, mantemos a reserva anterior e abrimos uma nova. ${buildAskMissingDate(pre.lang, "checkIn", "create")}'`
+- L9516: `: 'Perfect, we will keep the previous booking and open a new one. ${buildAskMissingDate(pre.lang, "checkIn", "create")}';`
+- L9519: `if (hasCheckIn && hasCheckOut) {`
 
-### 9498-9747
+### 9533-9782
 
-- L9499: `checkIn: reservationCheckIn,`
-- L9500: `checkOut: reservationCheckOut,`
-- L9501: `numGuests: reservationGuests ? String(reservationGuests) : undefined,`
-- L9527: `const inquiryCheckIn = availabilityInquirySlots.checkIn;`
-- L9528: `const inquiryCheckOut = availabilityInquirySlots.checkOut;`
-- L9529: `if (inquiryCheckIn && inquiryCheckOut) {`
-- L9530: `const inquiryDateCoherence = assessReservationDateCoherence(inquiryCheckIn, inquiryCheckOut);`
-- L9535: `const availabilityResult = await runAvailabilityCheck(availabilityPre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {`
-- L9630: `createDraftTemporalDates.checkIn \|\|`
-- L9631: `createDraftTemporalDates.checkOut \|\|`
-- L9632: `createDraftRawOrderedDates?.checkIn \|\|`
-- L9633: `createDraftRawOrderedDates?.checkOut \|\|`
-- L9634: `createDraftRelativeWeekendRange.checkIn \|\|`
-- L9635: `createDraftRelativeWeekendRange.checkOut \|\|`
-- L9636: `(pre.currSlots.checkIn && pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn) \|\|`
-- L9637: `(pre.currSlots.checkOut && pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut)`
-- L9640: `createDraftConsistency.sanitizedSlots.checkIn &&`
-- L9641: `createDraftConsistency.sanitizedSlots.checkOut &&`
-- L9643: `createDraftConsistency.sanitizedSlots.numGuests &&`
-- L9694: `Boolean(updatedHolderSnapshot.checkIn && updatedHolderSnapshot.checkOut && updatedHolderSnapshot.roomType && updatedHolderSnapshot.numGuests) &&`
-- L9702: `checkIn: updatedHolderSnapshot.checkIn!,`
-- L9703: `checkOut: updatedHolderSnapshot.checkOut!,`
-- L9737: `const readyCreateCheckIn = createDraftConsistency.sanitizedSlots.checkIn;`
-- L9738: `const readyCreateCheckOut = createDraftConsistency.sanitizedSlots.checkOut;`
-- L9739: `const readyCreateDateCoherence = assessReservationDateCoherence(readyCreateCheckIn, readyCreateCheckOut);`
+- L9533: `checkIn: additionalReservationDraft.checkIn!,`
+- L9534: `checkOut: additionalReservationDraft.checkOut!,`
+- L9569: `checkIn: reservationCheckIn,`
+- L9570: `checkOut: reservationCheckOut,`
+- L9571: `numGuests: reservationGuests ? String(reservationGuests) : undefined,`
+- L9597: `const inquiryCheckIn = availabilityInquirySlots.checkIn;`
+- L9598: `const inquiryCheckOut = availabilityInquirySlots.checkOut;`
+- L9599: `if (inquiryCheckIn && inquiryCheckOut) {`
+- L9600: `const inquiryDateCoherence = assessReservationDateCoherence(inquiryCheckIn, inquiryCheckOut);`
+- L9605: `const availabilityResult = await runAvailabilityCheck(availabilityPre, availabilityInquirySlots, inquiryCheckIn, inquiryCheckOut, {`
+- L9700: `createDraftTemporalDates.checkIn \|\|`
+- L9701: `createDraftTemporalDates.checkOut \|\|`
+- L9702: `createDraftRawOrderedDates?.checkIn \|\|`
+- L9703: `createDraftRawOrderedDates?.checkOut \|\|`
+- L9704: `createDraftRelativeWeekendRange.checkIn \|\|`
+- L9705: `createDraftRelativeWeekendRange.checkOut \|\|`
+- L9706: `(pre.currSlots.checkIn && pre.currSlots.checkIn !== pre.prevSlotsStrict?.checkIn) \|\|`
+- L9707: `(pre.currSlots.checkOut && pre.currSlots.checkOut !== pre.prevSlotsStrict?.checkOut)`
+- L9710: `createDraftConsistency.sanitizedSlots.checkIn &&`
+- L9711: `createDraftConsistency.sanitizedSlots.checkOut &&`
+- L9713: `createDraftConsistency.sanitizedSlots.numGuests &&`
+- L9764: `Boolean(updatedHolderSnapshot.checkIn && updatedHolderSnapshot.checkOut && updatedHolderSnapshot.roomType && updatedHolderSnapshot.numGuests) &&`
+- L9772: `checkIn: updatedHolderSnapshot.checkIn!,`
+- L9773: `checkOut: updatedHolderSnapshot.checkOut!,`
 
-### 9748-9997
+### 9783-10032
 
-- L9748: `checkIn: readyCreateCheckIn!,`
-- L9749: `checkOut: readyCreateCheckOut!,`
-- L9809: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
-- L9814: `const checkIn = firstWeekdayOnOrAfter(baseIso, startWeekday);`
-- L9815: `const checkOut = checkIn ? firstWeekdayStrictlyAfter(checkIn, endWeekday) : undefined;`
-- L9816: `return checkIn && checkOut ? { checkIn, checkOut } : {};`
-- L9818: `const quotedTurnSupportedDates = await extractSupportedTemporalDateRange(trimmedQuotedReply, pre.lang);`
-- L9823: `quotedTurnSupportedDates.checkIn && quotedTurnSupportedDates.checkOut`
-- L9825: `: quotedTurnRelativeWeekendRange.checkIn && quotedTurnRelativeWeekendRange.checkOut`
-- L9827: `: quotedTurnDirectWeekdayRange.checkIn && quotedTurnDirectWeekdayRange.checkOut`
-- L9829: `: quotedTurnRelativeWeekdayRange.checkIn && quotedTurnRelativeWeekdayRange.checkOut`
-- L9831: `: quotedTurnSupportedDates.checkIn \|\| quotedTurnSupportedDates.checkOut`
-- L9848: `quotedTurnSlots.numGuests \|\|`
-- L9849: `quotedTurnSupportedDates.checkIn \|\|`
-- L9850: `quotedTurnSupportedDates.checkOut \|\|`
-- L9851: `quotedTurnRelativeWeekendRange.checkIn \|\|`
-- L9852: `quotedTurnRelativeWeekendRange.checkOut \|\|`
-- L9853: `quotedTurnDirectWeekdayRange.checkIn \|\|`
-- L9854: `quotedTurnDirectWeekdayRange.checkOut \|\|`
-- L9855: `quotedTurnRelativeWeekdayRange.checkIn \|\|`
-- L9856: `quotedTurnRelativeWeekdayRange.checkOut \|\|`
-- L9857: `quotedTurnSingleRelativeDate.checkIn \|\|`
-- L9858: `quotedTurnSingleRelativeDate.checkOut`
-- L9861: `quotedTurnSupportedDates.checkIn \|\|`
-- L9862: `quotedTurnSupportedDates.checkOut \|\|`
-- L9863: `quotedTurnRelativeWeekendRange.checkIn \|\|`
-- L9864: `quotedTurnRelativeWeekendRange.checkOut \|\|`
-- L9865: `quotedTurnDirectWeekdayRange.checkIn \|\|`
-- L9866: `quotedTurnDirectWeekdayRange.checkOut \|\|`
-- L9867: `quotedTurnRelativeWeekdayRange.checkIn \|\|`
-- L9868: `quotedTurnRelativeWeekdayRange.checkOut \|\|`
-- L9869: `quotedTurnSingleRelativeDate.checkIn \|\|`
-- L9870: `quotedTurnSingleRelativeDate.checkOut`
-- L9901: `const requoteCheckIn = quotedDraftConsistency.sanitizedSlots.checkIn;`
-- L9902: `const requoteCheckOut = quotedDraftConsistency.sanitizedSlots.checkOut;`
-- L9903: `if (hasQuotedProposalDateCorrection && requoteCheckIn && requoteCheckOut) {`
-- L9904: `const requoteCoherence = assessReservationDateCoherence(requoteCheckIn, requoteCheckOut);`
-- L9913: `checkIn: requoteCheckIn,`
-- L9914: `checkOut: requoteCheckOut,`
-- L9937: `createDraftConsistency.sanitizedSlots.checkIn \|\|`
+- L9807: `const readyCreateCheckIn = createDraftConsistency.sanitizedSlots.checkIn;`
+- L9808: `const readyCreateCheckOut = createDraftConsistency.sanitizedSlots.checkOut;`
+- L9809: `const readyCreateDateCoherence = assessReservationDateCoherence(readyCreateCheckIn, readyCreateCheckOut);`
+- L9818: `checkIn: readyCreateCheckIn!,`
+- L9819: `checkOut: readyCreateCheckOut!,`
+- L9879: `if (!quotedTurnDirectWeekdayMatch) return {} as { checkIn?: string; checkOut?: string };`
+- L9884: `const checkIn = firstWeekdayOnOrAfter(baseIso, startWeekday);`
+- L9885: `const checkOut = checkIn ? firstWeekdayStrictlyAfter(checkIn, endWeekday) : undefined;`
+- L9886: `return checkIn && checkOut ? { checkIn, checkOut } : {};`
+- L9888: `const quotedTurnSupportedDates = await extractSupportedTemporalDateRange(trimmedQuotedReply, pre.lang);`
+- L9893: `quotedTurnSupportedDates.checkIn && quotedTurnSupportedDates.checkOut`
+- L9895: `: quotedTurnRelativeWeekendRange.checkIn && quotedTurnRelativeWeekendRange.checkOut`
+- L9897: `: quotedTurnDirectWeekdayRange.checkIn && quotedTurnDirectWeekdayRange.checkOut`
+- L9899: `: quotedTurnRelativeWeekdayRange.checkIn && quotedTurnRelativeWeekdayRange.checkOut`
+- L9901: `: quotedTurnSupportedDates.checkIn \|\| quotedTurnSupportedDates.checkOut`
+- L9918: `quotedTurnSlots.numGuests \|\|`
+- L9919: `quotedTurnSupportedDates.checkIn \|\|`
+- L9920: `quotedTurnSupportedDates.checkOut \|\|`
+- L9921: `quotedTurnRelativeWeekendRange.checkIn \|\|`
+- L9922: `quotedTurnRelativeWeekendRange.checkOut \|\|`
+- L9923: `quotedTurnDirectWeekdayRange.checkIn \|\|`
+- L9924: `quotedTurnDirectWeekdayRange.checkOut \|\|`
+- L9925: `quotedTurnRelativeWeekdayRange.checkIn \|\|`
+- L9926: `quotedTurnRelativeWeekdayRange.checkOut \|\|`
+- L9927: `quotedTurnSingleRelativeDate.checkIn \|\|`
+- L9928: `quotedTurnSingleRelativeDate.checkOut`
+- L9931: `quotedTurnSupportedDates.checkIn \|\|`
+- L9932: `quotedTurnSupportedDates.checkOut \|\|`
+- L9933: `quotedTurnRelativeWeekendRange.checkIn \|\|`
+- L9934: `quotedTurnRelativeWeekendRange.checkOut \|\|`
+- L9935: `quotedTurnDirectWeekdayRange.checkIn \|\|`
+- L9936: `quotedTurnDirectWeekdayRange.checkOut \|\|`
+- L9937: `quotedTurnRelativeWeekdayRange.checkIn \|\|`
+- L9938: `quotedTurnRelativeWeekdayRange.checkOut \|\|`
+- L9939: `quotedTurnSingleRelativeDate.checkIn \|\|`
+- L9940: `quotedTurnSingleRelativeDate.checkOut`
+- L9971: `const requoteCheckIn = quotedDraftConsistency.sanitizedSlots.checkIn;`
+- L9972: `const requoteCheckOut = quotedDraftConsistency.sanitizedSlots.checkOut;`
+- L9973: `if (hasQuotedProposalDateCorrection && requoteCheckIn && requoteCheckOut) {`
+- L9974: `const requoteCoherence = assessReservationDateCoherence(requoteCheckIn, requoteCheckOut);`
 
-### 9998-10247
+### 10033-10282
 
-- L10007: `reservationCheckIn &&`
-- L10008: `reservationCheckOut &&`
-- L10016: `checkIn: reservationCheckIn,`
-- L10017: `checkOut: reservationCheckOut,`
-- L10018: `numGuests: String(reservationGuests),`
-- L10054: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10055: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10056: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L10060: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
-- L10061: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
+- L10077: `reservationCheckIn &&`
+- L10078: `reservationCheckOut &&`
+- L10086: `checkIn: reservationCheckIn,`
+- L10087: `checkOut: reservationCheckOut,`
+- L10088: `numGuests: String(reservationGuests),`
 - L10124: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
 - L10125: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
 - L10126: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
 - L10130: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
 - L10131: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
-- L10192: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10193: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10194: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L10194: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10195: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10196: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L10200: `if (summary.checkIn) summary.displayCheckIn = toDDMMYYYY(summary.checkIn);`
+- L10201: `if (summary.checkOut) summary.displayCheckOut = toDDMMYYYY(summary.checkOut);`
+- L10262: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10263: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10264: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
 
-### 10248-10497
+### 10283-10532
 
-- L10250: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10251: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10252: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L10314: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10315: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10316: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L10372: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10373: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10374: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L10428: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
-- L10429: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
-- L10430: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
-- L10474: `const hasGuests = Boolean(pre.currSlots?.numGuests \|\| pre.st?.reservationSlots?.numGuests);`
-- L10480: `(pre.currSlots?.checkIn \|\| pre.st?.reservationSlots?.checkIn) &&`
-- L10481: `(pre.currSlots?.checkOut \|\| pre.st?.reservationSlots?.checkOut) &&`
-- L10482: `(pre.currSlots?.numGuests \|\| pre.st?.reservationSlots?.numGuests) &&`
-- L10485: `const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } \| undefined;`
+- L10320: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10321: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10322: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L10384: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10385: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10386: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L10442: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10443: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10444: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
+- L10498: `checkIn: pre.st?.reservationSlots?.checkIn \|\| nextSlots.checkIn,`
+- L10499: `checkOut: pre.st?.reservationSlots?.checkOut \|\| nextSlots.checkOut,`
+- L10500: `numGuests: pre.st?.reservationSlots?.numGuests \|\| nextSlots.numGuests,`
 
-### 10498-10747
+### 10533-10782
 
-- L10584: `checkIn: cancelledReservation.checkIn,`
-- L10585: `checkOut: cancelledReservation.checkOut,`
-- L10586: `numGuests: cancelledReservation.numGuests,`
-- L10725: `checkIn: cancelledReservation.checkIn,`
-- L10726: `checkOut: cancelledReservation.checkOut,`
-- L10727: `numGuests: cancelledReservation.numGuests,`
+- L10544: `const hasGuests = Boolean(pre.currSlots?.numGuests \|\| pre.st?.reservationSlots?.numGuests);`
+- L10550: `(pre.currSlots?.checkIn \|\| pre.st?.reservationSlots?.checkIn) &&`
+- L10551: `(pre.currSlots?.checkOut \|\| pre.st?.reservationSlots?.checkOut) &&`
+- L10552: `(pre.currSlots?.numGuests \|\| pre.st?.reservationSlots?.numGuests) &&`
+- L10555: `const pendingAvailabilityVerification = (pre.st as any)?.pendingAvailabilityVerification as { checkIn?: string; checkOut?: string } \| undefined;`
+- L10654: `checkIn: cancelledReservation.checkIn,`
+- L10655: `checkOut: cancelledReservation.checkOut,`
+- L10656: `numGuests: cancelledReservation.numGuests,`
 
-### 10748-10997
+### 10783-11032
 
-- L10776: `const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);`
-- L10777: `const time = offeredTimeSide === "checkin" ? confCheckIn : confCheckOut;`
-- L10780: `? (offeredTimeSide === "checkin" ? 'El check-in comienza a las ${time}.' : 'El check-out es hasta las ${time}.')`
-- L10782: `? (offeredTimeSide === "checkin" ? 'O check-in começa às ${time}.' : 'O check-out vai até ${time}.')`
-- L10783: `: (offeredTimeSide === "checkin" ? 'Check-in starts at ${time}.' : 'Check-out is until ${time}.');`
-- L10784: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
-- L10792: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
-- L10801: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
-- L10919: `numGuests: nextSlots.numGuests \|\| currentPreviewSnapshot.numGuests,`
-- L10920: `checkIn: nextSlots.checkIn \|\| currentPreviewSnapshot.checkIn,`
-- L10921: `checkOut: nextSlots.checkOut \|\| currentPreviewSnapshot.checkOut,`
-- L10927: `String(updatedPreviewSnapshot.numGuests \|\| "") !== String(currentPreviewSnapshot.numGuests \|\| "") \|\|`
-- L10928: `String(updatedPreviewSnapshot.checkIn \|\| "") !== String(currentPreviewSnapshot.checkIn \|\| "") \|\|`
-- L10929: `String(updatedPreviewSnapshot.checkOut \|\| "") !== String(currentPreviewSnapshot.checkOut \|\| "");`
+- L10795: `checkIn: cancelledReservation.checkIn,`
+- L10796: `checkOut: cancelledReservation.checkOut,`
+- L10797: `numGuests: cancelledReservation.numGuests,`
+- L10846: `const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);`
+- L10847: `const time = offeredTimeSide === "checkin" ? confCheckIn : confCheckOut;`
+- L10850: `? (offeredTimeSide === "checkin" ? 'El check-in comienza a las ${time}.' : 'El check-out es hasta las ${time}.')`
+- L10852: `? (offeredTimeSide === "checkin" ? 'O check-in começa às ${time}.' : 'O check-out vai até ${time}.')`
+- L10853: `: (offeredTimeSide === "checkin" ? 'Check-in starts at ${time}.' : 'Check-out is until ${time}.');`
+- L10854: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
+- L10862: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
+- L10871: `nextCategory = offeredTimeSide === "checkin" ? "checkin_info" : "checkout_info";`
+- L10989: `numGuests: nextSlots.numGuests \|\| currentPreviewSnapshot.numGuests,`
+- L10990: `checkIn: nextSlots.checkIn \|\| currentPreviewSnapshot.checkIn,`
+- L10991: `checkOut: nextSlots.checkOut \|\| currentPreviewSnapshot.checkOut,`
+- L10997: `String(updatedPreviewSnapshot.numGuests \|\| "") !== String(currentPreviewSnapshot.numGuests \|\| "") \|\|`
+- L10998: `String(updatedPreviewSnapshot.checkIn \|\| "") !== String(currentPreviewSnapshot.checkIn \|\| "") \|\|`
+- L10999: `String(updatedPreviewSnapshot.checkOut \|\| "") !== String(currentPreviewSnapshot.checkOut \|\| "");`
 
-### 10998-11247
+### 11033-11282
 
-- L11006: `const ci = nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
-- L11007: `const co = nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
-- L11009: `const ng = nextSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests;`
-- L11043: `numGuests: ng,`
-- L11044: `checkIn: ci,`
-- L11045: `checkOut: co,`
-- L11089: `numGuests: ng,`
-- L11090: `checkIn: ci,`
-- L11091: `checkOut: co,`
-- L11153: `if (!snapshot.roomType \|\| !snapshot.checkIn \|\| !snapshot.checkOut) {`
-- L11154: `finalText = buildAskMissingDate(pre.lang, !snapshot.checkIn ? "checkIn" : "checkOut");`
-- L11157: `const createDateCoherence = assessReservationDateCoherence(snapshot.checkIn, snapshot.checkOut);`
-- L11176: `checkIn: normalizeReservationCalendarDate(providerReservation.checkInDate) \|\| providerReservation.checkInDate,`
-- L11177: `checkOut: normalizeReservationCalendarDate(providerReservation.checkOutDate) \|\| providerReservation.checkOutDate,`
-- L11178: `numGuests: providerReservation.numGuests,`
-- L11201: `checkIn: createdReservation.checkIn,`
-- L11202: `checkOut: createdReservation.checkOut,`
-- L11203: `numGuests: createdReservation.numGuests,`
-- L11222: `checkIn: canonicalRecordForReply.checkIn,`
-- L11223: `checkOut: canonicalRecordForReply.checkOut,`
-- L11224: `numGuests: canonicalRecordForReply.numGuests,`
-- L11231: `? '✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySn`
-- L11233: `? '✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.`
-- L11234: `: '✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGue`
+- L11076: `const ci = nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
+- L11077: `const co = nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
+- L11079: `const ng = nextSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests;`
+- L11113: `numGuests: ng,`
+- L11114: `checkIn: ci,`
+- L11115: `checkOut: co,`
+- L11159: `numGuests: ng,`
+- L11160: `checkIn: ci,`
+- L11161: `checkOut: co,`
+- L11223: `if (!snapshot.roomType \|\| !snapshot.checkIn \|\| !snapshot.checkOut) {`
+- L11224: `finalText = buildAskMissingDate(pre.lang, !snapshot.checkIn ? "checkIn" : "checkOut");`
+- L11227: `const createDateCoherence = assessReservationDateCoherence(snapshot.checkIn, snapshot.checkOut);`
+- L11246: `checkIn: normalizeReservationCalendarDate(providerReservation.checkInDate) \|\| providerReservation.checkInDate,`
+- L11247: `checkOut: normalizeReservationCalendarDate(providerReservation.checkOutDate) \|\| providerReservation.checkOutDate,`
+- L11248: `numGuests: providerReservation.numGuests,`
+- L11271: `checkIn: createdReservation.checkIn,`
+- L11272: `checkOut: createdReservation.checkOut,`
+- L11273: `numGuests: createdReservation.numGuests,`
 
-### 11248-11497
+### 11283-11532
 
-- L11284: `const postBookingLateCheckoutQ = detectLateCheckoutQuestion(kbUserText, pre.lang);`
-- L11285: `const postBookingEarlyCheckinQ = detectEarlyCheckinQuestion(kbUserText, pre.lang);`
-- L11286: `const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);`
-- L11329: `numGuests: target.numGuests,`
-- L11330: `checkIn: target.checkIn,`
-- L11331: `checkOut: target.checkOut,`
-- L11405: `checkIn: canonicalRecord.checkIn,`
-- L11406: `checkOut: canonicalRecord.checkOut,`
-- L11407: `numGuests: canonicalRecord.numGuests,`
-- L11419: `checkIn: persistedSlots.checkIn \|\| supplementalSlots.checkIn \|\| canonicalSlots.checkIn,`
-- L11420: `checkOut: persistedSlots.checkOut \|\| supplementalSlots.checkOut \|\| canonicalSlots.checkOut,`
-- L11421: `numGuests: canonicalSlots.numGuests,`
-- L11438: `if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {`
-- L11439: `finalText = buildLateCheckoutResponse(pre.lang, kbGuestState);`
-- L11440: `nextCategory = "checkout_info";`
-- L11443: `if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {`
-- L11445: `const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);`
-- L11446: `finalText = buildEarlyCheckinResponse(pre.lang, kbGuestState, {`
-- L11447: `checkInTime: confCheckIn,`
-- L11450: `nextCategory = "checkin_info";`
-- L11456: `const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);`
-- L11457: `const asksCheckOut = detectDateSideFromText(kbUserText) === "checkOut" \|\| /check\s*-?out\|salida\|egreso\|retirada\|partida\|sa[ií]da/i.test(kbUserText);`
-- L11458: `const time = asksCheckOut ? confCheckOut : confCheckIn;`
-- L11461: `? (asksCheckOut ? 'El check-out es hasta las ${time}.' : 'El check-in comienza a las ${time}.')`
-- L11463: `? (asksCheckOut ? 'O check-out vai até ${time}.' : 'O check-in começa às ${time}.')`
-- L11464: `: (asksCheckOut ? 'Check-out is until ${time}.' : 'Check-in starts at ${time}.'))`
-- L11470: `nextCategory = asksCheckOut ? "checkout_info" : "checkin_info";`
-- L11478: `nextCategory = /check\s*-?out\|salida\|egreso\|retirada\|partida\|sa[ií]da/i.test(kbUserText) ? "checkout_info" : "checkin_info";`
+- L11292: `checkIn: canonicalRecordForReply.checkIn,`
+- L11293: `checkOut: canonicalRecordForReply.checkOut,`
+- L11294: `numGuests: canonicalRecordForReply.numGuests,`
+- L11301: `? '✅ ¡Reserva confirmada! Código **${result.reservationId ?? "pendiente"}**.\nHabitación **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Fechas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySn`
+- L11303: `? '✅ Reserva confirmada! Código **${result.reservationId ?? "pendente"}**.\nQuarto **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Datas **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.`
+- L11304: `: '✅ Booking confirmed! Code **${result.reservationId ?? "pending"}**.\nRoom **${localizeRoomType(replySnapshot.roomType, pre.lang)}**, Dates **${replySnapshot.checkIn} → ${replySnapshot.checkOut}**${replySnapshot.numGue`
+- L11354: `const postBookingLateCheckoutQ = detectLateCheckoutQuestion(kbUserText, pre.lang);`
+- L11355: `const postBookingEarlyCheckinQ = detectEarlyCheckinQuestion(kbUserText, pre.lang);`
+- L11356: `const postBookingTimeQ = detectCheckinOrCheckoutTimeQuestion(kbUserText, pre.lang);`
+- L11399: `numGuests: target.numGuests,`
+- L11400: `checkIn: target.checkIn,`
+- L11401: `checkOut: target.checkOut,`
+- L11475: `checkIn: canonicalRecord.checkIn,`
+- L11476: `checkOut: canonicalRecord.checkOut,`
+- L11477: `numGuests: canonicalRecord.numGuests,`
+- L11489: `checkIn: persistedSlots.checkIn \|\| supplementalSlots.checkIn \|\| canonicalSlots.checkIn,`
+- L11490: `checkOut: persistedSlots.checkOut \|\| supplementalSlots.checkOut \|\| canonicalSlots.checkOut,`
+- L11491: `numGuests: canonicalSlots.numGuests,`
+- L11508: `if (postBookingLateCheckoutQ && hasConfirmedBookingContext) {`
+- L11509: `finalText = buildLateCheckoutResponse(pre.lang, kbGuestState);`
+- L11510: `nextCategory = "checkout_info";`
+- L11513: `if (postBookingEarlyCheckinQ && hasConfirmedBookingContext) {`
+- L11515: `const { checkIn: confCheckIn } = getConfiguredCheckTimes(hotel);`
+- L11516: `finalText = buildEarlyCheckinResponse(pre.lang, kbGuestState, {`
+- L11517: `checkInTime: confCheckIn,`
+- L11520: `nextCategory = "checkin_info";`
+- L11526: `const { checkIn: confCheckIn, checkOut: confCheckOut } = getConfiguredCheckTimes(hotel);`
+- L11527: `const asksCheckOut = detectDateSideFromText(kbUserText) === "checkOut" \|\| /check\s*-?out\|salida\|egreso\|retirada\|partida\|sa[ií]da/i.test(kbUserText);`
+- L11528: `const time = asksCheckOut ? confCheckOut : confCheckIn;`
+- L11531: `? (asksCheckOut ? 'El check-out es hasta las ${time}.' : 'El check-in comienza a las ${time}.')`
 
-### 11498-11747
+### 11533-11782
 
-- L11686: `extractSlotsFromText(kbUserText, pre.lang).checkIn \|\|`
-- L11687: `extractSlotsFromText(kbUserText, pre.lang).checkOut \|\|`
-- L11689: `extractSlotsFromText(kbUserText, pre.lang).numGuests \|\|`
-- L11691: `extractRawOrderedDateRange(kbUserText)?.checkIn`
-- L11697: `nextCategory === "checkin_info" \|\|`
-- L11698: `nextCategory === "checkout_info" \|\|`
+- L11533: `? (asksCheckOut ? 'O check-out vai até ${time}.' : 'O check-in começa às ${time}.')`
+- L11534: `: (asksCheckOut ? 'Check-out is until ${time}.' : 'Check-in starts at ${time}.'))`
+- L11540: `nextCategory = asksCheckOut ? "checkout_info" : "checkin_info";`
+- L11548: `nextCategory = /check\s*-?out\|salida\|egreso\|retirada\|partida\|sa[ií]da/i.test(kbUserText) ? "checkout_info" : "checkin_info";`
+- L11756: `extractSlotsFromText(kbUserText, pre.lang).checkIn \|\|`
+- L11757: `extractSlotsFromText(kbUserText, pre.lang).checkOut \|\|`
+- L11759: `extractSlotsFromText(kbUserText, pre.lang).numGuests \|\|`
+- L11761: `extractRawOrderedDateRange(kbUserText)?.checkIn`
+- L11767: `nextCategory === "checkin_info" \|\|`
+- L11768: `nextCategory === "checkout_info" \|\|`
 
-### 11748-11997
+### 11783-12032
 
-- L11835: `if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {`
-- L11836: `merged.numGuests = String((merged as any).numGuests);`
-- L11996: `const noNewChangeData = !userDatesNow.checkIn && !userDatesNow.checkOut && !userMentionedSide && !userAffirmAfterVerify;`
+- L11905: `if (typeof merged.numGuests !== "undefined" && typeof merged.numGuests !== "string") {`
+- L11906: `merged.numGuests = String((merged as any).numGuests);`
 
-### 11998-12247
+### 12033-12282
 
-- L12006: `const mentionsChangeDates = /\b(fechas\|fecha\|dates\|date\|datas\|data\|check-in\|check out\|check-out\|entrada\|salida\|ingreso)\b/i.test(normalizedUserTxt);`
-- L12008: `const mentionsChangeGuests = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxt);`
-- L12035: `const hasImmediateDateValue = Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut);`
-- L12036: `const hasImmediateGuestValue = Boolean(immediateTurnSlots.numGuests);`
-- L12038: `const temporalUserDates = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
-- L12039: `const temporalSideIntent = detectModifyTemporalSideIntent(userTxt, temporalUserDates);`
-- L12040: `const hasTemporalModifySignal = hasModifyDatesEntrySignal(`
-- L12041: `temporalSideIntent,`
-- L12042: `temporalUserDates,`
-- L12062: `hasTemporalModifySignal &&`
-- L12066: `const partialModifySlots = buildModifyPartialDateSlots(knownSlots, temporalUserDates, temporalSideIntent);`
-- L12079: `finalText = temporalSideIntent`
-- L12080: `? buildAskMissingDate(pre.lang, temporalSideIntent === "checkIn" ? "checkOut" : "checkIn")`
-- L12125: `if (activeField === "dates" && ingestedSlots.checkIn && ingestedSlots.checkOut) {`
-- L12193: `const guestsFromText = extractSlotsFromText(String(pre.msg.content \|\| ""), pre.lang).numGuests;`
-- L12197: `const prevGuestsVal = pre.prevSlotsStrict?.numGuests \|\| pre.st?.reservationSlots?.numGuests \|\| "";`
-- L12199: `const haveDatesNow = Boolean((nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut));`
-- L12204: `if (pre.inModifyMode && wantsGenericModify(String(pre.msg.content \|\| ""), pre.lang) && (nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut)) {`
-- L12213: `numGuests: resolvedModifyTarget.numGuests,`
-- L12214: `checkIn: resolvedModifyTarget.checkIn,`
-- L12215: `checkOut: resolvedModifyTarget.checkOut,`
-- L12236: `const userDates = await extractSupportedTemporalDateRange(String(pre.msg.content \|\| ""), pre.lang);`
+- L12066: `const noNewChangeData = !userDatesNow.checkIn && !userDatesNow.checkOut && !userMentionedSide && !userAffirmAfterVerify;`
+- L12076: `const mentionsChangeDates = /\b(fechas\|fecha\|dates\|date\|datas\|data\|check-in\|check out\|check-out\|entrada\|salida\|ingreso)\b/i.test(normalizedUserTxt);`
+- L12078: `const mentionsChangeGuests = /\b(cantidad de huespedes\|cantidad de huéspedes\|huespedes\|huéspedes\|personas\|guests\|pessoas)\b/i.test(normalizedUserTxt);`
+- L12105: `const hasImmediateDateValue = Boolean(immediateDateRange?.checkIn && immediateDateRange?.checkOut);`
+- L12106: `const hasImmediateGuestValue = Boolean(immediateTurnSlots.numGuests);`
+- L12108: `const temporalUserDates = await extractSupportedTemporalDateRange(userTxt, pre.lang);`
+- L12109: `const temporalSideIntent = detectModifyTemporalSideIntent(userTxt, temporalUserDates);`
+- L12110: `const hasTemporalModifySignal = hasModifyDatesEntrySignal(`
+- L12111: `temporalSideIntent,`
+- L12112: `temporalUserDates,`
+- L12132: `hasTemporalModifySignal &&`
+- L12136: `const partialModifySlots = buildModifyPartialDateSlots(knownSlots, temporalUserDates, temporalSideIntent);`
+- L12149: `finalText = temporalSideIntent`
+- L12150: `? buildAskMissingDate(pre.lang, temporalSideIntent === "checkIn" ? "checkOut" : "checkIn")`
+- L12195: `if (activeField === "dates" && ingestedSlots.checkIn && ingestedSlots.checkOut) {`
+- L12263: `const guestsFromText = extractSlotsFromText(String(pre.msg.content \|\| ""), pre.lang).numGuests;`
+- L12267: `const prevGuestsVal = pre.prevSlotsStrict?.numGuests \|\| pre.st?.reservationSlots?.numGuests \|\| "";`
+- L12269: `const haveDatesNow = Boolean((nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut));`
+- L12274: `if (pre.inModifyMode && wantsGenericModify(String(pre.msg.content \|\| ""), pre.lang) && (nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn) && (nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut)) {`
 
-### 12248-12497
+### 12283-12532
 
-- L12248: `const lateCheckoutQ = detectLateCheckoutQuestion(String(pre.msg.content \|\| ""), pre.lang);`
-- L12249: `const earlyCheckinQ = detectEarlyCheckinQuestion(String(pre.msg.content \|\| ""), pre.lang);`
-- L12251: `const timeQ = detectCheckinOrCheckoutTimeQuestion(String(pre.msg.content \|\| ""), pre.lang);`
-- L12265: `const currentTurnCreateSlots = attributeSingleWordDateToPendingCreateCheckout(`
-- L12272: `const shouldMergeCreateTemporalDates =`
-- L12277: `const currentTurnCreateTemporalSlots = shouldMergeCreateTemporalDates`
-- L12281: `checkIn: currentTurnCreateTemporalSlots.checkIn,`
-- L12282: `checkOut: currentTurnCreateTemporalSlots.checkOut,`
-- L12283: `roomType: currentTurnCreateTemporalSlots.roomType,`
-- L12284: `numGuests: currentTurnCreateTemporalSlots.numGuests,`
-- L12285: `guestName: currentTurnCreateTemporalSlots.guestName,`
-- L12290: `currentTurnCreateTemporalSlots.checkIn &&`
-- L12291: `currentTurnCreateTemporalSlots.checkOut &&`
-- L12292: `currentTurnCreateTemporalSlots.roomType &&`
-- L12293: `currentTurnCreateTemporalSlots.numGuests &&`
-- L12294: `isSafeGuestName(currentTurnCreateTemporalSlots.guestName \|\| "")`
-- L12298: `userDates.checkIn \|\|`
-- L12299: `userDates.checkOut \|\|`
-- L12300: `currentTurnCreateTemporalSlots.checkIn \|\|`
-- L12301: `currentTurnCreateTemporalSlots.checkOut \|\|`
-- L12302: `currentTurnRelativeWeekendRange.checkIn \|\|`
-- L12303: `currentTurnRelativeWeekendRange.checkOut`
-- L12317: `Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) \|\|`
-- L12324: `currentTurnCreateTemporalSlots.checkIn &&`
-- L12325: `currentTurnCreateTemporalSlots.checkOut &&`
-- L12326: `currentTurnCreateTemporalSlots.roomType &&`
-- L12327: `currentTurnCreateTemporalSlots.numGuests &&`
-- L12328: `isSafeGuestName(currentTurnCreateTemporalSlots.guestName \|\| "")`
-- L12333: `checkIn: currentTurnCreateTemporalSlots.checkIn,`
-- L12334: `checkOut: currentTurnCreateTemporalSlots.checkOut,`
-- L12335: `roomType: currentTurnCreateTemporalSlots.roomType,`
-- L12336: `numGuests: currentTurnCreateTemporalSlots.numGuests,`
-- L12337: `guestName: currentTurnCreateTemporalSlots.guestName,`
-- L12345: `!lateCheckoutQ &&`
-- L12346: `!earlyCheckinQ &&`
-- L12347: `(pre.inModifyMode \|\| mentionsDates \|\| hasAnyDateToken \|\| Boolean(userDates.checkIn \|\| userDates.checkOut));`
-- L12349: `if (lateCheckoutQ) {`
-- L12350: `finalText = buildLateCheckoutResponse(pre.lang, guestState);`
-- L12351: `nextCategory = "checkout_info";`
-- L12353: `} else if (earlyCheckinQ) {`
+- L12283: `numGuests: resolvedModifyTarget.numGuests,`
+- L12284: `checkIn: resolvedModifyTarget.checkIn,`
+- L12285: `checkOut: resolvedModifyTarget.checkOut,`
+- L12306: `const userDates = await extractSupportedTemporalDateRange(String(pre.msg.content \|\| ""), pre.lang);`
+- L12318: `const lateCheckoutQ = detectLateCheckoutQuestion(String(pre.msg.content \|\| ""), pre.lang);`
+- L12319: `const earlyCheckinQ = detectEarlyCheckinQuestion(String(pre.msg.content \|\| ""), pre.lang);`
+- L12321: `const timeQ = detectCheckinOrCheckoutTimeQuestion(String(pre.msg.content \|\| ""), pre.lang);`
+- L12335: `const currentTurnCreateSlots = attributeSingleWordDateToPendingCreateCheckout(`
+- L12342: `const shouldMergeCreateTemporalDates =`
+- L12347: `const currentTurnCreateTemporalSlots = shouldMergeCreateTemporalDates`
+- L12351: `checkIn: currentTurnCreateTemporalSlots.checkIn,`
+- L12352: `checkOut: currentTurnCreateTemporalSlots.checkOut,`
+- L12353: `roomType: currentTurnCreateTemporalSlots.roomType,`
+- L12354: `numGuests: currentTurnCreateTemporalSlots.numGuests,`
+- L12355: `guestName: currentTurnCreateTemporalSlots.guestName,`
+- L12360: `currentTurnCreateTemporalSlots.checkIn &&`
+- L12361: `currentTurnCreateTemporalSlots.checkOut &&`
+- L12362: `currentTurnCreateTemporalSlots.roomType &&`
+- L12363: `currentTurnCreateTemporalSlots.numGuests &&`
+- L12364: `isSafeGuestName(currentTurnCreateTemporalSlots.guestName \|\| "")`
+- L12368: `userDates.checkIn \|\|`
+- L12369: `userDates.checkOut \|\|`
+- L12370: `currentTurnCreateTemporalSlots.checkIn \|\|`
+- L12371: `currentTurnCreateTemporalSlots.checkOut \|\|`
+- L12372: `currentTurnRelativeWeekendRange.checkIn \|\|`
+- L12373: `currentTurnRelativeWeekendRange.checkOut`
+- L12387: `Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) \|\|`
+- L12394: `currentTurnCreateTemporalSlots.checkIn &&`
+- L12395: `currentTurnCreateTemporalSlots.checkOut &&`
+- L12396: `currentTurnCreateTemporalSlots.roomType &&`
+- L12397: `currentTurnCreateTemporalSlots.numGuests &&`
+- L12398: `isSafeGuestName(currentTurnCreateTemporalSlots.guestName \|\| "")`
+- L12403: `checkIn: currentTurnCreateTemporalSlots.checkIn,`
+- L12404: `checkOut: currentTurnCreateTemporalSlots.checkOut,`
+- L12405: `roomType: currentTurnCreateTemporalSlots.roomType,`
+- L12406: `numGuests: currentTurnCreateTemporalSlots.numGuests,`
+- L12407: `guestName: currentTurnCreateTemporalSlots.guestName,`
+- L12415: `!lateCheckoutQ &&`
+- L12416: `!earlyCheckinQ &&`
+- L12417: `(pre.inModifyMode \|\| mentionsDates \|\| hasAnyDateToken \|\| Boolean(userDates.checkIn \|\| userDates.checkOut));`
 
-### 12498-12747
+### 12533-12782
 
-- L12561: `nextSlots.checkIn = ciISO; nextSlots.checkOut = coISO;`
-- L12582: `const ciISO = pendingAvailabilityVerification?.checkIn \|\| proposed.checkIn \|\| nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
-- L12583: `const coISO = pendingAvailabilityVerification?.checkOut \|\| proposed.checkOut \|\| nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
-- L12585: `checkIn: ciISO,`
-- L12586: `checkOut: coISO,`
-- L12591: `checkIn: createQuoteSlots.checkIn,`
-- L12592: `checkOut: createQuoteSlots.checkOut,`
-- L12594: `numGuests: createQuoteSlots.numGuests,`
-- L12613: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
-- L12641: `numGuests: resolveAuthoritativeNumGuests(modifyTarget, nextSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests),`
-- L12642: `checkIn: ciISO,`
-- L12643: `checkOut: coISO,`
-- L12664: `checkIn: ciISO,`
-- L12665: `checkOut: coISO,`
-- L12669: `checkIn: ciISO!,`
-- L12670: `checkOut: coISO!,`
-- L12690: `const missing = !ciISO ? "checkIn" : !coISO ? "checkOut" : undefined;`
-- L12708: `const ciISO = proposed.checkIn \|\| nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
-- L12709: `const coISO = proposed.checkOut \|\| nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
-- L12711: `checkIn: ciISO,`
-- L12712: `checkOut: coISO,`
-- L12717: `checkIn: createQuoteSlots.checkIn,`
-- L12718: `checkOut: createQuoteSlots.checkOut,`
-- L12720: `numGuests: createQuoteSlots.numGuests,`
-- L12739: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
-
-### 12748-12975
-
+- L12536: `prevSlots: { checkIn: pre.prevSlotsStrict?.checkIn, checkOut: pre.prevSlotsStrict?.checkOut },`
+- L12539: `preserveAskCheckInPrompt: preserveAskCheckIn,`
+- L12543: `const userModifiesCheckInWithoutDate = !userProvidedSomeDate && /modificar\s+.*check\s*-?in\|change\s+.*check-?in/i.test(String(pre.msg.content \|\| ''));`
+- L12545: `if (!userModifiesCheckInWithoutDate && (isEmpty \|\| cons.finalText)) {`
+- L12555: `// Salvaguarda adicional: si tras la consolidación tenemos un rango NUEVO (checkIn+checkOut)`
+- L12560: `const prevCI = pre.prevSlotsStrict?.checkIn;`
+- L12561: `const prevCO = pre.prevSlotsStrict?.checkOut;`
+- L12562: `const newCI = nextSlots.checkIn;`
+- L12563: `const newCO = nextSlots.checkOut;`
+- L12564: `const createQuoteReadySlots = mergeReservationSlots(pre.st?.reservationSlots, currentTurnCreateTemporalSlots, nextSlots);`
+- L12567: `Boolean(currentTurnRelativeWeekendRange.checkIn && currentTurnRelativeWeekendRange.checkOut) \|\|`
+- L12631: `nextSlots.checkIn = ciISO; nextSlots.checkOut = coISO;`
+- L12652: `const ciISO = pendingAvailabilityVerification?.checkIn \|\| proposed.checkIn \|\| nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
+- L12653: `const coISO = pendingAvailabilityVerification?.checkOut \|\| proposed.checkOut \|\| nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
+- L12655: `checkIn: ciISO,`
+- L12656: `checkOut: coISO,`
+- L12661: `checkIn: createQuoteSlots.checkIn,`
+- L12662: `checkOut: createQuoteSlots.checkOut,`
+- L12664: `numGuests: createQuoteSlots.numGuests,`
+- L12683: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
+- L12711: `numGuests: resolveAuthoritativeNumGuests(modifyTarget, nextSlots.numGuests \|\| pre.st?.reservationSlots?.numGuests),`
+- L12712: `checkIn: ciISO,`
+- L12713: `checkOut: coISO,`
+- L12734: `checkIn: ciISO,`
+- L12735: `checkOut: coISO,`
+- L12739: `checkIn: ciISO!,`
+- L12740: `checkOut: coISO!,`
+- L12760: `const missing = !ciISO ? "checkIn" : !coISO ? "checkOut" : undefined;`
+- L12778: `const ciISO = proposed.checkIn \|\| nextSlots.checkIn \|\| pre.st?.reservationSlots?.checkIn;`
+- L12779: `const coISO = proposed.checkOut \|\| nextSlots.checkOut \|\| pre.st?.reservationSlots?.checkOut;`
 - L12781: `checkIn: ciISO,`
 - L12782: `checkOut: coISO,`
-- L12792: `const missing = !ciISO ? "checkIn" : "checkOut";`
-- L12801: `: "I had an issue checking availability. Could you try again?";`
-- L12835: `focusTurnExtractedSlots.checkIn \|\|`
-- L12836: `focusTurnExtractedSlots.checkOut \|\|`
-- L12838: `focusTurnExtractedSlots.numGuests \|\|`
-- L12840: `extractRawOrderedDateRange(String(pre.msg.content \|\| ""))?.checkIn`
-- L12903: `quotedReservationSnapshot.checkIn &&`
-- L12904: `quotedReservationSnapshot.checkOut &&`
-- L12905: `quotedReservationSnapshot.numGuests &&`
-- L12915: `quotedReservationSnapshot.checkIn &&`
-- L12916: `quotedReservationSnapshot.checkOut &&`
-- L12917: `quotedReservationSnapshot.numGuests &&`
+
+### 12783-13032
+
+- L12787: `checkIn: createQuoteSlots.checkIn,`
+- L12788: `checkOut: createQuoteSlots.checkOut,`
+- L12790: `numGuests: createQuoteSlots.numGuests,`
+- L12809: `if (missingField && (pre.msg.channel === "email" \|\| missingField === "checkIn" \|\| missingField === "checkOut" \|\| missingField === "roomType")) {`
+- L12851: `checkIn: ciISO,`
+- L12852: `checkOut: coISO,`
+- L12862: `const missing = !ciISO ? "checkIn" : "checkOut";`
+- L12871: `: "I had an issue checking availability. Could you try again?";`
+- L12905: `focusTurnExtractedSlots.checkIn \|\|`
+- L12906: `focusTurnExtractedSlots.checkOut \|\|`
+- L12908: `focusTurnExtractedSlots.numGuests \|\|`
+- L12910: `extractRawOrderedDateRange(String(pre.msg.content \|\| ""))?.checkIn`
+- L12973: `quotedReservationSnapshot.checkIn &&`
+- L12974: `quotedReservationSnapshot.checkOut &&`
+- L12975: `quotedReservationSnapshot.numGuests &&`
+- L12985: `quotedReservationSnapshot.checkIn &&`
+- L12986: `quotedReservationSnapshot.checkOut &&`
+- L12987: `quotedReservationSnapshot.numGuests &&`
+
+### 13033-13045
+
+- sin líneas temporales relevantes detectadas

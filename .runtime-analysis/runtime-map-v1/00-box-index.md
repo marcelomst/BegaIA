@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
-messageHandler_lines: 13844
-working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
-baseline_status: ref_runtime_map_modify_preview_01_focal_evidence_refreshed
+commit_base: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+messageHandler_lines: 13914
+working_tree_status: exact_excluded_residual_present
+analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+baseline_status: fix_modify_multifield_preview_integrity_01_top_level_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -59,6 +59,57 @@ messageHandler_lines: 13628
 analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
 provenance: historical_focal_snapshot_preserved
 ```
+
+## Auditoría actual: FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - M1/M3/M4/M5
+      - capacity no-quote
+      - canonical numGuests null
+      - quoted pendingPatch confirmation
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+runtime_map:
+  applies: true
+  conceptual_change: false
+  evidence_refresh: true
+  top_level_code_refs_status: fresh
+  internal_code_refs_status: needs_refresh
+  global_freshness_claim_allowed: false
+top_level_code_refs:
+  preLLM: L5056-L5268
+  bodyLLM: L6283-L13045
+  posLLM: L13540-L13581
+  handleIncomingMessage: L13585-L13914
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf
+    bodyLLM_internal_scan_sha256: fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592
+  normalized_artifacts:
+    function_size_map_sha256: 9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8
+    bodyLLM_internal_scan_sha256: 82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c
+```
+
+Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
+intactos. Los rangos internos no entregados por Guardian conservan estado
+`needs_refresh` y no se desplazan por inferencia.
 
 ## Auditoría histórica preservada: FIX-MODIFY-CANCEL-PRECEDENCE-01
 
@@ -256,7 +307,7 @@ boxes:
       - routing
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L1-L13844
+        range: L1-L13914
         confidence: high
     related_boxes:
       - runtime.messageHandler.preLLM
@@ -284,7 +335,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13515-L13844
+        range: L13585-L13914
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -314,7 +365,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5021-L5233
+        range: L5056-L5268
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -349,7 +400,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6248-L12975
+        range: L6283-L13045
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -1140,7 +1191,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13470-L13511
+        range: L13540-L13581
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

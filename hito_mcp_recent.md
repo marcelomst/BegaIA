@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. REF-RUNTIME-MAP-MODIFY-PREVIEW-01
+## 1. FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
+
+- Identificador: `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01`
+- Nombre: `preserve multifield modify preview integrity`
+- Commit tecnico: `0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Compone campos explicitos y acumulados de `modify` bajo el
+  mismo `reservationId`, preserva `numGuests: null` como valor canonico,
+  valida capacidad y disponibilidad antes del quote y ejecuta solo el
+  `pendingPatch` cotizado; cubre O1/O2 y paridad M1/M3/M4/M5, deja M2/M6 fuera
+  de alcance y refresca evidencia fisica del Runtime Map sin cambio conceptual.
+
+## 2. REF-RUNTIME-MAP-MODIFY-PREVIEW-01
 
 - Identificador: `REF-RUNTIME-MAP-MODIFY-PREVIEW-01`
 - Nombre: `refresh modify preview runtime map references`
@@ -23,7 +37,7 @@ recent_hitos_count: 10
   preserva las 19 cajas y limita la frescura al foco verificado, sin cambios
   funcionales, conceptuales, de roadmap ni de arquitectura viva.
 
-## 2. DOC-CONVERSATIONAL-GOVERNANCE-INVARIANTS-01
+## 3. DOC-CONVERSATIONAL-GOVERNANCE-INVARIANTS-01
 
 - Identificador: `DOC-CONVERSATIONAL-GOVERNANCE-INVARIANTS-01`
 - Nombre: `codify conversational governance invariants`
@@ -37,7 +51,7 @@ recent_hitos_count: 10
   obligacion previa de target sin duplicarla ni alterar la aclaracion ante
   ambiguedad.
 
-## 3. GOV-FIX-CONDITIONAL-HITO-TYPE-01-CUTOVER
+## 4. GOV-FIX-CONDITIONAL-HITO-TYPE-01-CUTOVER
 
 - Identificador: `GOV-FIX-CONDITIONAL-HITO-TYPE-01-CUTOVER`
 - Nombre: `activate conditional hito_type contract in external Codex profiles`
@@ -55,7 +69,7 @@ recent_hitos_count: 10
   registra evidencia sustitutiva auditada, integridad del repositorio y
   rollback disponible sin modificar perfiles durante la fase documental.
 
-## 4. FIX-MODIFY-CANCEL-PRECEDENCE-01
+## 5. FIX-MODIFY-CANCEL-PRECEDENCE-01
 
 - Identificador: `FIX-MODIFY-CANCEL-PRECEDENCE-01`
 - Nombre: `arbitrate modify preview cancellation`
@@ -65,7 +79,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Corrige la precedencia de cancelar sobre un preview de modificacion pendiente, conserva target y slots canonicos, mantiene confirmaciones mutuamente excluyentes y refresca los rangos top-level del Runtime Map sin cambio conceptual; O1 y O2 quedan fuera de alcance.
 
-## 5. FIX-RESERVATION-CANCEL-MCP-RESULT-VALIDATION-01
+## 6. FIX-RESERVATION-CANCEL-MCP-RESULT-VALIDATION-01
 
 - Identificador: `FIX-RESERVATION-CANCEL-MCP-RESULT-VALIDATION-01`
 - Nombre: `validate provider cancellation result fail-closed`
@@ -75,7 +89,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Valida fail-closed el resultado del proveedor en `cancelReservationTool`; solo acepta una `Reservation` canonica con `hotelId` y `reservationId` coincidentes y `status` exactamente `cancelled`, sin cambios arquitectonicos ni refresh del Runtime Map.
 
-## 6. FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
+## 7. FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01
 
 - Identificador: `FIX-RESERVATION-PROPOSAL-FRESH-STATE-CAS-01`
 - Nombre: `enforce newest-wins reservation proposal publication with logical turn revision`
@@ -85,7 +99,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Corrige la inicializacion y publicacion concurrente de propuestas `reservation.create` mediante revision logica del turno, conserva `conv_state` como unica fuente canonica y refresca los rangos top-level del Runtime Map sin cambiar cajas ni arquitectura conceptual.
 
-## 7. OPS-02-GIT-WRITE-CONTRACT-01
+## 8. OPS-02-GIT-WRITE-CONTRACT-01
 
 - Identificador: `OPS-02-GIT-WRITE-CONTRACT-01`
 - Nombre: `establish canonical three-phase Git write contract`
@@ -95,7 +109,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; commit documental `PENDING` y cierre sujeto a validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Establece el contrato canonico de Git write en tres fases independientes y fail-closed bajo autoridad exclusiva de AH, con validacion exacta de staging, commit, residual y publicacion remota, sin duplicar la fuente normativa del Operating Model.
 
-## 8. PERS-02
+## 9. PERS-02
 
 - Identificador: `PERS-02`
 - Nombre: `preserve rich deterministic create proposals`
@@ -105,7 +119,7 @@ recent_hitos_count: 10
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Preserva propuestas ricas durante `reservation.create` deterministico, publica y finaliza `lastProposal` mediante CAS de identidad completa, bloquea confirmaciones invalidas o stale, mantiene continuidad tras consultas laterales y refresca evidencia fisica focal sin cambio conceptual ni afirmacion de frescura global.
 
-## 9. OPS-01
+## 10. OPS-01
 
 - Identificador: `OPS-01`
 - Nombre: `restore agent transition closure flow`
@@ -113,12 +127,3 @@ recent_hitos_count: 10
 - Push tecnico: confirmado.
 - Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
 - Descripcion breve: Restablece el circuito `Guardian -> AH -> Guardian -> HDOC -> AH -> HDOC` mediante envelopes de retorno autocontenidos, autoridad Git write exclusiva de Marcelo y validacion postcommit read-only; consolida el contrato operativo sin impacto en Runtime Map ni roadmap.
-
-## 10. PERS-01
-
-- Identificador: `PERS-01`
-- Nombre: `preserve rich Graph proposal metadata`
-- Commit tecnico: `de07879f0cc1d69510c5ad87f7f744054ea5d788`.
-- Push tecnico: confirmado.
-- Estado documental: `DOCUMENTACION_PREPARADA`; contenido final versionable listo para materializacion por Marcelo y validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Preserva la metadata rica de `lastProposal` para propuestas atribuidas a la invocacion Graph actual mediante relectura canonica y CAS exclusivo sobre `lastProposal.text`; registra evidencia focal y Astra aceptada, y refresca dos boxes estables sin cambio conceptual ni afirmacion de frescura global.

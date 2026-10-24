@@ -15212,6 +15212,126 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-24
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: preservar la integridad del preview multifield de modificacion desde la acumulacion hasta la confirmacion
+Commit tecnico: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- los campos explicitos y acumulados de `modify` se componen en un mismo
+  preview y permanecen asociados al mismo `reservationId`
+- O1 y O2 quedan cubiertos; M1 y M5 conservan paridad, y M3/M4 validan la
+  continuidad multifield y la autoridad canonica de `numGuests: null`
+- `numGuests: null` es autoritativo y no revive valores stale
+- capacidad y disponibilidad se validan antes del quote; preview, quote y
+  confirmacion conservan el mismo target
+- la confirmacion persiste y ejecuta unicamente el `pendingPatch` cotizado
+- M2 (reentrada desde `awaitingConfirmation`) y M6 (descarte frente a
+  cancelacion de reserva) permanecen como hallazgos fuera de alcance
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+technical_parent: ae0e57f40ad3d040380f0505ca183c22b4b1e4a5
+technical_commit_message: "fix(runtime): preserve multifield modify previews"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash_verified: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+repository_state_after_push:
+  residual_worktree:
+    - " M lib/mcp/channelManagerAdapter.ts"
+validation:
+  focal_suite: 142/142 PASS
+  additional_regressions: 90/90 PASS informado por AH
+  typescript: PASS
+  git_diff_check: PASS
+  core_suite: 1222/1223 PASS
+  manual_M3: PASS
+  manual_M4: PASS
+known_core_failure:
+  test: test/unit/channelManagerAdapter.registry.spec.ts
+  expected: stock 4, availableUnitsFromActiveReservations 3
+  observed: stock 100, availableUnitsFromActiveReservations 99
+  cause: cambio residual en lib/mcp/channelManagerAdapter.ts
+  hito_relation: excluded_residual
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - M1/M3/M4/M5
+      - capacity no-quote
+      - canonical numGuests null
+      - quoted pendingPatch confirmation
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico al commit
+  `0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83`
+- `messageHandler.ts`: 13914 lineas fisicas
+- `preLLM`: L5056-L5268
+- `bodyLLM`: L6283-L13045
+- `posLLM`: L13540-L13581
+- `handleIncomingMessage`: L13585-L13914
+- hashes raw entregados por Guardian: function map
+  `612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf`
+  y scan de `bodyLLM`
+  `fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592`
+- hashes versionados tras normalizacion Markdown sin cambio semantico: function
+  map `9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8`
+  y scan de `bodyLLM`
+  `82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c`
+- `conceptual_change: false`; se preservan `box_id`, taxonomia y diagramas
+  conceptuales; los rangos internos no entregados permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `.runtime-analysis/messageHandler_function_size_map.md`
+- `.runtime-analysis/bodyLLM_internal_scan.md`
+
+Impacto:
+
+- canonicidad: fortalece; mantiene autoridad canonica sobre `reservationId` y
+  `numGuests`, evita revivir valores stale y ata ejecucion al patch cotizado
+- `roadmap_impact: none`
+- Runtime Map: refresh fisico sin cambio conceptual
+- sin cambios de codigo, tests, roadmap, Operating Model, ADRs ni diagramas
+  conceptuales durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### PERS-02
 
 Estado: DOCUMENTACION_PREPARADA

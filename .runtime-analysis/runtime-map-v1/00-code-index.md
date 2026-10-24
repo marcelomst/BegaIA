@@ -39,7 +39,7 @@ Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus r
 Para el hito actual:
 
 ```yaml
-code_refs_status: focal_fresh_global_unasserted
+code_refs_status: top_level_fresh_internal_needs_refresh
 runtime_map_refresh_required: true
 conceptual_change: false
 evidence_refresh: true
@@ -48,14 +48,14 @@ runtime_map:
   applies: true
   conceptual_change: false
   evidence_refresh: true
-  code_refs_status: focal_fresh_global_unasserted
+  code_refs_status: top_level_fresh_internal_needs_refresh
   refresh_required: true
 ```
 
 Por eso:
 
 - los dos scans base se regeneran contra el código vigente
-- los rangos internos de las tres cajas focales quedan frescos
+- los rangos top-level quedan frescos; rangos internos no entregados permanecen `needs_refresh`
 - se preservan los `box_id` y el mapa conceptual
 - no se afirma frescura para referencias no focales
 
@@ -67,16 +67,16 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0da07bc606a962a0ce39c9e924e158435a520e83
-repository_baseline_head: 0a413160c4e44a2632f0b4ff054ebc113048fef9
-source_code_commit: 0da07bc606a962a0ce39c9e924e158435a520e83
-repository_baseline_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
-source_code_blob: 64dced354cb0fc46b04f43c9104b2ef2c6d5b473
+commit_base: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+repository_baseline_head: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+source_code_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+repository_baseline_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
+source_code_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
 source_blob_matches_repository_baseline: true
-messageHandler_lines: 13844
-working_tree_status: clean_at_documentation_preparation_start
-analysis_scope: focal_refresh_ref_runtime_map_modify_preview_01_at_0a413160c4e44a2632f0b4ff054ebc113048fef9
-baseline_status: ref_runtime_map_modify_preview_01_focal_evidence_refreshed
+messageHandler_lines: 13914
+working_tree_status: exact_excluded_residual_present
+analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+baseline_status: fix_modify_multifield_preview_integrity_01_top_level_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -101,6 +101,61 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 ```
 
 ---
+
+## Evidencia focal actual: multifield modify preview integrity
+
+```yaml
+hito_id: FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
+technical_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+technical_parent: ae0e57f40ad3d040380f0505ca183c22b4b1e4a5
+technical_subject: "fix(runtime): preserve multifield modify previews"
+technical_push: confirmed
+source_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
+source_blob_matches_commit: true
+messageHandler_lines: 13914
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - M1/M3/M4/M5
+      - capacity no-quote
+      - canonical numGuests null
+      - quoted pendingPatch confirmation
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+top_level_code_refs:
+  preLLM: L5056-L5268
+  bodyLLM: L6283-L13045
+  posLLM: L13540-L13581
+  handleIncomingMessage: L13585-L13914
+scan_reproducibility:
+  raw_generation:
+    function_size_map_sha256: 612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf
+    bodyLLM_internal_scan_sha256: fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592
+  normalized_artifacts:
+    function_size_map_sha256: 9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8
+    bodyLLM_internal_scan_sha256: 82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c
+conceptual_change: false
+internal_code_refs_status: needs_refresh
+global_freshness_claim_allowed: false
+```
+
+Los rangos internos del hito anterior se conservan como evidencia historica;
+no se desplazan por inferencia. El scan generado actualiza la evidencia fisica
+sin redefinir cajas ni diagramas.
 
 ## Evidencia focal histórica preservada: precedencia modify/cancel
 
@@ -398,7 +453,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13844
+total_lines: 13914
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -406,8 +461,9 @@ confidence: high
 Lectura:
 
 ```text
-`messageHandler.ts` sigue siendo el runtime principal. Los rangos listados para
-`FIX-MODIFY-CANCEL-PRECEDENCE-01` son evidencia focal; no constituyen una declaracion de frescura global.
+`messageHandler.ts` sigue siendo el runtime principal. Los cuatro rangos
+top-level listados para `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` son
+evidencia focal; no constituyen una declaracion de frescura global.
 ```
 
 ---
@@ -415,7 +471,8 @@ Lectura:
 ## 2. Funciones clave detectadas
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
-`handleIncomingMessage`) fueron recalculadas para FIX-MODIFY-CANCEL-PRECEDENCE-01. Las demas filas se
+`handleIncomingMessage`) fueron recalculadas para
+`FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01`. Las demas filas se
 conservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 
@@ -429,10 +486,10 @@ global.
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L5021-L5233 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L6248-L12975 |   6728 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L13470-L13511 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L13515-L13844 |    330 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L5056-L5268 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L6283-L13045 |   6763 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L13540-L13581 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L13585-L13914 |    330 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -442,7 +499,7 @@ global.
 
 ```yaml
 name: handleIncomingMessage
-range: L13515-L13844
+range: L13585-L13914
 lines: 330
 confidence: high
 role: public_entrypoint
@@ -461,7 +518,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L5021-L5233
+range: L5056-L5268
 lines: 213
 confidence: high
 role: context_preparation
@@ -483,8 +540,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L6248-L12975
-lines: 6728
+range: L6283-L13045
+lines: 6763
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -513,7 +570,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L13470-L13511
+range: L13540-L13581
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -706,13 +763,13 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L6248-L12975
-bodyLLM_lines: 6728
+bodyLLM_range: L6283-L13045
+bodyLLM_lines: 6763
 bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-El scan read-only regenerado para `REF-RUNTIME-MAP-MODIFY-PREVIEW-01` confirma
+El scan read-only regenerado para `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` confirma
 el rango top-level actual de `bodyLLM`. El refresh de este documento es focal,
 no implica frescura global ni autoriza refactor.
 
