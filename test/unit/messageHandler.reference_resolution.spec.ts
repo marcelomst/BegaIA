@@ -2461,6 +2461,11 @@ describe("messageHandler reference resolution", () => {
 
     const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(modifyReservation).not.toHaveBeenCalled();
+    expect(quoteReservationModification).toHaveBeenLastCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
     expect(previewReply).toMatch(/antes de aplicar el cambio/i);
     expect(previewReply).toMatch(/confirm[aá]s estos cambios/i);
     expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
@@ -2487,6 +2492,341 @@ describe("messageHandler reference resolution", () => {
     );
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Marcelo Martinez.*Habitación: triple.*Check-in: 28\/03\/2026.*Check-out: 30\/03\/2026.*Huéspedes: 3.*Total: 240 USD/is);
+  });
+
+  it("M3 compone huéspedes y habitación explícitos con activeField guests producido por el runtime", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-m3-runtime-active-guests";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("Quiero modificar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Quiero modificar los huéspedes", conversationId), { mode: "automatic", sendReply });
+
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: [],
+    });
+    expect(quoteReservationModification).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("3 personas y habitación triple", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*3/i);
+    expect(previewReply).not.toMatch(/no admite|cambiar a otra habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+    expect(modifyReservation).not.toHaveBeenCalled();
+  });
+
+  it("M4 cotiza, previsualiza y confirma ambos campos con activeField roomType producido por el runtime", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-m4-runtime-active-room";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("Quiero modificar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Quiero cambiar habitación", conversationId), { mode: "automatic", sendReply });
+
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+      pendingFields: [],
+    });
+    expect(quoteReservationModification).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("Habitación triple para 3 personas", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*3/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    expect(modifyReservation).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" }),
+      "web"
+    );
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({
+      roomType: "triple",
+      numGuests: 3,
+    });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Huéspedes: 3/i);
+  });
+
+  it("M1 preserva el número breve contextual hasta completar una habitación compatible", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-m1-short-number-runtime";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("Quiero modificar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Quiero modificar los huéspedes", conversationId), { mode: "automatic", sendReply });
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: [],
+    });
+
+    await handleIncomingMessage(msg("3", conversationId), { mode: "automatic", sendReply });
+
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/no admite|cambiar a|habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({ numGuests: "3" });
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+      pendingFields: [],
+    });
+    expect(quoteReservationModification).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+  });
+
+  it("M5 conserva ambos campos solicitados al responder 3 y luego triple", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-m5-runtime-queued-fields";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("Quiero modificar mi reserva", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("Quiero modificar huéspedes y habitación", conversationId), { mode: "automatic", sendReply });
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: ["roomType"],
+    });
+
+    await handleIncomingMessage(msg("3", conversationId), { mode: "automatic", sendReply });
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "roomType",
+      pendingFields: [],
+    });
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({ numGuests: "3" });
+
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+  });
+
+  it("preserva huéspedes acumulados al completar roomType después de una incompatibilidad de capacidad", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-multifield-guests-first-1";
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-ONLY-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-03-22T10:00:00.000Z",
+      },
+      modifyState: {
+        activeField: "guests",
+        pendingFields: ["roomType"],
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      activeField: "guests",
+      pendingFields: ["roomType"],
+    });
+
+    await handleIncomingMessage(msg("3 personas", conversationId), { mode: "automatic", sendReply });
+
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/no admite|cambiar a|habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.reservationSlots).toMatchObject({ numGuests: "3" });
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({ activeField: "roomType" });
+
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(quoteReservationModification).toHaveBeenLastCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*3/i);
+    expect(previewReply).not.toMatch(/nueva cantidad de hu[eé]spedes|qu[eé] tipo de habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const providerPatch = (modifyReservation as any).mock.calls.at(-1)?.[2];
+    expect(providerPatch).toEqual({
+      roomType: "triple",
+      numGuests: "3",
+      checkIn: undefined,
+      checkOut: undefined,
+      quoteId: "quote-test-240",
+      quoteVersion: "version-test-1",
+    });
+  });
+
+  it.each([
+    { activeField: "roomType", pendingFields: ["guests"], label: "roomType activo" },
+    { activeField: "guests", pendingFields: ["roomType"], label: "guests activo" },
+  ] as const)("consume activeField y pendingFields satisfechos en el mismo turno: $label", async ({ activeField, pendingFields }) => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = `conv-ref-modify-multifield-same-turn-${activeField}`;
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-ONLY-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-03-22T10:00:00.000Z",
+      },
+      modifyState: {
+        activeField,
+        pendingFields: [...pendingFields],
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+
+    await handleIncomingMessage(msg("triple para 3 personas", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/habitaci[oó]n: .*triple/i);
+    expect(previewReply).toMatch(/hu[eé]spedes: .*3/i);
+    expect(previewReply).not.toMatch(/nueva cantidad de hu[eé]spedes|qu[eé] tipo de habitaci[oó]n/i);
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({
+        reservationId: "RES-ONLY-01",
+        roomType: "triple",
+        numGuests: "3",
+      }),
+    });
+  });
+
+  it("conserva availability y quote al completar dates junto con otro campo de la cola", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-multifield-dates-same-turn";
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-ONLY-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-03-22T10:00:00.000Z",
+      },
+      modifyState: {
+        activeField: "roomType",
+        pendingFields: ["dates"],
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+
+    await handleIncomingMessage(
+      msg("triple del 10/04/2026 al 13/04/2026", conversationId),
+      { mode: "automatic", sendReply }
+    );
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    expect(askAvailability).toHaveBeenCalledWith(
+      "hotel999",
+      expect.objectContaining({ roomType: "triple", checkIn: "2026-04-10", checkOut: "2026-04-13" })
+    );
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", checkIn: "2026-04-10", checkOut: "2026-04-13" })
+    );
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).toMatch(/10\/04\/2026.*13\/04\/2026/i);
+    expect(stateByConversation.get(conversationId)?.modifyState?.pendingPatch).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      roomType: "triple",
+      checkIn: "2026-04-10",
+      checkOut: "2026-04-13",
+    });
   });
 
   it("recognizes unaccented composite modify request and keeps guests pending until the guest count is provided", async () => {
@@ -2641,6 +2981,9 @@ describe("messageHandler reference resolution", () => {
     expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
       activeField: "roomType",
     });
+    expect(stateByConversation.get(conversationId)?.modifyState?.awaitingConfirmation).not.toBe(true);
+    expect(stateByConversation.get(conversationId)?.modifyState?.pendingPatch).toBeUndefined();
+    expect(quoteReservationModification).not.toHaveBeenCalled();
   });
 
   it("muestra preview con reservationId cuando el mismo turno trae roomType y huéspedes", async () => {
@@ -4767,6 +5110,51 @@ describe("messageHandler reference resolution", () => {
 
     const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(reply).not.toMatch(/4\s*(hu[eé]spedes?|guests?|h[oó]spedes?)/i);
+  });
+
+  it("modify con numGuests canónico null no incorpora el valor stale al preview ni al pendingPatch", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-null-guest-modify-preview-authority";
+    const canonicalNullReservation = {
+      ...baseSingleReservationState().lastReservation,
+      numGuests: null,
+    };
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      reservationSlots: { ...baseSingleReservationState().reservationSlots, numGuests: "4" },
+      reservationHistory: [canonicalNullReservation],
+      lastReservation: canonicalNullReservation,
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-ONLY-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "confirmed",
+        source: "active_focus",
+        resolutionMode: "weak",
+        resolvedAt: "2026-03-22T10:00:00.000Z",
+      },
+      modifyState: {
+        activeField: "roomType",
+        pendingFields: [],
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      activeFlow: "modify_reservation",
+      desiredAction: "modify",
+      lastCategory: "modify_reservation",
+    }));
+
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const pendingPatch = stateByConversation.get(conversationId)?.modifyState?.pendingPatch;
+    expect(previewReply).toMatch(/antes de aplicar el cambio/i);
+    expect(previewReply).not.toMatch(/hu[eé]spedes:.*4/i);
+    expect(pendingPatch).toMatchObject({ reservationId: "RES-ONLY-01", roomType: "triple" });
+    expect(pendingPatch).not.toHaveProperty("numGuests");
+    expect((quoteReservationModification as any).mock.calls.at(-1)?.[2]?.numGuests).toBeUndefined();
   });
 
   it("proyecta numGuests desde provider tras modify lateral y no envía el snapshot stale", async () => {
