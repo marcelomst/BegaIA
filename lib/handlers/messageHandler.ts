@@ -1462,15 +1462,27 @@ function buildCompetingReservationConfirmationsReply(lang: "es" | "en" | "pt"): 
       : "Encontré confirmaciones incompatibles y suspendí ambas. Decime si querés modificar o cancelar la reserva.";
 }
 
-function isExplicitModifyPreviewRejection(text: string): boolean {
-  const normalized = normalizeReferenceText(text).trim();
-  return /^(?:cancela|cancelar|anula|anular)\s+(?:el|la)\s+(?:cambio|modificacion|alteracion)$/i.test(normalized) ||
-    /^(?:cancel|discard)\s+(?:the\s+)?(?:change|modification)$/i.test(normalized) ||
-    /^(?:cancela|cancelar)\s+(?:a\s+)?(?:alteracao|mudanca)$/i.test(normalized);
-}
+type ModifyPreviewDisposition = "discard_changes" | "cancel_reservation" | "ambiguous" | null;
 
-function isBareModifyPreviewCancellation(text: string): boolean {
-  return /^(?:cancela|cancelar|anula|anular|cancel)$/i.test(normalizeReferenceText(text).trim());
+function resolveModifyPreviewDisposition(text: string): ModifyPreviewDisposition {
+  const normalized = normalizeReferenceText(text).trim();
+  const mentionsPendingChange = /\b(?:cambio|cambios|modificacion|modificaciones|alteracion|alteraciones|propuesta pendiente|change|changes|modification|modifications|pending change|pending changes|alteracao|alteracoes|mudanca|mudancas)\b/i.test(normalized);
+  const mentionsReservation = /\b(?:reserva|reservas|booking|bookings)\b/i.test(normalized);
+  const asksToKeepCanonicalReservation = /\b(?:deja|mantene|conserva)\s+(?:la|mi)\s+reserva\s+(?:tal\s+)?como\s+(?:estaba|esta)\b/i.test(normalized);
+  const hasDiscardOrCancelVerb = /\b(?:descarta|descartar|cancela|cancelar|anula|anular|discard|cancel|cancele)\b/i.test(normalized);
+  const discardsPendingChange = asksToKeepCanonicalReservation || (mentionsPendingChange && hasDiscardOrCancelVerb);
+  const directlyCancelsReservation = /\b(?:cancela|cancelar|anula|anular|cancel|cancele)\s+(?:(?:mi|la|esa|esta|the|my|a|sua)\s+)?(?:reserva|booking)\b/i.test(normalized);
+  const coordinatesReservationCancellation =
+    mentionsPendingChange && /\b(?:y|ademas|tambien|and)\s+(?:(?:mi|la|esa|esta|the|my|a|sua)\s+)?(?:reserva|booking)\b/i.test(normalized);
+  const cancelsReservation = mentionsReservation && (directlyCancelsReservation || coordinatesReservationCancellation);
+
+  if (discardsPendingChange && cancelsReservation) return "ambiguous";
+  if (discardsPendingChange) return "discard_changes";
+  if (cancelsReservation) return "cancel_reservation";
+  if (/^(?:(?:quiero|deseo|necesito)\s+)?(?:cancela|cancelar|anula|anular|cancel)$/i.test(normalized)) {
+    return "ambiguous";
+  }
+  return null;
 }
 
 function buildModifyInactiveTargetReply(lang: "es" | "en" | "pt"): string {
@@ -2737,7 +2749,13 @@ function buildCanonicalReservationSlots(
   lang: "es" | "en" | "pt"
 ): ReservationSlotsStrict | null {
   const record = getCanonicalReservationRecordById(state, reservationId);
-  if (!record) return null;
+  return record ? buildReservationSlotsFromCanonicalRecord(record, lang) : null;
+}
+
+function buildReservationSlotsFromCanonicalRecord(
+  record: CanonicalReservationRecord,
+  lang: "es" | "en" | "pt"
+): ReservationSlotsStrict {
   return {
     guestName: record.guestName,
     roomType: record.roomType,
@@ -8093,8 +8111,15 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(pre.st?.modifyState?.awaitingConfirmation && pendingModifyPatchEarly?.reservationId);
   if (awaitingModifyPreviewConfirmationEarly && pendingModifyPatchEarly?.reservationId) {
     const pendingTarget = getReservationReferenceTargetById(pre.st, pendingModifyPatchEarly.reservationId);
-    const canonicalPreviewRecord = getCanonicalReservationRecordById(pre.st, pendingModifyPatchEarly.reservationId);
-    const canonicalPreviewSlots = buildCanonicalReservationSlots(pre.st, pendingModifyPatchEarly.reservationId, pre.lang);
+    const localCanonicalPreviewRecord = getCanonicalReservationRecordById(pre.st, pendingModifyPatchEarly.reservationId);
+    const canonicalPreviewRecord =
+      localCanonicalPreviewRecord ||
+      buildPresentedReservationRecords(pre.st).find(
+        (record) => record.reservationId === pendingModifyPatchEarly.reservationId
+      );
+    const canonicalPreviewSlots = canonicalPreviewRecord
+      ? buildReservationSlotsFromCanonicalRecord(canonicalPreviewRecord, pre.lang)
+      : null;
     const competingPendingCancellation = pre.st?.pendingCancellation as
       | { reservationId?: string; awaitingConfirmation?: boolean }
       | null
@@ -8119,7 +8144,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildCompetingReservationConfirmationsReply(pre.lang);
       return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
     }
-    if (!pendingTarget?.reservationId || pendingTarget.reservationStatus === "cancelled" || pendingTarget.reservationStatus === "error") {
+    if (
+      !pendingTarget?.reservationId ||
+      !canonicalPreviewRecord ||
+      canonicalPreviewRecord.canonicalStatus !== "active"
+    ) {
       await persistModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId, {
         modifyState: null,
         pendingAvailabilityVerification: null,
@@ -8130,20 +8159,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     }
     const currentPreviewTarget = hydrateModifyPreviewTarget(pre, pendingTarget);
     const currentPreviewSnapshot = applyModifyPreviewPatch(currentPreviewTarget, pendingModifyPatchEarly, pre.lang);
+    const previewDisposition = resolveModifyPreviewDisposition(userTxtRaw);
     const previewResolutionIntent = normalizeReservationIntent(userTxtRaw);
     const previewConfirm =
-      isPureConfirm(userTxtRaw) ||
-      previewResolutionIntent.kind === "confirm" ||
-      previewResolutionIntent.kind === "affirmative";
+      previewDisposition === null &&
+      (isPureConfirm(userTxtRaw) ||
+        previewResolutionIntent.kind === "confirm" ||
+        previewResolutionIntent.kind === "affirmative");
     const previewReject =
       previewResolutionIntent.kind === "deny_confirm" ||
       /^(no|no gracias|mejor no|dejalo asi|dejalo así)$/i.test(normalizeReferenceText(userTxtRaw));
-    const explicitPreviewRejection = isExplicitModifyPreviewRejection(userTxtRaw);
-    const barePreviewCancellation = isBareModifyPreviewCancellation(userTxtRaw);
+    const explicitPreviewRejection = previewDisposition === "discard_changes";
+    const barePreviewCancellation = previewDisposition === "ambiguous";
     const wantsReservationCancellationFromPreview =
-      previewResolutionIntent.kind === "cancel" &&
-      !explicitPreviewRejection &&
-      !barePreviewCancellation;
+      previewDisposition === "cancel_reservation" ||
+      (previewDisposition === null && previewResolutionIntent.kind === "cancel");
 
     if (explicitPreviewRejection) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
@@ -8197,15 +8227,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           (buildActionableReservationCandidates(pre.st).length === 1
             ? buildActionableReservationCandidates(pre.st)[0]
             : null);
-      const canonicalCancellationRecord = getCanonicalReservationRecordById(
+      const localCanonicalCancellationRecord = getCanonicalReservationRecordById(
         pre.st,
         cancellationTarget?.reservationId
       );
-      const canonicalCancellationSlots = buildCanonicalReservationSlots(
-        pre.st,
-        canonicalCancellationRecord?.reservationId,
-        pre.lang
-      );
+      const canonicalCancellationRecord =
+        localCanonicalCancellationRecord ||
+        (cancellationTarget?.reservationId === canonicalPreviewRecord.reservationId
+          ? canonicalPreviewRecord
+          : undefined);
+      const canonicalCancellationSlots = canonicalCancellationRecord
+        ? buildReservationSlotsFromCanonicalRecord(canonicalCancellationRecord, pre.lang)
+        : null;
       if (
         cancellationTarget?.reservationId &&
         canonicalCancellationRecord?.canonicalStatus === "active" &&
