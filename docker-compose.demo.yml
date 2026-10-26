@@ -120,7 +120,7 @@ services:
 
   cloudflared:
     profiles: ["public"]
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.4
     container_name: begasist-demo-cloudflared
     command: >
       tunnel --no-autoupdate
