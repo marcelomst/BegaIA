@@ -167,8 +167,11 @@ HITO: N/A
 
 6. SIGUIENTE PASO RECOMENDADO
 
-- cuando el gate esté aprobado, entregar las tres fases Git completas,
-  independientes y copiables definidas por `system_operating_model.md`
+- cuando el gate esté aprobado, entregar un único bloque Bash legible con las
+  tres fases Git simples y resueltas, más el RETURN_ENVELOPE separado, según
+  `system_operating_model.md`
+- AH decide antes de cada operación, ejecuta cada comando individualmente y se
+  detiene ante cualquier error o resultado inesperado
 ```
 
 ## GIT-HITOS / HDOC
@@ -189,8 +192,11 @@ Regla central:
 Autoridad Git:
 - Marcelo es el unico autorizado a ejecutar comandos Git de escritura
 - HDOC nunca ejecuta `git add`, `git commit` ni `git push`
-- si hace falta accion Git, HDOC entrega las tres fases completas,
-  independientes y copiables definidas por `system_operating_model.md`
+- si hace falta accion Git, HDOC entrega un único bloque Bash legible con las
+  tres fases Git simples y resueltas, más el RETURN_ENVELOPE separado, según
+  `system_operating_model.md`
+- HDOC conserva auditoría previa y verificación posterior read-only; los
+  comandos no incluyen la revalidación automática inmediata de OPS-02
 
 Verificacion obligatoria:
 - confirmar si el codigo existe

@@ -778,168 +778,75 @@ No se introduce `AGENT_TARGET` ni se modifica el enum canónico de
 
 ### Contrato de entrega de Git write
 
-RULE: GIT_WRITE_DELIVERY_THREE_INDEPENDENT_PHASES
+RULE: GIT_WRITE_DELIVERY_SINGLE_BLOCK_THREE_PHASES
 RULE: EXACT_STAGED_FILE_SET_REQUIRED
-RULE: INTERACTIVE_PASTE_MUST_FAIL_CLOSED
+RULE: AH_EXECUTES_EACH_GIT_COMMAND_INDIVIDUALLY
 
 Guardian y HDOC deben aplicar este contrato único cuando entregan Git write a
-AH. Cada entrega efectiva contiene, en este orden, tres fences Markdown
-`bash`, completos y separados del RETURN_ENVELOPE:
+AH. Cada entrega efectiva contiene conjuntamente, en este orden, un único
+fence Markdown `bash` legible con las tres fases identificadas:
 
-1. **Fase 1 — staging y verificación**;
-2. **Fase 2 — commit y verificación local**;
-3. **Fase 3 — push y evidencia**.
+1. **Fase 1 — stage**: `git add -- <archivos autorizados>`;
+2. **Fase 2 — commit**: `git commit -m "<subject autorizado>"`;
+3. **Fase 3 — push**: `git push origin main`.
 
-AH decide y ejecuta cada fase de forma independiente. Un bloque no autoriza
-la fase siguiente. Dentro de cada fence no puede haber explicación, prompts
-humanos ni instrucciones que no sean ejecutables. Cada bloque constituye una
-unidad completa de copia mediante el botón del fence; no exige seleccionar,
-reconstruir ni editar líneas.
+Los paths y el subject deben estar resueltos como literales para el hito real.
+No se admiten placeholders, globs amplios, `git add .`, `eval`, staging
+implícito ni valores que AH deba reconstruir o editar. Los únicos comentarios
+admitidos dentro del fence son los rótulos de las tres fases. El bloque se
+entrega como unidad legible, pero AH ejecuta cada comando individualmente.
 
-Cada fence debe ejecutar su contenido dentro de un proceso Bash aislado y
-fail-closed, por ejemplo mediante una única invocación
-`bash -Eeuo pipefail` alimentada por un heredoc con delimitador literal y
-propio de la fase. Es insuficiente escribir solamente `set -euo pipefail` al
-inicio de varias líneas pegadas en un Bash interactivo: un fallo podría
-devolver control al shell padre y permitir que continúen líneas ya pegadas.
-El proceso aislado debe terminar no-cero ante cualquier precondición fallida y
-no debe contener una recuperación automática.
+Guardian o HDOC entregan el bloque completo y el RETURN_ENVELOPE canónico en
+el mismo handoff, como dos unidades separadas. La entrega conjunta no fusiona
+las operaciones ni autoriza su ejecución en lote. AH conserva una decisión
+humana independiente antes de stage, commit y push, sin que se exija una nueva
+interacción con el agente entre fases. Si un comando falla o produce un
+resultado inesperado, AH se detiene y no ejecuta el siguiente.
 
-Toda entrega efectiva debe resolver como literales la rama, parent, subject,
-remote, remote branch/ref y lista de archivos aplicables. No admite
-placeholders, metavariables ni valores que AH deba corregir. La lista se
-declara como un array Bash con exactamente un path repo-relative correctamente
-quoted por línea. La lista del array debe coincidir como conjunto exacto con
-`expected_files` o `expected_documentation_files`, según corresponda.
+Los comandos entregados no deben contener heredocs, arrays Bash, archivos
+temporales, procesos Bash aislados, comparaciones NUL-delimited ni
+revalidaciones internas duplicadas. Estas técnicas pueden utilizarse, cuando
+sean necesarias, en la auditoría read-only previa o en la verificación
+read-only posterior, pero no se imponen dentro de los comandos Git de AH.
 
-#### Semántica canónica del residual
+#### Auditoría previa y campos preservados
 
 `expected_residual_worktree` conserva su nombre y significado de OPS-01: es el
 estado preexistente o ajeno al hito que puede permanecer fuera del conjunto de
 archivos esperados. No incluye archivos del hito ni sustituye la validación de
-su contenido. El estado se divide siempre en tres comprobaciones distintas:
+su contenido. La auditoría read-only previa debe comprobar por separado:
 
 1. conjunto de paths incluidos en el índice;
 2. diferencias unstaged o cualquier otro estado sobre los archivos esperados;
 3. residual tracked, untracked o especial fuera de los archivos esperados.
 
-Para que el campo sea inequívoco, `expected_residual_worktree` se representa
-como una lista ordenada de los tokens producidos por
-`git status --porcelain=v1 -z --untracked-files=all --ignore-submodules=none`
-para el residual. Cada token separado por NUL se
-transporta como un elemento Bash shell-quoted generado con semántica `%q`, sin
-decodificación humana; el residual vacío se representa como `[]`. Los tokens
-adicionales de estados multipath, como rename o copy, se conservan en su orden
-original. Un estado multipath sólo puede formar parte del residual si todos sus
-paths están fuera del conjunto esperado; si cruza ambos conjuntos, la fase
-falla por ambigüedad de alcance. Esto no crea un campo ni un enum nuevos.
+Guardian resuelve en el preflight read-only del agente todos los valores del
+hito y los transporta sin edición. El RETURN_ENVELOPE conserva literalmente
+`expected_remote_ref`, `expected_exclusions` y
+`expected_residual_worktree`, además de `expected_files` o
+`expected_documentation_files`, según corresponda. AH no reconstruye esos
+valores. La auditoría debe validar repositorio, rama, parent, destino remoto,
+índice inicialmente vacío, scope exacto, exclusiones, ausencia de conflictos y
+residual esperado antes de entregar los comandos. La verificación postcommit y
+postpush vuelve a comprobar de manera independiente identidad, parent, subject,
+scope, exclusiones, publicación y residual real.
 
-Guardian resuelve una sola vez esta lista desde el snapshot precommit auditado.
-Las fases 2 y 3 y el RETURN_ENVELOPE deben transportar exactamente la misma
-secuencia literal; AH no la reconstruye ni la edita.
+#### Tradeoff de seguridad respecto de OPS-02
 
-Los fences reconstruyen el stream esperado con `printf '%s\0'` sobre ese array
-y escriben el stream real directamente desde Git a otro archivo temporal. La
-comparación es byte a byte, sin command substitution, word splitting ni
-normalización de líneas. Ambos streams deben obtenerse desde la raíz del repo,
-con `LC_ALL=C`, el mismo comando porcelain y pathspecs literales que excluyan
-exactamente los archivos del hito. No se ordena el stream residual porque el
-orden y la asociación de tokens forman parte de los estados multipath. Esta
-representación preserva espacios, tabulaciones, saltos de línea y cualquier
-otro byte válido en un path Git, excepto NUL, que Git no admite en nombres.
+Este procedimiento deja de realizar la revalidación automática inmediata
+dentro de los comandos antes de `git commit` y `git push`. Por lo tanto, no
+ofrece equivalencia absoluta de garantías con OPS-02: existe una ventana entre
+la auditoría previa y cada ejecución en la que el estado local o remoto puede
+cambiar. La decisión humana antes de cada operación, la detención ante error o
+resultado inesperado, la auditoría previa obligatoria y la verificación
+posterior independiente son los controles conservados. No se autoriza
+recuperación automática mediante `reset`, `restore`, `amend`, `checkout`,
+`rebase`, merge ni force-push.
 
-#### Fase 1 — staging y verificación
-
-La primera fase debe, en este orden:
-
-- validar que el repositorio, la rama y `HEAD` coinciden con los valores
-  esperados;
-- rechazar un índice inicialmente no vacío;
-- rechazar una lista esperada vacía o duplicada;
-- ejecutar `git add -- "${expected_files[@]}"` como única operación de
-  staging, sin `git add .`, globs, `eval` ni staging implícito;
-- rechazar conflictos, renames, copies y cualquier estado excepcional no
-  autorizado expresamente;
-- comprobar igualdad exacta entre el conjunto esperado y el conjunto staged;
-- ejecutar `git diff --cached --check`;
-- terminar sin commit ni push.
-
-La comparación exacta debe usar streams NUL-delimited y ordenados, por
-ejemplo el conjunto esperado producido con `printf '%s\0'` y el conjunto
-staged obtenido con `git diff --cached --name-only -z --no-renames`, ambos con
-`LC_ALL=C sort -z`, seguidos por una comparación byte a byte. No se permite
-comparar mediante word splitting, sustitución de comandos, líneas, espacios o
-salida humana de `git status`. Así se detectan archivos adicionales, ausentes,
-sin cambios y fallos parciales de staging, incluso con espacios o saltos de
-línea en el path.
-
-Si `git add` falla después de modificar parcialmente el índice, la fase debe
-fallar y dejar el estado visible para AH; no puede ejecutar `reset`, `restore`
-ni otra recuperación automática. La fase 2 revalida todo y por ello no puede
-crear un commit parcial.
-
-#### Fase 2 — commit y verificación local
-
-La segunda fase debe:
-
-- revalidar inmediatamente antes del commit repositorio, rama, parent,
-  ausencia de conflictos y conjunto staged exacto con el mismo mecanismo
-  NUL-delimited;
-- comprobar por separado que los archivos esperados no tienen diferencias
-  unstaged respecto del índice; la salida
-  `git diff --name-only -z -- "${expected_files[@]}"` debe tener longitud cero
-  y no puede guardarse en una variable Bash;
-- obtener el residual real excluyendo mediante pathspecs literales todos los
-  archivos esperados y compararlo byte a byte con
-  `expected_residual_worktree` usando la representación porcelain
-  NUL-delimited canónica;
-- volver a ejecutar `git diff --cached --check`;
-- crear el commit con el subject literal aprobado únicamente después de todas
-  las precondiciones;
-- validar que el nuevo `HEAD` es un commit distinto, tiene exactamente el
-  parent y subject esperados y contiene exactamente el conjunto de archivos
-  autorizado;
-- verificar que el índice quedó vacío;
-- terminar sin push.
-
-El alcance del commit se compara también como conjunto NUL-delimited, usando
-`git diff-tree --no-commit-id --name-only -r -z --no-renames` contra el array
-esperado. Un fallo de commit o de validación detiene la fase y no habilita la
-fase 3. No se propone `amend`, `reset`, `restore`, `checkout`, `rebase`, merge
-ni ninguna corrección automática.
-
-La igualdad del conjunto staged sólo prueba qué paths entrarán al commit. No
-prueba que el worktree de esos paths siga sincronizado con el índice. La
-comprobación unstaged y la comparación del residual son precondiciones
-independientes; cualquier byte divergente detiene la fase antes de
-`git commit`.
-
-#### Fase 3 — push y evidencia
-
-La tercera fase debe:
-
-- revalidar repositorio y rama;
-- identificar el commit local desde `HEAD` y validar otra vez parent, subject,
-  alcance exacto e índice vacío;
-- comprobar que no existe ningún estado tracked, untracked o especial sobre
-  los archivos esperados después del commit;
-- verificar antes del push que el destino remoto esperado conserva el parent
-  aprobado, salvo que el hito autorice explícitamente la creación de una ref;
-- obtener inmediatamente antes del push el residual real fuera de los archivos
-  esperados y compararlo byte a byte con `expected_residual_worktree` mediante
-  el mismo stream porcelain NUL-delimited canónico;
-- ejecutar un push explícito al remote y ref resueltos sólo después de todas
-  las precondiciones;
-- comprobar mediante lectura del remote que la ref publicada coincide
-  exactamente con el commit local;
-- emitir la evidencia necesaria para sustituir el bloque canónico
-  `__AH_GIT_OUTPUT__` sin redefinir sus campos ni delimitadores.
-
-La identidad local, el destino remoto y el residual deben quedar validados
-inmediatamente antes del push. Aunque las fases 1 y 2 hayan terminado
-correctamente, cualquier estado nuevo o divergente detiene la fase 3. El fallo
-de push o de su verificación conserva el commit local para diagnóstico humano.
-No habilita limpieza, force-push ni recuperación automática.
+El hito que modifica este contrato debe cerrar su propio ciclo Git con el
+procedimiento canónico vigente antes de la transición, salvo autorización y
+transición normativa explícitas de AGPT. La edición del contrato no se usa por
+sí sola para simplificar retroactivamente el cierre del mismo hito.
 
 #### Estados excepcionales y presentación
 
@@ -950,11 +857,10 @@ path. Conflictos sin resolver y cambios de submódulos o gitlinks no declarados
 se rechazan. Deletes y cambios de tipo sólo son admisibles cuando el path está
 explícitamente incluido y el alcance resultante coincide exactamente.
 
-Los tres fences ejecutables deben estar fuera del RETURN_ENVELOPE. Puede haber
-un título de fase antes de cada fence, pero nunca prosa intercalada dentro del
-bloque. Después de los tres fences se entrega el RETURN_ENVELOPE canónico como
-unidad separada. AH no modifica comandos ni campos contractuales: ejecuta una
-fase autorizada, conserva su output y sustituye únicamente
+El único fence con los tres comandos debe estar fuera del RETURN_ENVELOPE.
+Después del fence se entrega el RETURN_ENVELOPE canónico como unidad separada.
+AH no modifica comandos ni campos contractuales: ejecuta cada comando
+individualmente, conserva su output y sustituye únicamente
 `__AH_GIT_OUTPUT__` al completar la transferencia.
 
 ### Placeholder y evidencia Git
@@ -988,7 +894,7 @@ o sus referencias.
 
 Al aprobar el gate precommit, Guardian entrega por separado:
 
-1. los tres fences de fases Git técnicas exactas para AH;
+1. el único bloque Bash con las tres fases Git técnicas exactas para AH;
 2. un RETURN_ENVELOPE dirigido a `repo_guardian` con:
    `HITO_ID`, `agent_target`, `flow_position`, `MODE`, `PURPOSE`,
    `expected_commit_parent`, `expected_commit_subject`, `expected_branch`,
@@ -1037,7 +943,7 @@ AGPT.
 Después de preparar satisfactoriamente la documentación, HDOC(1) entrega por
 separado:
 
-1. los tres fences de fases Git documentales exactas para AH;
+1. el único bloque Bash con las tres fases Git documentales exactas para AH;
 2. un RETURN_ENVELOPE dirigido a `hdoc` con `HITO_ID`, `agent_target`,
    `flow_position`, `MODE`, `PURPOSE`, `technical_commit`,
    `expected_documentation_parent`, `expected_documentation_subject`,
@@ -1072,8 +978,9 @@ MUST:
 
 PREFERENCIA OPERATIVA:
 
-tres fases completas, copiables e independientes conforme al contrato
-canónico de entrega de Git write. Marcelo decide si ejecuta cada fase.
+un único bloque Bash legible con las tres fases simples conforme al contrato
+canónico de entrega de Git write. Marcelo decide antes de cada operación y
+ejecuta cada comando individualmente.
 
 ### ROLE: CHATGPT / AGPT
 
@@ -1215,7 +1122,15 @@ FORBIDDEN:
 
 ### Flujo real operativo
 
-AGPT → Técnico → AGPT → Guardian → HDOC → AGPT
+La implementación se despacha al rol técnico que corresponda. El cierre
+conserva los cuatro intercambios principales y esta secuencia obligatoria:
+
+AGPT → Guardian → AH → Guardian → HDOC → AH → HDOC → AGPT
+
+Los cuatro intercambios principales son: despacho a Guardian; entrega Git
+técnica y retorno a Guardian; transferencia de Guardian a HDOC; y entrega Git
+documental con retorno final de HDOC a AGPT. No se agregan intercambios ni
+autorizaciones obligatorias entre stage, commit y push.
 
 Opcional:
 
@@ -1756,8 +1671,8 @@ Los agentes pueden proponer comandos.
 
 Formato obligatorio:
 
-tres fases completas e independientes — staging/verificación,
-commit/verificación local y push/evidencia — conforme a
+un único bloque Bash legible con las tres fases simples identificadas — stage,
+commit y push — para ejecución individual por AH, conforme a
 `AGENT-GENERATED TRANSITION ENVELOPES`, sección
 `Contrato de entrega de Git write`.
 

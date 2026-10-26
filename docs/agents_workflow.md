@@ -201,15 +201,15 @@ estados persistidos ni campos nuevos del contrato.
 AGPT
 → asistente_tecnico
 → Guardian pre-commit
-→ Guardian entrega tres fases técnicas + RETURN_ENVELOPE
+→ Guardian entrega un bloque Bash con tres fases técnicas + RETURN_ENVELOPE
 → AH decide y ejecuta cada fase técnica por separado
 → AH sustituye __AH_GIT_OUTPUT__ con la evidencia real
 → Guardian post-commit read-only
-→ cierre técnico + HDOC_INPUT + HDOC_TRANSFER_PROMPT
-→ AH transfiere el prompt completo
+→ Guardian genera cierre técnico + HDOC_INPUT + HDOC_TRANSFER_PROMPT
+→ AH entrega íntegramente el HDOC_TRANSFER_PROMPT a HDOC
 → HDOC(1) prepara documentación
 → documentation_commit: pending
-→ HDOC entrega tres fases documentales + RETURN_ENVELOPE
+→ HDOC entrega un bloque Bash con tres fases documentales + RETURN_ENVELOPE
 → AH decide y ejecuta cada fase documental por separado
 → AH sustituye __AH_GIT_OUTPUT__ con la evidencia real
 → HDOC(CLOSE) verifica hash, push y correspondencia
@@ -221,19 +221,20 @@ Detalle de gates:
 
 1. `asistente_tecnico` implementa, valida y reporta evidencia.
 2. Guardian pre-commit audita alcance, diff, clasificación y pureza del hito.
-3. Guardian entrega tres bloques `bash` técnicos exactos — staging y
-   verificación, commit y verificación local, push y evidencia — y un
-   RETURN_ENVELOPE completo separado.
-4. AH decide y ejecuta cada fase de forma independiente, sustituye el único
-   placeholder con la evidencia real y devuelve el envelope a Guardian.
+3. Guardian entrega un único bloque `bash` técnico con los tres comandos
+   simples de stage, commit y push, y un RETURN_ENVELOPE completo separado.
+4. AH decide antes de cada operación y ejecuta cada comando individualmente,
+   sustituye el único placeholder con la evidencia real y devuelve el envelope
+   a Guardian.
 5. Guardian post-commit verifica identidad, commit, push, scope y estado
    residual sin ejecutar Git write.
 6. Sólo con `guardian_verdict: valid` y `ready_for_hdoc: yes` Guardian emite el
    cierre técnico, `HDOC_INPUT` y `HDOC_TRANSFER_PROMPT` autocontenido.
-7. AH transfiere el prompt íntegro; HDOC prepara la documentación mientras
+7. Guardian genera el prompt canónico de transferencia documental y AH lo
+   entrega íntegramente a HDOC; HDOC prepara la documentación mientras
    `documentation_commit: pending`.
-8. HDOC entrega las tres fases documentales exactas y el RETURN_ENVELOPE de
-   cierre separado.
+8. HDOC entrega un único bloque Bash con las tres fases documentales exactas y
+   el RETURN_ENVELOPE de cierre separado.
 9. AH decide y ejecuta cada fase documental y sustituye el único placeholder.
 10. HDOC(CLOSE) verifica el hash real, push, scope, correspondencia y residual;
     confirma el cierre y devuelve el resultado a AGPT.
@@ -248,21 +249,28 @@ evidencia y validación fail-closed están definidos exclusivamente en
 `system_operating_model.md`, sección `AGENT-GENERATED TRANSITION ENVELOPES`.
 
 Guardian y HDOC aplican además el contrato canónico de tres fases de esa misma
-sección. Cada fase es un fence `bash` completo y copiable por separado; el
-RETURN_ENVELOPE nunca contiene los comandos ejecutables.
+sección. Las tres fases se entregan conjuntamente en un único fence `bash`
+legible y el RETURN_ENVELOPE nunca contiene los comandos ejecutables. AH
+ejecuta cada comando por separado y conserva una decisión humana independiente
+antes de cada operación, sin nueva interacción obligatoria con el agente.
 
-Antes del commit, la fase 2 valida por separado el conjunto staged, la ausencia
-de diferencias unstaged sobre los archivos esperados y el residual exacto. La
-fase 3 vuelve a validar identidad, limpieza de los archivos esperados y el
-mismo `expected_residual_worktree` inmediatamente antes del push. Ambas
-comparaciones residuales usan la representación porcelain NUL-delimited del
-Operating Model y fallan de forma independiente.
+`expected_exclusions` se conserva literalmente como `[]` cuando no existen
+exclusiones. Esta representación no agrega campos ni validadores al contrato.
 
-La continuidad ordinaria Guardian → AH → Guardian → AH → HDOC → AH → HDOC no
-requiere una autorización intermedia de AGPT. Los errores mecánicos retornan a
-AH para corregir la transferencia; las discrepancias materiales, cambios de
-alcance o conflictos arquitectónicos retornan a AGPT. Ningún retorno habilita
-nuevas operaciones Git write.
+Los comandos no repiten la revalidación automática inmediatamente antes de
+commit y push que exigía OPS-02. La auditoría read-only previa y la verificación
+read-only posterior siguen siendo obligatorias; por ello no se declara
+equivalencia absoluta de garantías con OPS-02.
+
+La introducción de desarrolladores concurrentes exige reevaluar el riesgo de
+este procedimiento Git simplificado antes de aplicarlo en ese contexto.
+
+La continuidad ordinaria de cierre es AGPT → Guardian → AH → Guardian → HDOC
+→ AH → HDOC → AGPT. No requiere una autorización intermedia de AGPT ni agrega
+intercambios por fase. Los errores mecánicos retornan a AH para corregir la
+transferencia; las discrepancias materiales, cambios de alcance o conflictos
+arquitectónicos retornan a AGPT. Ningún retorno habilita nuevas operaciones Git
+write.
 
 ### Rama external_operational_change
 

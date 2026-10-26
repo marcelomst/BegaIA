@@ -596,23 +596,25 @@ documentation commit posterior a la preparación de HDOC. No representa el
 technical commit y permanece aplicable cuando un `external_operational_change`
 produce documentación versionada.
 
-Cuando Guardian aprueba el precommit debe entregar cuatro unidades separadas:
+Cuando Guardian aprueba el precommit debe entregar conjuntamente dos unidades
+separadas:
 
 ```text
-FASE 1 — STAGING Y VERIFICACIÓN (fence bash)
-FASE 2 — COMMIT Y VERIFICACIÓN LOCAL (fence bash)
-FASE 3 — PUSH Y EVIDENCIA (fence bash)
+UN ÚNICO FENCE BASH CON:
+  FASE 1 — STAGE: git add -- <archivos autorizados resueltos>
+  FASE 2 — COMMIT: git commit -m "<subject autorizado resuelto>"
+  FASE 3 — PUSH: git push origin main
 RETURN_ENVELOPE
 ```
 
-Cada fase debe ser completa y directamente copiable, sin prosa dentro del
-fence, y debe aplicar el fail-closed para Bash interactivo y la comparación de
-conjuntos NUL-delimited definidos en el Operating Model. Los arrays técnicos
-deben coincidir exactamente con `expected_files`. La fase 2 debe rechazar
-diferencias unstaged sobre esos archivos y comparar el residual real con
-`expected_residual_worktree` antes del commit; la fase 3 debe repetir la
-comparación residual inmediatamente antes del push. El campo residual usa la
-representación porcelain NUL-delimited canónica, sin campos auxiliares.
+Los paths y el subject deben estar resueltos para el hito real. El bloque no
+contiene heredocs, arrays Bash, archivos temporales, procesos Bash aislados,
+comparaciones NUL-delimited ni revalidaciones internas. AH decide antes de
+cada operación y ejecuta cada comando individualmente; un error o resultado
+inesperado detiene las fases siguientes. La auditoría read-only previa y la
+verificación posterior permanecen obligatorias. Este procedimiento no conserva
+la revalidación automática inmediata de OPS-02 antes de commit y push, por lo
+que no ofrece equivalencia absoluta de garantías.
 
 El RETURN_ENVELOPE se rige por la sección
 `AGENT-GENERATED TRANSITION ENVELOPES` de `system_operating_model.md`: usa
@@ -665,25 +667,22 @@ preparación; `pending` es un estado de control de HDOC(1), no un metadato
 obligatorio del payload persistido. El cierre final exige el hash real y el push
 verificado del documentation commit.
 
-Después de preparar la documentación, HDOC(1) debe entregar cuatro unidades
-separadas:
+Después de preparar la documentación, HDOC(1) debe entregar conjuntamente dos
+unidades separadas:
 
 ```text
-FASE 1 — STAGING Y VERIFICACIÓN (fence bash)
-FASE 2 — COMMIT Y VERIFICACIÓN LOCAL (fence bash)
-FASE 3 — PUSH Y EVIDENCIA (fence bash)
+UN ÚNICO FENCE BASH CON:
+  FASE 1 — STAGE: git add -- <documentos autorizados resueltos>
+  FASE 2 — COMMIT: git commit -m "<subject autorizado resuelto>"
+  FASE 3 — PUSH: git push origin main
 RETURN_ENVELOPE
 ```
 
-Cada fase debe ser completa y directamente copiable, sin prosa dentro del
-fence, y debe aplicar el fail-closed para Bash interactivo y la comparación de
-conjuntos NUL-delimited definidos en el Operating Model. Los arrays
-documentales deben coincidir exactamente con `expected_documentation_files`.
-La fase 2 debe rechazar diferencias unstaged sobre esos documentos y comparar
-el residual real con `expected_residual_worktree` antes del commit; la fase 3
-debe repetir la comparación residual inmediatamente antes del push. El campo
-residual usa la representación porcelain NUL-delimited canónica, sin campos
-auxiliares.
+Los documentos y el subject deben estar resueltos para el hito real. El bloque
+aplica el mismo contrato simple del Operating Model: sin heredocs, arrays,
+temporales, procesos Bash aislados, comparaciones NUL-delimited ni
+revalidaciones internas. AH decide y ejecuta cada comando individualmente, se
+detiene ante error o resultado inesperado y no realiza recuperación automática.
 
 El RETURN_ENVELOPE se rige por la sección canónica del Operating Model: usa
 `agent_target: hdoc`, `flow_position: documentation`,
