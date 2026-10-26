@@ -16078,3 +16078,99 @@ Impacto:
 - sin cambios de arquitectura viva, roadmap, ADRs, codigo adicional ni tests
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-26
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: normalizar contextualmente el objeto cancelado al pasar de un preview modify a cancel
+Commit tecnico: 2ca48e2216548c32476da8749b029376bd14a6da
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- descarta de forma segura el cambio pendiente antes de cancelar
+- conserva el target canonico local o guest-wide exacto y activo
+- exige confirmacion antes de ejecutar `cancelReservation`
+- no modifica el normalizador global, la persistencia estructural ni el modelo
+  conceptual
+- la observacion manual reconocio `RES-418681` y solicito `CONFIRMA`; la
+  confirmacion manual final no fue ejecutada
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 2ca48e2216548c32476da8749b029376bd14a6da
+technical_parent: 1583abec4b3e5aa049ed596550cc09f6b47611cc
+technical_commit_message: "fix(reservations): normalize modify-cancel object resolution"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 2ca48e2216548c32476da8749b029376bd14a6da
+repository_state_after_push: exact_excluded_residual_present
+residual_worktree:
+  - "?? docker-compose.demo.yml.bak"
+validation:
+  focal_m6_contract_c1: 23/23
+  reference_resolution_suite: 154/154
+  typescript: pass
+  git_diff_check: pass
+  technician_reported_relevant_suites: 186/186
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - 23 tests focales M6 + CONTRACT C1 aprobados
+      - 154 tests del archivo relevante aprobados
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `2ca48e2216548c32476da8749b029376bd14a6da`
+- `messageHandler.ts`: 13947 lineas fisicas
+- `preLLM`: L5074-L5286
+- `bodyLLM`: L6301-L13078
+- `posLLM`: L13573-L13614
+- `handleIncomingMessage`: L13618-L13947
+- `conceptual_change: false`; se preservan los 19 `box_id`, sus relaciones y
+  los diagramas conceptuales
+- rangos internos no entregados por Guardian permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; conserva el target canonico y la confirmacion previa
+  sin crear estado ni fuentes de verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: refresh factual de rangos top-level sin cambio conceptual
+- sin cambios de codigo, tests, roadmap, ADRs ni arquitectura conceptual en
+  esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

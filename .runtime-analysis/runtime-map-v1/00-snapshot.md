@@ -8,15 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-repository_baseline_head: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-source_code_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-repository_baseline_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_code_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_blob_matches_repository_baseline: true
-messageHandler_lines: 13914
+commit_base: 2ca48e2216548c32476da8749b029376bd14a6da
+repository_baseline_head: 2ca48e2216548c32476da8749b029376bd14a6da
+source_code_commit: 2ca48e2216548c32476da8749b029376bd14a6da
+messageHandler_lines: 13947
 working_tree_status: exact_excluded_residual_present
-analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
+analysis_scope: focal_refresh_fix_modify_cancel_object_normalization_01_at_2ca48e2216548c32476da8749b029376bd14a6da
 ```
 
 ---
@@ -24,9 +21,9 @@ analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e43
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` parte de
-`HEAD = 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83`. El único residual es
-` M lib/mcp/channelManagerAdapter.ts`; permanece excluido del hito y de esta
+El refresh focal de `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01` parte de
+`HEAD = 2ca48e2216548c32476da8749b029376bd14a6da`. El único residual es
+`?? docker-compose.demo.yml.bak`; permanece excluido del hito y de esta
 evidencia.
 ```
 
@@ -35,31 +32,17 @@ evidencia.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
-technical_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-technical_parent: ae0e57f40ad3d040380f0505ca183c22b4b1e4a5
-technical_subject: "fix(runtime): preserve multifield modify previews"
+hito_id: FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+technical_commit: 2ca48e2216548c32476da8749b029376bd14a6da
+technical_parent: 1583abec4b3e5aa049ed596550cc09f6b47611cc
+technical_subject: "fix(reservations): normalize modify-cancel object resolution"
 technical_push: confirmed
-source_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_blob_matches_commit: true
-messageHandler_lines: 13914
-function_map_reported_lines: 13915
+messageHandler_lines: 13947
 functions:
-  preLLM: L5056-L5268
-  bodyLLM: L6283-L13045
-  posLLM: L13540-L13581
-  handleIncomingMessage: L13585-L13914
-scan_reproducibility:
-  raw_generation:
-    function_size_map_sha256: 612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf
-    bodyLLM_internal_scan_sha256: fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592
-  normalization:
-    trim_trailing_horizontal_whitespace: true
-    exactly_one_final_lf: true
-    semantic_content_changed: false
-  normalized_artifacts:
-    function_size_map_sha256: 9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8
-    bodyLLM_internal_scan_sha256: 82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c
+  preLLM: L5074-L5286
+  bodyLLM: L6301-L13078
+  posLLM: L13573-L13614
+  handleIncomingMessage: L13618-L13947
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -69,22 +52,18 @@ runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.persistenceReply
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - M1/M3/M4/M5
-      - capacity no-quote
-      - canonical numGuests null
-      - quoted pendingPatch confirmation
+      - 23 tests focales M6 + CONTRACT C1 aprobados
+      - 154 tests del archivo relevante aprobados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid

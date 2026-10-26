@@ -67,16 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-repository_baseline_head: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-source_code_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-repository_baseline_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_code_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_blob_matches_repository_baseline: true
-messageHandler_lines: 13914
+commit_base: 2ca48e2216548c32476da8749b029376bd14a6da
+repository_baseline_head: 2ca48e2216548c32476da8749b029376bd14a6da
+source_code_commit: 2ca48e2216548c32476da8749b029376bd14a6da
+messageHandler_lines: 13947
 working_tree_status: exact_excluded_residual_present
-analysis_scope: focal_refresh_fix_modify_multifield_preview_integrity_01_at_0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-baseline_status: fix_modify_multifield_preview_integrity_01_top_level_evidence_refreshed
+analysis_scope: focal_refresh_fix_modify_cancel_object_normalization_01_at_2ca48e2216548c32476da8749b029376bd14a6da
+baseline_status: fix_modify_cancel_object_normalization_01_top_level_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -102,52 +99,39 @@ atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
 
 ---
 
-## Evidencia focal actual: multifield modify preview integrity
+## Evidencia focal actual: modify-cancel object normalization
 
 ```yaml
-hito_id: FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
-technical_commit: 0e431ef2a0a4e687be1f4ec6fcde268e94bb8e83
-technical_parent: ae0e57f40ad3d040380f0505ca183c22b4b1e4a5
-technical_subject: "fix(runtime): preserve multifield modify previews"
+hito_id: FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+technical_commit: 2ca48e2216548c32476da8749b029376bd14a6da
+technical_parent: 1583abec4b3e5aa049ed596550cc09f6b47611cc
+technical_subject: "fix(reservations): normalize modify-cancel object resolution"
 technical_push: confirmed
-source_blob: 5de39898a6eec8fb5f34a458f36b8228f1c8fdfb
-source_blob_matches_commit: true
-messageHandler_lines: 13914
+messageHandler_lines: 13947
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.persistenceReply
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.availabilityInquiry
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - M1/M3/M4/M5
-      - capacity no-quote
-      - canonical numGuests null
-      - quoted pendingPatch confirmation
+      - 23 tests focales M6 + CONTRACT C1 aprobados
+      - 154 tests del archivo relevante aprobados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L5056-L5268
-  bodyLLM: L6283-L13045
-  posLLM: L13540-L13581
-  handleIncomingMessage: L13585-L13914
-scan_reproducibility:
-  raw_generation:
-    function_size_map_sha256: 612aa33739b7e01ceed6c2128b5303c288063fd219fb8df2f9c33922dac45ebf
-    bodyLLM_internal_scan_sha256: fcb489d16cb21372057cbfba5e77b5f467594f5234ee1e7c9c2bf9bde6891592
-  normalized_artifacts:
-    function_size_map_sha256: 9c2aa79d60135883fcb4cab2f0ee31890f74cd57d61c3a08911c079cf8111fe8
-    bodyLLM_internal_scan_sha256: 82793d2386e1cb6a0ef63c0c3cd2153e24d6ba85dc69603e9940d16351a9585c
+  preLLM: L5074-L5286
+  bodyLLM: L6301-L13078
+  posLLM: L13573-L13614
+  handleIncomingMessage: L13618-L13947
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
@@ -453,7 +437,7 @@ historical_code_refs:
 
 ```yaml
 file: lib/handlers/messageHandler.ts
-total_lines: 13914
+total_lines: 13947
 role: runtime_conversacional_principal
 confidence: high
 ```
@@ -462,7 +446,7 @@ Lectura:
 
 ```text
 `messageHandler.ts` sigue siendo el runtime principal. Los cuatro rangos
-top-level listados para `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` son
+top-level listados para `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01` son
 evidencia focal; no constituyen una declaracion de frescura global.
 ```
 
@@ -472,7 +456,7 @@ evidencia focal; no constituyen una declaracion de frescura global.
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
 `handleIncomingMessage`) fueron recalculadas para
-`FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01`. Las demas filas se
+`FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01`. Las demas filas se
 conservan como evidencia del snapshot focal anterior y no declaran frescura
 global.
 
@@ -486,10 +470,10 @@ global.
 | `buildReservationLocalFallbackReply` | L4135-L4270 |    136 | high      | Construcción de fallback local de reservas |
 | `assessReservationDateCoherence`     | L4272-L4285 |     14 | high      | Evaluación de coherencia temporal          |
 | `tryStructuredAnalyze`               | L4764-L4891 |    128 | high      | Análisis estructurado semántico            |
-| `preLLM`                             | L5056-L5268 |    213 | high      | Preparación de contexto y estado           |
-| `bodyLLM`                            | L6283-L13045 |   6763 | high      | Sub-runtime dominante                      |
-| `posLLM`                             | L13540-L13581 |     42 | high      | Verificación / verdict / cierre            |
-| `handleIncomingMessage`              | L13585-L13914 |    330 | high      | Entrypoint público del runtime             |
+| `preLLM`                             | L5074-L5286 |    213 | high      | Preparación de contexto y estado           |
+| `bodyLLM`                            | L6301-L13078 |   6778 | high      | Sub-runtime dominante                      |
+| `posLLM`                             | L13573-L13614 |     42 | high      | Verificación / verdict / cierre            |
+| `handleIncomingMessage`              | L13618-L13947 |    330 | high      | Entrypoint público del runtime             |
 
 ---
 
@@ -499,7 +483,7 @@ global.
 
 ```yaml
 name: handleIncomingMessage
-range: L13585-L13914
+range: L13618-L13947
 lines: 330
 confidence: high
 role: public_entrypoint
@@ -518,7 +502,7 @@ Aunque es pequeño, es importante como frontera de entrada.
 
 ```yaml
 name: preLLM
-range: L5056-L5268
+range: L5074-L5286
 lines: 213
 confidence: high
 role: context_preparation
@@ -540,8 +524,8 @@ entregar input enriquecido a bodyLLM
 
 ```yaml
 name: bodyLLM
-range: L6283-L13045
-lines: 6763
+range: L6301-L13078
+lines: 6778
 confidence: high
 role: dominant_sub_runtime
 ```
@@ -570,7 +554,7 @@ En el estado actual funciona como sub-runtime operacional.
 
 ```yaml
 name: posLLM
-range: L13540-L13581
+range: L13573-L13614
 lines: 42
 confidence: high
 role: post_runtime_verification
@@ -763,13 +747,13 @@ Debe ser arbitrado por estado, foco y precedencia.
 Rango completo:
 
 ```yaml
-bodyLLM_range: L6283-L13045
-bodyLLM_lines: 6763
+bodyLLM_range: L6301-L13078
+bodyLLM_lines: 6778
 bucket_size: 250
 confidence: high_for_generated_scan
 ```
 
-El scan read-only regenerado para `FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01` confirma
+El scan read-only entregado por Guardian para `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01` confirma
 el rango top-level actual de `bodyLLM`. El refresh de este documento es focal,
 no implica frescura global ni autoriza refactor.
 
