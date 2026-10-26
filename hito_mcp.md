@@ -15212,6 +15212,73 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### GOV-SIMPLIFY-AGENT-HANDOFF-GIT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-26
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Tipo de hito: OPERATING_MODEL_EVOLUTION
+Intencion unica: restaurar el contrato simple de entrega Git para Guardian y HDOC preservando la autoridad exclusiva de AH, los envelopes canonicos y la verificacion postcommit
+Commit tecnico: 859bedec5a26c077661a9fa3b528376abf5a8daf
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- `RESTORE_SIMPLE_GIT` queda como contrato general vigente para los hitos
+  posteriores: Guardian y HDOC entregan a AH stage, commit y push como tres
+  comandos Git simples con valores resueltos
+- AH conserva la autoridad exclusiva sobre Git write; la auditoria previa,
+  los envelopes canonicos y la verificacion read-only posterior permanecen
+  obligatorios
+- se acepta que el contrato simplificado pierde la revalidacion automatica
+  inmediata antes de commit y push respecto de OPS-02
+- el contrato debe reevaluarse obligatoriamente si se incorporan
+  desarrolladores concurrentes
+- este hito conserva una excepcion transitoria: su cierre Git tecnico se
+  realizo mediante OPS-02 y su cierre Git documental tambien debe realizarse
+  mediante OPS-02 antes de HDOC(CLOSE)
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 859bedec5a26c077661a9fa3b528376abf5a8daf
+technical_parent: ec181303db064eea66eee17715b58a3adfa31e76
+technical_commit_message: "docs(governance): simplify agent Git handoff"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+repository_state_after_push: clean
+residual_worktree: []
+files:
+  - docs/agents_workflow.md
+  - docs/architecture/prompts_new_chats.md
+  - docs/architecture/system_operating_model.md
+  - docs/development/hito_template.md
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; consolida un unico contrato general simplificado,
+  preserva los envelopes existentes y limita OPS-02 a una excepcion explicita
+  y temporal para este hito, sin crear estados ni fuentes paralelas
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`; la evolucion operativa ya fue
+  materializada por el commit tecnico
+- Runtime Map: no aplica
+- sin cambios adicionales de arquitectura viva, roadmap, ADRs, Runtime Map,
+  codigo, tests ni perfiles externos durante esta fase documental
+- pendiente operativo posterior a HDOC(CLOSE): retirar, mediante una
+  intervencion expresamente autorizada, las excepciones OPS-02 de
+  `repo_guardian.config.toml` y `hdoc.config.toml`
+- cierre definitivo sujeto a documentation commit y push mediante OPS-02 y a
+  validacion read-only posterior mediante HDOC(CLOSE)
+
 ### FIX-MODIFY-MULTIFIELD-PREVIEW-INTEGRITY-01
 
 Estado: DOCUMENTACION_PREPARADA
