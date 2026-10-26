@@ -16030,3 +16030,51 @@ Impacto:
   roadmap, ADRs ni arquitectura viva
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-CLOUDFLARED-UPGRADE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-26
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: fijar Cloudflare Tunnel en Docker Compose a cloudflare/cloudflared:2026.10.4
+Commit tecnico: 2c6d8b443282a073db6be85891f5f25d8c36df5f
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- `docker-compose.demo.yml` usa explicitamente
+  `cloudflare/cloudflared:2026.10.4` en lugar de `latest`
+- la configuracion efectiva fue validada con Compose
+- el contenedor quedo en estado `running` y `healthy`
+- se observaron cuatro conexiones QUIC, con indices 0 a 3
+- digest observado de la imagen:
+  `sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515`
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 2c6d8b443282a073db6be85891f5f25d8c36df5f
+technical_parent: f278da8176c131900f159eb0ada80b83d96f2a5f
+technical_commit_message: "fix(security): pin cloudflared to 2026.10.4"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+technical_scope:
+  - docker-compose.demo.yml
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; sustituye una etiqueta flotante por una version
+  explicita de la misma imagen sin crear fuentes de verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- sin cambios de arquitectura viva, roadmap, ADRs, codigo adicional ni tests
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
