@@ -1454,6 +1454,32 @@ function buildModifyPreviewCancellationClarificationReply(lang: "es" | "en" | "p
       : "¿Querés cancelar el cambio pendiente o la reserva?";
 }
 
+function mentionsPendingReservationChanges(text: string): boolean {
+  return /\b(?:cambio|cambios|modificacion|modificaciones|alteracion|alteraciones|propuesta pendiente|change|changes|modification|modifications|pending change|pending changes|alteracao|alteracoes|mudanca|mudancas)\b/i
+    .test(normalizeReferenceText(text));
+}
+
+function isObjectlessCancelRequest(text: string): boolean {
+  return /^(?:(?:quiero|deseo|necesito|quero|i want to)\s+)?(?:cancela|cancelar|anula|anular|cancel|cancele)$/i
+    .test(normalizeReferenceText(text).trim());
+}
+
+function buildNoPendingChangesToCancelReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Não há alterações pendentes para cancelar. Se quiser cancelar a reserva, diga isso explicitamente."
+    : lang === "en"
+      ? "There are no pending changes to cancel. If you want to cancel the booking, say so explicitly."
+      : "No quedan cambios pendientes para cancelar. Si querés cancelar la reserva, decímelo explícitamente.";
+}
+
+function buildCancelObjectClarificationReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "O que você quer cancelar: uma reserva ou alterações pendentes?"
+    : lang === "en"
+      ? "What do you want to cancel: a booking or pending changes?"
+      : "¿Qué querés cancelar: una reserva o cambios pendientes?";
+}
+
 function buildCompetingReservationConfirmationsReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "Encontrei confirmações incompatíveis e suspendi ambas. Diga se quer alterar ou cancelar a reserva."
@@ -1466,7 +1492,7 @@ type ModifyPreviewDisposition = "discard_changes" | "cancel_reservation" | "ambi
 
 function resolveModifyPreviewDisposition(text: string): ModifyPreviewDisposition {
   const normalized = normalizeReferenceText(text).trim();
-  const mentionsPendingChange = /\b(?:cambio|cambios|modificacion|modificaciones|alteracion|alteraciones|propuesta pendiente|change|changes|modification|modifications|pending change|pending changes|alteracao|alteracoes|mudanca|mudancas)\b/i.test(normalized);
+  const mentionsPendingChange = mentionsPendingReservationChanges(normalized);
   const mentionsReservation = /\b(?:reserva|reservas|booking|bookings)\b/i.test(normalized);
   const asksToKeepCanonicalReservation = /\b(?:deja|mantene|conserva)\s+(?:la|mi)\s+reserva\s+(?:tal\s+)?como\s+(?:estaba|esta)\b/i.test(normalized);
   const hasDiscardOrCancelVerb = /\b(?:descarta|descartar|cancela|cancelar|anula|anular|discard|cancel|cancele)\b/i.test(normalized);
@@ -10629,6 +10655,22 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (pre.st?.activeReservationContext?.kind === "reservation"
       ? pre.st?.activeReservationContext.reservationId
       : undefined);
+  const targetsPendingChanges = wantsCancel && mentionsPendingReservationChanges(userTxtRaw);
+  const lacksCancellationObject = wantsCancel && isObjectlessCancelRequest(userTxtRaw);
+  if (targetsPendingChanges || lacksCancellationObject) {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      pendingCancellation: null,
+      conversationFocus: null,
+      activeFlow: null,
+      desiredAction: undefined,
+      lastCategory: "cancel_reservation",
+      updatedBy: "ai",
+    } as any);
+    finalText = targetsPendingChanges
+      ? buildNoPendingChangesToCancelReply(pre.lang)
+      : buildCancelObjectClarificationReply(pre.lang);
+    return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+  }
   if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
     const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, cancelCodeFromUser);
     if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {

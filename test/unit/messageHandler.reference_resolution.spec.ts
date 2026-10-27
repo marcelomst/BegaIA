@@ -3741,6 +3741,74 @@ describe("messageHandler reference resolution", () => {
     expect(modifyReservation).not.toHaveBeenCalled();
   });
 
+  it("[FIX-CANCEL-SCOPE/M6-01] después de descartar el preview, cancelar los cambios no prepara cancelación", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-cancel-changes-after-discard";
+    await preparePendingModifyPreview(conversationId, sendReply);
+
+    await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
+    sendReply.mockClear();
+
+    await handleIncomingMessage(msg("Quiero cancelar los cambios", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(replyText).toMatch(/no (?:hay|quedan).*cambios|cambios pendientes|qu[eé] quer[eé]s cancelar/i);
+    expect(currentState?.modifyState ?? null).toBeNull();
+    expect(currentState?.pendingCancellation ?? null).toBeNull();
+    expect(currentState?.lastReservation).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      status: "created",
+      roomType: "double",
+      numGuests: "2",
+    });
+    expect(askAvailability).not.toHaveBeenCalled();
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+  });
+
+  it("[FIX-CANCEL-SCOPE/M6-06] Cancelar con foco débil pide objeto y no deja confirmación ejecutable", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-bare-cancel-weak-focus";
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      activeReservationContext: {
+        kind: "reservation",
+        reservationId: "RES-ONLY-01",
+        phase: "confirmed",
+        updatedAt: "2026-03-22T10:00:00.000Z",
+      },
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "reservation",
+        source: "active_focus",
+        resolutionMode: "weak",
+      },
+    }));
+
+    await handleIncomingMessage(msg("Cancelar", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const currentState = stateByConversation.get(conversationId);
+    expect(replyText).toMatch(/qu[eé] quer[eé]s cancelar|qu[eé] operaci[oó]n|reserva.*cambios|cambios.*reserva/i);
+    expect(currentState?.pendingCancellation ?? null).toBeNull();
+    expect(currentState?.conversationFocus ?? null).toBeNull();
+    expect(currentState?.activeFlow ?? null).toBeNull();
+    expect(currentState?.desiredAction).toBeUndefined();
+    expect(askAvailability).not.toHaveBeenCalled();
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(confirmAndCreate).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+  });
+
   it("[M6] 'Quiero cancelar mi reserva' abandona el preview y exige confirmación antes de cancelar", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-m6-cancel-reservation-with-preview";
