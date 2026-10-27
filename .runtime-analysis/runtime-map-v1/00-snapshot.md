@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 2ca48e2216548c32476da8749b029376bd14a6da
-repository_baseline_head: 2ca48e2216548c32476da8749b029376bd14a6da
-source_code_commit: 2ca48e2216548c32476da8749b029376bd14a6da
-messageHandler_lines: 13947
-working_tree_status: exact_excluded_residual_present
-analysis_scope: focal_refresh_fix_modify_cancel_object_normalization_01_at_2ca48e2216548c32476da8749b029376bd14a6da
+commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
+repository_baseline_head: 64aec813cdc723907ad17f53292df951cecdfd32
+source_code_commit: 64aec813cdc723907ad17f53292df951cecdfd32
+messageHandler_lines: 13989
+working_tree_status: clean
+analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
 ```
 
 ---
@@ -21,10 +21,9 @@ analysis_scope: focal_refresh_fix_modify_cancel_object_normalization_01_at_2ca48
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01` parte de
-`HEAD = 2ca48e2216548c32476da8749b029376bd14a6da`. El único residual es
-`?? docker-compose.demo.yml.bak`; permanece excluido del hito y de esta
-evidencia.
+El refresh focal de `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01` parte de
+`HEAD = 64aec813cdc723907ad17f53292df951cecdfd32`, con indice y working tree
+limpios antes de la preparacion documental.
 ```
 
 ---
@@ -32,17 +31,17 @@ evidencia.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
-technical_commit: 2ca48e2216548c32476da8749b029376bd14a6da
-technical_parent: 1583abec4b3e5aa049ed596550cc09f6b47611cc
-technical_subject: "fix(reservations): normalize modify-cancel object resolution"
+hito_id: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+technical_commit: 64aec813cdc723907ad17f53292df951cecdfd32
+technical_parent: ba3cc283904ce6f746278ed9f13a7f5233a105a0
+technical_subject: "fix(reservations): guard cancel object scope after discard"
 technical_push: confirmed
-messageHandler_lines: 13947
+messageHandler_lines: 13989
 functions:
-  preLLM: L5074-L5286
-  bodyLLM: L6301-L13078
-  posLLM: L13573-L13614
-  handleIncomingMessage: L13618-L13947
+  preLLM: L5100-L5312
+  bodyLLM: L6327-L13120
+  posLLM: L13615-L13656
+  handleIncomingMessage: L13660-L13989
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -62,8 +61,9 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - 23 tests focales M6 + CONTRACT C1 aprobados
-      - 154 tests del archivo relevante aprobados
+      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
+      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
+      - TypeScript y diff check: PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid

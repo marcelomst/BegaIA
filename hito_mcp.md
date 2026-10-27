@@ -16174,3 +16174,107 @@ Impacto:
   esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-27
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: impedir que referencias a cambios descartados activen cancelacion y exigir aclaracion cuando falta un objeto suficiente
+Commit tecnico: 64aec813cdc723907ad17f53292df951cecdfd32
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- impide que referencias a cambios descartados activen una cancelacion de
+  reserva
+- exige aclaracion cuando la cancelacion no aporta un objeto suficiente
+- limpia confirmaciones sensibles obsoletas sin alterar la reserva canonica
+- preserva cancelaciones explicitas, ordinales y anaforicas legitimas
+- la evidencia manual de AH informa PASS conversacional para OBS-M6-01 y
+  OBS-M6-06, sin inspeccion de provider calls ni estado interno
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 64aec813cdc723907ad17f53292df951cecdfd32
+technical_parent: ba3cc283904ce6f746278ed9f13a7f5233a105a0
+technical_commit_message: "fix(reservations): guard cancel object scope after discard"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 64aec813cdc723907ad17f53292df951cecdfd32
+repository_state_after_push: clean
+validation:
+  manual_ah:
+    - OBS-M6-01: PASS conversacional informado
+    - OBS-M6-06: PASS conversacional informado
+    - provider calls y estado interno: no inspeccionados manualmente
+  guardian_automatic:
+    - messageHandler.reference_resolution.spec.ts: 156/156 PASS
+    - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
+    - TypeScript: pass
+    - git_diff_check: pass
+    - turnos protegidos: cero modifyReservation y cancelReservation
+    - pendingCancellation: null
+    - confirmaciones obsoletas: no ejecutables
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
+      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
+      - TypeScript y diff check: PASS
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `64aec813cdc723907ad17f53292df951cecdfd32`
+- `messageHandler.ts`: 13989 lineas fisicas
+- `preLLM`: L5100-L5312
+- `bodyLLM`: L6327-L13120
+- `posLLM`: L13615-L13656
+- `handleIncomingMessage`: L13660-L13989
+- `conceptual_change: false`; se preservan los 19 `box_id`, su taxonomia,
+  relaciones y diagramas conceptuales
+- rangos internos no recalculados por Guardian permanecen `needs_refresh`; no
+  se afirma frescura global
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; el guard queda local al corredor Cancel, conserva la
+  reserva canonica y no crea estado persistido, normalizadores ni fuentes de
+  verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: refresh factual de rangos top-level sin cambio conceptual
+- sin cambios de codigo, tests, roadmap, ADRs ni arquitectura conceptual en
+  esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

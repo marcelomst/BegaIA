@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 2ca48e2216548c32476da8749b029376bd14a6da
-messageHandler_lines: 13947
-working_tree_status: exact_excluded_residual_present
-analysis_scope: focal_refresh_fix_modify_cancel_object_normalization_01_at_2ca48e2216548c32476da8749b029376bd14a6da
-baseline_status: fix_modify_cancel_object_normalization_01_top_level_evidence_refreshed
+commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
+messageHandler_lines: 13989
+working_tree_status: clean
+analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
+baseline_status: fix_cancel_object_scope_after_discard_01_top_level_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,7 +60,7 @@ analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+## Auditoría actual: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
 
 ```yaml
 runtime_boxes_audit:
@@ -77,8 +77,9 @@ runtime_boxes_audit:
   parity_tests:
     status: present
     details:
-      - 23 tests focales M6 + CONTRACT C1 aprobados
-      - 154 tests del archivo relevante aprobados
+      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
+      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
+      - TypeScript y diff check: PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -90,10 +91,10 @@ runtime_map:
   internal_code_refs_status: needs_refresh
   global_freshness_claim_allowed: false
 top_level_code_refs:
-  preLLM: L5074-L5286
-  bodyLLM: L6301-L13078
-  posLLM: L13573-L13614
-  handleIncomingMessage: L13618-L13947
+  preLLM: L5100-L5312
+  bodyLLM: L6327-L13120
+  posLLM: L13615-L13656
+  handleIncomingMessage: L13660-L13989
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
