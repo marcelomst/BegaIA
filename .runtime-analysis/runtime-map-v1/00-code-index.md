@@ -54,7 +54,7 @@ runtime_map:
 
 Por eso:
 
-- los dos scans base se regeneran contra el código vigente
+- los blobs y referencias focales se actualizan con el scan de Guardian
 - los rangos top-level quedan frescos; rangos internos no entregados permanecen `needs_refresh`
 - se preservan los `box_id` y el mapa conceptual
 - no se afirma frescura para referencias no focales
@@ -67,13 +67,14 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
-repository_baseline_head: 64aec813cdc723907ad17f53292df951cecdfd32
-source_code_commit: 64aec813cdc723907ad17f53292df951cecdfd32
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+repository_baseline_head: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+source_code_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
 messageHandler_lines: 13989
-working_tree_status: clean
-analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
-baseline_status: fix_cancel_object_scope_after_discard_01_top_level_evidence_refreshed
+helpers_lines: 851
+working_tree_status: expected_untracked_residual_present
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+baseline_status: fix_modify_numguests_compound_extraction_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -93,38 +94,43 @@ remote ref verification: PASS
 Nota:
 
 ```text
-Los tests históricos en verde no implican ausencia de bugs funcionales ni se
-atribuyen al refresh documental actual. Este hito no modifica runtime ni tests.
+Los tests historicos en verde no implican ausencia de bugs funcionales. El
+refresh documental actual registra el runtime y los tests del commit tecnico
+sin modificarlos durante esta fase.
 ```
 
 ---
 
-## Evidencia focal actual: cancel object scope after discard
+## Evidencia focal actual: compound guest extraction
 
 ```yaml
-hito_id: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
-technical_commit: 64aec813cdc723907ad17f53292df951cecdfd32
-technical_parent: ba3cc283904ce6f746278ed9f13a7f5233a105a0
-technical_subject: "fix(reservations): guard cancel object scope after discard"
+hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+technical_parent: 704928a383bdba27b66764a3cab39285660015c2
+technical_subject: "fix(reservations): preserve compound guest extraction"
 technical_push: confirmed
 messageHandler_lines: 13989
+helpers_lines: 851
+messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
+helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
-      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
-      - TypeScript y diff check: PASS
+      - siete expected-failure convertidos en pruebas ordinarias aprobadas
+      - traza Modify de ocho etapas
+      - no-op, confirmaciones y payload parcial cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -133,6 +139,9 @@ top_level_code_refs:
   bodyLLM: L6327-L13120
   posLLM: L13615-L13656
   handleIncomingMessage: L13660-L13989
+helper_refs:
+  extractSlotsFromText: lib/agents/helpers.ts:L91
+  extractGuests: lib/agents/helpers.ts:L507
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false

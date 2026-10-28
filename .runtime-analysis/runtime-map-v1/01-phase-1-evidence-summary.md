@@ -21,21 +21,22 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
 messageHandler_lines: 13989
-working_tree_status: clean
-analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
+helpers_lines: 851
+working_tree_status: expected_untracked_residual_present
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - messageHandler.reference_resolution.spec.ts: 156/156 PASS
-    - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
+    - helpers.extractSlotsFromText.spec.ts: 47/47 PASS
+    - messageHandler.reference_resolution.spec.ts: 164/164 PASS
+    - regression: 193/193 files, 1263/1263 tests PASS
     - TypeScript: PASS
     - git diff --check: PASS
   manual_ah:
-    - OBS-M6-01: PASS conversacional informado
-    - OBS-M6-06: PASS conversacional informado
-    - provider calls y estado interno: no inspeccionados manualmente
+    - preview_for_3_para_una_triple: PASS
+    - real_provider_operation: not_performed
 validation_scope: documentation_and_guardian_scan_only
 global_freshness_claim_allowed: false
 ```
@@ -43,17 +44,23 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
-technical_commit: 64aec813cdc723907ad17f53292df951cecdfd32
-technical_parent: ba3cc283904ce6f746278ed9f13a7f5233a105a0
-technical_subject: "fix(reservations): guard cancel object scope after discard"
+hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+technical_parent: 704928a383bdba27b66764a3cab39285660015c2
+technical_subject: "fix(reservations): preserve compound guest extraction"
 technical_push: confirmed
 messageHandler_lines: 13989
+helpers_lines: 851
+messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
+helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
 functions:
   preLLM: L5100-L5312
   bodyLLM: L6327-L13120
   posLLM: L13615-L13656
   handleIncomingMessage: L13660-L13989
+helper_refs:
+  extractSlotsFromText: L91
+  extractGuests: L507
 runtime_map:
   applies: true
   conceptual_change: false
@@ -66,21 +73,22 @@ runtime_map:
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
-      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
-      - TypeScript y diff check: PASS
+      - siete expected-failure convertidos en pruebas ordinarias aprobadas
+      - traza Modify de ocho etapas
+      - no-op, confirmaciones y payload parcial cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid

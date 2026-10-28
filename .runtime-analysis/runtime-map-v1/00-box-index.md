@@ -43,11 +43,12 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
 messageHandler_lines: 13989
-working_tree_status: clean
-analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
-baseline_status: fix_cancel_object_scope_after_discard_01_top_level_evidence_refreshed
+helpers_lines: 851
+working_tree_status: expected_untracked_residual_present
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+baseline_status: fix_modify_numguests_compound_extraction_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,26 +61,27 @@ analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+## Auditoría actual: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
-      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
-      - TypeScript y diff check: PASS
+      - siete expected-failure convertidos en pruebas ordinarias aprobadas
+      - traza Modify de ocho etapas
+      - no-op, confirmaciones y payload parcial cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -95,6 +97,11 @@ top_level_code_refs:
   bodyLLM: L6327-L13120
   posLLM: L13615-L13656
   handleIncomingMessage: L13660-L13989
+focal_physical_evidence:
+  messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
+  helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
+  extractSlotsFromText: lib/agents/helpers.ts:L91
+  extractGuests: lib/agents/helpers.ts:L507
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen

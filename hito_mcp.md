@@ -16384,3 +16384,112 @@ Impacto:
   ADRs, codigo productivo ni tests durante esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-28
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: preservar numGuests en expresiones compuestas ligadas a un tipo de habitacion
+Commit tecnico: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- extrae de forma acotada cantidad + `para|en` + tipo de habitacion canonico
+- acepta palabras numericas solo cuando estan ligadas a personas o huespedes
+- preserva `numGuests` en expresiones compuestas durante el corredor Modify
+- cubre contratos positivos y negativos, traza Modify de ocho etapas,
+  confirmacion, no-op y payload parcial
+- reutiliza `canonicalizeRoomType` y el extractor explicito existente; no crea
+  estado, persistencia, normalizadores globales ni fuentes paralelas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+technical_parent: 704928a383bdba27b66764a3cab39285660015c2
+technical_commit_message: "fix(reservations): preserve compound guest extraction"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+technical_scope:
+  - lib/agents/helpers.ts
+  - test/unit/helpers.extractSlotsFromText.spec.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  focused:
+    - helpers.extractSlotsFromText.spec.ts: 47/47 PASS
+    - messageHandler.reference_resolution.spec.ts: 164/164 PASS
+    - combined: 211/211 PASS
+  regression:
+    - test_files: 193/193 PASS
+    - tests: 1263/1263 PASS
+    - TypeScript: PASS
+    - git_diff_check: PASS
+  manual_ah:
+    - preview_for_3_para_una_triple: PASS
+    - real_provider_operation: not_performed
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - siete expected-failure convertidos en pruebas ordinarias aprobadas
+      - traza Modify de ocho etapas
+      - no-op, confirmaciones y payload parcial cubiertos
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `1056624f1b0ee900a1d587ee5a061d0fc56adcef`
+- `messageHandler.ts`: blob `cc2b248ff9f00ee93d9c5a623905513fe3f92dbc`,
+  13989 lineas fisicas
+- `helpers.ts`: blob `67ca9846011c0b8c864884dfcca8d6076e5fc258`,
+  851 lineas fisicas
+- `preLLM`: L5100-L5312
+- `bodyLLM`: L6327-L13120
+- `posLLM`: L13615-L13656
+- `handleIncomingMessage`: L13660-L13989
+- `extractSlotsFromText`: helpers.ts:L91
+- `extractGuests`: helpers.ts:L507
+- refresh exclusivamente fisico y focal; se preservan los `box_id`, taxonomia,
+  relaciones y diagramas conceptuales, sin afirmar frescura global
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; reutiliza autoridades existentes y evita nuevas
+  fuentes de verdad
+- `roadmap_impact: none`
+- Runtime Map: refresh factual focal sin cambio conceptual
+- sin cambios documentales en roadmap, Operating Model, ADRs, codigo o tests
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

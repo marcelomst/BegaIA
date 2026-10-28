@@ -8,12 +8,13 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 64aec813cdc723907ad17f53292df951cecdfd32
-repository_baseline_head: 64aec813cdc723907ad17f53292df951cecdfd32
-source_code_commit: 64aec813cdc723907ad17f53292df951cecdfd32
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+repository_baseline_head: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+source_code_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
 messageHandler_lines: 13989
-working_tree_status: clean
-analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec813cdc723907ad17f53292df951cecdfd32
+helpers_lines: 851
+working_tree_status: expected_untracked_residual_present
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
 ```
 
 ---
@@ -21,9 +22,9 @@ analysis_scope: focal_refresh_fix_cancel_object_scope_after_discard_01_at_64aec8
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01` parte de
-`HEAD = 64aec813cdc723907ad17f53292df951cecdfd32`, con indice y working tree
-limpios antes de la preparacion documental.
+El refresh focal de `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01` parte de
+`HEAD = origin/main = 1056624f1b0ee900a1d587ee5a061d0fc56adcef`, con indice
+limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ```
 
 ---
@@ -31,17 +32,23 @@ limpios antes de la preparacion documental.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
-technical_commit: 64aec813cdc723907ad17f53292df951cecdfd32
-technical_parent: ba3cc283904ce6f746278ed9f13a7f5233a105a0
-technical_subject: "fix(reservations): guard cancel object scope after discard"
+hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+technical_parent: 704928a383bdba27b66764a3cab39285660015c2
+technical_subject: "fix(reservations): preserve compound guest extraction"
 technical_push: confirmed
 messageHandler_lines: 13989
+helpers_lines: 851
+messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
+helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
 functions:
   preLLM: L5100-L5312
   bodyLLM: L6327-L13120
   posLLM: L13615-L13656
   handleIncomingMessage: L13660-L13989
+helper_refs:
+  extractSlotsFromText: L91
+  extractGuests: L507
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -49,29 +56,31 @@ global_freshness_claim_allowed: false
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - messageHandler.reference_resolution.spec.ts: 156/156 PASS
-      - cinco suites adicionales Modify/Cancel seleccionadas: 39/39 PASS
-      - TypeScript y diff check: PASS
+      - siete expected-failure convertidos en pruebas ordinarias aprobadas
+      - traza Modify de ocho etapas
+      - no-op, confirmaciones y payload parcial cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
 
-Los rangos top-level y los scans base quedan refrescados. Los rangos internos
-no entregados por Guardian permanecen `needs_refresh`; no se inventan rangos ni
-se altera la taxonomia conceptual.
+Los rangos top-level, blobs y referencias focales de helpers quedan
+refrescados con la evidencia entregada por Guardian. Los rangos internos no
+entregados permanecen `needs_refresh`; no se inventan rangos ni se altera la
+taxonomia conceptual.
 
 ---
 
