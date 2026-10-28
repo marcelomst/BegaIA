@@ -16278,3 +16278,109 @@ Impacto:
   esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### TEST-MODIFY-NUMGUESTS-TRACE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-28
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: caracterizar mediante tests la perdida de numGuests en modify y preservar la cobertura MCP correcta
+Commit tecnico: 3db892f2a9fe160481acffe24b957bafc36ac263
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- `OBS-M6-03` permanece `CONFIRMED`; siete expected-failure preservan la
+  caracterizacion de la perdida de `numGuests` en `modify`
+- `OBS-M6-04` permanece pendiente de reproduccion causal; no se atribuye una
+  causa especifica
+- la suite MCP correcta permanece preservada con 26 pruebas ordinarias
+  aprobadas
+- no se modifica runtime, persistencia, contratos, arquitectura, roadmap ni
+  reglas operativas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 3db892f2a9fe160481acffe24b957bafc36ac263
+technical_parent: 74b9d5811e7b08f1dab4b2528c5e2595c497b678
+technical_commit_message: "test(reservations): trace numGuests modify defect"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 3db892f2a9fe160481acffe24b957bafc36ac263
+technical_scope:
+  - test/unit/helpers.extractSlotsFromText.spec.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  focused_suites:
+    total: 206
+    ordinary_pass: 199
+    expected_failure: 7
+    unexpected_failure: 0
+  mcp_suite:
+    ordinary_pass: 26
+  typescript: pass
+  diff_check: pass
+  postcommit_diff_tree_check: pass
+```
+
+Incidencia Git historica:
+
+- el comando STAGE quedo dividido accidentalmente
+- el shell informo
+  `messageHandler.reference_resolution.spec.ts: command not found`
+- se continuo con COMMIT y PUSH pese al error
+- el procedimiento historico permanecio incumplido porque no se respeto la
+  detencion obligatoria del Operating Model
+- Guardian verifico que el commit publicado es materialmente exacto
+- AGPT acepto provisionalmente el artefacto tecnico
+- AH autorizo excepcionalmente continuar, exclusivamente para
+  `TEST-MODIFY-NUMGUESTS-TRACE-01` y el commit
+  `3db892f2a9fe160481acffe24b957bafc36ac263`
+- la incidencia no convierte el protocolo en PASS ni modifica el Operating
+  Model; `protocol_conformance: false`
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched: []
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - siete expected-failure preservan OBS-M6-03
+      - provider mismatch permanece cubierto en el boundary MCP
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- no se actualiza Runtime Map porque el hito modifica exclusivamente tests y
+  `runtime_map_refresh_required` es `false`
+- `code_refs_status: needs_refresh` se conserva como estado heredado y no se
+  trata como trabajo de este hito
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; registra evidencia y trazabilidad sin modificar
+  fuentes canonicas, logica productiva, persistencia ni contratos
+- el provider mismatch continua perteneciendo al boundary MCP
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de Runtime Map, arquitectura viva, Operating Model, roadmap,
+  ADRs, codigo productivo ni tests durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
