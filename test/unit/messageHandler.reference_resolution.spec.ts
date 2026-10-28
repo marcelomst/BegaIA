@@ -153,6 +153,7 @@ vi.mock("@langchain/openai", () => ({
 }));
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+import { extractGuests, extractSlotsFromText } from "@/lib/agents/helpers";
 import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation, quoteReservationModification } from "@/lib/agents/reservations";
 import { getConversationsByGuestId, getConversationsForGuestPerspective } from "@/lib/db/conversations";
 import { findGuestByAnyId, getGuest } from "@/lib/db/guests";
@@ -326,6 +327,38 @@ function baseSingleReservationState(overrides: Record<string, any> = {}) {
     updatedAt: "2026-03-22T10:00:00.000Z",
     ...overrides,
   };
+}
+
+function baseActiveGuestsModifyState(pendingFields: Array<"roomType" | "dates"> = []) {
+  return baseSingleReservationState({
+    activeReservationContext: {
+      kind: "reservation",
+      reservationId: "RES-ONLY-01",
+      phase: "confirmed",
+      updatedAt: "2026-03-22T10:00:00.000Z",
+    },
+    selectedReservationTarget: {
+      reservationId: "RES-ONLY-01",
+      kind: "confirmed",
+      source: "active_focus",
+      resolutionMode: "weak",
+      resolvedAt: "2026-03-22T10:00:00.000Z",
+    },
+    modifyState: {
+      activeField: "guests",
+      pendingFields,
+      updatedAt: "2026-03-22T10:00:00.000Z",
+    },
+    conversationFocus: {
+      domain: "reservation",
+      subFlow: "modify",
+      active: true,
+      updatedAt: "2026-03-22T10:00:00.000Z",
+    },
+    activeFlow: "modify_reservation",
+    desiredAction: "modify",
+    lastCategory: "modify_reservation",
+  });
 }
 
 function baseStalePresentedCancellationState(overrides: Record<string, any> = {}) {
@@ -2492,6 +2525,193 @@ describe("messageHandler reference resolution", () => {
     );
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/modificada res-only-01/i);
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Marcelo Martinez.*Habitación: triple.*Check-in: 28\/03\/2026.*Check-out: 30\/03\/2026.*Huéspedes: 3.*Total: 240 USD/is);
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03][TRACE 8 ETAPAS] '3 para una triple' preserva tres huéspedes durante todo modify", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-numguests-trace-eight-stages";
+    const messageText = "3 para una triple";
+    const initialState = baseActiveGuestsModifyState();
+    stateByConversation.set(conversationId, initialState);
+
+    const explicitSlots = extractSlotsFromText(messageText, "es");
+    const fallbackGuests = extractGuests(messageText);
+    await handleIncomingMessage(msg(messageText, conversationId), { mode: "automatic", sendReply });
+
+    const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const previewState = stateByConversation.get(conversationId);
+    const quoteCandidate = (quoteReservationModification as any).mock.calls.at(-1)?.[2];
+    const pendingPatch = previewState?.modifyState?.pendingPatch;
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const providerPayload = (modifyReservation as any).mock.calls.at(-1)?.[2];
+    const providerResult = await (modifyReservation as any).mock.results.at(-1)?.value;
+    const persistedState = stateByConversation.get(conversationId);
+    const immediateReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+
+    await handleIncomingMessage(msg("mostrame mi reserva", conversationId), { mode: "automatic", sendReply });
+    const readbackReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+
+    const trace = {
+      stage1_input_and_state: {
+        message: messageText,
+        activeField: (initialState as any).modifyState.activeField,
+        canonicalRoomType: initialState.lastReservation.roomType,
+        canonicalNumGuests: initialState.lastReservation.numGuests,
+      },
+      stage2_explicit_extraction: {
+        roomType: explicitSlots.roomType,
+        numGuests: explicitSlots.numGuests,
+        fallbackNumGuests: fallbackGuests,
+      },
+      stage3_modify_candidate: {
+        roomType: quoteCandidate?.roomType,
+        numGuests: quoteCandidate?.numGuests,
+      },
+      stage4_pending_patch: {
+        roomType: pendingPatch?.roomType,
+        numGuests: pendingPatch?.numGuests,
+      },
+      stage5_preview_and_quote: {
+        quotedNumGuests: quoteCandidate?.numGuests,
+        showsRoomTransition: /habitaci[oó]n:.*doble.*triple/i.test(previewReply),
+        showsGuestTransition: /hu[eé]spedes:.*2.*3/i.test(previewReply),
+      },
+      stage6_provider_payload: {
+        roomType: providerPayload?.roomType,
+        numGuests: providerPayload?.numGuests,
+      },
+      stage7_provider_result: {
+        roomType: providerResult?.reservation?.roomType,
+        numGuests: providerResult?.reservation?.numGuests,
+      },
+      stage8_persistence_and_readback: {
+        persistedRoomType: persistedState?.lastReservation?.roomType,
+        persistedNumGuests: persistedState?.lastReservation?.numGuests,
+        immediateShowsThree: /hu[eé]spedes:\s*3/i.test(immediateReply),
+        readbackShowsThree: /hu[eé]spedes:\s*3/i.test(readbackReply),
+      },
+    };
+
+    expect(trace).toEqual({
+      stage1_input_and_state: {
+        message: messageText,
+        activeField: "guests",
+        canonicalRoomType: "double",
+        canonicalNumGuests: "2",
+      },
+      stage2_explicit_extraction: {
+        roomType: "triple",
+        numGuests: "3",
+        fallbackNumGuests: "3",
+      },
+      stage3_modify_candidate: { roomType: "triple", numGuests: "3" },
+      stage4_pending_patch: { roomType: "triple", numGuests: "3" },
+      stage5_preview_and_quote: {
+        quotedNumGuests: "3",
+        showsRoomTransition: true,
+        showsGuestTransition: true,
+      },
+      stage6_provider_payload: { roomType: "triple", numGuests: "3" },
+      stage7_provider_result: { roomType: "triple", numGuests: 3 },
+      stage8_persistence_and_readback: {
+        persistedRoomType: "triple",
+        persistedNumGuests: 3,
+        immediateShowsThree: true,
+        readbackShowsThree: true,
+      },
+    });
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03][pendingFields roomType] '3 en una triple' conserva ambos cambios", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-numguests-pending-room";
+    stateByConversation.set(conversationId, baseActiveGuestsModifyState(["roomType"]));
+
+    await handleIncomingMessage(msg("3 en una triple", conversationId), { mode: "automatic", sendReply });
+
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({ roomType: "triple", numGuests: "3" }),
+    });
+  });
+
+  it.each([
+    { messageText: "Triple para 3 personas", slug: "explicit-personas" },
+    { messageText: "Somos 3 y queremos una triple", slug: "somos" },
+    { messageText: "3 huéspedes en habitación triple", slug: "huespedes" },
+    { messageText: "Quiero una triple para tres personas", slug: "spelled-personas" },
+  ])("[NUMGUESTS TRACE] '$messageText' llega al preview con tres huéspedes y habitación triple", async ({ messageText, slug }) => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = `conv-ref-modify-numguests-positive-${slug}`;
+    stateByConversation.set(conversationId, baseActiveGuestsModifyState());
+
+    await handleIncomingMessage(msg(messageText, conversationId), { mode: "automatic", sendReply });
+
+    expect(quoteReservationModification).toHaveBeenCalledWith(
+      "hotel999",
+      "RES-ONLY-01",
+      expect.objectContaining({ roomType: "triple", numGuests: "3" })
+    );
+    expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+      awaitingConfirmation: true,
+      pendingPatch: expect.objectContaining({ roomType: "triple", numGuests: "3" }),
+    });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/habitaci[oó]n:.*triple.*hu[eé]spedes:.*3/is);
+  });
+
+  it("[NUMGUESTS TRACE][no-op] una reserva ya triple para tres no genera un patch ficticio", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-numguests-no-op";
+    const tripleReservation = {
+      ...baseSingleReservationState().lastReservation,
+      roomType: "triple",
+      numGuests: "3",
+    };
+    stateByConversation.set(conversationId, {
+      ...baseActiveGuestsModifyState(),
+      reservationSlots: {
+        ...baseSingleReservationState().reservationSlots,
+        roomType: "triple",
+        numGuests: "3",
+      },
+      reservationHistory: [tripleReservation],
+      lastReservation: tripleReservation,
+    });
+
+    await handleIncomingMessage(msg("Triple para 3 personas", conversationId), { mode: "automatic", sendReply });
+
+    expect(quoteReservationModification).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+    expect(stateByConversation.get(conversationId)?.modifyState?.pendingPatch).toBeUndefined();
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/no detect[eé] un cambio concreto/i);
+  });
+
+  it("[NUMGUESTS TRACE][payload omitido] acepta que el provider conserve dos cuando no se enviaron huéspedes", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-modify-numguests-provider-preserved";
+    stateByConversation.set(conversationId, baseSingleReservationState());
+
+    await handleIncomingMessage(msg("quiero modificar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("cambiar tipo de habitación", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("triple", conversationId), { mode: "automatic", sendReply });
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const providerPatch = (modifyReservation as any).mock.calls.at(-1)?.[2];
+    expect(providerPatch.numGuests).toBeUndefined();
+    expect(stateByConversation.get(conversationId)?.lastReservation).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      status: "updated",
+      roomType: "triple",
+      numGuests: 2,
+    });
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/hu[eé]spedes:\s*2/i);
   });
 
   it("M3 compone huéspedes y habitación explícitos con activeField guests producido por el runtime", async () => {

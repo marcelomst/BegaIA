@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { extractSlotsFromText } from "@/lib/agents/helpers";
+import { extractGuests, extractSlotsFromText } from "@/lib/agents/helpers";
 import { futureMonthDayReservationRange } from "../utils/reservationDates";
 
 describe("extractSlotsFromText", () => {
@@ -113,6 +113,55 @@ describe("extractSlotsFromText", () => {
   it("no absorbe un número suelto ambiguo fuera de contexto", () => {
     const slots = extractSlotsFromText("2", "es");
     expect(slots.numGuests).toBeUndefined();
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03] '3 para una triple' conserva el numeral como huéspedes", () => {
+    const text = "3 para una triple";
+    expect.soft(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "3" });
+    expect.soft(extractGuests(text)).toBe("3");
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03] '3 en una triple' conserva el numeral como huéspedes", () => {
+    const text = "3 en una triple";
+    expect.soft(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "3" });
+    expect.soft(extractGuests(text)).toBe("3");
+  });
+
+  it.each([
+    "Triple para 3 personas",
+    "Somos 3 y queremos una triple",
+    "3 huéspedes en habitación triple",
+    "Quiero una triple para tres personas",
+  ])("extrae tres huéspedes y habitación triple de '%s'", (text) => {
+    expect(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "3" });
+  });
+
+  it.each([
+    "una triple",
+    "quiero una triple",
+    "3 noches en una triple",
+  ])("la extracción explícita no atribuye huéspedes a '%s'", (text) => {
+    const slots = extractSlotsFromText(text, "es");
+    expect(slots.roomType).toBe("triple");
+    expect(slots.numGuests).toBeUndefined();
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no convierte el artículo de 'una triple' en un huésped", () => {
+    expect(extractGuests("una triple")).toBeUndefined();
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no convierte el artículo de 'quiero una triple' en un huésped", () => {
+    expect(extractGuests("quiero una triple")).toBeUndefined();
+  });
+
+  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no atribuye el numeral de noches ni el artículo de habitación", () => {
+    expect(extractGuests("3 noches en una triple")).toBeUndefined();
+  });
+
+  it("mantiene un huésped explícito en 'una persona en una triple'", () => {
+    const text = "una persona en una triple";
+    expect(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "1" });
+    expect(extractGuests(text)).toBe("1");
   });
 
   it("canonicaliza alias 'simple' a 'single'", () => {
