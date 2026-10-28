@@ -2527,12 +2527,30 @@ describe("messageHandler reference resolution", () => {
     expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Marcelo Martinez.*Habitación: triple.*Check-in: 28\/03\/2026.*Check-out: 30\/03\/2026.*Huéspedes: 3.*Total: 240 USD/is);
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03][TRACE 8 ETAPAS] '3 para una triple' preserva tres huéspedes durante todo modify", async () => {
+  it("[TRACE 8 ETAPAS] '3 para una triple' preserva tres huéspedes durante todo modify", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-numguests-trace-eight-stages";
     const messageText = "3 para una triple";
     const initialState = baseActiveGuestsModifyState();
     stateByConversation.set(conversationId, initialState);
+    (modifyReservation as any).mockResolvedValueOnce({
+      ok: true,
+      message: "✅ Modificada RES-ONLY-01",
+      reservation: {
+        reservationId: "RES-ONLY-01",
+        hotelId: "hotel999",
+        guestName: "Marcelo Martinez",
+        roomType: "triple",
+        numGuests: 3,
+        checkInDate: "2026-03-28",
+        checkOutDate: "2026-03-30",
+        status: "confirmed",
+        currency: "USD",
+        priceTotal: 240,
+        createdAt: "2026-03-22T10:00:00.000Z",
+        updatedAt: "2026-03-23T12:00:00.000Z",
+      },
+    });
 
     const explicitSlots = extractSlotsFromText(messageText, "es");
     const fallbackGuests = extractGuests(messageText);
@@ -2624,7 +2642,7 @@ describe("messageHandler reference resolution", () => {
     });
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03][pendingFields roomType] '3 en una triple' conserva ambos cambios", async () => {
+  it("[pendingFields roomType] '3 en una triple' conserva ambos cambios", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-modify-numguests-pending-room";
     stateByConversation.set(conversationId, baseActiveGuestsModifyState(["roomType"]));

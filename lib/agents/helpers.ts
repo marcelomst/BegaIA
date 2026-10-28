@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { canonicalizeRoomType, maxGuestsForRoomType } from "@/lib/schemas/reservation";
 
+function extractRoomLinkedGuestTotal(text: string): number | undefined {
+  const match = String(text || "").match(
+    /^\s*(\d{1,2})\s+(?:para|en)\s+(?:(?:un|una|um|uma|one|the)\s+)?(?:(?:habitaci[oó]n|cuarto|quarto|room)\s+)?([\p{L}]+)\s*[.!?]?\s*$/iu
+  );
+  if (!match?.[1] || !match[2] || !canonicalizeRoomType(match[2])) return undefined;
+  const parsed = parseInt(match[1], 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 function extractDirectGuestTotal(text: string): number | undefined {
   const t = String(text || "").toLowerCase();
+  const roomLinkedGuests = extractRoomLinkedGuestTotal(t);
+  if (typeof roomLinkedGuests === "number") return roomLinkedGuests;
   const patterns = [
     /\b(\d{1,2})\s*(?:personas|huespedes|huéspedes|pessoas|guests?|people)\b/,
     /\b(?:somos|vamos|seriamos|seríamos|seremos|we are|were)\s+(\d{1,2})\b/,
@@ -518,10 +529,9 @@ export function extractGuests(msg: string): string | undefined {
   if (typeof direct === "number") return String(direct);
   if (typeof composed === "number") return String(composed);
 
-  // 3) Palabras → número
-  const WORD2NUM: Record<string, number> = { uno: 1, una: 1, dos: 2, tres: 3, quatro: 4, cuatro: 4 };
-  const mWord = withoutDates.match(/\b(uno|una|dos|tres|quatro|cuatro)\b/);
-  if (mWord) return String(WORD2NUM[mWord[1]]);
+  // 3) Palabras asociadas explícitamente a personas / huéspedes
+  const spelled = extractSpelledGuestTotal(withoutDates);
+  if (typeof spelled === "number") return String(spelled);
   return undefined;
 }
 // Extrae checkIn/checkOut desde texto libre

@@ -115,13 +115,13 @@ describe("extractSlotsFromText", () => {
     expect(slots.numGuests).toBeUndefined();
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03] '3 para una triple' conserva el numeral como huéspedes", () => {
+  it("'3 para una triple' conserva el numeral como huéspedes", () => {
     const text = "3 para una triple";
     expect.soft(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "3" });
     expect.soft(extractGuests(text)).toBe("3");
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03] '3 en una triple' conserva el numeral como huéspedes", () => {
+  it("'3 en una triple' conserva el numeral como huéspedes", () => {
     const text = "3 en una triple";
     expect.soft(extractSlotsFromText(text, "es")).toMatchObject({ roomType: "triple", numGuests: "3" });
     expect.soft(extractGuests(text)).toBe("3");
@@ -140,21 +140,27 @@ describe("extractSlotsFromText", () => {
     "una triple",
     "quiero una triple",
     "3 noches en una triple",
+    "3 habitaciones en una triple",
+    "300 USD en una triple",
+    "reserva RES-3 en una triple",
+    "03/11/2026 en una triple",
+    "habitación 3 en una triple",
   ])("la extracción explícita no atribuye huéspedes a '%s'", (text) => {
     const slots = extractSlotsFromText(text, "es");
     expect(slots.roomType).toBe("triple");
     expect(slots.numGuests).toBeUndefined();
+    expect(extractGuests(text)).toBeUndefined();
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no convierte el artículo de 'una triple' en un huésped", () => {
+  it("extractGuests no convierte el artículo de 'una triple' en un huésped", () => {
     expect(extractGuests("una triple")).toBeUndefined();
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no convierte el artículo de 'quiero una triple' en un huésped", () => {
+  it("extractGuests no convierte el artículo de 'quiero una triple' en un huésped", () => {
     expect(extractGuests("quiero una triple")).toBeUndefined();
   });
 
-  it.fails("[EXPECTED-FAIL OBS-M6-03] extractGuests no atribuye el numeral de noches ni el artículo de habitación", () => {
+  it("extractGuests no atribuye el numeral de noches ni el artículo de habitación", () => {
     expect(extractGuests("3 noches en una triple")).toBeUndefined();
   });
 
