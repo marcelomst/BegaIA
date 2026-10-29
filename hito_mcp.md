@@ -16554,3 +16554,93 @@ Impacto:
   documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-29
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: caracterizar mediante tests la integridad del read path canonico de reservas
+Commit tecnico: 474257d286fca3e0061c334ac770eaf1c3dac501
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora una matriz A-H para status, accionabilidad, precedencia,
+  completitud, null autoritativo, aislamiento cross-ID y temporalidad
+- preserva 13 expected-failure: 12 correspondientes a `OBS-M6-02` y uno a
+  `OBS-M6-07`
+- `OBS-M6-02` permanece `CONFIRMED`
+- `OBS-M6-07` permanece `CONFIRMED`; la correccion de su caracterizacion
+  preserva el contrato de quote parcial y focaliza la divergencia despues del
+  descarte
+- no modifica codigo productivo ni declara resuelta ninguna observacion
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 474257d286fca3e0061c334ac770eaf1c3dac501
+technical_parent: bb618bf40b7a696419da488370a18da37a37ea4c
+technical_commit_message: "test: characterize canonical reservation read integrity"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 474257d286fca3e0061c334ac770eaf1c3dac501
+technical_scope:
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  focused_suites:
+    files: 6
+    total_cases: 212
+    ordinary_pass: 199
+    expected_failure: 13
+    unexpected_failures: 0
+  expected_failure_breakdown:
+    cancelled_actionability: 2
+    invalid_or_missing_status: 8
+    post_discard_completeness: 1
+    temporal_precedence_ties: 2
+  ts_check: PASS
+  git_diff_check: PASS
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched: []
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.canonicalReservationReadPath
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: not_applicable
+    details:
+      - hito de caracterizacion sin fix productivo
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- no se actualiza Runtime Map porque el hito modifica exclusivamente tests y
+  `runtime_map_refresh_required` es `false`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; distingue status conversacional de status raw del
+  provider sin crear estado paralelo ni una nueva fuente de verdad
+- `roadmap_impact: none`
+- sin cambios de arquitectura viva, Operating Model, roadmap, Runtime Map,
+  codigo o tests durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
