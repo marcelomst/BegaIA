@@ -5686,6 +5686,7 @@ describe("messageHandler reference resolution", () => {
     expect(providerPatch.numGuests).toBeUndefined();
     expect(stateByConversation.get(conversationId)?.reservationSlots?.numGuests).toBe(4);
     expect(stateByConversation.get(conversationId)?.lastReservation?.numGuests).toBe(4);
+    expect(stateByConversation.get(conversationId)?.lastReservation?.status).toBe("updated");
     expect(successReply).toMatch(/RES-ONLY-01/i);
     expect(successReply).toMatch(/Marcelo Martinez/i);
     expect(successReply).toMatch(/Habitación: triple/i);
@@ -5767,5 +5768,453 @@ describe("messageHandler reference resolution", () => {
       reservationId: "RES-ONLY-01",
       status: "created",
     });
+  });
+
+  describe("canonical read status and completeness characterization matrix", () => {
+    const completeRecord = (reservationId: string, overrides: Record<string, any> = {}) => ({
+      reservationId,
+      status: "created",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+      guestName: "Ana Canonical",
+      roomType: "double",
+      checkIn: "2026-04-10",
+      checkOut: "2026-04-12",
+      numGuests: "2",
+      ...overrides,
+    });
+
+    const stateWithSingleRecord = (record: Record<string, any>, overrides: Record<string, any> = {}) => ({
+      hotelId: "hotel999",
+      reservationSlots: {
+        guestName: record.guestName,
+        roomType: record.roomType,
+        checkIn: record.checkIn,
+        checkOut: record.checkOut,
+        numGuests: record.numGuests,
+      },
+      salesStage: "close",
+      conversationStage: "reservation_confirmed",
+      reservationHistory: [record],
+      lastReservation: record,
+      activeReservationContext: null,
+      selectedReservationTarget: null,
+      updatedAt: "2026-03-23T10:00:00.000Z",
+      ...overrides,
+    });
+
+    it.fails("[EXPECTED-FAIL][OBS-M6-02][presented_cancelled_status_lost] [A] una reserva cancelada presentada no habilita Modify", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-a-cancelled-presented";
+      const cancelled = completeRecord("RES-MATRIX-A", { status: "cancelled" });
+      stateByConversation.set(conversationId, {
+        hotelId: "hotel999",
+        conversationId,
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [cancelled],
+        },
+      });
+
+      await handleIncomingMessage(msg("modificá la primera reserva", conversationId), { mode: "automatic", sendReply });
+
+      const state = stateByConversation.get(conversationId);
+      const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect.soft(reply).toMatch(/cancelada|no se puede modificar|inactiva/i);
+      expect(state?.selectedReservationTarget).toMatchObject({ reservationId: "RES-MATRIX-A" });
+      expect(state?.modifyState ?? null).toBeNull();
+      expect(quoteReservationModification).not.toHaveBeenCalled();
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it.fails("[EXPECTED-FAIL][OBS-M6-02][post_list_cancelled_status_lost] [B] una cancelación reciente domina a la versión activa antigua del mismo ID", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-b-recent-cancelled";
+      const active = completeRecord("RES-MATRIX-B", { createdAt: "2026-03-20T10:00:00.000Z" });
+      const cancelled = {
+        reservationId: "RES-MATRIX-B",
+        status: "cancelled",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+      };
+      stateByConversation.set(conversationId, stateWithSingleRecord(cancelled, {
+        reservationSlots: {},
+        reservationHistory: [active, cancelled],
+      }));
+
+      await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+      const listReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(listReply).toMatch(/RES-MATRIX-B .*cancelada/i);
+      expect(listReply).toMatch(/Ana Canonical|doble|10\/04\/2026/i);
+
+      sendReply.mockClear();
+      await handleIncomingMessage(msg("modificá RES-MATRIX-B a triple", conversationId), { mode: "automatic", sendReply });
+      expect.soft(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cancelada|no se puede modificar|inactiva/i);
+      expect.soft(quoteReservationModification).not.toHaveBeenCalled();
+      expect(modifyReservation).not.toHaveBeenCalled();
+    });
+
+    it("[C] created y updated son los estados conv_state reconocidos como accionables", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-c-recognized-conv-status";
+      const created = completeRecord("RES-MATRIX-C-CREATED", { createdAt: "2026-03-20T10:00:00.000Z" });
+      const updated = completeRecord("RES-MATRIX-C-UPDATED", {
+        status: "updated",
+        createdAt: "2026-03-21T10:00:00.000Z",
+        guestName: "Beatriz Updated",
+      });
+      stateByConversation.set(conversationId, {
+        hotelId: "hotel999",
+        conversationId,
+        reservationHistory: [created, updated],
+        lastReservation: updated,
+        reservationSlots: {},
+      });
+
+      await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+      const listReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(listReply).toMatch(/RES-MATRIX-C-CREATED .*activa/i);
+      expect(listReply).toMatch(/RES-MATRIX-C-UPDATED .*activa/i);
+
+      await handleIncomingMessage(
+        msg("modificá RES-MATRIX-C-CREATED a triple para 3 personas", conversationId),
+        { mode: "automatic", sendReply },
+      );
+      expect(quoteReservationModification).toHaveBeenCalledWith(
+        "hotel999",
+        "RES-MATRIX-C-CREATED",
+        expect.objectContaining({ roomType: "triple", numGuests: "3" }),
+      );
+      expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+        awaitingConfirmation: true,
+        pendingPatch: expect.objectContaining({ reservationId: "RES-MATRIX-C-CREATED" }),
+      });
+      expect(modifyReservation).not.toHaveBeenCalled();
+    });
+
+    for (const statusCase of [
+      { label: "desconocido", status: "provider_unknown" },
+      { label: "ausente", status: undefined },
+      { label: "provider pending sin transformar", status: "pending" },
+      { label: "provider confirmed sin transformar", status: "confirmed" },
+    ]) {
+      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe listarse como activo`, async () => {
+        const sendReply = vi.fn(async () => {});
+        const conversationId = `conv-matrix-c-list-${String(statusCase.status || "missing")}`;
+        const record = completeRecord(`RES-MATRIX-C-${String(statusCase.status || "MISSING").toUpperCase()}`, {
+          status: statusCase.status,
+        });
+        stateByConversation.set(conversationId, stateWithSingleRecord(record));
+
+        await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+
+        const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        expect(reply).not.toMatch(/\bactiva\b/i);
+      });
+
+      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe cotizar Modify`, async () => {
+        const sendReply = vi.fn(async () => {});
+        const conversationId = `conv-matrix-c-modify-${String(statusCase.status || "missing")}`;
+        const reservationId = `RES-MATRIX-C-${String(statusCase.status || "MISSING").toUpperCase()}`;
+        const record = completeRecord(reservationId, { status: statusCase.status });
+        stateByConversation.set(conversationId, stateWithSingleRecord(record));
+
+        await handleIncomingMessage(
+          msg(`modificá ${reservationId} a triple para 3 personas`, conversationId),
+          { mode: "automatic", sendReply },
+        );
+
+        expect.soft(quoteReservationModification).not.toHaveBeenCalled();
+        expect.soft(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+        expect(modifyReservation).not.toHaveBeenCalled();
+        expect(cancelReservation).not.toHaveBeenCalled();
+        expect(confirmAndCreate).not.toHaveBeenCalled();
+      });
+    }
+
+    it("[D] descartar un preview conserva el registro completo y limpia el subestado Modify", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-d-discard-complete";
+      const original = completeRecord("RES-MATRIX-D", {
+        guestName: "Diana Completa",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-14",
+        numGuests: "2",
+      });
+      const initialState = stateWithSingleRecord(original);
+      stateByConversation.set(conversationId, initialState);
+
+      const turns = [
+        "modificá RES-MATRIX-D a triple para 3 personas",
+        "Descartá los cambios",
+        "Mostrame esa reserva",
+      ];
+      await handleIncomingMessage(msg(turns[0], conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+        awaitingConfirmation: true,
+        pendingPatch: expect.objectContaining({ reservationId: "RES-MATRIX-D", roomType: "triple", numGuests: "3" }),
+      });
+      expect(quoteReservationModification).toHaveBeenCalledTimes(1);
+      expect(modifyReservation).not.toHaveBeenCalled();
+
+      await handleIncomingMessage(msg(turns[1], conversationId), { mode: "automatic", sendReply });
+      const discardedState = stateByConversation.get(conversationId);
+      expect(discardedState?.modifyState ?? null).toBeNull();
+      expect(discardedState?.pendingCancellation ?? null).toBeNull();
+      expect(discardedState?.pendingAvailabilityVerification ?? null).toBeNull();
+      expect(discardedState?.lastProposal ?? null).toBeNull();
+      expect(discardedState?.lastReservation).toEqual(original);
+      expect(discardedState?.reservationHistory).toEqual([original]);
+      expect(discardedState?.reservationSlots).toMatchObject({
+        guestName: "Diana Completa",
+        roomType: "double",
+        checkIn: "2026-05-10",
+        checkOut: "2026-05-14",
+        numGuests: "2",
+      });
+
+      await handleIncomingMessage(msg(turns[2], conversationId), { mode: "automatic", sendReply });
+      const detailReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(detailReply).toMatch(/RES-MATRIX-D/i);
+      expect(detailReply).toMatch(/Diana Completa/i);
+      expect(detailReply).toMatch(/Habitación: doble/i);
+      expect(detailReply).toMatch(/10\/05\/2026 → 14\/05\/2026/i);
+      expect(detailReply).toMatch(/Huéspedes: 2/i);
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+    });
+
+    it("[E] el registro reciente parcial completa undefined desde la versión histórica y preserva null autoritativo", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-e-partial-recent";
+      const historical = completeRecord("RES-MATRIX-E", {
+        createdAt: "2026-03-20T10:00:00.000Z",
+        guestName: "Elena Histórica",
+        roomType: "suite",
+        checkIn: "2026-06-01",
+        checkOut: "2026-06-05",
+        numGuests: "4",
+      });
+      const recentPartial = {
+        reservationId: "RES-MATRIX-E",
+        status: "updated",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+        numGuests: null,
+      };
+      stateByConversation.set(conversationId, stateWithSingleRecord(recentPartial, {
+        reservationSlots: {},
+        reservationHistory: [historical, recentPartial],
+      }));
+
+      await handleIncomingMessage(msg("mostrame mi reserva", conversationId), { mode: "automatic", sendReply });
+
+      const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(reply).toMatch(/RES-MATRIX-E|Elena Histórica|suite|01\/06\/2026 → 05\/06\/2026/i);
+      expect(reply).not.toMatch(/Huéspedes:\s*4/i);
+      expect(stateByConversation.get(conversationId)?.lastReservation).toHaveProperty("numGuests", null);
+    });
+
+    it("[F] la selección presentada no sobrescribe null local autoritativo", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-f-null-authority";
+      const localPartial = {
+        reservationId: "RES-MATRIX-F",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+        numGuests: null,
+      };
+      const presentedComplete = completeRecord("RES-MATRIX-F", {
+        createdAt: "2026-03-21T10:00:00.000Z",
+        guestName: "Fabiana Presentada",
+        roomType: "double",
+        checkIn: "2026-07-10",
+        checkOut: "2026-07-12",
+        numGuests: "2",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(localPartial, {
+        reservationSlots: {},
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [presentedComplete],
+        },
+      }));
+
+      await handleIncomingMessage(msg("modificá la primera reserva a triple", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId: "RES-MATRIX-F" });
+      expect((quoteReservationModification as any).mock.calls.at(-1)?.[2]?.numGuests).toBeUndefined();
+      expect(stateByConversation.get(conversationId)?.lastReservation).toHaveProperty("numGuests", null);
+      expect(modifyReservation).not.toHaveBeenCalled();
+    });
+
+    it.fails("[EXPECTED-FAIL][OBS-M6-07][discard_restores_local_partial] [F] el descarte conserva completitud presentada válida del mismo hotelId + reservationId", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-f-discard-completeness";
+      const localPartial = {
+        reservationId: "RES-MATRIX-F-DISCARD",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+      };
+      const presentedComplete = completeRecord("RES-MATRIX-F-DISCARD", {
+        createdAt: "2026-03-21T10:00:00.000Z",
+        guestName: "Felipe Presentado",
+        roomType: "double",
+        checkIn: "2026-07-20",
+        checkOut: "2026-07-23",
+        numGuests: "2",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(localPartial, {
+        reservationSlots: {},
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [presentedComplete],
+        },
+      }));
+
+      await handleIncomingMessage(
+        msg("modificá la primera reserva a triple para 3 personas", conversationId),
+        { mode: "automatic", sendReply },
+      );
+      expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
+        reservationId: "RES-MATRIX-F-DISCARD",
+      });
+      expect((quoteReservationModification as any).mock.calls.at(-1)?.[2]).toMatchObject({
+        roomType: "triple",
+        numGuests: "3",
+      });
+      const stateBeforeDiscard = stateByConversation.get(conversationId);
+      expect(stateBeforeDiscard?.reservationSlots).toMatchObject({
+        guestName: "Felipe Presentado",
+        roomType: "triple",
+        checkIn: "2026-07-20",
+        checkOut: "2026-07-23",
+        numGuests: "3",
+      });
+      expect(stateBeforeDiscard?.lastReservation).toMatchObject({
+        reservationId: "RES-MATRIX-F-DISCARD",
+        status: "created",
+      });
+
+      await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
+      const stateAfterDiscard = stateByConversation.get(conversationId);
+      expect(stateAfterDiscard?.modifyState ?? null).toBeNull();
+      expect.soft(stateAfterDiscard?.reservationSlots).toMatchObject({
+        guestName: "Felipe Presentado",
+        roomType: "double",
+        checkIn: "2026-07-20",
+        checkOut: "2026-07-23",
+        numGuests: "2",
+      });
+
+      await handleIncomingMessage(msg("Mostrame esa reserva", conversationId), { mode: "automatic", sendReply });
+      const detailReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(detailReply).toMatch(/Código: RES-MATRIX-F-DISCARD/i);
+      expect(detailReply).toMatch(/Estado: Activa/i);
+      expect.soft(detailReply).toMatch(/Felipe Presentado|Habitación: doble|20\/07\/2026 → 23\/07\/2026|Huéspedes: 2/i);
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("[G] dos reservas similares conservan identidad y campos sin contaminación cross-ID", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-g-cross-id";
+      const first = completeRecord("RES-MATRIX-G-A", {
+        createdAt: "2026-03-20T10:00:00.000Z",
+        guestName: "Gabriela Uno",
+        roomType: "single",
+        checkIn: "2026-08-10",
+        checkOut: "2026-08-12",
+        numGuests: "1",
+      });
+      const second = completeRecord("RES-MATRIX-G-B", {
+        createdAt: "2026-03-21T10:00:00.000Z",
+        guestName: "Gabriela Dos",
+        roomType: "double",
+        checkIn: "2026-08-10",
+        checkOut: "2026-08-12",
+        numGuests: "2",
+      });
+      stateByConversation.set(conversationId, {
+        hotelId: "hotel999",
+        conversationId,
+        reservationHistory: [first, second],
+        lastReservation: second,
+        reservationSlots: {},
+      });
+
+      await handleIncomingMessage(msg("mostrame la segunda reserva", conversationId), { mode: "automatic", sendReply });
+
+      const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId: "RES-MATRIX-G-B" });
+      expect(reply).toMatch(/RES-MATRIX-G-B|Gabriela Dos|Habitación: doble|Huéspedes: 2/i);
+      expect(reply).not.toMatch(/RES-MATRIX-G-A|Gabriela Uno|Habitación: simple|Huéspedes: 1/i);
+    });
+
+    it("[H] fechas históricas no cambian por sí solas el status activo ni la accionabilidad vigente", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-h-historical-active";
+      const historicalActive = completeRecord("RES-MATRIX-H", {
+        checkIn: "2026-03-01",
+        checkOut: "2026-03-03",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(historicalActive));
+
+      await handleIncomingMessage(msg("mis reservas", conversationId), { mode: "automatic", sendReply });
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/RES-MATRIX-H .*activa.*histórica/i);
+
+      await handleIncomingMessage(msg("modificá RES-MATRIX-H a triple", conversationId), { mode: "automatic", sendReply });
+      expect(quoteReservationModification).toHaveBeenCalledWith(
+        "hotel999",
+        "RES-MATRIX-H",
+        expect.objectContaining({ roomType: "triple" }),
+      );
+      expect(modifyReservation).not.toHaveBeenCalled();
+    });
+
+    for (const timestampCase of [
+      { label: "timestamp igual", createdAt: "2026-03-22T10:00:00.000Z" },
+      { label: "timestamp ausente", createdAt: undefined },
+    ]) {
+      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_tie_order] ${timestampCase.label} contradictorio debe fallar cerrado sin depender del orden`, async () => {
+        const active = completeRecord("RES-MATRIX-TIE", { createdAt: timestampCase.createdAt });
+        const cancelled = completeRecord("RES-MATRIX-TIE", {
+          status: "cancelled",
+          createdAt: timestampCase.createdAt,
+        });
+
+        for (const [suffix, history] of [
+          ["active-last", [cancelled, active]],
+          ["cancelled-last", [active, cancelled]],
+        ] as const) {
+          const sendReply = vi.fn(async () => {});
+          const conversationId = `conv-matrix-tie-${suffix}-${timestampCase.createdAt ? "equal" : "missing"}`;
+          stateByConversation.set(conversationId, {
+            hotelId: "hotel999",
+            conversationId,
+            reservationHistory: history,
+            reservationSlots: {},
+          });
+          (quoteReservationModification as any).mockClear();
+
+          await handleIncomingMessage(
+            msg("modificá RES-MATRIX-TIE a triple", conversationId),
+            { mode: "automatic", sendReply },
+          );
+
+          expect.soft(quoteReservationModification).not.toHaveBeenCalled();
+          expect.soft(stateByConversation.get(conversationId)?.modifyState ?? null).toBeNull();
+          expect(modifyReservation).not.toHaveBeenCalled();
+        }
+      });
+    }
   });
 });
