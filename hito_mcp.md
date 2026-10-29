@@ -16493,3 +16493,64 @@ Impacto:
 - sin cambios documentales en roadmap, Operating Model, ADRs, codigo o tests
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-29
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: evaluar de forma determinista y offline la consistencia RDA sin integracion productiva
+Commit tecnico: ebb6aa776360009715b1cf322922b37fe8d3bb0f
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora un evaluador determinista offline RDA, fixtures de desarrollo y
+  tests focalizados
+- valida 15/15 tests focalizados, TypeScript estricto, ESLint focal,
+  whitespace, comentarios de path y aislamiento productivo
+- no integra el evaluador al runtime ni autoriza operaciones
+- la procedencia y vigencia contextual son declaraciones de entrada no
+  autenticadas; la auditoria se limita a estados y relaciones explicitamente
+  suministrados
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: ebb6aa776360009715b1cf322922b37fe8d3bb0f
+technical_parent: 89d72fc482084601ab0b4ac131938335803a0c19
+technical_commit_message: "feat(spike): add offline RDA consistency evaluator"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: ebb6aa776360009715b1cf322922b37fe8d3bb0f
+technical_scope:
+  - scripts/semantic-normalization-spike/rda-offline/evaluator.ts
+  - scripts/semantic-normalization-spike/rda-offline/cases.ts
+  - scripts/semantic-normalization-spike/rda-offline/evaluator.test.ts
+validation:
+  focused_tests: 15/15 PASS
+  strict_typescript: PASS
+  focused_eslint: PASS
+  whitespace: PASS
+  path_comments: PASS
+  production_isolation: PASS
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el evaluador permanece aislado, no duplica estado
+  canonico y no introduce dependencias ni ejecucion productiva
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, Operating Model, roadmap, Runtime Map,
+  ADRs, archivos tecnicos ni artefactos residuales durante esta fase
+  documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
