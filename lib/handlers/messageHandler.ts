@@ -1519,6 +1519,23 @@ function buildModifyInactiveTargetReply(lang: "es" | "en" | "pt"): string {
       : "No encuentro una reserva activa para aplicar esa modificación; la reserva está inactiva y no se puede modificar.";
 }
 
+function buildModifyUnverifiedTargetReply(lang: "es" | "en" | "pt"): string {
+  return lang === "pt"
+    ? "Não foi possível verificar o estado atual da reserva; por segurança, ela não pode ser modificada agora."
+    : lang === "en"
+      ? "I could not verify the booking's current status; for safety, it cannot be modified right now."
+      : "No pude verificar el estado actual de la reserva; por seguridad, no se puede modificar en este momento.";
+}
+
+function buildModifyActionabilityFailureReply(
+  lang: "es" | "en" | "pt",
+  resolution: Extract<ActionableModifyTargetResolution, { ok: false }>,
+): string {
+  return resolution.reason === "inactive"
+    ? buildModifyInactiveTargetReply(lang)
+    : buildModifyUnverifiedTargetReply(lang);
+}
+
 function buildCancelInactiveTargetReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "Não encontro uma reserva ativa para cancelar."
@@ -1609,10 +1626,10 @@ async function persistModifyPreviewContext(
   snapshot: ReservationSlotsStrict,
   supplementalLines: string[] = []
 ): Promise<string> {
-  const actionableTarget = resolveActionableModifyTarget(pre, target);
+  const actionableTarget = await resolveActionableModifyTarget(pre, target);
   if (!actionableTarget.ok) {
     await clearInvalidModifyExecutionContext(pre, target.reservationId);
-    return buildModifyInactiveTargetReply(pre.lang);
+    return buildModifyActionabilityFailureReply(pre.lang, actionableTarget);
   }
   const previewTarget = hydrateModifyPreviewTarget(pre, actionableTarget.target);
   const pendingPatch = buildModifyPreviewPatch(previewTarget, snapshot);
@@ -1628,6 +1645,11 @@ async function persistModifyPreviewContext(
     return pre.lang === "es"
       ? "No puedo cotizar este cambio con disponibilidad actual. La reserva no fue modificada."
       : "I cannot quote this change with current availability. The booking was not modified.";
+  }
+  const previewPersistenceAuthority = await resolveActionableModifyTarget(pre, target);
+  if (!previewPersistenceAuthority.ok) {
+    await clearInvalidModifyExecutionContext(pre, target.reservationId);
+    return buildModifyActionabilityFailureReply(pre.lang, previewPersistenceAuthority);
   }
   Object.assign(pendingPatch, {
     quoteId: quote.quoteId,
@@ -2463,13 +2485,13 @@ async function executeModifyReservationWithSnapshot(
   reservationId: string,
   snapshot: ReservationSlotsStrict
 ): Promise<string> {
-  const actionableTarget = resolveActionableModifyTarget(
+  const actionableTarget = await resolveActionableModifyTarget(
     pre,
     getReservationReferenceTargetById(pre.st, reservationId)
   );
   if (!actionableTarget.ok) {
     await clearInvalidModifyExecutionContext(pre, reservationId);
-    return buildModifyInactiveTargetReply(pre.lang);
+    return buildModifyActionabilityFailureReply(pre.lang, actionableTarget);
   }
   const { modifyReservation } = await import("@/lib/agents/reservations");
   const quote = pre.st?.modifyState?.pendingPatch;
@@ -2818,9 +2840,9 @@ function buildPresentedReservationRecords(state: any): CanonicalReservationRecor
 
 type ActionableModifyTargetResolution =
   | { ok: true; target: ReservationReferenceTarget; record: CanonicalReservationRecord }
-  | { ok: false; reason: "missing_target" | "hotel_mismatch" | "missing_record" | "status_conflict" | "inactive" | "missing_payload" };
+  | { ok: false; reason: "missing_target" | "hotel_mismatch" | "missing_record" | "status_conflict" | "inactive" | "invalid_status" | "missing_payload" | "verification_failed" };
 
-function resolveActionableModifyTarget(
+function resolveLocalActionableModifyTarget(
   pre: Pick<PreLLMResult, "msg" | "st">,
   target: ReservationReferenceTarget | null | undefined
 ): ActionableModifyTargetResolution {
@@ -2849,7 +2871,8 @@ function resolveActionableModifyTarget(
   if (localProjection.conflictedIds.has(reservationId)) {
     return { ok: false, reason: "status_conflict" };
   }
-  if (localRecord.canonicalStatus !== "active") return { ok: false, reason: "inactive" };
+  if (localRecord.canonicalStatus === "cancelled") return { ok: false, reason: "inactive" };
+  if (localRecord.canonicalStatus !== "active") return { ok: false, reason: "invalid_status" };
   if (!hasMaterializedReservationPayload(localRecord)) return { ok: false, reason: "missing_payload" };
 
   const completedFromCanonicalEvidence = presentedRecord
@@ -2906,6 +2929,98 @@ function resolveActionableModifyTarget(
       source: target?.source || "history",
     },
   };
+}
+
+async function resolveGuestWideMaterialModifyTarget(
+  pre: PreLLMResult,
+  target: ReservationReferenceTarget,
+): Promise<ActionableModifyTargetResolution> {
+  const reservationId = String(target.reservationId || "").trim();
+  const presented = pre.st?.lastPresentedReservations;
+  const presentedGuestId = String(presented?.guestId || "").trim();
+  const hasPresentedTarget = Array.isArray(presented?.reservations) &&
+    presented.reservations.some((item: LastReservation) => item?.reservationId === reservationId);
+  if (!reservationId || !presentedGuestId || !hasPresentedTarget) {
+    return { ok: false, reason: "missing_record" };
+  }
+
+  const { canonicalGuestId } = await resolveCanonicalGuestScope(pre);
+  if (!canonicalGuestId) return { ok: false, reason: "verification_failed" };
+  if (
+    presentedGuestId !== canonicalGuestId &&
+    !await presentedReservationScopeMatchesCanonicalGuest(pre.msg.hotelId, presentedGuestId, canonicalGuestId)
+  ) {
+    return { ok: false, reason: "verification_failed" };
+  }
+
+  const conversationsRead = await readConversationsByGuestId({
+    hotelId: pre.msg.hotelId,
+    guestId: canonicalGuestId,
+  });
+  if (!conversationsRead.ok) return { ok: false, reason: "verification_failed" };
+
+  const materialRecords: LastReservation[] = [];
+  const seenConversationIds = new Set<string>([pre.conversationId]);
+  for (const conversation of conversationsRead.conversations) {
+    const conversationId = String((conversation as any)?.conversationId || "").trim();
+    const conversationHotelId = String((conversation as any)?.hotelId || "").trim();
+    const conversationGuestId = String((conversation as any)?.guestId || "").trim();
+    if (!conversationId || seenConversationIds.has(conversationId)) continue;
+    seenConversationIds.add(conversationId);
+    if (conversationHotelId && conversationHotelId !== pre.msg.hotelId) continue;
+    if (conversationGuestId && conversationGuestId !== canonicalGuestId) continue;
+
+    let sourceState: any;
+    try {
+      sourceState = await getConvState(pre.msg.hotelId, conversationId);
+    } catch {
+      return { ok: false, reason: "verification_failed" };
+    }
+    if (sourceState?.hotelId && sourceState.hotelId !== pre.msg.hotelId) continue;
+    materialRecords.push(...collectPersistedReservationRecords(sourceState));
+  }
+
+  const projection = buildReservationCanonicalState({
+    hotelId: pre.msg.hotelId,
+    reservationHistory: materialRecords,
+  });
+  const materialRecord = projection.byId.get(reservationId);
+  if (!materialRecord) return { ok: false, reason: "missing_record" };
+  if (projection.conflictedIds.has(reservationId)) return { ok: false, reason: "status_conflict" };
+  if (materialRecord.canonicalStatus === "cancelled") return { ok: false, reason: "inactive" };
+  if (materialRecord.canonicalStatus !== "active") return { ok: false, reason: "invalid_status" };
+  if (!hasMaterializedReservationPayload(materialRecord)) return { ok: false, reason: "missing_payload" };
+
+  return {
+    ok: true,
+    record: materialRecord,
+    target: {
+      kind: "reservation",
+      reservationId,
+      reservationStatus: "created",
+      guestName: materialRecord.guestName,
+      roomType: materialRecord.roomType,
+      numGuests: materialRecord.numGuests,
+      checkIn: materialRecord.checkIn,
+      checkOut: materialRecord.checkOut,
+      source: target.source || "presented",
+    },
+  };
+}
+
+async function resolveActionableModifyTarget(
+  pre: PreLLMResult,
+  target: ReservationReferenceTarget | null | undefined,
+): Promise<ActionableModifyTargetResolution> {
+  const localResolution = resolveLocalActionableModifyTarget(pre, target);
+  if (localResolution.ok) return localResolution;
+  if (
+    !target?.reservationId ||
+    (localResolution.reason !== "missing_record" && localResolution.reason !== "missing_payload")
+  ) {
+    return localResolution;
+  }
+  return resolveGuestWideMaterialModifyTarget(pre, target);
 }
 
 async function clearInvalidModifyExecutionContext(pre: PreLLMResult, reservationId?: string): Promise<void> {
@@ -3201,24 +3316,32 @@ async function safeGetConversationsByGuestId(input: {
   hotelId: string;
   guestId: string;
 }) {
+  const result = await readConversationsByGuestId(input);
+  return result.ok ? result.conversations : [];
+}
+
+type GuestConversationsReadResult =
+  | { ok: true; conversations: any[] }
+  | { ok: false };
+
+async function readConversationsByGuestId(input: {
+  hotelId: string;
+  guestId: string;
+}): Promise<GuestConversationsReadResult> {
   try {
     const conversationsDb = await import("@/lib/db/conversations");
-    if (typeof (conversationsDb as any).getConversationsByGuestId !== "function") return [];
-    return await (conversationsDb as any).getConversationsByGuestId(input);
+    if (typeof (conversationsDb as any).getConversationsByGuestId !== "function") return { ok: false };
+    const conversations = await (conversationsDb as any).getConversationsByGuestId(input);
+    return { ok: true, conversations: Array.isArray(conversations) ? conversations : [] };
   } catch {
-    return [];
+    return { ok: false };
   }
 }
 
-async function resolveReservationListSource(pre: PreLLMResult): Promise<{
-  reservations: CanonicalReservationRecord[];
-  scope: "conversation" | "guest";
-  conversationalDisplayName?: string;
+async function resolveCanonicalGuestScope(pre: PreLLMResult): Promise<{
   canonicalGuestId?: string;
+  conversationalDisplayName?: string;
 }> {
-  const localReservations = buildCanonicalReservationRecords(pre.st);
-  const hasLocalEligibleReservations = localReservations.some((item) => isCanonicalReservationRecordEligible(item));
-
   const rawCurrentGuestId = String(pre.guest?.guestId || pre.msg.guestId || "").trim();
   const mergedIntoGuestId = getMergedIntoGuestId(pre.guest);
   const guestResolvedFromCurrentId = rawCurrentGuestId
@@ -3231,7 +3354,21 @@ async function resolveReservationListSource(pre: PreLLMResult): Promise<{
     pre.guest ||
     null;
   const canonicalGuestId = String(canonicalGuest?.guestId || mergedIntoGuestId || rawCurrentGuestId).trim();
-  const conversationalDisplayName = getConversationalDisplayName(canonicalGuest as any);
+  return {
+    canonicalGuestId: canonicalGuestId || undefined,
+    conversationalDisplayName: getConversationalDisplayName(canonicalGuest as any),
+  };
+}
+
+async function resolveReservationListSource(pre: PreLLMResult): Promise<{
+  reservations: CanonicalReservationRecord[];
+  scope: "conversation" | "guest";
+  conversationalDisplayName?: string;
+  canonicalGuestId?: string;
+}> {
+  const localReservations = buildCanonicalReservationRecords(pre.st);
+  const hasLocalEligibleReservations = localReservations.some((item) => isCanonicalReservationRecordEligible(item));
+  const { canonicalGuestId, conversationalDisplayName } = await resolveCanonicalGuestScope(pre);
   if (!canonicalGuestId) return { reservations: localReservations, scope: "conversation", conversationalDisplayName };
 
   const conversations = await safeGetConversationsByGuestId({
@@ -6818,12 +6955,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                 ? getReservationReferenceTargetById(pre.st, pre.st.activeReservationContext.reservationId)
                 : resolveSingleActionableReservationTarget(pre.st) || resolveSingleKnownReservationTarget(pre.st));
       const modifyActionability0 = resolvedModifyTargetCandidate0
-        ? resolveActionableModifyTarget(pre, resolvedModifyTargetCandidate0)
+        ? await resolveActionableModifyTarget(pre, resolvedModifyTargetCandidate0)
         : null;
       if (fastPathSubFlow === "modify" && modifyActionability0 && !modifyActionability0.ok) {
         await clearInvalidModifyExecutionContext(pre, resolvedModifyTargetCandidate0?.reservationId);
         return {
-          finalText: buildModifyInactiveTargetReply(pre.lang),
+          finalText: buildModifyActionabilityFailureReply(pre.lang, modifyActionability0),
           nextCategory: "modify_reservation",
           nextSlots,
           needsSupervision,
@@ -7823,7 +7960,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             ? resolveSingleActionableReservationTarget(pre.st) || resolveSingleKnownReservationTarget(pre.st)
             : null);
     const fastActionability = resolvedFastReservationTargetCandidate
-      ? resolveActionableModifyTarget(pre, resolvedFastReservationTargetCandidate)
+      ? await resolveActionableModifyTarget(pre, resolvedFastReservationTargetCandidate)
       : null;
     if (
       resolvedFastReservationTargetCandidate?.reservationId &&
@@ -7842,7 +7979,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         updatedBy: "ai",
       } as any);
       return {
-        finalText: buildModifyInactiveTargetReply(pre.lang),
+        finalText: buildModifyActionabilityFailureReply(pre.lang, fastActionability),
         nextCategory: "modify_reservation",
         nextSlots,
         needsSupervision,
@@ -8366,10 +8503,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     Boolean(pre.st?.modifyState?.awaitingConfirmation && pendingModifyPatchEarly?.reservationId);
   if (awaitingModifyPreviewConfirmationEarly && pendingModifyPatchEarly?.reservationId) {
     const pendingTargetCandidate = getReservationReferenceTargetById(pre.st, pendingModifyPatchEarly.reservationId);
-    const pendingTargetActionability = resolveActionableModifyTarget(pre, pendingTargetCandidate);
+    const pendingTargetActionability = await resolveActionableModifyTarget(pre, pendingTargetCandidate);
     const localCanonicalPreviewRecord = getCanonicalReservationRecordById(pre.st, pendingModifyPatchEarly.reservationId);
     const canonicalPreviewRecord =
       localCanonicalPreviewRecord ||
+      (pendingTargetActionability.ok ? pendingTargetActionability.record : null) ||
       buildPresentedReservationRecords(pre.st).find(
         (record) => record.reservationId === pendingModifyPatchEarly.reservationId
       );
@@ -8400,13 +8538,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildCompetingReservationConfirmationsReply(pre.lang);
       return { finalText, nextCategory: "reservation", nextSlots: canonicalPreviewSlots || {}, needsSupervision, graphResult };
     }
-    if (
-      !pendingTargetActionability.ok ||
-      !canonicalPreviewRecord ||
-      canonicalPreviewRecord.canonicalStatus !== "active"
-    ) {
+    if (!pendingTargetActionability.ok) {
       await clearInvalidModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId);
-      finalText = buildModifyInactiveTargetReply(pre.lang);
+      finalText = buildModifyActionabilityFailureReply(pre.lang, pendingTargetActionability);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     const pendingTarget = pendingTargetActionability.target;
@@ -8486,7 +8620,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       );
       const canonicalCancellationRecord =
         localCanonicalCancellationRecord ||
-        (cancellationTarget?.reservationId === canonicalPreviewRecord.reservationId
+        (cancellationTarget?.reservationId === canonicalPreviewRecord?.reservationId
           ? canonicalPreviewRecord
           : undefined);
       const canonicalCancellationSlots = canonicalCancellationRecord
@@ -9166,9 +9300,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildAskReservationCode(pre.lang);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
-    const modifyActionability = resolveActionableModifyTarget(pre, resolvedModifyTarget);
+    const modifyActionability = await resolveActionableModifyTarget(pre, resolvedModifyTarget);
     if (!modifyActionability.ok) {
-      finalText = buildModifyInactiveTargetReply(pre.lang);
+      finalText = buildModifyActionabilityFailureReply(pre.lang, modifyActionability);
       await clearInvalidModifyExecutionContext(pre, resolvedModifyTarget.reservationId);
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         conversationFocus: buildConversationFocus("modify"),
@@ -9354,10 +9488,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     (explicitIdReservationTarget || explicitOrdinalReservationTarget || (hasAnaphoraReference ? selectedOrActiveReservationTarget : null))
   ) {
     const targetCandidate = explicitIdReservationTarget || explicitOrdinalReservationTarget || selectedOrActiveReservationTarget;
-    const targetActionability = resolveActionableModifyTarget(pre, targetCandidate);
+    const targetActionability = await resolveActionableModifyTarget(pre, targetCandidate);
     if (!targetActionability.ok) {
       await clearInvalidModifyExecutionContext(pre, targetCandidate?.reservationId);
-      finalText = buildModifyInactiveTargetReply(pre.lang);
+      finalText = buildModifyActionabilityFailureReply(pre.lang, targetActionability);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     const target = targetActionability.target;
@@ -9407,10 +9541,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       (pre.st?.activeReservationContext?.kind === "reservation"
         ? getReservationReferenceTargetById(pre.st, pre.st.activeReservationContext.reservationId)
         : null);
-    const baseModifyActionability = resolveActionableModifyTarget(pre, baseModifyTargetCandidate);
+    const baseModifyActionability = await resolveActionableModifyTarget(pre, baseModifyTargetCandidate);
     if (!baseModifyActionability.ok) {
       await clearInvalidModifyExecutionContext(pre, baseModifyTargetCandidate?.reservationId);
-      finalText = buildModifyInactiveTargetReply(pre.lang);
+      finalText = buildModifyActionabilityFailureReply(pre.lang, baseModifyActionability);
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     const baseModifyTarget = baseModifyActionability.target;
@@ -11282,10 +11416,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         Boolean(pre.st?.modifyState?.awaitingConfirmation && pendingModifyPatch?.reservationId);
       if (awaitingModifyPreviewConfirmation && pendingModifyPatch?.reservationId) {
         const pendingTargetCandidate = getReservationReferenceTargetById(pre.st, pendingModifyPatch.reservationId);
-        const pendingTargetActionability = resolveActionableModifyTarget(pre, pendingTargetCandidate);
+        const pendingTargetActionability = await resolveActionableModifyTarget(pre, pendingTargetCandidate);
         if (!pendingTargetActionability.ok) {
           await clearInvalidModifyExecutionContext(pre, pendingModifyPatch.reservationId);
-          finalText = buildModifyInactiveTargetReply(pre.lang);
+          finalText = buildModifyActionabilityFailureReply(pre.lang, pendingTargetActionability);
           return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
         }
         const pendingTarget = pendingTargetActionability.target;
@@ -11465,10 +11599,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
       const genericModifyTarget = getReservationReferenceTargetById(pre.st, codeFromUser);
-      const genericModifyActionability = resolveActionableModifyTarget(pre, genericModifyTarget);
+      const genericModifyActionability = await resolveActionableModifyTarget(pre, genericModifyTarget);
       if (!genericModifyActionability.ok) {
         await clearInvalidModifyExecutionContext(pre, codeFromUser);
-        finalText = buildModifyInactiveTargetReply(pre.lang);
+        finalText = buildModifyActionabilityFailureReply(pre.lang, genericModifyActionability);
         return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
       }
       const actionableGenericModifyTarget = genericModifyActionability.target;
