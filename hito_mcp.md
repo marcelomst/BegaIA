@@ -16764,3 +16764,100 @@ Impacto:
   codigo o tests durante esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-30
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Hito padre: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+Intencion unica: caracterizar causalmente OBS-M6-07 despues de descartar un preview Modify valido
+Commit tecnico: c4c991b7062cb5adb736adb7c19cd9c2689c754c
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- caracteriza `OBS-M6-07` como perdida de completitud posterior al descarte de
+  un preview Modify valido
+- separa las precondiciones aprobadas de la unica asercion causal de
+  completitud que permanece como expected-failure
+- verifica ausencia de efectos de dominio de modify, cancel y create
+- preserva la integridad del expected-failure: una precondicion fallida se
+  convierte en unexpected pass y la correccion de la anomalia tambien hace
+  fallar `it.fails` como unexpected pass
+- registra una caracterizacion test-only; no implementa un fix ni declara
+  `OBS-M6-07` resuelta
+- `FIX-CANONICAL-STATUS-ACTIONABILITY-01` permanece `RECONCILED /
+  CLOSURE_BLOCKED`; este hito no altera su estado historico
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: c4c991b7062cb5adb736adb7c19cd9c2689c754c
+technical_parent: 9665fc118f0e21d2b8fc0ab33488bc2e8656b1ae
+technical_commit_message: "test(reservations): characterize post-discard completeness loss"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: c4c991b7062cb5adb736adb7c19cd9c2689c754c
+technical_scope:
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  obs_m6_07_focus:
+    ordinary_pass: 1
+    expected_failure: 1
+    unexpected_failures: 0
+  affected_file:
+    ordinary_pass: 197
+    expected_failure: 1
+    unexpected_failures: 0
+  snapshot_guestwide: 3/3 PASS
+  snapshot_postbooking_additional: 4/4 PASS
+  typescript: PASS
+  eslint:
+    errors: 0
+    warnings: 294
+  git_diff_check: PASS
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched: []
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: not_applicable
+    details:
+      - caracterizacion test-only sin fix productivo
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- no se actualiza Runtime Map porque el hito modifica exclusivamente el test
+  autorizado y `runtime_map_refresh_required` es `false`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; preserva la autoridad material local parcial valida,
+  mientras `lastPresentedReservations` identifica sin autorizar por si sola
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, Operating Model, roadmap, Runtime Map,
+  codigo o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` permanece completamente excluido
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
