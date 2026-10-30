@@ -313,6 +313,7 @@ describe("messageHandler focus governance", () => {
   it("mantiene focus modify durante una interrupción lateral y luego retoma la modificación", async () => {
     const sendReply = vi.fn(async () => {});
     currentState = {
+      hotelId: "hotel999",
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
@@ -320,6 +321,20 @@ describe("messageHandler focus governance", () => {
         checkOut: "2027-05-15",
         numGuests: "2",
       },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "RES-200",
+          status: "created",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2027-05-10",
+          checkOut: "2027-05-15",
+          numGuests: "2",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       conversationFocus: {
         domain: "reservation",
         subFlow: "modify",

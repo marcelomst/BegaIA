@@ -188,10 +188,24 @@ describe("messageHandler domain lock de reservation", () => {
     const range = futureReservationDateRange(40, 4);
 
     currentState = {
+      hotelId: "hotel999",
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
       activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "RES-OLD-01",
+          status: "created",
+          roomType: "single",
+          checkIn: range.checkInISO,
+          checkOut: range.checkOutISO,
+          numGuests: "1",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       reservationSlots: {
         roomType: "single",
         checkIn: range.checkInISO,
@@ -236,10 +250,24 @@ describe("messageHandler domain lock de reservation", () => {
     const range = futureReservationDateRange(50, 4);
 
     currentState = {
+      hotelId: "hotel999",
       activeFlow: "modify_reservation",
       desiredAction: "modify",
       lastCategory: "modify_reservation",
       activeReservationContext: { kind: "reservation", reservationId: "RES-OLD-01", updatedAt: new Date().toISOString() },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "RES-OLD-01",
+          status: "created",
+          roomType: "single",
+          checkIn: range.checkInISO,
+          checkOut: range.checkOutISO,
+          numGuests: "1",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       modifyState: { activeField: "guests" },
       reservationSlots: {
         roomType: "single",

@@ -542,6 +542,7 @@ describe("messageHandler slot ingestion", () => {
 
   it("en modify absorbe intención + campo + nuevo valor en el mismo turno sin repregunta redundante", async () => {
     currentState = {
+      hotelId: "hotel999",
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
@@ -549,6 +550,20 @@ describe("messageHandler slot ingestion", () => {
         checkOut: "2026-05-15",
         numGuests: "2",
       },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "R-123",
+          status: "created",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-05-10",
+          checkOut: "2026-05-15",
+          numGuests: "2",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       activeReservationContext: {
         kind: "reservation",
         reservationId: "R-123",
@@ -577,6 +592,7 @@ describe("messageHandler slot ingestion", () => {
 
   it("mantiene modify legítimo cuando existe reserva confirmada y el usuario pide cambiar fechas", async () => {
     currentState = {
+      hotelId: "hotel999",
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
@@ -584,6 +600,20 @@ describe("messageHandler slot ingestion", () => {
         checkOut: "2026-05-15",
         numGuests: "2",
       },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "R-123",
+          status: "created",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-05-10",
+          checkOut: "2026-05-15",
+          numGuests: "2",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       activeReservationContext: {
         kind: "reservation",
         reservationId: "R-123",
@@ -613,6 +643,7 @@ describe("messageHandler slot ingestion", () => {
 
   it("en modify interpreta 'somos 3' con la misma semántica base de huéspedes", async () => {
     currentState = {
+      hotelId: "hotel999",
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
@@ -620,6 +651,20 @@ describe("messageHandler slot ingestion", () => {
         checkOut: "2026-05-15",
         numGuests: "2",
       },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "R-123",
+          status: "created",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-05-10",
+          checkOut: "2026-05-15",
+          numGuests: "2",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       activeReservationContext: {
         kind: "reservation",
         reservationId: "R-123",
@@ -653,6 +698,7 @@ describe("messageHandler slot ingestion", () => {
 
   it("en modify interpreta 'cambiame a triple' con el mismo canon base de roomType", async () => {
     currentState = {
+      hotelId: "hotel999",
       reservationSlots: {
         guestName: "Marcelo Martinez",
         roomType: "double",
@@ -660,6 +706,20 @@ describe("messageHandler slot ingestion", () => {
         checkOut: "2026-05-15",
         numGuests: "2",
       },
+      reservationHistory: [
+        {
+          hotelId: "hotel999",
+          reservationId: "R-123",
+          status: "created",
+          guestName: "Marcelo Martinez",
+          roomType: "double",
+          checkIn: "2026-05-10",
+          checkOut: "2026-05-15",
+          numGuests: "2",
+          createdAt: "2026-03-25T10:00:00.000Z",
+          channel: "web",
+        },
+      ],
       activeReservationContext: {
         kind: "reservation",
         reservationId: "R-123",

@@ -1676,6 +1676,13 @@ describe("messageHandler reference resolution", () => {
         { reservationId: "RES-BA2303" },
       ],
     });
+    stateByConversation.set(currentConversationId, {
+      ...presentedState,
+      reservationHistory: [
+        stateByConversation.get(firstSourceConversationId)?.reservationHistory?.[0],
+        stateByConversation.get(secondSourceConversationId)?.reservationHistory?.[0],
+      ],
+    });
 
     // The next inbound message is resolved after identity consolidation.
     currentGuest = {
@@ -1848,6 +1855,10 @@ describe("messageHandler reference resolution", () => {
     expect(snapshotState?.selectedReservationTarget ?? null).toBeNull();
     expect(snapshotState?.reservationHistory ?? []).toEqual([]);
     expect(snapshotState?.lastReservation ?? null).toBeNull();
+    stateByConversation.set(currentConversationId, {
+      ...snapshotState,
+      lastReservation: stateByConversation.get(sourceConversationId)?.lastReservation,
+    });
 
     await handleIncomingMessage(msg("quiero modificarla", currentConversationId), { mode: "automatic", sendReply });
 
@@ -3196,6 +3207,17 @@ describe("messageHandler reference resolution", () => {
         resolutionMode: "weak",
         resolvedAt: "2026-06-12T10:00:00.000Z",
       },
+      reservationHistory: [{
+        reservationId: "RES-6AE3E6",
+        status: "created",
+        createdAt: "2026-06-12T10:00:00.000Z",
+        channel: "web",
+        guestName: "Raul Carsoglio",
+        roomType: "double",
+        checkIn: "2026-06-18",
+        checkOut: "2026-06-20",
+        numGuests: "3",
+      }],
       modifyState: {
         activeField: "guests",
         pendingFields: [],
@@ -4077,6 +4099,17 @@ describe("messageHandler reference resolution", () => {
       initialState: {
         hotelId: "hotel999",
         conversationId,
+        lastReservation: {
+          reservationId: "RES-7427EB",
+          status: "created",
+          createdAt: "2026-03-22T10:00:00.000Z",
+          channel: "web",
+          guestName: "Marcelo Martinez",
+          roomType: "single",
+          checkIn: "2026-03-28",
+          checkOut: "2026-03-30",
+          numGuests: "1",
+        },
         lastPresentedReservations: {
           guestId: "g1",
           presentedAt: "2026-03-23T11:00:00.000Z",
@@ -4100,7 +4133,12 @@ describe("messageHandler reference resolution", () => {
 
     const previewState = stateByConversation.get(conversationId);
     expect(previewState?.reservationHistory ?? []).toEqual([]);
-    expect(previewState?.lastReservation ?? null).toBeNull();
+    expect(previewState?.lastReservation).toMatchObject({
+      reservationId: "RES-7427EB",
+      status: "created",
+      roomType: "single",
+      numGuests: "1",
+    });
     expect(previewState?.lastPresentedReservations?.reservations).toEqual([
       expect.objectContaining({ reservationId: "RES-7427EB", status: "created" }),
     ]);
@@ -5803,7 +5841,106 @@ describe("messageHandler reference resolution", () => {
       ...overrides,
     });
 
-    it.fails("[EXPECTED-FAIL][OBS-M6-02][presented_cancelled_status_lost] [A] una reserva cancelada presentada no habilita Modify", async () => {
+    it("[FIX-CANONICAL-STATUS-ACTIONABILITY-01][authority_boundary] presented-only no autoriza Modify", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-presented-only-cannot-authorize-modify";
+      const presentedOnly = completeRecord("RES-PRESENTED-ONLY", {
+        hotelId: "hotel999",
+        guestName: "Paula Presentada",
+      });
+      stateByConversation.set(conversationId, {
+        hotelId: "hotel999",
+        conversationId,
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [presentedOnly],
+        },
+      });
+
+      await handleIncomingMessage(
+        msg("Modificá RES-PRESENTED-ONLY a triple", conversationId),
+        { mode: "automatic", sendReply },
+      );
+
+      const state = stateByConversation.get(conversationId);
+      const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(state?.selectedReservationTarget).toMatchObject({
+        reservationId: "RES-PRESENTED-ONLY",
+        source: "explicit_id",
+      });
+      expect(reply).toMatch(/no se puede modificar|no puedo modificar|inactiva/i);
+      expect(reply).not.toMatch(/qu[eé] te gustar[ií]a cambiar|nueva cantidad|nuevo tipo|confirm[aá]s estos cambios/i);
+      expect(quoteReservationModification).not.toHaveBeenCalled();
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(state?.modifyState ?? null).toBeNull();
+      expect(state?.modifyState?.awaitingConfirmation).not.toBe(true);
+      expect(state?.modifyState?.pendingPatch).toBeUndefined();
+      expect(state?.lastReservation).toBeUndefined();
+    });
+
+    it("[FIX-CANONICAL-STATUS-ACTIONABILITY-01][authority_boundary] canonical parcial más slots no autoriza Modify", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-partial-canonical-slots-cannot-authorize-modify";
+      const partialCanonical = {
+        hotelId: "hotel999",
+        reservationId: "RES-PARTIAL-SLOTS",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+      };
+      stateByConversation.set(conversationId, {
+        hotelId: "hotel999",
+        conversationId,
+        lastReservation: partialCanonical,
+        reservationSlots: {
+          guestName: "Sofía Slots",
+          roomType: "double",
+          checkIn: "2026-04-10",
+          checkOut: "2026-04-12",
+          numGuests: "2",
+        },
+        activeReservationContext: {
+          kind: "reservation",
+          reservationId: "RES-PARTIAL-SLOTS",
+          phase: "confirmed",
+          updatedAt: "2026-03-22T10:00:00.000Z",
+        },
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [{ ...partialCanonical }],
+        },
+      });
+
+      await handleIncomingMessage(
+        msg("Modificá RES-PARTIAL-SLOTS a triple", conversationId),
+        { mode: "automatic", sendReply },
+      );
+
+      const state = stateByConversation.get(conversationId);
+      const reply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(state?.selectedReservationTarget).toMatchObject({
+        reservationId: "RES-PARTIAL-SLOTS",
+        source: "explicit_id",
+      });
+      expect(reply).toMatch(/no se puede modificar|no puedo modificar|inactiva/i);
+      expect(reply).not.toMatch(/qu[eé] te gustar[ií]a cambiar|nueva cantidad|nuevo tipo|confirm[aá]s estos cambios/i);
+      expect(quoteReservationModification).not.toHaveBeenCalled();
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(state?.modifyState ?? null).toBeNull();
+      expect(state?.modifyState?.awaitingConfirmation).not.toBe(true);
+      expect(state?.modifyState?.pendingPatch).toBeUndefined();
+      expect(state?.lastReservation).toEqual(partialCanonical);
+      expect(state?.lastReservation?.roomType).toBeUndefined();
+      expect(state?.lastReservation?.checkIn).toBeUndefined();
+      expect(state?.lastReservation?.checkOut).toBeUndefined();
+      expect(state?.lastReservation?.numGuests).toBeUndefined();
+    });
+
+    it("[OBS-M6-02][presented_cancelled_status_lost] [A] una reserva cancelada presentada no habilita Modify", async () => {
       const sendReply = vi.fn(async () => {});
       const conversationId = "conv-matrix-a-cancelled-presented";
       const cancelled = completeRecord("RES-MATRIX-A", { status: "cancelled" });
@@ -5829,7 +5966,7 @@ describe("messageHandler reference resolution", () => {
       expect(cancelReservation).not.toHaveBeenCalled();
     });
 
-    it.fails("[EXPECTED-FAIL][OBS-M6-02][post_list_cancelled_status_lost] [B] una cancelación reciente domina a la versión activa antigua del mismo ID", async () => {
+    it("[OBS-M6-02][post_list_cancelled_status_lost] [B] una cancelación reciente domina a la versión activa antigua del mismo ID", async () => {
       const sendReply = vi.fn(async () => {});
       const conversationId = "conv-matrix-b-recent-cancelled";
       const active = completeRecord("RES-MATRIX-B", { createdAt: "2026-03-20T10:00:00.000Z" });
@@ -5853,6 +5990,38 @@ describe("messageHandler reference resolution", () => {
       await handleIncomingMessage(msg("modificá RES-MATRIX-B a triple", conversationId), { mode: "automatic", sendReply });
       expect.soft(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cancelada|no se puede modificar|inactiva/i);
       expect.soft(quoteReservationModification).not.toHaveBeenCalled();
+      expect(modifyReservation).not.toHaveBeenCalled();
+    });
+
+    it("[B] una versión activa estrictamente más reciente domina a una cancelación anterior", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-b-recent-active";
+      const cancelled = completeRecord("RES-MATRIX-B-ACTIVE", {
+        status: "cancelled",
+        createdAt: "2026-03-20T10:00:00.000Z",
+      });
+      const active = completeRecord("RES-MATRIX-B-ACTIVE", {
+        status: "updated",
+        createdAt: "2026-03-22T10:00:00.000Z",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(active, {
+        reservationHistory: [cancelled, active],
+      }));
+
+      await handleIncomingMessage(
+        msg("modificá RES-MATRIX-B-ACTIVE a triple", conversationId),
+        { mode: "automatic", sendReply },
+      );
+
+      expect(quoteReservationModification).toHaveBeenCalledWith(
+        "hotel999",
+        "RES-MATRIX-B-ACTIVE",
+        expect.objectContaining({ roomType: "triple" }),
+      );
+      expect(stateByConversation.get(conversationId)?.modifyState).toMatchObject({
+        awaitingConfirmation: true,
+        pendingPatch: expect.objectContaining({ reservationId: "RES-MATRIX-B-ACTIVE" }),
+      });
       expect(modifyReservation).not.toHaveBeenCalled();
     });
 
@@ -5900,7 +6069,7 @@ describe("messageHandler reference resolution", () => {
       { label: "provider pending sin transformar", status: "pending" },
       { label: "provider confirmed sin transformar", status: "confirmed" },
     ]) {
-      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe listarse como activo`, async () => {
+      it(`[OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe listarse como activo`, async () => {
         const sendReply = vi.fn(async () => {});
         const conversationId = `conv-matrix-c-list-${String(statusCase.status || "missing")}`;
         const record = completeRecord(`RES-MATRIX-C-${String(statusCase.status || "MISSING").toUpperCase()}`, {
@@ -5914,7 +6083,7 @@ describe("messageHandler reference resolution", () => {
         expect(reply).not.toMatch(/\bactiva\b/i);
       });
 
-      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe cotizar Modify`, async () => {
+      it(`[OBS-M6-02][status_fail_open] [C] status ${statusCase.label} no debe cotizar Modify`, async () => {
         const sendReply = vi.fn(async () => {});
         const conversationId = `conv-matrix-c-modify-${String(statusCase.status || "missing")}`;
         const reservationId = `RES-MATRIX-C-${String(statusCase.status || "MISSING").toUpperCase()}`;
@@ -6159,6 +6328,36 @@ describe("messageHandler reference resolution", () => {
       expect(reply).not.toMatch(/RES-MATRIX-G-A|Gabriela Uno|Habitación: simple|Huéspedes: 1/i);
     });
 
+    it("[G] una versión del mismo reservationId perteneciente a otro hotel no contamina la autoridad local", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-g-cross-hotel";
+      const localActive = completeRecord("RES-MATRIX-G-HOTEL", {
+        hotelId: "hotel999",
+        createdAt: "2026-03-20T10:00:00.000Z",
+      });
+      const foreignCancelled = completeRecord("RES-MATRIX-G-HOTEL", {
+        hotelId: "hotel-other",
+        status: "cancelled",
+        createdAt: "2026-03-23T10:00:00.000Z",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(localActive, {
+        reservationHistory: [localActive, foreignCancelled],
+      }));
+
+      await handleIncomingMessage(
+        msg("modificá RES-MATRIX-G-HOTEL a triple", conversationId),
+        { mode: "automatic", sendReply },
+      );
+
+      expect(quoteReservationModification).toHaveBeenCalledWith(
+        "hotel999",
+        "RES-MATRIX-G-HOTEL",
+        expect.objectContaining({ roomType: "triple" }),
+      );
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
     it("[H] fechas históricas no cambian por sí solas el status activo ni la accionabilidad vigente", async () => {
       const sendReply = vi.fn(async () => {});
       const conversationId = "conv-matrix-h-historical-active";
@@ -6184,7 +6383,7 @@ describe("messageHandler reference resolution", () => {
       { label: "timestamp igual", createdAt: "2026-03-22T10:00:00.000Z" },
       { label: "timestamp ausente", createdAt: undefined },
     ]) {
-      it.fails(`[EXPECTED-FAIL][OBS-M6-02][status_tie_order] ${timestampCase.label} contradictorio debe fallar cerrado sin depender del orden`, async () => {
+      it(`[OBS-M6-02][status_tie_order] ${timestampCase.label} contradictorio debe fallar cerrado sin depender del orden`, async () => {
         const active = completeRecord("RES-MATRIX-TIE", { createdAt: timestampCase.createdAt });
         const cancelled = completeRecord("RES-MATRIX-TIE", {
           status: "cancelled",
