@@ -6104,6 +6104,37 @@ describe("messageHandler reference resolution", () => {
       ...overrides,
     });
 
+    const seedObsM607LocalPartialFixture = (conversationId: string) => {
+      const localPartial = {
+        hotelId: "hotel999",
+        reservationId: "RES-MATRIX-F-DISCARD",
+        status: "created",
+        createdAt: "2026-03-22T10:00:00.000Z",
+        channel: "web",
+        guestName: "Felipe Presentado",
+      };
+      const presentedComplete = completeRecord("RES-MATRIX-F-DISCARD", {
+        hotelId: "hotel999",
+        createdAt: "2026-03-21T10:00:00.000Z",
+        guestName: "Felipe Presentado",
+        roomType: "double",
+        checkIn: "2026-07-20",
+        checkOut: "2026-07-23",
+        numGuests: "2",
+      });
+      stateByConversation.set(conversationId, stateWithSingleRecord(localPartial, {
+        conversationId,
+        guestId: "g1",
+        reservationSlots: {},
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [presentedComplete],
+        },
+      }));
+      return { localPartial, presentedComplete };
+    };
+
     it("[FIX-CANONICAL-STATUS-ACTIONABILITY-01][authority_boundary] presented-only no autoriza Modify", async () => {
       const sendReply = vi.fn(async () => {});
       const conversationId = "conv-presented-only-cannot-authorize-modify";
@@ -6486,44 +6517,36 @@ describe("messageHandler reference resolution", () => {
       expect(modifyReservation).not.toHaveBeenCalled();
     });
 
-    it.fails("[EXPECTED-FAIL][OBS-M6-07][discard_restores_local_partial] [F] el descarte conserva completitud presentada válida del mismo hotelId + reservationId", async () => {
+    it("[OBS-M6-07][precondition][local_partial_material] [F] alcanza preview válido y ejecuta el descarte sin efectos de dominio", async () => {
       const sendReply = vi.fn(async () => {});
-      const conversationId = "conv-matrix-f-discard-completeness";
-      const localPartial = {
-        reservationId: "RES-MATRIX-F-DISCARD",
-        status: "created",
-        createdAt: "2026-03-22T10:00:00.000Z",
-        channel: "web",
-      };
-      const presentedComplete = completeRecord("RES-MATRIX-F-DISCARD", {
-        createdAt: "2026-03-21T10:00:00.000Z",
-        guestName: "Felipe Presentado",
-        roomType: "double",
-        checkIn: "2026-07-20",
-        checkOut: "2026-07-23",
-        numGuests: "2",
-      });
-      stateByConversation.set(conversationId, stateWithSingleRecord(localPartial, {
-        reservationSlots: {},
-        lastPresentedReservations: {
-          guestId: "g1",
-          presentedAt: "2026-03-23T11:00:00.000Z",
-          reservations: [presentedComplete],
-        },
-      }));
+      const conversationId = "conv-matrix-f-discard-preconditions";
+      const { localPartial, presentedComplete } = seedObsM607LocalPartialFixture(conversationId);
 
       await handleIncomingMessage(
         msg("modificá la primera reserva a triple para 3 personas", conversationId),
         { mode: "automatic", sendReply },
       );
+      const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
       expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({
         reservationId: "RES-MATRIX-F-DISCARD",
       });
-      expect((quoteReservationModification as any).mock.calls.at(-1)?.[2]).toMatchObject({
-        roomType: "triple",
-        numGuests: "3",
-      });
+      expect(quoteReservationModification).toHaveBeenCalledTimes(1);
+      expect(quoteReservationModification).toHaveBeenCalledWith(
+        "hotel999",
+        "RES-MATRIX-F-DISCARD",
+        expect.objectContaining({ roomType: "triple", numGuests: "3" }),
+      );
       const stateBeforeDiscard = stateByConversation.get(conversationId);
+      expect(stateBeforeDiscard?.modifyState).toMatchObject({
+        awaitingConfirmation: true,
+        pendingPatch: expect.objectContaining({
+          reservationId: "RES-MATRIX-F-DISCARD",
+          roomType: "triple",
+          numGuests: "3",
+          quoteId: "quote-test-240",
+          quoteVersion: "version-test-1",
+        }),
+      });
       expect(stateBeforeDiscard?.reservationSlots).toMatchObject({
         guestName: "Felipe Presentado",
         roomType: "triple",
@@ -6535,25 +6558,104 @@ describe("messageHandler reference resolution", () => {
         reservationId: "RES-MATRIX-F-DISCARD",
         status: "created",
       });
-
-      await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
-      const stateAfterDiscard = stateByConversation.get(conversationId);
-      expect(stateAfterDiscard?.modifyState ?? null).toBeNull();
-      expect.soft(stateAfterDiscard?.reservationSlots).toMatchObject({
-        guestName: "Felipe Presentado",
-        roomType: "double",
-        checkIn: "2026-07-20",
-        checkOut: "2026-07-23",
-        numGuests: "2",
-      });
-
-      await handleIncomingMessage(msg("Mostrame esa reserva", conversationId), { mode: "automatic", sendReply });
-      const detailReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
-      expect(detailReply).toMatch(/Código: RES-MATRIX-F-DISCARD/i);
-      expect(detailReply).toMatch(/Estado: Activa/i);
-      expect.soft(detailReply).toMatch(/Felipe Presentado|Habitación: doble|20\/07\/2026 → 23\/07\/2026|Huéspedes: 2/i);
+      expect(stateBeforeDiscard?.reservationHistory).toEqual([localPartial]);
+      expect(stateBeforeDiscard?.lastPresentedReservations?.reservations).toEqual([presentedComplete]);
+      expect(previewReply).toMatch(/antes de aplicar el cambio|confirm[aá]s estos cambios/i);
+      expect(previewReply).toMatch(/RES-MATRIX-F-DISCARD|Felipe Presentado|triple|3/i);
+      expect(getConversationsForGuestPerspective).not.toHaveBeenCalled();
       expect(modifyReservation).not.toHaveBeenCalled();
       expect(cancelReservation).not.toHaveBeenCalled();
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+
+      sendReply.mockClear();
+      await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
+      const stateAfterDiscard = stateByConversation.get(conversationId);
+      const discardReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      expect(stateAfterDiscard?.modifyState ?? null).toBeNull();
+      expect(stateAfterDiscard?.pendingCancellation ?? null).toBeNull();
+      expect(stateAfterDiscard?.pendingAvailabilityVerification ?? null).toBeNull();
+      expect(stateAfterDiscard?.lastProposal ?? null).toBeNull();
+      expect(stateAfterDiscard?.lastReservation).toEqual(localPartial);
+      expect(stateAfterDiscard?.reservationHistory).toEqual([localPartial]);
+      expect(stateAfterDiscard?.lastPresentedReservations?.reservations).toEqual([presentedComplete]);
+      expect(discardReply).toMatch(/no apliqu[eé] cambios|reserva sigue igual/i);
+      expect(modifyReservation).not.toHaveBeenCalled();
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(confirmAndCreate).not.toHaveBeenCalled();
+    });
+
+    it.fails("[EXPECTED-FAIL][OBS-M6-07][post_discard_local_partial_loss] [F] la lectura posterior conserva todos los campos presentados del mismo hotelId + canonicalGuestId + reservationId", async () => {
+      const sendReply = vi.fn(async () => {});
+      const conversationId = "conv-matrix-f-discard-completeness";
+      const { localPartial, presentedComplete } = seedObsM607LocalPartialFixture(conversationId);
+      let detailReply = "";
+
+      try {
+        await handleIncomingMessage(
+          msg("modificá la primera reserva a triple para 3 personas", conversationId),
+          { mode: "automatic", sendReply },
+        );
+        const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        const stateBeforeDiscard = stateByConversation.get(conversationId);
+        expect(quoteReservationModification).toHaveBeenCalledTimes(1);
+        expect(stateBeforeDiscard?.modifyState).toMatchObject({
+          awaitingConfirmation: true,
+          pendingPatch: expect.objectContaining({
+            reservationId: "RES-MATRIX-F-DISCARD",
+            roomType: "triple",
+            numGuests: "3",
+            quoteId: "quote-test-240",
+            quoteVersion: "version-test-1",
+          }),
+        });
+        expect(previewReply).toMatch(/antes de aplicar el cambio|confirm[aá]s estos cambios/i);
+        expect(stateBeforeDiscard?.lastReservation).toEqual(localPartial);
+        expect(stateBeforeDiscard?.reservationHistory).toEqual([localPartial]);
+        expect(stateBeforeDiscard?.lastPresentedReservations?.reservations).toEqual([presentedComplete]);
+        expect(getConversationsForGuestPerspective).not.toHaveBeenCalled();
+
+        sendReply.mockClear();
+        await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
+        const discardReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        const stateAfterDiscard = stateByConversation.get(conversationId);
+        expect(discardReply).toMatch(/no apliqu[eé] cambios|reserva sigue igual/i);
+        expect(stateAfterDiscard?.modifyState ?? null).toBeNull();
+        expect(stateAfterDiscard?.pendingCancellation ?? null).toBeNull();
+        expect(stateAfterDiscard?.pendingAvailabilityVerification ?? null).toBeNull();
+        expect(stateAfterDiscard?.lastProposal ?? null).toBeNull();
+        expect(stateAfterDiscard?.lastReservation).toEqual(localPartial);
+        expect(stateAfterDiscard?.reservationHistory).toEqual([localPartial]);
+        expect(stateAfterDiscard?.lastPresentedReservations?.reservations).toEqual([presentedComplete]);
+        expect(stateAfterDiscard?.reservationSlots).toEqual({
+          guestName: "Felipe Presentado",
+          roomType: undefined,
+          numGuests: undefined,
+          checkIn: undefined,
+          checkOut: undefined,
+          locale: "es",
+        });
+        expect(modifyReservation).not.toHaveBeenCalled();
+        expect(cancelReservation).not.toHaveBeenCalled();
+        expect(confirmAndCreate).not.toHaveBeenCalled();
+
+        sendReply.mockClear();
+        await handleIncomingMessage(msg("Mostrame esa reserva", conversationId), { mode: "automatic", sendReply });
+        detailReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        expect(detailReply).toMatch(/Código: RES-MATRIX-F-DISCARD/i);
+        expect(detailReply).toMatch(/Estado: Activa/i);
+        expect(detailReply).toMatch(/Nombre: Felipe Presentado/i);
+        expect(detailReply).not.toMatch(/Habitación:|Fechas:|Huéspedes:/i);
+        expect(modifyReservation).not.toHaveBeenCalled();
+        expect(cancelReservation).not.toHaveBeenCalled();
+        expect(confirmAndCreate).not.toHaveBeenCalled();
+      } catch {
+        // A precondition failure must surface as an unexpected pass, not satisfy it.fails.
+        return;
+      }
+
+      expect(detailReply).toMatch(
+        /Nombre: Felipe Presentado[\s\S]*Habitación: doble[\s\S]*Fechas: 20\/07\/2026 → 23\/07\/2026[\s\S]*Huéspedes: 2/i,
+      );
     });
 
     it("[G] dos reservas similares conservan identidad y campos sin contaminación cross-ID", async () => {
