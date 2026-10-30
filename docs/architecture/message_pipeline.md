@@ -423,6 +423,28 @@ Invariante operativa:
 - `reservationSlots`, `currSlots` y `nextSlots` no deben dominar identidad ni
   atributos si existe target canónico resuelto
 
+#### Autoridad material guest-wide para `modify`
+
+Cuando el target identificado no tiene autoridad material suficiente en la
+conversación actual, `modify` aplica esta resolución conservadora:
+
+1. intenta primero la autoridad canónica local
+2. sólo como fallback, busca de forma efímera una proyección material en otras
+   conversaciones del mismo `hotelId` y `canonicalGuestId`
+3. exige coincidencia exacta de `reservationId`
+4. acepta autoridad únicamente desde `reservationHistory` o
+   `lastReservation` materiales
+
+`lastPresentedReservations` puede identificar el target por ID u ordinal, pero
+no demuestra estado, accionabilidad ni autoridad. La resolución guest-wide no
+copia historial entre conversaciones y no incorpora `provider.getReservation`
+como fuente de autoridad.
+
+La ruta falla cerrado si no encuentra una proyección material vigente, si la
+reserva está cancelada o inválida, o si falla la lectura. La autoridad se
+revalida antes de quote, antes de persistir el preview y antes de ejecutar la
+modificación; una identificación previa nunca sustituye esas revalidaciones.
+
 #### Canonical Reply Governance
 
 Jerarquía obligatoria para replies de reserva:

@@ -16644,3 +16644,123 @@ Impacto:
   codigo o tests durante esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-30
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: restaurar Modify cuando la autoridad material canonica esta en otra conversacion del mismo hotel y huesped canonico
+Commit tecnico: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- resuelve de forma efimera la autoridad guest-wide por `hotelId`,
+  `canonicalGuestId` y `reservationId`, priorizando autoridad local
+- usa `reservationHistory` o `lastReservation` materiales; una referencia en
+  `lastPresentedReservations` identifica el target, pero no lo autoriza
+- falla cerrado ante ausencia, cancelacion, invalidez o error de lectura
+- revalida la autoridad antes de quote, preview y ejecucion, sin copiar
+  historial entre conversaciones ni agregar `provider.getReservation` como
+  fuente de autoridad
+- el gate manual aprobo Modify por ID para la reserva activa, rechazo de la
+  cancelada sin menu ni quote observable y continuidad activa posterior
+- `OBS-M6-07` permanece `CONFIRMED`, como unico expected-failure fuera de
+  alcance; no se declara resuelta
+- `FIX-CANONICAL-STATUS-ACTIONABILITY-01` permanece `RECONCILED /
+  CLOSURE_BLOCKED`; este cierre no altera ni regulariza su estado historico
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
+technical_commit_message: "fix(reservations): restore guestwide modify authority resolution"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+technical_scope:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  focused:
+    - files: 1/1 PASS
+    - tests: 197/197 PASS
+    - ordinary: 196
+    - expected_failure: 1
+  regression:
+    - files: 193/193 PASS
+    - tests: 1296/1296 PASS
+    - ordinary: 1295
+    - expected_failure: 1
+  TypeScript: PASS
+  git_diff_check: PASS
+  unexpected_failures: 0
+  manual_gate:
+    status: PASS
+    performed_by: AH
+    ordinal_manual_repetition_required: false
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - autoridad guest-wide por ID y ordinal
+      - cancelacion e invalidacion temporal
+      - fallo de lectura seguro
+      - aislamiento hotelId + canonicalGuestId + reservationId
+      - authority boundaries locales preservados
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `3281c9b7c2ff1791c02ce2dd7759e399123e05c8`
+- `messageHandler.ts`: blob `4b121f9ae6e4f8ad72c48ad04fff51b8a919921d`,
+  14367 lineas fisicas
+- `preLLM`: L5417-L5629
+- `bodyLLM`: L6644-L13498
+- `posLLM`: L13993-L14034
+- `handleIncomingMessage`: L14038-L14367
+- se refrescan referencias focales de resolucion guest-wide, estado canonico,
+  persistencia de preview y ejecucion; se preservan `box_id`, taxonomia,
+  relaciones y diagramas conceptuales
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+- `docs/architecture/message_pipeline.md`
+
+Impacto:
+
+- canonicidad: mantiene; extiende la resolucion sobre proyecciones canonicas
+  materiales existentes sin crear autoridad paralela ni copiar estado
+- `roadmap_impact: none`
+- arquitectura viva: explicita autoridad local primero, fallback guest-wide
+  efimero, identificacion no autoritativa y revalidacion fail-closed
+- sin cambios documentales en roadmap, Operating Model o ADRs, ni cambios de
+  codigo o tests durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

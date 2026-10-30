@@ -8,13 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-repository_baseline_head: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-source_code_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-helpers_lines: 851
+commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+repository_baseline_head: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+source_code_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+messageHandler_lines: 14367
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
 ```
 
 ---
@@ -22,8 +21,8 @@ analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_105
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01` parte de
-`HEAD = origin/main = 1056624f1b0ee900a1d587ee5a061d0fc56adcef`, con indice
+El refresh focal de `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01` parte de
+`HEAD = origin/main = 3281c9b7c2ff1791c02ce2dd7759e399123e05c8`, con indice
 limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ```
 
@@ -32,23 +31,30 @@ limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
-technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-technical_parent: 704928a383bdba27b66764a3cab39285660015c2
-technical_subject: "fix(reservations): preserve compound guest extraction"
+hito_id: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
+technical_subject: "fix(reservations): restore guestwide modify authority resolution"
 technical_push: confirmed
-messageHandler_lines: 13989
-helpers_lines: 851
-messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
-helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
+messageHandler_lines: 14367
+messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
 functions:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
-helper_refs:
-  extractSlotsFromText: L91
-  extractGuests: L507
+  preLLM: L5417-L5629
+  bodyLLM: L6644-L13498
+  posLLM: L13993-L14034
+  handleIncomingMessage: L14038-L14367
+focal_refs:
+  buildModifyUnverifiedTargetReply: L1522
+  buildModifyActionabilityFailureReply: L1530
+  persistModifyPreviewContext: L1623-L1681
+  executeModifyReservationWithSnapshot: L2483-L2558
+  buildReservationCanonicalState: L2713-L2818
+  resolveLocalActionableModifyTarget: L2845-L2932
+  resolveGuestWideMaterialModifyTarget: L2934-L3009
+  resolveActionableModifyTarget: L3011-L3024
+  readConversationsByGuestId: L3327-L3339
+  resolveCanonicalGuestScope: L3341-L3361
+  resolveReservationListSource: L3363-L3410
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -56,28 +62,28 @@ global_freshness_claim_allowed: false
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - siete expected-failure convertidos en pruebas ordinarias aprobadas
-      - traza Modify de ocho etapas
-      - no-op, confirmaciones y payload parcial cubiertos
+      - autoridad guest-wide por ID y ordinal
+      - cancelacion e invalidacion temporal
+      - fallo de lectura seguro
+      - aislamiento de identidad
+      - boundaries locales preservados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
 
-Los rangos top-level, blobs y referencias focales de helpers quedan
+Los rangos top-level, el blob y las referencias focales guest-wide quedan
 refrescados con la evidencia entregada por Guardian. Los rangos internos no
 entregados permanecen `needs_refresh`; no se inventan rangos ni se altera la
 taxonomia conceptual.
@@ -87,16 +93,16 @@ taxonomia conceptual.
 ## Snapshot anterior preservado
 
 ```yaml
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+messageHandler_lines: 13989
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L4966-L5178
-  bodyLLM: L6193-L12759
-  posLLM: L13254-L13295
-  handleIncomingMessage: L13299-L13628
+  preLLM: L5100-L5312
+  bodyLLM: L6327-L13120
+  posLLM: L13615-L13656
+  handleIncomingMessage: L13660-L13989
 ```
 
 ---

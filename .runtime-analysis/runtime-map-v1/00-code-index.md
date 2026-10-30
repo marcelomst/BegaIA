@@ -67,14 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-repository_baseline_head: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-source_code_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-helpers_lines: 851
+commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+repository_baseline_head: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+source_code_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+messageHandler_lines: 14367
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
-baseline_status: fix_modify_numguests_compound_extraction_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+baseline_status: fix_guestwide_modify_authority_resolution_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -101,55 +100,62 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: compound guest extraction
+## Evidencia focal actual: guest-wide modify authority
 
 ```yaml
-hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
-technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-technical_parent: 704928a383bdba27b66764a3cab39285660015c2
-technical_subject: "fix(reservations): preserve compound guest extraction"
+hito_id: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
+technical_subject: "fix(reservations): restore guestwide modify authority resolution"
 technical_push: confirmed
-messageHandler_lines: 13989
-helpers_lines: 851
-messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
-helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
+messageHandler_lines: 14367
+messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - siete expected-failure convertidos en pruebas ordinarias aprobadas
-      - traza Modify de ocho etapas
-      - no-op, confirmaciones y payload parcial cubiertos
+      - autoridad guest-wide por ID y ordinal
+      - cancelacion e invalidacion temporal
+      - fallo de lectura seguro
+      - aislamiento hotelId + canonicalGuestId + reservationId
+      - authority boundaries locales preservados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
-helper_refs:
-  extractSlotsFromText: lib/agents/helpers.ts:L91
-  extractGuests: lib/agents/helpers.ts:L507
+  preLLM: L5417-L5629
+  bodyLLM: L6644-L13498
+  posLLM: L13993-L14034
+  handleIncomingMessage: L14038-L14367
+focal_internal_code_refs:
+  - { file: lib/handlers/messageHandler.ts, label: buildModifyUnverifiedTargetReply, range: L1522 }
+  - { file: lib/handlers/messageHandler.ts, label: buildModifyActionabilityFailureReply, range: L1530 }
+  - { file: lib/handlers/messageHandler.ts, label: persistModifyPreviewContext, range: L1623-L1681 }
+  - { file: lib/handlers/messageHandler.ts, label: executeModifyReservationWithSnapshot, range: L2483-L2558 }
+  - { file: lib/handlers/messageHandler.ts, label: buildReservationCanonicalState, range: L2713-L2818 }
+  - { file: lib/handlers/messageHandler.ts, label: resolveLocalActionableModifyTarget, range: L2845-L2932 }
+  - { file: lib/handlers/messageHandler.ts, label: resolveGuestWideMaterialModifyTarget, range: L2934-L3009 }
+  - { file: lib/handlers/messageHandler.ts, label: resolveActionableModifyTarget, range: L3011-L3024 }
+  - { file: lib/handlers/messageHandler.ts, label: readConversationsByGuestId, range: L3327-L3339 }
+  - { file: lib/handlers/messageHandler.ts, label: resolveCanonicalGuestScope, range: L3341-L3361 }
+  - { file: lib/handlers/messageHandler.ts, label: resolveReservationListSource, range: L3363-L3410 }
 conceptual_change: false
-internal_code_refs_status: needs_refresh
+internal_code_refs_status: focal_fresh_global_unasserted
 global_freshness_claim_allowed: false
 ```
 
-Los rangos internos no recalculados se conservan como evidencia historica;
-no se desplazan por inferencia. El scan generado actualiza la evidencia fisica
-sin redefinir cajas ni diagramas.
+Los rangos internos focales entregados por Guardian quedan frescos. Los demas
+se conservan como evidencia historica y no se desplazan por inferencia; no se
+redefinen cajas ni diagramas.
 
 ## Evidencia focal histórica preservada: precedencia modify/cancel
 

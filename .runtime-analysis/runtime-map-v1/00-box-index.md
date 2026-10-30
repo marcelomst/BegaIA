@@ -43,45 +43,44 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-helpers_lines: 851
+commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+messageHandler_lines: 14367
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
-baseline_status: fix_modify_numguests_compound_extraction_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+baseline_status: fix_guestwide_modify_authority_resolution_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+messageHandler_lines: 13989
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## Auditoría actual: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - siete expected-failure convertidos en pruebas ordinarias aprobadas
-      - traza Modify de ocho etapas
-      - no-op, confirmaciones y payload parcial cubiertos
+      - autoridad guest-wide por ID y ordinal
+      - cancelacion e invalidacion temporal
+      - fallo de lectura seguro
+      - aislamiento hotelId + canonicalGuestId + reservationId
+      - authority boundaries locales preservados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -90,23 +89,31 @@ runtime_map:
   conceptual_change: false
   evidence_refresh: true
   top_level_code_refs_status: fresh
-  internal_code_refs_status: needs_refresh
+  internal_code_refs_status: focal_fresh_global_unasserted
   global_freshness_claim_allowed: false
 top_level_code_refs:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
+  preLLM: L5417-L5629
+  bodyLLM: L6644-L13498
+  posLLM: L13993-L14034
+  handleIncomingMessage: L14038-L14367
 focal_physical_evidence:
-  messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
-  helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
-  extractSlotsFromText: lib/agents/helpers.ts:L91
-  extractGuests: lib/agents/helpers.ts:L507
+  messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
+  buildModifyUnverifiedTargetReply: L1522
+  buildModifyActionabilityFailureReply: L1530
+  persistModifyPreviewContext: L1623-L1681
+  executeModifyReservationWithSnapshot: L2483-L2558
+  buildReservationCanonicalState: L2713-L2818
+  resolveLocalActionableModifyTarget: L2845-L2932
+  resolveGuestWideMaterialModifyTarget: L2934-L3009
+  resolveActionableModifyTarget: L3011-L3024
+  readConversationsByGuestId: L3327-L3339
+  resolveCanonicalGuestScope: L3341-L3361
+  resolveReservationListSource: L3363-L3410
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
-intactos. Los rangos internos no entregados por Guardian conservan estado
-`needs_refresh` y no se desplazan por inferencia.
+intactos. Los rangos focales entregados por Guardian quedan frescos; los demas
+conservan estado `needs_refresh` y no se desplazan por inferencia.
 
 ## Auditoría histórica preservada: FIX-MODIFY-CANCEL-PRECEDENCE-01
 
@@ -332,7 +339,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13618-L13947
+        range: L14038-L14367
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -362,7 +369,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5074-L5286
+        range: L5417-L5629
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -397,7 +404,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6301-L13078
+        range: L6644-L13498
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -722,7 +729,15 @@ boxes:
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: preview_persistence
-        range: L1533-L1581
+        range: L1623-L1681
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: buildModifyUnverifiedTargetReply
+        range: L1522
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: buildModifyActionabilityFailureReply
+        range: L1530
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: modify_ingress_state
@@ -742,23 +757,35 @@ boxes:
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: executeModifyReservationWithSnapshot
-        range: L2383-L2450
-        confidence: high
-      - file: lib/handlers/messageHandler.ts
-        label: provider_call
-        range: L2391-L2399
-        confidence: high
-      - file: lib/handlers/messageHandler.ts
-        label: provider_result_reception
-        range: L2409-L2410
-        confidence: high
-      - file: lib/handlers/messageHandler.ts
-        label: post_update_persistence
-        range: L2429-L2448
+        range: L2483-L2558
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: canonical_merge
-        range: L2605-L2657
+        range: L2713-L2818
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: resolveLocalActionableModifyTarget
+        range: L2845-L2932
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: resolveGuestWideMaterialModifyTarget
+        range: L2934-L3009
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: resolveActionableModifyTarget
+        range: L3011-L3024
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: readConversationsByGuestId
+        range: L3327-L3339
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: resolveCanonicalGuestScope
+        range: L3341-L3361
+        confidence: high
+      - file: lib/handlers/messageHandler.ts
+        label: resolveReservationListSource
+        range: L3363-L3410
         confidence: high
     physical_dependencies:
       - { file: lib/agents/reservations.ts, range: L550-L578 }
@@ -1124,15 +1151,11 @@ boxes:
     code_refs:
       - file: lib/handlers/messageHandler.ts
         label: modify_preview_state_and_reply
-        range: L1533-L1581
+        range: L1623-L1681
         confidence: high
       - file: lib/handlers/messageHandler.ts
-        label: modify_execution_context
-        range: L2310-L2326
-        confidence: high
-      - file: lib/handlers/messageHandler.ts
-        label: post_modify_provider_projection_and_reply
-        range: L2429-L2449
+        label: modify_execution_and_projection
+        range: L2483-L2558
         confidence: high
       - file: lib/handlers/messageHandler.ts
         label: pers_01_post_graph_persistence
@@ -1188,7 +1211,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13573-L13614
+        range: L13993-L14034
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

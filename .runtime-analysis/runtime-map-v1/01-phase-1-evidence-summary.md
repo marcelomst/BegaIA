@@ -21,22 +21,21 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-helpers_lines: 851
+commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+messageHandler_lines: 14367
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - helpers.extractSlotsFromText.spec.ts: 47/47 PASS
-    - messageHandler.reference_resolution.spec.ts: 164/164 PASS
-    - regression: 193/193 files, 1263/1263 tests PASS
+    - messageHandler.reference_resolution.spec.ts: 197/197 PASS
+    - regression: 193/193 files, 1296/1296 tests PASS
     - TypeScript: PASS
     - git diff --check: PASS
   manual_ah:
-    - preview_for_3_para_una_triple: PASS
-    - real_provider_operation: not_performed
+    - active_reservation_by_id_modify_menu: PASS
+    - cancelled_reservation_rejected_without_menu_or_quote: PASS
+    - active_reservation_continuity_after_rejection: PASS
 validation_scope: documentation_and_guardian_scan_only
 global_freshness_claim_allowed: false
 ```
@@ -44,23 +43,30 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
-technical_commit: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-technical_parent: 704928a383bdba27b66764a3cab39285660015c2
-technical_subject: "fix(reservations): preserve compound guest extraction"
+hito_id: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
+technical_subject: "fix(reservations): restore guestwide modify authority resolution"
 technical_push: confirmed
-messageHandler_lines: 13989
-helpers_lines: 851
-messageHandler_blob: cc2b248ff9f00ee93d9c5a623905513fe3f92dbc
-helpers_blob: 67ca9846011c0b8c864884dfcca8d6076e5fc258
+messageHandler_lines: 14367
+messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
 functions:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
-helper_refs:
-  extractSlotsFromText: L91
-  extractGuests: L507
+  preLLM: L5417-L5629
+  bodyLLM: L6644-L13498
+  posLLM: L13993-L14034
+  handleIncomingMessage: L14038-L14367
+focal_refs:
+  buildModifyUnverifiedTargetReply: L1522
+  buildModifyActionabilityFailureReply: L1530
+  persistModifyPreviewContext: L1623-L1681
+  executeModifyReservationWithSnapshot: L2483-L2558
+  buildReservationCanonicalState: L2713-L2818
+  resolveLocalActionableModifyTarget: L2845-L2932
+  resolveGuestWideMaterialModifyTarget: L2934-L3009
+  resolveActionableModifyTarget: L3011-L3024
+  readConversationsByGuestId: L3327-L3339
+  resolveCanonicalGuestScope: L3341-L3361
+  resolveReservationListSource: L3363-L3410
 runtime_map:
   applies: true
   conceptual_change: false
@@ -73,22 +79,22 @@ runtime_map:
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.canonicalReservationReadPath
     - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - siete expected-failure convertidos en pruebas ordinarias aprobadas
-      - traza Modify de ocho etapas
-      - no-op, confirmaciones y payload parcial cubiertos
+      - autoridad guest-wide por ID y ordinal
+      - cancelacion e invalidacion temporal
+      - fallo de lectura seguro
+      - aislamiento hotelId + canonicalGuestId + reservationId
+      - authority boundaries locales preservados
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -101,16 +107,16 @@ actuales.
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
-messageHandler_lines: 13628
-analysis_scope: focal_refresh_fix_reservation_proposal_fresh_state_cas_01_at_cbf72a9f7cbc701faaea424ad474a08a49b8e7d1
+commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
+messageHandler_lines: 13989
+analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L4966-L5178
-  bodyLLM: L6193-L12759
-  posLLM: L13254-L13295
-  handleIncomingMessage: L13299-L13628
+  preLLM: L5100-L5312
+  bodyLLM: L6327-L13120
+  posLLM: L13615-L13656
+  handleIncomingMessage: L13660-L13989
 ```
 
 ## Auditoría histórica preservada y refresh focal actual
