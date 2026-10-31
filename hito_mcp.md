@@ -16861,3 +16861,72 @@ Impacto:
 - `scripts/semantic-normalization-spike/` permanece completamente excluido
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-10-31
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: implementar y validar offline el contrato semantico experimental SIN V2 y su adaptacion conservadora hacia RDA
+Commit tecnico: 1412b8d76c6eaf11a266839dd6624139b4eb8827
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora el contrato experimental SIN V2, un validador estricto, un
+  adaptador conservador hacia RDA, fixtures manuales y pruebas focalizadas
+- valida 29/29 pruebas SIN V2 y preserva 15/15 pruebas RDA existentes
+- aprueba TypeScript estricto focalizado, ESLint focalizado y whitespace
+- verifica 8/8 regresiones criticas
+- permanece aislado bajo `scripts/semantic-normalization-spike/`, sin
+  integracion al runtime productivo ni autoridad operacional o canonica
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 1412b8d76c6eaf11a266839dd6624139b4eb8827
+technical_parent: c9111478dc1d25dd1b8091b9a14e8d16465c383d
+technical_commit_message: "feat(spike): add experimental SIN V2 semantic contract"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 1412b8d76c6eaf11a266839dd6624139b4eb8827
+technical_scope:
+  - scripts/semantic-normalization-spike/sin-v2/contract.ts
+  - scripts/semantic-normalization-spike/sin-v2/validator.ts
+  - scripts/semantic-normalization-spike/sin-v2/adapter.ts
+  - scripts/semantic-normalization-spike/sin-v2/fixtures.ts
+  - scripts/semantic-normalization-spike/sin-v2/sin-v2.test.ts
+validation:
+  sin_v2_tests: 29/29 PASS
+  existing_rda_tests: 15/15 PASS
+  focused_strict_typescript: PASS
+  focused_eslint: PASS
+  whitespace: PASS
+  critical_regressions: 8/8 VERIFIED
+```
+
+Limitaciones conocidas:
+
+- la evidencia literal no certifica por si sola correccion semantica
+- el validador no detecta unidades semanticas omitidas
+- las tablas cerradas degradan conservadoramente equivalencias desconocidas
+- los fixtures manuales no constituyen benchmark ciego ni prueba de
+  completitud
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el contrato permanece aislado y no crea una fuente
+  de verdad operacional, autorizacion, efectos ni estado canonico paralelo
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, Operating Model, roadmap, Runtime Map,
+  codigo o tests durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

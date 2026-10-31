@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 1. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+
+- Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
+- Nombre: `experimental SIN V2 semantic contract`
+- Commit tecnico: `1412b8d76c6eaf11a266839dd6624139b4eb8827`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora offline el contrato experimental SIN V2, su
+  validador estricto, un adaptador conservador hacia RDA, fixtures y 29 pruebas
+  focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
+  sin autoridad operacional, efectos ni estado canonico paralelo.
+
+## 2. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -24,7 +37,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 2. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 3. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -38,7 +51,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 3. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 4. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -51,7 +64,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 4. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 5. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -65,7 +78,7 @@ recent_hitos_count: 10
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
 
-## 5. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## 6. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 - Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
 - Nombre: `preserve compound guest extraction`
@@ -79,7 +92,7 @@ recent_hitos_count: 10
   evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
   relaciones ni diagramas conceptuales.
 
-## 6. TEST-MODIFY-NUMGUESTS-TRACE-01
+## 7. TEST-MODIFY-NUMGUESTS-TRACE-01
 
 - Identificador: `TEST-MODIFY-NUMGUESTS-TRACE-01`
 - Nombre: `trace numGuests modify defect`
@@ -99,7 +112,7 @@ recent_hitos_count: 10
   autorizo excepcionalmente continuar solo para este hito y commit, sin
   convertir el protocolo en PASS ni modificar el Operating Model.
 
-## 7. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+## 8. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
 
 - Identificador: `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01`
 - Nombre: `guard cancel object scope after discard`
@@ -113,7 +126,7 @@ recent_hitos_count: 10
   fisica focal del Runtime Map sin modificar sus 19 cajas ni el modelo
   conceptual.
 
-## 8. FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+## 9. FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
 
 - Identificador: `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01`
 - Nombre: `normalize modify-cancel object resolution`
@@ -126,7 +139,7 @@ recent_hitos_count: 10
   target canonico exacto y activo y exige confirmacion; refresca evidencia
   fisica del Runtime Map sin modificar sus 19 cajas ni el modelo conceptual.
 
-## 9. SEC-CLOUDFLARED-UPGRADE-01
+## 10. SEC-CLOUDFLARED-UPGRADE-01
 
 - Identificador: `SEC-CLOUDFLARED-UPGRADE-01`
 - Nombre: `pin cloudflared security version`
@@ -138,19 +151,3 @@ recent_hitos_count: 10
   `cloudflare/cloudflared:2026.10.4`, valida la configuracion efectiva, el
   contenedor saludable, cuatro conexiones QUIC y el digest observado, sin
   cambios de arquitectura, roadmap, Runtime Map ni reglas operativas.
-
-## 10. GOV-SIMPLIFY-AGENT-HANDOFF-GIT-01
-
-- Identificador: `GOV-SIMPLIFY-AGENT-HANDOFF-GIT-01`
-- Nombre: `restore simplified agent Git handoff`
-- Commit tecnico: `859bedec5a26c077661a9fa3b528376abf5a8daf`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; el documentation commit y su
-  push deben ejecutarse mediante OPS-02 antes de la validacion postcommit de
-  HDOC(CLOSE).
-- Descripcion breve: Restablece `RESTORE_SIMPLE_GIT` como contrato general
-  para hitos posteriores, mantiene autoridad Git write exclusiva de AH,
-  auditoria previa, envelopes y verificacion posterior, acepta la perdida de
-  revalidacion automatica inmediata y exige reevaluacion ante desarrolladores
-  concurrentes; conserva OPS-02 solo para cerrar este hito y deja como
-  pendiente posterior retirar las excepciones externas autorizadas.
