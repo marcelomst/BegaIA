@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-messageHandler_lines: 14367
+commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+messageHandler_lines: 14568
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-baseline_status: fix_guestwide_modify_authority_resolution_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
+baseline_status: fix_canonical_read_same_id_hydration_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,27 +60,30 @@ analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_105
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## Auditoría actual: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 ```yaml
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
-  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.graph.reservationSnapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - autoridad guest-wide por ID y ordinal
-      - cancelacion e invalidacion temporal
-      - fallo de lectura seguro
+      - Modify -> Discard -> Snapshot cubierto
       - aislamiento hotelId + canonicalGuestId + reservationId
-      - authority boundaries locales preservados
+      - precedencia material y rechazo stale/conflictivo
+      - ausencia de ejecucion create/cancel/graph
+      - ausencia de nueva autoridad material guest-wide persistida
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -89,31 +92,18 @@ runtime_map:
   conceptual_change: false
   evidence_refresh: true
   top_level_code_refs_status: fresh
-  internal_code_refs_status: focal_fresh_global_unasserted
+  internal_code_refs_status: needs_refresh
   global_freshness_claim_allowed: false
 top_level_code_refs:
-  preLLM: L5417-L5629
-  bodyLLM: L6644-L13498
-  posLLM: L13993-L14034
-  handleIncomingMessage: L14038-L14367
-focal_physical_evidence:
-  messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
-  buildModifyUnverifiedTargetReply: L1522
-  buildModifyActionabilityFailureReply: L1530
-  persistModifyPreviewContext: L1623-L1681
-  executeModifyReservationWithSnapshot: L2483-L2558
-  buildReservationCanonicalState: L2713-L2818
-  resolveLocalActionableModifyTarget: L2845-L2932
-  resolveGuestWideMaterialModifyTarget: L2934-L3009
-  resolveActionableModifyTarget: L3011-L3024
-  readConversationsByGuestId: L3327-L3339
-  resolveCanonicalGuestScope: L3341-L3361
-  resolveReservationListSource: L3363-L3410
+  preLLM: L5610-L5822
+  bodyLLM: L6837-L13699
+  posLLM: L14194-L14235
+  handleIncomingMessage: L14239-L14568
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
-intactos. Los rangos focales entregados por Guardian quedan frescos; los demas
-conservan estado `needs_refresh` y no se desplazan por inferencia.
+intactos. Los rangos top-level entregados por Guardian quedan frescos; los
+internos conservan estado `needs_refresh` y no se desplazan por inferencia.
 
 ## Auditoría histórica preservada: FIX-MODIFY-CANCEL-PRECEDENCE-01
 
@@ -339,7 +329,7 @@ boxes:
       - runtime_boundary
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L14038-L14367
+        range: L14239-L14568
         confidence: high
     related_boxes:
       - runtime.messageHandler
@@ -369,7 +359,7 @@ boxes:
       - pre_runtime
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L5417-L5629
+        range: L5610-L5822
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM
@@ -404,7 +394,7 @@ boxes:
       - fallback
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L6644-L13498
+        range: L6837-L13699
         confidence: high
     related_boxes:
       - runtime.messageHandler.bodyLLM.turnDecision
@@ -1211,7 +1201,7 @@ boxes:
       - verdict
     code_refs:
       - file: lib/handlers/messageHandler.ts
-        range: L13993-L14034
+        range: L14194-L14235
         confidence: high
     related_boxes:
       - runtime.messageHandler.persistenceReply

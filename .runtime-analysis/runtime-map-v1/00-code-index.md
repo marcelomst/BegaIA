@@ -67,13 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-repository_baseline_head: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-source_code_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-messageHandler_lines: 14367
+commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+repository_baseline_head: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+source_code_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+messageHandler_lines: 14568
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-baseline_status: fix_guestwide_modify_authority_resolution_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
+baseline_status: fix_canonical_read_same_id_hydration_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -100,61 +100,49 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: guest-wide modify authority
+## Evidencia focal actual: hidratacion canonica same-ID
 
 ```yaml
-hito_id: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
-technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
-technical_subject: "fix(reservations): restore guestwide modify authority resolution"
+hito_id: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+technical_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
 technical_push: confirmed
-messageHandler_lines: 14367
-messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
+messageHandler_lines: 14568
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
-  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.graph.reservationSnapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - autoridad guest-wide por ID y ordinal
-      - cancelacion e invalidacion temporal
-      - fallo de lectura seguro
+      - Modify -> Discard -> Snapshot cubierto
       - aislamiento hotelId + canonicalGuestId + reservationId
-      - authority boundaries locales preservados
+      - precedencia material y rechazo stale/conflictivo
+      - ausencia de ejecucion create/cancel/graph
+      - ausencia de nueva autoridad material guest-wide persistida
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L5417-L5629
-  bodyLLM: L6644-L13498
-  posLLM: L13993-L14034
-  handleIncomingMessage: L14038-L14367
-focal_internal_code_refs:
-  - { file: lib/handlers/messageHandler.ts, label: buildModifyUnverifiedTargetReply, range: L1522 }
-  - { file: lib/handlers/messageHandler.ts, label: buildModifyActionabilityFailureReply, range: L1530 }
-  - { file: lib/handlers/messageHandler.ts, label: persistModifyPreviewContext, range: L1623-L1681 }
-  - { file: lib/handlers/messageHandler.ts, label: executeModifyReservationWithSnapshot, range: L2483-L2558 }
-  - { file: lib/handlers/messageHandler.ts, label: buildReservationCanonicalState, range: L2713-L2818 }
-  - { file: lib/handlers/messageHandler.ts, label: resolveLocalActionableModifyTarget, range: L2845-L2932 }
-  - { file: lib/handlers/messageHandler.ts, label: resolveGuestWideMaterialModifyTarget, range: L2934-L3009 }
-  - { file: lib/handlers/messageHandler.ts, label: resolveActionableModifyTarget, range: L3011-L3024 }
-  - { file: lib/handlers/messageHandler.ts, label: readConversationsByGuestId, range: L3327-L3339 }
-  - { file: lib/handlers/messageHandler.ts, label: resolveCanonicalGuestScope, range: L3341-L3361 }
-  - { file: lib/handlers/messageHandler.ts, label: resolveReservationListSource, range: L3363-L3410 }
+  preLLM: L5610-L5822
+  bodyLLM: L6837-L13699
+  posLLM: L14194-L14235
+  handleIncomingMessage: L14239-L14568
 conceptual_change: false
-internal_code_refs_status: focal_fresh_global_unasserted
+internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
 ```
 
-Los rangos internos focales entregados por Guardian quedan frescos. Los demas
-se conservan como evidencia historica y no se desplazan por inferencia; no se
+Guardian no entrego rangos internos recalculados. Se conservan como evidencia
+historica y no se desplazan por inferencia; no se
 redefinen cajas ni diagramas.
 
 ## Evidencia focal histórica preservada: precedencia modify/cancel

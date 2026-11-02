@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 1. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+
+- Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
+- Nombre: `correct canonical same-ID hydration after Modify discard`
+- Commit tecnico: `3443c7463f45a6d5b3537d1e51d7a961eab5a951`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Corrige la hidratacion canonica same-ID entre
+  Modify/Discard y Snapshot, preserva autoridad material local primero y
+  restringe el fallback guest-wide read-only a `hotelId`, `canonicalGuestId`
+  y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
+  cajas ni el modelo conceptual.
+
+## 2. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -23,7 +37,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 2. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 3. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -37,7 +51,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 3. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 4. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -51,7 +65,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 4. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 5. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -64,7 +78,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 5. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 6. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -78,7 +92,7 @@ recent_hitos_count: 10
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
 
-## 6. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## 7. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 - Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
 - Nombre: `preserve compound guest extraction`
@@ -92,7 +106,7 @@ recent_hitos_count: 10
   evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
   relaciones ni diagramas conceptuales.
 
-## 7. TEST-MODIFY-NUMGUESTS-TRACE-01
+## 8. TEST-MODIFY-NUMGUESTS-TRACE-01
 
 - Identificador: `TEST-MODIFY-NUMGUESTS-TRACE-01`
 - Nombre: `trace numGuests modify defect`
@@ -112,7 +126,7 @@ recent_hitos_count: 10
   autorizo excepcionalmente continuar solo para este hito y commit, sin
   convertir el protocolo en PASS ni modificar el Operating Model.
 
-## 8. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+## 9. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
 
 - Identificador: `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01`
 - Nombre: `guard cancel object scope after discard`
@@ -126,7 +140,7 @@ recent_hitos_count: 10
   fisica focal del Runtime Map sin modificar sus 19 cajas ni el modelo
   conceptual.
 
-## 9. FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
+## 10. FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
 
 - Identificador: `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01`
 - Nombre: `normalize modify-cancel object resolution`
@@ -138,16 +152,3 @@ recent_hitos_count: 10
   un preview `modify` a `cancel`, descarta el cambio pendiente, conserva el
   target canonico exacto y activo y exige confirmacion; refresca evidencia
   fisica del Runtime Map sin modificar sus 19 cajas ni el modelo conceptual.
-
-## 10. SEC-CLOUDFLARED-UPGRADE-01
-
-- Identificador: `SEC-CLOUDFLARED-UPGRADE-01`
-- Nombre: `pin cloudflared security version`
-- Commit tecnico: `2c6d8b443282a073db6be85891f5f25d8c36df5f`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Fija Cloudflare Tunnel en Docker Compose a
-  `cloudflare/cloudflared:2026.10.4`, valida la configuracion efectiva, el
-  contenedor saludable, cuatro conexiones QUIC y el digest observado, sin
-  cambios de arquitectura, roadmap, Runtime Map ni reglas operativas.

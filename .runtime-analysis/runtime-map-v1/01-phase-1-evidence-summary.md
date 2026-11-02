@@ -21,21 +21,20 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-messageHandler_lines: 14367
+commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+messageHandler_lines: 14568
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guestwide_modify_authority_resolution_01_at_3281c9b7c2ff1791c02ce2dd7759e399123e05c8
+analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - messageHandler.reference_resolution.spec.ts: 197/197 PASS
-    - regression: 193/193 files, 1296/1296 tests PASS
+    - focal: 210/210 PASS
+    - snapshot_reference: 223/223 PASS (reported)
+    - core: 193/193 files, 1309/1309 tests PASS (reported)
     - TypeScript: PASS
     - git diff --check: PASS
   manual_ah:
-    - active_reservation_by_id_modify_menu: PASS
-    - cancelled_reservation_rejected_without_menu_or_quote: PASS
-    - active_reservation_continuity_after_rejection: PASS
+    - scenario_RES_A272E3: PASS
 validation_scope: documentation_and_guardian_scan_only
 global_freshness_claim_allowed: false
 ```
@@ -43,30 +42,15 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
-technical_commit: 3281c9b7c2ff1791c02ce2dd7759e399123e05c8
-technical_parent: b02c0db78a198fb616ff11ac4f0558f1eb8e79ba
-technical_subject: "fix(reservations): restore guestwide modify authority resolution"
+hito_id: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+technical_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
 technical_push: confirmed
-messageHandler_lines: 14367
-messageHandler_blob: 4b121f9ae6e4f8ad72c48ad04fff51b8a919921d
+messageHandler_lines: 14568
 functions:
-  preLLM: L5417-L5629
-  bodyLLM: L6644-L13498
-  posLLM: L13993-L14034
-  handleIncomingMessage: L14038-L14367
-focal_refs:
-  buildModifyUnverifiedTargetReply: L1522
-  buildModifyActionabilityFailureReply: L1530
-  persistModifyPreviewContext: L1623-L1681
-  executeModifyReservationWithSnapshot: L2483-L2558
-  buildReservationCanonicalState: L2713-L2818
-  resolveLocalActionableModifyTarget: L2845-L2932
-  resolveGuestWideMaterialModifyTarget: L2934-L3009
-  resolveActionableModifyTarget: L3011-L3024
-  readConversationsByGuestId: L3327-L3339
-  resolveCanonicalGuestScope: L3341-L3361
-  resolveReservationListSource: L3363-L3410
+  preLLM: L5610-L5822
+  bodyLLM: L6837-L13699
+  posLLM: L14194-L14235
+  handleIncomingMessage: L14239-L14568
 runtime_map:
   applies: true
   conceptual_change: false
@@ -80,21 +64,24 @@ runtime_map:
 runtime_boxes_audit:
   touched:
     - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.persistenceReply
-  reviewed:
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.graph.reservationSnapshot
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - autoridad guest-wide por ID y ordinal
-      - cancelacion e invalidacion temporal
-      - fallo de lectura seguro
+      - Modify -> Discard -> Snapshot cubierto
       - aislamiento hotelId + canonicalGuestId + reservationId
-      - authority boundaries locales preservados
+      - precedencia material y rechazo stale/conflictivo
+      - ausencia de ejecucion create/cancel/graph
+      - ausencia de nueva autoridad material guest-wide persistida
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid

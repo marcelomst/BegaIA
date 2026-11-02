@@ -16930,3 +16930,107 @@ Impacto:
   codigo o tests durante esta fase documental
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-02
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: corregir la hidratacion canonica same-ID entre Modify/Discard y Snapshot
+Commit tecnico: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- corrige la hidratacion canonica same-ID entre Modify/Discard y Snapshot
+- preserva la precedencia de autoridad material local
+- permite fallback guest-wide read-only solo con coincidencia de `hotelId`,
+  `canonicalGuestId` y `reservationId`
+- la presentacion suplementa exclusivamente campos `undefined` y no se
+  convierte en autoridad material persistida
+- rechaza evidencia stale o conflictiva y preserva la ausencia de ejecucion
+  de create, cancel y graph en el corredor validado
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+technical_scope:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  manual_gate: PASS
+  manual_scenario: RES-A272E3
+  focal_tests: 210/210 PASS
+  snapshot_reference_tests: 223/223 PASS (reported)
+  core_suite: 193/193 files, 1309/1309 tests PASS (reported)
+  TypeScript: PASS
+  git_diff_check: PASS
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.canonicalReservationReadPath
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.graph.reservationSnapshot
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - Modify -> Discard -> Snapshot cubierto
+      - aislamiento hotelId + canonicalGuestId + reservationId
+      - precedencia material y rechazo stale/conflictivo
+      - ausencia de ejecucion create/cancel/graph
+      - ausencia de nueva autoridad material guest-wide persistida
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `3443c7463f45a6d5b3537d1e51d7a961eab5a951`
+- `messageHandler.ts`: 14568 lineas fisicas
+- `preLLM`: L5610-L5822
+- `bodyLLM`: L6837-L13699
+- `posLLM`: L14194-L14235
+- `handleIncomingMessage`: L14239-L14568; el scan de tamanos lo subestima
+  por su firma multilinea, pero la frontera estructural continua hasta EOF
+- se preservan `box_id`, taxonomia, relaciones y diagramas conceptuales; los
+  rangos internos no entregados permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; hace explicita la precedencia material local y
+  restringe el fallback guest-wide a identidad canonica same-ID sin crear
+  autoridad material persistida paralela
+- `roadmap_impact: none`
+- refresh fisico del Runtime Map sin cambio conceptual de arquitectura
+- sin cambios documentales en roadmap, Operating Model o ADRs, ni cambios de
+  codigo o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` permanece completamente excluido
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
