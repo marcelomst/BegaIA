@@ -28,6 +28,7 @@ import {
 import type {
   ReservationSlots as DbReservationSlots,
   LastReservation,
+  LastPresentedReservations,
   ConversationFlowState,
   ActiveReservationContext,
   SelectedReservationTarget,
@@ -2838,9 +2839,176 @@ function buildPresentedReservationRecords(state: any): CanonicalReservationRecor
   });
 }
 
+const SAME_ID_READ_FIELDS = ["guestName", "roomType", "checkIn", "checkOut", "numGuests"] as const;
+type SameIdReadField = typeof SAME_ID_READ_FIELDS[number];
+type SameIdReadMaterialSource = "local" | "guest_wide";
+type SameIdReadProjectionResult = {
+  record: CanonicalReservationRecord;
+  materialSource: SameIdReadMaterialSource;
+  supplementedFields: SameIdReadField[];
+};
+
+function hasSameIdReadMaterialBaseline(record: CanonicalReservationRecord | null | undefined): boolean {
+  return Boolean(
+    record?.reservationId &&
+    SAME_ID_READ_FIELDS.some((field) =>
+      Object.prototype.hasOwnProperty.call(record, field) && record[field] !== undefined
+    )
+  );
+}
+
+function isValidPresentedReadValue(field: SameIdReadField, value: unknown): boolean {
+  if (field === "numGuests") {
+    const raw = typeof value === "string" ? value.trim() : value;
+    const numeric = typeof raw === "number" ? raw : typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : NaN;
+    return Number.isSafeInteger(numeric) && numeric > 0;
+  }
+  if (typeof value !== "string" || !value.trim()) return false;
+  if (field === "checkIn" || field === "checkOut") return isCanonicalIsoDateValue(value.trim());
+  return true;
+}
+
+function comparablePresentedReadValue(field: SameIdReadField, value: unknown): string {
+  if (field === "numGuests") return String(Number(value));
+  const normalized = String(value).trim();
+  return field === "roomType" ? normalized.toLowerCase() : normalized;
+}
+
+function getMaterialReadTimestamp(record: CanonicalReservationRecord): number | null {
+  const rawUpdatedAt = (record as any).updatedAt;
+  const rawTimestamp = rawUpdatedAt !== undefined && rawUpdatedAt !== null && rawUpdatedAt !== ""
+    ? rawUpdatedAt
+    : record.createdAt;
+  const timestamp = Date.parse(String(rawTimestamp || ""));
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+async function resolveSameIdReadProjection(input: {
+  expectedHotelId: string;
+  material: {
+    record: CanonicalReservationRecord;
+    hotelId: string;
+    canonicalGuestId?: string;
+    source: SameIdReadMaterialSource;
+    scopeVerified: boolean;
+  };
+  presented: {
+    context?: LastPresentedReservations | null;
+    hotelId: string;
+  };
+}): Promise<SameIdReadProjectionResult | null> {
+  const { expectedHotelId, material, presented } = input;
+  const materialRecord = material.record;
+  const reservationId = String(materialRecord?.reservationId || "").trim();
+  const materialRecordHotelId = String((materialRecord as any)?.hotelId || material.hotelId || "").trim();
+  if (
+    !material.scopeVerified ||
+    !reservationId ||
+    !hasSameIdReadMaterialBaseline(materialRecord) ||
+    material.hotelId !== expectedHotelId ||
+    materialRecordHotelId !== expectedHotelId
+  ) {
+    return null;
+  }
+
+  const baseline: SameIdReadProjectionResult = {
+    record: { ...materialRecord },
+    materialSource: material.source,
+    supplementedFields: [],
+  };
+  const context = presented.context;
+  const presentedGuestId = String(context?.guestId || "").trim();
+  const canonicalGuestId = String(material.canonicalGuestId || "").trim();
+  const presentedAt = Date.parse(String(context?.presentedAt || ""));
+  const materialTimestamp = getMaterialReadTimestamp(materialRecord);
+  if (
+    !context ||
+    presented.hotelId !== expectedHotelId ||
+    !presentedGuestId ||
+    !canonicalGuestId ||
+    !Number.isFinite(presentedAt) ||
+    materialTimestamp === null ||
+    presentedAt < materialTimestamp
+  ) {
+    return baseline;
+  }
+  if (
+    presentedGuestId !== canonicalGuestId &&
+    !await presentedReservationScopeMatchesCanonicalGuest(expectedHotelId, presentedGuestId, canonicalGuestId)
+  ) {
+    return baseline;
+  }
+
+  const matchingPresentedRecords = (Array.isArray(context.reservations) ? context.reservations : []).filter((item) => {
+    const itemRecord = item as LastReservation & { hotelId?: string; guestId?: string; canonicalGuestId?: string };
+    const itemHotelId = String(itemRecord.hotelId || expectedHotelId).trim();
+    const itemGuestId = String(itemRecord.canonicalGuestId || itemRecord.guestId || presentedGuestId).trim();
+    return String(itemRecord.reservationId || "").trim() === reservationId &&
+      itemHotelId === expectedHotelId &&
+      (itemGuestId === presentedGuestId || itemGuestId === canonicalGuestId);
+  });
+  if (matchingPresentedRecords.length === 0) return baseline;
+
+  const projectedRecord = { ...materialRecord } as CanonicalReservationRecord;
+  const supplementedFields: SameIdReadField[] = [];
+  for (const field of SAME_ID_READ_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(materialRecord, field) && materialRecord[field] !== undefined) continue;
+    const candidates = matchingPresentedRecords
+      .map((record) => record[field])
+      .filter((value) => isValidPresentedReadValue(field, value));
+    if (candidates.length === 0) continue;
+    const uniqueValues = new Set(candidates.map((value) => comparablePresentedReadValue(field, value)));
+    if (uniqueValues.size !== 1) continue;
+    (projectedRecord as any)[field] = candidates[0];
+    supplementedFields.push(field);
+  }
+  return {
+    record: projectedRecord,
+    materialSource: material.source,
+    supplementedFields,
+  };
+}
+
+async function resolveSameIdReadProjectionForPre(
+  pre: PreLLMResult,
+  materialRecord: CanonicalReservationRecord,
+  materialSource: SameIdReadMaterialSource,
+): Promise<SameIdReadProjectionResult | null> {
+  const { canonicalGuestId } = await resolveCanonicalGuestScope(pre);
+  const stateHotelId = String(pre.st?.hotelId || pre.msg.hotelId).trim();
+  return resolveSameIdReadProjection({
+    expectedHotelId: pre.msg.hotelId,
+    material: {
+      record: materialRecord,
+      hotelId: pre.msg.hotelId,
+      canonicalGuestId,
+      source: materialSource,
+      scopeVerified: materialSource === "guest_wide" || stateHotelId === pre.msg.hotelId,
+    },
+    presented: {
+      context: pre.st?.lastPresentedReservations,
+      hotelId: stateHotelId,
+    },
+  });
+}
+
+async function resolveLocalSameIdReadProjection(
+  pre: PreLLMResult,
+  reservationId?: string | null,
+): Promise<CanonicalReservationRecord | null> {
+  const materialRecord = getCanonicalReservationRecordById(pre.st, reservationId);
+  if (!hasSameIdReadMaterialBaseline(materialRecord)) return null;
+  const projection = await resolveSameIdReadProjectionForPre(pre, materialRecord!, "local");
+  return projection?.record || null;
+}
+
 type ActionableModifyTargetResolution =
   | { ok: true; target: ReservationReferenceTarget; record: CanonicalReservationRecord }
   | { ok: false; reason: "missing_target" | "hotel_mismatch" | "missing_record" | "status_conflict" | "inactive" | "invalid_status" | "missing_payload" | "verification_failed" };
+
+type GuestWideMaterialReadResolution =
+  | { ok: true; record: CanonicalReservationRecord }
+  | { ok: false; reason: "missing_record" | "status_conflict" | "verification_failed" };
 
 function resolveLocalActionableModifyTarget(
   pre: Pick<PreLLMResult, "msg" | "st">,
@@ -2931,11 +3099,11 @@ function resolveLocalActionableModifyTarget(
   };
 }
 
-async function resolveGuestWideMaterialModifyTarget(
+async function resolveGuestWideMaterialReservation(
   pre: PreLLMResult,
-  target: ReservationReferenceTarget,
-): Promise<ActionableModifyTargetResolution> {
-  const reservationId = String(target.reservationId || "").trim();
+  reservationIdInput: string,
+): Promise<GuestWideMaterialReadResolution> {
+  const reservationId = String(reservationIdInput || "").trim();
   const presented = pre.st?.lastPresentedReservations;
   const presentedGuestId = String(presented?.guestId || "").trim();
   const hasPresentedTarget = Array.isArray(presented?.reservations) &&
@@ -2987,6 +3155,33 @@ async function resolveGuestWideMaterialModifyTarget(
   const materialRecord = projection.byId.get(reservationId);
   if (!materialRecord) return { ok: false, reason: "missing_record" };
   if (projection.conflictedIds.has(reservationId)) return { ok: false, reason: "status_conflict" };
+
+  return { ok: true, record: materialRecord };
+}
+
+async function resolveCanonicalSameIdReadProjection(
+  pre: PreLLMResult,
+  reservationId?: string | null,
+): Promise<CanonicalReservationRecord | null> {
+  const localRecord = await resolveLocalSameIdReadProjection(pre, reservationId);
+  if (localRecord) return localRecord;
+  if (!reservationId) return null;
+
+  const guestWideMaterial = await resolveGuestWideMaterialReservation(pre, reservationId);
+  if (!guestWideMaterial.ok || !hasSameIdReadMaterialBaseline(guestWideMaterial.record)) return null;
+  const projection = await resolveSameIdReadProjectionForPre(pre, guestWideMaterial.record, "guest_wide");
+  return projection?.record || null;
+}
+
+async function resolveGuestWideMaterialModifyTarget(
+  pre: PreLLMResult,
+  target: ReservationReferenceTarget,
+): Promise<ActionableModifyTargetResolution> {
+  const reservationId = String(target.reservationId || "").trim();
+  if (!reservationId) return { ok: false, reason: "missing_record" };
+  const materialRead = await resolveGuestWideMaterialReservation(pre, reservationId);
+  if (!materialRead.ok) return materialRead;
+  const materialRecord = materialRead.record;
   if (materialRecord.canonicalStatus === "cancelled") return { ok: false, reason: "inactive" };
   if (materialRecord.canonicalStatus !== "active") return { ok: false, reason: "invalid_status" };
   if (!hasMaterializedReservationPayload(materialRecord)) return { ok: false, reason: "missing_payload" };
@@ -3103,33 +3298,31 @@ function buildCanonicalReservationTarget(
   };
 }
 
-function resolveConfirmedReservationFollowupSnapshot(
+async function resolveConfirmedReservationFollowupSnapshot(
   pre: PreLLMResult,
   selectedOrActiveReservationTarget?: { reservationId?: string } | null
-): {
+): Promise<{
   reservationId?: string;
   status?: LastReservation["status"];
   slots: ReservationSlotsStrict;
-} {
+}> {
   const reservationId =
     selectedOrActiveReservationTarget?.reservationId ||
     pre.st?.lastReservation?.reservationId ||
     resolveSingleActionableReservationTarget(pre.st)?.reservationId;
-  const record = reservationId
+  const materialRecord = reservationId
     ? getCanonicalReservationRecordById(pre.st, reservationId)
     : buildCanonicalReservationRecords(pre.st).find((item) => item.status !== "cancelled");
+  const record = reservationId
+    ? await resolveCanonicalSameIdReadProjection(pre, reservationId) || materialRecord
+    : materialRecord;
+  const slots = record
+    ? buildReservationSlotsFromCanonicalRecord(record, pre.lang)
+    : ({ ...(pre.st?.reservationSlots || {}), locale: pre.lang } as ReservationSlotsStrict);
   return {
     reservationId: reservationId || record?.reservationId,
     status: (record?.status || pre.st?.lastReservation?.status) as LastReservation["status"] | undefined,
-    slots: {
-      guestName: record?.guestName || pre.st?.reservationSlots?.guestName,
-      roomType: record?.roomType || pre.st?.reservationSlots?.roomType,
-      numGuests: record?.numGuests || pre.st?.reservationSlots?.numGuests,
-      // A completed local modify can have dates newer than the historical record.
-      checkIn: pre.st?.reservationSlots?.checkIn || record?.checkIn,
-      checkOut: pre.st?.reservationSlots?.checkOut || record?.checkOut,
-      locale: pre.lang,
-    } as ReservationSlotsStrict,
+    slots,
   };
 }
 
@@ -8505,12 +8698,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const pendingTargetCandidate = getReservationReferenceTargetById(pre.st, pendingModifyPatchEarly.reservationId);
     const pendingTargetActionability = await resolveActionableModifyTarget(pre, pendingTargetCandidate);
     const localCanonicalPreviewRecord = getCanonicalReservationRecordById(pre.st, pendingModifyPatchEarly.reservationId);
-    const canonicalPreviewRecord =
-      localCanonicalPreviewRecord ||
-      (pendingTargetActionability.ok ? pendingTargetActionability.record : null) ||
-      buildPresentedReservationRecords(pre.st).find(
-        (record) => record.reservationId === pendingModifyPatchEarly.reservationId
-      );
+    const localMaterialPreviewRecord = hasSameIdReadMaterialBaseline(localCanonicalPreviewRecord)
+      ? localCanonicalPreviewRecord
+      : null;
+    const materialPreviewRecord = localMaterialPreviewRecord ||
+      (pendingTargetActionability.ok && hasSameIdReadMaterialBaseline(pendingTargetActionability.record)
+        ? pendingTargetActionability.record
+        : null);
+    const previewProjection = materialPreviewRecord
+      ? await resolveSameIdReadProjectionForPre(
+          pre,
+          materialPreviewRecord,
+          localMaterialPreviewRecord ? "local" : "guest_wide",
+        )
+      : null;
+    const canonicalPreviewRecord = previewProjection?.record || null;
     const canonicalPreviewSlots = canonicalPreviewRecord
       ? buildReservationSlotsFromCanonicalRecord(canonicalPreviewRecord, pre.lang)
       : null;
@@ -8541,6 +8743,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     if (!pendingTargetActionability.ok) {
       await clearInvalidModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId);
       finalText = buildModifyActionabilityFailureReply(pre.lang, pendingTargetActionability);
+      return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (!canonicalPreviewRecord || !canonicalPreviewSlots) {
+      await clearInvalidModifyExecutionContext(pre, pendingModifyPatchEarly.reservationId);
+      finalText = buildModifyActionabilityFailureReply(pre.lang, { ok: false, reason: "verification_failed" });
       return { finalText, nextCategory: "modify_reservation", nextSlots, needsSupervision, graphResult };
     }
     const pendingTarget = pendingTargetActionability.target;
@@ -8803,7 +9010,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     normalizedReservationIntent.kind !== "cancel" &&
     !looksExplicitNewReservation
   ) {
-    const confirmedSnapshot = resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget);
+    const confirmedSnapshot = await resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget);
     const snapshotLang = resolveReservationSnapshotLanguage(pre);
     finalText = buildReservationSnapshotAnswer(
       "full",
@@ -9056,7 +9263,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   }
   const confirmedSnapshotFallback =
     effectiveSnapshotQueryKind && hasConfirmedBookingContext
-      ? resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget)
+      ? await resolveConfirmedReservationFollowupSnapshot(pre, selectedOrActiveReservationTarget)
       : null;
   const resolvedSnapshotTarget =
     effectiveSnapshotQueryKind === "list"
@@ -9106,19 +9313,23 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const target = targetId ? getReservationReferenceTargetById(pre.st, targetId) : null;
     if (targetId && target) {
       const snapshotLang = resolveReservationSnapshotLanguage(pre);
+      const snapshotRecord = await resolveCanonicalSameIdReadProjection(pre, targetId);
+      const snapshotSlots = snapshotRecord
+        ? buildReservationSlotsFromCanonicalRecord(snapshotRecord, snapshotLang)
+        : ({
+            guestName: target.guestName,
+            roomType: target.roomType,
+            numGuests: target.numGuests,
+            checkIn: target.checkIn,
+            checkOut: target.checkOut,
+            locale: snapshotLang,
+          } as ReservationSlotsStrict);
       finalText = buildReservationSnapshotAnswer(
         "full",
         snapshotLang,
-        {
-          reservationId: target.reservationId,
-          guestName: target.guestName,
-          roomType: target.roomType,
-          numGuests: target.numGuests,
-          checkIn: target.checkIn,
-          checkOut: target.checkOut,
-        } as any,
+        snapshotSlots,
         targetId,
-        target.reservationStatus
+        snapshotRecord?.status || target.reservationStatus
       );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         modifyState: null,
@@ -9206,14 +9417,24 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   if (effectiveSnapshotQueryKind && resolvedSnapshotTarget) {
     const target = resolvedSnapshotTarget;
     const snapshotLang = resolveReservationSnapshotLanguage(pre);
-    finalText = buildReservationSnapshotAnswer(effectiveSnapshotQueryKind, snapshotLang, {
-      reservationId: target.reservationId,
-      guestName: target.guestName,
-      roomType: target.roomType,
-      numGuests: target.numGuests,
-      checkIn: target.checkIn,
-      checkOut: target.checkOut,
-    } as any, target.reservationId, target.reservationStatus);
+    const snapshotRecord = await resolveCanonicalSameIdReadProjection(pre, target.reservationId);
+    const snapshotSlots = snapshotRecord
+      ? buildReservationSlotsFromCanonicalRecord(snapshotRecord, snapshotLang)
+      : ({
+          guestName: target.guestName,
+          roomType: target.roomType,
+          numGuests: target.numGuests,
+          checkIn: target.checkIn,
+          checkOut: target.checkOut,
+          locale: snapshotLang,
+        } as ReservationSlotsStrict);
+    finalText = buildReservationSnapshotAnswer(
+      effectiveSnapshotQueryKind,
+      snapshotLang,
+      snapshotSlots,
+      target.reservationId,
+      snapshotRecord?.status || target.reservationStatus,
+    );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       activeReservationContext: buildFocusedReservationContext(target.reservationId, "confirmed"),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(
@@ -11918,38 +12139,18 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
             const canonicalReservationId = pre.st?.lastReservation && "reservationId" in pre.st.lastReservation
               ? pre.st.lastReservation.reservationId
               : undefined;
-            const canonicalRecord = canonicalReservationId
-              ? buildReservationCanonicalState(pre.st).byId.get(canonicalReservationId)
-              : undefined;
-            const canonicalSlots = canonicalRecord
-              ? {
-                guestName: canonicalRecord.guestName,
-                roomType: canonicalRecord.roomType,
-                checkIn: canonicalRecord.checkIn,
-                checkOut: canonicalRecord.checkOut,
-                numGuests: canonicalRecord.numGuests,
-                locale: pre.lang,
-              }
-              : undefined;
-            const persistedSlots = pre.st?.reservationSlots || {};
-            const supplementalSlots = nextSlots || {};
-            const snapshotSlots = (canonicalSlots
-              ? {
-                ...canonicalSlots,
-                guestName: canonicalSlots.guestName || persistedSlots.guestName || supplementalSlots.guestName,
-                roomType: canonicalSlots.roomType || persistedSlots.roomType || supplementalSlots.roomType,
-                // The current conversation's dates may be newer than its historical snapshot.
-                checkIn: persistedSlots.checkIn || supplementalSlots.checkIn || canonicalSlots.checkIn,
-                checkOut: persistedSlots.checkOut || supplementalSlots.checkOut || canonicalSlots.checkOut,
-                numGuests: canonicalSlots.numGuests,
-              }
-              : {
-                ...persistedSlots,
-                ...(supplementalSlots || {}),
-              }) as ReservationSlotsStrict;
+            const snapshotLang = resolveReservationSnapshotLanguage(pre);
+            const canonicalRecord = await resolveCanonicalSameIdReadProjection(pre, canonicalReservationId);
+            const snapshotSlots = canonicalRecord
+              ? buildReservationSlotsFromCanonicalRecord(canonicalRecord, snapshotLang)
+              : ({
+                  ...(pre.st?.reservationSlots || {}),
+                  ...(nextSlots || {}),
+                  locale: snapshotLang,
+                } as ReservationSlotsStrict);
             finalText = buildReservationSnapshotAnswer(
               postBookingSnapshotQ,
-              resolveReservationSnapshotLanguage(pre),
+              snapshotLang,
               snapshotSlots,
               canonicalReservationId,
               pre.st?.lastReservation?.status
