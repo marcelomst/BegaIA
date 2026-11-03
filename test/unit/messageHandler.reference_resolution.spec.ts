@@ -156,6 +156,7 @@ import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { extractGuests, extractSlotsFromText } from "@/lib/agents/helpers";
 import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation, quoteReservationModification } from "@/lib/agents/reservations";
 import { getConversationsByGuestId, getConversationsForGuestPerspective } from "@/lib/db/conversations";
+import { getConvState } from "@/lib/db/convState";
 import { findGuestByAnyId, getGuest } from "@/lib/db/guests";
 
 function msg(content: string, conversationId: string) {
@@ -7271,5 +7272,287 @@ describe("messageHandler reference resolution", () => {
         }
       });
     }
+  });
+
+  describe("[OBS-M6-09] post-cancel cross-conversation causal characterization", () => {
+    const reservationId = "RES-CAFE09";
+    const sourceConversationId = "conv-obs-m6-09-source";
+    const cancellingConversationId = "conv-obs-m6-09-cancelling";
+
+    const activeReservation = () => ({
+      hotelId: "hotel999",
+      reservationId,
+      status: "created",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+      guestName: "Ruben Caracterizacion",
+      roomType: "triple",
+      checkIn: "2026-11-21",
+      checkOut: "2026-11-23",
+      numGuests: "3",
+    });
+
+    const providerCancelledReservation = () => ({
+      reservationId,
+      hotelId: "hotel999",
+      guestName: "Ruben Caracterizacion",
+      roomType: "triple",
+      numGuests: 3,
+      checkInDate: "2026-11-21T00:00:00.000Z",
+      checkOutDate: "2026-11-23T00:00:00.000Z",
+      status: "cancelled",
+      currency: "USD",
+      priceTotal: 360,
+      createdAt: "2026-03-22T10:00:00.000Z",
+      updatedAt: "2026-03-23T12:00:00.000Z",
+    });
+
+    const cloneState = (conversationId: string) =>
+      structuredClone(stateByConversation.get(conversationId));
+
+    const seedScenario = (materializeCancellingConversation: boolean) => {
+      const material = activeReservation();
+      stateByConversation.set(sourceConversationId, {
+        hotelId: "hotel999",
+        conversationId: sourceConversationId,
+        guestId: "g1",
+        reservationSlots: {
+          guestName: material.guestName,
+          roomType: material.roomType,
+          checkIn: material.checkIn,
+          checkOut: material.checkOut,
+          numGuests: material.numGuests,
+        },
+        lastReservation: material,
+        reservationHistory: [material],
+        activeReservationContext: {
+          kind: "reservation",
+          reservationId,
+          phase: "confirmed",
+          updatedAt: "2026-03-22T10:00:00.000Z",
+        },
+      });
+      stateByConversation.set(cancellingConversationId, {
+        hotelId: "hotel999",
+        conversationId: cancellingConversationId,
+        guestId: "g1",
+        ...(materializeCancellingConversation ? {
+          reservationSlots: {
+            guestName: material.guestName,
+            roomType: material.roomType,
+            checkIn: material.checkIn,
+            checkOut: material.checkOut,
+            numGuests: material.numGuests,
+          },
+          lastReservation: material,
+          reservationHistory: [material],
+          activeReservationContext: {
+            kind: "reservation",
+            reservationId,
+            phase: "confirmed",
+            updatedAt: "2026-03-22T10:00:00.000Z",
+          },
+        } : {}),
+        lastPresentedReservations: {
+          guestId: "g1",
+          presentedAt: "2026-03-23T11:00:00.000Z",
+          reservations: [material],
+        },
+      });
+      (getConversationsForGuestPerspective as any).mockResolvedValue([
+        { conversationId: sourceConversationId, hotelId: "hotel999", guestId: "g1", channel: "web" },
+        { conversationId: cancellingConversationId, hotelId: "hotel999", guestId: "g1", channel: "web" },
+      ]);
+      return cloneState(cancellingConversationId);
+    };
+
+    const confirmCancellation = async (sendReply: ReturnType<typeof vi.fn>) => {
+      const providerResult = providerCancelledReservation();
+      (cancelReservation as any).mockResolvedValueOnce({
+        ok: true,
+        message: "✅ Reserva cancelada.",
+        reservation: providerResult,
+      });
+
+      await handleIncomingMessage(
+        msg(`Quiero cancelar la reserva ${reservationId}`, cancellingConversationId),
+        { mode: "automatic", sendReply },
+      );
+      const pendingState = cloneState(cancellingConversationId);
+      const confirmationPrompt = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+
+      sendReply.mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", cancellingConversationId), { mode: "automatic", sendReply });
+      return {
+        providerResult,
+        pendingState,
+        confirmationPrompt,
+        cancelReply: String((sendReply as any).mock.calls.at(-1)?.[0] || ""),
+        cancelledState: cloneState(cancellingConversationId),
+      };
+    };
+
+    const requestSnapshot = async (sendReply: ReturnType<typeof vi.fn>) => {
+      (getConvState as any).mockClear();
+      sendReply.mockClear();
+      await handleIncomingMessage(
+        msg(`Mostrame la reserva ${reservationId}`, cancellingConversationId),
+        { mode: "automatic", sendReply },
+      );
+      return {
+        reply: String((sendReply as any).mock.calls.at(-1)?.[0] || ""),
+        state: cloneState(cancellingConversationId),
+        stateReads: (getConvState as any).mock.calls.map((call: any[]) => call[1]),
+      };
+    };
+
+    it("[A][PASS_REPRODUCTION] traza provider → proyección incompleta → Snapshot activa → listado cancelada", async () => {
+      const sendReply = vi.fn(async () => {});
+      const initialCancellingState = seedScenario(false);
+      const cancellation = await confirmCancellation(sendReply);
+
+      expect(initialCancellingState).toMatchObject({
+        lastPresentedReservations: {
+          guestId: "g1",
+          reservations: [expect.objectContaining({ reservationId, status: "created" })],
+        },
+      });
+      expect(initialCancellingState.lastReservation ?? null).toBeNull();
+      expect(initialCancellingState.reservationHistory ?? []).toEqual([]);
+      expect(initialCancellingState.selectedReservationTarget ?? null).toBeNull();
+      expect(initialCancellingState.activeReservationContext ?? null).toBeNull();
+      expect(initialCancellingState.pendingCancellation ?? null).toBeNull();
+
+      expect(cancellation.confirmationPrompt).toMatch(/CONFIRMAR/i);
+      expect(cancellation.pendingState.pendingCancellation).toEqual({
+        reservationId,
+        awaitingConfirmation: true,
+      });
+      expect(cancellation.pendingState.selectedReservationTarget).toMatchObject({
+        reservationId,
+        source: "explicit_id",
+        resolutionMode: "strong",
+      });
+      expect(cancellation.pendingState.activeReservationContext).toMatchObject({
+        reservationId,
+        phase: "confirmed",
+      });
+      expect(cancelReservation).toHaveBeenCalledWith("hotel999", reservationId);
+      expect(cancellation.providerResult).toMatchObject({
+        reservationId,
+        hotelId: "hotel999",
+        status: "cancelled",
+        guestName: "Ruben Caracterizacion",
+        roomType: "triple",
+        numGuests: 3,
+        checkInDate: "2026-11-21T00:00:00.000Z",
+        checkOutDate: "2026-11-23T00:00:00.000Z",
+      });
+      expect(cancellation.cancelReply).toMatch(/Reserva cancelada/i);
+      expect(cancellation.cancelledState.lastReservation).toEqual(expect.objectContaining({
+        reservationId,
+        status: "cancelled",
+      }));
+      expect(cancellation.cancelledState.lastReservation).toMatchObject({
+        guestName: undefined,
+        roomType: undefined,
+        checkIn: undefined,
+        checkOut: undefined,
+        numGuests: undefined,
+      });
+      expect(cancellation.cancelledState.reservationHistory).toEqual([
+        expect.objectContaining({ reservationId, status: "cancelled" }),
+      ]);
+      expect(cancellation.cancelledState.lastPresentedReservations.reservations).toEqual([
+        expect.objectContaining({ reservationId, status: "created", roomType: "triple" }),
+      ]);
+      expect(cancellation.cancelledState.selectedReservationTarget).toMatchObject({ reservationId });
+      expect(cancellation.cancelledState.activeReservationContext).toMatchObject({
+        reservationId,
+        phase: "cancelled",
+      });
+      expect(cancellation.cancelledState.pendingCancellation ?? null).toBeNull();
+
+      const snapshot = await requestSnapshot(sendReply);
+      expect(snapshot.reply).toMatch(/Código: RES-CAFE09/i);
+      expect(snapshot.reply).toMatch(/Estado: Activa/i);
+      expect(snapshot.reply).toMatch(
+        /Nombre: Ruben Caracterizacion[\s\S]*Habitación: triple[\s\S]*Fechas: 21\/11\/2026 → 23\/11\/2026[\s\S]*Huéspedes: 3/i,
+      );
+      expect(snapshot.stateReads).toContain(sourceConversationId);
+      expect(snapshot.state.lastReservation).toMatchObject({ reservationId, status: "cancelled" });
+      expect(snapshot.state.lastPresentedReservations.presentedAt).toBe("2026-03-23T11:00:00.000Z");
+      expect(Date.parse(snapshot.state.lastPresentedReservations.presentedAt)).toBeLessThan(
+        Date.parse(snapshot.state.lastReservation.createdAt),
+      );
+      expect(snapshot.state.selectedReservationTarget).toMatchObject({
+        reservationId,
+        source: "explicit_id",
+        resolutionMode: "strong",
+      });
+      expect(snapshot.state.pendingCancellation ?? null).toBeNull();
+      expect(snapshot.state.activeReservationContext).toMatchObject({ reservationId, phase: "confirmed" });
+
+      (getConvState as any).mockClear();
+      sendReply.mockClear();
+      await handleIncomingMessage(msg("Mostrame mis reservas", sourceConversationId), { mode: "automatic", sendReply });
+      const listReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+      const listStateReads = (getConvState as any).mock.calls.map((call: any[]) => call[1]);
+      expect(listReply).toMatch(/RES-CAFE09 .*cancelada.*futura/i);
+      expect(listReply).toMatch(/Ruben Caracterizacion.*habitación: triple.*21\/11\/2026 → 23\/11\/2026.*huéspedes: 3/is);
+      expect(listReply).not.toMatch(/RES-CAFE09 .*activa/i);
+      expect(listStateReads).toContain(cancellingConversationId);
+      expect(stateByConversation.get(sourceConversationId)?.lastReservation).toMatchObject({
+        reservationId,
+        status: "created",
+      });
+      expect(stateByConversation.get(cancellingConversationId)?.lastReservation).toMatchObject({
+        reservationId,
+        status: "cancelled",
+      });
+    });
+
+    it("[B][PASS_CONTROL] con material local suficiente Snapshot conserva cancelada sin fallback guest-wide", async () => {
+      const sendReply = vi.fn(async () => {});
+      seedScenario(true);
+      const cancellation = await confirmCancellation(sendReply);
+
+      expect(cancellation.cancelledState.lastReservation).toMatchObject({
+        reservationId,
+        status: "cancelled",
+        guestName: "Ruben Caracterizacion",
+        roomType: "triple",
+        checkIn: "2026-11-21",
+        checkOut: "2026-11-23",
+        numGuests: "3",
+      });
+
+      const snapshot = await requestSnapshot(sendReply);
+      expect(snapshot.reply).toMatch(/Estado: Cancelada/i);
+      expect(snapshot.reply).toMatch(
+        /Nombre: Ruben Caracterizacion[\s\S]*Habitación: triple[\s\S]*Fechas: 21\/11\/2026 → 23\/11\/2026[\s\S]*Huéspedes: 3/i,
+      );
+      expect(snapshot.stateReads.filter((conversationId: string) => conversationId === sourceConversationId)).toHaveLength(0);
+      expect(snapshot.state.lastReservation).toMatchObject({ reservationId, status: "cancelled" });
+    });
+
+    it.fails("[EXPECTED_FAILURE][A+D] Snapshot same-ID debe mantener cancelada y no ceder autoridad a la versión activa antigua", async () => {
+      const sendReply = vi.fn(async () => {});
+      seedScenario(false);
+      await confirmCancellation(sendReply);
+      const snapshot = await requestSnapshot(sendReply);
+
+      expect(snapshot.reply).toMatch(/Estado: Cancelada/i);
+      expect(snapshot.reply).not.toMatch(/Estado: Activa/i);
+    });
+
+    it.fails("[EXPECTED_FAILURE][C] Snapshot de una reserva cancelada debe preservar activeReservationContext.phase=cancelled", async () => {
+      const sendReply = vi.fn(async () => {});
+      seedScenario(true);
+      await confirmCancellation(sendReply);
+      const snapshot = await requestSnapshot(sendReply);
+
+      expect(snapshot.state.activeReservationContext).toMatchObject({ reservationId, phase: "cancelled" });
+    });
   });
 });

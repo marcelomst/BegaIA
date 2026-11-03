@@ -255,17 +255,30 @@ describe("agents/reservations - tools wrappers", () => {
   });
 
   describe("cancelReservationTool provider result", () => {
-    it("acepta únicamente una Reservation cancelada con la identidad solicitada", async () => {
+    it("[OBS-M6-09][provider trace] valida la Reservation completa pero proyecta sólo ok/status", async () => {
       const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const providerResult = providerReservation();
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
         ok: true,
-        data: providerReservation(),
+        data: providerResult,
       }));
       try {
-        await expect(real.cancelReservationTool({
+        const result = await real.cancelReservationTool({
           hotelId: "hotel999",
           reservationId: "RES-EXPECTED",
-        })).resolves.toEqual({ ok: true, status: "cancelled" });
+        });
+        expect(providerResult).toMatchObject({
+          reservationId: "RES-EXPECTED",
+          hotelId: "hotel999",
+          status: "cancelled",
+          guestName: "Ana",
+          roomType: "double",
+          numGuests: 2,
+          checkInDate: "2026-10-10T00:00:00.000Z",
+          checkOutDate: "2026-10-12T00:00:00.000Z",
+        });
+        expect(result).toEqual({ ok: true, status: "cancelled" });
+        expect(result).not.toHaveProperty("reservation");
       } finally {
         fetchSpy.mockRestore();
       }
@@ -413,6 +426,22 @@ describe("agents/reservations - tools wrappers", () => {
     expect(out.ok).toBe(true);
     expect(out.message).toMatch(/cancelada/i);
     expect((cancelReservationTool as any).mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it("[OBS-M6-09][agent trace] descarta material aunque el tool lo entregue junto a ok/status", async () => {
+    const material = providerReservation({ reservationId: "ABC123" });
+    (cancelReservationTool as any).mockResolvedValueOnce({
+      ok: true,
+      status: "cancelled",
+      reservation: material,
+    });
+
+    const out = await cancelReservation("hotel999", "ABC123");
+
+    expect(cancelReservationTool).toHaveBeenCalledWith({ hotelId: "hotel999", reservationId: "ABC123" });
+    expect(material).toMatchObject({ reservationId: "ABC123", status: "cancelled", guestName: "Ana" });
+    expect(out).toEqual({ ok: true, message: "✅ Reserva cancelada." });
+    expect(out).not.toHaveProperty("reservation");
   });
 
   it("cancelReservation propaga error si el tool no devuelve 'cancelled'", async () => {
