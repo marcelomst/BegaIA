@@ -3990,6 +3990,121 @@ describe("messageHandler reference resolution", () => {
     expect(modifyReservation).not.toHaveBeenCalled();
   });
 
+  it("[M6 CHARACTERIZATION][B1] 'Descarta la propuesta' descarta el preview y vuelve inocuo CONFIRMAR", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-m6-characterization-discard-proposal";
+    await preparePendingModifyPreview(conversationId, sendReply);
+    const stateBeforeDiscard = stateByConversation.get(conversationId);
+    const canonicalLastReservation = stateBeforeDiscard?.lastReservation;
+    const canonicalReservationHistory = stateBeforeDiscard?.reservationHistory;
+
+    await handleIncomingMessage(msg("Descarta la propuesta", conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const stateAfterDiscard = stateByConversation.get(conversationId);
+    expect.soft(replyText).toMatch(/no apliqu[eé] cambios|sigue igual|descart[eé].*propuesta/i);
+    expect.soft(stateAfterDiscard?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect.soft(stateAfterDiscard?.modifyState ?? null).toBeNull();
+    expect.soft(stateAfterDiscard?.modifyState?.pendingPatch).toBeUndefined();
+    expect.soft(stateAfterDiscard?.modifyState?.awaitingConfirmation).not.toBe(true);
+    expect.soft(stateAfterDiscard?.pendingCancellation ?? null).toBeNull();
+    expect.soft(stateAfterDiscard?.lastReservation).toEqual(canonicalLastReservation);
+    expect.soft(stateAfterDiscard?.reservationHistory).toEqual(canonicalReservationHistory);
+    expect.soft(quoteReservationModification).toHaveBeenCalledTimes(1);
+    expect.soft(confirmAndCreate).not.toHaveBeenCalled();
+    expect.soft(modifyReservation).not.toHaveBeenCalled();
+    expect.soft(cancelReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const stateAfterConfirm = stateByConversation.get(conversationId);
+    expect.soft(stateAfterConfirm?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect.soft(stateAfterConfirm?.modifyState ?? null).toBeNull();
+    expect.soft(stateAfterConfirm?.pendingCancellation ?? null).toBeNull();
+    expect.soft(stateAfterConfirm?.lastReservation).toEqual(canonicalLastReservation);
+    expect.soft(stateAfterConfirm?.reservationHistory).toEqual(canonicalReservationHistory);
+    expect.soft(confirmAndCreate).not.toHaveBeenCalled();
+    expect.soft(modifyReservation).not.toHaveBeenCalled();
+    expect.soft(cancelReservation).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["Quiero cancelar eso", "cancel-that"],
+    ["Cancelalo", "cancel-it"],
+  ])("[M6 CHARACTERIZATION][D] '%s' después del descarte pide aclaración y vuelve inocuo CONFIRMAR", async (cancelText, suffix) => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = `conv-ref-m6-characterization-${suffix}`;
+    await preparePendingModifyPreview(conversationId, sendReply);
+
+    await handleIncomingMessage(msg("Descartá los cambios", conversationId), { mode: "automatic", sendReply });
+    const stateAfterDiscard = stateByConversation.get(conversationId);
+    expect(stateAfterDiscard?.modifyState ?? null).toBeNull();
+    expect(stateAfterDiscard?.pendingCancellation ?? null).toBeNull();
+    const canonicalLastReservation = stateAfterDiscard?.lastReservation;
+    const canonicalReservationHistory = stateAfterDiscard?.reservationHistory;
+    sendReply.mockClear();
+
+    await handleIncomingMessage(msg(cancelText, conversationId), { mode: "automatic", sendReply });
+
+    const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+    const stateAfterAmbiguousCancel = stateByConversation.get(conversationId);
+    expect.soft(replyText).toMatch(/qu[eé] quer[eé]s cancelar|reserva o cambios|aclar|precisi[oó]n/i);
+    expect.soft(stateAfterAmbiguousCancel?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect.soft(stateAfterAmbiguousCancel?.modifyState ?? null).toBeNull();
+    expect.soft(stateAfterAmbiguousCancel?.modifyState?.pendingPatch).toBeUndefined();
+    expect.soft(stateAfterAmbiguousCancel?.modifyState?.awaitingConfirmation).not.toBe(true);
+    expect.soft(stateAfterAmbiguousCancel?.pendingCancellation ?? null).toBeNull();
+    expect.soft(stateAfterAmbiguousCancel?.lastReservation).toEqual(canonicalLastReservation);
+    expect.soft(stateAfterAmbiguousCancel?.reservationHistory).toEqual(canonicalReservationHistory);
+    expect.soft(quoteReservationModification).toHaveBeenCalledTimes(1);
+    expect.soft(confirmAndCreate).not.toHaveBeenCalled();
+    expect.soft(modifyReservation).not.toHaveBeenCalled();
+    expect.soft(cancelReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    const stateAfterConfirm = stateByConversation.get(conversationId);
+    expect.soft(stateAfterConfirm?.selectedReservationTarget).toMatchObject({ reservationId: "RES-ONLY-01" });
+    expect.soft(stateAfterConfirm?.modifyState ?? null).toBeNull();
+    expect.soft(stateAfterConfirm?.pendingCancellation ?? null).toBeNull();
+    expect.soft(stateAfterConfirm?.lastReservation).toEqual(canonicalLastReservation);
+    expect.soft(stateAfterConfirm?.reservationHistory).toEqual(canonicalReservationHistory);
+    expect.soft(confirmAndCreate).not.toHaveBeenCalled();
+    expect.soft(modifyReservation).not.toHaveBeenCalled();
+    expect.soft(cancelReservation).not.toHaveBeenCalled();
+  });
+
+  it("[M6] 'Cancelalo' conserva una selección canónica fuerte y exige CONFIRMAR", async () => {
+    const sendReply = vi.fn(async () => {});
+    const conversationId = "conv-ref-m6-cancel-it-strong-target";
+    stateByConversation.set(conversationId, baseSingleReservationState({
+      selectedReservationTarget: {
+        reservationId: "RES-ONLY-01",
+        kind: "confirmed",
+        source: "explicit_id",
+        resolutionMode: "strong",
+        resolvedAt: "2026-03-23T11:00:00.000Z",
+      },
+    }));
+
+    await handleIncomingMessage(msg("Cancelalo", conversationId), { mode: "automatic", sendReply });
+
+    const pendingState = stateByConversation.get(conversationId);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cancelar.*CONFIRMAR/i);
+    expect(pendingState?.pendingCancellation).toMatchObject({
+      reservationId: "RES-ONLY-01",
+      awaitingConfirmation: true,
+    });
+    expect(cancelReservation).not.toHaveBeenCalled();
+    expect(modifyReservation).not.toHaveBeenCalled();
+
+    await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+    expect(cancelReservation).toHaveBeenCalledOnce();
+    expect(cancelReservation).toHaveBeenCalledWith("hotel999", "RES-ONLY-01");
+    expect(modifyReservation).not.toHaveBeenCalled();
+  });
+
   it("[FIX-CANCEL-SCOPE/M6-01] después de descartar el preview, cancelar los cambios no prepara cancelación", async () => {
     const sendReply = vi.fn(async () => {});
     const conversationId = "conv-ref-cancel-changes-after-discard";

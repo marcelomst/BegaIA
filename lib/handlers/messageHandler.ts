@@ -1455,13 +1455,18 @@ function buildModifyPreviewCancellationClarificationReply(lang: "es" | "en" | "p
       : "¿Querés cancelar el cambio pendiente o la reserva?";
 }
 
-function mentionsPendingReservationChanges(text: string): boolean {
+function mentionsPendingReservationChanges(
+  text: string,
+  options: { pendingModifyPreviewActive?: boolean } = {}
+): boolean {
+  const normalized = normalizeReferenceText(text);
   return /\b(?:cambio|cambios|modificacion|modificaciones|alteracion|alteraciones|propuesta pendiente|change|changes|modification|modifications|pending change|pending changes|alteracao|alteracoes|mudanca|mudancas)\b/i
-    .test(normalizeReferenceText(text));
+    .test(normalized) ||
+    (options.pendingModifyPreviewActive === true && /\bpropuesta\b/i.test(normalized));
 }
 
 function isObjectlessCancelRequest(text: string): boolean {
-  return /^(?:(?:quiero|deseo|necesito|quero|i want to)\s+)?(?:cancela|cancelar|anula|anular|cancel|cancele)$/i
+  return /^(?:(?:quiero|deseo|necesito|quero|i want to)\s+)?(?:(?:cancela|anula)(?:lo|la)?|cancelar|anular|cancel|cancele)(?:\s+(?:eso|esto))?$/i
     .test(normalizeReferenceText(text).trim());
 }
 
@@ -1491,9 +1496,12 @@ function buildCompetingReservationConfirmationsReply(lang: "es" | "en" | "pt"): 
 
 type ModifyPreviewDisposition = "discard_changes" | "cancel_reservation" | "ambiguous" | null;
 
-function resolveModifyPreviewDisposition(text: string): ModifyPreviewDisposition {
+function resolveModifyPreviewDisposition(
+  text: string,
+  options: { pendingModifyPreviewActive?: boolean } = {}
+): ModifyPreviewDisposition {
   const normalized = normalizeReferenceText(text).trim();
-  const mentionsPendingChange = mentionsPendingReservationChanges(normalized);
+  const mentionsPendingChange = mentionsPendingReservationChanges(normalized, options);
   const mentionsReservation = /\b(?:reserva|reservas|booking|bookings)\b/i.test(normalized);
   const asksToKeepCanonicalReservation = /\b(?:deja|mantene|conserva)\s+(?:la|mi)\s+reserva\s+(?:tal\s+)?como\s+(?:estaba|esta)\b/i.test(normalized);
   const hasDiscardOrCancelVerb = /\b(?:descarta|descartar|cancela|cancelar|anula|anular|discard|cancel|cancele)\b/i.test(normalized);
@@ -8753,7 +8761,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     const pendingTarget = pendingTargetActionability.target;
     const currentPreviewTarget = hydrateModifyPreviewTarget(pre, pendingTarget);
     const currentPreviewSnapshot = applyModifyPreviewPatch(currentPreviewTarget, pendingModifyPatchEarly, pre.lang);
-    const previewDisposition = resolveModifyPreviewDisposition(userTxtRaw);
+    const previewDisposition = resolveModifyPreviewDisposition(userTxtRaw, {
+      pendingModifyPreviewActive: true,
+    });
     const previewResolutionIntent = normalizeReservationIntent(userTxtRaw);
     const previewConfirm =
       previewDisposition === null &&
@@ -11254,7 +11264,21 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       ? pre.st?.activeReservationContext.reservationId
       : undefined);
   const targetsPendingChanges = wantsCancel && mentionsPendingReservationChanges(userTxtRaw);
-  const lacksCancellationObject = wantsCancel && isObjectlessCancelRequest(userTxtRaw);
+  const persistedCancellationTarget = pre.st?.selectedReservationTarget as SelectedReservationTarget | null | undefined;
+  const hasSufficientCanonicalCancellationObject = Boolean(
+    cancelCodeFromUser ||
+    explicitOrdinalReservationTarget?.reservationId ||
+    (inCancelFlow && pendingCancellation?.reservationId) ||
+    (
+      persistedCancellationTarget?.resolutionMode === "strong" &&
+      persistedCancellationTarget.reservationId &&
+      selectedReservationTarget?.reservationId === persistedCancellationTarget.reservationId
+    )
+  );
+  const lacksCancellationObject =
+    wantsCancel &&
+    isObjectlessCancelRequest(userTxtRaw) &&
+    !hasSufficientCanonicalCancellationObject;
   if (targetsPendingChanges || lacksCancellationObject) {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       pendingCancellation: null,
