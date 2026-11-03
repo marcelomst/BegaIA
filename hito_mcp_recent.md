@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 1. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+
+- Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
+- Nombre: `harden M6 discard and cancel target scope`
+- Commit tecnico: `3234f6456ccb93b93214eeb3742fc254455bce90`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Reconoce contextualmente `propuesta` durante un preview
+  Modify, descarta el preview y sus confirmaciones pendientes, bloquea
+  fail-closed la cancelacion anaforica sin target suficiente y preserva Cancel
+  con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
+  fuera de alcance.
+
+## 2. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -24,7 +38,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 2. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 3. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -37,7 +51,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 3. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 4. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -51,7 +65,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 4. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 5. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -65,7 +79,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 5. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 6. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -78,7 +92,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 6. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 7. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -92,7 +106,7 @@ recent_hitos_count: 10
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
 
-## 7. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## 8. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 - Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
 - Nombre: `preserve compound guest extraction`
@@ -106,7 +120,7 @@ recent_hitos_count: 10
   evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
   relaciones ni diagramas conceptuales.
 
-## 8. TEST-MODIFY-NUMGUESTS-TRACE-01
+## 9. TEST-MODIFY-NUMGUESTS-TRACE-01
 
 - Identificador: `TEST-MODIFY-NUMGUESTS-TRACE-01`
 - Nombre: `trace numGuests modify defect`
@@ -126,7 +140,7 @@ recent_hitos_count: 10
   autorizo excepcionalmente continuar solo para este hito y commit, sin
   convertir el protocolo en PASS ni modificar el Operating Model.
 
-## 9. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
+## 10. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
 
 - Identificador: `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01`
 - Nombre: `guard cancel object scope after discard`
@@ -139,16 +153,3 @@ recent_hitos_count: 10
   sensibles obsoletas; preserva cancelaciones legitimas y refresca evidencia
   fisica focal del Runtime Map sin modificar sus 19 cajas ni el modelo
   conceptual.
-
-## 10. FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01
-
-- Identificador: `FIX-MODIFY-CANCEL-OBJECT-NORMALIZATION-01`
-- Nombre: `normalize modify-cancel object resolution`
-- Commit tecnico: `2ca48e2216548c32476da8749b029376bd14a6da`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Normaliza contextualmente el objeto cancelado al pasar de
-  un preview `modify` a `cancel`, descarta el cambio pendiente, conserva el
-  target canonico exacto y activo y exige confirmacion; refresca evidencia
-  fisica del Runtime Map sin modificar sus 19 cajas ni el modelo conceptual.

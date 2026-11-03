@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
-repository_baseline_head: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
-source_code_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
-messageHandler_lines: 14568
+commit_base: 3234f6456ccb93b93214eeb3742fc254455bce90
+repository_baseline_head: 3234f6456ccb93b93214eeb3742fc254455bce90
+source_code_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
+messageHandler_lines: 14592
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
+analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456ccb93b93214eeb3742fc254455bce90
 ```
 
 ---
@@ -21,8 +21,8 @@ analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c74
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01` parte de
-`HEAD = origin/main = 3443c7463f45a6d5b3537d1e51d7a961eab5a951`, con indice
+El refresh focal de `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01` parte de
+`HEAD = origin/main = 3234f6456ccb93b93214eeb3742fc254455bce90`, con indice
 limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ```
 
@@ -31,15 +31,15 @@ limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
-technical_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+hito_id: FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+technical_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
 technical_push: confirmed
-messageHandler_lines: 14568
+messageHandler_lines: 14592
 functions:
-  preLLM: L5610-L5822
-  bodyLLM: L6837-L13699
-  posLLM: L14194-L14235
-  handleIncomingMessage: L14239-L14568
+  preLLM: L5618-L5830
+  bodyLLM: L6845-L13723
+  posLLM: L14218-L14259
+  handleIncomingMessage: L14263-L14592
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -47,25 +47,25 @@ global_freshness_claim_allowed: false
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-  reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.graph.reservationSnapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Modify -> Discard -> Snapshot cubierto
-      - aislamiento hotelId + canonicalGuestId + reservationId
-      - precedencia material y rechazo stale/conflictivo
-      - ausencia de ejecucion create/cancel/graph
-      - ausencia de nueva autoridad material guest-wide persistida
+      - Discard limpia preview y confirmacion pendiente
+      - Cancel anaforico sin target fuerte falla cerrado
+      - Cancel con target strong conserva el contrato legitimo
+      - Snapshot canonico permanece despues de Discard
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -81,16 +81,16 @@ taxonomia conceptual.
 ## Snapshot anterior preservado
 
 ```yaml
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+messageHandler_lines: 14568
+analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
+  preLLM: L5610-L5822
+  bodyLLM: L6837-L13699
+  posLLM: L14194-L14235
+  handleIncomingMessage: L14239-L14568
 ```
 
 ---

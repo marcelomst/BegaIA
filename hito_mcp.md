@@ -15399,6 +15399,114 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-03
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: endurecer el alcance de objeto de Discard y Cancel en el flujo M6
+Commit tecnico: 3234f6456ccb93b93214eeb3742fc254455bce90
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- reconoce contextualmente `propuesta` durante un preview Modify
+- descarta efectivamente el preview y limpia confirmaciones pendientes
+- bloquea fail-closed la cancelacion anaforica sin target suficiente
+- preserva Cancel legitimo con target canonico strong
+- incorpora B1, D1 y D2 como regresiones ordinarias
+- mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10` fuera de alcance y sin
+  declararlos resueltos
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
+technical_parent: 9afc41417472d24181a4d0dcee467b7d0d24aee4
+technical_commit_message: "fix: harden discard and cancel target scope"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 3234f6456ccb93b93214eeb3742fc254455bce90
+technical_scope:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  focused_tests: 214/214 PASS
+  core_suite: 1313/1313 PASS
+  typescript: PASS
+  git_diff_check: PASS
+  manual_gate_b1_d1_d2: PASS_OBSERVABLE
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - Discard limpia preview y confirmacion pendiente
+      - Cancel anaforico sin target fuerte falla cerrado
+      - Cancel con target strong conserva el contrato legitimo
+      - Snapshot canonico permanece despues de Discard
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `3234f6456ccb93b93214eeb3742fc254455bce90`
+- `messageHandler.ts`: 14592 lineas fisicas
+- `preLLM`: L5618-L5830
+- `bodyLLM`: L6845-L13723
+- `posLLM`: L14218-L14259
+- `handleIncomingMessage`: L14263-L14592
+- se preservan `box_id`, taxonomia, relaciones y diagramas conceptuales; los
+  rangos internos no entregados permanecen `needs_refresh`
+
+Observaciones fuera de alcance:
+
+- `OBS-M6-08`: `pending_characterization`
+- `OBS-M6-09`: `pending_deterministic_characterization`
+- `OBS-M6-10`: `designable_fix_not_implemented`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; refuerza el arbitraje fail-closed entre
+  Modify/Discard y Cancel usando estado y targets canonicos existentes, sin
+  crear estado, autoridad ni fuente de verdad paralela
+- `roadmap_impact: none`
+- refresh fisico del Runtime Map sin cambio conceptual de arquitectura
+- sin cambios documentales en roadmap, Operating Model o ADRs, ni cambios de
+  codigo o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` permanece completamente excluido
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### PERS-02
 
 Estado: DOCUMENTACION_PREPARADA

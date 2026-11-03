@@ -21,20 +21,19 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
-messageHandler_lines: 14568
+commit_base: 3234f6456ccb93b93214eeb3742fc254455bce90
+messageHandler_lines: 14592
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
+analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456ccb93b93214eeb3742fc254455bce90
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - focal: 210/210 PASS
-    - snapshot_reference: 223/223 PASS (reported)
-    - core: 193/193 files, 1309/1309 tests PASS (reported)
+    - focused: 214/214 PASS
+    - core: 1313/1313 PASS
     - TypeScript: PASS
     - git diff --check: PASS
   manual_ah:
-    - scenario_RES_A272E3: PASS
+    - gate_B1_D1_D2: PASS_OBSERVABLE
 validation_scope: documentation_and_guardian_scan_only
 global_freshness_claim_allowed: false
 ```
@@ -42,15 +41,15 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
-technical_commit: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+hito_id: FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+technical_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
 technical_push: confirmed
-messageHandler_lines: 14568
+messageHandler_lines: 14592
 functions:
-  preLLM: L5610-L5822
-  bodyLLM: L6837-L13699
-  posLLM: L14194-L14235
-  handleIncomingMessage: L14239-L14568
+  preLLM: L5618-L5830
+  bodyLLM: L6845-L13723
+  posLLM: L14218-L14259
+  handleIncomingMessage: L14263-L14592
 runtime_map:
   applies: true
   conceptual_change: false
@@ -63,25 +62,25 @@ runtime_map:
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.canonicalReservationReadPath
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-  reviewed:
     - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+  reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.graph.reservationSnapshot
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Modify -> Discard -> Snapshot cubierto
-      - aislamiento hotelId + canonicalGuestId + reservationId
-      - precedencia material y rechazo stale/conflictivo
-      - ausencia de ejecucion create/cancel/graph
-      - ausencia de nueva autoridad material guest-wide persistida
+      - Discard limpia preview y confirmacion pendiente
+      - Cancel anaforico sin target fuerte falla cerrado
+      - Cancel con target strong conserva el contrato legitimo
+      - Snapshot canonico permanece despues de Discard
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -94,16 +93,16 @@ actuales.
 Snapshot focal anterior preservado:
 
 ```yaml
-commit_base: 1056624f1b0ee900a1d587ee5a061d0fc56adcef
-messageHandler_lines: 13989
-analysis_scope: focal_refresh_fix_modify_numguests_compound_extraction_01_at_1056624f1b0ee900a1d587ee5a061d0fc56adcef
+commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
+messageHandler_lines: 14568
+analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L5100-L5312
-  bodyLLM: L6327-L13120
-  posLLM: L13615-L13656
-  handleIncomingMessage: L13660-L13989
+  preLLM: L5610-L5822
+  bodyLLM: L6837-L13699
+  posLLM: L14194-L14235
+  handleIncomingMessage: L14239-L14568
 ```
 
 ## Auditoría histórica preservada y refresh focal actual
