@@ -15212,6 +15212,122 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-03
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: caracterizar causalmente OBS-M6-09 despues de Cancel entre conversaciones
+Commit tecnico: c6bae56e1e6052b07cd09dd6d4f4e99cb3e68436
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- caracteriza de forma test-only la perdida material en
+  `cancelReservationTool` y la segunda reduccion en `cancelReservation`
+- reproduce cross-conversation la divergencia entre Snapshot singular activa
+  y listado guest-wide cancelado
+- caracteriza `activeReservationContext.phase: confirmed` como estado
+  incorrecto despues de Cancel
+- preserva un control positivo donde material local suficiente mantiene el
+  Snapshot cancelado
+- conserva mediante dos `it.fails` los contratos desired-state todavia
+  incumplidos; sus resultados verdes no representan una correccion
+- cierra exclusivamente el hito de caracterizacion; `OBS-M6-09` persiste y el
+  fix productivo requiere un hito separado
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: c6bae56e1e6052b07cd09dd6d4f4e99cb3e68436
+technical_parent: 8c79e4e0ae38af16fa0a9ed7fd837959170193e4
+technical_commit_message: "test: characterize OBS-M6-09 cancel divergence"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: c6bae56e1e6052b07cd09dd6d4f4e99cb3e68436
+technical_scope:
+  - test/agents.reservations.unit.spec.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  characterization_filtered: 6/6 PASS
+  focused_tests: 245/245 PASS
+  core_suite: 1318/1318 PASS
+  typescript: PASS
+  git_diff_check: PASS
+  expected_failures: 2
+  ordinary_tests: 1316
+```
+
+Evidencia causal:
+
+- el Provider simulado entrega una reserva cancelada completa
+- `cancelReservationTool` valida material completo pero proyecta solo
+  `ok/status`
+- `cancelReservation` vuelve a reducir el resultado y `messageHandler` no
+  consume la reserva al persistir Cancel
+- la lectura singular rechaza el registro local sin baseline material y
+  Snapshot cae a material activo guest-wide anterior
+- el listado guest-wide reconcilia el estado como cancelado
+- la ruta Snapshot construye incorrectamente `activeReservationContext` con
+  fase `confirmed`
+- todos los limites externos permanecen mockeados
+
+Contratos pendientes:
+
+- Snapshot singular post-Cancel debe mostrar Cancelada y no Activa
+- `activeReservationContext.phase` debe permanecer `cancelled`
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched: []
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.persistenceReply
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - cadena causal completa caracterizada
+      - control positivo preservado
+      - dos contratos desired-state explicitos
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- no se actualiza Runtime Map porque el commit es exclusivamente test-only y
+  `runtime_map_refresh_required` es `false`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; agrega evidencia determinista sin crear estado,
+  autoridad, persistencia ni fuente de verdad paralela
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, Runtime Map, roadmap, Operating Model,
+  ADRs, codigo o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` permanece completamente excluido
+- `OBS-M6-10` permanece fuera de alcance
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### GOV-SIMPLIFY-AGENT-HANDOFF-GIT-01
 
 Estado: DOCUMENTACION_PREPARADA

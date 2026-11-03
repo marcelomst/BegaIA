@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 1. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+
+- Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
+- Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
+- Commit tecnico: `c6bae56e1e6052b07cd09dd6d4f4e99cb3e68436`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Caracteriza causalmente la divergencia post-Cancel entre
+  Snapshot singular y listado guest-wide, incluida la fase `confirmed`
+  incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
+  que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
+
+## 2. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -24,7 +37,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 2. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 3. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -38,7 +51,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 3. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 4. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -51,7 +64,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 4. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 5. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -65,7 +78,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 5. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 6. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -79,7 +92,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 6. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 7. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -92,7 +105,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 7. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 8. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -106,7 +119,7 @@ recent_hitos_count: 10
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
 
-## 8. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## 9. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 - Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
 - Nombre: `preserve compound guest extraction`
@@ -120,7 +133,7 @@ recent_hitos_count: 10
   evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
   relaciones ni diagramas conceptuales.
 
-## 9. TEST-MODIFY-NUMGUESTS-TRACE-01
+## 10. TEST-MODIFY-NUMGUESTS-TRACE-01
 
 - Identificador: `TEST-MODIFY-NUMGUESTS-TRACE-01`
 - Nombre: `trace numGuests modify defect`
@@ -139,17 +152,3 @@ recent_hitos_count: 10
   materialmente exacto, AGPT acepto provisionalmente el artefacto y AH
   autorizo excepcionalmente continuar solo para este hito y commit, sin
   convertir el protocolo en PASS ni modificar el Operating Model.
-
-## 10. FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01
-
-- Identificador: `FIX-CANCEL-OBJECT-SCOPE-AFTER-DISCARD-01`
-- Nombre: `guard cancel object scope after discard`
-- Commit tecnico: `64aec813cdc723907ad17f53292df951cecdfd32`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Impide que referencias a cambios descartados activen una
-  cancelacion, exige aclaracion sin objeto suficiente y limpia confirmaciones
-  sensibles obsoletas; preserva cancelaciones legitimas y refresca evidencia
-  fisica focal del Runtime Map sin modificar sus 19 cajas ni el modelo
-  conceptual.
