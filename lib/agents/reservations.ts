@@ -589,8 +589,8 @@ export async function quoteReservationModification(hotelId: string, reservationI
 
 export async function cancelReservation(hotelId: string, reservationId: string) {
   const res = await cancelReservationTool({ hotelId, reservationId });
-  if (!res?.ok || res.status !== "cancelled") {
+  if (!res?.ok || res.status !== "cancelled" || !res.reservation) {
     return { ok: false as const, message: res?.error ?? "No pude cancelar la reserva. Un recepcionista te ayudará." };
   }
-  return { ok: true as const, message: "✅ Reserva cancelada." };
+  return { ok: true as const, message: "✅ Reserva cancelada.", reservation: res.reservation };
 }

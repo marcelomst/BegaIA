@@ -1133,10 +1133,30 @@ function mergeReservationHistory(
 
 function buildPersistedReservationRecord(
   state: any,
+  hotelId: string,
   reservationId: string,
   status: LastReservation["status"],
-  channel: LastReservation["channel"]
+  channel: LastReservation["channel"],
+  providerReservation?: Reservation,
 ): LastReservation {
+  if (
+    status === "cancelled" &&
+    providerReservation?.hotelId === hotelId &&
+    providerReservation.reservationId === reservationId &&
+    providerReservation.status === "cancelled"
+  ) {
+    return {
+      reservationId,
+      status,
+      createdAt: providerReservation.updatedAt,
+      channel,
+      guestName: providerReservation.guestName,
+      roomType: providerReservation.roomType,
+      checkIn: normalizeReservationCalendarDate(providerReservation.checkInDate) || providerReservation.checkInDate,
+      checkOut: normalizeReservationCalendarDate(providerReservation.checkOutDate) || providerReservation.checkOutDate,
+      numGuests: providerReservation.numGuests,
+    };
+  }
   const canonicalRecord = getCanonicalReservationRecordById(state, reservationId);
   return {
     reservationId,
@@ -1171,6 +1191,12 @@ function buildFocusedReservationContext(
     phase,
     updatedAt: safeNowISO(),
   };
+}
+
+function reservationPhaseFromStatus(
+  status: LastReservation["status"] | undefined,
+): "confirmed" | "cancelled" {
+  return status === "cancelled" ? "cancelled" : "confirmed";
 }
 
 function buildSelectedReservationTarget(
@@ -3171,12 +3197,25 @@ async function resolveCanonicalSameIdReadProjection(
   pre: PreLLMResult,
   reservationId?: string | null,
 ): Promise<CanonicalReservationRecord | null> {
+  const localCanonicalRecord = getCanonicalReservationRecordById(pre.st, reservationId);
   const localRecord = await resolveLocalSameIdReadProjection(pre, reservationId);
   if (localRecord) return localRecord;
   if (!reservationId) return null;
 
   const guestWideMaterial = await resolveGuestWideMaterialReservation(pre, reservationId);
-  if (!guestWideMaterial.ok || !hasSameIdReadMaterialBaseline(guestWideMaterial.record)) return null;
+  if (!guestWideMaterial.ok || !hasSameIdReadMaterialBaseline(guestWideMaterial.record)) {
+    return localCanonicalRecord?.canonicalStatus === "cancelled" ? localCanonicalRecord : null;
+  }
+  if (localCanonicalRecord?.canonicalStatus === "cancelled") {
+    const hydratedCancelledRecord = { ...localCanonicalRecord } as CanonicalReservationRecord;
+    for (const field of SAME_ID_READ_FIELDS) {
+      if (localCanonicalRecord[field] !== undefined) continue;
+      const materialValue = guestWideMaterial.record[field];
+      if (!isValidPresentedReadValue(field, materialValue)) continue;
+      (hydratedCancelledRecord as any)[field] = materialValue;
+    }
+    return hydratedCancelledRecord;
+  }
   const projection = await resolveSameIdReadProjectionForPre(pre, guestWideMaterial.record, "guest_wide");
   return projection?.record || null;
 }
@@ -9032,7 +9071,7 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
       activeReservationContext: buildFocusedReservationContext(
         confirmedSnapshot.reservationId,
-        "confirmed"
+        reservationPhaseFromStatus(confirmedSnapshot.status)
       ),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(
         confirmedSnapshot.reservationId,
@@ -9446,7 +9485,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       snapshotRecord?.status || target.reservationStatus,
     );
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      activeReservationContext: buildFocusedReservationContext(target.reservationId, "confirmed"),
+      activeReservationContext: buildFocusedReservationContext(
+        target.reservationId,
+        reservationPhaseFromStatus(snapshotRecord?.status || target.reservationStatus),
+      ),
       selectedReservationTarget: buildSelectedReservationTargetFromReference(
         target.reservationId,
         explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
@@ -11339,9 +11381,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);
       const cancelledReservation = buildPersistedReservationRecord(
         pre.st,
+        pre.msg.hotelId,
         pendingCancellation.reservationId,
         r.ok ? "cancelled" : "error",
-        ((pre.msg.channel as any) || "web") as LastReservation["channel"]
+        ((pre.msg.channel as any) || "web") as LastReservation["channel"],
+        r.ok ? r.reservation : undefined,
       );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: cancelledReservation,
@@ -11480,9 +11524,11 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);
       const cancelledReservation = buildPersistedReservationRecord(
         pre.st,
+        pre.msg.hotelId,
         resolvedCancelCode,
         r.ok ? "cancelled" : "error",
-        ((pre.msg.channel as any) || "web") as LastReservation["channel"]
+        ((pre.msg.channel as any) || "web") as LastReservation["channel"],
+        r.ok ? r.reservation : undefined,
       );
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         lastReservation: cancelledReservation,

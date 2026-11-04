@@ -53,6 +53,20 @@ vi.mock("@/lib/tools/mcp", () => {
     cancelReservationTool: vi.fn(async (_in: any) => ({
       ok: true,
       status: "cancelled",
+      reservation: {
+        reservationId: _in.reservationId,
+        hotelId: _in.hotelId,
+        guestName: "Ana",
+        roomType: "double",
+        numGuests: 2,
+        checkInDate: "2026-10-10T00:00:00.000Z",
+        checkOutDate: "2026-10-12T00:00:00.000Z",
+        status: "cancelled",
+        currency: "USD",
+        priceTotal: 200,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-02T00:00:00.000Z",
+      },
     })),
   };
 });
@@ -255,7 +269,7 @@ describe("agents/reservations - tools wrappers", () => {
   });
 
   describe("cancelReservationTool provider result", () => {
-    it("[OBS-M6-09][provider trace] valida la Reservation completa pero proyecta sólo ok/status", async () => {
+    it("[OBS-M6-09][provider preservation] conserva la Reservation cancelada validada", async () => {
       const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
       const providerResult = providerReservation();
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
@@ -277,8 +291,11 @@ describe("agents/reservations - tools wrappers", () => {
           checkInDate: "2026-10-10T00:00:00.000Z",
           checkOutDate: "2026-10-12T00:00:00.000Z",
         });
-        expect(result).toEqual({ ok: true, status: "cancelled" });
-        expect(result).not.toHaveProperty("reservation");
+        expect(result).toMatchObject({
+          ok: true,
+          status: "cancelled",
+          reservation: providerResult,
+        });
       } finally {
         fetchSpy.mockRestore();
       }
@@ -425,10 +442,11 @@ describe("agents/reservations - tools wrappers", () => {
     const out = await cancelReservation("hotel999", "ABC123");
     expect(out.ok).toBe(true);
     expect(out.message).toMatch(/cancelada/i);
+    expect(out.reservation).toMatchObject({ reservationId: "ABC123", status: "cancelled" });
     expect((cancelReservationTool as any).mock.calls.length).toBeGreaterThan(0);
   });
 
-  it("[OBS-M6-09][agent trace] descarta material aunque el tool lo entregue junto a ok/status", async () => {
+  it("[OBS-M6-09][agent preservation] propaga el material cancelado entregado por el tool", async () => {
     const material = providerReservation({ reservationId: "ABC123" });
     (cancelReservationTool as any).mockResolvedValueOnce({
       ok: true,
@@ -440,8 +458,7 @@ describe("agents/reservations - tools wrappers", () => {
 
     expect(cancelReservationTool).toHaveBeenCalledWith({ hotelId: "hotel999", reservationId: "ABC123" });
     expect(material).toMatchObject({ reservationId: "ABC123", status: "cancelled", guestName: "Ana" });
-    expect(out).toEqual({ ok: true, message: "✅ Reserva cancelada." });
-    expect(out).not.toHaveProperty("reservation");
+    expect(out).toEqual({ ok: true, message: "✅ Reserva cancelada.", reservation: material });
   });
 
   it("cancelReservation propaga error si el tool no devuelve 'cancelled'", async () => {

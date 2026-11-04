@@ -111,6 +111,7 @@ export type CancelReservationInput = z.infer<typeof CancelReservationInput>;
 export const CancelReservationOutput = z.object({
   ok: z.boolean(),
   status: z.enum(["cancelled"]).optional(),
+  reservation: ReservationResult.optional(),
   error: z.string().optional(),
 });
 export type CancelReservationOutput = z.infer<typeof CancelReservationOutput>;
@@ -374,5 +375,6 @@ export async function cancelReservationTool(input: CancelReservationInput) {
   return CancelReservationOutput.parse({
     ok: true,
     status: "cancelled",
+    reservation: validated.reservation,
   });
 }
