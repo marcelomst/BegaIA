@@ -15212,6 +15212,117 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-04
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: preservar la proyeccion canonica post-Cancel con identidad, estado y atributos materiales
+Commit tecnico: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- preserva la `Reservation` cancelada validada a traves del wrapper MCP y el
+  agente
+- persiste una proyeccion canonica post-Cancel con identidad, estado y
+  atributos materiales
+- mantiene la autoridad de `cancelled` frente a material activo historico
+  same-ID
+- preserva `activeReservationContext.phase=cancelled` despues de Snapshot
+- convierte las dos regresiones de `OBS-M6-09` desde expected-failure a tests
+  ordinarios; `OBS-M6-10` permanece abierto y fuera de este cierre
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+technical_scope:
+  - lib/tools/mcp.ts
+  - lib/agents/reservations.ts
+  - lib/handlers/messageHandler.ts
+  - test/agents.reservations.unit.spec.ts
+  - test/unit/messageHandler.reference_resolution.spec.ts
+validation:
+  OBS-M6-09: 7/7 PASS ordinarios
+  focales: 246/246 PASS
+  core: 1319/1319 PASS
+  TypeScript: PASS
+  git_diff_check: PASS
+  manual_gate:
+    name: PCP_OBS-M6-09
+    result: PASS_OBSERVABLE
+    reservation: RES-8AAE64
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - OBS-M6-09 7/7 PASS ordinarios
+      - focales 246/246 PASS
+      - core 1319/1319 PASS
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `c9af50c96ebb8f137e08a1687a11758cf6c7c7f1`
+- `messageHandler.ts`: 14638 lineas fisicas
+- `preLLM`: L5657-L5869
+- `bodyLLM`: L6884-L13769
+- `posLLM`: L14264-L14305
+- `handleIncomingMessage`: L14309-L14317
+- referencias focales recalculadas:
+  `buildPersistedReservationRecord` L1134-L1172,
+  `reservationPhaseFromStatus` L1196-L1200,
+  `resolveCanonicalSameIdReadProjection` L3196-L3221, proyeccion Snapshot
+  L9072 y L9488, y proyeccion Cancel L11366-L11418 y L11524-L11561
+- se preservan `box_id`, taxonomia, relaciones y diagramas conceptuales; las
+  referencias no entregadas permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; preserva `lastReservation`, `reservationHistory` y
+  `activeReservationContext` como fuentes canonicas sin introducir estado
+  paralelo
+- `roadmap_impact: none`
+- refresh fisico del Runtime Map sin cambio conceptual de arquitectura
+- sin cambios documentales en roadmap, arquitectura viva, Operating Model o
+  ADRs, ni cambios de codigo o tests durante esta fase documental
+- `OBS-M6-10`, SIN V2, stock de demo y
+  `scripts/semantic-normalization-spike/` permanecen excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 Estado: DOCUMENTACION_PREPARADA

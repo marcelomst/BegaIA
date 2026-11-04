@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 1. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+
+- Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
+- Nombre: `close canonical post-Cancel projection`
+- Commit tecnico: `c9af50c96ebb8f137e08a1687a11758cf6c7c7f1`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Preserva la reserva cancelada y persiste su proyeccion
+  canonica con identidad, estado y atributos materiales; mantiene la autoridad
+  de `cancelled` frente a material activo same-ID, conserva
+  `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
+  ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
+
+## 2. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -23,7 +37,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 2. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 3. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -37,7 +51,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 3. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 4. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -51,7 +65,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 4. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 5. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -64,7 +78,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 5. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 6. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -78,7 +92,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 6. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 7. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -92,7 +106,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 7. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 8. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -105,7 +119,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 8. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 9. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -119,7 +133,7 @@ recent_hitos_count: 10
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
 
-## 9. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
+## 10. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
 
 - Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
 - Nombre: `preserve compound guest extraction`
@@ -132,23 +146,3 @@ recent_hitos_count: 10
   personas o huespedes, cubre la traza Modify de ocho etapas y refresca
   evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
   relaciones ni diagramas conceptuales.
-
-## 10. TEST-MODIFY-NUMGUESTS-TRACE-01
-
-- Identificador: `TEST-MODIFY-NUMGUESTS-TRACE-01`
-- Nombre: `trace numGuests modify defect`
-- Commit tecnico: `3db892f2a9fe160481acffe24b957bafc36ac263`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Caracteriza mediante siete expected-failure la perdida de
-  `numGuests` en `modify`, preserva 26 pruebas MCP correctas y mantiene
-  `OBS-M6-03` como `CONFIRMED`; `OBS-M6-04` sigue pendiente de reproduccion
-  causal, sin atribucion especifica. Registra una incidencia Git excepcional:
-  el STAGE quedo dividido, el shell informo
-  `messageHandler.reference_resolution.spec.ts: command not found` y se
-  continuo con COMMIT y PUSH pese al error. El procedimiento historico
-  permanecio incumplido; Guardian verifico que el commit publicado es
-  materialmente exacto, AGPT acepto provisionalmente el artefacto y AH
-  autorizo excepcionalmente continuar solo para este hito y commit, sin
-  convertir el protocolo en PASS ni modificar el Operating Model.

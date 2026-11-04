@@ -8,12 +8,12 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3234f6456ccb93b93214eeb3742fc254455bce90
-repository_baseline_head: 3234f6456ccb93b93214eeb3742fc254455bce90
-source_code_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
-messageHandler_lines: 14592
+commit_base: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+repository_baseline_head: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+source_code_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+messageHandler_lines: 14638
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456ccb93b93214eeb3742fc254455bce90
+analysis_scope: focal_refresh_fix_cancel_posttransaction_canonical_projection_01_at_c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
 ```
 
 ---
@@ -21,8 +21,8 @@ analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456cc
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01` parte de
-`HEAD = origin/main = 3234f6456ccb93b93214eeb3742fc254455bce90`, con indice
+El refresh focal de `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01` parte de
+`HEAD = origin/main = c9af50c96ebb8f137e08a1687a11758cf6c7c7f1`, con indice
 limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ```
 
@@ -31,15 +31,25 @@ limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
-technical_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
+hito_id: FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+technical_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
 technical_push: confirmed
-messageHandler_lines: 14592
+messageHandler_lines: 14638
 functions:
-  preLLM: L5618-L5830
-  bodyLLM: L6845-L13723
-  posLLM: L14218-L14259
-  handleIncomingMessage: L14263-L14592
+  preLLM: L5657-L5869
+  bodyLLM: L6884-L13769
+  posLLM: L14264-L14305
+  handleIncomingMessage: L14309-L14317
+focal_refs:
+  buildPersistedReservationRecord: L1134-L1172
+  reservationPhaseFromStatus: L1196-L1200
+  resolveCanonicalSameIdReadProjection: L3196-L3221
+  snapshot_phase_projection:
+    - L9072
+    - L9488
+  cancel_execution_projection:
+    - L11366-L11418
+    - L11524-L11561
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -47,25 +57,21 @@ global_freshness_claim_allowed: false
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-  reviewed:
-    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Discard limpia preview y confirmacion pendiente
-      - Cancel anaforico sin target fuerte falla cerrado
-      - Cancel con target strong conserva el contrato legitimo
-      - Snapshot canonico permanece despues de Discard
+      - OBS-M6-09 7/7 PASS ordinarios
+      - focales 246/246 PASS
+      - core 1319/1319 PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -81,16 +87,16 @@ taxonomia conceptual.
 ## Snapshot anterior preservado
 
 ```yaml
-commit_base: 3443c7463f45a6d5b3537d1e51d7a961eab5a951
-messageHandler_lines: 14568
-analysis_scope: focal_refresh_fix_canonical_read_same_id_hydration_01_at_3443c7463f45a6d5b3537d1e51d7a961eab5a951
+commit_base: 3234f6456ccb93b93214eeb3742fc254455bce90
+messageHandler_lines: 14592
+analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456ccb93b93214eeb3742fc254455bce90
 provenance: historical_focal_snapshot_preserved
 snapshot_ancestor_verified: true
 functions:
-  preLLM: L5610-L5822
-  bodyLLM: L6837-L13699
-  posLLM: L14194-L14235
-  handleIncomingMessage: L14239-L14568
+  preLLM: L5618-L5830
+  bodyLLM: L6845-L13723
+  posLLM: L14218-L14259
+  handleIncomingMessage: L14263-L14592
 ```
 
 ---

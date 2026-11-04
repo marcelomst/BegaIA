@@ -67,13 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 3234f6456ccb93b93214eeb3742fc254455bce90
-repository_baseline_head: 3234f6456ccb93b93214eeb3742fc254455bce90
-source_code_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
-messageHandler_lines: 14592
+commit_base: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+repository_baseline_head: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+source_code_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+messageHandler_lines: 14638
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456ccb93b93214eeb3742fc254455bce90
-baseline_status: fix_demo_m6_discard_object_scope_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_cancel_posttransaction_canonical_projection_01_at_c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+baseline_status: fix_cancel_posttransaction_canonical_projection_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -100,50 +100,56 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: descarte y alcance de cancelacion M6
+## Evidencia focal actual: proyeccion canonica post-Cancel
 
 ```yaml
-hito_id: FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
-technical_commit: 3234f6456ccb93b93214eeb3742fc254455bce90
+hito_id: FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+technical_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
 technical_push: confirmed
-messageHandler_lines: 14592
+messageHandler_lines: 14638
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-  reviewed:
-    - runtime.messageHandler.preLLM
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Discard limpia preview y confirmacion pendiente
-      - Cancel anaforico sin target fuerte falla cerrado
-      - Cancel con target strong conserva el contrato legitimo
-      - Snapshot canonico permanece despues de Discard
+      - OBS-M6-09 7/7 PASS ordinarios
+      - focales 246/246 PASS
+      - core 1319/1319 PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L5618-L5830
-  bodyLLM: L6845-L13723
-  posLLM: L14218-L14259
-  handleIncomingMessage: L14263-L14592
+  preLLM: L5657-L5869
+  bodyLLM: L6884-L13769
+  posLLM: L14264-L14305
+  handleIncomingMessage: L14309-L14317
+focal_code_refs:
+  buildPersistedReservationRecord: L1134-L1172
+  reservationPhaseFromStatus: L1196-L1200
+  resolveCanonicalSameIdReadProjection: L3196-L3221
+  snapshot_phase_projection:
+    - L9072
+    - L9488
+  cancel_execution_projection:
+    - L11366-L11418
+    - L11524-L11561
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
 ```
 
-Guardian no entrego rangos internos recalculados. Se conservan como evidencia
-historica y no se desplazan por inferencia; no se
-redefinen cajas ni diagramas.
+Guardian entrego exclusivamente los rangos focales anteriores. Las demas
+referencias internas se conservan como evidencia historica y no se desplazan
+por inferencia; no se redefinen cajas ni diagramas.
 
 ## Evidencia focal histórica preservada: precedencia modify/cancel
 
