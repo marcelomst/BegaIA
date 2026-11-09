@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 1. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+
+- Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
+- Nombre: `evaluate SIN V2 local model profiles`
+- Commit tecnico: `6a745268bc34534d783c44f32c3234c2c0c8fbbf`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Evalua offline cinco perfiles cerrados de modelo local;
+  observa transporte viable y conformidad estructural parcial, pero ninguna
+  salida generativa valida para SIN V2 ni fidelidad semantica demostrada.
+  Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
+  no versiona evidencia cruda.
+
+## 2. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -24,7 +38,7 @@ recent_hitos_count: 10
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
 
-## 2. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 3. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -37,7 +51,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 3. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 4. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -51,7 +65,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 4. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 5. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -65,7 +79,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 5. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 6. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -78,7 +92,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 6. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 7. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -92,7 +106,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 7. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 8. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -106,7 +120,7 @@ recent_hitos_count: 10
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
 
-## 8. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
+## 9. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
 
 - Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
 - Nombre: `characterize canonical read integrity matrix`
@@ -119,7 +133,7 @@ recent_hitos_count: 10
   `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
   Map.
 
-## 9. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
+## 10. SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12
 
 - Identificador: `SPIKE-RDA-OFFLINE-CONSISTENCY-EVALUATOR-12`
 - Nombre: `offline RDA consistency evaluator`
@@ -132,17 +146,3 @@ recent_hitos_count: 10
   ESLint y aislamiento productivo validados; la procedencia de entrada no se
   autentica, la auditoria se limita a relaciones suministradas y ningun
   resultado autoriza operaciones.
-
-## 10. FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01
-
-- Identificador: `FIX-MODIFY-NUMGUESTS-COMPOUND-EXTRACTION-01`
-- Nombre: `preserve compound guest extraction`
-- Commit tecnico: `1056624f1b0ee900a1d587ee5a061d0fc56adcef`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Preserva `numGuests` en expresiones compuestas ligadas a
-  un tipo de habitacion canonico, acota palabras numericas al contexto de
-  personas o huespedes, cubre la traza Modify de ocho etapas y refresca
-  evidencia fisica focal del Runtime Map sin modificar cajas, taxonomia,
-  relaciones ni diagramas conceptuales.

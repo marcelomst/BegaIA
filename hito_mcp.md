@@ -15734,6 +15734,89 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-09
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: evaluar offline cinco perfiles cerrados de modelo local contra SIN V2
+Commit tecnico: 6a745268bc34534d783c44f32c3234c2c0c8fbbf
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- evalua cinco perfiles cerrados mediante esquema base, esquema condicional y
+  una variante para Ollama 0.40.15
+- observa transporte local viable y conformidad estructural parcial
+- no demuestra fidelidad semantica y ninguna salida generativa resulta valida
+  para SIN V2
+- V1 y V2 incumplen el esquema base; B3 cumple el esquema base pero incumple
+  `predicate-required`; B4 bloquea por version en preflight sin solicitudes
+  generativas; B4-015 obtiene HTTP 200 y JSON sintacticamente valido, pero
+  incumple el esquema condicional y `predicate-required`
+- B3 y B4-015 no permiten una comparacion causal aislada porque cambia la
+  version de Ollama
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 6a745268bc34534d783c44f32c3234c2c0c8fbbf
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 6a745268bc34534d783c44f32c3234c2c0c8fbbf
+technical_scope:
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/runner.ts
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/transport.ts
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/runner.test.ts
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/prompt.txt
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/prompt.v2.txt
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/manifest.json
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/manifest.v2.json
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/manifest.v2.schema.json
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/manifest.v2.conditional.json
+  - scripts/semantic-normalization-spike/sin-v2-evaluation/manifest.v2.conditional.ollama-015.json
+validation:
+  experimental_source_tests: 89/89 PASS
+  independent_schema_checks: 3/3 PASS
+  sin_v2_rda: 44/44 PASS
+  typescript_strict: PASS
+  eslint_focused: PASS
+  manifests_parse: 5/5 PASS
+  schema_determinism: PASS
+  predicate_required_parity: 9x2 PASS
+  git_diff_check: PASS
+```
+
+Preservacion de evidencia y limitaciones:
+
+- inventario SHA-256:
+  `3de38d89fc471edc614d0dac14f1ee71a66507c948b20c77dc947a82e785ac45`
+- copias locales verificadas: 12/12; coincidencias con originales: 12/12
+- las capturas crudas no se versionan ni se reproducen en este cierre
+- `BACKUP_PENDING`: el respaldo independiente de las capturas permanece
+  pendiente y se conserva como reserva explicita
+- el limite de una solicitud y la revocacion operan por ejecucion; impedir
+  reintentos entre ejecuciones continua siendo un control operativo
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el experimento reutiliza el contrato y
+  `validateSinV2` versionados, sin estado productivo, runtime productivo ni
+  fuente de verdad paralela
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- sin cambios de arquitectura viva, Operating Model, roadmap, ADRs, Runtime
+  Map, codigo o tests durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### PERS-02
 
 Estado: DOCUMENTACION_PREPARADA
