@@ -1,0 +1,58 @@
+{
+  "experiment_id": "SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14-B4-CONDITIONAL-OLLAMA-015",
+  "status": "development_draft",
+  "execution_mode": "simulated_only",
+  "prompt_path": "prompt.v2.txt",
+  "output_mode": "conditional_schema",
+  "schema_sha256": "2f6ad37a1105c475fb2ccf8207c5ab1630744a7ceb9d07bb61505b3593d51ae3",
+  "transport_configuration": {
+    "method": "POST",
+    "url": "http://ollama-lab.invalid/api/chat",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "stream": false
+  },
+  "model_configuration": {
+    "identifier": "sin-v2-simulated-test",
+    "status": "simulated_only"
+  },
+  "ollama_configuration": {
+    "endpoint": "http://127.0.0.1:11434/api/chat",
+    "timeout_ms": 180000,
+    "expected_version": "0.40.15",
+    "model": {
+      "identifier": "qwen3.5:4b-q4_K_M",
+      "expected_digest": "d8b0f5e9760cd1682034f292d7ef72ec46f432149be0df7574bf2d6e92e38c04"
+    },
+    "generation": {
+      "think": false,
+      "options": {
+        "temperature": 0,
+        "seed": 1,
+        "num_ctx": 4096,
+        "num_predict": 1024,
+        "top_p": 0.95,
+        "top_k": 20
+      }
+    }
+  },
+  "artifact_hashes": {
+    "prompt_sha256": "0e47417daeb77afea0f677b614ad3380ec7c4b9298b8c4690a3305ca09a3d3a5",
+    "contract_sha256": "1419009051e1e89e4090b53b07f1cb3b998f35224dc0103862232a03a7efbe84",
+    "validator_sha256": "3b20e8955ccb72fbf3e145f792352c78121cca6e85274fbd1b4c1260b97e62c8"
+  },
+  "model_metadata": {
+    "status": "unknown",
+    "provider": null,
+    "model": null,
+    "version": null,
+    "digest": null
+  },
+  "cases": [
+    {
+      "id": "synthetic-smoke-01",
+      "message": "¿Me contás qué opciones hay?"
+    }
+  ]
+}

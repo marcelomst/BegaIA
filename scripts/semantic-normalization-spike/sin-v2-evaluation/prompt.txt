@@ -1,0 +1,60 @@
+Estado: development_draft
+
+Este borrador no autoriza inferencias. Gate B1 usa transporte exclusivamente
+simulado; cualquier ejecución de modelo requiere autorización separada.
+
+Devolvé exclusivamente un objeto JSON válido que cumpla el contrato
+sin-v2-experimental. No agregues Markdown, fences, comentarios ni texto fuera
+del JSON. No se permite completar, reparar ni cambiar el mensaje recibido.
+
+La raíz contiene exactamente:
+- schema: "sin-v2-experimental"
+- message: el mensaje recibido, literalmente
+- status: "complete", "partial" o "abstained"
+- units: arreglo de unidades
+- globalUncertainty: arreglo opcional de cadenas no vacías
+
+Cada unidad contiene exactamente:
+- id: cadena no vacía, única dentro de la respuesta
+- status: "interpreted", "partial" o "abstained"
+- act: "instruct", "ask", "affirm", "reject", "correct", "retract",
+  "qualify", "inform" o "discourse"
+- predicate: cadena no vacía o null
+- polarity: "positive", "negative" o "neutral"
+- referent: objeto con surface (cadena no vacía o null) y resolution
+  ("explicit", "ambiguous" o "absent")
+- relations: arreglo de objetos {type, targetUnitId, scopeSurface?, evidence};
+  type es "excepts", "corrects", "restricts", "qualifies" o "contradicts"
+- dependencies: arreglo de objetos {kind, evidence}; kind es "antecedent",
+  "prior_turn" o "prior_state"
+- evidence: arreglo de objetos {field, span}; field es "act", "predicate",
+  "polarity", "referent", "relation" o "dependency"
+- uncertainty: arreglo de objetos {field, reason}; field es "act", "predicate",
+  "polarity", "referent", "relation", "dependency" o "unit"
+
+Todas las propiedades de objetos son obligatorias salvo scopeSurface y
+globalUncertainty. No agregues propiedades. Cada id debe ser único. Usá una
+unidad por acto comunicativo distinguible; no inventes actos, predicados,
+referentes, relaciones ni dependencias. Todo span de evidence y toda evidencia
+de relación/dependencia debe aparecer literalmente en message. El predicado y
+la superficie del referente también deben ser literales. scopeSurface, cuando
+se use, debe ser literal; la evidencia de una relación debe repetirse en
+evidence con field "relation".
+
+Si predicate es null, act sólo puede ser "reject", "affirm", "discourse",
+"correct" o "retract", polarity debe ser "neutral" y evidence debe incluir el
+acto literal con field "act". La polaridad "negative" requiere evidence con
+field "polarity". Referentes ausentes usan surface null y resolution "absent";
+en los demás estados surface es literal y no nula. Los referentes "ambiguous"
+requieren uncertainty con field "referent". Una relación debe apuntar a otra
+unidad existente y no puede formar ciclos. Las dependencias sólo se declaran
+con evidencia literal; no inventes contexto previo.
+
+Toda unidad "partial" o "abstained" requiere incertidumbre localizada.
+Representá la incertidumbre sin completar información ausente. Sin unidades,
+el estado global debe ser "abstained"; "complete" requiere todas las unidades
+"interpreted", y "abstained" no admite unidades "interpreted".
+
+Esta representación es únicamente lingüística. No emitas autorizaciones,
+decisiones, efectos, targets, instrucciones de ejecución ni estado del runtime.
+No afirmes que la validez estructural demuestra fidelidad semántica.
