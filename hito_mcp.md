@@ -15734,6 +15734,57 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-10
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: materializar el protocolo exploratorio R3 para la evaluacion semantica offline de SIN V2
+Commit tecnico: 82ae0677110f20336186925fb1a247dfe8ec7396
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- materializa el protocolo exploratorio R3 de evaluacion semantica SIN V2
+- incorpora la guia de anotacion y la especificacion del instrumento
+- mantiene Gate A experimental pendiente y no lo declara `PASS`
+- no declara existencia de dataset, gold, scorer ni ejecucion experimental
+- preserva el aislamiento respecto de SIN V2, RDA y runtime productivo
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 82ae0677110f20336186925fb1a247dfe8ec7396
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 82ae0677110f20336186925fb1a247dfe8ec7396
+technical_scope:
+  - scripts/semantic-normalization-spike/sin-v2-semantic-evaluation/protocol.md
+  - scripts/semantic-normalization-spike/sin-v2-semantic-evaluation/annotation-guide.md
+  - scripts/semantic-normalization-spike/sin-v2-semantic-evaluation/instrument-spec.md
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; registra metodologia experimental offline sin
+  modificar el contrato SIN V2, el validador, RDA, el runtime productivo ni
+  las fuentes canonicas de arquitectura
+- `roadmap_impact: none`
+- `architecture_docs_candidates: []`
+- Runtime Map V1: no aplicable
+- no reabre el Hito 14
+- sin cambios de arquitectura viva, Operating Model, roadmap, ADRs, Runtime
+  Map, codigo, tests o configuracion durante esta fase documental
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
+
 ### SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 Estado: DOCUMENTACION_PREPARADA
