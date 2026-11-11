@@ -67,13 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-repository_baseline_head: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-source_code_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-messageHandler_lines: 14638
+commit_base: 55e4a7127110af2eed3d350920efa893ea8e6110
+repository_baseline_head: 55e4a7127110af2eed3d350920efa893ea8e6110
+source_code_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+messageHandler_lines: 15515
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_cancel_posttransaction_canonical_projection_01_at_c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-baseline_status: fix_cancel_posttransaction_canonical_projection_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_secure_conversational_foundation_01_at_55e4a7127110af2eed3d350920efa893ea8e6110
+baseline_status: secure_conversational_foundation_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -100,54 +100,56 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: proyeccion canonica post-Cancel
+## Evidencia focal actual: secure conversational foundation
 
 ```yaml
-hito_id: FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
-technical_commit: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
+hito_id: SECURE-CONVERSATIONAL-FOUNDATION-01
+technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
 technical_push: confirmed
-messageHandler_lines: 14638
+messageHandler_lines: 15515
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - OBS-M6-09 7/7 PASS ordinarios
-      - focales 246/246 PASS
-      - core 1319/1319 PASS
+      - redirect_and_p_safe 29/29 PASS
+      - core 1493/1493 PASS
+      - TypeScript PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
-  preLLM: L5657-L5869
-  bodyLLM: L6884-L13769
-  posLLM: L14264-L14305
-  handleIncomingMessage: L14309-L14317
+  preLLM: L6062-L6274
+  bodyLLM: L7511-L14582
+  posLLM: L15077-L15118
+  handleIncomingMessage: L15122-L15515
 focal_code_refs:
-  buildPersistedReservationRecord: L1134-L1172
-  reservationPhaseFromStatus: L1196-L1200
-  resolveCanonicalSameIdReadProjection: L3196-L3221
-  snapshot_phase_projection:
-    - L9072
-    - L9488
-  cancel_execution_projection:
-    - L11366-L11418
-    - L11524-L11561
+  cancel_corridor: L12015-L12394
+  cancel_execution_gate: L12190-L12203
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
 ```
 
-Guardian entrego exclusivamente los rangos focales anteriores. Las demas
+Guardian entrego exclusivamente los rangos top-level y focales anteriores. El
+final real de `handleIncomingMessage` es EOF L15515 pese a la subestimacion del
+scanner causada por la firma multilinea. Las demas
 referencias internas se conservan como evidencia historica y no se desplazan
 por inferencia; no se redefinen cajas ni diagramas.
 

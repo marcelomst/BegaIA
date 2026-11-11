@@ -38,7 +38,7 @@ La clasificación estratégica describe cómo usar una capacidad en presentació
 | Capacidad | Estado BegaIA | Clasificación estratégica | Evidencia | Claim comercial seguro | Limitación vigente | Riesgo |
 | --- | --- | --- | --- | --- | --- | --- |
 | Concierge Digital hotelero | Demostrada | CORE_DIFFERENTIATOR | Dry run comercial 2026-07-22 | "BegaIA es un Concierge Digital para hotelería: conversaciones naturales, operaciones gobernadas." | Debe explicarse sin sonar a chatbot genérico. | Medio |
-| Chat web | Demostrada | COMMODITIZED_CAPABILITY | Widget Web demo | "Web es uno de los puntos de entrada de la demo." | Chat web no diferencia por sí solo. | Alto si se vende como diferencial |
+| Chat web | Contención temporal | PARTIAL | `SECURE-CONVERSATIONAL-FOUNDATION-01` | "Guest Web permanece como superficie contenida mientras se completa su capacidad conversacional." | Sin continuidad conversacional ni SSE; no presentar como recorrido operativo disponible. | Alto si se presenta como capacidad vigente |
 | FAQ breve | Demostrada | COMMODITIZED_CAPABILITY | Check-in/parking en demo | "Responde consultas frecuentes controladas." | No cubre cualquier FAQ libre. | Medio |
 | Habitaciones rich en Widget | Demostrada | SUPPORTING_CAPABILITY | Demo comercial y assets versionados | "El huésped puede explorar habitaciones con fotos." | Depende de KB/configuración vigente; no es diferencial aislado. | Medio |
 | Preview rich en Admin | Demostrada | SUPPORTING_CAPABILITY | Admin Inbox en dry run | "Recepción puede ver contexto visual, no sólo texto." | No es editor visual completo. | Medio |
@@ -50,7 +50,7 @@ La clasificación estratégica describe cómo usar una capacidad en presentació
 | Identidad canónica | Demostrada | CORE_DIFFERENTIATOR | Guest canónico en demo | "Ayuda a ordenar una identidad operativa entre canales." | No prometer matching universal. | Medio |
 | Aliases | Implementada/documentada | INTERNAL_VALUE_NOT_VISIBLE | `guest_identity_model.md` | "Permite representar identificadores por canal dentro del modelo operativo." | Poco visible para prospecto sin UI o explicación. | Medio |
 | Guest consolidation | Demostrada | CORE_DIFFERENTIATOR | Web Martin, Email Martín P., WhatsApp Martín Pérez | "El hotel puede consolidar contexto operativo del huésped." | No vender como suite CRM integral. | Alto si se exagera |
-| Continuidad multicanal | Demostrada en demo controlada | CORE_DIFFERENTIATOR | Snapshot consolidado | "Puede operar un recorrido multicanal controlado bajo una identidad operativa común." | No implica paridad productiva absoluta. | Medio |
+| Continuidad multicanal | Histórica en demo controlada; no vigente para Guest Web | PARTIAL | Snapshot consolidado; `SECURE-CONVERSATIONAL-FOUNDATION-01` | "La continuidad requiere validar cada superficie habilitada." | Guest Web no ofrece continuidad ni SSE en el estado vigente. | Alto |
 | Reserva WhatsApp Twilio | Demostrada en demo controlada | SUPPORTING_CAPABILITY | RES-77A568 | "WhatsApp puede operar como punto de entrada controlado." | Readiness productivo general requiere validaciones adicionales. | Medio |
 | Email operativo | Demostrada con precarga | SUPPORTING_CAPABILITY | RES-A365BD | "Email puede integrarse como canal operativo controlado en demo." | En demo breve se usa fuera del cronómetro; transporte productivo destino no debe presentarse como actual. | Alto |
 | Snapshot consolidado | Demostrada | CORE_DIFFERENTIATOR | Ana -> Laura -> Martín | "Muestra reservas asociadas al huésped en orden operativo." | Orden depende del ingreso real. | Bajo |
@@ -68,7 +68,7 @@ La clasificación estratégica describe cómo usar una capacidad en presentació
 | Handoff básico | Disponible como patrón operativo | COMMODITIZED_CAPABILITY | Observado también en mercado | "La operación puede escalar a humano." | No vender como diferencial aislado. | Alto |
 | Farewell natural | Demostrada | SUPPORTING_CAPABILITY | Cierre "chau" medido | "Cierra la conversación sin reabrir flujos residuales." | No implica localización completa de todo el runtime. | Bajo |
 | Channel Manager | Documentada como integración transaccional | DESTINATION/TECHNICAL_BACKUP | Admin Channels | "Se muestra como integración transaccional, no como canal conversacional." | No presentar como PMS ni como gestor integral de canales. | Alto |
-| Cancel | Implementada/documentada | TECHNICAL_BACKUP | Runtime reservation domain | "Puede formar parte de flujos gobernados de reserva." | No es core de demo breve mientras no sea visible y estable comercialmente. | Medio |
+| Cancel | Ejecución deshabilitada | DESTINATION | `SECURE-CONVERSATIONAL-FOUNDATION-01` | "Cancel permanece como capacidad pendiente de integridad y autorización." | No es ejecutable ni está listo para demo; Create, Modify y Snapshot permanecen preservados. | Alto |
 
 ## 4. Capacidades Core
 
@@ -145,7 +145,8 @@ Si la respuesta es no, la capacidad debe traducirse a una escena visible.
 ## 9. Claims Seguros
 
 - "BegaIA es un Concierge Digital especializado en hotelería."
-- "La demo validada opera Web, Email y WhatsApp en un recorrido controlado."
+- "La demo histórica validó un recorrido controlado; el estado vigente de cada
+  superficie debe verificarse antes de presentarlo."
 - "El sistema guía reservas y modificaciones con confirmación explícita."
 - "El sistema conserva continuidad multicanal bajo una identidad operativa común."
 - "El hotel puede graduar automatización y supervisión."
@@ -158,6 +159,8 @@ Si la respuesta es no, la capacidad debe traducirse a una escena visible.
 - "WhatsApp y Email demostrados" no significa "paridad productiva absoluta".
 - "Rich rooms" depende de KB y configuración correctamente regeneradas.
 - "Trazabilidad" debe mostrarse sólo en el nivel visible y real disponible.
+- Guest Web no debe presentarse con continuidad conversacional ni SSE vigentes.
+- Cancel no debe presentarse como ejecutable, completo ni listo para demo.
 
 ## 11. Claims A Evitar
 

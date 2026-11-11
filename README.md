@@ -14,8 +14,10 @@ un runtime conversacional que puede:
 
 - responder consultas operativas e informativas
 - guiar flujos de reserva
-- soportar follow-ups sobre reservas, como snapshot, modify y cancel
-- mantener continuidad conversacional entre turnos
+- soportar follow-ups sobre reservas, como snapshot y modify; la ejecucion de
+  Cancel permanece deshabilitada en las entradas productivas auditadas
+- mantener continuidad conversacional entre turnos en las superficies
+  habilitadas; Guest Web permanece temporalmente sin continuidad ni SSE
 - integrarse con operación asistida por humanos cuando la automatización total
   no corresponde
 
@@ -37,7 +39,7 @@ Tecnologías y bloques principales:
 
 Canales soportados o documentados:
 
-- web
+- web, bajo contencion temporal para Guest Web sin continuidad ni SSE
 - WhatsApp
 - email
 - integraciones externas conectadas cuando corresponda
@@ -74,6 +76,12 @@ Conceptos arquitectónicos relevantes:
 
 El comportamiento detallado del runtime se documenta en los documentos de
 arquitectura, no en este README.
+
+Checkpoint de seguridad vigente: `SECURE-CONVERSATIONAL-FOUNDATION-01`
+consolida ownership, CAS, persistencia tenant-scoped, autenticacion Staff y
+MCP fail-closed en las fronteras comunes. Este checkpoint no habilita Cancel,
+no concede readiness de despliegue y no cierra
+`FIX-CANCEL-SECURE-AUTHORIZATION-LIFECYCLE-01`.
 
 ## 4. Project Structure
 

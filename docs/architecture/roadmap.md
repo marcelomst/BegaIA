@@ -11,6 +11,27 @@ ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ---
 
+## CHECKPOINT — SECURE CONVERSATIONAL FOUNDATION 2026-11-11
+
+```yaml
+secure_conversational_foundation:
+  hito_id: SECURE-CONVERSATIONAL-FOUNDATION-01
+  technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+  foundation_checkpoint: completed
+  cancel_execution_integrity: remains_open
+  guest_web_conversation_capability: remains_open
+  deployment_readiness: not_granted
+  origin_hito: FIX-CANCEL-SECURE-AUTHORIZATION-LIFECYCLE-01
+  origin_hito_closed: false
+```
+
+La fundacion consolida ownership, CAS, persistencia tenant-scoped,
+autorizacion administrativa, autenticacion Staff y MCP fail-closed. Cancel
+permanece deshabilitado en las entradas productivas auditadas; Guest Web
+permanece sin continuidad ni SSE. El checkpoint no autoriza despliegue.
+
+---
+
 ## 📌 CHECKPOINT COMERCIAL — DEMO VALIDADA 2026-07-22
 
 ```yaml

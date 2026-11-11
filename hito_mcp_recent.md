@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 1. SECURE-CONVERSATIONAL-FOUNDATION-01
+
+- Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
+- Nombre: `establish secure conversational foundation`
+- Commit tecnico: `55e4a7127110af2eed3d350920efa893ea8e6110`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Consolida ownership, CAS, persistencia tenant-scoped,
+  autorizacion administrativa, autenticacion Staff y MCP fail-closed; mantiene
+  Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
+  abierto y despliegue no autorizado.
+
+## 2. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 2. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 3. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -37,7 +50,7 @@ recent_hitos_count: 10
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
 
-## 3. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 4. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -51,7 +64,7 @@ recent_hitos_count: 10
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
 
-## 4. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 5. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -64,7 +77,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 5. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 6. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -78,7 +91,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 6. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 7. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -92,7 +105,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 7. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 8. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -105,7 +118,7 @@ recent_hitos_count: 10
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
 
-## 8. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
+## 9. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
@@ -119,7 +132,7 @@ recent_hitos_count: 10
   modify, cancel ni create, no declara la observacion resuelta y preserva
   `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
 
-## 9. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
+## 10. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
 
 - Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
 - Nombre: `restore guestwide modify authority resolution`
@@ -132,16 +145,3 @@ recent_hitos_count: 10
   identificacion no autoritativa, fail-closed y revalidacion antes de quote,
   preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
   bloqueado del hito relacionado.
-
-## 10. TEST-CANONICAL-READ-INTEGRITY-MATRIX-01
-
-- Identificador: `TEST-CANONICAL-READ-INTEGRITY-MATRIX-01`
-- Nombre: `characterize canonical read integrity matrix`
-- Commit tecnico: `474257d286fca3e0061c334ac770eaf1c3dac501`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Caracteriza mediante una matriz A-H la integridad del read
-  path canonico de reservas; conserva 13 expected-failure, con `OBS-M6-02` y
-  `OBS-M6-07` en `CONFIRMED`, sin cambios productivos ni refresh del Runtime
-  Map.

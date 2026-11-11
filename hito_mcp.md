@@ -15734,6 +15734,120 @@ Impacto:
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
 
+### SECURE-CONVERSATIONAL-FOUNDATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-11
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Hito de origen: FIX-CANCEL-SECURE-AUTHORIZATION-LIFECYCLE-01
+Intencion unica: establecer una fundacion conversacional segura sin declarar completo el lifecycle de autorizacion de Cancel
+Commit tecnico: 55e4a7127110af2eed3d350920efa893ea8e6110
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- consolida ownership y CAS en la frontera conversacional comun
+- aplica persistencia tenant-scoped a `conv_state`, conversaciones y mensajes
+- endurece autorizacion administrativa, aislamiento multihotel,
+  autenticacion Staff y refresh validado server-side
+- configura MCP fail-closed mediante `MCP_ENDPOINT` e impide reenviar
+  `x-mcp-key` a traves de redirecciones HTTP
+- preserva Create, Modify y Snapshot
+- mantiene Cancel deshabilitado en todas las entradas productivas auditadas
+- mantiene Guest Web bajo contencion temporal, sin continuidad ni SSE
+- no cierra `FIX-CANCEL-SECURE-AUTHORIZATION-LIFECYCLE-01` y no concede
+  autorizacion de despliegue
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+technical_parent: ffed29a396be7301fa9999584ba92edf6941a6a6
+technical_commit_message: "fix(security): establish secure conversational foundation"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 55e4a7127110af2eed3d350920efa893ea8e6110
+committed_files: 56
+validation:
+  redirect_and_p_safe: 29/29 PASS
+  core_suite: 1493/1493 PASS
+  typescript: PASS
+  git_diff_check: PASS
+```
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
+    - runtime.messageHandler.persistenceReply
+  reviewed:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico al commit
+  `55e4a7127110af2eed3d350920efa893ea8e6110`
+- `messageHandler.ts`: 15515 lineas fisicas
+- `preLLM`: L6062-L6274
+- `bodyLLM`: L7511-L14582
+- `posLLM`: L15077-L15118
+- `handleIncomingMessage`: L15122-L15515; el scanner de tamanos informa
+  incorrectamente L15122-L15130 por la firma multilinea, pero el final real
+  verificado es EOF L15515
+- corredor Cancel: L12015-L12394; gate de ejecucion: L12190-L12203
+- se preservan los `box_id`, relaciones, taxonomia y diagramas conceptuales;
+  los rangos internos no entregados permanecen `needs_refresh`
+
+Roadmap:
+
+```yaml
+foundation_checkpoint: completed
+cancel_execution_integrity: remains_open
+guest_web_conversation_capability: remains_open
+deployment_readiness: not_granted
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/architecture/roadmap.md`
+- `README.md`
+- `docs/product/presentation_capability_map.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: fortalece; consolida ownership, persistencia y autorizacion en
+  fronteras comunes sin introducir runtime paralelo
+- corrige claims para no presentar Cancel como ejecutable o listo para demo,
+  ni Guest Web con continuidad o SSE vigentes
+- el documentation commit y su push quedan pendientes de ejecucion por la
+  Autoridad Humana y de validacion read-only posterior mediante HDOC(CLOSE)
+
 ### SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 Estado: DOCUMENTACION_PREPARADA

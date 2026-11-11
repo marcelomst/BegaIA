@@ -43,11 +43,11 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-messageHandler_lines: 14638
+commit_base: 55e4a7127110af2eed3d350920efa893ea8e6110
+messageHandler_lines: 15515
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_cancel_posttransaction_canonical_projection_01_at_c9af50c96ebb8f137e08a1687a11758cf6c7c7f1
-baseline_status: fix_cancel_posttransaction_canonical_projection_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_secure_conversational_foundation_01_at_55e4a7127110af2eed3d350920efa893ea8e6110
+baseline_status: secure_conversational_foundation_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,26 +60,33 @@ analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456cc
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## Auditoría actual: SECURE-CONVERSATIONAL-FOUNDATION-01
 
 ```yaml
 runtime_boxes_audit:
   touched:
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
     - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
     - runtime.messageHandler.persistenceReply
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
+    - runtime.messageHandler.bodyLLM.channelCopyCorridor
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - OBS-M6-09 7/7 PASS ordinarios
-      - focales 246/246 PASS
-      - core 1319/1319 PASS
+      - redirect_and_p_safe 29/29 PASS
+      - core 1493/1493 PASS
+      - TypeScript PASS
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -91,26 +98,20 @@ runtime_map:
   internal_code_refs_status: needs_refresh
   global_freshness_claim_allowed: false
 top_level_code_refs:
-  preLLM: L5657-L5869
-  bodyLLM: L6884-L13769
-  posLLM: L14264-L14305
-  handleIncomingMessage: L14309-L14317
+  preLLM: L6062-L6274
+  bodyLLM: L7511-L14582
+  posLLM: L15077-L15118
+  handleIncomingMessage: L15122-L15515
 focal_code_refs:
-  buildPersistedReservationRecord: L1134-L1172
-  reservationPhaseFromStatus: L1196-L1200
-  resolveCanonicalSameIdReadProjection: L3196-L3221
-  snapshot_phase_projection:
-    - L9072
-    - L9488
-  cancel_execution_projection:
-    - L11366-L11418
-    - L11524-L11561
+  cancel_corridor: L12015-L12394
+  cancel_execution_gate: L12190-L12203
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
 intactos. Los rangos top-level y focales entregados por Guardian quedan
-frescos; los demas internos conservan estado `needs_refresh` y no se desplazan
-por inferencia.
+frescos; `handleIncomingMessage` termina en EOF L15515 pese a la subestimacion
+del scanner por su firma multilinea. Los demas internos conservan estado
+`needs_refresh` y no se desplazan por inferencia.
 
 ## Auditoría histórica preservada: FIX-MODIFY-CANCEL-PRECEDENCE-01
 
