@@ -33,11 +33,12 @@ import { getConvState, upsertConvState } from "@/lib/db/convState";
 import { fillSlotsWithLLM } from "@/lib/agents/reservations";
 
 type AnyObj = Record<string, any>;
+const TEST_MCP_KEY = "test-mcp-key";
 
 function mkReq(url: string, body: unknown): Request {
   return new Request(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-mcp-key": TEST_MCP_KEY },
     body: JSON.stringify(body),
   });
 }
@@ -48,6 +49,7 @@ describe("reservation golden transcripts", () => {
   const mcpCalls: AnyObj[] = [];
 
   beforeEach(() => {
+    vi.stubEnv("MCP_API_KEY", TEST_MCP_KEY);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-30T12:00:00.000Z"));
     vi.clearAllMocks();

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllConversationsForHotel } from "@/lib/db/conversations";
 import { getAstraDB } from "@/lib/astra/connection";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { canAccessAdminRoute, resolveAuthorizedStaffHotelId } from "@/lib/auth/roles";
 
 type TraceItem = {
   conversationId: string;
@@ -14,7 +16,17 @@ type TraceItem = {
 
 export async function GET(req: NextRequest) {
   try {
-    const hotelId = req.nextUrl.searchParams.get("hotelId") || "hotel999";
+    const user = await getCurrentUser().catch(() => null);
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
+    }
+    if (!canAccessAdminRoute(user.roleLevel, "/admin/kb/templates")) {
+      return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 403 });
+    }
+    const hotelId = resolveAuthorizedStaffHotelId(user, req.nextUrl.searchParams.get("hotelId"));
+    if (!hotelId) {
+      return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 403 });
+    }
     const limitParam = Number(req.nextUrl.searchParams.get("limit") || "500");
     const limit = Number.isFinite(limitParam)
       ? Math.min(Math.max(1, limitParam), 5000)

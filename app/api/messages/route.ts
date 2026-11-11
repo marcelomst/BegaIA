@@ -206,7 +206,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      const current = await getMessageById(messageId);
+      const current = await getMessageById(user.hotelId, messageId);
       if (channel === "email") {
         logEmailSupervisedApproval("pending", {
           found: Boolean(current),
@@ -404,7 +404,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const current = await getMessageById(messageId);
+    const current = await getMessageById(user.hotelId, messageId);
     if (!current || current.hotelId !== user.hotelId || current.channel !== channel) {
       return NextResponse.json(
         { error: "Mensaje no encontrado" },

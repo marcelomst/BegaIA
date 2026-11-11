@@ -117,7 +117,10 @@ export async function getOrCreateConversation(input: {
   status?: "active" | "closed" | "archived";
   metadata?: Record<string, any>;
 }): Promise<Conversation> {
-  const existing = await col().findOne({ conversationId: input.conversationId });
+  const existing = await col().findOne({
+    hotelId: input.hotelId,
+    conversationId: input.conversationId,
+  });
   if (existing) return existing as Conversation;
 
   const now = new Date().toISOString();
@@ -140,10 +143,23 @@ export async function getOrCreateConversation(input: {
 /**
  * Actualiza campos de la conversación.
  */
-export async function updateConversation(conversationId: string, changes: Partial<Conversation>) {
-  const existing = (await col().findMany({ conversationId }))[0];
+export async function updateConversation(
+  hotelId: string,
+  conversationId: string,
+  changes: Partial<Conversation>,
+) {
+  if (changes.hotelId !== undefined && changes.hotelId !== hotelId) {
+    throw new Error("updateConversation: hotelId mismatch");
+  }
+  if (changes.conversationId !== undefined && changes.conversationId !== conversationId) {
+    throw new Error("updateConversation: conversationId mismatch");
+  }
+  const existing = (await col().findMany({ hotelId, conversationId }))[0];
   if (!existing) return { acknowledged: true, matchedCount: 0, modifiedCount: 0 };
-  const updated = { ...existing, ...changes, lastUpdatedAt: new Date().toISOString() };
+  const safeChanges = { ...changes };
+  delete safeChanges.hotelId;
+  delete safeChanges.conversationId;
+  const updated = { ...existing, ...safeChanges, lastUpdatedAt: new Date().toISOString() };
   await col().updateOne({ _id: existing._id }, updated as any);
   return { acknowledged: true, matchedCount: 1, modifiedCount: 1 };
 }
@@ -157,8 +173,8 @@ export async function getConversation(conversationId: string) {
   return (await col().findOne({ conversationId })) as Conversation | null;
 }
 
-export async function getConversationById(conversationId: string) {
-  return getConversation(conversationId);
+export async function getConversationById(hotelId: string, conversationId: string) {
+  return (await col().findOne({ hotelId, conversationId })) as Conversation | null;
 }
 
 export async function getAllConversationsForHotel(hotelId: string): Promise<Conversation[]> {

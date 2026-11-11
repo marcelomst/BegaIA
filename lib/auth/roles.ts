@@ -26,6 +26,29 @@ export function isRoleLevelZeroAllowed(hotelId: string, roleLevel: number): bool
   return !(roleLevel === ROLE_TECHNICAL_SUPER && hotelId !== "system");
 }
 
+/**
+ * Resolves the only tenant authority currently represented by staff JWTs.
+ * Non-system staff are confined to their claimed hotel. The canonical system
+ * actor (role 0 + hotelId "system") may select a hotel explicitly.
+ */
+export function resolveAuthorizedStaffHotelId(
+  actor: { hotelId: string; roleLevel: number },
+  requestedHotelId?: string | null,
+): string | null {
+  const actorHotelId = String(actor?.hotelId || "").trim();
+  const requested = String(requestedHotelId || "").trim();
+  const roleLevel = Number(actor?.roleLevel);
+  if (!actorHotelId || !Number.isInteger(roleLevel) || roleLevel < 0 || roleLevel >= 30) {
+    return null;
+  }
+  if (isSystemUser(roleLevel)) {
+    if (actorHotelId !== "system") return null;
+    return requested || actorHotelId;
+  }
+  if (requested && requested !== actorHotelId) return null;
+  return actorHotelId;
+}
+
 /* ---------------------- */
 /* Visibilidad DASHBOARD  */
 /* ---------------------- */

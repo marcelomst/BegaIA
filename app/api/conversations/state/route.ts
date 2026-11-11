@@ -3,20 +3,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { getConvState } from "@/lib/db/convState";
 import { getConversationById } from "@/lib/db/conversations";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { canAccessAdminRoute, resolveAuthorizedStaffHotelId } from "@/lib/auth/roles";
 
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser().catch(() => null);
         const url = new URL(req.url);
-        const hotelId = url.searchParams.get("hotelId") || user?.hotelId || "hotel999";
         const conversationId = url.searchParams.get("conversationId");
 
+        if (!user) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+        }
+        if (!canAccessAdminRoute(user.roleLevel, "/admin/inbox")) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
         if (!conversationId) {
             return NextResponse.json({ error: "conversationId requerido" }, { status: 400 });
         }
 
+        const hotelId = resolveAuthorizedStaffHotelId(user, url.searchParams.get("hotelId"));
+        if (!hotelId) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
         // Validación básica: conversación pertenece al hotel solicitado
-        const conv = await getConversationById(conversationId).catch(() => null);
+        const conv = await getConversationById(hotelId, conversationId).catch(() => null);
         if (!conv || conv.hotelId !== hotelId) {
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }

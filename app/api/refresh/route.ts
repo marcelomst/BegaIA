@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signJWT, verifyRefreshToken } from "@/lib/auth/jwt";
+import { getHotelConfigCollection } from "@/lib/config/hotelConfig.server";
+import type { HotelUser } from "@/types/user";
 
 export async function GET(req: NextRequest) {
   const refreshToken = req.cookies.get("refreshToken")?.value;
@@ -14,11 +16,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Refresh token inválido o expirado" }, { status: 401 });
   }
 
+  const collection = getHotelConfigCollection();
+  const config = await collection.findOne({ hotelId: payload.hotelId });
+  const user = config?.users?.find(
+    (candidate: HotelUser) => candidate.userId === payload.userId && candidate.active,
+  );
+  if (!config || !user) {
+    return NextResponse.json({ error: "Sesión no autorizada" }, { status: 401 });
+  }
+
   const newAccessToken = await signJWT({
-    email: payload.email,
-    hotelId: payload.hotelId,
-    roleLevel: payload.roleLevel,
-    userId: payload.userId,
+    email: user.email,
+    hotelId: config.hotelId,
+    roleLevel: user.roleLevel,
+    userId: user.userId,
   });
 
   const response = NextResponse.json({ success: true });

@@ -1,6 +1,16 @@
 // Path: /root/begasist/lib/pipeline/handleChannelMessage.ts
 import crypto from "crypto";
 import type { Channel, ChannelMessage, ChannelMode, MessageStatus } from "@/types/channel";
+import {
+  acquireConversationOwnership,
+  assertConversationOwnership,
+  createConversationWriterGuard,
+  releaseConversationOwnership,
+} from "@/lib/db/convState";
+import {
+  getConversationOwnershipContext,
+  runWithConversationOwnership,
+} from "@/lib/ownership/conversationOwnershipContext";
 
 const SAFE_INPUT_MAX = 3000;
 const FORCE_GENERATION = process.env.FORCE_GENERATION === "1";
@@ -8,12 +18,64 @@ const IS_TEST_ENV = process.env.NODE_ENV === "test" || Boolean((globalThis as an
 const ENABLE_TEST_FASTPATH = process.env.ENABLE_TEST_FASTPATH === "1" || process.env.DEBUG_FASTPATH === "1" || IS_TEST_ENV;
 const FAST_ROUTE_MODE = IS_TEST_ENV && !FORCE_GENERATION && ENABLE_TEST_FASTPATH;
 const DEBUG_EMAIL_ACTOR_CAPTURE = process.env.DEBUG_EMAIL_ACTOR_CAPTURE === "1";
+const COMMON_CHANNEL_WRITER_KIND = "common_channel_turn";
+const COMMON_CHANNEL_WRITER_INSTANCE_ID = `process-${process.pid}-${crypto.randomUUID()}`;
+const COMMON_CHANNEL_WRITER_BUILD_ID = [
+  process.env.BEGASIST_BUILD_ID,
+  process.env.VERCEL_GIT_COMMIT_SHA,
+  process.env.GIT_COMMIT_SHA,
+  process.env.npm_package_version,
+].find((value) => typeof value === "string" && value.length > 0 && value.trim() === value) || "unversioned-build";
 
 const processedMsgIds = new Set<string>();
+
+export const CHANNEL_TURN_RESULT_CONTRACT_VERSION = "channel-turn-result-v1" as const;
+
+export type ChannelTurnResultContract = Readonly<{
+  contractVersion: typeof CHANNEL_TURN_RESULT_CONTRACT_VERSION;
+  outcome: "rejected" | "failed" | "completed_reconciliation_required";
+  inboundPersistence: "not_attempted" | "uncertain" | "persisted";
+  ownership:
+    | "not_started"
+    | "occupied"
+    | "acquisition_uncertain"
+    | "acquisition_error"
+    | "lost"
+    | "released"
+    | "release_not_owner"
+    | "release_uncertain"
+    | "release_error";
+  retry: "retry_later" | "do_not_retry" | "reconcile_before_retry";
+  reconciliationRequired: boolean;
+  reason: string;
+}>;
+
+function channelTurnResult(
+  result: Omit<ChannelTurnResultContract, "contractVersion">,
+): ChannelTurnResultContract {
+  return Object.freeze({
+    contractVersion: CHANNEL_TURN_RESULT_CONTRACT_VERSION,
+    ...result,
+  });
+}
 
 function normText(value: unknown, max = SAFE_INPUT_MAX): string {
   if (typeof value !== "string") return "";
   return value.trim().slice(0, max);
+}
+
+function requireCanonicalIdentity(
+  value: unknown,
+  field: "hotelId" | "conversationId",
+  options: { forbidColon?: boolean } = {},
+): string {
+  if (typeof value !== "string" || !value || value.trim() !== value || value.length > 120) {
+    throw new ChannelMessageInputError(`${field} must be a canonical non-empty string`);
+  }
+  if (options.forbidColon && value.includes(":")) {
+    throw new ChannelMessageInputError(`${field} cannot contain ':' because it prefixes the canonical conversation key`);
+  }
+  return value;
 }
 
 function normalizeApiLang(value: unknown): "es" | "en" | "pt" | null {
@@ -40,9 +102,50 @@ function inferGreetingLangFromQuery(q: string): "es" | "en" | "pt" | null {
 
 class ChannelMessageInputError extends Error {
   readonly status = 400;
+  readonly channelTurnResult: ChannelTurnResultContract;
   constructor(message: string) {
     super(message);
     this.name = "ChannelMessageInputError";
+    this.channelTurnResult = channelTurnResult({
+      outcome: "rejected",
+      inboundPersistence: "not_attempted",
+      ownership: "not_started",
+      retry: "do_not_retry",
+      reconciliationRequired: false,
+      reason: "invalid_input",
+    });
+  }
+}
+
+class ChannelTurnOwnershipError extends Error {
+  readonly status: number;
+  readonly ownershipStatus: string;
+  readonly retryable: boolean;
+  readonly channelTurnResult: ChannelTurnResultContract;
+
+  constructor(
+    ownershipStatus: string,
+    reason: string,
+    result: ChannelTurnResultContract,
+  ) {
+    super(`conversation ownership ${ownershipStatus}: ${reason}`);
+    this.name = "ChannelTurnOwnershipError";
+    this.ownershipStatus = ownershipStatus;
+    this.status = ownershipStatus === "occupied" ? 409 : 503;
+    this.retryable = result.retry === "retry_later";
+    this.channelTurnResult = result;
+  }
+}
+
+class ChannelTurnProcessingError extends Error {
+  readonly status = 503;
+  readonly retryable = false;
+  readonly channelTurnResult: ChannelTurnResultContract;
+
+  constructor(message: string, result: ChannelTurnResultContract, cause: unknown) {
+    super(message, { cause });
+    this.name = "ChannelTurnProcessingError";
+    this.channelTurnResult = result;
   }
 }
 
@@ -79,6 +182,11 @@ export async function handleChannelMessage(input: {
   deduped?: boolean;
   hotelId?: string;
   channel?: Channel;
+  ownershipRelease?: {
+    status: "not_owner" | "uncertain" | "error";
+    reason?: string;
+  };
+  channelTurnResult?: ChannelTurnResultContract;
 }> {
   const [
     { handleIncomingMessage, extractExplicitConversationalActorName },
@@ -100,9 +208,11 @@ export async function handleChannelMessage(input: {
       import("@/lib/db/conversations"),
       import("@/lib/db/guests"),
     ]);
-  const hotelId = normText(input.hotelId, 120);
+  const hotelId = requireCanonicalIdentity(input.hotelId, "hotelId", { forbidColon: true });
   const channel = (normText(input.channel, 30) || "web") as Channel;
-  const explicitConversationId = normText(input.conversationId, 120);
+  const explicitConversationId = input.conversationId == null
+    ? ""
+    : requireCanonicalIdentity(input.conversationId, "conversationId");
   const rawGuestId = normText(input.guestId, 120) || "web-guest";
   const sender = normText(input.sender, 180) || "guest";
   const content = normText(input.query);
@@ -110,7 +220,6 @@ export async function handleChannelMessage(input: {
   const modeIn = normText(input.mode, 30) as ChannelMode | "";
   const sourceMsgId = normText(input.sourceMsgId, 180) || undefined;
 
-  if (!hotelId) throw new ChannelMessageInputError("hotelId is required");
   if (!content) throw new ChannelMessageInputError("message is required");
 
   const resolvedIdentity = await resolveGuestIdentity({
@@ -143,12 +252,18 @@ export async function handleChannelMessage(input: {
       guestId,
       channel,
     });
-    conversationId = normText(existingConversation?.conversationId, 120);
+    if (existingConversation?.conversationId != null) {
+      conversationId = requireCanonicalIdentity(existingConversation.conversationId, "conversationId");
+    }
   }
   if (!conversationId) {
     conversationId = `conv-${crypto.randomUUID()}`;
   }
+  conversationId = requireCanonicalIdentity(conversationId, "conversationId");
   const preMessageId = sourceMsgId || `${channel}:${conversationId}:${crypto.randomUUID()}`;
+  let inboundPersistence: ChannelTurnResultContract["inboundPersistence"] = "not_attempted";
+
+  const executeResolvedTurn = async () => {
 
   let langResolved = explicitLang || "es";
 
@@ -289,10 +404,9 @@ export async function handleChannelMessage(input: {
     }
 
     if (typeof updateConversation === "function") {
-      await updateConversation(conversationId, {
+      await updateConversation(hotelId, conversationId, {
         guestId,
         channel,
-        hotelId,
         lastUpdatedAt: incoming.timestamp,
       } as any);
     }
@@ -313,9 +427,13 @@ export async function handleChannelMessage(input: {
       };
     }
     processedMsgIds.add(preMessageId);
+    inboundPersistence = "uncertain";
     await persistConversationBinding();
+    inboundPersistence = "persisted";
   } else {
+    inboundPersistence = "uncertain";
     await handleIncomingMessage(incoming, opts);
+    inboundPersistence = "persisted";
     await persistConversationBinding();
   }
 
@@ -374,6 +492,190 @@ export async function handleChannelMessage(input: {
     hotelId,
     channel,
   };
+  };
+
+  const inheritedOwnership = getConversationOwnershipContext();
+  if (inheritedOwnership) {
+    if (inheritedOwnership.hotelId !== hotelId || inheritedOwnership.conversationId !== conversationId) {
+      throw new ChannelTurnOwnershipError(
+        "lost",
+        "nested turn targets a different conversation identity",
+        channelTurnResult({
+          outcome: "rejected",
+          inboundPersistence: "not_attempted",
+          ownership: "lost",
+          retry: "do_not_retry",
+          reconciliationRequired: false,
+          reason: "nested_identity_mismatch",
+        }),
+      );
+    }
+    const inheritedAssertion = await assertConversationOwnership(
+      hotelId,
+      conversationId,
+      inheritedOwnership.guard,
+    );
+    if (inheritedAssertion.status !== "owned") {
+      throw new ChannelTurnOwnershipError(
+        "lost",
+        inheritedAssertion.status === "uncertain" || inheritedAssertion.status === "error" || inheritedAssertion.status === "malformed"
+          ? inheritedAssertion.reason
+          : inheritedAssertion.status,
+        channelTurnResult({
+          outcome: "rejected",
+          inboundPersistence: "not_attempted",
+          ownership: "lost",
+          retry: "reconcile_before_retry",
+          reconciliationRequired: true,
+          reason: `inherited_ownership_${inheritedAssertion.status}`,
+        }),
+      );
+    }
+    return runWithConversationOwnership(inheritedOwnership, executeResolvedTurn);
+  }
+
+  const attemptedGuard = createConversationWriterGuard({
+    operationId: `channel-turn-${crypto.randomUUID()}`,
+    writerKind: COMMON_CHANNEL_WRITER_KIND,
+    instanceId: COMMON_CHANNEL_WRITER_INSTANCE_ID,
+    buildId: COMMON_CHANNEL_WRITER_BUILD_ID,
+    messageId: preMessageId,
+  });
+  const acquisition = await acquireConversationOwnership(hotelId, conversationId, attemptedGuard);
+  if (acquisition.status !== "acquired") {
+    const isOccupied = acquisition.status === "occupied";
+    const isUncertain = acquisition.status === "uncertain";
+    throw new ChannelTurnOwnershipError(
+      acquisition.status,
+      isOccupied ? "conversation is owned by another writer" : acquisition.reason,
+      channelTurnResult({
+        outcome: "rejected",
+        inboundPersistence: "not_attempted",
+        ownership: isOccupied ? "occupied" : isUncertain ? "acquisition_uncertain" : "acquisition_error",
+        retry: isOccupied ? "retry_later" : isUncertain ? "reconcile_before_retry" : "do_not_retry",
+        reconciliationRequired: isUncertain,
+        reason: isOccupied ? "owned_by_another_writer" : acquisition.reason,
+      }),
+    );
+  }
+
+  let turnResult: Awaited<ReturnType<typeof executeResolvedTurn>> | undefined;
+  let turnError: unknown;
+  let releaseFailure: { status: "not_owner" | "uncertain" | "error"; reason?: string } | undefined;
+  try {
+    const assertion = await assertConversationOwnership(hotelId, conversationId, acquisition.guard);
+    if (assertion.status !== "owned") {
+      throw new ChannelTurnOwnershipError(
+        "lost",
+        assertion.status === "uncertain" || assertion.status === "error" || assertion.status === "malformed"
+          ? assertion.reason
+          : assertion.status,
+        channelTurnResult({
+          outcome: "rejected",
+          inboundPersistence: "not_attempted",
+          ownership: "lost",
+          retry: "reconcile_before_retry",
+          reconciliationRequired: true,
+          reason: `ownership_assertion_${assertion.status}`,
+        }),
+      );
+    }
+    turnResult = await runWithConversationOwnership(
+      { hotelId, conversationId, guard: acquisition.guard },
+      executeResolvedTurn,
+    );
+  } catch (error) {
+    turnError = error;
+  } finally {
+    try {
+      const release = await releaseConversationOwnership(hotelId, conversationId, acquisition.guard);
+      if (release.status !== "released") {
+        releaseFailure = {
+          status: release.status,
+          ...(release.status === "uncertain" || release.status === "error" ? { reason: release.reason } : {}),
+        };
+      }
+    } catch {
+      releaseFailure = { status: "uncertain", reason: "release_exception" };
+    }
+    if (turnError && releaseFailure) {
+      console.error("[conversation-ownership] turn failed and ownership release was not verified", {
+        hotelId,
+        conversationId,
+        releaseStatus: releaseFailure.status,
+        releaseReason: releaseFailure.reason,
+      });
+    }
+  }
+
+  if (turnError) {
+    if (releaseFailure) {
+      throw new ChannelTurnProcessingError(
+        "conversation turn failed and ownership release was not verified",
+        channelTurnResult({
+          outcome: "failed",
+          inboundPersistence,
+          ownership: releaseFailure.status === "not_owner"
+            ? "release_not_owner"
+            : releaseFailure.status === "uncertain"
+              ? "release_uncertain"
+              : "release_error",
+          retry: "reconcile_before_retry",
+          reconciliationRequired: true,
+          reason: releaseFailure.reason || releaseFailure.status,
+        }),
+        turnError,
+      );
+    }
+    if (turnError instanceof ChannelTurnOwnershipError || turnError instanceof ChannelMessageInputError) {
+      throw turnError;
+    }
+    throw new ChannelTurnProcessingError(
+      "conversation turn failed",
+      channelTurnResult({
+        outcome: "failed",
+        inboundPersistence,
+        ownership: "released",
+        retry: inboundPersistence === "not_attempted" ? "do_not_retry" : "reconcile_before_retry",
+        reconciliationRequired: inboundPersistence !== "not_attempted",
+        reason: inboundPersistence === "not_attempted" ? "turn_error_before_persistence" : "turn_error_after_persistence_started",
+      }),
+      turnError,
+    );
+  }
+
+  if (!turnResult) {
+    throw new ChannelTurnProcessingError(
+      "protected turn produced no result",
+      channelTurnResult({
+        outcome: "failed",
+        inboundPersistence,
+        ownership: "released",
+        retry: "reconcile_before_retry",
+        reconciliationRequired: true,
+        reason: "missing_turn_result",
+      }),
+      undefined,
+    );
+  }
+  return releaseFailure
+    ? {
+      ...turnResult,
+      ownershipRelease: releaseFailure,
+      channelTurnResult: channelTurnResult({
+        outcome: "completed_reconciliation_required",
+        inboundPersistence: "persisted",
+        ownership: releaseFailure.status === "not_owner"
+          ? "release_not_owner"
+          : releaseFailure.status === "uncertain"
+            ? "release_uncertain"
+            : "release_error",
+        retry: "reconcile_before_retry",
+        reconciliationRequired: true,
+        reason: releaseFailure.reason || releaseFailure.status,
+      }),
+    }
+    : turnResult;
 }
 
-export { ChannelMessageInputError };
+export { ChannelMessageInputError, ChannelTurnOwnershipError, ChannelTurnProcessingError };

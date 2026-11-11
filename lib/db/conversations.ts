@@ -119,10 +119,13 @@ export async function createConversation(opts: CreateConversationOptions): Promi
 /**
  * Recupera una conversación por ID.
  */
-export async function getConversationById(conversationId: string): Promise<Conversation | null> {
-  console.log("🔍 Buscando conversación por ID:", conversationId);
+export async function getConversationById(
+  hotelId: string,
+  conversationId: string,
+): Promise<Conversation | null> {
+  console.log("🔍 Buscando conversación por hotel e ID:", hotelId, conversationId);
   const collection = getConversationsCollection();
-  return await collection.findOne({ conversationId });
+  return await collection.findOne({ hotelId, conversationId });
 }
 
 
@@ -207,13 +210,24 @@ export async function findActiveConversationByGuestId(input: {
 // Path: /root/begasist/lib/db/conversations.ts
 
 export async function updateConversation(
+  hotelId: string,
   conversationId: string,
   changes: Partial<Conversation>
 ) {
+  if (changes.hotelId !== undefined && changes.hotelId !== hotelId) {
+    throw new Error("updateConversation: hotelId mismatch");
+  }
+  if (changes.conversationId !== undefined && changes.conversationId !== conversationId) {
+    throw new Error("updateConversation: conversationId mismatch");
+  }
+
+  const safeChanges = { ...changes };
+  delete safeChanges.hotelId;
+  delete safeChanges.conversationId;
   const collection = getConversationsCollection();
-  await collection.updateOne(
-    { conversationId },
-    { $set: changes }
+  return await collection.updateOne(
+    { hotelId, conversationId },
+    { $set: safeChanges }
   );
 }
 
@@ -231,12 +245,13 @@ export type ConversationReplyTrace = {
  * (útil para auditoría de categoría/prompt/version).
  */
 export async function stampConversationReplyTrace(
+  hotelId: string,
   conversationId: string,
   trace: ConversationReplyTrace
 ) {
   const collection = getConversationsCollection();
-  await collection.updateOne(
-    { conversationId },
+  return await collection.updateOne(
+    { hotelId, conversationId },
     {
       $set: {
         lastUpdatedAt: trace.timestamp,
@@ -251,13 +266,14 @@ export async function stampConversationReplyTrace(
  * Mantiene sólo las últimas N huellas para evitar crecimiento infinito.
  */
 export async function appendConversationReplyTrace(
+  hotelId: string,
   conversationId: string,
   trace: ConversationReplyTrace,
   maxItems = 200
 ) {
   const collection = getConversationsCollection();
-  await collection.updateOne(
-    { conversationId },
+  return await collection.updateOne(
+    { hotelId, conversationId },
     {
       $set: {
         lastUpdatedAt: trace.timestamp,
@@ -314,7 +330,7 @@ export async function getOrCreateConversation({
   subject?: string;
 }) {
   const collection = getConversationsCollection();
-  const existing = await collection.findOne({ conversationId });
+  const existing = await collection.findOne({ hotelId, conversationId });
   if (existing) return existing;
   const conversation: Conversation = {
     conversationId,

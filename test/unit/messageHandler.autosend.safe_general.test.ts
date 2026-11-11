@@ -66,7 +66,10 @@ describe("messageHandler autosend for safe general intents", () => {
         (globalThis as any).__TEST_TEXT__ = "Estamos a 20 minutos del aeropuerto; podés tomar taxi o transfer.";
         const sendReply = vi.fn(async (_t: string) => { });
 
-        await handleIncomingMessage({ ...BASE_MSG, conversationId: "conv-auto-safe-2" }, { mode: "automatic", sendReply });
+        await handleIncomingMessage(
+            { ...BASE_MSG, conversationId: "conv-auto-safe-2", messageId: "m-safe-2" },
+            { mode: "automatic", sendReply },
+        );
 
         const msgs = await getCollection("messages").findMany({ hotelId: BASE_MSG.hotelId, conversationId: "conv-auto-safe-2" });
         const ai = msgs.filter((m) => (m as any).sender === "assistant").at(-1)!;
@@ -83,7 +86,10 @@ describe("messageHandler autosend for safe general intents", () => {
         (globalThis as any).__TEST_TEXT__ = "Podés tomar un taxi o un transfer oficial.";
         const sendReply = vi.fn(async (_t: string) => { });
 
-        await handleIncomingMessage({ ...BASE_MSG, conversationId: "conv-auto-safe-3" }, { mode: "supervised", sendReply });
+        await handleIncomingMessage(
+            { ...BASE_MSG, conversationId: "conv-auto-safe-3", messageId: "m-safe-3" },
+            { mode: "supervised", sendReply },
+        );
 
         const msgs = await getCollection("messages").findMany({ hotelId: BASE_MSG.hotelId, conversationId: "conv-auto-safe-3" });
         const ai = msgs.filter((m) => (m as any).sender === "assistant").at(-1)!;

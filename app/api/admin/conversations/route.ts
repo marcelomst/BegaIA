@@ -10,6 +10,8 @@ import { getMessagesByConversation } from "@/lib/db/messages";
 import { getGuestAliasesByGuestId } from "@/lib/db/guestAliases";
 import { deriveGuestReadAliases } from "@/lib/utils/guestReadAliases";
 import { ALL_CHANNELS, type Channel } from "@/types/channel";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { canAccessAdminRoute, resolveAuthorizedStaffHotelId } from "@/lib/auth/roles";
 
 type ConversationSummaryItem = {
   conversationId: string;
@@ -65,7 +67,17 @@ async function toSummaryItem(conv: any): Promise<ConversationSummaryItem> {
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const hotelId = normalizeText(url.searchParams.get("hotelId")) || "hotel999";
+    const user = await getCurrentUser().catch(() => null);
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!canAccessAdminRoute(user.roleLevel, "/admin/guests")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+    const hotelId = resolveAuthorizedStaffHotelId(user, url.searchParams.get("hotelId"));
+    if (!hotelId) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
     const guestId = normalizeText(url.searchParams.get("guestId"));
     const conversationId = normalizeText(url.searchParams.get("conversationId"));
     const rawChannel = normalizeText(url.searchParams.get("channel"));
@@ -74,7 +86,7 @@ export async function GET(req: NextRequest) {
       : undefined;
 
     if (conversationId) {
-      const conv = await getConversationById(conversationId);
+      const conv = await getConversationById(hotelId, conversationId);
       if (!conv || conv.hotelId !== hotelId) {
         return NextResponse.json({ guestId: null, conversations: [] });
       }

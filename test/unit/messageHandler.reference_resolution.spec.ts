@@ -1,6 +1,24 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 const stateByConversation = new Map<string, any>();
+const persistedMessages = new Map<string, any>();
+let persistedMessageSequence = 0;
+async function persistMessageForTest(message: any) {
+  persistedMessageSequence += 1;
+  persistedMessages.set(message.messageId, {
+    ...message,
+    createdAt: new Date(Date.UTC(2030, 0, 1, 0, 0, 0, persistedMessageSequence)).toISOString(),
+  });
+}
+async function readMessagesForTest({ hotelId, conversationId, limit }: any) {
+  const messages = Array.from(persistedMessages.values())
+    .filter((message: any) => message.hotelId === hotelId && message.conversationId === conversationId)
+    .sort((left: any, right: any) =>
+      String(right.timestamp || "").localeCompare(String(left.timestamp || "")) ||
+      String(right.createdAt || "").localeCompare(String(left.createdAt || ""))
+    );
+  return typeof limit === "number" ? messages.slice(0, limit) : messages;
+}
 const conversationMocks = vi.hoisted(() => ({
   getConversationsForGuestPerspective: vi.fn(async (_input?: unknown) => []),
 }));
@@ -9,8 +27,16 @@ const hotelConfigMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/messages", () => ({
-  saveChannelMessageToAstra: vi.fn(async () => {}),
-  getMessagesByConversation: vi.fn(async () => []),
+  saveChannelMessageToAstra: vi.fn(persistMessageForTest),
+  updateMessageInAstra: vi.fn(async (hotelId: string, messageId: string, changes: any) => {
+    const current = persistedMessages.get(messageId);
+    if (current?.hotelId === hotelId) persistedMessages.set(messageId, { ...current, ...changes });
+  }),
+  getMessagesByConversation: vi.fn(readMessagesForTest),
+  getMessageById: vi.fn(async (hotelId: string, messageId: string) => {
+    const message = persistedMessages.get(messageId) ?? null;
+    return message?.hotelId === hotelId ? message : null;
+  }),
 }));
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
@@ -27,7 +53,60 @@ vi.mock("@/lib/db/guests", () => ({
   findGuestByAnyId: vi.fn(async () => null),
 }));
 vi.mock("@/lib/db/convState", () => ({
+  isCancellationProviderExecutionEnabled: vi.fn(() => true),
   getConvState: vi.fn(async (_hotelId: string, conversationId: string) => stateByConversation.get(conversationId) ?? null),
+  preparePendingCancellationAuthorization: vi.fn(async (hotelId: string, conversationId: string, authorization: any) => {
+    const current = stateByConversation.get(conversationId);
+    if (!current) return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    stateByConversation.set(conversationId, {
+      ...current,
+      pendingCancellation: { ...authorization, previewMessageId: null, awaitingConfirmation: false },
+    });
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  activatePendingCancellationAuthorization: vi.fn(async (_hotelId: string, conversationId: string, prepared: any, previewMessageId: string) => {
+    const current = stateByConversation.get(conversationId);
+    const pending = current?.pendingCancellation;
+    if (!pending || pending.issuedForMessageId !== prepared.issuedForMessageId || pending.awaitingConfirmation !== false) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    stateByConversation.set(conversationId, {
+      ...current,
+      pendingCancellation: { ...pending, previewMessageId, awaitingConfirmation: true },
+    });
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  suspendPendingCancellationAuthorization: vi.fn(async (_hotelId: string, conversationId: string, active: any) => {
+    const current = stateByConversation.get(conversationId);
+    if (current?.pendingCancellation?.previewMessageId !== active.previewMessageId) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    stateByConversation.set(conversationId, {
+      ...current,
+      pendingCancellation: { ...current.pendingCancellation, awaitingConfirmation: false },
+    });
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  revokePendingCancellationAuthorizationIfCurrent: vi.fn(async (_hotelId: string, conversationId: string, active: any) => {
+    const current = stateByConversation.get(conversationId);
+    if (current?.pendingCancellation?.issuedForMessageId !== active.issuedForMessageId) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const next = { ...current };
+    delete next.pendingCancellation;
+    stateByConversation.set(conversationId, next);
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  consumePendingCancellationAuthorization: vi.fn(async (_hotelId: string, conversationId: string, active: any) => {
+    const current = stateByConversation.get(conversationId);
+    if (current?.pendingCancellation?.previewMessageId !== active.previewMessageId || current.pendingCancellation.awaitingConfirmation !== true) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    const next = { ...current };
+    delete next.pendingCancellation;
+    stateByConversation.set(conversationId, next);
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
   upsertConvState: vi.fn(async () => {}),
   CONVSTATE_VERSION: "convstate-test",
   resolveGuestState: (st: any) => {
@@ -61,6 +140,31 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   }),
 }));
 vi.mock("@/lib/agents/reservations", () => ({
+  getReservation: vi.fn(async (hotelId: string, reservationId: string) => {
+    const records = Array.from(stateByConversation.values()).flatMap((state: any) => [
+      ...(Array.isArray(state?.reservationHistory) ? state.reservationHistory : []),
+      state?.lastReservation,
+    ]).filter(Boolean);
+    const current = records.filter((record: any) => record.reservationId === reservationId).at(-1) || {};
+    return {
+      ok: true,
+      reservation: {
+        reservationId,
+        hotelId,
+        guestName: current.guestName ?? "Marcelo Martinez",
+        roomType: current.roomType ?? "double",
+        numGuests: current.numGuests == null && Object.prototype.hasOwnProperty.call(current, "numGuests")
+          ? null
+          : Number(current.numGuests ?? 2),
+        checkInDate: current.checkIn ?? "2026-03-28",
+        checkOutDate: current.checkOut ?? "2026-03-30",
+        status: current.status === "cancelled" ? "cancelled" : current.status === "pending" ? "pending" : "confirmed",
+        currency: "USD",
+        createdAt: current.createdAt ?? "2026-03-22T10:00:00.000Z",
+        updatedAt: current.updatedAt ?? current.createdAt ?? "2026-03-22T10:00:00.000Z",
+      },
+    };
+  }),
   modifyReservation: vi.fn(async (_hotelId: string, reservationId: string, patch: any) => {
     const states = Array.from(stateByConversation.values());
     const records = states.flatMap((state: any) => [
@@ -154,9 +258,23 @@ vi.mock("@langchain/openai", () => ({
 
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
 import { extractGuests, extractSlotsFromText } from "@/lib/agents/helpers";
-import { askAvailability, cancelReservation, confirmAndCreate, modifyReservation, quoteReservationModification } from "@/lib/agents/reservations";
+import { askAvailability, cancelReservation, confirmAndCreate, getReservation, modifyReservation, quoteReservationModification } from "@/lib/agents/reservations";
 import { getConversationsByGuestId, getConversationsForGuestPerspective } from "@/lib/db/conversations";
-import { getConvState } from "@/lib/db/convState";
+import {
+  activatePendingCancellationAuthorization,
+  consumePendingCancellationAuthorization,
+  getConvState,
+  preparePendingCancellationAuthorization,
+  revokePendingCancellationAuthorizationIfCurrent,
+  suspendPendingCancellationAuthorization,
+} from "@/lib/db/convState";
+import {
+  getMessageById,
+  getMessagesByConversation,
+  saveChannelMessageToAstra,
+  updateMessageInAstra,
+} from "@/lib/db/messages";
+import { updateConversationState } from "@/lib/agents/stateUpdaterAgent";
 import { findGuestByAnyId, getGuest } from "@/lib/db/guests";
 
 function msg(content: string, conversationId: string) {
@@ -565,9 +683,18 @@ describe("messageHandler reference resolution", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-23T12:00:00.000Z"));
     stateByConversation.clear();
+    persistedMessages.clear();
+    persistedMessageSequence = 0;
     (getGuest as any).mockResolvedValue(null);
     (findGuestByAnyId as any).mockResolvedValue(null);
-    (getConversationsForGuestPerspective as any).mockResolvedValue([]);
+    (getConversationsForGuestPerspective as any).mockImplementation(async (input: any) =>
+      Array.from(stateByConversation.keys()).map((conversationId) => ({
+        conversationId,
+        hotelId: input.hotelId,
+        guestId: input.guestId,
+        channel: "web",
+      })),
+    );
     hotelConfigMocks.getHotelConfig.mockResolvedValue({ timezone: "UTC" });
   });
 
@@ -575,6 +702,674 @@ describe("messageHandler reference resolution", () => {
     delete process.env.USE_CHRONO_LAYER;
     delete (globalThis as any).__chronoImport;
     vi.useRealTimers();
+  });
+
+  describe("Cancel guest-scoped operational authorization", () => {
+    const scopedRecord = (reservationId: string, guestName = "Titular Distinto") => ({
+      reservationId,
+      status: "created",
+      createdAt: "2026-03-22T10:00:00.000Z",
+      channel: "web",
+      guestName,
+      roomType: "double",
+      checkIn: "2026-03-28",
+      checkOut: "2026-03-30",
+      numGuests: "2",
+    });
+
+    it("no revela ni consulta provider para una reserva de otro guest y responde igual que para código inexistente", async () => {
+      const foreignConversationId = "conv-cancel-scope-foreign-source";
+      const unauthorizedConversationId = "conv-cancel-scope-guest-a";
+      const unknownConversationId = "conv-cancel-scope-unknown";
+      stateByConversation.set(foreignConversationId, {
+        hotelId: "hotel999",
+        conversationId: foreignConversationId,
+        lastReservation: scopedRecord("RES-GUEST-B"),
+        reservationHistory: [scopedRecord("RES-GUEST-B")],
+      });
+      stateByConversation.set(unauthorizedConversationId, { hotelId: "hotel999", conversationId: unauthorizedConversationId });
+      stateByConversation.set(unknownConversationId, { hotelId: "hotel999", conversationId: unknownConversationId });
+      const sendUnauthorized = vi.fn(async () => {});
+      const sendUnknown = vi.fn(async () => {});
+      (getConversationsForGuestPerspective as any).mockImplementation(async ({ hotelId }: any) => [
+        { conversationId: unauthorizedConversationId, hotelId, guestId: "g1", channel: "web" },
+        { conversationId: unknownConversationId, hotelId, guestId: "g1", channel: "web" },
+      ]);
+      vi.mocked(getReservation).mockClear();
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-GUEST-B", unauthorizedConversationId), { mode: "automatic", sendReply: sendUnauthorized });
+      await handleIncomingMessage(msg("Quiero cancelar RES-NO-EXISTE", unknownConversationId), { mode: "automatic", sendReply: sendUnknown });
+
+      expect(getReservation).not.toHaveBeenCalled();
+      expect(String((sendUnauthorized as any).mock.calls.at(-1)?.[0] || "")).toBe(String((sendUnknown as any).mock.calls.at(-1)?.[0] || ""));
+      expect(stateByConversation.get(unauthorizedConversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(stateByConversation.get(unknownConversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("no usa material local cuya conversación no tiene propietario canónico verificable", async () => {
+      const conversationId = "conv-cancel-scope-local-unowned";
+      stateByConversation.set(conversationId, {
+        ...baseSingleReservationState(),
+        hotelId: "hotel999",
+        conversationId,
+      });
+      (getConversationsForGuestPerspective as any).mockResolvedValue([]);
+      vi.mocked(getReservation).mockClear();
+      const sendReply = vi.fn(async () => {});
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(getReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).not.toMatch(/Titular|Habitaci[oó]n|Check-in/i);
+    });
+
+    it("autoriza asociación guest-wide por alias canónico aunque el titular sea distinto", async () => {
+      const conversationId = "conv-cancel-scope-alias-current";
+      const sourceConversationId = "conv-cancel-scope-alias-source";
+      const canonicalGuest = {
+        guestId: "guest-canonical-a",
+        hotelId: "hotel999",
+        aliases: ["g1", "web:g1"],
+        name: "Actor Operacional",
+        mode: "automatic",
+      };
+      stateByConversation.set(conversationId, { hotelId: "hotel999", conversationId });
+      stateByConversation.set(sourceConversationId, {
+        hotelId: "hotel999",
+        conversationId: sourceConversationId,
+        lastReservation: scopedRecord("RES-ALIAS-01", "Titular Distinto"),
+        reservationHistory: [scopedRecord("RES-ALIAS-01", "Titular Distinto")],
+      });
+      (getGuest as any).mockResolvedValue(canonicalGuest);
+      (findGuestByAnyId as any).mockResolvedValue(canonicalGuest);
+      (getConversationsForGuestPerspective as any).mockImplementation(async (input: any) => {
+        expect(input).toMatchObject({
+          hotelId: "hotel999",
+          guestId: "guest-canonical-a",
+          aliases: expect.arrayContaining(["g1"]),
+        });
+        return [{ conversationId: sourceConversationId, hotelId: "hotel999", guestId: "g1", channel: "web" }];
+      });
+      const sendReply = vi.fn(async () => {});
+      vi.mocked(getReservation).mockClear();
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ALIAS-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(getReservation).toHaveBeenCalledWith("hotel999", "RES-ALIAS-01");
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        reservationId: "RES-ALIAS-01",
+        canonicalGuestId: "guest-canonical-a",
+        awaitingConfirmation: true,
+      });
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Titular: Titular Distinto[\s\S]*CONFIRMAR/i);
+    });
+
+    it("falla cerrado si la asociación proviene de otro hotel", async () => {
+      const conversationId = "conv-cancel-scope-hotel-current";
+      const sourceConversationId = "conv-cancel-scope-hotel-foreign";
+      stateByConversation.set(conversationId, { hotelId: "hotel999", conversationId });
+      stateByConversation.set(sourceConversationId, {
+        hotelId: "hotel888",
+        conversationId: sourceConversationId,
+        lastReservation: scopedRecord("RES-HOTEL-OTHER"),
+      });
+      (getConversationsForGuestPerspective as any).mockResolvedValue([
+        { conversationId: sourceConversationId, hotelId: "hotel888", guestId: "g1", channel: "web" },
+      ]);
+      const sendReply = vi.fn(async () => {});
+      vi.mocked(getReservation).mockClear();
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-HOTEL-OTHER", conversationId), { mode: "automatic", sendReply });
+
+      expect(getReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("revalida canonicalGuestId antes de confirmar y bloquea un cambio de scope", async () => {
+      const conversationId = "conv-cancel-scope-confirm-current";
+      const sourceConversationId = "conv-cancel-scope-confirm-source";
+      stateByConversation.set(conversationId, { hotelId: "hotel999", conversationId });
+      stateByConversation.set(sourceConversationId, {
+        hotelId: "hotel999",
+        conversationId: sourceConversationId,
+        lastReservation: scopedRecord("RES-SCOPE-CONFIRM"),
+        reservationHistory: [scopedRecord("RES-SCOPE-CONFIRM")],
+      });
+      (getConversationsForGuestPerspective as any).mockResolvedValue([
+        { conversationId: sourceConversationId, hotelId: "hotel999", guestId: "g1", channel: "web" },
+      ]);
+      const sendReply = vi.fn(async () => {});
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-SCOPE-CONFIRM", conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({ canonicalGuestId: "g1" });
+      (getGuest as any).mockResolvedValue({ guestId: "guest-other", hotelId: "hotel999", aliases: ["g1"], mode: "automatic" });
+      (findGuestByAnyId as any).mockResolvedValue({ guestId: "guest-other", hotelId: "hotel999", aliases: ["g1"], mode: "automatic" });
+      (getConversationsForGuestPerspective as any).mockResolvedValue([
+        { conversationId, hotelId: "hotel999", guestId: "guest-other", channel: "web" },
+      ]);
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+  });
+
+  describe("Cancel C1 causal durability and single-use guards", () => {
+    async function startPreview(conversationId: string, sendReply: ReturnType<typeof vi.fn>) {
+      stateByConversation.set(conversationId, {
+        ...baseSingleReservationState(),
+        hotelId: "hotel999",
+        conversationId,
+      });
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), {
+        mode: "automatic",
+        sendReply,
+      });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        reservationId: "RES-ONLY-01",
+        awaitingConfirmation: true,
+        previewMessageId: expect.any(String),
+      });
+    }
+
+    it("ordena causalmente por createdAt durable cuando todos los timestamps del canal empatan", async () => {
+      const conversationId = "conv-cancel-c1-equal-channel-timestamps";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      await handleIncomingMessage(msg("¿A qué hora es el check-in?", conversationId), { mode: "automatic", sendReply });
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      const persisted = Array.from(persistedMessages.values()).filter((message: any) => message.conversationId === conversationId);
+      expect(new Set(persisted.map((message: any) => message.timestamp)).size).toBe(1);
+      expect(new Set(persisted.map((message: any) => message.createdAt)).size).toBe(persisted.length);
+      expect(cancelReservation).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ["suspensión", "Abandoná eso", suspendPendingCancellationAuthorization],
+      ["revocación", "Abandoná esa cancelación", revokePendingCancellationAuthorizationIfCurrent],
+    ] as const)("el historial causal bloquea una %s cuyo CAS no coincidió", async (_label, turn, transition) => {
+      const conversationId = `conv-cancel-c1-failed-${_label}`;
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      vi.mocked(transition).mockResolvedValueOnce({ matched: false, modified: false, matchedCount: 0, modifiedCount: 0 });
+
+      await handleIncomingMessage(msg(turn, conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({ awaitingConfirmation: true });
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("falla cerrado si falta el preview en el historial durable", async () => {
+      const conversationId = "conv-cancel-c1-missing-preview-history";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const previewMessageId = stateByConversation.get(conversationId)?.pendingCancellation?.previewMessageId;
+      persistedMessages.delete(previewMessageId);
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("falla cerrado si la lectura causal del historial falla", async () => {
+      const conversationId = "conv-cancel-c1-history-read-failure";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const historyMock = vi.mocked(getMessagesByConversation);
+      const defaultHistoryRead = historyMock.getMockImplementation()!;
+      historyMock.mockImplementationOnce(defaultHistoryRead as any);
+      historyMock.mockRejectedValueOnce(new Error("simulated history read failure"));
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("lee más de 250 mensajes y detecta una revocación omitida de la primera lectura", async () => {
+      const conversationId = "conv-cancel-c1-history-over-250-revoked";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      for (let index = 0; index < 300; index += 1) {
+        await persistMessageForTest({
+          messageId: `causal-noise-${index}`,
+          hotelId: "hotel999",
+          conversationId,
+          channel: "web",
+          direction: "in",
+          role: "user",
+          content: index === 0 ? "Abandoná esa cancelación" : "¿A qué hora es el check-in?",
+          timestamp: index === 0 ? "2000-01-01T00:00:00.000Z" : `2099-01-01T00:00:${String(index % 60).padStart(2, "0")}.000Z`,
+        });
+      }
+      vi.mocked(cancelReservation).mockClear();
+      vi.mocked(getMessagesByConversation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(getMessagesByConversation).toHaveBeenCalledWith(expect.objectContaining({ limit: 500 }));
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("falla cerrado cuando una lectura potencialmente completa cambia al verificarse", async () => {
+      const conversationId = "conv-cancel-c1-incomplete-stable-page";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const historyMock = vi.mocked(getMessagesByConversation);
+      let firstBoundedRead = true;
+      historyMock.mockImplementation(async (args: any) => {
+        const complete = await readMessagesForTest(args);
+        if (args.limit === 250 && firstBoundedRead) {
+          firstBoundedRead = false;
+          return complete.slice(1);
+        }
+        return complete;
+      });
+      vi.mocked(cancelReservation).mockClear();
+      try {
+        await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      } finally {
+        historyMock.mockImplementation(readMessagesForTest as any);
+      }
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("falla cerrado si la lectura posterior al primer límite produce error", async () => {
+      const conversationId = "conv-cancel-c1-later-page-error";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      for (let index = 0; index < 260; index += 1) {
+        await persistMessageForTest({
+          messageId: `later-page-noise-${index}`,
+          hotelId: "hotel999",
+          conversationId,
+          channel: "web",
+          direction: "out",
+          role: "ai",
+          content: "Información general",
+          timestamp: "2026-03-23T12:00:00.000Z",
+        });
+      }
+      const historyMock = vi.mocked(getMessagesByConversation);
+      historyMock.mockImplementation(async (args: any) => {
+        if (args.limit === 500) throw new Error("simulated later bounded read failure");
+        return readMessagesForTest(args);
+      });
+      vi.mocked(cancelReservation).mockClear();
+      try {
+        await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      } finally {
+        historyMock.mockImplementation(readMessagesForTest as any);
+      }
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("ignora el orden divergente del timestamp del canal y usa createdAt durable", async () => {
+      const conversationId = "conv-cancel-c1-divergent-channel-order";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const pending = stateByConversation.get(conversationId)?.pendingCancellation;
+      persistedMessages.get(pending.issuedForMessageId).timestamp = "2099-01-01T00:00:00.000Z";
+      persistedMessages.get(pending.previewMessageId).timestamp = "1900-01-01T00:00:00.000Z";
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).toHaveBeenCalledTimes(1);
+    });
+
+    it("falla cerrado ante un empate exacto de createdAt causal", async () => {
+      const conversationId = "conv-cancel-c1-created-at-tie";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const pending = stateByConversation.get(conversationId)?.pendingCancellation;
+      persistedMessages.get(pending.previewMessageId).createdAt = persistedMessages.get(pending.issuedForMessageId).createdAt;
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("revoca el pending preparado exacto cuando falla la entrega del preview", async () => {
+      const conversationId = "conv-cancel-c1-preview-delivery-failure";
+      const sendReply = vi.fn(async () => { throw new Error("simulated delivery failure"); });
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(revokePendingCancellationAuthorizationIfCurrent).toHaveBeenCalledTimes(1);
+      expect(activatePendingCancellationAuthorization).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(Array.from(persistedMessages.values()).find(
+        (message: any) => message.conversationId === conversationId && message.direction === "out",
+      )).toMatchObject({ status: "failed", deliveryError: "simulated delivery failure" });
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply: vi.fn(async () => {}) });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("una revocación de entrega sin match no altera un pending reemplazante", async () => {
+      const conversationId = "conv-cancel-c1-preview-delivery-replaced";
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      const replacement = {
+        reservationId: "RES-REPLACEMENT",
+        canonicalGuestId: "g1",
+        presentedFingerprint: "sha256:replacement",
+        issuedForMessageId: "replacement-in",
+        previewMessageId: "replacement-out",
+        issuedAt: "2031-01-01T00:00:00.000Z",
+        awaitingConfirmation: true,
+      };
+      const sendReply = vi.fn(async () => {
+        stateByConversation.set(conversationId, {
+          ...stateByConversation.get(conversationId),
+          pendingCancellation: replacement,
+        });
+        throw new Error("simulated delivery failure after replacement");
+      });
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(revokePendingCancellationAuthorizationIfCurrent).toHaveBeenCalledTimes(1);
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toEqual(replacement);
+    });
+
+    it("una excepción compensatoria conserva el pending preparado no ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-preview-compensation-failure";
+      const sendReply = vi.fn(async () => { throw new Error("simulated delivery failure"); });
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      vi.mocked(revokePendingCancellationAuthorizationIfCurrent).mockRejectedValueOnce(new Error("simulated compensation failure"));
+      vi.mocked(updateMessageInAstra).mockRejectedValueOnce(new Error("simulated delivery-status persistence failure"));
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        awaitingConfirmation: false,
+        previewMessageId: null,
+      });
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply: vi.fn(async () => {}) });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("un reintento explícito genera un preview nuevo y un binding nuevo", async () => {
+      const conversationId = "conv-cancel-c1-preview-delivery-retry";
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      const failedSend = vi.fn(async () => { throw new Error("simulated delivery failure"); });
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply: failedSend });
+      const failedPreviewId = Array.from(persistedMessages.values())
+        .find((message: any) => message.conversationId === conversationId && message.direction === "out")?.messageId;
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), {
+        mode: "automatic",
+        sendReply: vi.fn(async () => {}),
+      });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        awaitingConfirmation: true,
+        previewMessageId: expect.any(String),
+      });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation?.previewMessageId).not.toBe(failedPreviewId);
+    });
+
+    it("un prepare CAS sin match no crea autorización ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-prepare-no-match";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      vi.mocked(preparePendingCancellationAuthorization).mockResolvedValueOnce({
+        matched: false,
+        modified: false,
+        matchedCount: 0,
+        modifiedCount: 0,
+      });
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("una excepción al preparar tampoco crea autorización ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-prepare-exception";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      vi.mocked(preparePendingCancellationAuthorization).mockRejectedValueOnce(new Error("simulated prepare failure"));
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("un fallo al persistir el preview deja el pending preparado no ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-preview-persistence-failure";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      const saveMock = vi.mocked(saveChannelMessageToAstra);
+      saveMock.mockImplementation((async (message: any) => {
+        if (message.direction === "out") throw new Error("simulated preview persistence failure");
+        return persistMessageForTest(message);
+      }) as any);
+      try {
+        await expect(handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), {
+          mode: "automatic",
+          sendReply,
+        })).rejects.toThrow(/preview persistence failure/i);
+      } finally {
+        saveMock.mockImplementation(persistMessageForTest as any);
+      }
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        awaitingConfirmation: false,
+        previewMessageId: null,
+      });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("una verificación durable ausente no activa el pending", async () => {
+      const conversationId = "conv-cancel-c1-preview-verification-failure";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      const messageReadMock = vi.mocked(getMessageById);
+      const defaultMessageRead = messageReadMock.getMockImplementation()!;
+      messageReadMock
+        .mockImplementationOnce(defaultMessageRead as any)
+        .mockResolvedValueOnce(null);
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        awaitingConfirmation: false,
+        previewMessageId: null,
+      });
+      expect(activatePendingCancellationAuthorization).not.toHaveBeenCalled();
+    });
+
+    it("una activación CAS sin match mantiene el pending no ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-activation-no-match";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...baseSingleReservationState(), hotelId: "hotel999", conversationId });
+      vi.mocked(activatePendingCancellationAuthorization).mockResolvedValueOnce({
+        matched: false,
+        modified: false,
+        matchedCount: 0,
+        modifiedCount: 0,
+      });
+
+      await handleIncomingMessage(msg("Quiero cancelar RES-ONLY-01", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        awaitingConfirmation: false,
+        previewMessageId: null,
+      });
+    });
+
+    it("un consume CAS sin ganador produce cero lecturas provider y cero Cancel", async () => {
+      const conversationId = "conv-cancel-c1-consume-no-match";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const providerReadsBeforeConfirm = vi.mocked(getReservation).mock.calls.length;
+      vi.mocked(consumePendingCancellationAuthorization).mockResolvedValueOnce({
+        matched: false,
+        modified: false,
+        matchedCount: 0,
+        modifiedCount: 0,
+      });
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(vi.mocked(getReservation).mock.calls.length).toBe(providerReadsBeforeConfirm);
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("una excepción al consumir produce cero lecturas provider y cero Cancel", async () => {
+      const conversationId = "conv-cancel-c1-consume-exception";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      const providerReadsBeforeConfirm = vi.mocked(getReservation).mock.calls.length;
+      vi.mocked(consumePendingCancellationAuthorization).mockRejectedValueOnce(new Error("simulated consume failure"));
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(vi.mocked(getReservation).mock.calls.length).toBe(providerReadsBeforeConfirm);
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("un fallo provider después del consumo no revive la autorización", async () => {
+      const conversationId = "conv-cancel-c1-provider-read-after-consume";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      vi.mocked(getReservation).mockResolvedValueOnce({ ok: false, error: "PROVIDER_READ_FAILED" } as any);
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).not.toHaveBeenCalled();
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("una excepción de Cancel provider después del consumo no revive la autorización", async () => {
+      const conversationId = "conv-cancel-c1-provider-cancel-after-consume";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      vi.mocked(cancelReservation).mockRejectedValueOnce(new Error("simulated cancel provider failure"));
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).toHaveBeenCalledTimes(1);
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("un fallo de proyección post-Cancel no revive el pending consumido", async () => {
+      const conversationId = "conv-cancel-c1-projection-after-consume";
+      const sendReply = vi.fn(async () => {});
+      await startPreview(conversationId, sendReply);
+      vi.mocked(updateConversationState).mockRejectedValueOnce(new Error("simulated projection failure"));
+      vi.mocked(cancelReservation).mockClear();
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(cancelReservation).toHaveBeenCalledTimes(1);
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+    });
+
+    it("invalida legacy antes del refresh y no lo revive si provider falla", async () => {
+      const conversationId = "conv-cancel-c1-legacy-refresh-failure";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, {
+        ...baseSingleReservationState(),
+        hotelId: "hotel999",
+        conversationId,
+        pendingCancellation: { reservationId: "RES-ONLY-01", awaitingConfirmation: true },
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+      });
+      vi.mocked(getReservation).mockResolvedValueOnce({ ok: false, error: "PROVIDER_READ_FAILED" } as any);
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("invalida legacy antes de un prepare CAS fallido", async () => {
+      const conversationId = "conv-cancel-c1-legacy-prepare-failure";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, {
+        ...baseSingleReservationState(),
+        hotelId: "hotel999",
+        conversationId,
+        pendingCancellation: { reservationId: "RES-ONLY-01", awaitingConfirmation: true },
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+      });
+      vi.mocked(preparePendingCancellationAuthorization).mockResolvedValueOnce({
+        matched: false,
+        modified: false,
+        matchedCount: 0,
+        modifiedCount: 0,
+      });
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("un refresh legacy cuya activación no coincide permanece no ejecutable", async () => {
+      const conversationId = "conv-cancel-c1-legacy-activation-failure";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, {
+        ...baseSingleReservationState(),
+        hotelId: "hotel999",
+        conversationId,
+        pendingCancellation: { reservationId: "RES-ONLY-01", awaitingConfirmation: true },
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+      });
+      vi.mocked(activatePendingCancellationAuthorization).mockResolvedValueOnce({
+        matched: false,
+        modified: false,
+        matchedCount: 0,
+        modifiedCount: 0,
+      });
+
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({
+        reservationId: "RES-ONLY-01",
+        awaitingConfirmation: false,
+        previewMessageId: null,
+      });
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
   });
 
   it("resuelve 'modificá la nueva' y entra al flujo de modificación sin pedir código", async () => {
@@ -754,7 +1549,7 @@ describe("messageHandler reference resolution", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     expect(cancelReservation).not.toHaveBeenCalled();
     expect(currentState?.pendingCancellation ?? null).toBeNull();
-    expect(replyText).toMatch(/no encuentro una reserva activa para cancelar/i);
+    expect(replyText).toMatch(/descart[eé] la autorizaci[oó]n|no encuentro una reserva activa para cancelar/i);
   });
 
   it("mantiene la cancelación normal de una reserva activa", async () => {
@@ -4091,7 +4886,7 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("Cancelalo", conversationId), { mode: "automatic", sendReply });
 
     const pendingState = stateByConversation.get(conversationId);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cancelar.*CONFIRMAR/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/cancelar[\s\S]*CONFIRMAR/i);
     expect(pendingState?.pendingCancellation).toMatchObject({
       reservationId: "RES-ONLY-01",
       awaitingConfirmation: true,
@@ -4182,7 +4977,7 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("Quiero cancelar mi reserva", conversationId), { mode: "automatic", sendReply });
 
     const currentState = stateByConversation.get(conversationId);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/reserva RES-ONLY-01.*CONFIRMAR/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Código: RES-ONLY-01[\s\S]*CONFIRMAR/i);
     expect(currentState?.modifyState ?? null).toBeNull();
     expect(currentState?.pendingCancellation).toMatchObject({
       reservationId: "RES-ONLY-01",
@@ -4255,7 +5050,7 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("Quiero cancelar esa reserva", conversationId), { mode: "automatic", sendReply });
 
     const cancellationState = stateByConversation.get(conversationId);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/reserva RES-7427EB.*CONFIRMAR/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Código: RES-7427EB[\s\S]*CONFIRMAR/i);
     expect(cancellationState?.modifyState ?? null).toBeNull();
     expect(cancellationState?.pendingCancellation).toMatchObject({
       reservationId: "RES-7427EB",
@@ -4370,7 +5165,7 @@ describe("messageHandler reference resolution", () => {
     const replyText = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
     const currentState = stateByConversation.get(conversationId);
     expect(replyText).toMatch(/descart[eé] el cambio pendiente/i);
-    expect(replyText).toMatch(/reserva RES-ONLY-01.*CONFIRMAR/i);
+    expect(replyText).toMatch(/Código: RES-ONLY-01[\s\S]*CONFIRMAR/i);
     expect(currentState?.modifyState ?? null).toBeNull();
     expect(currentState?.pendingCancellation).toMatchObject({
       reservationId: "RES-ONLY-01",
@@ -4515,7 +5310,7 @@ describe("messageHandler reference resolution", () => {
     await handleIncomingMessage(msg("Quiero cancelar RES-NEW-02", conversationId), { mode: "automatic", sendReply });
 
     const currentState = stateByConversation.get(conversationId);
-    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/reserva RES-NEW-02.*CONFIRMAR/i);
+    expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Código: RES-NEW-02[\s\S]*CONFIRMAR/i);
     expect(currentState?.modifyState ?? null).toBeNull();
     expect(currentState?.pendingCancellation).toMatchObject({ reservationId: "RES-NEW-02", awaitingConfirmation: true });
     expect(currentState?.selectedReservationTarget).toMatchObject({ reservationId: "RES-NEW-02", source: "explicit_id" });
@@ -4570,6 +5365,418 @@ describe("messageHandler reference resolution", () => {
     expect(currentState?.reservationSlots).toMatchObject({ roomType: "double", numGuests: "2" });
     expect(cancelReservation).not.toHaveBeenCalled();
     expect(modifyReservation).not.toHaveBeenCalled();
+  });
+
+  describe("[TEST-CANCEL-TO-MODIFY-STALE-AUTHORIZATION-CHARACTERIZATION-01]", () => {
+    const reservationId = "RES-TEST-A";
+    const providerMaterial = {
+      reservationId,
+      hotelId: "hotel999",
+      guestName: "Huesped Ficticio",
+      roomType: "double",
+      numGuests: 2,
+      checkInDate: "2026-04-10",
+      checkOutDate: "2026-04-12",
+      status: "confirmed" as const,
+      currency: "USD",
+      createdAt: "2026-03-20T10:00:00.000Z",
+      updatedAt: "2026-03-22T10:00:00.000Z",
+    };
+
+    const buildInitialState = (materialSufficient: boolean) => {
+      const material = materialSufficient
+        ? {
+            guestName: providerMaterial.guestName,
+            roomType: providerMaterial.roomType,
+            checkIn: providerMaterial.checkInDate,
+            checkOut: providerMaterial.checkOutDate,
+            numGuests: String(providerMaterial.numGuests),
+          }
+        : {};
+      const record = {
+        reservationId,
+        status: "created",
+        createdAt: providerMaterial.createdAt,
+        channel: "web",
+        ...material,
+      };
+      return {
+        hotelId: "hotel999",
+        conversationId: `conv-cancel-modify-${materialSufficient ? "sufficient" : "insufficient"}`,
+        reservationSlots: materialSufficient ? material : {},
+        salesStage: "close",
+        conversationStage: "reservation_confirmed",
+        lastReservation: record,
+        reservationHistory: [record],
+        activeReservationContext: {
+          kind: "reservation",
+          reservationId,
+          phase: "confirmed",
+          updatedAt: providerMaterial.updatedAt,
+        },
+        updatedAt: providerMaterial.updatedAt,
+      };
+    };
+
+    const projectState = (state: any) => ({
+      pendingCancellation: state?.pendingCancellation
+        ? { ...state.pendingCancellation }
+        : null,
+      presentedFingerprint: state?.pendingCancellation?.presentedFingerprint ?? null,
+      activeFlow: state?.activeFlow ?? null,
+      desiredAction: state?.desiredAction ?? null,
+      activeReservationContext: state?.activeReservationContext
+        ? { ...state.activeReservationContext }
+        : null,
+      selectedReservationTarget: state?.selectedReservationTarget
+        ? { ...state.selectedReservationTarget }
+        : null,
+      modifyState: state?.modifyState ? { ...state.modifyState } : null,
+      lastReservation: state?.lastReservation ? { ...state.lastReservation } : null,
+    });
+
+    async function runTransition(input: {
+      suffix: string;
+      materialSufficient: boolean;
+      secondTurn?: string;
+    }) {
+      const conversationId = `conv-cancel-modify-characterization-${input.suffix}`;
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, {
+        ...buildInitialState(input.materialSufficient),
+        conversationId,
+      });
+
+      const getReservationMock = vi.mocked(getReservation);
+      const cancelReservationMock = vi.mocked(cancelReservation);
+      const originalGetReservation = getReservationMock.getMockImplementation();
+      const originalCancelReservation = cancelReservationMock.getMockImplementation();
+      let simulatedProviderStatus: "confirmed" | "cancelled" = "confirmed";
+      getReservationMock.mockImplementation(async () => ({
+        ok: true,
+        reservation: {
+          ...providerMaterial,
+          guestEmail: undefined,
+          guestPhone: undefined,
+          status: simulatedProviderStatus,
+        },
+      }));
+      cancelReservationMock.mockImplementation(async (_hotelId: string, targetReservationId: string) => {
+        simulatedProviderStatus = "cancelled";
+        return {
+          ok: true as const,
+          message: `✅ Cancelada ${targetReservationId}`,
+          reservation: {
+            ...providerMaterial,
+            guestEmail: undefined,
+            guestPhone: undefined,
+            status: "cancelled" as const,
+          },
+        };
+      });
+
+      const baseProviderReads = getReservationMock.mock.calls.length;
+      const baseCancelCalls = cancelReservationMock.mock.calls.length;
+      try {
+        await handleIncomingMessage(
+          msg(`Quiero cancelar la reserva ${reservationId}`, conversationId),
+          { mode: "automatic", sendReply },
+        );
+        const previewReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        const afterCancelPreview = projectState(stateByConversation.get(conversationId));
+        const readsAfterPreview = getReservationMock.mock.calls.length - baseProviderReads;
+        const cancelsAfterPreview = cancelReservationMock.mock.calls.length - baseCancelCalls;
+
+        let secondReply = "";
+        let afterSecondTurn = afterCancelPreview;
+        let readsAfterSecondTurn = readsAfterPreview;
+        let cancelsAfterSecondTurn = cancelsAfterPreview;
+        if (input.secondTurn) {
+          await handleIncomingMessage(msg(input.secondTurn, conversationId), { mode: "automatic", sendReply });
+          secondReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+          afterSecondTurn = projectState(stateByConversation.get(conversationId));
+          readsAfterSecondTurn = getReservationMock.mock.calls.length - baseProviderReads;
+          cancelsAfterSecondTurn = cancelReservationMock.mock.calls.length - baseCancelCalls;
+        }
+
+        await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+        const confirmReply = String((sendReply as any).mock.calls.at(-1)?.[0] || "");
+        const afterConfirm = projectState(stateByConversation.get(conversationId));
+        return {
+          replies: { preview: previewReply, second: secondReply, confirm: confirmReply },
+          states: { afterCancelPreview, afterSecondTurn, afterConfirm },
+          providerReads: {
+            preview: readsAfterPreview,
+            secondTurn: readsAfterSecondTurn - readsAfterPreview,
+            confirm: getReservationMock.mock.calls.length - baseProviderReads - readsAfterSecondTurn,
+            total: getReservationMock.mock.calls.length - baseProviderReads,
+          },
+          cancelCalls: {
+            preview: cancelsAfterPreview,
+            secondTurn: cancelsAfterSecondTurn - cancelsAfterPreview,
+            confirm: cancelReservationMock.mock.calls.length - baseCancelCalls - cancelsAfterSecondTurn,
+            total: cancelReservationMock.mock.calls.length - baseCancelCalls,
+          },
+          modifyCalls: vi.mocked(modifyReservation).mock.calls.length,
+          quoteCalls: vi.mocked(quoteReservationModification).mock.calls.length,
+          finalProviderStatus: simulatedProviderStatus,
+        };
+      } finally {
+        if (originalGetReservation) getReservationMock.mockImplementation(originalGetReservation);
+        if (originalCancelReservation) cancelReservationMock.mockImplementation(originalCancelReservation);
+      }
+    }
+
+    it("[REGRESSION][sufficient] revoca autorización Cancel tras intención Modify explícita", async () => {
+      const trace = await runTransition({
+        suffix: "sufficient-current",
+        materialSufficient: true,
+        secondTurn: "No, mejor quiero modificarla",
+      });
+
+      expect(trace.replies.preview).toMatch(/Código: RES-TEST-A[\s\S]*CONFIRMAR/i);
+      expect(trace.states.afterCancelPreview.pendingCancellation).toMatchObject({
+        reservationId,
+        awaitingConfirmation: true,
+        presentedFingerprint: expect.any(String),
+      });
+      expect(trace.states.afterSecondTurn.presentedFingerprint).toBeNull();
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.states.afterSecondTurn.selectedReservationTarget).toMatchObject({ reservationId });
+      expect(trace.states.afterSecondTurn.activeReservationContext).toMatchObject({ reservationId });
+      expect(trace.states.afterSecondTurn.activeFlow).toBe("modify_reservation");
+      expect(trace.states.afterSecondTurn.desiredAction).toBe("modify");
+      expect(trace.states.afterSecondTurn.modifyState).toBeNull();
+      expect(trace.replies.second).toMatch(/qu[eé] te gustar[ií]a cambiar|modificar tu reserva/i);
+      expect(trace.providerReads).toEqual({ preview: 1, secondTurn: 0, confirm: 0, total: 1 });
+      expect(trace.cancelCalls).toEqual({ preview: 0, secondTurn: 0, confirm: 0, total: 0 });
+      expect(trace.modifyCalls).toBe(0);
+      expect(trace.quoteCalls).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+      expect(trace.states.afterConfirm.pendingCancellation).toBeNull();
+      expect(trace.states.afterConfirm.activeReservationContext).toMatchObject({
+        reservationId,
+        phase: "confirmed",
+      });
+    });
+
+    it("[REGRESSION][insufficient][priority] revoca Cancel aunque Modify falle cerrado", async () => {
+      const trace = await runTransition({
+        suffix: "insufficient-current",
+        materialSufficient: false,
+        secondTurn: "No, mejor quiero modificarla",
+      });
+
+      expect(trace.replies.second).toMatch(/no pude verificar el estado actual de la reserva/i);
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.states.afterSecondTurn.activeFlow).toBe("modify_reservation");
+      expect(trace.states.afterSecondTurn.desiredAction).toBe("modify");
+      expect(trace.states.afterSecondTurn.modifyState).toBeNull();
+      expect(trace.states.afterSecondTurn.selectedReservationTarget).toMatchObject({ reservationId });
+      expect(trace.providerReads).toEqual({ preview: 1, secondTurn: 0, confirm: 0, total: 1 });
+      expect(trace.cancelCalls.confirm).toBe(0);
+      expect(trace.modifyCalls).toBe(0);
+      expect(trace.quoteCalls).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+      expect(trace.states.afterConfirm.pendingCancellation).toBeNull();
+      expect(trace.states.afterConfirm.activeReservationContext).toMatchObject({
+        reservationId,
+        phase: "confirmed",
+      });
+    });
+
+    it("[DESIRED][sufficient] Modify revoca inmediatamente el binding Cancel", async () => {
+      const trace = await runTransition({
+        suffix: "sufficient-desired-revocation",
+        materialSufficient: true,
+        secondTurn: "No, mejor quiero modificarla",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.states.afterSecondTurn.presentedFingerprint).toBeNull();
+      expect(trace.states.afterSecondTurn.selectedReservationTarget).toMatchObject({ reservationId });
+    });
+
+    it("[DESIRED][insufficient][priority] el error Modify también revoca Cancel", async () => {
+      const trace = await runTransition({
+        suffix: "insufficient-desired-revocation",
+        materialSufficient: false,
+        secondTurn: "No, mejor quiero modificarla",
+      });
+      expect(trace.replies.second).toMatch(/no pude verificar el estado actual de la reserva/i);
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.states.afterSecondTurn.presentedFingerprint).toBeNull();
+      expect(trace.states.afterSecondTurn.selectedReservationTarget).toMatchObject({ reservationId });
+    });
+
+    it("[DESIRED][stale-confirm] CONFIRMAR posterior no ejecuta Cancel abandonado", async () => {
+      const trace = await runTransition({
+        suffix: "insufficient-desired-confirm",
+        materialSufficient: false,
+        secondTurn: "No, mejor quiero modificarla",
+      });
+      expect(trace.cancelCalls.total).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+      expect(trace.states.afterConfirm.lastReservation).toMatchObject({ reservationId, status: "created" });
+    });
+
+    it("[CONTROL][legitimate-cancel] preview y CONFIRMAR ejecutan Cancel exactamente una vez", async () => {
+      const trace = await runTransition({
+        suffix: "legitimate-cancel",
+        materialSufficient: true,
+      });
+      expect(trace.cancelCalls).toEqual({ preview: 0, secondTurn: 0, confirm: 1, total: 1 });
+      expect(trace.providerReads).toEqual({ preview: 1, secondTurn: 0, confirm: 1, total: 2 });
+      expect(trace.finalProviderStatus).toBe("cancelled");
+      expect(trace.states.afterConfirm.pendingCancellation).toBeNull();
+    });
+
+    it("[CONTROL][faq] una consulta lateral conserva binding y permite la confirmación legítima", async () => {
+      const trace = await runTransition({
+        suffix: "faq-continuity",
+        materialSufficient: true,
+        secondTurn: "¿A qué hora es el check-in?",
+      });
+      expect(trace.states.afterSecondTurn.presentedFingerprint).toBe(
+        trace.states.afterCancelPreview.presentedFingerprint,
+      );
+      expect(trace.cancelCalls.secondTurn).toBe(0);
+      expect(trace.cancelCalls.confirm).toBe(1);
+      expect(trace.providerReads).toEqual({ preview: 1, secondTurn: 0, confirm: 1, total: 2 });
+      expect(trace.finalProviderStatus).toBe("cancelled");
+    });
+
+    it("[REGRESSION][discard] una negación inequívoca vuelve inocuo el binding Cancel", async () => {
+      const trace = await runTransition({
+        suffix: "discard-current",
+        materialSufficient: true,
+        secondTurn: "No confirmes la cancelación; abandoná esa operación",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.cancelCalls.total).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+    });
+
+    it("[DESIRED][discard] abandonar inequívocamente Cancel vuelve inocuo CONFIRMAR", async () => {
+      const trace = await runTransition({
+        suffix: "discard-desired",
+        materialSufficient: true,
+        secondTurn: "No confirmes la cancelación; abandoná esa operación",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.cancelCalls.total).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+    });
+
+    it("[CONTROL][discard-anaphora] la operación inequívoca refiere al único Cancel pendiente", async () => {
+      const trace = await runTransition({
+        suffix: "discard-anaphora",
+        materialSufficient: true,
+        secondTurn: "Abandoná esa operación",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toBeNull();
+      expect(trace.states.afterSecondTurn.selectedReservationTarget).toMatchObject({ reservationId });
+      expect(trace.cancelCalls.total).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+    });
+
+    it("[CONTROL][ambiguous-discard] una referencia inconclusa suspende Cancel y vuelve inocuo CONFIRMAR", async () => {
+      const trace = await runTransition({
+        suffix: "ambiguous-discard",
+        materialSufficient: true,
+        secondTurn: "Abandoná eso",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toMatchObject({
+        reservationId,
+        presentedFingerprint: trace.states.afterCancelPreview.presentedFingerprint,
+        awaitingConfirmation: false,
+      });
+      expect(trace.replies.second).toMatch(/paus[eé]|CONFIRMAR no la ejecutar[aá]/i);
+      expect(trace.cancelCalls.confirm).toBe(0);
+      expect(trace.finalProviderStatus).toBe("confirmed");
+    });
+
+    it("revoca inequívocamente un pending ya suspendido", async () => {
+      const conversationId = "conv-cancel-suspended-explicit-revoke";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...buildInitialState(true), conversationId });
+
+      await handleIncomingMessage(msg(`Quiero cancelar la reserva ${reservationId}`, conversationId), { mode: "automatic", sendReply });
+      await handleIncomingMessage(msg("Abandoná eso", conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({ awaitingConfirmation: false });
+
+      await handleIncomingMessage(msg("Abandoná esa cancelación", conversationId), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(stateByConversation.get(conversationId)?.selectedReservationTarget).toMatchObject({ reservationId });
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/abandon[eé].*cancelaci[oó]n|reserva sigue activa/i);
+
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(msg("CONFIRMAR", conversationId), { mode: "automatic", sendReply });
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it("continuar desde suspendido genera otro preview y otra identidad de autorización", async () => {
+      const conversationId = "conv-cancel-suspended-repreview";
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...buildInitialState(true), conversationId });
+
+      await handleIncomingMessage(msg(`Quiero cancelar la reserva ${reservationId}`, conversationId), { mode: "automatic", sendReply });
+      const firstAuthorization = { ...stateByConversation.get(conversationId)?.pendingCancellation };
+      await handleIncomingMessage(msg("Abandoná eso", conversationId), { mode: "automatic", sendReply });
+      const readsBeforeResume = vi.mocked(getReservation).mock.calls.length;
+
+      await handleIncomingMessage(msg("Quiero continuar con la cancelación", conversationId), { mode: "automatic", sendReply });
+
+      const resumedAuthorization = stateByConversation.get(conversationId)?.pendingCancellation;
+      expect(vi.mocked(getReservation).mock.calls.length).toBe(readsBeforeResume + 1);
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(/Código: RES-TEST-A[\s\S]*CONFIRMAR/i);
+      expect(resumedAuthorization).toMatchObject({
+        reservationId,
+        awaitingConfirmation: true,
+        issuedForMessageId: expect.any(String),
+        previewMessageId: expect.any(String),
+      });
+      expect(resumedAuthorization.issuedForMessageId).not.toBe(firstAuthorization.issuedForMessageId);
+      expect(resumedAuthorization.previewMessageId).not.toBe(firstAuthorization.previewMessageId);
+      expect(cancelReservation).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["es", "Abandoná eso", "Abandoná esa cancelación", /paus[eé]|CONFIRMAR no la ejecutar[aá]/i, /abandon[eé].*cancelaci[oó]n|reserva sigue activa/i],
+      ["en", "Leave it", "Abandon that cancellation", /paused|CONFIRM will not execute/i, /abandoned that cancellation|booking remains active/i],
+      ["pt", "Deixa isso", "Abandona esse cancelamento", /pausarei|CONFIRMAR não o executará/i, /abandonei esse cancelamento|reserva continua ativa/i],
+    ] as const)("mantiene paridad de suspensión y revocación en %s", async (lang, ambiguous, explicit, suspendedCopy, revokedCopy) => {
+      const conversationId = `conv-cancel-suspension-parity-${lang}`;
+      const sendReply = vi.fn(async () => {});
+      stateByConversation.set(conversationId, { ...buildInitialState(true), conversationId });
+      const localizedMsg = (content: string) => ({ ...msg(content, conversationId), detectedLanguage: lang });
+
+      await handleIncomingMessage(localizedMsg(`Quiero cancelar la reserva ${reservationId}`), { mode: "automatic", sendReply });
+      await handleIncomingMessage(localizedMsg(ambiguous), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation).toMatchObject({ awaitingConfirmation: false });
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(suspendedCopy);
+
+      vi.mocked(cancelReservation).mockClear();
+      await handleIncomingMessage(localizedMsg("CONFIRMAR"), { mode: "automatic", sendReply });
+      expect(cancelReservation).not.toHaveBeenCalled();
+
+      await handleIncomingMessage(localizedMsg(explicit), { mode: "automatic", sendReply });
+      expect(stateByConversation.get(conversationId)?.pendingCancellation ?? null).toBeNull();
+      expect(String((sendReply as any).mock.calls.at(-1)?.[0] || "")).toMatch(revokedCopy);
+    });
+
+    it("[CONTROL][negated-modify] negar Modify no revoca Cancel", async () => {
+      const trace = await runTransition({
+        suffix: "negated-modify",
+        materialSufficient: true,
+        secondTurn: "No quiero modificarla",
+      });
+      expect(trace.states.afterSecondTurn.pendingCancellation).toMatchObject({
+        reservationId,
+        presentedFingerprint: trace.states.afterCancelPreview.presentedFingerprint,
+      });
+      expect(trace.cancelCalls.confirm).toBe(1);
+      expect(trace.finalProviderStatus).toBe("cancelled");
+    });
   });
 
   it("permite corregir el patch antes de confirmar y refresca el preview", async () => {
@@ -7424,9 +8631,14 @@ describe("messageHandler reference resolution", () => {
       expect(initialCancellingState.pendingCancellation ?? null).toBeNull();
 
       expect(cancellation.confirmationPrompt).toMatch(/CONFIRMAR/i);
-      expect(cancellation.pendingState.pendingCancellation).toEqual({
+      expect(cancellation.pendingState.pendingCancellation).toMatchObject({
         reservationId,
         awaitingConfirmation: true,
+        presentedFingerprint: expect.any(String),
+        canonicalGuestId: "g1",
+        issuedForMessageId: expect.any(String),
+        previewMessageId: expect.any(String),
+        issuedAt: expect.any(String),
       });
       expect(cancellation.pendingState.selectedReservationTarget).toMatchObject({
         reservationId,

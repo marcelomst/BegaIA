@@ -4,9 +4,11 @@ import type { ChannelMessage, ChannelMode } from "@/types/channel";
 import type { Reservation } from "@/lib/mcp/types";
 import { incAutosend } from "@/lib/telemetry/metrics";
 import {
+  getMessageById,
   getMessagesByConversation,
   type MessageDoc,
   saveChannelMessageToAstra,
+  updateMessageInAstra,
 } from "@/lib/db/messages";
 import { agentGraph } from "@/lib/agents";
 import { decideSupervisorStatus } from "@/lib/agents/supervisorAgent";
@@ -18,8 +20,14 @@ import { channelMemory } from "@/lib/services/channelMemory";
 import { getOrCreateConversation, appendConversationReplyTrace } from "@/lib/db/conversations";
 import { getGuest, createGuest, updateGuest } from "@/lib/db/guests";
 import {
+  activatePendingCancellationAuthorization,
+  consumePendingCancellationAuthorization,
   getConvState,
   initializeCreateDraftIfLatest,
+  isCancellationProviderExecutionEnabled,
+  preparePendingCancellationAuthorization,
+  revokePendingCancellationAuthorizationIfCurrent,
+  suspendPendingCancellationAuthorization,
   updateLastProposalTextIfCurrent,
   finalizeDeterministicCreateProposalIfCurrent,
   CONVSTATE_VERSION,
@@ -34,10 +42,13 @@ import type {
   SelectedReservationTarget,
   ModifyState,
   ConversationFocus,
+  PendingCancellation,
+  PendingCancellationAuthorization,
   CreateDraftRevision,
   DeterministicCreateProposalIdentity,
 } from "@/lib/db/convState";
 import crypto from "crypto";
+import { canonicalizeRoomType } from "@/lib/schemas/reservation";
 
 // === NEW: Structured Prompt (enriquecedor + fallback) ===
 import { ChatOpenAI } from "@langchain/openai";
@@ -1462,17 +1473,6 @@ function buildModifyPreviewRejectedReply(lang: "es" | "en" | "pt"): string {
       : "Perfecto, no apliqué cambios. La reserva sigue igual.";
 }
 
-function buildModifyPreviewCancellationHandoffReply(
-  lang: "es" | "en" | "pt",
-  reservationId: string
-): string {
-  return lang === "pt"
-    ? `Descartei a alteração pendente. Sua reserva continua ativa. Para cancelar a reserva ${reservationId}, responda CONFIRMAR.`
-    : lang === "en"
-      ? `I discarded the pending change. Your booking remains active. To cancel booking ${reservationId}, reply CONFIRMAR.`
-      : `Descarté el cambio pendiente. Tu reserva sigue activa. Para cancelar la reserva ${reservationId}, respondé CONFIRMAR.`;
-}
-
 function buildModifyPreviewCancellationClarificationReply(lang: "es" | "en" | "pt"): string {
   return lang === "pt"
     ? "Você quer cancelar a alteração pendente ou a reserva?"
@@ -1577,6 +1577,217 @@ function buildCancelInactiveTargetReply(lang: "es" | "en" | "pt"): string {
     : lang === "en"
       ? "I cannot find an active booking to cancel."
       : "No encuentro una reserva activa para cancelar.";
+}
+
+type CancellationPreviewMaterial = {
+  hotelId: string;
+  reservationId: string;
+  operation: "cancel";
+  status: "confirmed";
+  updatedAt: string;
+  guestName: string;
+  roomType: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numGuests: number;
+  presentedFingerprint: string;
+};
+
+type CancellationMaterialRead =
+  | { ok: true; material: CancellationPreviewMaterial }
+  | { ok: false; reason: "not_found" | "inactive" | "insufficient" | "identity_mismatch" | "read_error" };
+
+function normalizeCancellationDate(value: unknown): string | null {
+  const raw = String(value || "").trim();
+  const datePrefix = raw.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/)?.[1];
+  if (datePrefix && isCanonicalIsoDateValue(datePrefix)) return datePrefix;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString().slice(0, 10) : null;
+}
+
+function buildCancellationFingerprint(material: Omit<CancellationPreviewMaterial, "presentedFingerprint">): string {
+  // Tuple positions are the schema: text formatting, response language and object-key order are deliberately excluded.
+  const normalizedBinding = [
+    "cancel-preview-v1",
+    material.hotelId,
+    material.reservationId,
+    material.operation,
+    material.status,
+    material.updatedAt,
+    material.guestName,
+    material.roomType,
+    material.checkInDate,
+    material.checkOutDate,
+    material.numGuests,
+  ];
+  return crypto.createHash("sha256").update(JSON.stringify(normalizedBinding), "utf8").digest("hex");
+}
+
+function validateCancellationMaterial(
+  reservation: Reservation | null | undefined,
+  expectedHotelId: string,
+  expectedReservationId: string,
+): CancellationMaterialRead {
+  if (!reservation) return { ok: false, reason: "not_found" };
+  if (reservation.hotelId !== expectedHotelId || reservation.reservationId !== expectedReservationId) {
+    return { ok: false, reason: "identity_mismatch" };
+  }
+  if (reservation.status !== "confirmed") return { ok: false, reason: "inactive" };
+
+  const guestName = String(reservation.guestName || "").normalize("NFC").replace(/\s+/g, " ").trim();
+  const roomType = canonicalizeRoomType(String(reservation.roomType || ""));
+  const checkInDate = normalizeCancellationDate(reservation.checkInDate);
+  const checkOutDate = normalizeCancellationDate(reservation.checkOutDate);
+  const updatedAtMillis = Date.parse(String(reservation.updatedAt || ""));
+  const numGuests = reservation.numGuests;
+  if (
+    !guestName ||
+    !roomType ||
+    !checkInDate ||
+    !checkOutDate ||
+    checkOutDate <= checkInDate ||
+    !Number.isFinite(updatedAtMillis) ||
+    !Number.isSafeInteger(numGuests) ||
+    (numGuests as number) <= 0
+  ) {
+    return { ok: false, reason: "insufficient" };
+  }
+
+  const normalized: Omit<CancellationPreviewMaterial, "presentedFingerprint"> = {
+    hotelId: reservation.hotelId,
+    reservationId: reservation.reservationId,
+    operation: "cancel",
+    status: "confirmed",
+    updatedAt: new Date(updatedAtMillis).toISOString(),
+    guestName,
+    roomType,
+    checkInDate,
+    checkOutDate,
+    numGuests: numGuests as number,
+  };
+  return {
+    ok: true,
+    material: {
+      ...normalized,
+      presentedFingerprint: buildCancellationFingerprint(normalized),
+    },
+  };
+}
+
+async function readCancellationMaterial(
+  hotelId: string,
+  reservationId: string,
+): Promise<CancellationMaterialRead> {
+  try {
+    const { getReservation } = await import("@/lib/agents/reservations");
+    const result = await getReservation(hotelId, reservationId);
+    if (!result?.ok || !result.reservation) {
+      return {
+        ok: false,
+        reason: result?.error === "PROVIDER_RESERVATION_NOT_FOUND" ? "not_found" : "read_error",
+      };
+    }
+    return validateCancellationMaterial(result.reservation as Reservation, hotelId, reservationId);
+  } catch {
+    return { ok: false, reason: "read_error" };
+  }
+}
+
+function buildCancellationMaterialFailureReply(
+  lang: "es" | "en" | "pt",
+  reason: Extract<CancellationMaterialRead, { ok: false }>["reason"],
+): string {
+  if (reason === "inactive") return buildCancelInactiveTargetReply(lang);
+  if (lang === "pt") {
+    return reason === "insufficient"
+      ? "Não foi possível concluir a confirmação com os dados disponíveis da reserva. A autorização foi descartada."
+      : "Não foi possível verificar a reserva no provedor. A autorização de cancelamento foi descartada.";
+  }
+  if (lang === "en") {
+    return reason === "insufficient"
+      ? "I cannot complete the confirmation with the available booking data. The authorization was discarded."
+      : "I could not verify the booking with the provider. The cancellation authorization was discarded.";
+  }
+  return reason === "insufficient"
+    ? "No puedo completar la confirmación con los datos disponibles de la reserva. Descarté la autorización."
+    : "No pude verificar la reserva con el proveedor. Descarté la autorización de cancelación.";
+}
+
+function buildCancellationAuthorizationPreparationFailureReply(
+  lang: "es" | "en" | "pt",
+  failure: Extract<CancellationAuthorizationPreparation, { ok: false }>,
+): string {
+  if (failure.reason === "material" && failure.materialReason) {
+    return buildCancellationMaterialFailureReply(lang, failure.materialReason);
+  }
+  if (failure.reason === "persistence") {
+    if (lang === "pt") return "Não consegui registrar uma autorização segura para esse cancelamento. Nenhum cancelamento foi habilitado.";
+    if (lang === "en") return "I couldn't record a safe authorization for that cancellation. No cancellation was enabled.";
+    return "No pude registrar una autorización segura para esa cancelación. No quedó ninguna cancelación habilitada.";
+  }
+  if (failure.reason === "unauthorized") return buildCancelInactiveTargetReply(lang);
+  return buildCancellationMaterialFailureReply(lang, "not_found");
+}
+
+function buildCancellationPreviewReply(
+  lang: "es" | "en" | "pt",
+  material: CancellationPreviewMaterial,
+  prefix?: string,
+): string {
+  const roomType = localizeRoomType(material.roomType, lang);
+  const checkIn = isoToDDMMYYYY(material.checkInDate) || material.checkInDate;
+  const checkOut = isoToDDMMYYYY(material.checkOutDate) || material.checkOutDate;
+  const lines = lang === "pt"
+    ? [
+        "Você está prestes a cancelar esta reserva:",
+        "",
+        `Código: ${material.reservationId}`,
+        `Titular: ${material.guestName}`,
+        `Quarto: ${roomType}`,
+        `Entrada: ${checkIn}`,
+        `Saída: ${checkOut}`,
+        `Hóspedes: ${material.numGuests}`,
+        "Status: Ativa",
+        "",
+        "Operação: cancelar esta reserva.",
+        "",
+        "Confirma o cancelamento?",
+        "Responda CONFIRMAR.",
+      ]
+    : lang === "en"
+      ? [
+          "You are about to cancel this booking:",
+          "",
+          `Code: ${material.reservationId}`,
+          `Guest: ${material.guestName}`,
+          `Room: ${roomType}`,
+          `Check-in: ${checkIn}`,
+          `Check-out: ${checkOut}`,
+          `Guests: ${material.numGuests}`,
+          "Status: Active",
+          "",
+          "Operation: cancel this booking.",
+          "",
+          "Do you confirm the cancellation?",
+          "Reply CONFIRMAR.",
+        ]
+      : [
+          "Estás por cancelar esta reserva:",
+          "",
+          `Código: ${material.reservationId}`,
+          `Titular: ${material.guestName}`,
+          `Habitación: ${roomType}`,
+          `Entrada: ${checkIn}`,
+          `Salida: ${checkOut}`,
+          `Huéspedes: ${material.numGuests}`,
+          "Estado: Activa",
+          "",
+          "Operación: cancelar esta reserva.",
+          "",
+          "¿Confirmás la cancelación?",
+          "Respondé CONFIRMAR.",
+        ];
+  return prefix ? [prefix, "", ...lines].join("\n") : lines.join("\n");
 }
 
 function buildModifyReservationCodeNotFoundReply(lang: "es" | "en" | "pt"): string {
@@ -3581,6 +3792,7 @@ async function readConversationsByGuestId(input: {
 async function resolveCanonicalGuestScope(pre: PreLLMResult): Promise<{
   canonicalGuestId?: string;
   conversationalDisplayName?: string;
+  aliases: string[];
 }> {
   const rawCurrentGuestId = String(pre.guest?.guestId || pre.msg.guestId || "").trim();
   const mergedIntoGuestId = getMergedIntoGuestId(pre.guest);
@@ -3597,6 +3809,195 @@ async function resolveCanonicalGuestScope(pre: PreLLMResult): Promise<{
   return {
     canonicalGuestId: canonicalGuestId || undefined,
     conversationalDisplayName: getConversationalDisplayName(canonicalGuest as any),
+    aliases: Array.isArray(canonicalGuest?.aliases)
+      ? canonicalGuest.aliases.map((value: unknown) => String(value || "").trim()).filter(Boolean)
+      : [],
+  };
+}
+
+type CancellationGuestScopeResolution =
+  | { ok: true; canonicalGuestId: string; record: CanonicalReservationRecord }
+  | { ok: false; reason: "unauthorized" | "verification_failed" };
+
+async function resolveCancellationGuestScope(
+  pre: PreLLMResult,
+  reservationIdInput: string,
+): Promise<CancellationGuestScopeResolution> {
+  const reservationId = String(reservationIdInput || "").trim();
+  const { canonicalGuestId, aliases } = await resolveCanonicalGuestScope(pre);
+  if (!reservationId || !canonicalGuestId) return { ok: false, reason: "verification_failed" };
+  if (pre.st?.hotelId && pre.st.hotelId !== pre.msg.hotelId) {
+    return { ok: false, reason: "verification_failed" };
+  }
+
+  let conversations: any[];
+  try {
+    const conversationsDb = await import("@/lib/db/conversations");
+    if (typeof (conversationsDb as any).getConversationsForGuestPerspective !== "function") {
+      return { ok: false, reason: "verification_failed" };
+    }
+    conversations = await (conversationsDb as any).getConversationsForGuestPerspective({
+      hotelId: pre.msg.hotelId,
+      guestId: canonicalGuestId,
+      aliases,
+    });
+  } catch {
+    return { ok: false, reason: "verification_failed" };
+  }
+  if (!Array.isArray(conversations)) return { ok: false, reason: "verification_failed" };
+
+  const guestScopedConversations = conversations.filter((conversation) =>
+    String(conversation?.conversationId || "").trim() &&
+    String(conversation?.hotelId || "").trim() === pre.msg.hotelId
+  );
+  const ownsLocalConversation = guestScopedConversations.some(
+    (conversation) => String(conversation.conversationId).trim() === pre.conversationId,
+  );
+  const localProjection = buildReservationCanonicalState({
+    ...(pre.st || {}),
+    hotelId: pre.msg.hotelId,
+  });
+  const localRecord = localProjection.byId.get(reservationId);
+  if (
+    ownsLocalConversation &&
+    localRecord &&
+    !localProjection.conflictedIds.has(reservationId)
+  ) {
+    return localRecord.canonicalStatus === "active"
+      ? { ok: true, canonicalGuestId, record: localRecord }
+      : { ok: false, reason: "unauthorized" };
+  }
+
+  const materialRecords: LastReservation[] = [];
+  const seenConversationIds = new Set<string>([pre.conversationId]);
+  for (const conversation of guestScopedConversations) {
+    const conversationId = String(conversation?.conversationId || "").trim();
+    if (!conversationId || seenConversationIds.has(conversationId)) continue;
+    seenConversationIds.add(conversationId);
+    let sourceState: ConversationFlowState | null;
+    try {
+      sourceState = await getConvState(pre.msg.hotelId, conversationId);
+    } catch {
+      return { ok: false, reason: "verification_failed" };
+    }
+    if (sourceState?.hotelId && sourceState.hotelId !== pre.msg.hotelId) continue;
+    materialRecords.push(...collectPersistedReservationRecords(sourceState));
+  }
+
+  const guestProjection = buildReservationCanonicalState({
+    hotelId: pre.msg.hotelId,
+    reservationHistory: materialRecords,
+  });
+  const record = guestProjection.byId.get(reservationId);
+  if (!record || guestProjection.conflictedIds.has(reservationId) || record.canonicalStatus !== "active") {
+    return { ok: false, reason: "unauthorized" };
+  }
+  return { ok: true, canonicalGuestId, record };
+}
+
+function asPendingCancellationAuthorization(
+  pending: PendingCancellation | null | undefined,
+): PendingCancellationAuthorization | null {
+  if (
+    !pending?.reservationId ||
+    !pending.canonicalGuestId ||
+    !pending.presentedFingerprint ||
+    !pending.issuedForMessageId ||
+    !pending.issuedAt ||
+    typeof pending.awaitingConfirmation !== "boolean" ||
+    (pending.previewMessageId !== null && typeof pending.previewMessageId !== "string")
+  ) {
+    return null;
+  }
+  const issuedAt = Date.parse(pending.issuedAt);
+  if (!Number.isFinite(issuedAt) || new Date(issuedAt).toISOString() !== pending.issuedAt) return null;
+  return pending as PendingCancellationAuthorization;
+}
+
+type CancellationAuthorizationPreparation =
+  | {
+      ok: true;
+      material: CancellationPreviewMaterial;
+      authorization: PendingCancellationAuthorization;
+      canonicalRecord: CanonicalReservationRecord;
+    }
+  | { ok: false; reason: "unauthorized" | "verification_failed" | "material" | "persistence"; materialReason?: Extract<CancellationMaterialRead, { ok: false }>["reason"] };
+
+async function prepareCancellationAuthorization(
+  pre: PreLLMResult,
+  reservationId: string,
+): Promise<CancellationAuthorizationPreparation> {
+  try {
+    // Ensure the canonical conversation document exists; the following CAS is
+    // still the authority for whether preparation succeeded.
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, { updatedBy: "ai" } as any);
+  } catch {
+    return { ok: false, reason: "persistence" };
+  }
+  const scope = await resolveCancellationGuestScope(pre, reservationId);
+  if (!scope.ok) return scope;
+
+  const materialRead = await readCancellationMaterial(pre.msg.hotelId, reservationId);
+  if (!materialRead.ok) {
+    return { ok: false, reason: "material", materialReason: materialRead.reason };
+  }
+  return persistPreparedCancellationAuthorization(pre, scope, materialRead.material);
+}
+
+async function persistPreparedCancellationAuthorization(
+  pre: PreLLMResult,
+  scope: Extract<CancellationGuestScopeResolution, { ok: true }>,
+  material: CancellationPreviewMaterial,
+): Promise<CancellationAuthorizationPreparation> {
+  let issuedMessage: MessageDoc | null;
+  try {
+    issuedMessage = await getMessageById(pre.msg.hotelId, pre.msg.messageId);
+  } catch {
+    return { ok: false, reason: "persistence" };
+  }
+  const issuedAtRaw = String(issuedMessage?.createdAt || "");
+  const issuedAtMillis = Date.parse(issuedAtRaw);
+  if (
+    !issuedMessage ||
+    issuedMessage.messageId !== pre.msg.messageId ||
+    issuedMessage.hotelId !== pre.msg.hotelId ||
+    issuedMessage.conversationId !== pre.conversationId ||
+    issuedMessage.direction !== "in" ||
+    !Number.isFinite(issuedAtMillis) ||
+    new Date(issuedAtMillis).toISOString() !== issuedAtRaw
+  ) {
+    return { ok: false, reason: "persistence" };
+  }
+  const authorization: PendingCancellationAuthorization = {
+    reservationId: material.reservationId,
+    canonicalGuestId: scope.canonicalGuestId,
+    presentedFingerprint: material.presentedFingerprint,
+    issuedForMessageId: pre.msg.messageId,
+    previewMessageId: null,
+    issuedAt: issuedAtRaw,
+    awaitingConfirmation: false,
+  };
+  try {
+    const prepared = await preparePendingCancellationAuthorization(
+      pre.msg.hotelId,
+      pre.conversationId,
+      {
+        reservationId: authorization.reservationId,
+        canonicalGuestId: authorization.canonicalGuestId,
+        presentedFingerprint: authorization.presentedFingerprint,
+        issuedForMessageId: authorization.issuedForMessageId,
+        issuedAt: authorization.issuedAt,
+      },
+    );
+    if (!prepared.matched) return { ok: false, reason: "persistence" };
+  } catch {
+    return { ok: false, reason: "persistence" };
+  }
+  return {
+    ok: true,
+    material,
+    authorization,
+    canonicalRecord: scope.record,
   };
 }
 
@@ -4098,10 +4499,13 @@ function toLC(msg: ChannelMessage) {
   return new HumanMessage(txt);
 }
 
-function sortAscByTimestamp<T extends { timestamp?: string }>(a: T, b: T) {
+function sortAscByTimestamp<T extends { timestamp?: string; createdAt?: string }>(a: T, b: T) {
   const ta = new Date(a.timestamp || 0).getTime();
   const tb = new Date(b.timestamp || 0).getTime();
-  return ta - tb;
+  if (ta !== tb) return ta - tb;
+  const ca = new Date(a.createdAt || 0).getTime();
+  const cb = new Date(b.createdAt || 0).getTime();
+  return ca - cb;
 }
 
 async function getRecentHistory(
@@ -4114,7 +4518,7 @@ async function getRecentHistory(
     hotelId, conversationId, limit: Math.max(limit * 3, 24),
   });
 
-  const normalized: ChannelMessage[] = arr.map((d) => ({
+  const normalized: Array<ChannelMessage & { createdAt?: string }> = arr.map((d) => ({
     messageId: d.messageId,
     hotelId: d.hotelId,
     channel: d.channel as ChannelMessage["channel"],
@@ -4125,6 +4529,7 @@ async function getRecentHistory(
     respondedBy: d.respondedBy,
     status: d.status as ChannelMessage["status"],
     timestamp: d.timestamp ?? "",
+    createdAt: d.createdAt,
     time: (d as any).time,
     role: (d as any).role,
     conversationId: d.conversationId ?? undefined,
@@ -6880,6 +7285,228 @@ function isCreateProposalConfirmationEligible(
   return true;
 }
 
+function isExplicitCancellationDiscardText(text: string): boolean {
+  const normalized = normalizeReferenceText(text).trim();
+  const abandonsNamedOperation = /\b(?:abandona|abandonar|descarta|descartar|abort|abandon|discard|stop|pare|parar)\b(?:\s+\w+){0,4}\s+(?:(?:esa|esta|that|this|aquela)\s+)?(?:operacion|operation|operacao|cancelacion|cancellation|cancelamento)\b/i
+    .test(normalized);
+  const refusesCancellationConfirmation = /\bno\s+(?:confirmes|confirmar|quiero|deseo|continues|sigas|confirm|continue|quero)\b[^.!?;]*\b(?:cancelacion|cancelar|cancellation|cancel|cancelamento)\b/i
+    .test(normalized);
+  const multilingualRefusal = /\b(?:no|nao)\s+(?:quiero|deseo|quero|desejo|vou)\b[^.!?;]*\b(?:cancelacion|cancelar|cancellation|cancel|cancelamento|cancelar)\b/i
+    .test(normalized) ||
+    /\bi\s+(?:do\s+not|dont)\s+(?:want\s+to\s+)?(?:confirm|continue|cancel)\b[^.!?;]*\b(?:cancellation|cancel)?\b/i
+      .test(normalized);
+  return abandonsNamedOperation || refusesCancellationConfirmation || multilingualRefusal;
+}
+
+function isExplicitPendingCancellationDiscardTurn(pre: PreLLMResult, text: string): boolean {
+  const pendingCancellation = pre.st?.pendingCancellation as PendingCancellation | null | undefined;
+  if (!pendingCancellation?.reservationId) return false;
+
+  const cancelFocusActive = Boolean(
+    pre.st?.activeFlow === "cancel_reservation" ||
+    pre.st?.desiredAction === "cancel" ||
+    pre.prevCategory === "cancel_reservation" ||
+    getConversationFocus(pre.st)?.subFlow === "cancel"
+  );
+  return cancelFocusActive && isExplicitCancellationDiscardText(text);
+}
+
+function isAmbiguousPendingCancellationSuspensionTurn(text: string): boolean {
+  const normalized = normalizeReferenceText(text).trim();
+  return /^(?:abandona\s+eso|abandon\s+that|abandona\s+isso|dejalo|deja\s+eso|deixa\s+isso|leave\s+it|stop|para|pare|no\s+sigas|do\s+not\s+continue|nao\s+continue|olvidalo|forget\s+it|esquece)(?:[.!?]+)?$/i
+    .test(normalized);
+}
+
+function isExplicitPendingCancellationResumeTurn(text: string): boolean {
+  const normalized = normalizeReferenceText(text).trim();
+  return /\b(?:quiero|deseo)\s+(?:seguir|continuar|retomar)\s+con\s+(?:la|esa)?\s*cancelacion\b/i.test(normalized) ||
+    /\b(?:continue|resume|proceed)\s+(?:with\s+)?(?:the\s+|that\s+)?cancellation\b/i.test(normalized) ||
+    /\b(?:quero|desejo)\s+(?:continuar|prosseguir|retomar)\s+com\s+(?:o|esse)?\s*cancelamento\b/i.test(normalized);
+}
+
+function buildSuspendedCancellationClarificationReply(lang: "es" | "en" | "pt"): string {
+  if (lang === "pt") {
+    return "Pausarei esse cancelamento. CONFIRMAR não o executará. Você quer abandonar o cancelamento ou gerar uma nova prévia para continuar?";
+  }
+  if (lang === "en") {
+    return "I paused that cancellation. CONFIRM will not execute it. Do you want to abandon it or generate a new preview to continue?";
+  }
+  return "Pausé esa cancelación. CONFIRMAR no la ejecutará. ¿Querés abandonarla o generar un nuevo preview para continuar?";
+}
+
+function buildInvalidCancellationAuthorizationReply(lang: "es" | "en" | "pt"): string {
+  if (lang === "pt") {
+    return "Essa autorização de cancelamento não está mais válida. Nenhuma reserva foi alterada; solicite uma nova prévia para continuar.";
+  }
+  if (lang === "en") {
+    return "That cancellation authorization is no longer valid. No booking was changed; request a new preview to continue.";
+  }
+  return "Esa autorización de cancelación ya no es válida. No se modificó ninguna reserva; pedí un nuevo preview para continuar.";
+}
+
+function cancellationIntentChangeInvalidatesAuthorization(
+  pre: PreLLMResult,
+  text: string,
+): boolean {
+  if (isAmbiguousPendingCancellationSuspensionTurn(text)) return true;
+  if (isExplicitCancellationDiscardText(text)) return true;
+  const normalizedIntent = normalizeReservationIntent(text);
+  return !isExplicitModifyExitTurn(text) && isExecutableModifyIntent(text, pre.lang, normalizedIntent);
+}
+
+async function hasValidCancellationCausalHistory(
+  pre: PreLLMResult,
+  pending: PendingCancellationAuthorization,
+): Promise<boolean> {
+  try {
+    const [issuedMessage, previewMessage, confirmingMessage, history] = await Promise.all([
+      getMessageById(pre.msg.hotelId, pending.issuedForMessageId),
+      getMessageById(pre.msg.hotelId, pending.previewMessageId || ""),
+      getMessageById(pre.msg.hotelId, pre.msg.messageId),
+      readCompleteCancellationHistory(pre.msg.hotelId, pre.conversationId),
+    ]);
+    if (!issuedMessage || !previewMessage || !confirmingMessage || !Array.isArray(history)) return false;
+    const matchesConversation = (message: MessageDoc, direction: "in" | "out") =>
+      message.hotelId === pre.msg.hotelId &&
+      message.conversationId === pre.conversationId &&
+      message.direction === direction;
+    if (
+      issuedMessage.messageId !== pending.issuedForMessageId ||
+      previewMessage.messageId !== pending.previewMessageId ||
+      confirmingMessage.messageId !== pre.msg.messageId ||
+      !matchesConversation(issuedMessage, "in") ||
+      !matchesConversation(previewMessage, "out") ||
+      !matchesConversation(confirmingMessage, "in") ||
+      previewMessage.status !== "sent" ||
+      Boolean(previewMessage.deliveryError)
+    ) {
+      return false;
+    }
+    const historyIds = new Set(history.map((message) => message.messageId));
+    if (
+      !historyIds.has(pending.issuedForMessageId) ||
+      !historyIds.has(pending.previewMessageId || "") ||
+      !historyIds.has(pre.msg.messageId)
+    ) {
+      return false;
+    }
+    const issuedAt = Date.parse(String(issuedMessage.createdAt || ""));
+    const previewAt = Date.parse(String(previewMessage.createdAt || ""));
+    const confirmingAt = Date.parse(String(confirmingMessage.createdAt || ""));
+    if (
+      !Number.isFinite(issuedAt) ||
+      !Number.isFinite(previewAt) ||
+      !Number.isFinite(confirmingAt) ||
+      issuedAt >= previewAt ||
+      previewAt >= confirmingAt
+    ) {
+      return false;
+    }
+    const causalMessages = history.filter((message) => {
+      const persistedAt = Date.parse(String(message.createdAt || ""));
+      return Number.isFinite(persistedAt) && persistedAt >= issuedAt && persistedAt <= confirmingAt;
+    });
+    if (causalMessages.length < 3) return false;
+    const causalPersistenceTimes = causalMessages.map((message) => String(message.createdAt));
+    if (new Set(causalPersistenceTimes).size !== causalPersistenceTimes.length) return false;
+    for (const message of history) {
+      if (message.direction !== "in" || message.messageId === pre.msg.messageId) continue;
+      const persistedAt = Date.parse(String(message.createdAt || ""));
+      if (!Number.isFinite(persistedAt)) return false;
+      if (persistedAt <= previewAt || persistedAt >= confirmingAt) continue;
+      if (cancellationIntentChangeInvalidatesAuthorization(pre, String(message.content || ""))) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const CANCELLATION_HISTORY_INITIAL_LIMIT = 250;
+const CANCELLATION_HISTORY_MAX_LIMIT = 2000;
+
+function cancellationHistorySnapshot(messages: MessageDoc[]): string | null {
+  const identities = messages.map((message) => {
+    const messageId = String(message?.messageId || "").trim();
+    if (!messageId) return null;
+    return [
+      messageId,
+      String(message.createdAt || ""),
+      String(message.direction || ""),
+      String(message.status || ""),
+      String(message.content || ""),
+    ].join("\u0000");
+  });
+  if (identities.some((identity) => identity === null)) return null;
+  const sorted = (identities as string[]).sort();
+  if (new Set(sorted.map((identity) => identity.split("\u0000", 1)[0])).size !== sorted.length) return null;
+  return sorted.join("\u0001");
+}
+
+async function readCompleteCancellationHistory(
+  hotelId: string,
+  conversationId: string,
+): Promise<MessageDoc[] | null> {
+  for (
+    let limit = CANCELLATION_HISTORY_INITIAL_LIMIT;
+    limit <= CANCELLATION_HISTORY_MAX_LIMIT;
+    limit *= 2
+  ) {
+    const first = await getMessagesByConversation({ hotelId, conversationId, limit });
+    if (!Array.isArray(first) || first.length > limit) return null;
+    if (first.length === limit) continue;
+
+    const firstSnapshot = cancellationHistorySnapshot(first);
+    if (firstSnapshot === null) return null;
+    const verification = await getMessagesByConversation({ hotelId, conversationId, limit });
+    if (!Array.isArray(verification) || verification.length >= limit) continue;
+    const verificationSnapshot = cancellationHistorySnapshot(verification);
+    if (verificationSnapshot === null || verificationSnapshot !== firstSnapshot) return null;
+    return verification;
+  }
+  return null;
+}
+
+async function revokePendingCancellationAuthorization(pre: PreLLMResult): Promise<void> {
+  const pendingCancellation = pre.st?.pendingCancellation as PendingCancellation | null | undefined;
+  if (!pendingCancellation?.reservationId) return;
+
+  const currentAuthorization = asPendingCancellationAuthorization(pendingCancellation);
+  if (currentAuthorization) {
+    try {
+      await revokePendingCancellationAuthorizationIfCurrent(
+        pre.msg.hotelId,
+        pre.conversationId,
+        currentAuthorization,
+      );
+    } catch {
+      // The later causal-history guard still prevents execution after this intent change.
+    }
+  } else {
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      pendingCancellation: null,
+      updatedBy: "ai",
+    } as any);
+  }
+
+  await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+    conversationFocus: null,
+    activeFlow: null,
+    desiredAction: undefined,
+    activeReservationContext: null,
+    selectedReservationTarget: buildSelectedReservationTargetFromReference(
+      pendingCancellation.reservationId,
+      "active_focus",
+      "weak"
+    ),
+    conversationStage: "reservation_confirmed",
+    lastCategory: null,
+    updatedBy: "ai",
+  } as any);
+}
+
 // ===== Agent: Orchestrator/Planner (bodyLLM + agentGraph) =====
 async function bodyLLM(pre: PreLLMResult): Promise<any> {
   debugLog("[bodyLLM] IN", { pre });
@@ -6894,6 +7521,73 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
   const isEventLikeMessage = looksLikeEventsQuery(String(pre.msg.content || ""));
   const guestState = resolveGuestState(pre.st);
   const rawTurnText = String(pre.msg.content || "");
+  let resumesSuspendedCancellation = false;
+  const pendingCancellationAuthorization = pre.st?.pendingCancellation as PendingCancellation | null | undefined;
+  if (pendingCancellationAuthorization?.reservationId) {
+    if (isExplicitPendingCancellationDiscardTurn(pre, rawTurnText)) {
+      await revokePendingCancellationAuthorization(pre);
+      finalText = pre.lang === "es"
+        ? "De acuerdo, abandoné esa cancelación. La reserva sigue activa."
+        : pre.lang === "pt"
+          ? "Certo, abandonei esse cancelamento. A reserva continua ativa."
+          : "Understood. I abandoned that cancellation. The booking remains active.";
+      return { finalText, nextCategory: "retrieval_based", nextSlots, needsSupervision, graphResult: null };
+    }
+
+    const normalizedTurnReservationIntent = normalizeReservationIntent(rawTurnText);
+    if (
+      !isExplicitModifyExitTurn(rawTurnText) &&
+      isExecutableModifyIntent(rawTurnText, pre.lang, normalizedTurnReservationIntent)
+    ) {
+      await revokePendingCancellationAuthorization(pre);
+    } else if (
+      !pendingCancellationAuthorization.awaitingConfirmation &&
+      isExplicitPendingCancellationResumeTurn(rawTurnText)
+    ) {
+      const suspendedAuthorization = asPendingCancellationAuthorization(pendingCancellationAuthorization);
+      if (!suspendedAuthorization) {
+        finalText = buildSuspendedCancellationClarificationReply(pre.lang);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult: null };
+      }
+      try {
+        const revoked = await revokePendingCancellationAuthorizationIfCurrent(
+          pre.msg.hotelId,
+          pre.conversationId,
+          suspendedAuthorization,
+        );
+        if (!revoked.matched) {
+          finalText = buildSuspendedCancellationClarificationReply(pre.lang);
+          return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult: null };
+        }
+      } catch {
+        finalText = buildSuspendedCancellationClarificationReply(pre.lang);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult: null };
+      }
+      pre.st = { ...(pre.st || {}), pendingCancellation: null };
+      resumesSuspendedCancellation = true;
+    } else if (isAmbiguousPendingCancellationSuspensionTurn(rawTurnText)) {
+      if (pendingCancellationAuthorization.awaitingConfirmation) {
+        const activeAuthorization = asPendingCancellationAuthorization(pendingCancellationAuthorization);
+        if (activeAuthorization) {
+          try {
+            await suspendPendingCancellationAuthorization(
+              pre.msg.hotelId,
+              pre.conversationId,
+              activeAuthorization,
+            );
+          } catch {
+            // Causal history makes a failed suspension write non-executable at confirmation.
+          }
+        }
+      }
+      finalText = buildSuspendedCancellationClarificationReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult: null };
+    } else if (!pendingCancellationAuthorization.awaitingConfirmation && isPureConfirm(rawTurnText)) {
+      finalText = buildSuspendedCancellationClarificationReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult: null };
+    }
+
+  }
   const correctedGuestName = extractExplicitGuestIdentityCorrection(rawTurnText);
   if (correctedGuestName) {
     const displayName = correctedGuestName.split(/\s+/)[0] || correctedGuestName;
@@ -8887,6 +9581,28 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         canonicalCancellationRecord?.canonicalStatus === "active" &&
         canonicalCancellationSlots
       ) {
+        const cancellationPreparation = await prepareCancellationAuthorization(
+          pre,
+          canonicalCancellationRecord.reservationId,
+        );
+        if (!cancellationPreparation.ok) {
+          await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+            reservationSlots: canonicalPreviewSlots,
+            modifyState: null,
+            pendingCancellation: null,
+            lastProposal: null,
+            pendingAvailabilityVerification: null,
+            selectedReservationTarget: null,
+            activeReservationContext: buildFocusedReservationContext(canonicalPreviewRecord.reservationId, "confirmed"),
+            conversationFocus: null,
+            activeFlow: null,
+            desiredAction: undefined,
+            lastCategory: "cancel_reservation",
+            updatedBy: "ai",
+          } as any);
+          finalText = buildCancellationAuthorizationPreparationFailureReply(pre.lang, cancellationPreparation);
+          return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalPreviewSlots, needsSupervision, graphResult };
+        }
         const cancellationSource = explicitIdReservationTarget
           ? "explicit_id"
           : explicitOrdinalReservationTarget
@@ -8897,10 +9613,6 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         await updateConversationState(pre.msg.hotelId, pre.conversationId, {
           reservationSlots: canonicalCancellationSlots,
           modifyState: null,
-          pendingCancellation: {
-            reservationId: canonicalCancellationRecord.reservationId,
-            awaitingConfirmation: true,
-          },
           lastProposal: null,
           pendingAvailabilityVerification: null,
           selectedReservationTarget: buildSelectedReservationTargetFromReference(
@@ -8915,8 +9627,20 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
           lastCategory: "cancel_reservation",
           updatedBy: "ai",
         } as any);
-        finalText = buildModifyPreviewCancellationHandoffReply(pre.lang, canonicalCancellationRecord.reservationId);
-        return { finalText, nextCategory: "cancel_reservation", nextSlots: canonicalCancellationSlots, needsSupervision, graphResult };
+        const handoffPrefix = pre.lang === "pt"
+          ? "Descartei a alteração pendente. Sua reserva continua ativa."
+          : pre.lang === "en"
+            ? "I discarded the pending change. Your booking remains active."
+            : "Descarté el cambio pendiente. Tu reserva sigue activa.";
+        finalText = buildCancellationPreviewReply(pre.lang, cancellationPreparation.material, handoffPrefix);
+        return {
+          finalText,
+          nextCategory: "cancel_reservation",
+          nextSlots: canonicalCancellationSlots,
+          needsSupervision,
+          graphResult,
+          cancelAuthorizationActivation: cancellationPreparation.authorization,
+        };
       }
 
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
@@ -11290,10 +12014,9 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
 
   // === Sprint 3: cancelar reserva ===
   const cancelCodeFromUser = parseReservationCode(userTxtRaw) || extractReservationCodeLikeToken(userTxtRaw);
-  const pendingCancellation = (pre.st as any)?.pendingCancellation as { reservationId?: string; awaitingConfirmation?: boolean } | undefined;
+  const pendingCancellation = pre.st?.pendingCancellation as PendingCancellation | null | undefined;
   const inCancelFlow = pre.prevCategory === "cancel_reservation" || pre.st?.activeFlow === "cancel_reservation";
-  const wantsCancel = normalizeReservationIntent(userTxtRaw).kind === "cancel";
-  const hasInlineCancelConfirmation = /\bconfirm(ar|alo|ala|ame)?\b/i.test(userTxtRaw);
+  const wantsCancel = resumesSuspendedCancellation || normalizeReservationIntent(userTxtRaw).kind === "cancel";
   const resolvedCancelCode =
     cancelCodeFromUser ||
     (wantsCancel && reservationReference.status === "resolved" && reservationReference.target.kind === "reservation"
@@ -11336,8 +12059,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
   }
   if (inCancelFlow && cancelCodeFromUser && !isPureConfirm(userTxtRaw)) {
-    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, cancelCodeFromUser);
-    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+    const cancellationPreparation = await prepareCancellationAuthorization(pre, cancelCodeFromUser);
+    if (!cancellationPreparation.ok) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: null,
         conversationFocus: null,
@@ -11345,11 +12068,10 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         desiredAction: undefined,
         updatedBy: "ai",
       } as any);
-      finalText = buildCancelInactiveTargetReply(pre.lang);
+      finalText = buildCancellationAuthorizationPreparationFailureReply(pre.lang, cancellationPreparation);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     }
     await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-      pendingCancellation: { reservationId: cancelCodeFromUser, awaitingConfirmation: true },
       conversationFocus: buildConversationFocus("cancel"),
       activeFlow: "cancel_reservation",
       activeReservationContext: buildFocusedReservationContext(cancelCodeFromUser, "confirmed"),
@@ -11358,31 +12080,179 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       lastCategory: "cancel_reservation",
       updatedBy: "ai",
     } as any);
-    finalText = pre.lang === "es" ? "Para cancelar esa reserva, respondé **CONFIRMAR**."
-      : pre.lang === "pt" ? "Para cancelar essa reserva, responda **CONFIRMAR**."
-        : "To cancel that booking, reply **CONFIRMAR**.";
-    return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    finalText = buildCancellationPreviewReply(pre.lang, cancellationPreparation.material);
+    return {
+      finalText,
+      nextCategory: "cancel_reservation",
+      nextSlots,
+      needsSupervision,
+      graphResult,
+      cancelAuthorizationActivation: cancellationPreparation.authorization,
+    };
   }
   if (pendingCancellation?.reservationId && pendingCancellation.awaitingConfirmation && isPureConfirm(userTxtRaw)) {
-    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, pendingCancellation.reservationId);
-    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+    const freshState = await getConvState(pre.msg.hotelId, pre.conversationId);
+    const freshPending = freshState?.pendingCancellation as PendingCancellation | null | undefined;
+    if (!freshPending?.reservationId || freshPending.reservationId !== pendingCancellation.reservationId) {
+      finalText = buildInvalidCancellationAuthorizationReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    const freshPre = { ...pre, st: freshState };
+    const activeAuthorization = asPendingCancellationAuthorization(freshPending);
+    if (!activeAuthorization) {
+      try {
+        await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+          pendingCancellation: null,
+          updatedBy: "ai",
+        } as any);
+      } catch {
+        finalText = buildInvalidCancellationAuthorizationReply(pre.lang);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const stateWithoutLegacyPending = await getConvState(pre.msg.hotelId, pre.conversationId);
+      if (stateWithoutLegacyPending?.pendingCancellation) {
+        finalText = buildInvalidCancellationAuthorizationReply(pre.lang);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      const legacyPreparation = await prepareCancellationAuthorization(
+        { ...freshPre, st: stateWithoutLegacyPending },
+        freshPending.reservationId,
+      );
+      if (!legacyPreparation.ok) {
+        finalText = buildCancellationAuthorizationPreparationFailureReply(pre.lang, legacyPreparation);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+      }
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        pendingCancellation: null,
+        conversationFocus: buildConversationFocus("cancel"),
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = buildCancellationPreviewReply(pre.lang, legacyPreparation.material);
+      return {
+        finalText,
+        nextCategory: "cancel_reservation",
+        nextSlots,
+        needsSupervision,
+        graphResult,
+        cancelAuthorizationActivation: legacyPreparation.authorization,
+      };
+    }
+
+    const selectedCancellationId = freshState?.selectedReservationTarget?.reservationId;
+    const activeCancellationId = freshState?.activeReservationContext?.kind === "reservation"
+      ? freshState.activeReservationContext.reservationId
+      : undefined;
+    const scope = await resolveCancellationGuestScope(freshPre, activeAuthorization.reservationId);
+    const { canonicalGuestId } = await resolveCanonicalGuestScope(freshPre);
+    const hasInvalidAuthority = Boolean(
+      !activeAuthorization.awaitingConfirmation ||
+      !activeAuthorization.previewMessageId ||
+      !scope.ok ||
+      !canonicalGuestId ||
+      canonicalGuestId !== activeAuthorization.canonicalGuestId ||
+      (selectedCancellationId && selectedCancellationId !== activeAuthorization.reservationId) ||
+      (activeCancellationId && activeCancellationId !== activeAuthorization.reservationId)
+    );
+    const causalHistoryValid = !hasInvalidAuthority && await hasValidCancellationCausalHistory(
+      freshPre,
+      activeAuthorization,
+    );
+    if (hasInvalidAuthority || !causalHistoryValid || !scope.ok) {
+      try {
+        await revokePendingCancellationAuthorizationIfCurrent(
+          pre.msg.hotelId,
+          pre.conversationId,
+          activeAuthorization,
+        );
+      } catch { /* fail closed through the causal guard on any retry */ }
+      finalText = buildInvalidCancellationAuthorizationReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    let consumptionMatched = false;
+    try {
+      const consumption = await consumePendingCancellationAuthorization(
+        pre.msg.hotelId,
+        pre.conversationId,
+        activeAuthorization,
+      );
+      consumptionMatched = consumption.matched;
+    } catch {
+      consumptionMatched = false;
+    }
+    if (!consumptionMatched) {
+      finalText = buildInvalidCancellationAuthorizationReply(pre.lang);
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    if (!isCancellationProviderExecutionEnabled()) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        conversationFocus: null,
+        activeFlow: null,
+        desiredAction: undefined,
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      finalText = pre.lang === "pt"
+        ? "Não cancelei sua reserva. Para gerenciá-la, entre em contato com a recepção ou com o canal oficial do hotel."
+        : pre.lang === "en"
+          ? "I did not cancel your reservation. To manage it, contact reception or the hotel's official channel."
+          : "No cancelé tu reserva. Para gestionarla, contactá a recepción o al canal oficial del hotel.";
+      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+
+    const materialRead = await readCancellationMaterial(pre.msg.hotelId, activeAuthorization.reservationId);
+    if (!materialRead.ok) {
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         conversationFocus: null,
         activeFlow: null,
         desiredAction: undefined,
         updatedBy: "ai",
       } as any);
-      finalText = buildCancelInactiveTargetReply(pre.lang);
+      finalText = buildCancellationMaterialFailureReply(pre.lang, materialRead.reason);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+    }
+    if (activeAuthorization.presentedFingerprint !== materialRead.material.presentedFingerprint) {
+      const changedPreparation = await persistPreparedCancellationAuthorization(
+        freshPre,
+        scope,
+        materialRead.material,
+      );
+      if (!changedPreparation.ok) {
+        finalText = buildCancellationAuthorizationPreparationFailureReply(pre.lang, changedPreparation);
+        return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
+      }
+      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        conversationFocus: buildConversationFocus("cancel"),
+        activeFlow: "cancel_reservation",
+        desiredAction: "cancel",
+        lastCategory: "cancel_reservation",
+        updatedBy: "ai",
+      } as any);
+      const changedPrefix = pre.lang === "pt"
+        ? "Os dados da reserva mudaram. Revise a versão atual antes de confirmar novamente."
+        : pre.lang === "en"
+          ? "The booking details changed. Review the current version before confirming again."
+          : "Los datos de la reserva cambiaron. Revisá la versión actual antes de confirmar nuevamente.";
+      finalText = buildCancellationPreviewReply(pre.lang, materialRead.material, changedPrefix);
+      return {
+        finalText,
+        nextCategory: "cancel_reservation",
+        nextSlots,
+        needsSupervision,
+        graphResult,
+        cancelAuthorizationActivation: changedPreparation.authorization,
+      };
     }
     try {
       const { cancelReservation } = await import("@/lib/agents/reservations");
-      const r = await cancelReservation(pre.msg.hotelId, pendingCancellation.reservationId);
+      const r = await cancelReservation(pre.msg.hotelId, activeAuthorization.reservationId);
       const cancelledReservation = buildPersistedReservationRecord(
-        pre.st,
+        freshState,
         pre.msg.hotelId,
-        pendingCancellation.reservationId,
+        activeAuthorization.reservationId,
         r.ok ? "cancelled" : "error",
         ((pre.msg.channel as any) || "web") as LastReservation["channel"],
         r.ok ? r.reservation : undefined,
@@ -11399,18 +12269,17 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         },
         reservationHistory: mergeReservationHistory(
           mergeReservationHistory(
-            (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
-            (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
+            (freshState as any)?.reservationHistory as LastReservation[] | undefined,
+            (freshState?.lastReservation as LastReservation | undefined) ?? undefined
           ),
           cancelledReservation
         ),
-        pendingCancellation: null,
         activeReservationContext: buildFocusedReservationContext(
-          pendingCancellation.reservationId,
+          activeAuthorization.reservationId,
           r.ok ? "cancelled" : "confirmed"
         ),
         selectedReservationTarget: buildSelectedReservationTargetFromReference(
-          pendingCancellation.reservationId,
+          activeAuthorization.reservationId,
           "active_focus",
           "weak"
         ),
@@ -11425,6 +12294,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
     } catch (e) {
       needsSupervision = true;
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+        conversationFocus: null,
+        activeFlow: null,
         supervised: true,
         desiredAction: "notify_reception",
         updatedBy: "ai",
@@ -11487,8 +12358,8 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       finalText = buildAskReservationCode(pre.lang);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     }
-    const canonicalCancelTarget = getCanonicalReservationRecordById(pre.st, resolvedCancelCode);
-    if (canonicalCancelTarget && canonicalCancelTarget.canonicalStatus !== "active") {
+    const cancellationPreparation = await prepareCancellationAuthorization(pre, resolvedCancelCode);
+    if (!cancellationPreparation.ok) {
       await updateConversationState(pre.msg.hotelId, pre.conversationId, {
         pendingCancellation: null,
         conversationFocus: null,
@@ -11496,89 +12367,31 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
         desiredAction: undefined,
         updatedBy: "ai",
       } as any);
-      finalText = buildCancelInactiveTargetReply(pre.lang);
+      finalText = buildCancellationAuthorizationPreparationFailureReply(pre.lang, cancellationPreparation);
       return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
     }
-    if (!(isPureConfirm(userTxtRaw) || hasInlineCancelConfirmation)) {
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        pendingCancellation: { reservationId: resolvedCancelCode, awaitingConfirmation: true },
-        conversationFocus: buildConversationFocus("cancel"),
-        activeFlow: "cancel_reservation",
-        activeReservationContext: buildFocusedReservationContext(resolvedCancelCode, "confirmed"),
-        selectedReservationTarget: buildSelectedReservationTargetFromReference(
-          resolvedCancelCode,
-          explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
-          explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
-        ),
-        desiredAction: "cancel",
-        lastCategory: "cancel_reservation",
-        updatedBy: "ai",
-      } as any);
-      finalText = pre.lang === "es" ? "Para cancelar, respondé **CONFIRMAR**."
-        : pre.lang === "pt" ? "Para cancelar, responda **CONFIRMAR**."
-          : "To cancel, reply **CONFIRMAR**.";
-      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
-    }
-    try {
-      const { cancelReservation } = await import("@/lib/agents/reservations");
-      const r = await cancelReservation(pre.msg.hotelId, resolvedCancelCode);
-      const cancelledReservation = buildPersistedReservationRecord(
-        pre.st,
-        pre.msg.hotelId,
+    await updateConversationState(pre.msg.hotelId, pre.conversationId, {
+      conversationFocus: buildConversationFocus("cancel"),
+      activeFlow: "cancel_reservation",
+      activeReservationContext: buildFocusedReservationContext(resolvedCancelCode, "confirmed"),
+      selectedReservationTarget: buildSelectedReservationTargetFromReference(
         resolvedCancelCode,
-        r.ok ? "cancelled" : "error",
-        ((pre.msg.channel as any) || "web") as LastReservation["channel"],
-        r.ok ? r.reservation : undefined,
-      );
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        lastReservation: cancelledReservation,
-        reservationSlots: {
-          guestName: cancelledReservation.guestName,
-          roomType: cancelledReservation.roomType,
-          checkIn: cancelledReservation.checkIn,
-          checkOut: cancelledReservation.checkOut,
-          numGuests: cancelledReservation.numGuests,
-          locale: pre.lang,
-        },
-        reservationHistory: mergeReservationHistory(
-          mergeReservationHistory(
-            (pre.st as any)?.reservationHistory as LastReservation[] | undefined,
-            (pre.st?.lastReservation as LastReservation | undefined) ?? undefined
-          ),
-          cancelledReservation
-        ),
-        pendingCancellation: null,
-        activeReservationContext: buildFocusedReservationContext(
-          resolvedCancelCode,
-          r.ok ? "cancelled" : "confirmed"
-        ),
-        selectedReservationTarget: buildSelectedReservationTargetFromReference(
-          resolvedCancelCode,
-          explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
-          explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
-        ),
-        conversationFocus: null,
-        activeFlow: null,
-        desiredAction: undefined,
-        lastCategory: "cancel_reservation",
-        updatedBy: "ai",
-      } as any);
-      finalText = r.message;
-      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
-    } catch (e) {
-      needsSupervision = true;
-      await updateConversationState(pre.msg.hotelId, pre.conversationId, {
-        supervised: true,
-        desiredAction: "notify_reception",
-        updatedBy: "ai",
-      } as any);
-      finalText = pre.lang === "es"
-        ? "No pude cancelar ahora. Un recepcionista te contactará."
-        : pre.lang === "pt"
-          ? "Não consegui cancelar agora. Um recepcionista vai te contatar."
-          : "I couldn’t cancel now. A receptionist will contact you.";
-      return { finalText, nextCategory: "cancel_reservation", nextSlots, needsSupervision, graphResult };
-    }
+        explicitIdReservationTarget ? "explicit_id" : explicitOrdinalReservationTarget ? "ordinal" : hasAnaphoraReference ? "anaphora" : "active_focus",
+        explicitIdReservationTarget || explicitOrdinalReservationTarget ? "strong" : "weak"
+      ),
+      desiredAction: "cancel",
+      lastCategory: "cancel_reservation",
+      updatedBy: "ai",
+    } as any);
+    finalText = buildCancellationPreviewReply(pre.lang, cancellationPreparation.material);
+    return {
+      finalText,
+      nextCategory: "cancel_reservation",
+      nextSlots,
+      needsSupervision,
+      graphResult,
+      cancelAuthorizationActivation: cancellationPreparation.authorization,
+    };
   }
   // Early follow-up: si el mensaje previo ofreció confirmar el horario exacto de check-in/out y el usuario responde "sí"
   const offeredTimeSide = askedToConfirmCheckTime(pre.lcHistory, pre.lang);
@@ -14607,8 +15420,32 @@ export async function handleIncomingMessage(
     debugLog("[handleIncomingMessage] aiMsg", aiMsg);
     (aiMsg as any).audit = verdictInfo ? { verdict: verdictInfo, llm: llmInterp } : undefined;
     await saveChannelMessageToAstra(aiMsg);
+    const preparedCancellation = asPendingCancellationAuthorization(
+      (body as any)?.cancelAuthorizationActivation as PendingCancellation | undefined,
+    );
+    let durablePreparedCancellation: PendingCancellationAuthorization | null = null;
+    if (preparedCancellation && aiMsg.status === "sent") {
+      try {
+        const durablePreview = await getMessageById(pre.msg.hotelId, aiMsg.messageId);
+        const previewIsDurable = Boolean(
+          durablePreview &&
+          durablePreview.messageId === aiMsg.messageId &&
+          durablePreview.hotelId === pre.msg.hotelId &&
+          durablePreview.conversationId === pre.conversationId &&
+          durablePreview.direction === "out" &&
+          durablePreview.content === suggestion
+        );
+        if (previewIsDurable) {
+          durablePreparedCancellation = preparedCancellation;
+        } else {
+          console.warn("[cancel-authorization] preview durability could not be verified; authorization remains inactive");
+        }
+      } catch (error) {
+        console.warn("[cancel-authorization] preview verification failed closed:", (error as Error)?.message || error);
+      }
+    }
     try {
-      await appendConversationReplyTrace(pre.conversationId, {
+      await appendConversationReplyTrace(pre.msg.hotelId, pre.conversationId, {
         messageId: aiMsg.messageId,
         timestamp: aiMsg.timestamp,
         category: respCategory ?? null,
@@ -14625,6 +15462,21 @@ export async function handleIncomingMessage(
         debugLog("📤 [reply] via adapter?", !!pre.options?.sendReply, { len: suggestion.length });
         await emitReply(pre.conversationId, suggestion, pre.options?.sendReply, richPayload);
         debugLog("[handleIncomingMessage] emitReply sent", { conversationId: pre.conversationId, suggestion });
+        if (durablePreparedCancellation) {
+          try {
+            const activation = await activatePendingCancellationAuthorization(
+              pre.msg.hotelId,
+              pre.conversationId,
+              durablePreparedCancellation,
+              aiMsg.messageId,
+            );
+            if (!activation.matched) {
+              console.warn("[cancel-authorization] delivered preview activation CAS did not match");
+            }
+          } catch (error) {
+            console.warn("[cancel-authorization] post-delivery activation failed closed:", (error as Error)?.message || error);
+          }
+        }
       } else {
         debugLog("[handleIncomingMessage] emitReply pending", { conversationId: pre.conversationId, reason: verdictInfo?.reason });
         const pending = buildPendingNotice(pre.lang, verdictInfo);
@@ -14633,6 +15485,31 @@ export async function handleIncomingMessage(
     } catch (err) {
       debugLog("[handleIncomingMessage] sendReply error", err);
       console.error("❌ [messageHandler] sendReply error:", err);
+      try {
+        await updateMessageInAstra(pre.msg.hotelId, aiMsg.messageId, {
+          status: "failed",
+          deliveryError: String((err as Error)?.message || err),
+        });
+      } catch (deliveryPersistenceError) {
+        console.error("[messageHandler] failed to persist known delivery failure:", deliveryPersistenceError);
+      }
+      if (durablePreparedCancellation) {
+        try {
+          const revoked = await revokePendingCancellationAuthorizationIfCurrent(
+            pre.msg.hotelId,
+            pre.conversationId,
+            durablePreparedCancellation,
+          );
+          if (!revoked.matched) {
+            console.warn("[cancel-authorization] delivery-failure revocation CAS did not match; no replacement was altered");
+          }
+        } catch (compensationError) {
+          console.error(
+            "[cancel-authorization] delivery-failure revocation failed; prepared authorization remains non-executable:",
+            compensationError,
+          );
+        }
+      }
     }
   });
 }

@@ -84,7 +84,7 @@ export default function LoginPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, hotelId }),
+        body: JSON.stringify({ userId, hotelId, password }),
       });
 
       const data = await safeJson(res);

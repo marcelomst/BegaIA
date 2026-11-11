@@ -407,34 +407,10 @@
     }
   };
 
-  // --- SSE
+  // --- SSE deshabilitado hasta disponer de una credencial Guest verificable.
   let es = null;
   let esConvId = null;
-  const openSSE = (conversationId) => {
-    try {
-      if (!window.EventSource) return;
-      if (es) { try { es.close(); } catch {} es = null; }
-      esConvId = conversationId;
-      const url = `${api}/api/web/events?conversationId=${encodeURIComponent(conversationId)}`;
-      debug("sse.open", { tabScopeId: getTabScopeId(), guestId: getGuest(), conversationId, url });
-      es = new EventSource(url, { withCredentials: false });
-      es.onopen = () => console.log("[BegAIChat] SSE abierto:", url);
-      es.onerror = (e) => console.warn("[BegAIChat] SSE error:", e);
-      es.onmessage = (ev) => {
-        try {
-          const data = JSON.parse(ev.data);
-          const text = data.response || data.delta || data.text || "";
-          if (text) appendMsg("ai", text);
-          appendRich(data.rich);
-        } catch { if (ev.data) appendMsg("ai", ev.data); }
-      };
-    } catch (e) {
-      console.warn("[BegAIChat] SSE no disponible:", e);
-    }
-  };
-
-  const prev = getConv();
-  if (prev) openSSE(prev);
+  clearConv();
 
   const toggle = () => {
     const isOpen = panel.style.display === "flex";
@@ -467,23 +443,10 @@
     lastAiText = "";
     appendMsg("user", text);
 
-    // Asegurar conversationId y SSE antes del POST
-    let conv = getConv();
-    if (!conv) {
-      conv = (typeof crypto !== "undefined" && crypto.randomUUID)
-        ? crypto.randomUUID() : String(Date.now());
-      setConv(conv);
-      openSSE(conv);
-    } else if (esConvId !== conv) {
-      openSSE(conv);
-    }
-
     const payload = {
       query: text,
       channel: "web",
       hotelId,
-      conversationId: conv,
-      guestId: getOrCreateGuest(),
       lang: currentLang,
     };
     debug("chat.request", { tabScopeId: getTabScopeId(), payload });
@@ -507,17 +470,9 @@
         guestId: getGuest(),
       });
 
-      if (data.conversationId && data.conversationId !== getConv()) {
-        setConv(data.conversationId);
-        openSSE(data.conversationId);
-      }
-
-      // Fallback si no hay adapter web
+      // El chat público transitorio no ofrece continuidad ni SSE.
       if (data && data.response) {
-        const sseOpen = es && es.readyState === 1;
-        if (!sseOpen) {
-          appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
-        }
+        appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
       } else if (!res.ok) {
         appendMsg("ai", "⚠️ Error del servidor o ruta no disponible.");
       }

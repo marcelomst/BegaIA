@@ -45,8 +45,6 @@ describe("/api/chat rich payload", () => {
         hotelId: "hotel999",
         channel: "web",
         query: "Que tipos de habitaciones tienen?",
-        conversationId: "conv-room-info-img-api-1",
-        guestId: "guest-room-info-img-api-1",
       })
     );
     const json = await res.json();

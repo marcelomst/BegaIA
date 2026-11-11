@@ -28,17 +28,10 @@ describe("ChatPage • language changes affect API payload", () => {
         if (body.lang !== "en") {
           return new Response("Lang not propagated", { status: 400 });
         }
-        const storedGuestId = localStorage.getItem("begai:guestId:hotel999");
-        if (!body.guestId || typeof body.guestId !== "string") {
-          return new Response("guestId missing", { status: 400 });
+        if (body.guestId || body.conversationId) {
+          return new Response("public identity must be assigned server-side", { status: 400 });
         }
-        if (body.guestId !== storedGuestId) {
-          return new Response("guestId not persisted", { status: 400 });
-        }
-        if (!String(body.guestId).startsWith("guest-")) {
-          return new Response("guestId format invalid", { status: 400 });
-        }
-        return new Response(JSON.stringify({ response: "ok", status: "sent", conversationId: "conv-3" }), { status: 200 });
+        return new Response(JSON.stringify({ response: "ok", status: "sent", ephemeral: true }), { status: 200 });
       }
       return new Response("Not Found", { status: 404 });
     }));

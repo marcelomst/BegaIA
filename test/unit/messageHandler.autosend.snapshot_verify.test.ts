@@ -71,7 +71,10 @@ describe("messageHandler autosend for snapshot/verify", () => {
         (globalThis as any).__TEST_TEXT__ = "Para verificar tu reserva necesito el código o nombre + fechas";
         const sendReply = vi.fn(async (_t: string) => { });
 
-        await handleIncomingMessage({ ...BASE_MSG, conversationId: "conv-auto-2" }, { mode: "supervised", sendReply });
+        await handleIncomingMessage(
+            { ...BASE_MSG, conversationId: "conv-auto-2", messageId: "m-2" },
+            { mode: "supervised", sendReply },
+        );
 
         const msgs = await getCollection("messages").findMany({ hotelId: BASE_MSG.hotelId, conversationId: "conv-auto-2" });
         const ai = msgs.filter((m) => (m as any).sender === "assistant").at(-1)!;
@@ -89,7 +92,10 @@ describe("messageHandler autosend for snapshot/verify", () => {
         (globalThis as any).__TEST_TEXT__ = "✅ Reserva confirmada y cerrada";
         const sendReply = vi.fn(async (_t: string) => { });
 
-        await handleIncomingMessage({ ...BASE_MSG, conversationId: "conv-auto-3" }, { mode: "supervised", sendReply });
+        await handleIncomingMessage(
+            { ...BASE_MSG, conversationId: "conv-auto-3", messageId: "m-3" },
+            { mode: "supervised", sendReply },
+        );
 
         const msgs = await getCollection("messages").findMany({ hotelId: BASE_MSG.hotelId, conversationId: "conv-auto-3" });
         const ai = msgs.filter((m) => (m as any).sender === "assistant").at(-1)!;

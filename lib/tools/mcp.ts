@@ -9,7 +9,6 @@ import type { Reservation } from "@/lib/mcp/types";
  */
 
 const ENDPOINT = process.env.MCP_ENDPOINT || "";
-const API_KEY = process.env.MCP_API_KEY || "";
 const MOCK_PORT = process.env.MCP_MOCK_PORT || "3000";
 const DEBUG = process.env.MCP_DEBUG === "1";
 
@@ -116,6 +115,19 @@ export const CancelReservationOutput = z.object({
 });
 export type CancelReservationOutput = z.infer<typeof CancelReservationOutput>;
 
+export const GetReservationInput = z.object({
+  hotelId: z.string().trim().min(1),
+  reservationId: z.string().trim().min(1),
+});
+export type GetReservationInput = z.infer<typeof GetReservationInput>;
+
+export const GetReservationOutput = z.object({
+  ok: z.boolean(),
+  reservation: ReservationResult.optional(),
+  error: z.string().optional(),
+});
+export type GetReservationOutput = z.infer<typeof GetReservationOutput>;
+
 type ReservationSlotsLike = Partial<{
   guestName: string;
   roomType: string;
@@ -213,7 +225,7 @@ export async function callMcpTool<TResult = unknown>(
   const body = { action: "call", name, params };
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(API_KEY ? { "x-mcp-key": API_KEY } : {}),
+    ...(process.env.MCP_API_KEY ? { "x-mcp-key": process.env.MCP_API_KEY } : {}),
   };
   try {
     const res = await fetch(url, {
@@ -354,6 +366,25 @@ export async function quoteReservationModificationTool(input: QuoteReservationMo
   const parsed = QuoteReservationModificationInput.parse(input);
   const params = slotsToMcpParams("updateReservation", { hotelId: parsed.hotelId, reservationId: parsed.reservationId, slots: parsed });
   return callMcpTool<any>("quoteReservationModification", params);
+}
+
+export async function getReservationTool(input: GetReservationInput) {
+  const parsed = GetReservationInput.parse(input);
+  const providerResult = await callMcpTool<unknown>("getReservation", {
+    hotelId: parsed.hotelId,
+    reservationId: parsed.reservationId,
+  });
+  if (providerResult == null) {
+    return GetReservationOutput.parse({ ok: false, error: "PROVIDER_RESERVATION_NOT_FOUND" });
+  }
+  const validated = validateProviderReservation(providerResult, {
+    hotelId: parsed.hotelId,
+    reservationId: parsed.reservationId,
+  });
+  if (!validated.ok) {
+    return GetReservationOutput.parse({ ok: false, error: validated.error });
+  }
+  return GetReservationOutput.parse({ ok: true, reservation: validated.reservation });
 }
 
 export async function cancelReservationTool(input: CancelReservationInput) {

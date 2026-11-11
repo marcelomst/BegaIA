@@ -5,7 +5,25 @@ function nowISO() {
   return new Date().toISOString();
 }
 
-export async function saveChannelMessageToAstra(msg: any): Promise<void> {
+const immutableMaterialFields = [
+  "hotelId", "conversationId", "channel", "direction", "content",
+  "originalMessageId", "sourceMsgId", "sender", "guestId", "role",
+  "subject", "timestamp", "time", "suggestion", "rich",
+] as const;
+
+function equivalent(left: any, right: any) {
+  if (Object.is(left, right)) return true;
+  if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function hasCompatibleMaterial(existing: any, desired: any) {
+  return immutableMaterialFields.every((field) =>
+    desired[field] === undefined || equivalent(existing[field], desired[field])
+  );
+}
+
+export async function saveChannelMessageToAstra(msg: any) {
   const col = getCollection("messages");
   const id = msg.messageId || `m-${Math.random().toString(36).slice(2)}`;
   const base = {
@@ -16,17 +34,17 @@ export async function saveChannelMessageToAstra(msg: any): Promise<void> {
     updatedAt: nowISO(),
   };
 
-  // upsert manual: findOne → updateOne | insertOne
-  const existing = (await col.findOne?.({ _id: id })) ?? null;
+  const existing = (await col.findOne?.({ _id: id, hotelId: msg.hotelId })) ?? null;
   if (existing) {
-    if (typeof col.updateOne === "function") {
-      await col.updateOne({ _id: id }, { $set: base }); // ✅ solo 2 args
-    } else {
-      // fallback: reemplazo simple
-      await col.insertOne?.(base);
+    if (!hasCompatibleMaterial(existing, base)) {
+      throw new Error("MESSAGE_IDENTITY_CONFLICT");
     }
+    return { status: "idempotent" as const, hotelId: msg.hotelId, messageId: id };
   } else {
+    const foreign = (await col.findOne?.({ _id: id })) ?? null;
+    if (foreign) throw new Error("MESSAGE_TENANT_COLLISION");
     await col.insertOne?.(base);
+    return { status: "inserted" as const, hotelId: msg.hotelId, messageId: id };
   }
 }
 
@@ -38,6 +56,12 @@ export async function updateMessageInAstra(
   changes: any
 ) {
   const col = getCollection("messages");
+  const immutablePatch = [
+    "_id", "messageId", "hotelId", "conversationId", "channel", "direction",
+    "content", "originalMessageId", "sourceMsgId", "sender", "guestId", "role",
+    "subject", "timestamp", "time", "suggestion", "rich", "createdAt",
+  ].find((field) => Object.prototype.hasOwnProperty.call(changes, field));
+  if (immutablePatch) throw new Error("MESSAGE_IDENTITY_PATCH_REJECTED");
   const $set = { ...changes, updatedAt: nowISO() };
   if (typeof col.updateOne === "function") {
     await col.updateOne({ _id: messageId, hotelId }, { $set }); // ✅ solo 2 args
@@ -76,16 +100,24 @@ export async function getMessages(hotelId: string, channel: string, limit?: numb
   return typeof limit === "number" ? all.slice(-limit) : all;
 }
 
-export async function getMessageByOriginalId(originalMessageId: string) {
-  if (!originalMessageId) return null;
+export async function getMessageByOriginalId(hotelId: string, originalMessageId: string) {
+  if (!hotelId || !originalMessageId) return null;
   const col = getCollection("messages");
-  return (await col.findOne?.({ originalMessageId })) ?? null;
+  return (await col.findOne?.({ hotelId, originalMessageId })) ?? null;
 }
 
-export async function getMessageById(messageId: string) {
-  if (!messageId) return null;
+export const getMessageByOriginalIdScoped = getMessageByOriginalId;
+
+export async function getMessageBySourceId(hotelId: string, conversationId: string, sourceMsgId: string) {
+  if (!hotelId || !conversationId || !sourceMsgId) return null;
   const col = getCollection("messages");
-  return (await col.findOne?.({ _id: messageId })) ?? null;
+  return (await col.findOne?.({ hotelId, conversationId, sourceMsgId })) ?? null;
+}
+
+export async function getMessageById(hotelId: string, messageId: string) {
+  if (!hotelId || !messageId) return null;
+  const col = getCollection("messages");
+  return (await col.findOne?.({ _id: messageId, hotelId })) ?? null;
 }
 
 export async function saveMessageIdempotent(
@@ -93,8 +125,18 @@ export async function saveMessageIdempotent(
   _opts?: { idempotencyKey?: string }
 ) {
   if (doc?.originalMessageId) {
-    const exists = await getMessageByOriginalId(doc.originalMessageId);
-    if (exists) return { ok: true, id: exists.messageId, deduped: true };
+    const exists = await getMessageByOriginalId(doc.hotelId, doc.originalMessageId);
+    if (exists) {
+      if (!hasCompatibleMaterial(exists, doc)) throw new Error("MESSAGE_IDENTITY_CONFLICT");
+      return { ok: true, id: exists.messageId, deduped: true };
+    }
+  }
+  if (doc?.sourceMsgId && doc?.conversationId) {
+    const exists = await getMessageBySourceId(doc.hotelId, doc.conversationId, doc.sourceMsgId);
+    if (exists) {
+      if (!hasCompatibleMaterial(exists, doc)) throw new Error("MESSAGE_IDENTITY_CONFLICT");
+      return { ok: true, id: exists.messageId, deduped: true };
+    }
   }
   await saveChannelMessageToAstra(doc);
   return { ok: true, id: doc.messageId, deduped: false };

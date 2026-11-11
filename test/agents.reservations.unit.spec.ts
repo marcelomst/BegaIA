@@ -68,12 +68,28 @@ vi.mock("@/lib/tools/mcp", () => {
         updatedAt: "2026-01-02T00:00:00.000Z",
       },
     })),
+    getReservationTool: vi.fn(async (_in: any) => ({
+      ok: true,
+      reservation: {
+        reservationId: _in.reservationId,
+        hotelId: _in.hotelId,
+        guestName: "Ana",
+        roomType: "double",
+        numGuests: 2,
+        checkInDate: "2026-10-10T00:00:00.000Z",
+        checkOutDate: "2026-10-12T00:00:00.000Z",
+        status: "confirmed",
+        currency: "USD",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-02T00:00:00.000Z",
+      },
+    })),
   };
 });
 
 // Importar después de mock
-import { askAvailability, confirmAndCreate, modifyReservation, cancelReservation } from "@/lib/agents/reservations";
-import { checkAvailabilityTool, updateReservationTool, cancelReservationTool } from "@/lib/tools/mcp";
+import { askAvailability, confirmAndCreate, modifyReservation, cancelReservation, getReservation } from "@/lib/agents/reservations";
+import { checkAvailabilityTool, updateReservationTool, cancelReservationTool, getReservationTool } from "@/lib/tools/mcp";
 
 const providerReservation = (override: Record<string, unknown> = {}) => ({
   reservationId: "RES-EXPECTED",
@@ -381,6 +397,40 @@ describe("agents/reservations - tools wrappers", () => {
     });
   });
 
+  describe("getReservationTool provider read", () => {
+    it("valida y conserva la reserva material del hotel e ID solicitados", async () => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const material = providerReservation({ status: "confirmed" });
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ok: true, data: material }));
+      try {
+        await expect(real.getReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: true, reservation: material });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+
+    it.each([
+      ["ausente", null, "PROVIDER_RESERVATION_NOT_FOUND"],
+      ["hotel divergente", providerReservation({ status: "confirmed", hotelId: "hotel-other" }), "PROVIDER_HOTEL_ID_MISMATCH"],
+      ["ID divergente", providerReservation({ status: "confirmed", reservationId: "RES-WRONG" }), "PROVIDER_RESERVATION_ID_MISMATCH"],
+      ["payload inválido", { reservationId: "RES-EXPECTED", hotelId: "hotel999" }, "INVALID_PROVIDER_RESERVATION"],
+    ])("falla cerrado ante provider %s", async (_label, data, error) => {
+      const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ok: true, data }));
+      try {
+        await expect(real.getReservationTool({
+          hotelId: "hotel999",
+          reservationId: "RES-EXPECTED",
+        })).resolves.toEqual({ ok: false, error });
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+  });
+
   it("CheckAvailabilityInput requiere datetime ISO válido (no acepta '2025/10/01')", async () => {
     const real = await vi.importActual<typeof import("@/lib/tools/mcp")>("@/lib/tools/mcp");
 
@@ -444,6 +494,15 @@ describe("agents/reservations - tools wrappers", () => {
     expect(out.message).toMatch(/cancelada/i);
     expect(out.reservation).toMatchObject({ reservationId: "ABC123", status: "cancelled" });
     expect((cancelReservationTool as any).mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it("getReservation delega la lectura tipada sin llamar al adapter", async () => {
+    const out = await getReservation("hotel999", "ABC123");
+    expect(getReservationTool).toHaveBeenCalledWith({ hotelId: "hotel999", reservationId: "ABC123" });
+    expect(out).toMatchObject({
+      ok: true,
+      reservation: { hotelId: "hotel999", reservationId: "ABC123", status: "confirmed" },
+    });
   });
 
   it("[OBS-M6-09][agent preservation] propaga el material cancelado entregado por el tool", async () => {

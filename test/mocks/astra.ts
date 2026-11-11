@@ -6,6 +6,7 @@ class InMemoryCollection {
   constructor(private name: string) {}
   async insertOne(doc: Doc) {
     const _id = doc._id ?? (globalThis as any).crypto.randomUUID();
+    if (this.data.has(_id)) throw new Error(`duplicate key: ${_id}`);
     const toStore = { ...doc, _id };
     this.data.set(_id, toStore);
     return { acknowledged: true, insertedId: _id };
@@ -34,8 +35,29 @@ class InMemoryCollection {
       toArray: async () => this.findMany(filter),
     };
   }
+  private readPath(d: Doc, path: string) {
+    let current: any = d;
+    for (const part of path.split(".")) {
+      if (current == null || !Object.prototype.hasOwnProperty.call(current, part)) {
+        return { exists: false, value: undefined };
+      }
+      current = current[part];
+    }
+    return { exists: true, value: current };
+  }
   private matches(d: Doc, filter: Partial<Doc>) {
-    for (const [k, v] of Object.entries(filter)) if (d[k] !== v) return false;
+    for (const [k, v] of Object.entries(filter)) {
+      if (k === "$or") {
+        if (!Array.isArray(v) || !v.some((part) => this.matches(d, part))) return false;
+        continue;
+      }
+      const actual = this.readPath(d, k);
+      if (v && typeof v === "object" && !Array.isArray(v) && "$exists" in v) {
+        if (actual.exists !== Boolean((v as any).$exists)) return false;
+        continue;
+      }
+      if (!actual.exists || actual.value !== v) return false;
+    }
     return true;
   }
   private applySetPatch(base: Doc, patch: Doc) {
@@ -58,16 +80,36 @@ class InMemoryCollection {
   private applyUpdate(base: Doc, update: Partial<Doc>) {
     const asAny = update as any;
     const setPatch = asAny?.$set && typeof asAny.$set === "object" ? asAny.$set : null;
-    return setPatch ? this.applySetPatch(base, setPatch) : { ...base, ...update };
+    const unsetPatch = asAny?.$unset && typeof asAny.$unset === "object" ? asAny.$unset : null;
+    if (!setPatch && !unsetPatch && !asAny?.$setOnInsert) return { ...base, ...update };
+    const next = setPatch ? this.applySetPatch(base, setPatch) : structuredClone(base);
+    for (const path of Object.keys(unsetPatch || {})) {
+      const parts = path.split(".");
+      let target: any = next;
+      for (const part of parts.slice(0, -1)) {
+        if (!target?.[part]) break;
+        target = target[part];
+      }
+      if (target) delete target[parts[parts.length - 1]];
+    }
+    return next;
   }
-  async updateOne(filter: Partial<Doc>, update: Partial<Doc>) {
+  async updateOne(filter: Partial<Doc>, update: Partial<Doc>, options?: { upsert?: boolean }) {
     for (const [id, d] of this.data.entries()) {
       if (this.matches(d, filter)) {
         this.data.set(id, this.applyUpdate(d, update));
-        return { acknowledged: true, matchedCount: 1, modifiedCount: 1, upsertedId: null };
+        return { acknowledged: true, matchedCount: 1, modifiedCount: 1, upsertedCount: 0, upsertedId: null };
       }
     }
-    return { acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedId: null };
+    if (options?.upsert) {
+      const asAny = update as any;
+      const id = String((filter as any)._id || asAny?.$setOnInsert?._id || "");
+      if (!id || this.data.has(id)) throw new Error(`duplicate key: ${id}`);
+      const inserted = this.applyUpdate({ ...(asAny?.$setOnInsert || {}), _id: id }, update);
+      this.data.set(id, inserted);
+      return { acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedCount: 1, upsertedId: id };
+    }
+    return { acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedCount: 0, upsertedId: null };
   }
   async updateMany(filter: Partial<Doc>, update: Partial<Doc>) {
     let matchedCount = 0;

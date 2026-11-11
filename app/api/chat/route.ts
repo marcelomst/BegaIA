@@ -5,7 +5,7 @@ import { logToFile } from "@/lib/utils/debugLog";
 import crypto from "crypto";
 import { ChannelMessageInputError, handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { decideDeliveryPolicy } from "@/lib/pipeline/deliveryPolicy";
-import type { Channel, ChannelMode } from "@/types/channel";
+import type { Channel } from "@/types/channel";
 
 const BUILD_TAG = "2026-03-20-ARQSYS";
 const DEBUG_CHAT = process.env.DEBUG === "1" || process.env.MCP_DEBUG === "1";
@@ -47,36 +47,44 @@ export async function POST(req: Request) {
   const channel = (normText(body.channel, 30) || "web") as Channel;
   const incomingConversationId =
     normText(body.conversationId, 120) || normText(body.conversation_id, 120) || normText(body.convId, 120);
-  const fallbackConversationId = incomingConversationId || `conv-${crypto.randomUUID()}`;
-  const fallbackGuestId = channel === "web" ? `guest-${crypto.randomUUID()}` : "guest";
-  const guestId = normText(body.guestId, 120) || fallbackGuestId;
-  const sender = normText(body.sender, 60) || "guest";
+  const incomingGuestId = normText(body.guestId, 120);
+  const guestId = `guest-${crypto.randomUUID()}`;
+  const conversationId = `conv-${crypto.randomUUID()}`;
   const content =
     normText(body.query) || normText(body.message) || normText(body.text) || normText(body.content);
   const explicitLang = normText(body.lang, 12) || normText(body.detectedLanguage, 12) || "es";
-  const sourceMsgId = normText(body.messageId, 180) || undefined;
-  const modeIn = normText(body.mode, 30) as ChannelMode | "";
 
   logChat("request.received", {
     build: BUILD_TAG,
     hotelId,
     channel,
     conversationId: incomingConversationId || undefined,
-    hasClientMessageId: Boolean(sourceMsgId),
+    hasClientMessageId: Boolean(normText(body.messageId, 180)),
     textLength: content.length,
   });
 
   if (!hotelId) {
     return jsonWithBuild(
-      { ok: false, error: "hotelId is required", status: "sent", conversationId: fallbackConversationId },
+      { ok: false, error: "hotelId is required", status: "sent" },
       { status: 400 }
     );
   }
 
   if (!content) {
     return jsonWithBuild(
-      { ok: false, error: "message is required", status: "sent", conversationId: fallbackConversationId },
+      { ok: false, error: "message is required", status: "sent" },
       { status: 400 }
+    );
+  }
+
+  if (channel !== "web") {
+    return jsonWithBuild({ ok: false, error: "public chat only accepts the web channel" }, { status: 403 });
+  }
+
+  if (incomingConversationId || incomingGuestId) {
+    return jsonWithBuild(
+      { ok: false, error: "Public conversation continuation is temporarily disabled" },
+      { status: 403 },
     );
   }
 
@@ -86,11 +94,9 @@ export async function POST(req: Request) {
       channel,
       hotelId,
       lang: explicitLang,
-      conversationId: incomingConversationId || undefined,
+      conversationId,
       guestId,
-      sourceMsgId,
-      mode: modeIn || undefined,
-      sender,
+      sender: "guest",
     });
     const delivery = decideDeliveryPolicy({
       status: result.status,
@@ -100,13 +106,12 @@ export async function POST(req: Request) {
     });
 
     const responsePayload = {
-      conversationId: result.conversationId,
       status: result.status,
+      ephemeral: true,
+      continuationAvailable: false,
       message: {
         hotelId: result.hotelId || hotelId,
-        conversationId: result.conversationId,
         channel: result.channel || channel,
-        messageId: result.messageId,
         status: result.status,
         suggestion: delivery.shouldSendPendingAck ? delivery.pendingAckText : undefined,
       },
@@ -129,7 +134,7 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     if (err instanceof ChannelMessageInputError) {
       return jsonWithBuild(
-        { ok: false, error: err.message, status: "sent", conversationId: fallbackConversationId },
+        { ok: false, error: err.message, status: "sent" },
         { status: 400 }
       );
     }
@@ -153,6 +158,6 @@ export async function POST(req: Request) {
         ? "Desculpe, tive um problema ao processar sua solicitação. Pode tentar novamente?"
         : "Sorry, I had an issue processing your request. Could you try again?";
 
-    return jsonWithBuild({ ok: false, conversationId: fallbackConversationId, status: "sent", error: fallback }, { status: 500 });
+    return jsonWithBuild({ ok: false, status: "sent", error: fallback }, { status: 500 });
   }
 }

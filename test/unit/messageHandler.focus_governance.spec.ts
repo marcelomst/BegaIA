@@ -3,14 +3,39 @@ import { agentGraph } from "@/lib/agents";
 import { answerWithKnowledge } from "@/lib/agents/knowledgeBaseAgent";
 
 let currentState: any = null;
+const persistedMessages = new Map<string, any>();
+let persistedMessageSequence = 0;
+
+async function readMessagesForTest({ hotelId, conversationId, limit }: any) {
+  const messages = Array.from(persistedMessages.values())
+    .filter((message: any) => message.hotelId === hotelId && message.conversationId === conversationId)
+    .sort((left: any, right: any) =>
+      String(right.timestamp || "").localeCompare(String(left.timestamp || "")) ||
+      String(right.createdAt || "").localeCompare(String(left.createdAt || ""))
+    );
+  return typeof limit === "number" ? messages.slice(0, limit) : messages;
+}
 
 vi.mock("@/lib/db/messages", () => ({
-  saveChannelMessageToAstra: vi.fn(async () => {}),
-  getMessagesByConversation: vi.fn(async () => []),
+  saveChannelMessageToAstra: vi.fn(async (message: any) => {
+    persistedMessageSequence += 1;
+    persistedMessages.set(message.messageId, {
+      ...message,
+      createdAt: new Date(Date.UTC(2030, 0, 1, 0, 0, 0, persistedMessageSequence)).toISOString(),
+    });
+  }),
+  getMessagesByConversation: vi.fn(readMessagesForTest),
+  getMessageById: vi.fn(async (hotelId: string, messageId: string) => {
+    const message = persistedMessages.get(messageId) ?? null;
+    return message?.hotelId === hotelId ? message : null;
+  }),
 }));
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
   appendConversationReplyTrace: vi.fn(async () => {}),
+  getConversationsForGuestPerspective: vi.fn(async () => [
+    { conversationId: "conv-focus-governance-1", hotelId: "hotel999", guestId: "g1", channel: "web" },
+  ]),
 }));
 vi.mock("@/lib/db/guests", () => ({
   getGuest: vi.fn(async () => null),
@@ -19,6 +44,33 @@ vi.mock("@/lib/db/guests", () => ({
 }));
 vi.mock("@/lib/db/convState", () => ({
   getConvState: vi.fn(async () => currentState),
+  preparePendingCancellationAuthorization: vi.fn(async (_hotelId: string, _conversationId: string, authorization: any) => {
+    if (!currentState) return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    currentState = {
+      ...currentState,
+      pendingCancellation: { ...authorization, previewMessageId: null, awaitingConfirmation: false },
+    };
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  activatePendingCancellationAuthorization: vi.fn(async (_hotelId: string, _conversationId: string, prepared: any, previewMessageId: string) => {
+    if (currentState?.pendingCancellation?.issuedForMessageId !== prepared.issuedForMessageId) {
+      return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+    }
+    currentState = {
+      ...currentState,
+      pendingCancellation: { ...currentState.pendingCancellation, previewMessageId, awaitingConfirmation: true },
+    };
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  suspendPendingCancellationAuthorization: vi.fn(async () => ({ matched: true, modified: true, matchedCount: 1, modifiedCount: 1 })),
+  revokePendingCancellationAuthorizationIfCurrent: vi.fn(async () => {
+    if (currentState) delete currentState.pendingCancellation;
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
+  consumePendingCancellationAuthorization: vi.fn(async () => {
+    if (currentState) delete currentState.pendingCancellation;
+    return { matched: true, modified: true, matchedCount: 1, modifiedCount: 1 };
+  }),
   upsertConvState: vi.fn(async (_hotelId: string, _conversationId: string, patch: any) => {
     currentState = { ...(currentState || {}), ...patch };
   }),
@@ -71,6 +123,22 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
   }),
 }));
 vi.mock("@/lib/agents/reservations", () => ({
+  getReservation: vi.fn(async (hotelId: string, reservationId: string) => ({
+    ok: true,
+    reservation: {
+      reservationId,
+      hotelId,
+      guestName: "Marcelo Martinez",
+      roomType: "double",
+      numGuests: 2,
+      checkInDate: "2027-05-10",
+      checkOutDate: "2027-05-15",
+      status: "confirmed",
+      currency: "USD",
+      createdAt: "2026-03-25T10:00:00.000Z",
+      updatedAt: "2026-03-25T10:00:00.000Z",
+    },
+  })),
   cancelReservation: vi.fn(async (_hotelId: string, reservationId: string) => ({
     ok: true,
     message: `✅ Cancelada ${reservationId}`,
@@ -152,6 +220,8 @@ function lastReply(sendReply: any): string {
 describe("messageHandler focus governance", () => {
   beforeEach(() => {
     currentState = null;
+    persistedMessages.clear();
+    persistedMessageSequence = 0;
     vi.clearAllMocks();
   });
 

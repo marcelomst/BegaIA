@@ -19,12 +19,18 @@ vi.mock("@/lib/astra/connection", () => ({
 }));
 
 import {
+  activatePendingCancellationAuthorization,
   compareCreateDraftRevisions,
+  consumePendingCancellationAuthorization,
   finalizeDeterministicCreateProposalIfCurrent,
   initializeCreateDraftIfLatest,
+  preparePendingCancellationAuthorization,
   publishDeterministicCreateProposalIfLatest,
+  revokePendingCancellationAuthorizationIfCurrent,
+  suspendPendingCancellationAuthorization,
   updateLastProposalTextIfCurrent,
 } from "@/lib/db/convState";
+import type { PendingCancellationAuthorization } from "@/lib/db/convState";
 
 type StatefulDoc = Record<string, any>;
 
@@ -142,6 +148,7 @@ describe("convState conditional lastProposal text update", () => {
     expect(astra.updateOne).toHaveBeenCalledWith(
       {
         _id: "hotel999:conv-pers01",
+        conversationWriterGuard: { $exists: false },
         "lastProposal.available": true,
         "lastProposal.text": { $in: ["Graph proposal", "Final proposal"] },
         "lastProposal.toolCall.name": "checkAvailability",
@@ -191,6 +198,260 @@ describe("convState conditional lastProposal text update", () => {
     await expect(
       updateLastProposalTextIfCurrent("hotel999", "conv-pers01", identity, "Final proposal")
     ).rejects.toBe(failure);
+  });
+});
+
+describe("convState pendingCancellation lifecycle CAS", () => {
+  const prepared: PendingCancellationAuthorization = {
+    reservationId: "RES-CAS-01",
+    canonicalGuestId: "guest-canonical-01",
+    presentedFingerprint: "sha256:material-01",
+    issuedForMessageId: "message-in-01",
+    previewMessageId: null,
+    issuedAt: "2026-11-05T12:00:00.000Z",
+    awaitingConfirmation: false,
+  };
+  const active: PendingCancellationAuthorization = {
+    ...prepared,
+    previewMessageId: "message-out-01",
+    awaitingConfirmation: true,
+  };
+
+  beforeEach(() => {
+    astra.updateOne.mockReset();
+    astra.findOne.mockReset();
+    astra.insertOne.mockReset();
+  });
+
+  it("prepares a non-executable authorization without upsert and requires a matched state", async () => {
+    astra.updateOne.mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
+
+    const result = await preparePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      {
+        reservationId: prepared.reservationId,
+        canonicalGuestId: prepared.canonicalGuestId,
+        presentedFingerprint: prepared.presentedFingerprint,
+        issuedForMessageId: prepared.issuedForMessageId,
+        issuedAt: prepared.issuedAt,
+      }
+    );
+
+    const [filter, update, options] = astra.updateOne.mock.calls[0];
+    expect(filter).toMatchObject({
+      _id: "hotel999:conv-cancel-cas",
+      hotelId: "hotel999",
+      conversationId: "conv-cancel-cas",
+    });
+    expect(update.$set.pendingCancellation).toEqual(prepared);
+    expect(options).toBeUndefined();
+    expect(result).toEqual({ matched: true, modified: true, matchedCount: 1, modifiedCount: 1 });
+  });
+
+  it.each([
+    ["00000000-0000-4000-8000-000000000001", "ffffffff-ffff-4fff-8fff-ffffffffffff"],
+    ["ffffffff-ffff-4fff-8fff-ffffffffffff", "00000000-0000-4000-8000-000000000001"],
+  ])("does not replace equal-time authorization by UUID order (%s -> %s)", async (currentId, candidateId) => {
+    const current = { ...active, issuedForMessageId: currentId };
+    const { docs } = installStatefulAstra([{
+      _id: "hotel999:conv-cancel-equal-time",
+      hotelId: "hotel999",
+      conversationId: "conv-cancel-equal-time",
+      pendingCancellation: current,
+    }]);
+
+    const result = await preparePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-equal-time",
+      {
+        reservationId: prepared.reservationId,
+        canonicalGuestId: prepared.canonicalGuestId,
+        presentedFingerprint: "sha256:candidate",
+        issuedForMessageId: candidateId,
+        issuedAt: current.issuedAt,
+      },
+    );
+
+    expect(result).toEqual({ matched: false, modified: false, matchedCount: 0, modifiedCount: 0 });
+    expect(docs.get("hotel999:conv-cancel-equal-time")?.pendingCancellation).toEqual(current);
+  });
+
+  it("replaces an older authorization only when durable issuedAt proves precedence", async () => {
+    const current = { ...active, issuedAt: "2026-11-05T11:59:59.999Z" };
+    const { docs } = installStatefulAstra([{
+      _id: "hotel999:conv-cancel-later",
+      hotelId: "hotel999",
+      conversationId: "conv-cancel-later",
+      pendingCancellation: current,
+    }]);
+
+    const result = await preparePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-later",
+      {
+        reservationId: prepared.reservationId,
+        canonicalGuestId: prepared.canonicalGuestId,
+        presentedFingerprint: "sha256:later",
+        issuedForMessageId: "candidate-with-arbitrary-id",
+        issuedAt: prepared.issuedAt,
+      },
+    );
+
+    expect(result.matched).toBe(true);
+    expect(docs.get("hotel999:conv-cancel-later")?.pendingCancellation).toMatchObject({
+      issuedForMessageId: "candidate-with-arbitrary-id",
+      issuedAt: prepared.issuedAt,
+      awaitingConfirmation: false,
+      previewMessageId: null,
+    });
+  });
+
+  it("does not reactivate an earlier authorization when preparation loses its CAS", async () => {
+    const current = { ...active };
+    const { docs } = installStatefulAstra([{
+      _id: "hotel999:conv-cancel-no-reactivation",
+      hotelId: "hotel999",
+      conversationId: "conv-cancel-no-reactivation",
+      pendingCancellation: current,
+    }]);
+
+    const result = await preparePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-no-reactivation",
+      {
+        reservationId: prepared.reservationId,
+        canonicalGuestId: prepared.canonicalGuestId,
+        presentedFingerprint: "sha256:ambiguous",
+        issuedForMessageId: "different-id",
+        issuedAt: prepared.issuedAt,
+      },
+    );
+
+    expect(result.matched).toBe(false);
+    expect(docs.get("hotel999:conv-cancel-no-reactivation")?.pendingCancellation).toEqual(current);
+  });
+
+  it("activates only the exact prepared authorization and binds the durable preview id", async () => {
+    astra.updateOne.mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
+
+    const result = await activatePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      prepared,
+      "message-out-01"
+    );
+
+    const [filter, update, options] = astra.updateOne.mock.calls[0];
+    expect(filter).toMatchObject({
+      "pendingCancellation.reservationId": prepared.reservationId,
+      "pendingCancellation.canonicalGuestId": prepared.canonicalGuestId,
+      "pendingCancellation.presentedFingerprint": prepared.presentedFingerprint,
+      "pendingCancellation.issuedForMessageId": prepared.issuedForMessageId,
+      "pendingCancellation.previewMessageId": null,
+      "pendingCancellation.awaitingConfirmation": false,
+    });
+    expect(update.$set).toMatchObject({
+      "pendingCancellation.previewMessageId": "message-out-01",
+      "pendingCancellation.awaitingConfirmation": true,
+    });
+    expect(options).toBeUndefined();
+    expect(result.matched).toBe(true);
+  });
+
+  it("suspends the exact active authorization without replacing its material identity", async () => {
+    astra.updateOne.mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
+
+    const result = await suspendPendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      active
+    );
+
+    const [, update] = astra.updateOne.mock.calls[0];
+    expect(update).toMatchObject({
+      $set: { "pendingCancellation.awaitingConfirmation": false },
+    });
+    expect(update.$set.pendingCancellation).toBeUndefined();
+    expect(result.matchedCount).toBe(1);
+  });
+
+  it("revokes and consumes through exact-identity unsets", async () => {
+    astra.updateOne.mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
+
+    const revoked = await revokePendingCancellationAuthorizationIfCurrent(
+      "hotel999",
+      "conv-cancel-cas",
+      active
+    );
+    const consumed = await consumePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      active
+    );
+
+    for (const call of astra.updateOne.mock.calls) {
+      expect(call[0]).toMatchObject({
+        "pendingCancellation.previewMessageId": "message-out-01",
+        "pendingCancellation.awaitingConfirmation": true,
+      });
+      expect(call[1].$unset).toEqual({ pendingCancellation: true });
+      expect(call[2]).toBeUndefined();
+    }
+    expect(revoked.matched).toBe(true);
+    expect(consumed.matched).toBe(true);
+  });
+
+  it("fails closed when a required CAS reports matchedCount zero", async () => {
+    astra.updateOne.mockResolvedValue({ matchedCount: 0, modifiedCount: 0 });
+
+    const activation = await activatePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      prepared,
+      "message-out-01"
+    );
+    const consumption = await consumePendingCancellationAuthorization(
+      "hotel999",
+      "conv-cancel-cas",
+      active
+    );
+
+    expect(activation).toEqual({ matched: false, modified: false, matchedCount: 0, modifiedCount: 0 });
+    expect(consumption).toEqual({ matched: false, modified: false, matchedCount: 0, modifiedCount: 0 });
+  });
+
+  it("allows only one concurrent consumer to win before the external effect", async () => {
+    const document: StatefulDoc = {
+      _id: "hotel999:conv-cancel-concurrent",
+      hotelId: "hotel999",
+      conversationId: "conv-cancel-concurrent",
+      pendingCancellation: clone(active),
+    };
+    let arrivals = 0;
+    let releaseBarrier!: () => void;
+    const barrier = new Promise<void>((resolve) => { releaseBarrier = resolve; });
+    astra.updateOne.mockImplementation(async (filter: any, update: any) => {
+      arrivals += 1;
+      if (arrivals === 2) releaseBarrier();
+      else await barrier;
+      if (!matchesFilter(document, filter)) return { matchedCount: 0, modifiedCount: 0 };
+      for (const [path, value] of Object.entries(update.$set || {})) writePath(document, path, value);
+      for (const path of Object.keys(update.$unset || {})) unsetPath(document, path);
+      return { matchedCount: 1, modifiedCount: 1 };
+    });
+    const cancelEffect = vi.fn(async () => {});
+
+    const attempts = await Promise.all([
+      consumePendingCancellationAuthorization("hotel999", "conv-cancel-concurrent", active),
+      consumePendingCancellationAuthorization("hotel999", "conv-cancel-concurrent", active),
+    ]);
+    await Promise.all(attempts.filter((attempt) => attempt.matched).map(() => cancelEffect()));
+
+    expect(attempts.filter((attempt) => attempt.matched)).toHaveLength(1);
+    expect(attempts.filter((attempt) => !attempt.matched)).toHaveLength(1);
+    expect(cancelEffect).toHaveBeenCalledTimes(1);
+    expect(document.pendingCancellation).toBeUndefined();
   });
 });
 

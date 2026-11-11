@@ -51,6 +51,27 @@ vi.mock("@/lib/db/guests", () => ({
 }));
 
 vi.mock("@/lib/db/convState", () => ({
+  createConversationWriterGuard: vi.fn((input: any) => ({
+    contractVersion: "conversation-writer-guard-v1",
+    token: `token-${input.operationId}`,
+    operationId: input.operationId,
+    writerKind: input.writerKind,
+    instanceId: input.instanceId,
+    buildId: input.buildId,
+    acquiredAt: "2026-11-06T10:00:00.000Z",
+    messageId: input.messageId,
+  })),
+  acquireConversationOwnership: vi.fn(async (_hotelId: string, _conversationId: string, guard: any) => ({
+    status: "acquired",
+    guard,
+    idempotent: false,
+  })),
+  assertConversationOwnership: vi.fn(async (_hotelId: string, _conversationId: string, guard: any) => ({
+    status: "owned",
+    guard,
+  })),
+  releaseConversationOwnership: vi.fn(async () => ({ status: "released" })),
+  isCancellationProviderExecutionEnabled: vi.fn(() => false),
   getConvState: vi.fn(async () => null),
   upsertConvState: vi.fn(async () => ({})),
   resolveGuestState: vi.fn(() => undefined),

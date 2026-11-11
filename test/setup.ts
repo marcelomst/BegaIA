@@ -44,7 +44,8 @@ vi.mock("@/lib/auth/getCurrentUser", () => {
       userId: "u-test",
       email: "test@example.com",
       hotelId: "hotel999",
-      roles: ["admin"],
+      hotelName: "Hotel Test",
+      roleLevel: 10,
     })),
   };
 });

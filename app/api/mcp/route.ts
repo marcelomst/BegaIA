@@ -28,13 +28,15 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    const apiKey = process.env.MCP_API_KEY || "";
-    if (apiKey) {
-      const provided = req.headers.get(REQUIRED_HEADER) || "";
-      if (provided !== apiKey) {
-        logOutcome(false);
-        return new Response(JSON.stringify({ ok: false, error: "Unauthorized MCP call" }), { status: 401 });
-      }
+    const apiKey = (process.env.MCP_API_KEY || "").trim();
+    if (!apiKey) {
+      logOutcome(false);
+      return Response.json({ ok: false, error: "MCP authentication is not configured" }, { status: 503 });
+    }
+    const provided = req.headers.get(REQUIRED_HEADER) || "";
+    if (provided !== apiKey) {
+      logOutcome(false);
+      return Response.json({ ok: false, error: "Unauthorized MCP call" }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({} as any));
@@ -59,6 +61,10 @@ export async function POST(req: NextRequest) {
       if (!hotelId) {
         logOutcome(false);
         return Response.json({ ok: false, error: "Missing hotelId" }, { status: 400 });
+      }
+      if (name === "cancelReservation") {
+        logOutcome(false);
+        return Response.json({ ok: false, error: "Cancellation is temporarily disabled" }, { status: 403 });
       }
       const result = await handleMcpCall(name, params);
       const reservationIdFromResult =

@@ -545,7 +545,7 @@ export async function confirmAndCreate(hotelId: string, slots: ReservationSlots,
 }
 
 // === Sprint 3: modificar / cancelar ===
-import { updateReservationTool, cancelReservationTool, quoteReservationModificationTool } from "@/lib/tools/mcp";
+import { updateReservationTool, cancelReservationTool, getReservationTool, quoteReservationModificationTool } from "@/lib/tools/mcp";
 
 type _NormSlotsForModify = ReturnType<typeof normalizeBookingSlots>;
 
@@ -585,6 +585,10 @@ export async function quoteReservationModification(hotelId: string, reservationI
     hotelId, reservationId, roomType: norm.roomType, guests: norm.guests,
     checkIn: norm.checkIn, checkOut: norm.checkOut,
   });
+}
+
+export async function getReservation(hotelId: string, reservationId: string) {
+  return getReservationTool({ hotelId, reservationId });
 }
 
 export async function cancelReservation(hotelId: string, reservationId: string) {

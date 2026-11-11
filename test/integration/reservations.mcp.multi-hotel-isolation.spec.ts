@@ -1,5 +1,5 @@
 // Path: /root/begasist/test/integration/reservations.mcp.multi-hotel-isolation.spec.ts
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/astra/connection", async () => {
   const mod = await import("../mocks/astra");
@@ -8,15 +8,21 @@ vi.mock("@/lib/astra/connection", async () => {
 
 import { POST as mcpPOST } from "@/app/api/mcp/route";
 
+const TEST_MCP_KEY = "test-mcp-key";
+
 function mkReq(body: unknown): Request {
   return new Request("http://localhost/api/mcp", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-mcp-key": TEST_MCP_KEY },
     body: JSON.stringify(body),
   });
 }
 
 describe("MCP reservations multi-hotel isolation", () => {
+  beforeEach(() => {
+    vi.stubEnv("MCP_API_KEY", TEST_MCP_KEY);
+  });
+
   it("isolates reservation state between different hotelId values", async () => {
     const now = Date.now();
     const hotelA = `hotelA-${now}`;
@@ -72,8 +78,8 @@ describe("MCP reservations multi-hotel isolation", () => {
       }) as any
     );
     const cancelled = await cancelInA.json();
-    expect(cancelled.ok).toBe(true);
-    expect(cancelled.data?.status).toBe("cancelled");
+    expect(cancelInA.status).toBe(403);
+    expect(cancelled.ok).toBe(false);
 
     const getFromB2 = await mcpPOST(
       mkReq({
@@ -85,5 +91,15 @@ describe("MCP reservations multi-hotel isolation", () => {
     const inB2 = await getFromB2.json();
     expect(inB2.ok).toBe(true);
     expect(inB2.data).toBeNull();
+
+    const getFromAAfterBlockedCancel = await mcpPOST(
+      mkReq({
+        action: "call",
+        name: "getReservation",
+        params: { hotelId: hotelA, reservationId },
+      }) as any
+    );
+    const inAAfterBlockedCancel = await getFromAAfterBlockedCancel.json();
+    expect(inAAfterBlockedCancel.data?.status).toBe("confirmed");
   });
 });

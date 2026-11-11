@@ -3,7 +3,9 @@ import { getAstraDB } from "@/lib/astra/connection";
 import { normalizeSlots } from "@/lib/agents/helpers";
 import { log } from "node:console";
 import { lookup } from "node:dns";
+import { randomBytes } from "node:crypto";
 import type { SupervisionRecord } from "@/types/audit";
+import { getConversationOwnershipContext } from "@/lib/ownership/conversationOwnershipContext";
 
 export const CONVSTATE_VERSION = "convstate-2025-09-04-02";
 console.log("[convState] loaded", CONVSTATE_VERSION);
@@ -150,8 +152,92 @@ export type LastPresentedReservations = {
 
 export type PendingCancellation = {
   reservationId?: string;
+  canonicalGuestId?: string;
+  issuedForMessageId?: string;
+  previewMessageId?: string | null;
+  issuedAt?: string;
   awaitingConfirmation?: boolean;
+  presentedFingerprint?: string;
 };
+
+export type PendingCancellationAuthorization = {
+  reservationId: string;
+  canonicalGuestId: string;
+  presentedFingerprint: string;
+  issuedForMessageId: string;
+  previewMessageId: string | null;
+  issuedAt: string;
+  awaitingConfirmation: boolean;
+};
+
+export type PendingCancellationCasResult = {
+  matched: boolean;
+  modified: boolean;
+  matchedCount: 0 | 1;
+  modifiedCount: 0 | 1;
+};
+
+export const CONVERSATION_WRITER_GUARD_CONTRACT_VERSION = "conversation-writer-guard-v1" as const;
+export const CANCELLATION_EXECUTION_CONTRACT_VERSION = "cancellation-execution-v1" as const;
+
+/**
+ * Preventive deployment gate. Enabling Cancel requires a reviewed source change;
+ * no runtime flag or partially integrated writer can enable the provider effect.
+ */
+export function isCancellationProviderExecutionEnabled(): false {
+  return false;
+}
+
+export type ConversationWriterGuard = {
+  contractVersion: typeof CONVERSATION_WRITER_GUARD_CONTRACT_VERSION;
+  token: string;
+  operationId: string;
+  writerKind: string;
+  instanceId: string;
+  buildId: string;
+  acquiredAt: string;
+  messageId?: string;
+};
+
+export type CancellationExecutionState =
+  | "prepared"
+  | "provider_inflight"
+  | "provider_succeeded"
+  | "provider_failed_verified"
+  | "provider_result_unknown"
+  | "result_persisted"
+  | "aborted_before_provider";
+
+export type CancellationExecution = {
+  contractVersion: typeof CANCELLATION_EXECUTION_CONTRACT_VERSION;
+  operationId: string;
+  reservationId: string;
+  authorizationFingerprint: string;
+  state: CancellationExecutionState;
+  updatedAt: string;
+};
+
+export type ConversationOwnershipSummary = Omit<ConversationWriterGuard, "token">;
+
+export type ConversationOwnershipAcquireResult =
+  | { status: "acquired"; guard: ConversationWriterGuard; idempotent: boolean }
+  | { status: "occupied"; owner: ConversationOwnershipSummary }
+  | { status: "uncertain"; reason: string }
+  | { status: "error"; reason: string };
+
+export type ConversationOwnershipAssertionResult =
+  | { status: "owned"; guard: ConversationWriterGuard }
+  | { status: "unowned" }
+  | { status: "occupied"; owner: ConversationOwnershipSummary }
+  | { status: "malformed"; reason: string }
+  | { status: "uncertain"; reason: string }
+  | { status: "error"; reason: string };
+
+export type ConversationOwnershipReleaseResult =
+  | { status: "released" }
+  | { status: "not_owner"; owner?: ConversationOwnershipSummary }
+  | { status: "uncertain"; reason: string }
+  | { status: "error"; reason: string };
 
 export type PendingAvailabilityVerification = {
   checkIn: string;
@@ -234,6 +320,8 @@ export type ConversationFlowState = {
   modifyState?: ModifyState | null;
   conversationFocus?: ConversationFocus | null;
   pendingCancellation?: PendingCancellation | null;
+  conversationWriterGuard?: ConversationWriterGuard;
+  cancellationExecution?: CancellationExecution | null;
   pendingAvailabilityVerification?: PendingAvailabilityVerification | null;
   guestState?: GuestState | null;
 
@@ -342,6 +430,468 @@ function col() {
 
 function key(hotelId: string, conversationId: string) {
   return `${hotelId}:${conversationId}`;
+}
+
+type ConversationOwnershipInspection =
+  | { status: "missing" }
+  | { status: "unowned"; document: ConversationFlowState }
+  | { status: "owned"; document: ConversationFlowState; guard: ConversationWriterGuard }
+  | { status: "malformed"; reason: string }
+  | { status: "uncertain"; reason: string }
+  | { status: "error"; reason: string };
+
+function canonicalIsoTimestamp(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const millis = Date.parse(value);
+  return Number.isFinite(millis) && new Date(millis).toISOString() === value;
+}
+
+function isCanonicalWriterGuard(value: unknown): value is ConversationWriterGuard {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const guard = value as Record<string, unknown>;
+  const required = [
+    guard.token,
+    guard.operationId,
+    guard.writerKind,
+    guard.instanceId,
+    guard.buildId,
+  ];
+  if (guard.contractVersion !== CONVERSATION_WRITER_GUARD_CONTRACT_VERSION) return false;
+  if (required.some((item) => typeof item !== "string" || !item.trim() || item.trim() !== item)) return false;
+  if (!canonicalIsoTimestamp(guard.acquiredAt)) return false;
+  if (guard.messageId !== undefined && (
+    typeof guard.messageId !== "string" || !guard.messageId.trim() || guard.messageId.trim() !== guard.messageId
+  )) return false;
+  return true;
+}
+
+function sameWriterGuard(left: ConversationWriterGuard, right: ConversationWriterGuard): boolean {
+  return left.contractVersion === right.contractVersion &&
+    left.token === right.token &&
+    left.operationId === right.operationId &&
+    left.writerKind === right.writerKind &&
+    left.instanceId === right.instanceId &&
+    left.buildId === right.buildId &&
+    left.acquiredAt === right.acquiredAt &&
+    left.messageId === right.messageId;
+}
+
+function writerGuardIdentityFilter(guard: ConversationWriterGuard): Record<string, unknown> {
+  return {
+    "conversationWriterGuard.contractVersion": guard.contractVersion,
+    "conversationWriterGuard.token": guard.token,
+    "conversationWriterGuard.operationId": guard.operationId,
+    "conversationWriterGuard.writerKind": guard.writerKind,
+    "conversationWriterGuard.instanceId": guard.instanceId,
+    "conversationWriterGuard.buildId": guard.buildId,
+    "conversationWriterGuard.acquiredAt": guard.acquiredAt,
+    "conversationWriterGuard.messageId": guard.messageId === undefined
+      ? { $exists: false }
+      : guard.messageId,
+  };
+}
+
+function conversationMutationOwnershipFilter(
+  hotelId: string,
+  conversationId: string,
+): Record<string, unknown> {
+  const context = getConversationOwnershipContext();
+  if (!context) {
+    return { conversationWriterGuard: { $exists: false } };
+  }
+  if (context.hotelId !== hotelId || context.conversationId !== conversationId) {
+    throw new Error("owned mutation cannot target a second conversation");
+  }
+  if (!isCanonicalWriterGuard(context.guard)) {
+    throw new Error("owned mutation requires a canonical writer guard");
+  }
+  return writerGuardIdentityFilter(context.guard as ConversationWriterGuard);
+}
+
+function ownershipSummary(guard: ConversationWriterGuard): ConversationOwnershipSummary {
+  const { token: _token, ...summary } = guard;
+  return summary;
+}
+
+function isUncertainStorageError(error: unknown): boolean {
+  const candidate = error as { name?: unknown; code?: unknown; message?: unknown } | null;
+  const text = [candidate?.name, candidate?.code, candidate?.message]
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+  return /timeout|timed out|abort|deadline|econnreset|socket hang up/.test(text);
+}
+
+async function inspectConversationOwnership(
+  hotelId: string,
+  conversationId: string,
+): Promise<ConversationOwnershipInspection> {
+  let document: ConversationFlowState | null;
+  try {
+    document = await (col() as any).findOne({ _id: key(hotelId, conversationId) });
+  } catch (error) {
+    return isUncertainStorageError(error)
+      ? { status: "uncertain", reason: "read_timeout" }
+      : { status: "error", reason: "read_error" };
+  }
+  if (!document) return { status: "missing" };
+  if (document._id !== key(hotelId, conversationId) || document.hotelId !== hotelId || document.conversationId !== conversationId) {
+    return { status: "malformed", reason: "conversation_identity_mismatch" };
+  }
+  const rawGuard = (document as any).conversationWriterGuard;
+  if (rawGuard === undefined) return { status: "unowned", document };
+  if (!isCanonicalWriterGuard(rawGuard)) return { status: "malformed", reason: "invalid_or_unknown_writer_guard" };
+  return { status: "owned", document, guard: rawGuard };
+}
+
+export function createConversationWriterGuard(input: {
+  operationId: string;
+  writerKind: string;
+  instanceId: string;
+  buildId: string;
+  messageId?: string;
+  acquiredAt?: string;
+}): ConversationWriterGuard {
+  const guard: ConversationWriterGuard = {
+    contractVersion: CONVERSATION_WRITER_GUARD_CONTRACT_VERSION,
+    token: randomBytes(32).toString("base64url"),
+    operationId: input.operationId,
+    writerKind: input.writerKind,
+    instanceId: input.instanceId,
+    buildId: input.buildId,
+    acquiredAt: input.acquiredAt ?? new Date().toISOString(),
+    ...(input.messageId === undefined ? {} : { messageId: input.messageId }),
+  };
+  if (!isCanonicalWriterGuard(guard)) {
+    throw new Error("invalid conversation writer guard input");
+  }
+  return guard;
+}
+
+export async function ensureConversationStateShell(
+  hotelId: string,
+  conversationId: string,
+): Promise<{ status: "ready" } | { status: "uncertain"; reason: string } | { status: "error"; reason: string }> {
+  const _id = key(hotelId, conversationId);
+  let writeError: unknown;
+  try {
+    await (col() as any).updateOne(
+      { _id },
+      {
+        $setOnInsert: {
+          _id,
+          hotelId,
+          conversationId,
+          updatedAt: new Date().toISOString(),
+          updatedBy: "system",
+        },
+      },
+      { upsert: true },
+    );
+  } catch (error) {
+    writeError = error;
+  }
+
+  const inspection = await inspectConversationOwnership(hotelId, conversationId);
+  if (inspection.status === "unowned" || inspection.status === "owned") return { status: "ready" };
+  if (inspection.status === "malformed") return { status: "error", reason: inspection.reason };
+  if (inspection.status === "uncertain") return inspection;
+  if (inspection.status === "error") return inspection;
+  if (writeError && isUncertainStorageError(writeError)) return { status: "uncertain", reason: "shell_write_timeout" };
+  return { status: "error", reason: writeError ? "shell_write_error" : "shell_not_persisted" };
+}
+
+export async function assertConversationOwnership(
+  hotelId: string,
+  conversationId: string,
+  expected: ConversationWriterGuard,
+): Promise<ConversationOwnershipAssertionResult> {
+  if (!isCanonicalWriterGuard(expected)) return { status: "error", reason: "invalid_expected_guard" };
+  const inspection = await inspectConversationOwnership(hotelId, conversationId);
+  if (inspection.status === "missing" || inspection.status === "unowned") return { status: "unowned" };
+  if (inspection.status === "malformed") return inspection;
+  if (inspection.status === "uncertain") return inspection;
+  if (inspection.status === "error") return inspection;
+  if (sameWriterGuard(inspection.guard, expected)) return { status: "owned", guard: expected };
+  return { status: "occupied", owner: ownershipSummary(inspection.guard) };
+}
+
+export async function resolveConversationOwnershipAttempt(
+  hotelId: string,
+  conversationId: string,
+  attempted: ConversationWriterGuard,
+): Promise<ConversationOwnershipAcquireResult> {
+  const assertion = await assertConversationOwnership(hotelId, conversationId, attempted);
+  if (assertion.status === "owned") return { status: "acquired", guard: attempted, idempotent: true };
+  if (assertion.status === "occupied") return assertion;
+  if (assertion.status === "uncertain") return assertion;
+  if (assertion.status === "malformed") return { status: "error", reason: assertion.reason };
+  if (assertion.status === "unowned") return { status: "uncertain", reason: "attempt_not_observable" };
+  return assertion;
+}
+
+export async function acquireConversationOwnership(
+  hotelId: string,
+  conversationId: string,
+  attempted: ConversationWriterGuard,
+): Promise<ConversationOwnershipAcquireResult> {
+  if (!isCanonicalWriterGuard(attempted)) return { status: "error", reason: "invalid_attempted_guard" };
+  const shell = await ensureConversationStateShell(hotelId, conversationId);
+  if (shell.status !== "ready") return shell;
+
+  const before = await assertConversationOwnership(hotelId, conversationId, attempted);
+  if (before.status === "owned") return { status: "acquired", guard: attempted, idempotent: true };
+  if (before.status === "occupied" || before.status === "uncertain") return before;
+  if (before.status === "malformed") return { status: "error", reason: before.reason };
+  if (before.status === "error") return before;
+
+  let writeError: unknown;
+  try {
+    await (col() as any).updateOne(
+      {
+        _id: key(hotelId, conversationId),
+        hotelId,
+        conversationId,
+        conversationWriterGuard: { $exists: false },
+      },
+      {
+        $set: {
+          conversationWriterGuard: attempted,
+          updatedAt: new Date().toISOString(),
+          updatedBy: "system",
+        },
+      },
+    );
+  } catch (error) {
+    writeError = error;
+  }
+
+  const resolved = await resolveConversationOwnershipAttempt(hotelId, conversationId, attempted);
+  if (resolved.status === "acquired") return { ...resolved, idempotent: false };
+  if (resolved.status === "occupied") return resolved;
+  if (writeError && !isUncertainStorageError(writeError)) return { status: "error", reason: "acquire_write_error" };
+  return { status: "uncertain", reason: writeError ? "acquire_write_timeout" : "acquire_not_observable" };
+}
+
+export async function releaseConversationOwnership(
+  hotelId: string,
+  conversationId: string,
+  owned: ConversationWriterGuard,
+): Promise<ConversationOwnershipReleaseResult> {
+  if (!isCanonicalWriterGuard(owned)) return { status: "error", reason: "invalid_owned_guard" };
+  let writeError: unknown;
+  try {
+    await (col() as any).updateOne(
+      {
+        _id: key(hotelId, conversationId),
+        hotelId,
+        conversationId,
+        ...writerGuardIdentityFilter(owned),
+      },
+      {
+        $unset: { conversationWriterGuard: true },
+        $set: { updatedAt: new Date().toISOString(), updatedBy: "system" },
+      },
+    );
+  } catch (error) {
+    writeError = error;
+  }
+
+  const inspection = await inspectConversationOwnership(hotelId, conversationId);
+  if (inspection.status === "missing" || inspection.status === "unowned") return { status: "released" };
+  if (inspection.status === "malformed") return { status: "error", reason: inspection.reason };
+  if (inspection.status === "uncertain") return inspection;
+  if (inspection.status === "error") return inspection;
+  if (!sameWriterGuard(inspection.guard, owned)) {
+    return { status: "not_owner", owner: ownershipSummary(inspection.guard) };
+  }
+  if (writeError && !isUncertainStorageError(writeError)) return { status: "error", reason: "release_write_error" };
+  return { status: "uncertain", reason: writeError ? "release_write_timeout" : "release_not_observable" };
+}
+
+function pendingCancellationIdentityFilter(
+  pending: PendingCancellationAuthorization
+): Record<string, unknown> {
+  return {
+    "pendingCancellation.reservationId": pending.reservationId,
+    "pendingCancellation.canonicalGuestId": pending.canonicalGuestId,
+    "pendingCancellation.presentedFingerprint": pending.presentedFingerprint,
+    "pendingCancellation.issuedForMessageId": pending.issuedForMessageId,
+    "pendingCancellation.previewMessageId": pending.previewMessageId,
+    "pendingCancellation.issuedAt": pending.issuedAt,
+    "pendingCancellation.awaitingConfirmation": pending.awaitingConfirmation,
+  };
+}
+
+function pendingCancellationCasResult(result: any): PendingCancellationCasResult {
+  const matchedCount: 0 | 1 = result?.matchedCount === 1 ? 1 : 0;
+  const modifiedCount: 0 | 1 = result?.modifiedCount === 1 ? 1 : 0;
+  return {
+    matched: matchedCount === 1,
+    modified: modifiedCount === 1,
+    matchedCount,
+    modifiedCount,
+  };
+}
+
+function assertPendingCancellationAuthorization(
+  pending: PendingCancellationAuthorization
+): void {
+  const required = [
+    pending.reservationId,
+    pending.canonicalGuestId,
+    pending.presentedFingerprint,
+    pending.issuedForMessageId,
+  ];
+  if (required.some((value) => !value || value.trim() !== value)) {
+    throw new Error("pendingCancellation authorization requires canonical non-empty identifiers");
+  }
+  const issuedAt = Date.parse(pending.issuedAt);
+  if (!Number.isFinite(issuedAt) || new Date(issuedAt).toISOString() !== pending.issuedAt) {
+    throw new Error("pendingCancellation.issuedAt must be a canonical ISO timestamp");
+  }
+}
+
+export async function preparePendingCancellationAuthorization(
+  hotelId: string,
+  conversationId: string,
+  authorization: Omit<PendingCancellationAuthorization, "previewMessageId" | "awaitingConfirmation">
+): Promise<PendingCancellationCasResult> {
+  const pending: PendingCancellationAuthorization = {
+    ...authorization,
+    previewMessageId: null,
+    awaitingConfirmation: false,
+  };
+  assertPendingCancellationAuthorization(pending);
+  const result = await (col() as any).updateOne(
+    {
+      _id: key(hotelId, conversationId),
+      hotelId,
+      conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
+      $or: [
+        { pendingCancellation: { $exists: false } },
+        { pendingCancellation: null },
+        { "pendingCancellation.issuedAt": { $exists: false } },
+        { "pendingCancellation.issuedAt": { $lt: pending.issuedAt } },
+        {
+          ...pendingCancellationIdentityFilter(pending),
+        },
+      ],
+    },
+    {
+      $set: {
+        pendingCancellation: pending,
+        updatedAt: new Date().toISOString(),
+        updatedBy: "ai",
+      },
+    }
+  );
+  return pendingCancellationCasResult(result);
+}
+
+export async function activatePendingCancellationAuthorization(
+  hotelId: string,
+  conversationId: string,
+  prepared: PendingCancellationAuthorization,
+  previewMessageId: string
+): Promise<PendingCancellationCasResult> {
+  assertPendingCancellationAuthorization(prepared);
+  if (prepared.awaitingConfirmation || prepared.previewMessageId !== null || !previewMessageId.trim()) {
+    return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+  }
+  const result = await (col() as any).updateOne(
+    {
+      _id: key(hotelId, conversationId),
+      hotelId,
+      conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
+      ...pendingCancellationIdentityFilter(prepared),
+    },
+    {
+      $set: {
+        "pendingCancellation.previewMessageId": previewMessageId,
+        "pendingCancellation.awaitingConfirmation": true,
+        updatedAt: new Date().toISOString(),
+        updatedBy: "ai",
+      },
+    }
+  );
+  return pendingCancellationCasResult(result);
+}
+
+export async function suspendPendingCancellationAuthorization(
+  hotelId: string,
+  conversationId: string,
+  active: PendingCancellationAuthorization
+): Promise<PendingCancellationCasResult> {
+  assertPendingCancellationAuthorization(active);
+  if (!active.awaitingConfirmation || !active.previewMessageId) {
+    return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+  }
+  const result = await (col() as any).updateOne(
+    {
+      _id: key(hotelId, conversationId),
+      hotelId,
+      conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
+      ...pendingCancellationIdentityFilter(active),
+    },
+    {
+      $set: {
+        "pendingCancellation.awaitingConfirmation": false,
+        updatedAt: new Date().toISOString(),
+        updatedBy: "ai",
+      },
+    }
+  );
+  return pendingCancellationCasResult(result);
+}
+
+export async function revokePendingCancellationAuthorizationIfCurrent(
+  hotelId: string,
+  conversationId: string,
+  current: PendingCancellationAuthorization
+): Promise<PendingCancellationCasResult> {
+  assertPendingCancellationAuthorization(current);
+  const result = await (col() as any).updateOne(
+    {
+      _id: key(hotelId, conversationId),
+      hotelId,
+      conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
+      ...pendingCancellationIdentityFilter(current),
+    },
+    {
+      $unset: { pendingCancellation: true },
+      $set: { updatedAt: new Date().toISOString(), updatedBy: "ai" },
+    }
+  );
+  return pendingCancellationCasResult(result);
+}
+
+export async function consumePendingCancellationAuthorization(
+  hotelId: string,
+  conversationId: string,
+  active: PendingCancellationAuthorization
+): Promise<PendingCancellationCasResult> {
+  assertPendingCancellationAuthorization(active);
+  if (!active.awaitingConfirmation || !active.previewMessageId) {
+    return { matched: false, modified: false, matchedCount: 0, modifiedCount: 0 };
+  }
+  const result = await (col() as any).updateOne(
+    {
+      _id: key(hotelId, conversationId),
+      hotelId,
+      conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
+      ...pendingCancellationIdentityFilter(active),
+    },
+    {
+      $unset: { pendingCancellation: true },
+      $set: { updatedAt: new Date().toISOString(), updatedBy: "ai" },
+    }
+  );
+  return pendingCancellationCasResult(result);
 }
 
 export type CreateDraftInitializationPatch = Pick<
@@ -489,6 +1039,7 @@ export async function initializeCreateDraftIfLatest(
     _id,
     hotelId,
     conversationId,
+    ...conversationMutationOwnershipFilter(hotelId, conversationId),
     ...createDraftRevisionAcceptanceFilter(revision),
   };
 
@@ -508,6 +1059,7 @@ export async function initializeCreateDraftIfLatest(
     _id,
     hotelId,
     conversationId,
+    ...conversationMutationOwnershipFilter(hotelId, conversationId),
     ...createDraftRevisionExactFilter(revision),
   }));
 
@@ -515,6 +1067,10 @@ export async function initializeCreateDraftIfLatest(
   if (updated) return updated;
   if (await findExactRevision()) {
     return { accepted: true, idempotent: true, inserted: false, matchedCount: 1, modifiedCount: 0 };
+  }
+
+  if (getConversationOwnershipContext()) {
+    return { accepted: false, idempotent: false, inserted: false, matchedCount: 0, modifiedCount: 0 };
   }
 
   const document = { _id, ...update.$set };
@@ -558,6 +1114,7 @@ export async function updateLastProposalTextIfCurrent(
   const res = await collection.updateOne(
     {
       _id,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
       "lastProposal.available": true,
       "lastProposal.text": { $in: [identity.sourceText, text] },
       "lastProposal.toolCall.name": "checkAvailability",
@@ -623,6 +1180,7 @@ export async function finalizeDeterministicCreateProposalIfCurrent(
     _id,
     hotelId,
     conversationId,
+    ...conversationMutationOwnershipFilter(hotelId, conversationId),
     "lastProposal.available": identity.available,
     "lastProposal.availabilityStatus": identity.availabilityStatus,
     "lastProposal.text": { $in: [identity.sourceText, finalText] },
@@ -764,6 +1322,7 @@ export async function publishDeterministicCreateProposalIfLatest(
       _id,
       hotelId,
       conversationId,
+      ...conversationMutationOwnershipFilter(hotelId, conversationId),
       ...createDraftRevisionExactFilter(identity.createDraftRevision),
       ...chronologicalEligibility,
     },
@@ -802,6 +1361,7 @@ export async function publishDeterministicCreateProposalIfLatest(
     _id,
     hotelId,
     conversationId,
+    ...conversationMutationOwnershipFilter(hotelId, conversationId),
     ...deterministicCreateProposalIdentityFilter(identity),
   });
   return current
@@ -826,13 +1386,39 @@ export async function publishDeterministicCreateProposalIfLatest(
  */
 // BP-R8: dentro del await upsertConvState(...) de este branch (verás BP-CS2/3).
 
+const RESERVED_CONVERSATION_PATCH_FIELDS = new Set([
+  "_id",
+  "hotelId",
+  "conversationId",
+  "conversationWriterGuard",
+  "cancellationExecution",
+]);
+
+function assertGenericConversationPatchIsSafe(patch: Partial<ConversationFlowState>): void {
+  for (const field of RESERVED_CONVERSATION_PATCH_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(patch, field)) {
+      throw new Error(`upsertConvState cannot mutate reserved field: ${field}`);
+    }
+  }
+}
+
 export async function upsertConvState(
   hotelId: string,
   conversationId: string,
   patch: Partial<ConversationFlowState>
 ) {
+  assertGenericConversationPatchIsSafe(patch);
   const _id = key(hotelId, conversationId);
   const now = new Date().toISOString();
+  const ownershipContext = getConversationOwnershipContext();
+  if (ownershipContext && (
+    ownershipContext.hotelId !== hotelId || ownershipContext.conversationId !== conversationId
+  )) {
+    throw new Error("owned mutation cannot target a second conversation");
+  }
+  if (ownershipContext && !isCanonicalWriterGuard(ownershipContext.guard)) {
+    throw new Error("owned mutation requires a canonical writer guard");
+  }
 
   // Base $set (sin _id)
   const $set: Record<string, any> = {
@@ -1008,58 +1594,62 @@ export async function upsertConvState(
   console.log("[BP-CS2]", hotelId, conversationId, JSON.stringify(patch))
 
   const collection: any = col() as any;
-  const res = await collection.updateOne({ _id }, update, { upsert: true });
-
-  // Fallback para entornos de test donde updateOne no respeta upsert
-  if (!res || res.matchedCount === 0) {
-    try {
-      // Construimos un documento base a partir del patch (solo campos "set")
-      const doc: any = {
+  const filter = ownershipContext
+    ? {
         _id,
         hotelId,
         conversationId,
-        updatedAt: now,
+        ...writerGuardIdentityFilter(ownershipContext.guard),
+      }
+    : {
+        _id,
+        conversationWriterGuard: { $exists: false },
       };
-      if ("updatedBy" in patch) doc.updatedBy = patch.updatedBy;
-      if ("lastCategory" in patch) doc.lastCategory = patch.lastCategory ?? null;
-      if ("activeFlow" in patch) doc.activeFlow = patch.activeFlow ?? null;
-      if ("salesStage" in patch) doc.salesStage = patch.salesStage ?? null;
-      if ("desiredAction" in patch) doc.desiredAction = patch.desiredAction ?? null;
-      if (derivedConversationStage) doc.conversationStage = derivedConversationStage;
-      if (derivedConversationFocus != null) doc.conversationFocus = derivedConversationFocus;
-      if ("supervised" in patch) doc.supervised = !!(patch as any).supervised;
-      if ("lastSupervision" in patch && (patch as any).lastSupervision != null) doc.lastSupervision = (patch as any).lastSupervision;
-      if ("reservationSlots" in patch) {
-        const slots = normalizeSlots(patch.reservationSlots ?? {});
-        const clean: Record<string, any> = {};
-        for (const k of ["guestName", "roomType", "checkIn", "checkOut", "numGuests", "locale"]) {
-          const v = (slots as any)[k];
-          if (v !== undefined && v !== null && v !== "") clean[k] = v;
-        }
-        if (Object.keys(clean).length) doc.reservationSlots = clean;
-      }
-      if ("lastProposal" in patch && patch.lastProposal != null) doc.lastProposal = patch.lastProposal;
-      if ("lastReservation" in patch && patch.lastReservation != null) doc.lastReservation = patch.lastReservation;
-      if ("reservationHistory" in patch && (patch as any).reservationHistory != null) doc.reservationHistory = (patch as any).reservationHistory;
-      if ("lastPresentedReservations" in patch && (patch as any).lastPresentedReservations != null) doc.lastPresentedReservations = (patch as any).lastPresentedReservations;
-      if ("activeReservationContext" in patch && (patch as any).activeReservationContext != null) doc.activeReservationContext = (patch as any).activeReservationContext;
-      if ("selectedReservationTarget" in patch && (patch as any).selectedReservationTarget != null) doc.selectedReservationTarget = (patch as any).selectedReservationTarget;
-      if ("modifyState" in patch && (patch as any).modifyState != null) doc.modifyState = (patch as any).modifyState;
-      if ("conversationFocus" in patch && (patch as any).conversationFocus != null) doc.conversationFocus = (patch as any).conversationFocus;
-      if ("pendingCancellation" in patch && (patch as any).pendingCancellation != null) doc.pendingCancellation = (patch as any).pendingCancellation;
-      if ("pendingAvailabilityVerification" in patch && (patch as any).pendingAvailabilityVerification != null) doc.pendingAvailabilityVerification = (patch as any).pendingAvailabilityVerification;
-      if ("guestState" in patch && (patch as any).guestState != null) doc.guestState = (patch as any).guestState;
-      if (typeof collection.insertOne === "function") {
-        await collection.insertOne(doc);
-        console.log("BP-CS3 (fallback-insert)", { acknowledged: true, insertedId: _id });
-        return;
-      }
-    } catch (e) {
-      console.warn("[convState] fallback insert warn:", (e as any)?.message || e);
+  let res: any;
+  try {
+    res = await collection.updateOne(filter, update, ownershipContext ? undefined : { upsert: true });
+  } catch (error) {
+    const inspection = await inspectConversationOwnership(hotelId, conversationId);
+    if (inspection.status === "owned") {
+      throw new Error("conversation state mutation blocked by active ownership");
     }
+    if (inspection.status === "malformed") {
+      throw new Error(`conversation state mutation blocked: ${inspection.reason}`);
+    }
+    if (inspection.status === "uncertain") {
+      throw new Error("conversation state mutation result is uncertain");
+    }
+    if (inspection.status === "error") {
+      throw new Error("conversation state mutation verification failed");
+    }
+    throw error;
   }
 
+  if (ownershipContext) {
+    if (res?.matchedCount !== 1) {
+      throw new Error("owned conversation state mutation lost ownership CAS");
+    }
+    console.log("BP-CS3", res);
+    return res;
+  }
+  if (res?.matchedCount !== 1 && res?.upsertedCount !== 1) {
+    const inspection = await inspectConversationOwnership(hotelId, conversationId);
+    if (inspection.status === "owned") {
+      throw new Error("conversation state mutation blocked by active ownership");
+    }
+    if (inspection.status === "malformed") {
+      throw new Error(`conversation state mutation blocked: ${inspection.reason}`);
+    }
+    if (inspection.status === "uncertain") {
+      throw new Error("conversation state mutation result is uncertain");
+    }
+    if (inspection.status === "error") {
+      throw new Error("conversation state mutation verification failed");
+    }
+    throw new Error("conversation state mutation was not durably applied");
+  }
   console.log("BP-CS3", res)
+  return res;
 }
 
 /* =========================
@@ -1069,7 +1659,10 @@ export async function upsertConvState(
 /** Limpia completamente el estado de una conversación */
 export async function clearConvState(hotelId: string, conversationId: string) {
   const _id = key(hotelId, conversationId);
-  const res: any = await col().deleteOne({ _id });
+  const res: any = await col().deleteOne({
+    _id,
+    ...conversationMutationOwnershipFilter(hotelId, conversationId),
+  });
   console.log("[convState] clear:", {
     _id,
     deletedCount: res?.deletedCount,

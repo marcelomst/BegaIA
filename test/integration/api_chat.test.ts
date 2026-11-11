@@ -11,74 +11,44 @@ function makeReq(body: any) {
   });
 }
 
-// Helpers para leer respuestas con distintos shapes
-function pick<T = any>(obj: any, ...keys: string[]): T | undefined {
-  for (const k of keys) {
-    const v = k.split(".").reduce((acc, part) => (acc ? acc[part] : undefined), obj);
-    if (v !== undefined) return v as T;
-  }
-  return undefined;
-}
-
 describe("/api/chat (integration)", () => {
-  it("crea o continúa conversación y devuelve objeto con status y messageId", async () => {
+  it("crea un turno público efímero sin exponer identificadores recuperables", async () => {
     const r = await chatPOST(
       makeReq({
         query: "Hola, ¿me ayudás?",
         channel: "web",
         hotelId: "hotel999",
-        conversationId: "conv-chat-1",
-        userId: "u1",
       })
     );
     expect(r.ok).toBe(true);
     const json = await r.json();
 
-    const conversationId =
-      pick<string>(json, "conversationId", "data.conversationId", "conversation.id") ?? undefined;
-    const message =
-      pick<any>(json, "message", "data.message", "response", "result.message") ?? {};
-    const status =
-      pick<string>(json, "status", "data.status", "result.status", "message.status") ?? undefined;
-
-    expect(conversationId).toBeDefined();
-    expect(message?.messageId).toBeDefined();
-    expect(["sent", "pending"]).toContain(status);
+    expect(["sent", "pending"]).toContain(json.status);
+    expect(json).toMatchObject({ ephemeral: true, continuationAvailable: false });
+    expect(json).not.toHaveProperty("conversationId");
+    expect(json.message).not.toHaveProperty("messageId");
   }, 15000);
 
-  it("idempotente: mismo messageId no duplica", async () => {
-    const messageId = "msg-fixed-1";
-    const r1 = await chatPOST(
+  it("rechaza continuidad e identidad presentadas por caller público", async () => {
+    const conversationAttempt = await chatPOST(
       makeReq({
-        query: "Primero",
+        query: "Continuar",
         channel: "web",
         hotelId: "hotel999",
         conversationId: "conv-chat-2",
-        userId: "u1",
-        messageId,
       })
     );
-    const r2 = await chatPOST(
+    const guestAttempt = await chatPOST(
       makeReq({
-        query: "Reintento",
+        query: "Adoptar alias",
         channel: "web",
         hotelId: "hotel999",
-        conversationId: "conv-chat-2",
-        userId: "u1",
-        messageId,
+        guestId: "guest-known",
       })
     );
 
-    const j1 = await r1.json();
-    const j2 = await r2.json();
-    const m1 = pick<any>(j1, "message", "data.message", "response", "result.message") ?? {};
-    const m2 = pick<any>(j2, "message", "data.message", "response", "result.message") ?? {};
-    expect(m1.messageId).toBeDefined();
-    expect(m2.messageId).toBeDefined();
-    expect(m1.messageId).toBe(m2.messageId);
-    // deduped flag present en replays y reuso del id del cliente
-    expect(j2.deduped ?? pick<boolean>(j2, "data.deduped", "result.deduped")).toBe(true);
-    expect(m2.messageId).toBe(messageId);
+    expect(conversationAttempt.status).toBe(403);
+    expect(guestAttempt.status).toBe(403);
   });
 
   it("flujo supervisado: retorna pending", async () => {
@@ -93,17 +63,11 @@ describe("/api/chat (integration)", () => {
         query: "¿Podés proponer una respuesta?",
         channel: "web",
         hotelId: "hotel999",
-        conversationId: "conv-chat-3",
-        userId: "u1",
       })
     );
     const json = await r.json();
-    const message =
-      pick<any>(json, "message", "data.message", "response", "result.message") ?? {};
-    const status =
-      pick<string>(json, "status", "data.status", "result.status", "message.status") ?? undefined;
 
-    expect(status ?? message?.status).toBe("pending");
-    expect(message?.suggestion ?? json?.response ?? json?.suggestion).toBeTruthy();
+    expect(json.status ?? json.message?.status).toBe("pending");
+    expect(json.message?.suggestion ?? json.response ?? json.suggestion).toBeTruthy();
   });
 });

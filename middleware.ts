@@ -64,8 +64,6 @@ const PUBLIC_PATHS = [
   "/api/hotel-documents",
   "/api/hotel-document-details",
   "/api/hotel-document-original",
-  "/api/conversations/list",
-  "/api/messages/by-conversation",
   "/api/whatsapp/qr",
   "/api/debug/list-user-passwords",
   "/api/users/reset-password",
@@ -102,8 +100,21 @@ export async function middleware(req: NextRequest) {
     return applyCORSHeaders(NextResponse.next(), origin);
   }
 
-  // 1b) Mock MCP endpoints: acceso libre
+  // 1b) MCP HTTP: fail-closed si no existe secreto o la credencial no coincide.
   if (pathname === "/api/mcp" || pathname.startsWith("/api/mcp/")) {
+    const apiKey = (process.env.MCP_API_KEY || "").trim();
+    if (!apiKey) {
+      return applyCORSHeaders(
+        NextResponse.json({ ok: false, error: "MCP authentication is not configured" }, { status: 503 }),
+        origin,
+      );
+    }
+    if ((req.headers.get("x-mcp-key") || "") !== apiKey) {
+      return applyCORSHeaders(
+        NextResponse.json({ ok: false, error: "Unauthorized MCP call" }, { status: 401 }),
+        origin,
+      );
+    }
     return applyCORSHeaders(NextResponse.next(), origin);
   }
 

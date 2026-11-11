@@ -1,6 +1,5 @@
 // Path: /root/begasist/app/api/web/events/route.ts
 import type { NextRequest } from "next/server";
-import { onConversation } from "@/lib/web/eventBus";
 
 export const runtime = "nodejs"; // asegura ReadableStream en dev
 
@@ -27,39 +26,8 @@ function buildCorsHeaders(req: NextRequest | Request) {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const conversationId = searchParams.get("conversationId") || "";
-  if (!conversationId) {
-    return new Response("conversationId required", { status: 400, headers: buildCorsHeaders(req) });
-  }
-
-  const encoder = new TextEncoder();
-
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      const send = (obj: any) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
-      };
-
-      // Suscripción a eventos de la conversación
-      const off = onConversation(conversationId, (ev) => send(ev));
-
-      // Handshake + keepalive
-      send({ type: "status", value: "open", timestamp: new Date().toISOString() });
-      const keepAlive = setInterval(() => {
-        controller.enqueue(encoder.encode(`: ping\n\n`));
-      }, 15000);
-
-      const cleanup = () => {
-        clearInterval(keepAlive);
-        off();
-        try { controller.close(); } catch {}
-      };
-
-      // cierre por desconexión del cliente
-      (req as any).signal?.addEventListener?.("abort", cleanup);
-    },
+  return new Response("Guest event streaming is temporarily disabled", {
+    status: 403,
+    headers: buildCorsHeaders(req),
   });
-
-  return new Response(stream, { headers: buildCorsHeaders(req) });
 }

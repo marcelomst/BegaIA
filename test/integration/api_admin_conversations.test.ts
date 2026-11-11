@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { GET as adminConversationsGET } from "@/app/api/admin/conversations/route";
 import { getCollection } from "../mocks/astra";
 import * as guestAliasesDb from "@/lib/db/guestAliases";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
 function makeReq(params: Record<string, string>) {
   const sp = new URLSearchParams(params);
@@ -11,6 +12,41 @@ function makeReq(params: Record<string, string>) {
 }
 
 describe("/api/admin/conversations (integration)", () => {
+  beforeEach(() => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      userId: "admin-hotel999",
+      email: "admin@example.com",
+      hotelId: "hotel999",
+      hotelName: "Hotel 999",
+      roleLevel: 10,
+    });
+  });
+
+  it("rechaza sesión ausente sin devolver conversaciones", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValueOnce(null);
+    const r = await adminConversationsGET(makeReq({ hotelId: "hotel999" }));
+    expect(r.status).toBe(401);
+    expect(await r.json()).toEqual({ error: "No autorizado" });
+  });
+
+  it("rechaza hotelId manipulado por un administrador de otro hotel", async () => {
+    const r = await adminConversationsGET(makeReq({ hotelId: "hotel-b" }));
+    expect(r.status).toBe(403);
+    expect(await r.json()).toEqual({ error: "No autorizado" });
+  });
+
+  it("permite selección multihotel sólo al actor system canónico", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValueOnce({
+      userId: "system-user",
+      email: "system@example.com",
+      hotelId: "system",
+      hotelName: "System",
+      roleLevel: 0,
+    });
+    const r = await adminConversationsGET(makeReq({ hotelId: "hotel-system-target" }));
+    expect(r.status).toBe(200);
+    expect(await r.json()).toMatchObject({ guestId: null, conversations: [] });
+  });
   it("returns unified conversations by guestId with lastMessage", async () => {
     const convCol = getCollection("conversations");
     const msgCol = getCollection("messages");
@@ -151,6 +187,13 @@ describe("/api/admin/conversations (integration)", () => {
   it("filters conversations by channel when channel query param is present", async () => {
     const convCol = getCollection("conversations");
     const hotelId = "hotel-filter-channel";
+    vi.mocked(getCurrentUser).mockResolvedValueOnce({
+      userId: "admin-filter",
+      email: "admin-filter@example.com",
+      hotelId,
+      hotelName: "Hotel Filter",
+      roleLevel: 10,
+    });
 
     await convCol.insertOne({
       conversationId: "conv-email-only",

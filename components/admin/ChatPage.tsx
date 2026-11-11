@@ -290,7 +290,6 @@ export default function ChatPage() {
     const newTurn: ChatTurn = { role: "user", text: query, timestamp: new Date().toISOString() };
     setHistory((h) => [...h, newTurn]);
 
-    const currentConversationId = getConversationId();
     const currentLang = getLang();
     try {
       const res = await fetch("/api/chat", {
@@ -300,8 +299,6 @@ export default function ChatPage() {
           query,
           channel: "web",
           hotelId,
-          conversationId: currentConversationId,
-          guestId,
           lang: currentLang,
         }),
         credentials: "same-origin",
@@ -468,8 +465,6 @@ export default function ChatPage() {
           query: text,
           channel: "web",
           hotelId,
-          conversationId: getConversationId() ?? undefined,
-          guestId,
           lang: getLang(),
         }),
         credentials: "same-origin",
