@@ -8,6 +8,12 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:8081",
   "http://127.0.0.1:8081",
 ]);
+function guestWebAllowedOrigins(): Set<string> {
+  return new Set(String(process.env.GUEST_WEB_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean));
+}
 
 // 🆕 rutas de API que pueden usar x-admin-key para bypass de login
 // Agregamos endpoints del pipeline manual (seed, get, list) para permitir pruebas vía curl.
@@ -29,8 +35,16 @@ const ADMIN_KEY_BYPASS_PATHS = new Set<string>([
   // "/api/upload",
 ]);
 
-function applyCORSHeaders(res: NextResponse, origin: string | null) {
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+function isGuestWebPath(pathname: string): boolean {
+  return pathname === "/api/chat" || pathname.startsWith("/api/guest/web/");
+}
+
+function applyCORSHeaders(
+  res: NextResponse,
+  origin: string | null,
+  allowGuestWebOrigin = false,
+) {
+  if (origin && (ALLOWED_ORIGINS.has(origin) || (allowGuestWebOrigin && guestWebAllowedOrigins().has(origin)))) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Vary", "Origin");
   }
@@ -56,6 +70,7 @@ const PUBLIC_PATHS = [
   "/api/users/validate-reset-token",
   "/api/test",
   "/api/chat",
+  "/api/guest/web/",
   "/api/webhooks/whatsapp/twilio",
   "/api/places/photo",
   // 🔎 Endpoint de debug de fast-path
@@ -92,7 +107,7 @@ export async function middleware(req: NextRequest) {
 
   // 0) Preflight CORS
   if (req.method === "OPTIONS" && isApi) {
-    return applyCORSHeaders(new NextResponse(null, { status: 204 }), origin);
+    return applyCORSHeaders(new NextResponse(null, { status: 204 }), origin, isGuestWebPath(pathname));
   }
 
   // 1) Integraciones: bypass (pero con CORS)
@@ -124,7 +139,7 @@ export async function middleware(req: NextRequest) {
 
   // 2) Públicos (incluye /api/chat y /api/web/events)
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return applyCORSHeaders(NextResponse.next(), origin);
+    return applyCORSHeaders(NextResponse.next(), origin, isGuestWebPath(pathname));
   }
 
   // 🆕 2b) Bypass por x-admin-key para rutas whitelisted

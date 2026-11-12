@@ -42,7 +42,7 @@ describe("P-SAFE public Guest Web containment", () => {
       conversationId: "foreign-conversation",
     }));
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(401);
     expect(channelTurn).not.toHaveBeenCalled();
   });
 
@@ -54,11 +54,11 @@ describe("P-SAFE public Guest Web containment", () => {
       guestId: "known-or-foreign-alias",
     }));
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(401);
     expect(channelTurn).not.toHaveBeenCalled();
   });
 
-  it("el primer turno usa identidad server-side y no expone una sesión recuperable", async () => {
+  it("no crea identidad ni binding sin una capacidad Guest", async () => {
     const response = await chat(post({
       hotelId: "hotel-a",
       channel: "web",
@@ -69,23 +69,10 @@ describe("P-SAFE public Guest Web containment", () => {
     }));
     const body = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(channelTurn).toHaveBeenCalledTimes(1);
-    const input = channelTurn.mock.calls[0][0];
-    expect(input.guestId).toMatch(/^guest-/);
-    expect(input.conversationId).toMatch(/^conv-/);
-    expect(input.sender).toBe("guest");
-    expect(input).not.toHaveProperty("sourceMsgId");
-    expect(input).not.toHaveProperty("mode");
-    expect(body).toMatchObject({
-      status: "sent",
-      response: "Respuesta propia",
-      ephemeral: true,
-      continuationAvailable: false,
-    });
+    expect(response.status).toBe(401);
+    expect(channelTurn).not.toHaveBeenCalled();
+    expect(body.code).toBe("guest_capability_required");
     expect(body).not.toHaveProperty("conversationId");
-    expect(body.message).not.toHaveProperty("conversationId");
-    expect(body.message).not.toHaveProperty("messageId");
   });
 
   it("SSE queda bloqueado incluso cuando se presenta un conversationId", async () => {

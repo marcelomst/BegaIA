@@ -2,6 +2,8 @@
 import type { Conversation, Channel } from "@/types/channel";
 import { getCollection } from "./astra";
 import { normalizeGuestAlias } from "@/lib/db/guestAliases";
+import { assertConversationOwnership } from "@/lib/db/convState";
+import { getConversationOwnershipContext } from "@/lib/ownership/conversationOwnershipContext";
 
 const col = () => getCollection("conversations");
 
@@ -85,8 +87,9 @@ export async function createConversation(opts: {
   guestId?: string;
   metadata?: Record<string, any>;
   status?: "active" | "closed" | "archived";
+  conversationId?: string;
 }): Promise<Conversation> {
-  const conversationId = `conv-${Math.random().toString(36).slice(2, 8)}`;
+  const conversationId = opts.conversationId ?? `conv-${Math.random().toString(36).slice(2, 8)}`;
   const now = new Date().toISOString();
   const doc: any = {
     conversationId,
@@ -156,12 +159,85 @@ export async function updateConversation(
   }
   const existing = (await col().findMany({ hotelId, conversationId }))[0];
   if (!existing) return { acknowledged: true, matchedCount: 0, modifiedCount: 0 };
-  const safeChanges = { ...changes };
+  const safeChanges: Record<string, any> = { ...changes };
   delete safeChanges.hotelId;
   delete safeChanges.conversationId;
-  const updated = { ...existing, ...safeChanges, lastUpdatedAt: new Date().toISOString() };
-  await col().updateOne({ _id: existing._id }, updated as any);
+  const metadata = safeChanges.metadata;
+  delete safeChanges.metadata;
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    if (Object.prototype.hasOwnProperty.call(metadata, "guestWebGrant")) {
+      throw new Error("updateConversation: guestWebGrant is security-managed");
+    }
+    for (const [key, value] of Object.entries(metadata)) {
+      safeChanges[`metadata.${key}`] = value;
+    }
+  }
+  await col().updateOne(
+    { _id: existing._id },
+    { $set: { ...safeChanges, lastUpdatedAt: new Date().toISOString() } } as any,
+  );
   return { acknowledged: true, matchedCount: 1, modifiedCount: 1 };
+}
+
+export async function revokeGuestWebGrantIfActive(input: {
+  hotelId: string;
+  conversationId: string;
+  expectedJtiHash: string;
+  revokedAt: string;
+}) {
+  const ownership = getConversationOwnershipContext();
+  if (
+    !ownership ||
+    ownership.hotelId !== input.hotelId ||
+    ownership.conversationId !== input.conversationId
+  ) {
+    throw new Error("revokeGuestWebGrantIfActive requires matching conversation ownership");
+  }
+  const assertion = await assertConversationOwnership(
+    input.hotelId,
+    input.conversationId,
+    ownership.guard,
+  );
+  if (assertion.status !== "owned") {
+    throw new Error("revokeGuestWebGrantIfActive requires active conversation ownership");
+  }
+  try {
+    await col().updateOne(
+      {
+        hotelId: input.hotelId,
+        conversationId: input.conversationId,
+        "metadata.guestWebGrant.jtiHash": input.expectedJtiHash,
+        "metadata.guestWebGrant.revokedAt": null,
+      },
+      { $set: { "metadata.guestWebGrant.revokedAt": input.revokedAt } },
+    );
+  } catch {
+    // Reconcile from the persisted conversation below.
+  }
+  let persisted: Conversation | null;
+  try {
+    persisted = await col().findOne({ hotelId: input.hotelId, conversationId: input.conversationId }) as Conversation | null;
+  } catch {
+    return { status: "unknown" as const, reason: "revocation_readback_error" };
+  }
+  const grant = persisted?.metadata?.guestWebGrant;
+  if (
+    !persisted ||
+    persisted.hotelId !== input.hotelId ||
+    persisted.conversationId !== input.conversationId ||
+    persisted.channel !== "web"
+  ) {
+    return { status: "unknown" as const, reason: "revocation_binding_unconfirmed" };
+  }
+  if (!grant || grant.version !== 1 || grant.jtiHash !== input.expectedJtiHash) {
+    return { status: "unknown" as const, reason: "revocation_grant_mismatch" };
+  }
+  if (typeof grant.revokedAt === "string" && grant.revokedAt) {
+    return { status: "revoked_confirmed" as const, revokedAt: grant.revokedAt };
+  }
+  return grant.revokedAt === null
+    ? { status: "active_confirmed" as const }
+    : { status: "unknown" as const, reason: "revocation_state_invalid" };
 }
 
 export async function appendConversationReplyTrace(_input: any) {

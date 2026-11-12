@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import type { Conversation, Channel } from "@/types/channel";
 import { getAstraDB } from "@/lib/astra/connection"; // 👈 tu helper centralizado
 import { normalizeGuestAlias } from "@/lib/db/guestAliases";
+import { assertConversationOwnership } from "@/lib/db/convState";
+import { getConversationOwnershipContext } from "@/lib/ownership/conversationOwnershipContext";
 
 const CONVERSATIONS_COLLECTION = "conversations";
 
@@ -79,7 +81,7 @@ export function filterConversationsForGuestPerspective(
   });
 }
 
-interface CreateConversationOptions {
+export interface CreateConversationOptions {
   hotelId: string;
   channel: Channel;
   lang: string;
@@ -97,7 +99,7 @@ interface CreateConversationOptions {
 export async function createConversation(opts: CreateConversationOptions): Promise<Conversation> {
   const now = new Date().toISOString();
   const conversation: Conversation = {
-    conversationId: uuidv4(),
+    conversationId: opts.conversationId ?? uuidv4(),
     hotelId: opts.hotelId,
     channel: opts.channel,
     startedAt: now,
@@ -221,14 +223,104 @@ export async function updateConversation(
     throw new Error("updateConversation: conversationId mismatch");
   }
 
-  const safeChanges = { ...changes };
+  const safeChanges = { ...changes } as Record<string, unknown>;
   delete safeChanges.hotelId;
   delete safeChanges.conversationId;
+  const metadata = safeChanges.metadata;
+  delete safeChanges.metadata;
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    if (Object.prototype.hasOwnProperty.call(metadata, "guestWebGrant")) {
+      throw new Error("updateConversation: guestWebGrant is security-managed");
+    }
+    for (const [key, value] of Object.entries(metadata)) {
+      safeChanges[`metadata.${key}`] = value;
+    }
+  }
   const collection = getConversationsCollection();
   return await collection.updateOne(
     { hotelId, conversationId },
     { $set: safeChanges }
   );
+}
+
+export type GuestWebGrantRevocationCasResult =
+  | Readonly<{ status: "revoked_confirmed"; revokedAt: string }>
+  | Readonly<{ status: "active_confirmed" }>
+  | Readonly<{ status: "unknown"; reason: string }>;
+
+export async function revokeGuestWebGrantIfActive(input: {
+  hotelId: string;
+  conversationId: string;
+  expectedJtiHash: string;
+  revokedAt: string;
+}): Promise<GuestWebGrantRevocationCasResult> {
+  const ownership = getConversationOwnershipContext();
+  if (
+    !ownership ||
+    ownership.hotelId !== input.hotelId ||
+    ownership.conversationId !== input.conversationId
+  ) {
+    throw new Error("revokeGuestWebGrantIfActive requires matching conversation ownership");
+  }
+  const assertion = await assertConversationOwnership(
+    input.hotelId,
+    input.conversationId,
+    ownership.guard,
+  );
+  if (assertion.status !== "owned") {
+    throw new Error("revokeGuestWebGrantIfActive requires active conversation ownership");
+  }
+  const collection = getConversationsCollection();
+  try {
+    await collection.updateOne(
+      {
+        hotelId: input.hotelId,
+        conversationId: input.conversationId,
+        "metadata.guestWebGrant.jtiHash": input.expectedJtiHash,
+        "metadata.guestWebGrant.revokedAt": null,
+      } as any,
+      {
+        $set: {
+          "metadata.guestWebGrant.revokedAt": input.revokedAt,
+        },
+      } as any,
+    );
+  } catch {
+    // A timeout may happen before or after the CAS becomes durable. Readback is authoritative.
+  }
+
+  let persisted: Conversation | null;
+  try {
+    persisted = await collection.findOne({
+      hotelId: input.hotelId,
+      conversationId: input.conversationId,
+    } as any) as Conversation | null;
+  } catch {
+    return { status: "unknown", reason: "revocation_readback_error" };
+  }
+  if (
+    !persisted ||
+    persisted.hotelId !== input.hotelId ||
+    persisted.conversationId !== input.conversationId ||
+    persisted.channel !== "web"
+  ) {
+    return { status: "unknown", reason: "revocation_binding_unconfirmed" };
+  }
+  const grant = persisted.metadata?.guestWebGrant;
+  if (
+    !grant ||
+    grant.version !== 1 ||
+    grant.jtiHash !== input.expectedJtiHash
+  ) {
+    return { status: "unknown", reason: "revocation_grant_mismatch" };
+  }
+  if (typeof grant.revokedAt === "string" && grant.revokedAt) {
+    return { status: "revoked_confirmed", revokedAt: grant.revokedAt };
+  }
+  if (grant.revokedAt === null) {
+    return { status: "active_confirmed" };
+  }
+  return { status: "unknown", reason: "revocation_state_invalid" };
 }
 
 export type ConversationReplyTrace = {

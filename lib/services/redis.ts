@@ -3,15 +3,12 @@ import Redis from "ioredis";
 
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 
-// Log amigable para saber si conecta
-console.log("[Redis] Connecting to:", redisUrl);
-
 export const redis = new Redis(redisUrl);
 
-redis.on("error", (err) => {
+redis.on("error", () => {
   if (process.env.NODE_ENV !== "production") {
     // No explota, solo advierte
-    console.warn("[Redis] Connection error:", err.message);
+    console.warn("[Redis] Connection unavailable");
   }
 });
 

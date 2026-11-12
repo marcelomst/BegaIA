@@ -15,11 +15,16 @@ describe("ChatPage • language changes affect API payload", () => {
     sessionStorage.clear();
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url.startsWith("/api/conversations/list")) {
-        expect(url).toContain("guestId=");
-        return new Response(JSON.stringify({ conversations: [] }), { status: 200 });
+      if (url === "/api/guest/web/bootstrap") {
+        return new Response(JSON.stringify({
+          ok: true,
+          capability: "guest-capability-lang",
+          conversationId: "conv-lang-1",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 200 });
       }
-      if (url.startsWith("/api/messages/by-conversation")) {
+      if (url === "/api/guest/web/history") {
         return new Response(JSON.stringify({ messages: [] }), { status: 200 });
       }
       if (url.startsWith("/api/chat")) {
@@ -28,10 +33,17 @@ describe("ChatPage • language changes affect API payload", () => {
         if (body.lang !== "en") {
           return new Response("Lang not propagated", { status: 400 });
         }
-        if (body.guestId || body.conversationId) {
-          return new Response("public identity must be assigned server-side", { status: 400 });
+        if (body.guestId || body.conversationId !== "conv-lang-1") {
+          return new Response("invalid public correlation identifiers", { status: 400 });
         }
-        return new Response(JSON.stringify({ response: "ok", status: "sent", ephemeral: true }), { status: 200 });
+        if (new Headers(init?.headers).get("Authorization") !== "Bearer guest-capability-lang") {
+          return new Response("missing guest capability", { status: 401 });
+        }
+        return new Response(JSON.stringify({
+          response: "ok",
+          status: "sent",
+          conversationId: "conv-lang-1",
+        }), { status: 200 });
       }
       return new Response("Not Found", { status: 404 });
     }));

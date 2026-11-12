@@ -86,7 +86,6 @@
     if (oldVal && !newVal) localStorage.setItem(newKey, oldVal);
   }
   migrateKey(`lang:${hotelId}`);
-  migrateKey(`guestId:${hotelId}`);
 
   // Idioma inicial: localStorage > config.lang > navegador > "es"
   const langKeyNew = `${NEW_PREFIX}:lang:${hotelId}`;
@@ -113,48 +112,187 @@
     return (I18N[currentLang] || I18N.es)[key] || key;
   };
 
-  // 🔐 conversationId stays isolated per tab; guestId belongs to the browser + hotel.
-  const convKey = scopedSessionKey("conversationId");
-  const getConv = () => sessionStorage.getItem(convKey);
-  const setConv = (id) => sessionStorage.setItem(convKey, id);
-  const clearConv = () => {
-    sessionStorage.removeItem(convKey);
-  };
-
-  const guestKey = `${NEW_PREFIX}:guestId:${hotelId}`;
-  const legacyGuestSessionKey = scopedSessionKey("guestId");
-  const buildGuestId = () =>
-    (typeof crypto !== "undefined" && crypto.randomUUID)
-      ? `guest-${crypto.randomUUID()}`
-      : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const isValidGuestId = (value) => {
-    const normalized = String(value || "").trim();
-    return Boolean(normalized && normalized !== "undefined" && normalized !== "null" && normalized !== "web-guest");
-  };
-  const getGuest = () => {
-    const persisted = localStorage.getItem(guestKey);
-    if (isValidGuestId(persisted)) return String(persisted).trim();
-    const legacySessionGuest = sessionStorage.getItem(legacyGuestSessionKey);
-    return isValidGuestId(legacySessionGuest) ? String(legacySessionGuest).trim() : null;
-  };
-  const setGuest = (id) => {
-    if (!isValidGuestId(id)) return;
-    localStorage.setItem(guestKey, String(id).trim());
-  };
-  const getOrCreateGuest = () => {
-    const persisted = localStorage.getItem(guestKey);
-    if (isValidGuestId(persisted)) return String(persisted).trim();
-
-    const legacySessionGuest = sessionStorage.getItem(legacyGuestSessionKey);
-    if (isValidGuestId(legacySessionGuest)) {
-      const migratedGuestId = String(legacySessionGuest).trim();
-      setGuest(migratedGuestId);
-      return migratedGuestId;
+  // La autoridad Guest vive únicamente en el bundle firmado de esta pestaña.
+  const bundleKey = scopedSessionKey("guestWebConversation.v1");
+  const pendingKeyFor = (conversationId) => scopedSessionKey(
+    `guestWebPendingTurn.v1:${encodeURIComponent(hotelId)}:${encodeURIComponent(conversationId)}`,
+  );
+  const pendingIndexKey = scopedSessionKey("guestWebPendingTurn.v1:index");
+  let requiresExplicitRestart = false;
+  let bootstrapPromise = null;
+  let activePendingTurn = null;
+  const clearBundle = () => sessionStorage.removeItem(bundleKey);
+  const readBundle = () => {
+    const raw = sessionStorage.getItem(bundleKey);
+    if (!raw) return { status: "missing", bundle: null };
+    try {
+      const bundle = JSON.parse(raw);
+      if (
+        bundle?.version !== 1 || bundle.hotelId !== hotelId ||
+        typeof bundle.conversationId !== "string" || !bundle.conversationId ||
+        typeof bundle.capability !== "string" || !bundle.capability ||
+        typeof bundle.expiresAt !== "string"
+      ) return { status: "invalid", bundle: null };
+      const expiresAt = Date.parse(bundle.expiresAt);
+      if (!Number.isFinite(expiresAt)) return { status: "invalid", bundle: null };
+      if (expiresAt <= Date.now()) return { status: "expired", bundle: null };
+      return { status: "valid", bundle };
+    } catch {
+      return { status: "invalid", bundle: null };
     }
-
-    const guestId = buildGuestId();
-    setGuest(guestId);
-    return guestId;
+  };
+  const storeBundle = (data) => {
+    const bundle = {
+      version: 1,
+      hotelId,
+      conversationId: data.conversationId,
+      capability: data.capability,
+      expiresAt: data.expiresAt,
+    };
+    sessionStorage.setItem(bundleKey, JSON.stringify(bundle));
+    return bundle;
+  };
+  const readPendingTurn = (bundle) => {
+    if (!bundle?.conversationId) return null;
+    const key = pendingKeyFor(bundle.conversationId);
+    try {
+      const pending = JSON.parse(sessionStorage.getItem(key) || "null");
+      if (
+        pending?.version !== 1 || pending.hotelId !== hotelId ||
+        pending.conversationId !== bundle.conversationId ||
+        typeof pending.messageId !== "string" || !/^[A-Za-z0-9._:-]{8,180}$/.test(pending.messageId) ||
+        typeof pending.text !== "string" || !pending.text.trim() || pending.text.length > 3000 ||
+        !["prepared", "sending", "uncertain", "confirmed"].includes(pending.status)
+      ) {
+        if (pending) sessionStorage.removeItem(key);
+        return null;
+      }
+      if (pending.status === "confirmed") {
+        sessionStorage.removeItem(key);
+        const locator = readPendingLocator();
+        if (locator?.conversationId === pending.conversationId && locator.messageId === pending.messageId) {
+          sessionStorage.removeItem(pendingIndexKey);
+        }
+        return null;
+      }
+      return pending;
+    } catch {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+  };
+  const readPendingLocator = () => {
+    try {
+      const locator = JSON.parse(sessionStorage.getItem(pendingIndexKey) || "null");
+      if (
+        locator?.version !== 1 || locator.hotelId !== hotelId ||
+        typeof locator.conversationId !== "string" || !locator.conversationId ||
+        typeof locator.messageId !== "string" || !/^[A-Za-z0-9._:-]{8,180}$/.test(locator.messageId)
+      ) {
+        if (locator) sessionStorage.removeItem(pendingIndexKey);
+        return null;
+      }
+      return locator;
+    } catch {
+      sessionStorage.removeItem(pendingIndexKey);
+      return null;
+    }
+  };
+  const storePendingTurn = (turn) => {
+    sessionStorage.setItem(pendingKeyFor(turn.conversationId), JSON.stringify(turn));
+    sessionStorage.setItem(pendingIndexKey, JSON.stringify({
+      version: 1,
+      hotelId,
+      conversationId: turn.conversationId,
+      messageId: turn.messageId,
+    }));
+    return turn;
+  };
+  const discoverPendingTurn = () => {
+    const locator = readPendingLocator();
+    if (!locator) return null;
+    let pending = readPendingTurn({ conversationId: locator.conversationId });
+    if (!pending || pending.messageId !== locator.messageId) {
+      sessionStorage.removeItem(pendingIndexKey);
+      return null;
+    }
+    if (pending.status === "prepared" || pending.status === "sending") {
+      pending = markPendingTurn(pending, "uncertain");
+    }
+    return pending;
+  };
+  const preparePendingTurn = (bundle, text) => {
+    const existing = discoverPendingTurn();
+    if (existing) {
+      if (existing.conversationId === bundle.conversationId && existing.text === text) return existing;
+      throw new Error("unresolved guest turn");
+    }
+    const now = new Date().toISOString();
+    return storePendingTurn({
+      version: 1,
+      hotelId,
+      conversationId: bundle.conversationId,
+      messageId: buildScopeId(),
+      text,
+      status: "prepared",
+      preparedAt: now,
+      updatedAt: now,
+    });
+  };
+  const markPendingTurn = (turn, status) => storePendingTurn({
+    ...turn,
+    status,
+    updatedAt: new Date().toISOString(),
+  });
+  const clearPendingTurn = (turn) => {
+    if (!turn) return;
+    const current = readPendingTurn({ conversationId: turn.conversationId });
+    if (current?.messageId === turn.messageId) {
+      sessionStorage.removeItem(pendingKeyFor(turn.conversationId));
+      const locator = readPendingLocator();
+      if (locator?.conversationId === turn.conversationId && locator.messageId === turn.messageId) {
+        sessionStorage.removeItem(pendingIndexKey);
+      }
+    }
+  };
+  const confirmPendingTurn = (turn) => {
+    const confirmed = markPendingTurn(turn, "confirmed");
+    sessionStorage.removeItem(pendingKeyFor(confirmed.conversationId));
+    const locator = readPendingLocator();
+    if (locator?.conversationId === confirmed.conversationId && locator.messageId === confirmed.messageId) {
+      sessionStorage.removeItem(pendingIndexKey);
+    }
+  };
+  const bootstrapBundle = () => {
+    if (bootstrapPromise) return bootstrapPromise;
+    bootstrapPromise = (async () => {
+      const res = await fetch(`${api}/api/guest/web/bootstrap`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotelId, lang: currentLang }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.capability || !data.conversationId || !data.expiresAt || data.hotelId !== hotelId) {
+        throw new Error("guest bootstrap failed");
+      }
+      requiresExplicitRestart = false;
+      return storeBundle(data);
+    })();
+    void bootstrapPromise.then(
+      () => { bootstrapPromise = null; },
+      () => { bootstrapPromise = null; },
+    );
+    return bootstrapPromise;
+  };
+  const currentOrNewBundle = async () => {
+    const state = readBundle();
+    if (state.status === "valid") return state.bundle;
+    clearBundle();
+    if (requiresExplicitRestart || state.status === "expired" || state.status === "invalid") {
+      requiresExplicitRestart = true;
+      throw new Error("guest conversation requires explicit restart");
+    }
+    return bootstrapBundle();
   };
 
   if (!api) console.warn("[BegAIChat] Falta apiBase en window.BegAIChat");
@@ -268,6 +406,13 @@
   const btnNewChat = panel.querySelector("#bgst-newchat");
   const titleEl = panel.querySelector("#bgst-title");
   const roleEl = panel.querySelector("#bgst-role");
+  const applyPendingLock = (pending) => {
+    activePendingTurn = pending || null;
+    const locked = Boolean(activePendingTurn);
+    btn.disabled = locked;
+    ta.disabled = locked;
+    btnNewChat.disabled = locked;
+  };
 
   const applyLangToUI = () => {
     document.documentElement.lang = currentLang;
@@ -298,6 +443,8 @@
       const clean = String(text).trim();
       if (!clean || clean === lastAiText) return;
       lastAiText = clean;
+    } else {
+      lastAiText = "";
     }
     const row = document.createElement("div");
     row.className = `bgst-row ${role === "user" ? "bgst-user" : "bgst-ai"}`;
@@ -407,10 +554,70 @@
     }
   };
 
-  // --- SSE deshabilitado hasta disponer de una credencial Guest verificable.
-  let es = null;
-  let esConvId = null;
-  clearConv();
+  // --- SSE permanece deshabilitado. La respuesta automática vuelve por /api/chat.
+  const initializeConversation = async () => {
+    const recoveredPending = discoverPendingTurn();
+    applyPendingLock(recoveredPending);
+    const state = readBundle();
+    if (recoveredPending && (
+      state.status !== "valid" || state.bundle?.conversationId !== recoveredPending.conversationId
+    )) {
+      if (state.status === "expired" || state.status === "invalid" || state.status === "valid") {
+        clearBundle();
+      }
+      requiresExplicitRestart = true;
+      appendMsg("user", recoveredPending.text);
+      appendMsg("ai", "El envío anterior sigue sin confirmarse. No lo reenvíes ni inicies otro turno.");
+      return;
+    }
+    if (state.status === "expired" || state.status === "invalid") {
+      clearBundle();
+      requiresExplicitRestart = true;
+      appendMsg("ai", "La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
+      return;
+    }
+    try {
+      const existing = state.status === "valid" ? state.bundle : null;
+      const bundle = existing || await bootstrapBundle();
+      if (!existing) return;
+      const res = await fetch(`${api}/api/guest/web/history`, {
+        headers: { Authorization: `Bearer ${bundle.capability}` },
+      });
+      if (res.status === 401 || res.status === 403) {
+        clearBundle();
+        requiresExplicitRestart = true;
+        if (recoveredPending) {
+          appendMsg("user", recoveredPending.text);
+          appendMsg("ai", "El envío anterior sigue sin confirmarse. No lo reenvíes ni inicies otro turno.");
+        } else {
+          appendMsg("ai", "La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
+        }
+        return;
+      }
+      if (!res.ok) throw new Error("history request failed");
+      const data = await res.json();
+      let pendingUserVisible = false;
+      for (const message of Array.isArray(data.messages) ? data.messages : []) {
+        if (recoveredPending && message.role === "user" && message.content === recoveredPending.text) {
+          pendingUserVisible = true;
+        }
+        appendMsg(message.role === "user" ? "user" : "ai", message.content);
+        if (message.rich) appendRich(message.rich);
+      }
+      if (recoveredPending) {
+        if (!pendingUserVisible) appendMsg("user", recoveredPending.text);
+        appendMsg("ai", "El envío anterior no pudo confirmarse. No lo reenvíes ni inicies otro turno.");
+      }
+    } catch {
+      appendMsg(
+        "ai",
+        activePendingTurn
+          ? "El envío anterior sigue sin confirmarse. No lo reenvíes ni inicies otro turno."
+          : "No fue posible iniciar o recuperar el chat en este momento.",
+      );
+    }
+  };
+  void initializeConversation();
 
   const toggle = () => {
     const isOpen = panel.style.display === "flex";
@@ -425,64 +632,111 @@
   };
   bubble.addEventListener("click", toggle);
   btnClose.addEventListener("click", toggle);
-  btnNewChat.addEventListener("click", () => {
-    if (es) { try { es.close(); } catch {} es = null; }
-    esConvId = null;
-    clearConv();
+  btnNewChat.addEventListener("click", async () => {
+    if (activePendingTurn) return;
+    clearBundle();
+    requiresExplicitRestart = false;
     msgs.innerHTML = "";
     lastAiText = "";
-    ta.focus();
+    btn.disabled = true;
+    try {
+      await bootstrapBundle();
+      appendMsg("ai", `${t("assistant")} (${t("statusOpen")})`);
+    } catch {
+      appendMsg("ai", "No fue posible iniciar una nueva conversación en este momento.");
+    } finally {
+      btn.disabled = false;
+      ta.focus();
+    }
   });
 
   const send = async () => {
     const text = (ta.value || "").trim();
-    if (!text) return;
+    if (!text || activePendingTurn) return;
     ta.value = "";
     btn.disabled = true;
-    // Reset dedupe so AI text can render for each new user message
-    lastAiText = "";
-    appendMsg("user", text);
-
-    const payload = {
-      query: text,
-      channel: "web",
-      hotelId,
-      lang: currentLang,
-    };
-    debug("chat.request", { tabScopeId: getTabScopeId(), payload });
 
     try {
+      const bundle = await currentOrNewBundle();
+      let pending = preparePendingTurn(bundle, text);
+      pending = markPendingTurn(pending, "sending");
+      applyPendingLock(pending);
+      lastAiText = "";
+      appendMsg("user", pending.text);
+
+      const payload = {
+        query: pending.text,
+        channel: "web",
+        hotelId,
+        conversationId: bundle.conversationId,
+        messageId: pending.messageId,
+        lang: currentLang,
+      };
+      debug("chat.request", { tabScopeId: getTabScopeId(), payload });
       const res = await fetch(`${api}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${bundle.capability}`,
+        },
         body: JSON.stringify(payload)
       });
 
       const raw = await res.text();
-      let data = {};
+      let data = null;
       try { data = JSON.parse(raw); } catch {}
       debug("chat.response", {
         tabScopeId: getTabScopeId(),
         status: res.status,
         ok: res.ok,
         responseConversationId: data && data.conversationId,
-        currentConversationId: getConv(),
-        guestId: getGuest(),
+        currentConversationId: bundle.conversationId,
       });
 
-      // El chat público transitorio no ofrece continuidad ni SSE.
-      if (data && data.response) {
-        appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
+      if (res.status === 401 || res.status === 403) {
+        clearPendingTurn(pending);
+        applyPendingLock(null);
+        clearBundle();
+        requiresExplicitRestart = true;
+        appendMsg("ai", "La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
+      } else if (
+        res.status === 202 || res.status >= 500 || !data ||
+        data.status === "reconciliation_required" ||
+        data.code === "guest_turn_already_recorded" ||
+        data.continuationAvailable === false
+      ) {
+        pending = markPendingTurn(pending, "uncertain");
+        applyPendingLock(pending);
+        appendMsg("ai", "El envío no pudo confirmarse. No lo reenvíes ni inicies otro turno.");
       } else if (!res.ok) {
-        appendMsg("ai", "⚠️ Error del servidor o ruta no disponible.");
+        clearPendingTurn(pending);
+        applyPendingLock(null);
+        appendMsg("ai", "La solicitud fue rechazada y no se enviará nuevamente.");
+      } else if (data && data.status === "pending") {
+        confirmPendingTurn(pending);
+        applyPendingLock(null);
+        appendMsg("ai", "Tu consulta quedó pendiente de revisión. No se enviará una respuesta automática.");
+      } else if (data && data.response) {
+        confirmPendingTurn(pending);
+        applyPendingLock(null);
+        appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
+      } else {
+        confirmPendingTurn(pending);
+        applyPendingLock(null);
       }
-      if (data && data.rich) appendRich(data.rich);
+      if (!activePendingTurn && data && data.rich) appendRich(data.rich);
     } catch (err) {
-      appendMsg("ai", "⚠️ No se pudo conectar con el servidor.");
+      if (activePendingTurn) {
+        const uncertain = markPendingTurn(activePendingTurn, "uncertain");
+        applyPendingLock(uncertain);
+        appendMsg("ai", "El envío no pudo confirmarse. No lo reenvíes ni inicies otro turno.");
+      } else {
+        appendMsg("ai", "⚠️ No se pudo iniciar el envío.");
+      }
       console.warn("[BegAIChat] error:", err);
     } finally {
-      btn.disabled = false;
-      ta.focus();
+      applyPendingLock(activePendingTurn);
+      if (!activePendingTurn) ta.focus();
     }
   };
 
@@ -505,7 +759,6 @@
     lang: currentLang,
     position: pos,
     tabScopeId: getTabScopeId(),
-    guestId: getGuest(),
-    conversationId: getConv(),
+    conversationId: readBundle().bundle?.conversationId || null,
   });
 })();

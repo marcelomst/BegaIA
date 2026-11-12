@@ -1,6 +1,22 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { clearConversationSession, getConversationId, hasConversationId, resetConversationSession, setConversationId } from "@/utils/conversationSession";
+import {
+  clearGuestPendingTurn,
+  clearConversationSession,
+  confirmGuestPendingTurn,
+  discoverGuestPendingTurn,
+  getConversationId,
+  getGuestConversationBundle,
+  getGuestConversationBundleStatus,
+  getGuestPendingTurn,
+  hasConversationId,
+  prepareGuestPendingTurn,
+  recoverGuestPendingTurn,
+  resetConversationSession,
+  setGuestPendingTurnStatus,
+  setConversationId,
+  setGuestConversationBundle,
+} from "@/utils/conversationSession";
 import { getOrCreateGuestId } from "@/utils/guestSession";
 import { getScopedSessionKey } from "@/utils/webTabScope";
 
@@ -40,6 +56,114 @@ describe("widget session storage isolation", () => {
     expect(getConversationId()).toBe("conv-tab-1");
     expect(sessionStorage.getItem(getScopedSessionKey("conversationId"))).toBe("conv-tab-1");
     expect(localStorage.getItem("conversationId")).toBe("conv-shared-legacy");
+  });
+
+  it("mantiene el bundle Guest firmado en sessionStorage y lo aísla por pestaña", () => {
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-1";
+    const bundle = {
+      version: 1 as const,
+      hotelId: "hotel999",
+      conversationId: "conv-capability-1",
+      capability: "signed-capability",
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    setGuestConversationBundle(bundle);
+    expect(getGuestConversationBundleStatus("hotel999")).toBe("valid");
+    expect(getGuestConversationBundle("hotel999")).toEqual(bundle);
+    expect(localStorage.getItem("guestWebConversation.v1")).toBeNull();
+
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-2";
+    expect(getGuestConversationBundle("hotel999")).toBeNull();
+  });
+
+  it("preserva messageId y texto al recuperar un turno sending como uncertain", () => {
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-pending";
+    const prepared = prepareGuestPendingTurn({
+      hotelId: "hotel999",
+      conversationId: "conv-pending-1",
+      messageId: "client-message-stable-1",
+      text: "consulta sin respuesta HTTP",
+      now: new Date("2026-11-12T10:00:00.000Z"),
+    });
+    const sending = setGuestPendingTurnStatus(
+      prepared,
+      "sending",
+      new Date("2026-11-12T10:00:01.000Z"),
+    );
+
+    const recovered = recoverGuestPendingTurn("hotel999", "conv-pending-1");
+    expect(recovered).toMatchObject({
+      messageId: sending.messageId,
+      text: sending.text,
+      hotelId: "hotel999",
+      conversationId: "conv-pending-1",
+      status: "uncertain",
+    });
+    expect(prepareGuestPendingTurn({
+      hotelId: "hotel999",
+      conversationId: "conv-pending-1",
+      text: sending.text,
+    }).messageId).toBe("client-message-stable-1");
+    expect(() => prepareGuestPendingTurn({
+      hotelId: "hotel999",
+      conversationId: "conv-pending-1",
+      text: "otro turno",
+    })).toThrow(/unresolved Guest turn/);
+
+    const raw = sessionStorage.getItem(getScopedSessionKey(
+      "guestWebPendingTurn.v1:hotel999:conv-pending-1",
+    ));
+    expect(raw).toContain("client-message-stable-1");
+    expect(raw).not.toContain("capability");
+  });
+
+  it("descubre un pending por pestaña y hotel sin bundle ni capability", () => {
+    (globalThis as NamedGlobal).name = "begasist:web-tab:tab-orphan";
+    const prepared = prepareGuestPendingTurn({
+      hotelId: "hotel999",
+      conversationId: "conv-orphan-1",
+      messageId: "client-message-orphan-1",
+      text: "turno pendiente sin autoridad",
+    });
+    setGuestPendingTurnStatus(prepared, "sending");
+
+    const discovered = discoverGuestPendingTurn("hotel999");
+
+    expect(discovered).toMatchObject({
+      conversationId: "conv-orphan-1",
+      messageId: "client-message-orphan-1",
+      text: "turno pendiente sin autoridad",
+      status: "uncertain",
+    });
+    expect(getGuestConversationBundle("hotel999")).toBeNull();
+    const index = sessionStorage.getItem(getScopedSessionKey("guestWebPendingTurn.v1:index:hotel999"));
+    expect(index).toContain("client-message-orphan-1");
+    expect(index).toContain("conv-orphan-1");
+    expect(index).not.toContain("turno pendiente sin autoridad");
+    expect(index).not.toContain("capability");
+    expect(discoverGuestPendingTurn("hotel123")).toBeNull();
+  });
+
+  it("cierra un turno confirmado y aísla pendientes por hotel y conversación", () => {
+    const first = prepareGuestPendingTurn({
+      hotelId: "hotel999",
+      conversationId: "conv-pending-a",
+      messageId: "client-message-a",
+      text: "turno A",
+    });
+    const second = prepareGuestPendingTurn({
+      hotelId: "hotel123",
+      conversationId: "conv-pending-b",
+      messageId: "client-message-b",
+      text: "turno B",
+    });
+
+    confirmGuestPendingTurn(first);
+    expect(getGuestPendingTurn("hotel999", "conv-pending-a")).toBeNull();
+    expect(discoverGuestPendingTurn("hotel999")).toBeNull();
+    expect(getGuestPendingTurn("hotel123", "conv-pending-b")?.messageId).toBe("client-message-b");
+    clearGuestPendingTurn(second);
+    expect(getGuestPendingTurn("hotel123", "conv-pending-b")).toBeNull();
   });
 
   it("persiste guestId por hotel en localStorage y no usa el legacy global", () => {

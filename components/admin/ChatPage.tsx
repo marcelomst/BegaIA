@@ -13,20 +13,28 @@ import { useSearchParams } from "next/navigation";
 import { suggestRoomIcon } from "@/lib/rooms/roomIcons";
 import type { RichPayload } from "@/types/richPayload";
 import {
-  getConversationId,
-  setConversationId,
+  clearGuestPendingTurn,
+  clearGuestConversationBundle,
+  confirmGuestPendingTurn,
+  discoverGuestPendingTurn,
+  getGuestConversationBundle,
+  getGuestConversationBundleStatus,
   getLang,
+  prepareGuestPendingTurn,
+  setGuestPendingTurnStatus,
   setLang,
-  clearConversationSession,
+  setGuestConversationBundle,
+  type GuestConversationSessionBundle,
+  type GuestPendingTurn,
 } from "@/utils/conversationSession";
-import { getOrCreateGuestId } from "@/utils/guestSession";
+
+const UNCERTAIN_TURN_NOTICE = "El envío anterior no pudo confirmarse. No lo reenvíes ni inicies otro turno; recargá el historial o contactá a recepción.";
 
 // ===== Tipos de red (sin cambios de contrato) =====
 type APIMessagesResponse = {
   messages?: Array<{
-    sender: string;
-    content?: string;
-    suggestion?: string;
+    role: "user" | "assistant";
+    content: string;
     timestamp: string;
     messageId?: string;
     status?: "sent" | "pending";
@@ -38,7 +46,9 @@ type APIMessagesResponse = {
 
 type APIChatResponse = {
   response?: string | unknown;
-  status?: "sent" | "pending";
+  status?: "sent" | "pending" | "reconciliation_required";
+  code?: string;
+  continuationAvailable?: boolean;
   messageId?: string;
   conversationId?: string;
   lang?: string;
@@ -46,12 +56,12 @@ type APIChatResponse = {
   rich?: RichPayload;
 };
 
-type ConversationSummary = {
+type BootstrapResponse = {
+  ok?: boolean;
+  capability?: string;
   conversationId: string;
-  startedAt: string;
-  lastUpdatedAt: string;
-  lang: string;
-  status: string;
+  hotelId: string;
+  expiresAt: string;
 };
 
 type ChatTurn = {
@@ -66,18 +76,15 @@ type ChatTurn = {
 export default function ChatPage() {
   const searchParams = useSearchParams();
   const hotelId = searchParams?.get("hotelId") ?? "";
-  const guestId = getOrCreateGuestId(hotelId);
 
   // ===== Estado base del chat =====
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"sent" | "pending" | null>(null);
-  const [messageId, setMessageId] = useState<string | null>(null);
-  const [conversationId, setConvId] = useState<string | null>(null);
   const [lang, setLangState] = useState<string>("es");
   const [history, setHistory] = useState<ChatTurn[]>([]);
-  const [myConversations, setMyConversations] = useState<ConversationSummary[]>([]);
-  const [activeConv, setActiveConv] = useState<string | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+  const [pendingTurn, setPendingTurn] = useState<GuestPendingTurn | null>(null);
 
   // ===== Estado UX de reservas (local) =====
   const [checkIn, setCheckIn] = useState<string>("");
@@ -88,8 +95,8 @@ export default function ChatPage() {
   // ===== Refs y a11y =====
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const pollIntervalRef = useRef<number | null>(null);
-  const isMountedRef = useRef(true);
+  const bootstrapPromiseRef = useRef<Promise<GuestConversationSessionBundle> | null>(null);
+  const pendingTurnRef = useRef<GuestPendingTurn | null>(null);
   const textareaId = useId();
   const selectLangId = useId();
   const liveRegionRef = useRef<HTMLDivElement>(null);
@@ -99,76 +106,144 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history, loading]);
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
-    };
-  }, []);
+  const bootstrapConversation = useCallback((): Promise<GuestConversationSessionBundle> => {
+    if (bootstrapPromiseRef.current) return bootstrapPromiseRef.current;
+    const pending = (async () => {
+      if (!hotelId) throw new Error("hotelId is required");
+      const res = await fetch("/api/guest/web/bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotelId, lang: getLang() }),
+        credentials: "same-origin",
+      });
+      const data = (await res.json().catch(() => ({}))) as Partial<BootstrapResponse>;
+      if (!res.ok || !data.capability || !data.conversationId || !data.expiresAt || data.hotelId !== hotelId) {
+        throw new Error("Guest conversation bootstrap failed");
+      }
+      const bundle: GuestConversationSessionBundle = {
+        version: 1,
+        hotelId,
+        conversationId: data.conversationId,
+        capability: data.capability,
+        expiresAt: data.expiresAt,
+      };
+      setGuestConversationBundle(bundle);
+      setSessionNotice(null);
+      return bundle;
+    })();
+    bootstrapPromiseRef.current = pending;
+    void pending.then(
+      () => { if (bootstrapPromiseRef.current === pending) bootstrapPromiseRef.current = null; },
+      () => { if (bootstrapPromiseRef.current === pending) bootstrapPromiseRef.current = null; },
+    );
+    return pending;
+  }, [hotelId]);
+
+  const currentOrNewBundle = useCallback(async () => {
+    const existing = getGuestConversationBundle(hotelId);
+    if (existing) return existing;
+    if (sessionNotice) throw new Error("Guest conversation must be restarted explicitly");
+    return bootstrapConversation();
+  }, [bootstrapConversation, hotelId, sessionNotice]);
 
   // Carga inicial
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    const convId = getConversationId();
-    setConvId(convId);
-    setActiveConv(convId);
     setLangState(getLang());
-
-    // Helper: mapear mensajes de API a ChatTurn (role literal "user" | "ai")
-    const mapApiToChatTurns = (msgs: NonNullable<APIMessagesResponse["messages"]>): ChatTurn[] =>
-      msgs.map((msg) => ({
-        role:
-          msg.sender === "Usuario Web" || msg.sender === "Usuario" || msg.sender === "user"
-            ? ("user" as const)
-            : ("ai" as const),
-        text: msg.content ?? msg.suggestion ?? "",
-        timestamp: msg.timestamp,
-        rich: msg.rich,
-      }));
-
-    // Historial
-    if (convId) {
-      (async () => {
-        try {
-          const res = await fetch(
-            `/api/messages/by-conversation?channelId=web&conversationId=${convId}&hotelId=${encodeURIComponent(hotelId)}&guestId=${encodeURIComponent(guestId)}`,
-            { signal, credentials: "same-origin" }
-          );
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const data = (await res.json()) as APIMessagesResponse;
-          if (Array.isArray(data.messages)) {
-            const mapped: ChatTurn[] = mapApiToChatTurns(data.messages);
-            setHistory(seedUXIfEmpty(mapped));
+    (async () => {
+      let recoveredPending: GuestPendingTurn | null = null;
+      try {
+        recoveredPending = discoverGuestPendingTurn(hotelId);
+        if (recoveredPending) {
+          pendingTurnRef.current = recoveredPending;
+          setPendingTurn(recoveredPending);
+          setSessionNotice(UNCERTAIN_TURN_NOTICE);
+        }
+        const bundleStatus = getGuestConversationBundleStatus(hotelId);
+        if (recoveredPending && bundleStatus !== "valid") {
+          if (bundleStatus === "expired" || bundleStatus === "invalid") {
+            clearGuestConversationBundle();
+          }
+          setHistory(seedUXIfEmpty([{
+            role: "user",
+            text: recoveredPending.text,
+            timestamp: recoveredPending.preparedAt,
+          }]));
+          return;
+        }
+        if (bundleStatus === "expired" || bundleStatus === "invalid") {
+          clearGuestConversationBundle();
+          setSessionNotice("La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
+          setHistory(seedUXIfEmpty([]));
+          return;
+        }
+        const existing = getGuestConversationBundle(hotelId);
+        if (recoveredPending && existing?.conversationId !== recoveredPending.conversationId) {
+          if (existing) clearGuestConversationBundle();
+          setHistory(seedUXIfEmpty([{
+            role: "user",
+            text: recoveredPending.text,
+            timestamp: recoveredPending.preparedAt,
+          }]));
+          return;
+        }
+        const bundle = existing ?? await bootstrapConversation();
+        if (signal.aborted) return;
+        if (!existing) {
+          setHistory(seedUXIfEmpty([]));
+          return;
+        }
+        const res = await fetch("/api/guest/web/history", {
+          signal,
+          credentials: "same-origin",
+          headers: { Authorization: `Bearer ${bundle.capability}` },
+        });
+        if (res.status === 401 || res.status === 403) {
+          clearGuestConversationBundle();
+          if (recoveredPending) {
+            setSessionNotice(UNCERTAIN_TURN_NOTICE);
+            setHistory(seedUXIfEmpty([{
+              role: "user",
+              text: recoveredPending.text,
+              timestamp: recoveredPending.preparedAt,
+            }]));
           } else {
+            setSessionNotice("La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
             setHistory(seedUXIfEmpty([]));
           }
-        } catch {
-          if (!signal.aborted) setHistory(seedUXIfEmpty([]));
+          return;
         }
-      })();
-    } else {
-      setHistory(seedUXIfEmpty([]));
-    }
-
-    // Lista de conversaciones
-    (async () => {
-      try {
-        const res = await fetch(
-          `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
-          { signal, credentials: "same-origin" }
-        );
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = (await res.json()) as { conversations?: ConversationSummary[] };
-        setMyConversations(Array.isArray(data.conversations) ? data.conversations : []);
+        const data = (await res.json()) as APIMessagesResponse;
+        const mapped: ChatTurn[] = (data.messages ?? []).map((msg) => ({
+          role: msg.role === "user" ? "user" : "ai",
+          text: msg.content,
+          timestamp: msg.timestamp,
+          rich: msg.rich,
+        }));
+        if (
+          recoveredPending &&
+          !mapped.some((turn) => turn.role === "user" && turn.text === recoveredPending?.text)
+        ) {
+          mapped.push({
+            role: "user",
+            text: recoveredPending.text,
+            timestamp: recoveredPending.preparedAt,
+          });
+        }
+        setHistory(seedUXIfEmpty(mapped));
       } catch {
-        if (!signal.aborted) setMyConversations([]);
+        if (!signal.aborted) {
+          setSessionNotice(recoveredPending ? UNCERTAIN_TURN_NOTICE : "No fue posible iniciar o recuperar el chat en este momento.");
+          setHistory(seedUXIfEmpty([]));
+        }
       }
     })();
 
     return () => controller.abort();
-  }, [guestId, hotelId]);
+  }, [bootstrapConversation, hotelId]);
 
   // Sembrar UI de reservas si el historial está vacío o sin mensajes del asistente
   const seedUXIfEmpty = (base: ChatTurn[]): ChatTurn[] => {
@@ -207,211 +282,157 @@ export default function ChatPage() {
     setLangState(newLang);
   }, []);
 
-  const handleSelectConversation = useCallback(async (convId: string) => {
-    setConvId(convId);
-    setActiveConv(convId);
-    setConversationId(convId);
-
-    const controller = new AbortController();
-    const signal = controller.signal;
-
+  const handleNewConversation = useCallback(async () => {
+    if (pendingTurn) return;
+    clearGuestConversationBundle();
+    setStatus(null);
+    setQuery("");
+    setSessionNotice(null);
+    setHistory(seedUXIfEmpty([]));
     try {
-      const res = await fetch(
-        `/api/messages/by-conversation?channelId=web&conversationId=${convId}&hotelId=${encodeURIComponent(hotelId)}&guestId=${encodeURIComponent(guestId)}`,
-        { signal, credentials: "same-origin" }
-      );
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = (await res.json()) as APIMessagesResponse;
-      if (Array.isArray(data.messages)) {
-        const mapped: ChatTurn[] = (data.messages ?? []).map((msg) => ({
-          role:
-            msg.sender === "Usuario Web" || msg.sender === "Usuario" || msg.sender === "user"
-              ? ("user" as const)
-              : ("ai" as const),
-          text: msg.content ?? msg.suggestion ?? "",
-          timestamp: msg.timestamp,
-          rich: msg.rich,
-        }));
-        setHistory(seedUXIfEmpty(mapped));
-      } else {
-        setHistory(seedUXIfEmpty([]));
-      }
+      await bootstrapConversation();
     } catch {
-      if (!signal.aborted) setHistory(seedUXIfEmpty([]));
+      setSessionNotice("No fue posible iniciar una nueva conversación en este momento.");
     } finally {
-      setQuery("");
       textareaRef.current?.focus();
     }
-  }, [guestId, hotelId]);
-
-  const handleNewConversation = useCallback(async () => {
-    if (conversationId) {
-      try {
-        await fetch("/api/conversations/close", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversationId }),
-          credentials: "same-origin",
-        });
-      } catch {}
-    }
-
-    clearConversationSession();
-    setConvId(null);
-    setActiveConv(null);
-    setStatus(null);
-    setMessageId(null);
-    setQuery("");
-    setLangState("es");
-    setLang("es");
-    setHistory(seedUXIfEmpty([]));
-    textareaRef.current?.focus();
-
-    setTimeout(() => {
-      fetch(
-        `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
-        { credentials: "same-origin" }
-      )
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((data: { conversations?: ConversationSummary[] }) =>
-          setMyConversations(data.conversations ?? [])
-        )
-        .catch(() => setMyConversations([]));
-    }, 200);
-  }, [conversationId, guestId, hotelId]);
+  }, [bootstrapConversation, pendingTurn]);
 
   // ===== Envío de mensaje =====
-  const sendQuery = useCallback(async () => {
-    if (!query.trim() || loading) return;
+  const sendGuestText = useCallback(async (rawText: string) => {
+    const text = rawText.trim();
+    if (!text || loading || pendingTurnRef.current) return;
     setLoading(true);
     setStatus(null);
-    setMessageId(null);
 
-    const newTurn: ChatTurn = { role: "user", text: query, timestamp: new Date().toISOString() };
-    setHistory((h) => [...h, newTurn]);
-
-    const currentLang = getLang();
+    let activeTurn: GuestPendingTurn | null = null;
     try {
+      const bundle = await currentOrNewBundle();
+      activeTurn = prepareGuestPendingTurn({
+        hotelId: bundle.hotelId,
+        conversationId: bundle.conversationId,
+        text,
+      });
+      activeTurn = setGuestPendingTurnStatus(activeTurn, "sending");
+      pendingTurnRef.current = activeTurn;
+      setPendingTurn(activeTurn);
+      const displayedTurn = activeTurn;
+      setHistory((current) => [
+        ...current,
+        { role: "user", text: displayedTurn.text, timestamp: displayedTurn.preparedAt },
+      ]);
+
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${bundle.capability}`,
+        },
         body: JSON.stringify({
-          query,
+          query: activeTurn.text,
           channel: "web",
           hotelId,
-          lang: currentLang,
+          conversationId: bundle.conversationId,
+          messageId: activeTurn.messageId,
+          lang: getLang(),
         }),
         credentials: "same-origin",
       });
 
       const textResp = await res.text();
-      if (!res.ok) throw new Error(textResp || `HTTP ${res.status}`);
-
       let data: APIChatResponse | null = null;
       try {
         data = JSON.parse(textResp) as APIChatResponse;
-      } catch {
-        setHistory((h) => [
-          ...h,
-          { role: "ai", text: "⚠️ Respuesta inesperada del servidor.", timestamp: new Date().toISOString() },
-        ]);
-        setLoading(false);
-        setQuery("");
+      } catch {}
+
+      if (res.status === 401 || res.status === 403) {
+        clearGuestPendingTurn(activeTurn);
+        activeTurn = null;
+        pendingTurnRef.current = null;
+        setPendingTurn(null);
+        clearGuestConversationBundle();
+        setSessionNotice("La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
         return;
       }
 
-      const responseText =
-        typeof data.response === "string" ? data.response : JSON.stringify(data.response, null, 2);
-
-      setStatus(data.status ?? null);
-      setMessageId(data.messageId ?? null);
-
-      setHistory((h) => [
-        ...h,
-        {
-          role: "ai",
-          text:
-            data.status === "sent"
-              ? responseText
-              : "🕓 Tu consulta fue enviada. Un recepcionista está revisando tu solicitud...",
-          timestamp: new Date().toISOString(),
-          rich: data.rich, // si el backend envía UI enriquecida
-        },
-      ]);
-
-      if (data.conversationId) {
-        setConversationId(data.conversationId);
-        setConvId(data.conversationId);
-        setActiveConv(data.conversationId);
+      const uncertain =
+        res.status === 202 ||
+        res.status >= 500 ||
+        !data ||
+        data.status === "reconciliation_required" ||
+        data.code === "guest_turn_already_recorded" ||
+        data.continuationAvailable === false;
+      if (uncertain) {
+        activeTurn = setGuestPendingTurnStatus(activeTurn, "uncertain");
+        pendingTurnRef.current = activeTurn;
+        setPendingTurn(activeTurn);
+        setSessionNotice(UNCERTAIN_TURN_NOTICE);
+        return;
       }
+      if (!data) throw new Error("Guest turn response is unavailable");
+
+      if (!res.ok) {
+        clearGuestPendingTurn(activeTurn);
+        activeTurn = null;
+        pendingTurnRef.current = null;
+        setPendingTurn(null);
+        setHistory((current) => [
+          ...current,
+          { role: "ai", text: "La solicitud fue rechazada y no se enviará nuevamente.", timestamp: new Date().toISOString() },
+        ]);
+        return;
+      }
+
+      confirmGuestPendingTurn(activeTurn);
+      activeTurn = null;
+      pendingTurnRef.current = null;
+      setPendingTurn(null);
+      setSessionNotice(null);
+
+      const responseText = typeof data.response === "string" ? data.response : "";
+      if (data.status === "sent" || data.status === "pending") setStatus(data.status);
+      const guestVisibleText = data.status === "pending"
+        ? "🕓 Tu consulta fue enviada. Un recepcionista está revisando tu solicitud..."
+        : responseText;
+      if (guestVisibleText) {
+        setHistory((current) => [
+          ...current,
+          {
+            role: "ai",
+            text: guestVisibleText,
+            timestamp: new Date().toISOString(),
+            rich: data.rich,
+          },
+        ]);
+      }
+
       if (data.lang) {
         setLang(data.lang);
         setLangState(data.lang);
       }
-
-      // refrescar lista de chats
-      fetch(
-        `/api/conversations/list?hotelId=${encodeURIComponent(hotelId)}&channel=web&guestId=${encodeURIComponent(guestId)}`,
-        { credentials: "same-origin" }
-      )
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((data: { conversations?: ConversationSummary[] }) =>
-          setMyConversations(data.conversations ?? [])
-        )
-        .catch(() => {});
     } catch {
-      setHistory((h) => [
-        ...h,
-        { role: "ai", text: "Error al obtener respuesta.", timestamp: new Date().toISOString() },
-      ]);
+      if (activeTurn) {
+        try {
+          activeTurn = setGuestPendingTurnStatus(activeTurn, "uncertain");
+        } catch {}
+        pendingTurnRef.current = activeTurn;
+        setPendingTurn(activeTurn);
+        setSessionNotice(UNCERTAIN_TURN_NOTICE);
+      } else {
+        setHistory((current) => [
+          ...current,
+          { role: "ai", text: "No fue posible iniciar el envío.", timestamp: new Date().toISOString() },
+        ]);
+      }
     } finally {
       setLoading(false);
       setQuery("");
     }
-  }, [query, loading, hotelId]);
+  }, [loading, hotelId, currentOrNewBundle]);
 
-  // ===== Polling de aprobaciones (modo supervisado) =====
-  useEffect(() => {
-    if (status === "pending" && messageId) {
-      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
-
-      pollIntervalRef.current = window.setInterval(async () => {
-        try {
-          const res = await fetch(`/api/messages?channelId=web`, { credentials: "same-origin" });
-          if (!res.ok) return;
-          const data = (await res.json()) as APIMessagesResponse & { messages?: any[] };
-          const updated = data.messages?.find((m: any) => m.messageId === messageId);
-
-          if (updated?.status === "sent") {
-            setStatus("sent");
-            setHistory((h) => {
-              const lastIndex = [...h].reverse().findIndex((m) => m.role === "ai");
-              if (lastIndex === -1) return h;
-              const idx = h.length - 1 - lastIndex;
-              const updatedTurn = {
-                ...h[idx],
-                text: updated.approvedResponse ?? updated.suggestion ?? h[idx].text,
-              };
-              const copy = [...h];
-              copy[idx] = updatedTurn;
-              return copy;
-            });
-            if (pollIntervalRef.current) {
-              window.clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
-          }
-        } catch {}
-      }, 5000);
-
-      return () => {
-        if (pollIntervalRef.current) {
-          window.clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
-      };
-    }
-  }, [status, messageId]);
+  const sendQuery = useCallback(async () => {
+    await sendGuestText(query);
+  }, [query, sendGuestText]);
 
   // ===== Accesos directos de teclado =====
   const onTextareaKeyDown = useCallback(
@@ -453,68 +474,12 @@ export default function ChatPage() {
   };
 
   const sendTextAndAppend = async (text: string) => {
-    // Enviar como si lo hubiese escrito el usuario, para no tocar /api/chat
-    setHistory((h) => [...h, { role: "user", text, timestamp: new Date().toISOString() }]);
-    setQuery("");
-    // No bloqueamos con loading global (flujo rápido); llamamos backend igualmente
-    try {
-      await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: text,
-          channel: "web",
-          hotelId,
-          lang: getLang(),
-        }),
-        credentials: "same-origin",
-      }).then(async (res) => {
-        const raw = await res.text();
-        if (!res.ok) throw new Error(raw || `HTTP ${res.status}`);
-        let data: APIChatResponse | null = null;
-        try {
-          data = JSON.parse(raw) as APIChatResponse;
-        } catch {}
-        if (data?.conversationId) {
-          setConversationId(data.conversationId);
-          setConvId(data.conversationId);
-          setActiveConv(data.conversationId);
-        }
-        if (data?.response) {
-          setHistory((h) => [
-            ...h,
-            {
-              role: "ai",
-              text: typeof data.response === "string" ? data.response : JSON.stringify(data.response, null, 2),
-              timestamp: new Date().toISOString(),
-              rich: data.rich,
-            },
-          ]);
-        }
-      });
-    } catch {
-      setHistory((h) => [
-        ...h,
-        { role: "ai", text: "No pude enviar tu solicitud ahora mismo.", timestamp: new Date().toISOString() },
-      ]);
-    }
+    await sendGuestText(text);
   };
 
   const handleFindAvailability = async () => {
     const text = composeFindText();
     await sendTextAndAppend(text);
-
-    // Sembrar UI local de rooms (mock visual). Cuando el backend entregue rooms reales,
-    // puede responder con { rich: { type: 'room-cards', data: [...] } } y no usamos el mock.
-    setHistory((h) => [
-      ...h,
-      {
-        role: "ai",
-        text: "Estas son las opciones disponibles para tus fechas:",
-        timestamp: new Date().toISOString(),
-        rich: { type: "room-cards", data: mockRooms() },
-      },
-    ]);
   };
 
   const handleSelectRoom = async (roomCode: string) => {
@@ -522,29 +487,11 @@ export default function ChatPage() {
       checkOut
     )} · ${adults} adultos${children ? `, ${children} niños` : ""}`;
     await sendTextAndAppend(text);
-    setHistory((h) => [
-      ...h,
-      {
-        role: "ai",
-        text: "¿Querés agregar desayuno y late check-out?",
-        timestamp: new Date().toISOString(),
-        rich: { type: "upsell", data: { options: ["Desayuno", "Late check-out"] } },
-      },
-    ]);
   };
 
   const handleUpsell = async (accepted: boolean) => {
     const text = accepted ? "Upsell: sí" : "Upsell: no";
     await sendTextAndAppend(text);
-    setHistory((h) => [
-      ...h,
-      {
-        role: "ai",
-        text: "Perfecto. ¿Confirmo la reserva y avanzo con el pago?",
-        timestamp: new Date().toISOString(),
-        rich: { type: "quick-actions", data: { actions: ["Confirmar reserva", "Editar fechas"] } },
-      },
-    ]);
   };
 
   const handleQuick = async (label: string) => {
@@ -555,27 +502,6 @@ export default function ChatPage() {
     await sendTextAndAppend(label);
   };
 
-  const mockRooms = () => [
-    {
-      code: "DBL-STD",
-      name: "Doble Estándar",
-      price: 120,
-      currency: "USD",
-      perks: ["Wi-Fi", "A/A", "TV"],
-      img: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=800&auto=format&fit=crop",
-      refundable: true,
-    },
-    {
-      code: "DBL-SUP",
-      name: "Doble Superior",
-      price: 155,
-      currency: "USD",
-      perks: ["Vista ciudad", "Cafetera", "Wi-Fi"],
-      img: "https://images.unsplash.com/photo-1622015663315-0f5d5c65512d?q=80&w=800&auto=format&fit=crop",
-      refundable: false,
-    },
-  ];
-
   // ===== Render =====
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 transition-colors">
@@ -583,36 +509,11 @@ export default function ChatPage() {
         <h1 className="text-3xl font-bold">💬 Chat con IA</h1>
       </header>
 
-      {/* Mis conversaciones */}
-      <nav aria-label="Mis conversaciones" className="w-full max-w-lg mb-4">
-        <h2 className="text-lg font-semibold mb-2">Mis conversaciones</h2>
-        {myConversations.length === 0 && (
-          <p className="text-sm text-muted-foreground">No hay chats previos.</p>
-        )}
-        <ul className="space-y-1" role="list">
-          {myConversations.map((c) => (
-            <li key={c.conversationId}>
-              <button
-                type="button"
-                className={`text-left w-full px-2 py-1 rounded border transition ${
-                  activeConv === c.conversationId
-                    ? "bg-blue-200 font-bold border-blue-400"
-                    : "hover:bg-blue-100 border"
-                }`}
-                onClick={() => handleSelectConversation(c.conversationId)}
-                aria-current={activeConv === c.conversationId ? "true" : undefined}
-              >
-                <span className="font-semibold">#{c.conversationId.slice(0, 8)}</span>
-                <time className="ml-2 text-xs" dateTime={new Date(c.lastUpdatedAt).toISOString()}>
-                  {new Date(c.lastUpdatedAt).toLocaleString()}
-                </time>
-                <span className="ml-2 text-xs text-gray-500">({c.lang})</span>
-                <span className="ml-2 text-xs">{c.status}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {sessionNotice && (
+        <p className="mb-4 w-full max-w-lg rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="status">
+          {sessionNotice}
+        </p>
+      )}
 
       {/* Bloque de chat */}
       <main className="w-full max-w-lg bg-muted p-4 shadow-md rounded-lg border border-border" aria-busy={loading || undefined}>
@@ -622,9 +523,10 @@ export default function ChatPage() {
 
         {/* Historial */}
         <section
-          className="mb-4 max-h-[340px] overflow-y-auto flex flex-col gap-2"
+          className={`mb-4 max-h-[340px] overflow-y-auto flex flex-col gap-2 ${pendingTurn ? "pointer-events-none opacity-80" : ""}`}
           style={{ minHeight: 120 }}
           aria-label="Historial del chat"
+          aria-disabled={Boolean(pendingTurn) || undefined}
         >
           {history.map((msg, idx) => (
             <article
@@ -724,14 +626,14 @@ export default function ChatPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onTextareaKeyDown}
-              disabled={loading}
-              aria-disabled={loading || undefined}
+              disabled={loading || Boolean(sessionNotice)}
+              aria-disabled={loading || Boolean(sessionNotice) || undefined}
             />
 
             <button
               type="submit"
               className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition disabled:opacity-60"
-              disabled={loading}
+              disabled={loading || Boolean(sessionNotice)}
               aria-label={loading ? "Enviando" : "Preguntar"}
             >
               {loading ? "Pensando..." : "Preguntar"}
@@ -741,7 +643,7 @@ export default function ChatPage() {
               type="button"
               className="w-full bg-gray-200 text-gray-900 p-2 rounded-md border border-gray-300 hover:bg-gray-300 transition"
               onClick={handleNewConversation}
-              disabled={loading}
+              disabled={loading || Boolean(pendingTurn)}
             >
               Nueva conversación
             </button>

@@ -1,11 +1,18 @@
 // Path: /root/begasist/app/api/chat/route.ts
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 // Ensure console.warn/error are captured to log.txt via debugLog hooks
 import { logToFile } from "@/lib/utils/debugLog";
-import crypto from "crypto";
 import { ChannelMessageInputError, handleChannelMessage } from "@/lib/pipeline/handleChannelMessage";
 import { decideDeliveryPolicy } from "@/lib/pipeline/deliveryPolicy";
 import type { Channel } from "@/types/channel";
+import {
+  GuestCapabilityError,
+  guestCapabilityErrorResponse,
+  runAuthorizedGuestConversationTurn,
+} from "@/lib/auth/guestConversationCapability";
+import { resolveGuestIdentity } from "@/lib/pipeline/resolveGuestIdentity";
+import { getMessageBySourceId } from "@/lib/db/messages";
 
 const BUILD_TAG = "2026-03-20-ARQSYS";
 const DEBUG_CHAT = process.env.DEBUG === "1" || process.env.MCP_DEBUG === "1";
@@ -14,6 +21,8 @@ const SAFE_INPUT_MAX = 3000;
 function jsonWithBuild(body: unknown, init?: ResponseInit) {
   const res = NextResponse.json(body, init);
   res.headers.set("x-begasist-build", BUILD_TAG);
+  res.headers.set("Cache-Control", "no-store");
+  res.headers.set("Referrer-Policy", "no-referrer");
   return res;
 }
 
@@ -43,95 +52,175 @@ export async function POST(req: Request) {
   const startedAt = Date.now();
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
-  const hotelId = normText(body.hotelId, 120);
+  const incomingHotelId = normText(body.hotelId, 120);
   const channel = (normText(body.channel, 30) || "web") as Channel;
   const incomingConversationId =
     normText(body.conversationId, 120) || normText(body.conversation_id, 120) || normText(body.convId, 120);
   const incomingGuestId = normText(body.guestId, 120);
-  const guestId = `guest-${crypto.randomUUID()}`;
-  const conversationId = `conv-${crypto.randomUUID()}`;
   const content =
     normText(body.query) || normText(body.message) || normText(body.text) || normText(body.content);
   const explicitLang = normText(body.lang, 12) || normText(body.detectedLanguage, 12) || "es";
+  const clientMessageId = normText(body.messageId, 180);
+  const validClientMessageId = /^[A-Za-z0-9._:-]{8,180}$/.test(clientMessageId);
 
   logChat("request.received", {
     build: BUILD_TAG,
-    hotelId,
+    hotelId: incomingHotelId || undefined,
     channel,
     conversationId: incomingConversationId || undefined,
     hasClientMessageId: Boolean(normText(body.messageId, 180)),
     textLength: content.length,
   });
 
-  if (!hotelId) {
-    return jsonWithBuild(
-      { ok: false, error: "hotelId is required", status: "sent" },
-      { status: 400 }
-    );
-  }
-
-  if (!content) {
-    return jsonWithBuild(
-      { ok: false, error: "message is required", status: "sent" },
-      { status: 400 }
-    );
-  }
-
-  if (channel !== "web") {
-    return jsonWithBuild({ ok: false, error: "public chat only accepts the web channel" }, { status: 403 });
-  }
-
-  if (incomingConversationId || incomingGuestId) {
-    return jsonWithBuild(
-      { ok: false, error: "Public conversation continuation is temporarily disabled" },
-      { status: 403 },
-    );
-  }
-
   try {
-    const result = await handleChannelMessage({
-      query: content,
-      channel,
-      hotelId,
-      lang: explicitLang,
-      conversationId,
-      guestId,
-      sender: "guest",
-    });
-    const delivery = decideDeliveryPolicy({
-      status: result.status,
-      response: result.response,
-      lang: result.lang,
-      pendingAckEnabled: true,
-    });
+    const execution = await runAuthorizedGuestConversationTurn(
+      req,
+      validClientMessageId ? clientMessageId : `invalid-message-${crypto.randomUUID()}`,
+      async (authorization) => {
+        const { hotelId, conversationId, webSubject, guestId } = authorization;
+        if (
+          channel !== "web" ||
+          (incomingHotelId && incomingHotelId !== hotelId) ||
+          (incomingConversationId && incomingConversationId !== conversationId) ||
+          (incomingGuestId && incomingGuestId !== guestId && incomingGuestId !== webSubject)
+        ) {
+          return {
+            kind: "terminal" as const,
+            response: jsonWithBuild({ ok: false, error: "Guest conversation binding mismatch" }, { status: 403 }),
+          };
+        }
+        if (!content) {
+          return {
+            kind: "terminal" as const,
+            response: jsonWithBuild({ ok: false, error: "message is required" }, { status: 400 }),
+          };
+        }
+        if (!validClientMessageId) {
+          return {
+            kind: "terminal" as const,
+            response: jsonWithBuild({ ok: false, error: "messageId is required" }, { status: 400 }),
+          };
+        }
+        const resolvedIdentity = await resolveGuestIdentity({
+          hotelId,
+          channel: "web",
+          rawGuestId: webSubject,
+        });
+        if (resolvedIdentity.guestId !== guestId) {
+          return {
+            kind: "terminal" as const,
+            response: jsonWithBuild({ ok: false, error: "Guest conversation binding is invalid" }, { status: 401 }),
+          };
+        }
 
-    const responsePayload = {
-      status: result.status,
-      ephemeral: true,
-      continuationAvailable: false,
-      message: {
-        hotelId: result.hotelId || hotelId,
-        channel: result.channel || channel,
-        status: result.status,
-        suggestion: delivery.shouldSendPendingAck ? delivery.pendingAckText : undefined,
+        const sourceMessageId = `guest:${crypto
+          .createHash("sha256")
+          .update(`${hotelId}\0${conversationId}\0${clientMessageId}`, "utf8")
+          .digest("hex")}`;
+        const existing = await getMessageBySourceId(hotelId, conversationId, sourceMessageId);
+        if (existing) {
+          return {
+            kind: "already_recorded" as const,
+            hotelId,
+            conversationId,
+            messageId: clientMessageId,
+          };
+        }
+
+        const result = await handleChannelMessage({
+          query: content,
+          channel: "web",
+          hotelId,
+          lang: explicitLang,
+          conversationId,
+          guestId: webSubject,
+          sourceMsgId: sourceMessageId,
+          sender: "guest",
+        });
+        if (
+          result.hotelId !== hotelId ||
+          result.channel !== "web" ||
+          result.conversationId !== conversationId
+        ) {
+          throw new Error("authorized conversation binding changed during processing");
+        }
+        const delivery = decideDeliveryPolicy({
+          status: result.status,
+          response: result.response,
+          lang: result.lang,
+          pendingAckEnabled: true,
+        });
+        return {
+          kind: "processed" as const,
+          result,
+          responsePayload: {
+            status: result.status,
+            continuationAvailable: true,
+            hotelId,
+            channel: "web" as const,
+            conversationId,
+            messageId: result.messageId,
+            message: {
+              hotelId,
+              conversationId,
+              channel: "web" as const,
+              status: result.status,
+              suggestion: delivery.shouldSendPendingAck ? delivery.pendingAckText : undefined,
+            },
+            response: delivery.shouldSendFinalReply ? delivery.finalReplyText : undefined,
+            rich: delivery.shouldSendFinalReply ? result.rich : undefined,
+            lang: result.lang,
+            deduped: result.deduped || undefined,
+          },
+        };
       },
-      response: delivery.shouldSendFinalReply ? delivery.finalReplyText : undefined,
-      suggestedReply: delivery.shouldSendPendingAck ? result.suggestedReply : undefined,
-      rich: result.rich,
-      lang: result.lang,
-      deduped: result.deduped || undefined,
-    };
+    );
+
+    const operation = execution.result;
+    if (operation.kind === "terminal") return operation.response;
+    if (operation.kind === "already_recorded") {
+      return jsonWithBuild({
+        ok: false,
+        code: "guest_turn_already_recorded",
+        status: "reconciliation_required",
+        outcome: "already_recorded",
+        retry: "do_not_retry",
+        reconciliationRequired: true,
+        continuationAvailable: false,
+        hotelId: operation.hotelId,
+        conversationId: operation.conversationId,
+        messageId: operation.messageId,
+      }, { status: 409 });
+    }
+    if (execution.reconciliationRequired) {
+      return jsonWithBuild({
+        ok: false,
+        code: "guest_turn_completed_reconciliation_required",
+        status: "reconciliation_required",
+        outcome: "completed_reconciliation_required",
+        retry: "do_not_retry",
+        reconciliationRequired: true,
+        continuationAvailable: false,
+        hotelId: operation.result.hotelId,
+        conversationId: operation.result.conversationId,
+        messageId: clientMessageId,
+      }, { status: 202 });
+    }
 
     logChat("request.completed", {
-      hotelId,
-      channel,
-      conversationId: result.conversationId,
-      status: result.status,
+      hotelId: operation.result.hotelId,
+      channel: "web",
+      conversationId: operation.result.conversationId,
+      status: operation.result.status,
       durationMs: Date.now() - startedAt,
     });
-
-    return jsonWithBuild(responsePayload, { status: 200 });
+    return jsonWithBuild(operation.responsePayload, { status: 200 });
   } catch (err: unknown) {
+    if (err instanceof GuestCapabilityError) {
+      const res = guestCapabilityErrorResponse(err);
+      res.headers.set("x-begasist-build", BUILD_TAG);
+      return res;
+    }
     if (err instanceof ChannelMessageInputError) {
       return jsonWithBuild(
         { ok: false, error: err.message, status: "sent" },
@@ -142,7 +231,7 @@ export async function POST(req: Request) {
     logChat(
       "request.failed",
       {
-        hotelId,
+        hotelId: incomingHotelId || undefined,
         channel,
         conversationId: incomingConversationId || undefined,
         durationMs: Date.now() - startedAt,

@@ -11,22 +11,40 @@ vi.mock("next/navigation", () => ({
 
 describe("ChatPage • Quick actions front-end flow", () => {
   beforeEach(() => {
+    sessionStorage.clear();
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url.startsWith("/api/conversations/list")) {
-        return new Response(JSON.stringify({ conversations: [] }), { status: 200 });
+      if (url === "/api/guest/web/bootstrap") {
+        return new Response(JSON.stringify({
+          ok: true,
+          capability: "guest-capability-quick",
+          conversationId: "conv-frontend-2",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 200 });
       }
-      if (url.startsWith("/api/messages/by-conversation")) {
+      if (url === "/api/guest/web/history") {
         return new Response(JSON.stringify({ messages: [] }), { status: 200 });
       }
       if (url.startsWith("/api/chat")) {
+        expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer guest-capability-quick");
         return new Response(
           JSON.stringify({
-            response: "Ofrezco disponibilidad mock para la demo.",
+            response: "Estas son las opciones disponibles para tus fechas.",
             status: "sent",
             conversationId: "conv-frontend-2",
             messageId: "mid-2",
             lang: "es",
+            rich: {
+              type: "room-cards",
+              data: [{
+                code: "STD",
+                name: "Habitación estándar",
+                price: 120,
+                currency: "USD",
+                perks: ["Wi-Fi"],
+              }],
+            },
           }),
           { status: 200 }
         );
@@ -35,14 +53,14 @@ describe("ChatPage • Quick actions front-end flow", () => {
     }));
   });
 
-  it("clicks Buscar disponibilidad and shows room cards mock", async () => {
+  it("clicks Buscar disponibilidad and renders room cards returned by the server", async () => {
     render(<ChatPage />);
 
     // There are two "Buscar disponibilidad" buttons (quick action + dates); click the quick action one
     const allBtns = await screen.findAllByRole("button", { name: /Buscar disponibilidad/i });
     fireEvent.click(allBtns[0]);
 
-    // After clicking, should see the mock room cards title
+    // The response and room cards must come from the authorized /api/chat response.
     await waitFor(() =>
       expect(
         screen.getByText(/Estas son las opciones disponibles para tus fechas/i)

@@ -357,6 +357,18 @@ export interface ChannelMessage {
 
 }
 
+export type GuestWebConversationScope = "conversation:read" | "conversation:write";
+
+export type GuestWebConversationGrant = {
+  version: 1;
+  webSubject: string;
+  jtiHash: string;
+  scopes: GuestWebConversationScope[];
+  issuedAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
+};
+
 export interface Conversation {
   conversationId: string;
   hotelId: string;
@@ -367,7 +379,9 @@ export interface Conversation {
   userId?: string;
   guestId?: string;
   status?: "active" | "closed" | "archived" | "ignored";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> & {
+    guestWebGrant?: GuestWebConversationGrant;
+  };
   subject?: string | null;
   /** Identificador de la reserva asociada a la conversación (opcional) */
   reservationId?: string;

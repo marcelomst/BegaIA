@@ -9,16 +9,41 @@ vi.mock("@/lib/pipeline/handleChannelMessage", () => ({
   handleChannelMessage: handleChannelMessageMock,
 }));
 
-function makeReq(body: unknown): Request {
+vi.mock("@/lib/pipeline/resolveGuestIdentity", () => ({
+  resolveGuestIdentity: vi.fn(async () => ({ guestId: "guest-rich-api" })),
+}));
+
+import { createGuestWebGrant, issueGuestConversationCapability } from "@/lib/auth/guestConversationCapability";
+import { createConversation } from "@/lib/db/conversations";
+
+function makeReq(body: unknown, capability: string): Request {
   return new Request("http://localhost/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${capability}` },
     body: JSON.stringify(body),
   });
 }
 
 describe("/api/chat rich payload", () => {
   it("propaga rich room-info-img en el JSON de respuesta", async () => {
+    vi.stubEnv("GUEST_WEB_CONVERSATION_SECRET", "guest-rich-secret-with-at-least-32-bytes-1234567890");
+    const jti = crypto.randomUUID();
+    const webSubject = `ws_${crypto.randomUUID()}`;
+    const grant = createGuestWebGrant({ webSubject, jti });
+    const capability = await issueGuestConversationCapability({
+      hotelId: "hotel999",
+      conversationId: "conv-room-info-img-api-1",
+      jti,
+      grant,
+    });
+    await createConversation({
+      hotelId: "hotel999",
+      conversationId: "conv-room-info-img-api-1",
+      channel: "web",
+      lang: "es",
+      guestId: "guest-rich-api",
+      metadata: { guestWebGrant: grant },
+    });
     handleChannelMessageMock.mockResolvedValueOnce({
       conversationId: "conv-room-info-img-api-1",
       status: "sent",
@@ -43,9 +68,11 @@ describe("/api/chat rich payload", () => {
     const res = await POST(
       makeReq({
         hotelId: "hotel999",
+        conversationId: "conv-room-info-img-api-1",
         channel: "web",
         query: "Que tipos de habitaciones tienen?",
-      })
+        messageId: crypto.randomUUID(),
+      }, capability)
     );
     const json = await res.json();
 
