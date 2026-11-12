@@ -17617,3 +17617,106 @@ Impacto:
 - `scripts/semantic-normalization-spike/` permanece completamente excluido
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### GUEST-WEB-CONVERSATION-CAPABILITY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-12
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar continuidad Guest Web segura con identidad y autoridad server-side
+Commit tecnico: 92c0ee8592867f41ab66694a55ad4b63b791aa9a
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- separa la capability Guest de Staff y deriva autoridad exclusivamente del
+  grant persistido y del binding autorizado hotel-conversacion-sujeto
+- persiste conversacion y grant antes de firmar el bootstrap, y autoriza el
+  historial con el mismo binding
+- conserva el locator por pestana/hotel como indice local, nunca como
+  credencial ni fuente de autoridad
+- incorpora ownership y reconciliacion de releases inciertos, revocacion CAS
+  con readback concluyente y pending turn persistido
+- aplica idempotencia durable tenant-scoped mediante `messageId` y
+  `sourceMsgId`
+- protege el rate limiting Redis Lua mediante ingress HMAC
+- integra ChatPage y widget con continuidad de cuatro turnos y aislamiento
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 92c0ee8592867f41ab66694a55ad4b63b791aa9a
+technical_parent: 977277f4a82a8a39869e95811136f94ba5909364
+technical_commit_message: "feat(guest-web): add secure conversation continuity"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 92c0ee8592867f41ab66694a55ad4b63b791aa9a
+validation:
+  focused_tests: 62/62 PASS
+  core_tests: 1549/1549 PASS
+  core_files: 205/205 PASS
+  typescript: PASS
+  git_diff_check: PASS
+  commit_scope: exact
+  residual_worktree: only_43_sin_v2
+```
+
+Limites operativos:
+
+```yaml
+controlled_smoke: pending
+deployment_readiness: not_granted
+commercial_demo_readiness: not_granted
+cancel_execution: disabled
+trusted_ingress: deployment_precondition
+```
+
+- permanecen pendientes los smoke controlados con Astra y Redis reales, la
+  configuracion y acreditacion del ingress HMAC confiable y el procedimiento
+  operativo para reconciliar pending turns inciertos
+- no se declara despliegue, smoke productivo, demo comercial, SSE, polling ni
+  habilitacion de Cancel
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched: []
+  reviewed: []
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: not_applicable
+    details:
+      - messageHandler y handleChannelMessage no fueron modificados
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: false
+  verdict: valid
+```
+
+- no se actualiza Runtime Map; la deuda de code refs es anterior y no se
+  atribuye a este commit
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `docs/architecture/roadmap.md`
+- `docs/architecture/conversation_binding_guest_identity.md`
+- `docs/architecture/channel_architecture.md`
+
+Impacto:
+
+- canonicidad: fortalece; conserva una unica identidad canonica de
+  conversacion, mantiene la autoridad en capability y grant persistido y evita
+  que el locator cliente se convierta en fuente paralela
+- roadmap: implementacion tecnica Guest Web committed; smoke controlado y
+  readiness de despliegue y demo comercial permanecen pendientes o no
+  concedidos
+- `docs/architecture/astra_persistence_policy.md` fue revisado y no requiere
+  cambios porque no contradice la materializacion tecnica
+- los 43 archivos `scripts/semantic-normalization-spike/**` permanecen
+  completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

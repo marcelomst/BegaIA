@@ -11,24 +11,33 @@ ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ---
 
-## CHECKPOINT — SECURE CONVERSATIONAL FOUNDATION 2026-11-11
+## CHECKPOINT — GUEST WEB CONVERSATION CAPABILITY 2026-11-12
 
 ```yaml
 secure_conversational_foundation:
-  hito_id: SECURE-CONVERSATIONAL-FOUNDATION-01
-  technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+  hito_id: GUEST-WEB-CONVERSATION-CAPABILITY-01
+  technical_commit: 92c0ee8592867f41ab66694a55ad4b63b791aa9a
   foundation_checkpoint: completed
-  cancel_execution_integrity: remains_open
-  guest_web_conversation_capability: remains_open
+  guest_web_conversation_capability: technical_implementation_committed
+  controlled_smoke: pending
   deployment_readiness: not_granted
-  origin_hito: FIX-CANCEL-SECURE-AUTHORIZATION-LIFECYCLE-01
-  origin_hito_closed: false
+  commercial_demo_readiness: not_granted
+  cancel_execution: disabled
+  runtime_map_refresh_required: false
+  secure_conversational_foundation: preserved
 ```
 
-La fundacion consolida ownership, CAS, persistencia tenant-scoped,
-autorizacion administrativa, autenticacion Staff y MCP fail-closed. Cancel
-permanece deshabilitado en las entradas productivas auditadas; Guest Web
-permanece sin continuidad ni SSE. El checkpoint no autoriza despliegue.
+La implementacion tecnica de Guest Web incorpora identidad server-side,
+capability y grant persistido separados de Staff, binding autorizado,
+continuidad e historial, idempotencia durable, pending turns y rate limiting
+con ingress HMAC. El locator del cliente es solo un indice local y no una
+credencial ni fuente de autoridad.
+
+Permanecen pendientes los smoke controlados con Astra y Redis reales, la
+configuracion y acreditacion del ingress HMAC confiable y el procedimiento
+operativo para reconciliar pending turns inciertos. Cancel permanece
+deshabilitado, no se incorpora SSE y este checkpoint no concede readiness de
+despliegue ni de demo comercial.
 
 ---
 

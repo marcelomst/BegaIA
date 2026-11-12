@@ -35,9 +35,17 @@ Canal interactivo HTTP utilizado por frontend.
 Características:
 
 - entrada vía `/api/chat`
-- `guestId` persistente por navegador (formato `guest-${uuid}`)
+- identidad Guest y capability emitidas server-side, separadas de Staff
+- grant persistido y binding autorizado por hotel, conversación y sujeto
+- locator por pestaña/hotel usado sólo como índice local, nunca como autoridad
+- idempotencia durable tenant-scoped mediante `messageId` y `sourceMsgId`
 - interacción síncrona request/response
-- soporte de acuse/flujo pendiente en modo supervisado cuando aplica
+- pending turn persistido para reconciliar releases inciertos
+- rate limiting Redis Lua protegido por ingress HMAC confiable
+
+La implementación técnica no incorpora SSE. Los smoke controlados con Astra y
+Redis reales y la acreditación operativa del ingress HMAC permanecen
+pendientes; por ello no concede readiness de despliegue ni de demo comercial.
 
 ### WhatsApp
 
@@ -112,7 +120,7 @@ Los canales no son la identidad del huésped. La identidad se resuelve mediante:
 
 Relación conceptual:
 
-`Web      -> web alias / guestId persistente`
+`Web      -> capability Guest + grant server-side`
 `WhatsApp -> phone alias`
 `Email    -> email alias`
 `CM       -> external alias`
@@ -159,6 +167,7 @@ Referencia: `docs/architecture/admin_panel.md`.
 - trazabilidad por `guestId` y `conversationId`
 - multi-hotel explícito por `hotelId`
 - reserva operacional durable por `hotel_id` en el Channel Manager demo/local
+- autoridad Guest Web derivada sólo de capability, grant y binding persistidos
 
 ## 9. Relación con otros documentos
 
