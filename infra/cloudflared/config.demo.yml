@@ -1,0 +1,13 @@
+# Path: /infra/cloudflared/config.demo.yml
+
+tunnel: c3d5dea7-fc68-4374-9211-cf7fa8c20da2
+credentials-file: /etc/cloudflared/credentials/c3d5dea7-fc68-4374-9211-cf7fa8c20da2.json
+
+ingress:
+  - hostname: wa-dev.begam.uy
+    service: http://trusted-ingress:3001
+  - service: http_status:404
+
+originRequest:
+  connectTimeout: 10s
+  tcpKeepAlive: 30s

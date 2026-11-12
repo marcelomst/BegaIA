@@ -8,6 +8,8 @@ services:
     volumes:
       - demo_redis_data:/data
     restart: unless-stopped
+    networks:
+      - app-backend
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -26,6 +28,9 @@ services:
     environment:
       NODE_ENV: development
       REDIS_URL: redis://redis:6379
+      GUEST_WEB_CONVERSATION_SECRET: "${GUEST_WEB_CONVERSATION_SECRET:-}"
+      GUEST_WEB_PROXY_TRUST_SECRET: "${GUEST_WEB_PROXY_TRUST_SECRET:-}"
+      GUEST_WEB_ALLOWED_ORIGINS: "${GUEST_WEB_ALLOWED_ORIGINS:-http://127.0.0.1:8081,http://localhost:8081}"
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "300"
@@ -35,8 +40,6 @@ services:
       MCP_ENDPOINT: http://suite:3000/api/mcp
       ASTRA_DB_SECURE_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
       ASTRA_DB_SECURE_CONNECT_BUNDLE: /app/credenciales CQL/secure-connect-begasist.zip
-    ports:
-      - "3000:3000"
     volumes:
       - .:/app:cached
       - demo_suite_node_modules:/app/node_modules
@@ -48,12 +51,61 @@ services:
     stop_signal: SIGINT
     stop_grace_period: 20s
     restart: unless-stopped
+    networks:
+      - app-backend
+      - app-egress
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 15s
       timeout: 5s
       retries: 12
       start_period: 30s
+
+  trusted-ingress:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: begasist-suite:dev
+    container_name: begasist-demo-trusted-ingress
+    command: pnpm exec tsx lib/infra/trustedIngress.ts
+    environment:
+      NODE_ENV: development
+      GUEST_WEB_PROXY_TRUST_SECRET: "${GUEST_WEB_PROXY_TRUST_SECRET:-}"
+      TRUSTED_INGRESS_UPSTREAM: http://suite:3000
+      TRUSTED_INGRESS_LOCAL_PORT: "3000"
+      TRUSTED_INGRESS_LOCAL_BIND_ADDRESS: "172.30.253.2"
+      TRUSTED_INGRESS_LOCAL_PEER_ADDRESS: "172.30.253.1"
+      TRUSTED_INGRESS_TUNNEL_PORT: "3001"
+      TRUSTED_INGRESS_TUNNEL_BIND_ADDRESS: "172.30.254.2"
+      TRUSTED_INGRESS_TUNNEL_PEER_HOST: cloudflared
+    ports:
+      - "127.0.0.1:3000:3000"
+    expose:
+      - "3001"
+    volumes:
+      - .:/app:ro
+      - demo_suite_node_modules:/app/node_modules
+    depends_on:
+      suite:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 10s
+    restart: unless-stopped
+    networks:
+      local-ingress:
+        ipv4_address: 172.30.253.2
+        priority: 1000
+        gw_priority: 1
+      app-backend: {}
+      tunnel-ingress:
+        ipv4_address: 172.30.254.2
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://172.30.253.2:3000/__trusted-ingress/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   hotel-demo:
     build:
@@ -66,7 +118,7 @@ services:
       HOTEL_DEMO_HOST: 0.0.0.0
       HOTEL_DEMO_PORT: "8081"
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     volumes:
       - .:/app:cached
     depends_on:
@@ -112,6 +164,9 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 20s
     restart: unless-stopped
+    networks:
+      - app-backend
+      - app-egress
     healthcheck:
       test: ["CMD-SHELL", "test -f /tmp/email-worker.started"]
       interval: 30s
@@ -126,16 +181,21 @@ services:
       tunnel --no-autoupdate
       --loglevel info
       --metrics 0.0.0.0:2000
-      --config /etc/cloudflared/config.dev.yml
+      --config /etc/cloudflared/config.demo.yml
       run begasist-dev
     volumes:
-      - ./.cloudflared:/etc/cloudflared:ro
+      - ./infra/cloudflared/config.demo.yml:/etc/cloudflared/config.demo.yml:ro
+      - ./.cloudflared:/etc/cloudflared/credentials:ro
     ports:
-      - "2000:2000"
+      - "127.0.0.1:2000:2000"
     depends_on:
-      suite:
+      trusted-ingress:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      tunnel-ingress:
+        ipv4_address: 172.30.254.3
+      tunnel-egress: {}
     healthcheck:
       test: ["CMD", "cloudflared", "--version"]
       interval: 30s
@@ -146,3 +206,20 @@ volumes:
   demo_redis_data:
   demo_suite_node_modules:
   demo_suite_next:
+
+networks:
+  app-backend:
+    internal: true
+  app-egress: {}
+  local-ingress:
+    ipam:
+      config:
+        - subnet: 172.30.253.0/29
+          gateway: 172.30.253.1
+  tunnel-ingress:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.254.0/29
+          gateway: 172.30.254.1
+  tunnel-egress: {}
