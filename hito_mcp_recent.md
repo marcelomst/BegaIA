@@ -10,7 +10,33 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 1. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+
+- Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
+- Nombre: `add trusted ingress for guest web`
+- Commit tecnico: `535367cddf5e0e55be1216f9e2902e3a63a1e438`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora una unica frontera trusted ingress para Guest
+  Web con listeners local y Cloudflare separados, acreditacion TCP, asercion
+  HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
+  tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
+
+## 2. GUEST-WEB-CONVERSATION-CAPABILITY-01
+
+- Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
+- Nombre: `add secure Guest Web conversation capability`
+- Commit tecnico: `92c0ee8592867f41ab66694a55ad4b63b791aa9a`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora continuidad Guest Web segura con identidad,
+  capability, grant y binding server-side, historial e idempotencia durable;
+  mantiene trusted ingress como precondicion, smoke controlado pendiente,
+  despliegue y demo comercial no concedidos y Cancel deshabilitado.
+
+## 3. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -23,7 +49,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 2. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 4. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -36,7 +62,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 3. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 5. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -50,7 +76,7 @@ recent_hitos_count: 10
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
 
-## 4. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 6. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -64,7 +90,7 @@ recent_hitos_count: 10
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
 
-## 5. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 7. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -77,7 +103,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 6. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 8. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -91,7 +117,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 7. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 9. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -105,7 +131,7 @@ recent_hitos_count: 10
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
 
-## 8. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
+## 10. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
 
 - Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
 - Nombre: `experimental SIN V2 semantic contract`
@@ -117,31 +143,3 @@ recent_hitos_count: 10
   validador estricto, un adaptador conservador hacia RDA, fixtures y 29 pruebas
   focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
   sin autoridad operacional, efectos ni estado canonico paralelo.
-
-## 9. TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01
-
-- Identificador: `TEST-OBS-M6-07-POST-DISCARD-CAUSAL-CHARACTERIZATION-01`
-- Nombre: `characterize OBS-M6-07 after valid Modify preview discard`
-- Commit tecnico: `c4c991b7062cb5adb736adb7c19cd9c2689c754c`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Caracteriza causalmente `OBS-M6-07` despues de descartar
-  un preview Modify valido: las precondiciones pasan y la unica divergencia
-  esperada es la completitud post-descarte. No observa efectos de dominio de
-  modify, cancel ni create, no declara la observacion resuelta y preserva
-  `FIX-CANONICAL-STATUS-ACTIONABILITY-01` en `RECONCILED / CLOSURE_BLOCKED`.
-
-## 10. FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01
-
-- Identificador: `FIX-GUESTWIDE-MODIFY-AUTHORITY-RESOLUTION-01`
-- Nombre: `restore guestwide modify authority resolution`
-- Commit tecnico: `3281c9b7c2ff1791c02ce2dd7759e399123e05c8`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Restaura Modify mediante autoridad material guest-wide
-  efimera por hotel, huesped canonico y reserva, con autoridad local primero,
-  identificacion no autoritativa, fail-closed y revalidacion antes de quote,
-  preview y ejecucion; mantiene `OBS-M6-07` confirmado y no altera el cierre
-  bloqueado del hito relacionado.

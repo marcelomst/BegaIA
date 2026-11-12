@@ -17720,3 +17720,93 @@ Impacto:
   completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-12
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar una frontera trusted ingress unica para Guest Web en el stack Docker demo
+Commit tecnico: 535367cddf5e0e55be1216f9e2902e3a63a1e438
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- incorpora listeners local y Cloudflare separados hacia una unica frontera
+  trusted ingress publicada frente a `suite`
+- acredita el peer TCP y emite una asercion HMAC compatible con el rate
+  limiter Guest sin sustituir la capability ni el grant Guest
+- sanitiza headers HTTP en ambos sentidos para evitar que el cliente o el
+  upstream inyecten o filtren metadata de confianza
+- incorpora un smoke harness autorizado, sin declarar ejecutado ni aprobado
+  el smoke Docker controlado
+- mantiene pendientes la validacion real de port-publish, DNAT,
+  `remoteAddress`, aislamiento entre bridges, credenciales, DNS y routing
+  Cloudflare
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 535367cddf5e0e55be1216f9e2902e3a63a1e438
+technical_parent: 4fbd38045fa91d294dc88bc66f258449b3eb61e4
+technical_commit_message: "feat(demo): add trusted ingress for guest web"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 535367cddf5e0e55be1216f9e2902e3a63a1e438
+technical_scope:
+  - .env.example
+  - docker-compose.demo.yml
+  - docs/development/demo-local-orchestration.md
+  - infra/cloudflared/config.demo.yml
+  - lib/infra/trustedIngress.ts
+  - scripts/demo-local-smoke.sh
+  - test/unit/trustedIngress.spec.ts
+validation:
+  trusted_ingress_tests: 24/24 PASS
+  ingress_and_rate_limit_tests: 30/30 PASS
+  cross_slice_tests: 80/80 PASS
+  typescript: PASS
+  bash_syntax: PASS
+  yaml_parse: PASS
+  git_diff_check: PASS
+```
+
+Limites operativos:
+
+```yaml
+controlled_docker_smoke: pending
+deployment_readiness: not_granted
+public_tunnel_readiness: not_granted
+commercial_demo_readiness: not_granted
+cancel_execution: disabled
+runtime_map_refresh_required: false
+```
+
+- no se declara aprobado el smoke Docker, el despliegue, el tunel publico ni
+  la demo comercial
+- `READY_FOR_PUBLIC_TUNNEL` y `READY_FOR_COMMERCIAL_DEMO` permanecen en no
+- las credenciales Cloudflare tracked requieren rotacion y evaluacion de
+  exposicion historica antes de cualquier tunel publico
+- Cancel permanece deshabilitado
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/architecture/roadmap.md`
+
+Impacto:
+
+- canonicidad: fortalece; consolida un unico ingreso publicado hacia `suite` y
+  limita los headers firmados a identidad de rate limiting, sin crear
+  autoridad, persistencia ni runtime conversacional paralelos
+- roadmap: trusted ingress queda como implementacion tecnica committed; smoke
+  Docker, despliegue, tunel publico y demo comercial permanecen pendientes o
+  no concedidos
+- no se actualizan Runtime Map, ADRs ni Operating Model
+- los 43 archivos `scripts/semantic-normalization-spike/**` permanecen
+  completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

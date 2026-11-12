@@ -11,6 +11,35 @@ ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ---
 
+## CHECKPOINT — GUEST WEB TRUSTED INGRESS 2026-11-12
+
+```yaml
+guest_web_trusted_ingress:
+  hito_id: DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+  technical_commit: 535367cddf5e0e55be1216f9e2902e3a63a1e438
+  trusted_ingress: technical_implementation_committed
+  controlled_docker_smoke: pending
+  deployment_readiness: not_granted
+  ready_for_public_tunnel: false
+  ready_for_commercial_demo: false
+  cancel_execution: disabled
+  runtime_map_refresh_required: false
+```
+
+El stack Docker demo incorpora una unica frontera trusted ingress publicada
+hacia `suite`, con listeners local y Cloudflare separados, acreditacion del
+peer TCP, asercion HMAC para la identidad de rate limiting Guest y sanitizacion
+HTTP bidireccional. La asercion firmada no sustituye la capability ni el grant
+Guest y no crea una fuente paralela de autoridad.
+
+Permanecen pendientes la validacion con Docker real de port-publish, DNAT,
+`remoteAddress` y aislamiento entre bridges; la ejecucion del smoke Guest Web
+controlado; y la rotacion y verificacion de credenciales, DNS y routing
+Cloudflare. Este checkpoint no concede despliegue, tunel publico ni demo
+comercial. Cancel permanece deshabilitado.
+
+---
+
 ## CHECKPOINT — GUEST WEB CONVERSATION CAPABILITY 2026-11-12
 
 ```yaml
