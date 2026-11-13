@@ -11,6 +11,9 @@
   const side = pos.includes("left") ? "left" : "right";
   const api = (cfg.apiBase || "").replace(/\/+$/, "");
   const hotelId = cfg.hotelId || "hotel-demo";
+  const SUPERVISED_POLL_INTERVAL_MS = 4_000;
+  const SUPERVISED_POLL_TIMEOUT_MS = 2 * 60_000;
+  const VISIBLE_ASSISTANT_STATUSES = new Set(["sent", "approved", "delivered"]);
   const assistantCfg = (cfg.assistant && typeof cfg.assistant === "object") ? cfg.assistant : {};
   const sanitizeLabel = (value, fallback) => {
     const clean = String(value || "").trim();
@@ -121,6 +124,13 @@
   let requiresExplicitRestart = false;
   let bootstrapPromise = null;
   let activePendingTurn = null;
+  let supervisedWait = null;
+  let supervisedPollTimer = null;
+  let supervisedPollInFlight = false;
+  let supervisedPollAbortController = null;
+  let supervisedPollGeneration = 0;
+  let supervisedPollingPaused = false;
+  let widgetLifecycleDestroyed = false;
   const clearBundle = () => sessionStorage.removeItem(bundleKey);
   const readBundle = () => {
     const raw = sessionStorage.getItem(bundleKey);
@@ -406,12 +416,19 @@
   const btnNewChat = panel.querySelector("#bgst-newchat");
   const titleEl = panel.querySelector("#bgst-title");
   const roleEl = panel.querySelector("#bgst-role");
-  const applyPendingLock = (pending) => {
-    activePendingTurn = pending || null;
-    const locked = Boolean(activePendingTurn);
+  const syncInteractionLock = () => {
+    const locked = Boolean(activePendingTurn || supervisedWait);
     btn.disabled = locked;
     ta.disabled = locked;
     btnNewChat.disabled = locked;
+  };
+  const applyPendingLock = (pending) => {
+    activePendingTurn = pending || null;
+    syncInteractionLock();
+  };
+  const applySupervisedWait = (waiting) => {
+    supervisedWait = waiting || null;
+    syncInteractionLock();
   };
 
   const applyLangToUI = () => {
@@ -437,11 +454,14 @@
   });
 
   let lastAiText = "";
-  const appendMsg = (role, text) => {
-    if (!text) return;
+  const renderedMessageIds = new Set();
+  const appendMsg = (role, text, messageId) => {
+    const normalizedMessageId = typeof messageId === "string" ? messageId.trim() : "";
+    if (normalizedMessageId && renderedMessageIds.has(normalizedMessageId)) return false;
+    if (!text) return false;
     if (role === "ai") {
       const clean = String(text).trim();
-      if (!clean || clean === lastAiText) return;
+      if (!clean || clean === lastAiText) return false;
       lastAiText = clean;
     } else {
       lastAiText = "";
@@ -451,6 +471,8 @@
     row.textContent = text;
     msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
+    if (normalizedMessageId) renderedMessageIds.add(normalizedMessageId);
+    return true;
   };
 
   const appendCarousel = (items) => {
@@ -554,6 +576,111 @@
     }
   };
 
+  const stopSupervisedApprovalPolling = ({ clearWait = true } = {}) => {
+    supervisedPollGeneration += 1;
+    if (supervisedPollTimer) clearTimeout(supervisedPollTimer);
+    supervisedPollTimer = null;
+    supervisedPollAbortController?.abort();
+    supervisedPollAbortController = null;
+    if (clearWait) applySupervisedWait(null);
+  };
+
+  const scheduleSupervisedApprovalPoll = () => {
+    if (
+      widgetLifecycleDestroyed || supervisedPollingPaused || !supervisedWait ||
+      supervisedPollTimer || supervisedPollInFlight
+    ) return;
+    const elapsed = Date.now() - supervisedWait.startedAt;
+    if (elapsed >= SUPERVISED_POLL_TIMEOUT_MS) {
+      stopSupervisedApprovalPolling();
+      return;
+    }
+    supervisedPollTimer = setTimeout(() => {
+      supervisedPollTimer = null;
+      void pollSupervisedApproval();
+    }, Math.min(SUPERVISED_POLL_INTERVAL_MS, SUPERVISED_POLL_TIMEOUT_MS - elapsed));
+  };
+
+  const pollSupervisedApproval = async () => {
+    if (widgetLifecycleDestroyed || supervisedPollingPaused || !supervisedWait || supervisedPollInFlight) return;
+    const wait = supervisedWait;
+    const generation = supervisedPollGeneration;
+    const remainingMs = SUPERVISED_POLL_TIMEOUT_MS - (Date.now() - wait.startedAt);
+    if (remainingMs <= 0) {
+      stopSupervisedApprovalPolling();
+      return;
+    }
+    const state = readBundle();
+    if (state.status !== "valid" || state.bundle.conversationId !== wait.conversationId) {
+      if (state.status !== "missing") clearBundle();
+      requiresExplicitRestart = state.status !== "missing";
+      stopSupervisedApprovalPolling();
+      return;
+    }
+
+    supervisedPollInFlight = true;
+    const controller = new AbortController();
+    const requestDeadline = setTimeout(() => controller.abort(), remainingMs);
+    supervisedPollAbortController = controller;
+    try {
+      const res = await fetch(`${api}/api/guest/web/history`, {
+        headers: { Authorization: `Bearer ${state.bundle.capability}` },
+        signal: controller.signal,
+      });
+      if (generation !== supervisedPollGeneration || supervisedWait !== wait) return;
+      if (res.status === 401 || res.status === 403) {
+        clearBundle();
+        requiresExplicitRestart = true;
+        stopSupervisedApprovalPolling();
+        appendMsg("ai", "La conversación anterior ya no puede recuperarse. Iniciá una nueva conversación.");
+        return;
+      }
+      if (!res.ok) throw new Error("supervised history request failed");
+      const data = await res.json();
+      if (
+        (data?.hotelId && data.hotelId !== hotelId) ||
+        (data?.conversationId && data.conversationId !== wait.conversationId)
+      ) throw new Error("supervised history binding mismatch");
+      const history = Array.isArray(data?.messages) ? data.messages : [];
+      const pendingTurnIndex = history.findIndex((message) =>
+        message?.messageId === wait.messageId && message?.role === "user"
+      );
+      const approved = pendingTurnIndex >= 0
+        ? history.slice(pendingTurnIndex + 1).find((message) =>
+          message?.role === "assistant" &&
+          VISIBLE_ASSISTANT_STATUSES.has(message?.status || "sent")
+        )
+        : undefined;
+      if (approved) {
+        const appended = appendMsg("ai", approved.content, approved.messageId);
+        if (appended && approved.rich) appendRich(approved.rich);
+        stopSupervisedApprovalPolling();
+        ta.focus();
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        debug("supervised.poll.error", { conversationId: wait.conversationId });
+      }
+    } finally {
+      clearTimeout(requestDeadline);
+      if (supervisedPollAbortController === controller) supervisedPollAbortController = null;
+      supervisedPollInFlight = false;
+      scheduleSupervisedApprovalPoll();
+    }
+  };
+
+  const startSupervisedApprovalPolling = (bundle, messageId) => {
+    if (!bundle?.conversationId || typeof messageId !== "string" || !messageId.trim()) return;
+    stopSupervisedApprovalPolling();
+    supervisedPollingPaused = false;
+    applySupervisedWait({
+      conversationId: bundle.conversationId,
+      messageId: messageId.trim(),
+      startedAt: Date.now(),
+    });
+    scheduleSupervisedApprovalPoll();
+  };
+
   // --- SSE permanece deshabilitado. La respuesta automática vuelve por /api/chat.
   const initializeConversation = async () => {
     const recoveredPending = discoverPendingTurn();
@@ -598,11 +725,19 @@
       const data = await res.json();
       let pendingUserVisible = false;
       for (const message of Array.isArray(data.messages) ? data.messages : []) {
+        if (
+          message.role !== "user" &&
+          !VISIBLE_ASSISTANT_STATUSES.has(message.status || "sent")
+        ) continue;
         if (recoveredPending && message.role === "user" && message.content === recoveredPending.text) {
           pendingUserVisible = true;
         }
-        appendMsg(message.role === "user" ? "user" : "ai", message.content);
-        if (message.rich) appendRich(message.rich);
+        const appended = appendMsg(
+          message.role === "user" ? "user" : "ai",
+          message.content,
+          message.messageId,
+        );
+        if (appended && message.rich) appendRich(message.rich);
       }
       if (recoveredPending) {
         if (!pendingUserVisible) appendMsg("user", recoveredPending.text);
@@ -624,16 +759,21 @@
     if (isOpen) {
       panel.style.display = "none";
       bubble.setAttribute("aria-expanded", "false");
+      supervisedPollingPaused = true;
+      stopSupervisedApprovalPolling({ clearWait: false });
     } else {
       panel.style.display = "flex";
       bubble.setAttribute("aria-expanded", "true");
+      supervisedPollingPaused = false;
+      scheduleSupervisedApprovalPoll();
       ta.focus();
     }
   };
   bubble.addEventListener("click", toggle);
   btnClose.addEventListener("click", toggle);
   btnNewChat.addEventListener("click", async () => {
-    if (activePendingTurn) return;
+    if (activePendingTurn || supervisedWait) return;
+    stopSupervisedApprovalPolling();
     clearBundle();
     requiresExplicitRestart = false;
     msgs.innerHTML = "";
@@ -652,7 +792,7 @@
 
   const send = async () => {
     const text = (ta.value || "").trim();
-    if (!text || activePendingTurn) return;
+    if (!text || activePendingTurn || supervisedWait) return;
     ta.value = "";
     btn.disabled = true;
 
@@ -694,6 +834,7 @@
       });
 
       if (res.status === 401 || res.status === 403) {
+        stopSupervisedApprovalPolling();
         clearPendingTurn(pending);
         applyPendingLock(null);
         clearBundle();
@@ -716,10 +857,17 @@
         confirmPendingTurn(pending);
         applyPendingLock(null);
         appendMsg("ai", "Tu consulta quedó pendiente de revisión. No se enviará una respuesta automática.");
+        if (!data.conversationId || data.conversationId === bundle.conversationId) {
+          startSupervisedApprovalPolling(bundle, data.messageId);
+        }
       } else if (data && data.response) {
         confirmPendingTurn(pending);
         applyPendingLock(null);
-        appendMsg("ai", typeof data.response === "string" ? data.response : JSON.stringify(data.response));
+        appendMsg(
+          "ai",
+          typeof data.response === "string" ? data.response : JSON.stringify(data.response),
+          data.messageId,
+        );
       } else {
         confirmPendingTurn(pending);
         applyPendingLock(null);
@@ -752,6 +900,19 @@
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && panel.style.display === "flex") toggle();
   });
+
+  const destroyWidgetLifecycle = () => {
+    if (widgetLifecycleDestroyed) return;
+    widgetLifecycleDestroyed = true;
+    stopSupervisedApprovalPolling();
+    lifecycleObserver.disconnect();
+    window.removeEventListener("pagehide", destroyWidgetLifecycle);
+  };
+  const lifecycleObserver = new MutationObserver(() => {
+    if (!bubble.isConnected || !panel.isConnected) destroyWidgetLifecycle();
+  });
+  lifecycleObserver.observe(document.body, { childList: true });
+  window.addEventListener("pagehide", destroyWidgetLifecycle);
 
   console.log("[BegAIChat] listo •", {
     hotelId,

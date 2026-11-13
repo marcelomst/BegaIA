@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const widgetSource = readFileSync(join(process.cwd(), "public/widget/begai-chat.js"), "utf8");
 
@@ -17,6 +17,11 @@ function readPendingTurn(): any | null {
 
 function runWidget() {
   window.eval(widgetSource);
+}
+
+async function flushWidgetTasks() {
+  await vi.advanceTimersByTimeAsync(0);
+  await Promise.resolve();
 }
 
 function findSessionKey(fragment: string): string | null {
@@ -42,6 +47,11 @@ describe("public BegAI widget Guest capability containment", () => {
     };
   });
 
+  afterEach(() => {
+    window.dispatchEvent(new Event("pagehide"));
+    vi.useRealTimers();
+  });
+
   it("usa capability por header, sessionStorage y mantiene SSE deshabilitado", () => {
     const source = widgetSource;
 
@@ -56,6 +66,246 @@ describe("public BegAI widget Guest capability containment", () => {
     expect(source).toContain('markPendingTurn(pending, "uncertain")');
     expect(source).toContain("messageId: pending.messageId");
     expect(source).not.toContain("messageId: crypto.randomUUID()");
+  });
+
+  it("muestra una aprobación supervisada una sola vez sin exponer pending interno", async () => {
+    vi.useFakeTimers();
+    let historyCalls = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/guest/web/bootstrap")) {
+        return new Response(JSON.stringify({
+          capability: "widget-supervised-capability",
+          conversationId: "conv-widget-supervised",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 201 });
+      }
+      if (url.endsWith("/api/chat")) {
+        return new Response(JSON.stringify({
+          status: "pending",
+          messageId: "guest:source-supervised-1",
+          conversationId: "conv-widget-supervised",
+        }), { status: 200 });
+      }
+      if (url.endsWith("/api/guest/web/history")) {
+        historyCalls += 1;
+        if (historyCalls === 1) {
+          return new Response(JSON.stringify({
+            hotelId: "hotel999",
+            conversationId: "conv-widget-foreign",
+            messages: [{
+              messageId: "assistant-foreign-1",
+              role: "assistant",
+              status: "sent",
+              content: "Respuesta de otra conversación.",
+            }],
+          }), { status: 200 });
+        }
+        return new Response(JSON.stringify({
+          hotelId: "hotel999",
+          conversationId: "conv-widget-supervised",
+          messages: [
+            {
+              messageId: "assistant-stale-1",
+              role: "assistant",
+              status: "sent",
+              content: "Respuesta anterior que no corresponde al turno pendiente.",
+            },
+            {
+              messageId: "guest:source-supervised-1",
+              role: "user",
+              status: "sent",
+              content: "Consulta supervisada",
+            },
+            {
+              messageId: "assistant-pending-internal",
+              role: "assistant",
+              status: "pending",
+              content: "sugerencia interna pendiente",
+            },
+            {
+              messageId: "assistant-supervised-approved-1",
+              role: "assistant",
+              status: "sent",
+              content: "Respuesta aprobada desde recepción.",
+            },
+          ],
+        }), { status: 200 });
+      }
+      return new Response("Not Found", { status: 404 });
+    }));
+
+    runWidget();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#bgst-input")!;
+    textarea.value = "Consulta supervisada";
+    document.querySelector<HTMLButtonElement>("#bgst-send")!.click();
+    await flushWidgetTasks();
+
+    expect(document.body.textContent).toContain("pendiente de revisión");
+    expect(historyCalls).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    await flushWidgetTasks();
+
+    expect(historyCalls).toBe(1);
+    expect(document.body.textContent).not.toContain("Respuesta de otra conversación.");
+    expect(document.body.textContent).not.toContain("Respuesta aprobada desde recepción.");
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    await flushWidgetTasks();
+
+    expect(historyCalls).toBe(2);
+    expect(document.body.textContent).toContain("Respuesta aprobada desde recepción.");
+    expect(document.body.textContent).not.toContain("Respuesta anterior que no corresponde");
+    expect(document.body.textContent).not.toContain("sugerencia interna pendiente");
+    expect([...document.querySelectorAll(".bgst-ai")].filter((node) =>
+      node.textContent === "Respuesta aprobada desde recepción."
+    )).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(12_000);
+    expect(historyCalls).toBe(2);
+  });
+
+  it("no inicia polling para respuestas automáticas", async () => {
+    vi.useFakeTimers();
+    let historyCalls = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/guest/web/bootstrap")) {
+        return new Response(JSON.stringify({
+          capability: "widget-automatic-capability",
+          conversationId: "conv-widget-automatic",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 201 });
+      }
+      if (url.endsWith("/api/chat")) {
+        return new Response(JSON.stringify({
+          status: "sent",
+          response: "Respuesta automática.",
+          messageId: "assistant-automatic-1",
+        }), { status: 200 });
+      }
+      if (url.endsWith("/api/guest/web/history")) {
+        historyCalls += 1;
+        return new Response(JSON.stringify({ messages: [] }), { status: 200 });
+      }
+      return new Response("Not Found", { status: 404 });
+    }));
+
+    runWidget();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#bgst-input")!;
+    textarea.value = "Consulta automática";
+    document.querySelector<HTMLButtonElement>("#bgst-send")!.click();
+    await flushWidgetTasks();
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    expect(document.body.textContent).toContain("Respuesta automática.");
+    expect(historyCalls).toBe(0);
+  });
+
+  it("evita polling concurrente y lo detiene al cerrar el widget", async () => {
+    vi.useFakeTimers();
+    let historyCalls = 0;
+    const historyRequest: { resolve?: (response: Response) => void } = {};
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/guest/web/bootstrap")) {
+        return new Response(JSON.stringify({
+          capability: "widget-supervised-close-capability",
+          conversationId: "conv-widget-supervised-close",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 201 });
+      }
+      if (url.endsWith("/api/chat")) {
+        return new Response(JSON.stringify({
+          status: "pending",
+          messageId: "assistant-supervised-close-1",
+        }), { status: 200 });
+      }
+      if (url.endsWith("/api/guest/web/history")) {
+        historyCalls += 1;
+        return new Promise<Response>((resolve) => { historyRequest.resolve = resolve; });
+      }
+      return new Response("Not Found", { status: 404 });
+    }));
+
+    runWidget();
+    document.querySelector<HTMLButtonElement>(".bgst-bubble")!.click();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#bgst-input")!;
+    textarea.value = "Consulta supervisada larga";
+    document.querySelector<HTMLButtonElement>("#bgst-send")!.click();
+    await flushWidgetTasks();
+    await vi.advanceTimersByTimeAsync(4_000);
+
+    expect(historyCalls).toBe(1);
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(historyCalls).toBe(1);
+
+    document.querySelector<HTMLButtonElement>(".bgst-close")!.click();
+    historyRequest.resolve?.(new Response(JSON.stringify({
+      messages: [{
+        messageId: "assistant-supervised-close-1",
+        role: "assistant",
+        status: "sent",
+        content: "No debe renderizarse con el widget cerrado.",
+      }],
+    }), { status: 200 }));
+    await flushWidgetTasks();
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    expect(historyCalls).toBe(1);
+    expect(document.body.textContent).not.toContain("No debe renderizarse con el widget cerrado.");
+  });
+
+  it("aborta una consulta colgada y termina el polling al alcanzar el límite temporal", async () => {
+    vi.useFakeTimers();
+    let historyCalls = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/api/guest/web/bootstrap")) {
+        return new Response(JSON.stringify({
+          capability: "widget-supervised-timeout-capability",
+          conversationId: "conv-widget-supervised-timeout",
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 201 });
+      }
+      if (url.endsWith("/api/chat")) {
+        return new Response(JSON.stringify({
+          status: "pending",
+          messageId: "assistant-supervised-timeout-1",
+        }), { status: 200 });
+      }
+      if (url.endsWith("/api/guest/web/history")) {
+        historyCalls += 1;
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        });
+      }
+      return new Response("Not Found", { status: 404 });
+    }));
+
+    runWidget();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#bgst-input")!;
+    textarea.value = "Consulta supervisada sin aprobación";
+    document.querySelector<HTMLButtonElement>("#bgst-send")!.click();
+    await flushWidgetTasks();
+    await vi.advanceTimersByTimeAsync(4_000);
+
+    expect(historyCalls).toBe(1);
+    expect(textarea.disabled).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(116_000);
+    await flushWidgetTasks();
+
+    expect(textarea.disabled).toBe(false);
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(historyCalls).toBe(1);
   });
 
   it("conserva el mismo messageId tras pérdida de respuesta y recarga sin reintento automático", async () => {
