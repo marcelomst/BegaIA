@@ -6878,7 +6878,10 @@ async function tryBodyLLMStructuredEnrichment(pre: PreLLMResult, state: BodyLLMS
   });
   const structuredCat = structured.intent ? mapStructuredIntentToCategory(structured.intent) : undefined;
   const candidateCat = state.graphResult?.category || structuredCat;
-  const safeCat = isSafeAutosendCategory(candidateCat);
+  const handoffGuardCat = candidateCat === "amenities" && structuredCat === "amenities_info"
+    ? structuredCat
+    : candidateCat;
+  const safeCat = isSafeAutosendCategory(handoffGuardCat);
   const hasRichPayload = Boolean(state.explicitRich ?? (state.graphResult as any)?.meta?.rich);
   if (structured.handoff === true && !safeCat) {
     state.needsSupervision = true;
