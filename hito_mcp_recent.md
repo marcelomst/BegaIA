@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 1. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+
+- Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
+- Nombre: `improve supervised conversation continuity`
+- Commit tecnico: `69dcc1f7c0dd604cbefab21b3710a99526e67e1f`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Mejora la continuidad visual efimera de Guest Web con un
+  aviso explicito para el primer pending, un indicador discreto unico para los
+  siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
+  preserva polling, decision backend e History API como fuente de verdad.
+
+## 2. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -24,7 +37,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 2. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 3. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -39,7 +52,7 @@ recent_hitos_count: 10
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
 
-## 3. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 4. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -53,7 +66,7 @@ recent_hitos_count: 10
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
 
-## 4. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 5. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -66,7 +79,7 @@ recent_hitos_count: 10
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
 
-## 5. GUEST-WEB-CONVERSATION-CAPABILITY-01
+## 6. GUEST-WEB-CONVERSATION-CAPABILITY-01
 
 - Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
 - Nombre: `add secure Guest Web conversation capability`
@@ -79,7 +92,7 @@ recent_hitos_count: 10
   mantiene trusted ingress como precondicion, smoke controlado pendiente,
   despliegue y demo comercial no concedidos y Cancel deshabilitado.
 
-## 6. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 7. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -92,7 +105,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 7. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 8. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -105,7 +118,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 8. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 9. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -119,7 +132,7 @@ recent_hitos_count: 10
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
 
-## 9. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 10. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -132,16 +145,3 @@ recent_hitos_count: 10
   de `cancelled` frente a material activo same-ID, conserva
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
-
-## 10. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
-
-- Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
-- Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
-- Commit tecnico: `c6bae56e1e6052b07cd09dd6d4f4e99cb3e68436`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Caracteriza causalmente la divergencia post-Cancel entre
-  Snapshot singular y listado guest-wide, incluida la fase `confirmed`
-  incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
-  que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.

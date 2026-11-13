@@ -18105,3 +18105,75 @@ Impacto:
   completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-13
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: mejorar la continuidad visual de conversaciones Guest Web supervisadas
+Commit tecnico: 69dcc1f7c0dd604cbefab21b3710a99526e67e1f
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- muestra `Recepción está revisando tu consulta.` para el primer pending
+  supervisado de la conversacion
+- muestra `Esperando respuesta de recepción…` como indicador discreto para
+  pendings posteriores
+- mantiene un unico indicador transitorio activo
+- al aprobar, elimina el indicador y muestra una sola vez la respuesta sin
+  recarga
+- al expirar, elimina la espera obsoleta y muestra un cierre explicito
+- una nueva conversacion reinicia el estado visual
+- preserva el polling cada cuatro segundos durante un maximo de dos minutos
+- no modifica decision operacional, backend, persistencia ni reservas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 69dcc1f7c0dd604cbefab21b3710a99526e67e1f
+technical_parent: c083ac608a638b27ef9ab4d9c4ac4dda2a262498
+technical_commit_message: "feat(widget): improve supervised conversation continuity"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 69dcc1f7c0dd604cbefab21b3710a99526e67e1f
+technical_scope:
+  - public/widget/begai-chat.js
+  - test/unit/widget.guestIdentity.static.spec.ts
+validation:
+  widget_focal: 16/16 PASS
+  guardian_parity_matrix: 112/112 PASS
+  reported_suite: 104 tests PASS
+  ts_check: PASS
+  diff_check: PASS
+  manual_smoke:
+    result: PASS
+    scenario: conversacion Guest Web supervisada multiturno
+    approved_reply_without_reload: true
+    wait_indicator_removed_after_approval: true
+    response_rendered_once: true
+    operational_state_changed: false
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el estado nuevo es exclusivamente DOM/UX y efimero,
+  mientras la decision operacional sigue en backend y History API permanece
+  como fuente de verdad de mensajes
+- `roadmap_impact: none`
+- Runtime Map: no aplica; no se modificaron runtime conversacional ni cajas
+- sin cambios de arquitectura viva, Operating Model, roadmap, backend,
+  persistencia, History API, codigo o tests durante esta fase documental
+- no se declara demo readiness
+- los 43 archivos `scripts/semantic-normalization-spike/**` permanecen
+  completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
