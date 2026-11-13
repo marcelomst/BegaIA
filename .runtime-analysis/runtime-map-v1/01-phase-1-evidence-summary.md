@@ -21,15 +21,17 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 55e4a7127110af2eed3d350920efa893ea8e6110
-messageHandler_lines: 15515
+commit_base: c46da699802d21561198594ca82c456dc4bc97ff
+messageHandler_lines: 15518
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_secure_conversational_foundation_01_at_55e4a7127110af2eed3d350920efa893ea8e6110
+analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - redirect_and_p_safe: 29/29 PASS
-    - core: 1493/1493 PASS
+    - new_regression_test: 3/3 PASS
+    - guardian_targeted_matrix: 96/96 PASS
+    - reported_regression_suite: 121/121 PASS
+    - aggregate_architectural_suite: 124 tests
     - TypeScript: PASS
     - git diff --check: PASS
 validation_scope: documentation_and_guardian_scan_only
@@ -39,18 +41,17 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: SECURE-CONVERSATIONAL-FOUNDATION-01
-technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+hito_id: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
 technical_push: confirmed
-messageHandler_lines: 15515
+messageHandler_lines: 15518
 functions:
   preLLM: L6062-L6274
-  bodyLLM: L7511-L14582
-  posLLM: L15077-L15118
-  handleIncomingMessage: L15122-L15515
+  bodyLLM: L7514-L14585
+  posLLM: L15080-L15121
+  handleIncomingMessage: L15125-L15518
 focal_refs:
-  cancel_corridor: L12015-L12394
-  cancel_execution_gate: L12190-L12203
+  amenities_structured_handoff_guard: L6879-L6888
 runtime_map:
   applies: true
   conceptual_change: false
@@ -63,35 +64,29 @@ runtime_map:
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.persistenceReply
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
     - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - redirect_and_p_safe 29/29 PASS
-      - core 1493/1493 PASS
-      - TypeScript PASS
+      - Web automatic amenities/handoff queda sent
+      - Web supervised permanece pending
+      - categoria publica amenities preservada
+      - categoria sensible permanece pending
+      - canales, grants y corredores de reservas cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
 
 El refresh es exclusivamente fisico: preserva cajas, relaciones, taxonomia y
-diagramas. El final real de `handleIncomingMessage` es EOF L15515; el scanner
+diagramas. El final real de `handleIncomingMessage` es EOF L15518; el scanner
 lo subestima por la firma multilinea. Los rangos internos no entregados por
 Guardian no se presentan como actuales.
 

@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 1. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+
+- Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
+- Nombre: `normalize amenities handoff autosend policy`
+- Commit tecnico: `c46da699802d21561198594ca82c456dc4bc97ff`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Restringe la normalizacion `amenities` a
+  `amenities_info` al guard de structured handoff, preserva la categoria
+  publica `amenities` y mantiene Web supervised y categorias sensibles en
+  supervision; refresca evidencia fisica del Runtime Map sin cambios
+  conceptuales y no declara verificacion Astra directa ni demo readiness.
+
+## 2. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -23,7 +37,7 @@ recent_hitos_count: 10
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
 
-## 2. GUEST-WEB-CONVERSATION-CAPABILITY-01
+## 3. GUEST-WEB-CONVERSATION-CAPABILITY-01
 
 - Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
 - Nombre: `add secure Guest Web conversation capability`
@@ -36,7 +50,7 @@ recent_hitos_count: 10
   mantiene trusted ingress como precondicion, smoke controlado pendiente,
   despliegue y demo comercial no concedidos y Cancel deshabilitado.
 
-## 3. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 4. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -49,7 +63,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 4. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 5. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -62,7 +76,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 5. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 6. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -76,7 +90,7 @@ recent_hitos_count: 10
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
 
-## 6. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 7. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -90,7 +104,7 @@ recent_hitos_count: 10
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
 
-## 7. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 8. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -103,7 +117,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 8. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 9. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -117,7 +131,7 @@ recent_hitos_count: 10
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
 
-## 9. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
+## 10. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
 
 - Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
 - Nombre: `correct canonical same-ID hydration after Modify discard`
@@ -130,16 +144,3 @@ recent_hitos_count: 10
   restringe el fallback guest-wide read-only a `hotelId`, `canonicalGuestId`
   y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
   cajas ni el modelo conceptual.
-
-## 10. SPIKE-SIN-SEMANTIC-CONTRACT-V2-13
-
-- Identificador: `SPIKE-SIN-SEMANTIC-CONTRACT-V2-13`
-- Nombre: `experimental SIN V2 semantic contract`
-- Commit tecnico: `1412b8d76c6eaf11a266839dd6624139b4eb8827`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Incorpora offline el contrato experimental SIN V2, su
-  validador estricto, un adaptador conservador hacia RDA, fixtures y 29 pruebas
-  focalizadas aprobadas; preserva 15 pruebas RDA y mantiene el spike aislado,
-  sin autoridad operacional, efectos ni estado canonico paralelo.

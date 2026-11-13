@@ -17810,3 +17810,111 @@ Impacto:
   completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-13
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: normalizar amenities solo para evaluar el guard de structured handoff autosend
+Commit tecnico: c46da699802d21561198594ca82c456dc4bc97ff
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- normaliza `amenities` a `amenities_info` exclusivamente al evaluar el guard
+  de structured handoff
+- preserva la categoria publica `amenities`
+- mantiene Web automatic con handoff en `sent`, Web supervised en `pending` y
+  categorias sensibles en `pending`
+- no modifica `SAFE_AUTOSEND_CATEGORIES`, copy, adapters, API ni persistencia
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
+technical_parent: 31f43a3c23f7321b247f1cb8d74f8e781f3b6aa6
+technical_commit_message: "fix(runtime): normalize amenities handoff autosend policy"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: c46da699802d21561198594ca82c456dc4bc97ff
+technical_scope:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.amenities_structured_handoff_autosend.spec.ts
+validation:
+  new_regression_test: 3/3 PASS
+  guardian_targeted_matrix: 96/96 PASS
+  reported_regression_suite: 121/121 PASS
+  aggregate_architectural_suite: 124 tests
+  ts_check: PASS
+  diff_check: PASS
+```
+
+Evidencia complementaria y limites:
+
+- smoke manual favorable para `hotel999`, canal Web automatic, categoria
+  `amenities`, `needsSupervision: false`, estado `sent` y respuesta visible
+- no se declara verificacion Astra directa ni demo readiness
+- el smoke no ejecuto operaciones reales de reservas
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - Web automatic amenities/handoff queda sent
+      - Web supervised permanece pending
+      - categoria publica amenities preservada
+      - categoria sensible permanece pending
+      - canales, grants y corredores de reservas cubiertos
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `c46da699802d21561198594ca82c456dc4bc97ff`
+- `messageHandler.ts`: 15518 lineas fisicas
+- `preLLM`: L6062-L6274
+- `bodyLLM`: L7514-L14585
+- `posLLM`: L15080-L15121
+- `handleIncomingMessage`: L15125-L15518; el scanner lo subestima por su
+  firma multilinea, pero la frontera canonica continua hasta EOF
+- guard focal de structured handoff: L6879-L6888
+- se preservan `box_id`, taxonomia, relaciones y diagramas conceptuales; los
+  rangos internos no entregados permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; no duplica estado ni crea una fuente de verdad
+  paralela, y limita `amenities_info` a la evaluacion del guard
+- `roadmap_impact: none`
+- refresh fisico del Runtime Map sin cambio conceptual de arquitectura
+- sin cambios documentales en roadmap, Operating Model o ADRs, ni cambios de
+  codigo o tests durante esta fase documental
+- los 43 archivos `scripts/semantic-normalization-spike/**` y
+  `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01` permanecen excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

@@ -67,13 +67,13 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: 55e4a7127110af2eed3d350920efa893ea8e6110
-repository_baseline_head: 55e4a7127110af2eed3d350920efa893ea8e6110
-source_code_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
-messageHandler_lines: 15515
+commit_base: c46da699802d21561198594ca82c456dc4bc97ff
+repository_baseline_head: c46da699802d21561198594ca82c456dc4bc97ff
+source_code_commit: c46da699802d21561198594ca82c456dc4bc97ff
+messageHandler_lines: 15518
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_secure_conversational_foundation_01_at_55e4a7127110af2eed3d350920efa893ea8e6110
-baseline_status: secure_conversational_foundation_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
+baseline_status: fix_guest_web_amenities_autosend_policy_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -100,55 +100,48 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: secure conversational foundation
+## Evidencia focal actual: amenities structured handoff autosend policy
 
 ```yaml
-hito_id: SECURE-CONVERSATIONAL-FOUNDATION-01
-technical_commit: 55e4a7127110af2eed3d350920efa893ea8e6110
+hito_id: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
 technical_push: confirmed
-messageHandler_lines: 15515
+messageHandler_lines: 15518
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.handleIncomingMessage
-    - runtime.messageHandler.preLLM
-    - runtime.messageHandler.bodyLLM
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.modify
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.cancel
-    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.snapshot
-    - runtime.messageHandler.persistenceReply
-  reviewed:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
     - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
-    - runtime.messageHandler.bodyLLM.operationalCorridors.fallbackLocal
-    - runtime.messageHandler.bodyLLM.channelCopyCorridor
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - redirect_and_p_safe 29/29 PASS
-      - core 1493/1493 PASS
-      - TypeScript PASS
+      - Web automatic amenities/handoff queda sent
+      - Web supervised permanece pending
+      - categoria publica amenities preservada
+      - categoria sensible permanece pending
+      - canales, grants y corredores de reservas cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
   preLLM: L6062-L6274
-  bodyLLM: L7511-L14582
-  posLLM: L15077-L15118
-  handleIncomingMessage: L15122-L15515
+  bodyLLM: L7514-L14585
+  posLLM: L15080-L15121
+  handleIncomingMessage: L15125-L15518
 focal_code_refs:
-  cancel_corridor: L12015-L12394
-  cancel_execution_gate: L12190-L12203
+  amenities_structured_handoff_guard: L6879-L6888
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
 ```
 
 Guardian entrego exclusivamente los rangos top-level y focales anteriores. El
-final real de `handleIncomingMessage` es EOF L15515 pese a la subestimacion del
+final real de `handleIncomingMessage` es EOF L15518 pese a la subestimacion del
 scanner causada por la firma multilinea. Las demas
 referencias internas se conservan como evidencia historica y no se desplazan
 por inferencia; no se redefinen cajas ni diagramas.
