@@ -18030,3 +18030,78 @@ Impacto:
   completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-13
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: hacer visible en Guest Web una respuesta supervisada aprobada sin recargar
+Commit tecnico: 2ed316941caa10ab1bf263a4a59548285c04f0bf
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- consulta History API cada cuatro segundos durante un maximo de dos minutos
+  cuando una respuesta Guest Web queda pendiente de supervision
+- correlaciona desde el `messageId` del mensaje user pendiente hacia una
+  respuesta assistant posterior
+- representa exclusivamente respuestas con estado `sent`, `approved` o
+  `delivered` y deduplica por `messageId`
+- cancela el polling al resolver, cerrar, destruir o invalidar la capability
+- no modifica backend, persistencia, History API, runtime ni reservas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 2ed316941caa10ab1bf263a4a59548285c04f0bf
+technical_parent: 41d0d08d8bda1ea0b1fb537da2b2fb9609f039a7
+technical_commit_message: "fix(widget): poll approved supervised replies"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 2ed316941caa10ab1bf263a4a59548285c04f0bf
+technical_scope:
+  - public/widget/begai-chat.js
+  - test/unit/widget.guestIdentity.static.spec.ts
+validation:
+  widget_focal: 15/15 PASS
+  guardian_parity_matrix: 111/111 PASS
+  reported_suite: 103 tests PASS
+  ts_check: PASS
+  diff_check: PASS
+  manual_smoke:
+    result: PASS
+    scenario: Guest Web pending -> Admin aprueba y envia
+    approved_reply_without_reload: true
+    rendered_once: true
+```
+
+Riesgo residual:
+
+- una aprobacion posterior al limite de dos minutos no aparece
+  automaticamente mediante este polling
+- la respuesta permanece recuperable posteriormente desde History API, por
+  ejemplo al recargar
+- es una limitacion UX acotada, no una falla de seguridad o persistencia
+- no se incorpora en este hito una mejora UX adicional para el timeout
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; History API permanece como fuente de verdad y el
+  widget solo consulta y representa respuestas visibles
+- `roadmap_impact: none`
+- Runtime Map: no aplica; no se modificaron runtime conversacional ni cajas
+- sin cambios de arquitectura viva, Operating Model, roadmap, backend,
+  persistencia, History API, codigo o tests durante esta fase documental
+- no se declara demo readiness
+- los 43 archivos `scripts/semantic-normalization-spike/**` permanecen
+  completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
