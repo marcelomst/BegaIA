@@ -142,7 +142,7 @@ describe("public BegAI widget Guest capability containment", () => {
     document.querySelector<HTMLButtonElement>("#bgst-send")!.click();
     await flushWidgetTasks();
 
-    expect(document.body.textContent).toContain("pendiente de revisión");
+    expect(document.body.textContent).toContain("Recepción está revisando tu consulta.");
     expect(historyCalls).toBe(0);
 
     await vi.advanceTimersByTimeAsync(4_000);
@@ -159,12 +159,126 @@ describe("public BegAI widget Guest capability containment", () => {
     expect(document.body.textContent).toContain("Respuesta aprobada desde recepción.");
     expect(document.body.textContent).not.toContain("Respuesta anterior que no corresponde");
     expect(document.body.textContent).not.toContain("sugerencia interna pendiente");
+    expect(document.querySelector(".bgst-supervised-wait")).toBeNull();
     expect([...document.querySelectorAll(".bgst-ai")].filter((node) =>
       node.textContent === "Respuesta aprobada desde recepción."
     )).toHaveLength(1);
 
     await vi.advanceTimersByTimeAsync(12_000);
     expect(historyCalls).toBe(2);
+  });
+
+  it("presenta continuidad visual entre pendientes supervisados de la misma conversación", async () => {
+    vi.useFakeTimers();
+    let bootstrapCalls = 0;
+    let chatCalls = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/guest/web/bootstrap")) {
+        bootstrapCalls += 1;
+        const conversationId = bootstrapCalls === 1
+          ? "conv-widget-supervised-continuity"
+          : "conv-widget-supervised-new";
+        return new Response(JSON.stringify({
+          capability: "widget-supervised-continuity-capability",
+          conversationId,
+          hotelId: "hotel999",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        }), { status: 201 });
+      }
+      if (url.endsWith("/api/chat")) {
+        chatCalls += 1;
+        return new Response(JSON.stringify({
+          status: "pending",
+          messageId: `guest:supervised-continuity-${chatCalls}`,
+          conversationId: chatCalls < 3
+            ? "conv-widget-supervised-continuity"
+            : "conv-widget-supervised-new",
+        }), { status: 200 });
+      }
+      if (url.endsWith("/api/guest/web/history")) {
+        const messages = [
+          {
+            messageId: "guest:supervised-continuity-1",
+            role: "user",
+            status: "sent",
+            content: "Quiero hacer una reserva",
+          },
+          {
+            messageId: "assistant:supervised-continuity-1",
+            role: "assistant",
+            status: "sent",
+            content: "¿Cuál es el tipo de habitación?",
+          },
+        ];
+        if (chatCalls > 1) {
+          messages.push(
+            {
+              messageId: "guest:supervised-continuity-2",
+              role: "user",
+              status: "sent",
+              content: "Doble",
+            },
+            {
+              messageId: "assistant:supervised-continuity-2",
+              role: "assistant",
+              status: "sent",
+              content: "¿Cuál sería la fecha de check-in?",
+            },
+          );
+        }
+        return new Response(JSON.stringify({
+          hotelId: "hotel999",
+          conversationId: "conv-widget-supervised-continuity",
+          messages,
+        }), { status: 200 });
+      }
+      return new Response("Not Found", { status: 404 });
+    }));
+
+    runWidget();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#bgst-input")!;
+    const send = document.querySelector<HTMLButtonElement>("#bgst-send")!;
+
+    textarea.value = "Quiero hacer una reserva";
+    send.click();
+    await flushWidgetTasks();
+
+    expect(document.querySelector(".bgst-supervised-wait--first")?.textContent)
+      .toBe("Recepción está revisando tu consulta.");
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    await flushWidgetTasks();
+
+    expect(document.body.textContent).toContain("¿Cuál es el tipo de habitación?");
+    expect(document.querySelector(".bgst-supervised-wait")).toBeNull();
+
+    textarea.value = "Doble";
+    send.click();
+    await flushWidgetTasks();
+
+    expect(document.querySelector(".bgst-supervised-wait--subsequent")?.textContent)
+      .toBe("Esperando respuesta de recepción…");
+    expect(document.querySelectorAll(".bgst-supervised-wait--first")).toHaveLength(0);
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    await flushWidgetTasks();
+
+    expect(document.body.textContent).toContain("¿Cuál sería la fecha de check-in?");
+    expect(document.querySelector(".bgst-supervised-wait")).toBeNull();
+    expect([...document.querySelectorAll(".bgst-ai")].filter((node) =>
+      node.textContent === "¿Cuál sería la fecha de check-in?"
+    )).toHaveLength(1);
+
+    document.querySelector<HTMLButtonElement>("#bgst-newchat")!.click();
+    await flushWidgetTasks();
+    textarea.value = "Nueva consulta supervisada";
+    send.click();
+    await flushWidgetTasks();
+
+    expect(document.querySelector(".bgst-supervised-wait--first")?.textContent)
+      .toBe("Recepción está revisando tu consulta.");
+    expect(document.querySelector(".bgst-supervised-wait--subsequent")).toBeNull();
   });
 
   it("no inicia polling para respuestas automáticas", async () => {
@@ -222,7 +336,7 @@ describe("public BegAI widget Guest capability containment", () => {
       if (url.endsWith("/api/chat")) {
         return new Response(JSON.stringify({
           status: "pending",
-          messageId: "assistant-supervised-close-1",
+          messageId: "guest:supervised-close-1",
         }), { status: 200 });
       }
       if (url.endsWith("/api/guest/web/history")) {
@@ -243,21 +357,55 @@ describe("public BegAI widget Guest capability containment", () => {
     expect(historyCalls).toBe(1);
     await vi.advanceTimersByTimeAsync(20_000);
     expect(historyCalls).toBe(1);
+    expect(document.querySelectorAll(".bgst-supervised-wait")).toHaveLength(1);
 
     document.querySelector<HTMLButtonElement>(".bgst-close")!.click();
     historyRequest.resolve?.(new Response(JSON.stringify({
-      messages: [{
-        messageId: "assistant-supervised-close-1",
-        role: "assistant",
-        status: "sent",
-        content: "No debe renderizarse con el widget cerrado.",
-      }],
+      messages: [
+        {
+          messageId: "guest:supervised-close-1",
+          role: "user",
+          status: "sent",
+          content: "Consulta supervisada larga",
+        },
+        {
+          messageId: "assistant-supervised-close-1",
+          role: "assistant",
+          status: "sent",
+          content: "Respuesta al reabrir.",
+        },
+      ],
     }), { status: 200 }));
     await flushWidgetTasks();
     await vi.advanceTimersByTimeAsync(20_000);
 
     expect(historyCalls).toBe(1);
-    expect(document.body.textContent).not.toContain("No debe renderizarse con el widget cerrado.");
+    expect(document.body.textContent).not.toContain("Respuesta al reabrir.");
+    expect(document.querySelectorAll(".bgst-supervised-wait")).toHaveLength(1);
+
+    document.querySelector<HTMLButtonElement>(".bgst-bubble")!.click();
+    await vi.advanceTimersByTimeAsync(4_000);
+    expect(historyCalls).toBe(2);
+    historyRequest.resolve?.(new Response(JSON.stringify({
+      messages: [
+        {
+          messageId: "guest:supervised-close-1",
+          role: "user",
+          status: "sent",
+          content: "Consulta supervisada larga",
+        },
+        {
+          messageId: "assistant-supervised-close-1",
+          role: "assistant",
+          status: "sent",
+          content: "Respuesta al reabrir.",
+        },
+      ],
+    }), { status: 200 }));
+    await flushWidgetTasks();
+
+    expect(document.body.textContent).toContain("Respuesta al reabrir.");
+    expect(document.querySelector(".bgst-supervised-wait")).toBeNull();
   });
 
   it("aborta una consulta colgada y termina el polling al alcanzar el límite temporal", async () => {
@@ -304,6 +452,9 @@ describe("public BegAI widget Guest capability containment", () => {
     await flushWidgetTasks();
 
     expect(textarea.disabled).toBe(false);
+    expect(document.querySelector(".bgst-supervised-wait")).toBeNull();
+    expect(document.body.textContent)
+      .toContain("No recibimos una respuesta dentro del tiempo de espera. Podés volver a intentarlo.");
     await vi.advanceTimersByTimeAsync(20_000);
     expect(historyCalls).toBe(1);
   });

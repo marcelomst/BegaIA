@@ -131,6 +131,8 @@
   let supervisedPollGeneration = 0;
   let supervisedPollingPaused = false;
   let widgetLifecycleDestroyed = false;
+  let supervisedNoticeConversationId = null;
+  let supervisedWaitIndicator = null;
   const clearBundle = () => sessionStorage.removeItem(bundleKey);
   const readBundle = () => {
     const raw = sessionStorage.getItem(bundleKey);
@@ -332,6 +334,7 @@
   .bgst-row{max-width:80%;padding:8px 10px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
   .bgst-user{align-self:flex-end;background:#cfe8ff;color:#043a63}
   .bgst-ai{align-self:flex-start;background:#e5e7eb;color:#111827}
+  .bgst-supervised-wait--subsequent{background:transparent;color:#64748b;font-size:12px;font-style:italic;padding:2px 4px}
   .bgst-input{border-top:1px solid #263650;display:flex;gap:8px;padding:8px;background:#0c1428}
   .bgst-input textarea{flex:1;resize:none;height:64px;background:#0b1220;color:#e5eef9;border:1px solid #263650;border-radius:8px;padding:8px;outline:none}
   .bgst-input button{background:${primary};border:0;color:#03131d;font-weight:700;padding:8px 12px;border-radius:10px;cursor:pointer}
@@ -472,7 +475,35 @@
     msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
     if (normalizedMessageId) renderedMessageIds.add(normalizedMessageId);
-    return true;
+    return row;
+  };
+
+  const removeSupervisedWaitIndicator = () => {
+    supervisedWaitIndicator?.remove();
+    supervisedWaitIndicator = null;
+  };
+
+  const resetSupervisedPresentation = () => {
+    removeSupervisedWaitIndicator();
+    supervisedNoticeConversationId = null;
+  };
+
+  const showSupervisedWaitIndicator = (conversationId) => {
+    removeSupervisedWaitIndicator();
+    const firstPending = supervisedNoticeConversationId !== conversationId;
+    if (firstPending) supervisedNoticeConversationId = conversationId;
+    const indicator = appendMsg(
+      "ai",
+      firstPending
+        ? "Recepción está revisando tu consulta."
+        : "Esperando respuesta de recepción…",
+    );
+    if (!indicator) return;
+    indicator.classList.add(
+      "bgst-supervised-wait",
+      firstPending ? "bgst-supervised-wait--first" : "bgst-supervised-wait--subsequent",
+    );
+    supervisedWaitIndicator = indicator;
   };
 
   const appendCarousel = (items) => {
@@ -576,13 +607,19 @@
     }
   };
 
-  const stopSupervisedApprovalPolling = ({ clearWait = true } = {}) => {
+  const stopSupervisedApprovalPolling = ({ clearWait = true, expired = false } = {}) => {
     supervisedPollGeneration += 1;
     if (supervisedPollTimer) clearTimeout(supervisedPollTimer);
     supervisedPollTimer = null;
     supervisedPollAbortController?.abort();
     supervisedPollAbortController = null;
-    if (clearWait) applySupervisedWait(null);
+    if (clearWait) {
+      removeSupervisedWaitIndicator();
+      applySupervisedWait(null);
+      if (expired) {
+        appendMsg("ai", "No recibimos una respuesta dentro del tiempo de espera. Podés volver a intentarlo.");
+      }
+    }
   };
 
   const scheduleSupervisedApprovalPoll = () => {
@@ -592,7 +629,7 @@
     ) return;
     const elapsed = Date.now() - supervisedWait.startedAt;
     if (elapsed >= SUPERVISED_POLL_TIMEOUT_MS) {
-      stopSupervisedApprovalPolling();
+      stopSupervisedApprovalPolling({ expired: true });
       return;
     }
     supervisedPollTimer = setTimeout(() => {
@@ -607,7 +644,7 @@
     const generation = supervisedPollGeneration;
     const remainingMs = SUPERVISED_POLL_TIMEOUT_MS - (Date.now() - wait.startedAt);
     if (remainingMs <= 0) {
-      stopSupervisedApprovalPolling();
+      stopSupervisedApprovalPolling({ expired: true });
       return;
     }
     const state = readBundle();
@@ -671,6 +708,10 @@
 
   const startSupervisedApprovalPolling = (bundle, messageId) => {
     if (!bundle?.conversationId || typeof messageId !== "string" || !messageId.trim()) return;
+    if (
+      supervisedNoticeConversationId &&
+      supervisedNoticeConversationId !== bundle.conversationId
+    ) resetSupervisedPresentation();
     stopSupervisedApprovalPolling();
     supervisedPollingPaused = false;
     applySupervisedWait({
@@ -678,6 +719,7 @@
       messageId: messageId.trim(),
       startedAt: Date.now(),
     });
+    showSupervisedWaitIndicator(bundle.conversationId);
     scheduleSupervisedApprovalPoll();
   };
 
@@ -774,6 +816,7 @@
   btnNewChat.addEventListener("click", async () => {
     if (activePendingTurn || supervisedWait) return;
     stopSupervisedApprovalPolling();
+    resetSupervisedPresentation();
     clearBundle();
     requiresExplicitRestart = false;
     msgs.innerHTML = "";
@@ -856,7 +899,6 @@
       } else if (data && data.status === "pending") {
         confirmPendingTurn(pending);
         applyPendingLock(null);
-        appendMsg("ai", "Tu consulta quedó pendiente de revisión. No se enviará una respuesta automática.");
         if (!data.conversationId || data.conversationId === bundle.conversationId) {
           startSupervisedApprovalPolling(bundle, data.messageId);
         }
