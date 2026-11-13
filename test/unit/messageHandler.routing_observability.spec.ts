@@ -1,18 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StableIntentGuardResult } from "@/lib/handlers/pipeline/stableIntentsGuard";
 
-const { runStableIntentsGuardMock } = vi.hoisted(() => ({
+const { runStableIntentsGuardMock, recentMessages } = vi.hoisted(() => ({
   runStableIntentsGuardMock: vi.fn<() => Promise<StableIntentGuardResult>>(async () => ({
     matched: false,
     normalizedQuery: "",
     routingDecision: "no_match",
     hotelPolicyApplied: false,
   })),
+  recentMessages: [] as any[],
 }));
 
 vi.mock("@/lib/db/messages", () => ({
   saveChannelMessageToAstra: vi.fn(async () => {}),
-  getMessagesByConversation: vi.fn(async () => []),
+  getMessagesByConversation: vi.fn(async ({ hotelId, conversationId }: any) =>
+    recentMessages.filter((message) =>
+      message.hotelId === hotelId && message.conversationId === conversationId
+    )
+  ),
 }));
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
@@ -102,6 +107,7 @@ import { resolveCategoryForHotel } from "@/lib/categories/resolveCategory";
 describe("messageHandler routing observability baseline", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    recentMessages.length = 0;
     runStableIntentsGuardMock.mockResolvedValue({
       matched: false,
       normalizedQuery: "",
@@ -109,6 +115,231 @@ describe("messageHandler routing observability baseline", () => {
       hotelPolicyApplied: false,
     });
   });
+
+  it("propaga historial limitado al KB fastpath sólo para una referencia conversacional explícita", async () => {
+    const content = "¿Te acordás con quién voy a alojarme?";
+    recentMessages.push(
+      {
+        messageId: "history-human-1",
+        hotelId: "hotel999",
+        channel: "web",
+        conversationId: "conv-recall-1",
+        sender: "guest",
+        role: "user",
+        content: "Estoy pensando alojarme con mi esposa.",
+        timestamp: "2026-11-13T10:00:00.000Z",
+      },
+      {
+        messageId: "history-ai-1",
+        hotelId: "hotel999",
+        channel: "web",
+        conversationId: "conv-recall-1",
+        sender: "assistant",
+        role: "ai",
+        content: "Perfecto, ¿en qué puedo ayudarte?",
+        timestamp: "2026-11-13T10:01:00.000Z",
+      },
+      {
+        messageId: "history-current-1",
+        hotelId: "hotel999",
+        channel: "web",
+        conversationId: "conv-recall-1",
+        sender: "guest",
+        role: "user",
+        content,
+        timestamp: "2026-11-13T10:02:00.000Z",
+      },
+    );
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "kb_general",
+      answer: "Me comentaste que viajarías con tu esposa.",
+      retrieved: [],
+      debug: {},
+    } as any);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "recall-current-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: "2026-11-13T10:02:00.000Z",
+      conversationId: "conv-recall-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    const kbArgs = vi.mocked(answerWithKnowledge).mock.calls[0]?.[0] as any;
+    expect(kbArgs.conversationHistory).toHaveLength(2);
+    expect(kbArgs.conversationHistory.map((message: any) => message._getType())).toEqual(["human", "ai"]);
+    expect(kbArgs.conversationHistory[0]?.content).toContain("mi esposa");
+    expect(kbArgs.conversationHistory.some((message: any) => message.content === content)).toBe(false);
+    expect(sendReply).toHaveBeenCalledWith(expect.stringMatching(/esposa/i));
+  });
+
+  it("no propaga historial para una FAQ normal aunque existan turnos anteriores", async () => {
+    const content = "¿A qué hora es el check-in?";
+    recentMessages.push({
+      messageId: "history-faq-1",
+      hotelId: "hotel999",
+      channel: "web",
+      conversationId: "conv-faq-no-history-1",
+      sender: "guest",
+      role: "user",
+      content: "Estoy pensando alojarme con mi esposa.",
+      timestamp: "2026-11-13T10:00:00.000Z",
+    });
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "checkin_info",
+      promptKey: "checkin_time",
+      answer: "El check-in comienza a las 15:00.",
+      retrieved: [],
+      debug: {},
+    } as any);
+
+    await handleIncomingMessage({
+      messageId: "faq-current-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: "2026-11-13T10:03:00.000Z",
+      conversationId: "conv-faq-no-history-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+    expect(vi.mocked(answerWithKnowledge).mock.calls[0]?.[0]).not.toHaveProperty("conversationHistory");
+  });
+
+  it("no propaga historial ni inventa acompañante cuando no existe antecedente humano", async () => {
+    const content = "¿Te acordás con quién voy a alojarme?";
+    recentMessages.push(
+      {
+        messageId: "history-ai-only-1",
+        hotelId: "hotel999",
+        channel: "web",
+        conversationId: "conv-recall-no-antecedent-1",
+        sender: "assistant",
+        role: "ai",
+        content: "¿En qué puedo ayudarte?",
+        timestamp: "2026-11-13T10:00:00.000Z",
+      },
+      {
+        messageId: "history-current-no-antecedent-1",
+        hotelId: "hotel999",
+        channel: "web",
+        conversationId: "conv-recall-no-antecedent-1",
+        sender: "guest",
+        role: "user",
+        content,
+        timestamp: "2026-11-13T10:01:00.000Z",
+      },
+    );
+    vi.mocked(answerWithKnowledge).mockResolvedValue({
+      ok: true,
+      category: "retrieval_based",
+      promptKey: "kb_general",
+      answer: "No tengo información previa sobre acompañantes.",
+      retrieved: [],
+      debug: {},
+    } as any);
+    const sendReply = vi.fn(async () => {});
+
+    await handleIncomingMessage({
+      messageId: "recall-current-no-antecedent-1",
+      hotelId: "hotel999",
+      channel: "web",
+      sender: "guest",
+      content,
+      timestamp: "2026-11-13T10:01:00.000Z",
+      conversationId: "conv-recall-no-antecedent-1",
+      guestId: "g1",
+      detectedLanguage: "es",
+    } as any, { mode: "automatic", sendReply });
+
+    expect(vi.mocked(answerWithKnowledge).mock.calls[0]?.[0]).not.toHaveProperty("conversationHistory");
+    expect(sendReply).toHaveBeenCalledWith(expect.stringMatching(/no tengo información previa/i));
+  });
+
+  it.each(["email", "whatsapp"] as const)(
+    "limita historial explícito a la misma conversación y canal en %s",
+    async (channel) => {
+      const content = "¿Te acordás con quién voy a alojarme?";
+      const conversationId = `conv-recall-${channel}-1`;
+      recentMessages.push(
+        {
+          messageId: `history-${channel}-same-1`,
+          hotelId: "hotel999",
+          channel,
+          conversationId,
+          sender: "guest",
+          role: "user",
+          content: "Te comenté que viajo con mi esposa.",
+          timestamp: "2026-11-13T10:00:00.000Z",
+        },
+        {
+          messageId: `history-${channel}-other-channel-1`,
+          hotelId: "hotel999",
+          channel: channel === "email" ? "whatsapp" : "email",
+          conversationId,
+          sender: "guest",
+          role: "user",
+          content: "Viajo con mi hermano.",
+          timestamp: "2026-11-13T10:00:30.000Z",
+        },
+        {
+          messageId: `history-${channel}-other-conversation-1`,
+          hotelId: "hotel999",
+          channel,
+          conversationId: `${conversationId}-other`,
+          sender: "guest",
+          role: "user",
+          content: "Viajo con mi hermana.",
+          timestamp: "2026-11-13T10:00:45.000Z",
+        },
+        {
+          messageId: `history-${channel}-current-1`,
+          hotelId: "hotel999",
+          channel,
+          conversationId,
+          sender: "guest",
+          role: "user",
+          content,
+          timestamp: "2026-11-13T10:01:00.000Z",
+        },
+      );
+      vi.mocked(answerWithKnowledge).mockResolvedValue({
+        ok: true,
+        category: "retrieval_based",
+        promptKey: "kb_general",
+        answer: "Me comentaste que viajarías con tu esposa.",
+        retrieved: [],
+        debug: {},
+      } as any);
+
+      await handleIncomingMessage({
+        messageId: `recall-${channel}-current-1`,
+        hotelId: "hotel999",
+        channel,
+        sender: "guest",
+        content,
+        timestamp: "2026-11-13T10:01:00.000Z",
+        conversationId,
+        guestId: "g1",
+        detectedLanguage: "es",
+      } as any, { mode: "automatic", sendReply: vi.fn(async () => {}) });
+
+      const history = (vi.mocked(answerWithKnowledge).mock.calls[0]?.[0] as any).conversationHistory;
+      expect(history.map((message: any) => message.content)).toEqual([
+        "Te comenté que viajo con mi esposa.",
+      ]);
+    },
+  );
 
   it("loggea telemetría compacta cuando stable intent es servido", async () => {
     runStableIntentsGuardMock.mockResolvedValueOnce({

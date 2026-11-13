@@ -6321,6 +6321,40 @@ function buildStateSummary(slots: ReservationSlotsStrict, st: any) {
   ].filter(Boolean).join("\n");
 }
 
+function getExplicitRecallHistory(
+  lcHistory: (HumanMessage | AIMessage)[],
+  currentQuestion: string,
+): (HumanMessage | AIMessage)[] | undefined {
+  const normalizedQuestion = String(currentQuestion || "").trim().toLowerCase();
+  if (!normalizedQuestion) return undefined;
+
+  const normalizedRecallText = normalizedQuestion
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const explicitlyReferencesPriorConversation =
+    /\b(te acordas|te acuerdas|recordas|recuerdas|me dijiste|te dije|te comente|te mencione|te habia dicho|te habia comentado)\b/.test(normalizedRecallText) ||
+    /\b(do you remember|remember what|remember who|i told you|i mentioned|as i said|what did i (?:say|tell))\b/.test(normalizedRecallText) ||
+    /\b(voce lembra|lembra do que|lembra quem|eu te disse|eu te contei|eu mencionei|como eu disse)\b/.test(normalizedRecallText);
+  if (!explicitlyReferencesPriorConversation) return undefined;
+
+  let currentQuestionIndex = -1;
+  for (let index = lcHistory.length - 1; index >= 0; index -= 1) {
+    const message = lcHistory[index];
+    if (message._getType() !== "human") continue;
+    const content = extractTextFromLCContent(message.content).trim().toLowerCase();
+    if (content === normalizedQuestion) {
+      currentQuestionIndex = index;
+      break;
+    }
+  }
+
+  const boundedHistory = lcHistory
+    .filter((_message, index) => index !== currentQuestionIndex)
+    .slice(-CONFIG.HISTORY_LIMIT);
+  const hasPriorHumanAntecedent = boundedHistory.some((message) => message._getType() === "human");
+  return hasPriorHumanAntecedent ? boundedHistory : undefined;
+}
+
 // runAvailabilityCheck moved to ./pipeline/availability
 
 type BodyLLMState = {
@@ -13268,10 +13302,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
                   return { finalText, nextCategory, nextSlots, needsSupervision, graphResult, rich: explicitRich };
                 }
               }
+              const conversationHistory = getExplicitRecallHistory(pre.lcHistory, kbUserText);
               const kb = await answerWithKnowledge({
                 question: kbUserText,
                 hotelId: pre.msg.hotelId,
                 desiredLang: pre.lang,
+                ...(conversationHistory ? { conversationHistory } : {}),
                 ...(kbPrecedence && !kbPrecedence.defersToRuntimeAction
                   ? { override: { category: kbPrecedence.category, promptKey: kbPrecedence.promptKey } }
                   : {}),

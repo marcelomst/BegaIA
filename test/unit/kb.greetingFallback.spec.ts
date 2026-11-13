@@ -1,5 +1,6 @@
 // Path: /root/begasist/test/unit/kb.greetingFallback.spec.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
 
 const classifyQueryMock = vi.fn();
 const resolveCategoryForHotelMock = vi.fn();
@@ -125,5 +126,45 @@ describe("knowledgeBaseAgent greeting fallback", () => {
       "es"
     );
     expect(res.promptKey).toBe("arrivals_transport");
+  });
+
+  it("places optional conversational history between the system prompt and current question", async () => {
+    classifyQueryMock.mockResolvedValue({
+      category: "retrieval_based",
+      promptKey: "kb_general",
+    });
+    resolveCategoryForHotelMock.mockResolvedValue({
+      lang: "es",
+      router: { category: "retrieval_based", promptKey: "kb_general" },
+      retriever: { topK: 3 },
+      content: null,
+    });
+    hydratedContentMock.mockResolvedValue({ text: "Contexto general del hotel." });
+    searchFromAstraMock.mockResolvedValue([]);
+    invokeMock.mockResolvedValue({ content: "Me comentaste que viajarías con tu esposa." });
+
+    const { answerWithKnowledge } = await import("@/lib/agents/knowledgeBaseAgent");
+    const question = "¿Te acordás con quién voy a alojarme?";
+    await answerWithKnowledge({
+      question,
+      hotelId: "hotel999",
+      conversationHistory: [
+        new HumanMessage("Estoy pensando alojarme con mi esposa."),
+        new AIMessage("Perfecto, ¿en qué puedo ayudarte?"),
+      ],
+    } as any);
+
+    expect(classifyQueryMock).toHaveBeenCalledWith(question, "hotel999");
+    expect(searchFromAstraMock).toHaveBeenCalledWith(
+      question,
+      "hotel999",
+      expect.any(Object),
+      "es",
+    );
+    const messages = invokeMock.mock.calls[0]?.[0] as any[];
+    expect(messages.map((message) => message._getType())).toEqual(["system", "human", "ai", "human"]);
+    expect(messages[1]?.content).toBe("Estoy pensando alojarme con mi esposa.");
+    expect(messages[2]?.content).toBe("Perfecto, ¿en qué puedo ayudarte?");
+    expect(messages[3]?.content).toContain(question);
   });
 });

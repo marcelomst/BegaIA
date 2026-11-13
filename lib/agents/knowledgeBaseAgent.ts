@@ -2,7 +2,7 @@
 // Minimal KnowledgeBaseAgent: classify → resolve → retrieve → answer
 
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { classifyQuery } from "@/lib/classifier";
 import { resolveCategoryForHotel } from "@/lib/categories/resolveCategory";
 import { searchFromAstra } from "@/lib/retrieval";
@@ -30,8 +30,9 @@ export async function answerWithKnowledge(args: {
     hotelId: string;
     desiredLang?: string; // es/en/pt preferred; falls back to registry/override
     override?: { category?: string; promptKey?: string };
+    conversationHistory?: Array<HumanMessage | AIMessage>;
 }): Promise<KnowledgeAnswer> {
-    const { question, hotelId, desiredLang, override } = args;
+    const { question, hotelId, desiredLang, override, conversationHistory } = args;
 
     // 1) Classify question into category/promptKey
     const cls = override?.category && override?.promptKey
@@ -127,6 +128,7 @@ export async function answerWithKnowledge(args: {
                 : "Eres un asistente del hotel. Responde claro y profesional usando sólo el contexto disponible.";
         const res = await model.invoke([
             new SystemMessage(scopedSystem),
+            ...(conversationHistory || []),
             new HumanMessage(prompt),
         ]);
         answer = typeof res.content === "string" ? res.content : JSON.stringify(res.content);
