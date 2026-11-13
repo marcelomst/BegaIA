@@ -21,17 +21,17 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c46da699802d21561198594ca82c456dc4bc97ff
-messageHandler_lines: 15518
+commit_base: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
+analysis_scope: focal_refresh_fix_conversational_context_kb_fastpath_01_at_28e23cc4bf8235b940df44bbac72d3ac56e48e10
 suite_status_reported: guardian_validated
 suite_reported:
   commands:
-    - new_regression_test: 3/3 PASS
-    - guardian_targeted_matrix: 96/96 PASS
-    - reported_regression_suite: 121/121 PASS
-    - aggregate_architectural_suite: 124 tests
+    - focal_suite: 26/26 PASS
+    - guardian_parity_matrix: 122/122 PASS
+    - reported_regression_suite: 144/144 PASS
     - TypeScript: PASS
     - git diff --check: PASS
 validation_scope: documentation_and_guardian_scan_only
@@ -41,17 +41,21 @@ global_freshness_claim_allowed: false
 ## Evidencia focal actual
 
 ```yaml
-hito_id: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
-technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
+hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+technical_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
 technical_push: confirmed
-messageHandler_lines: 15518
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 functions:
   preLLM: L6062-L6274
-  bodyLLM: L7514-L14585
-  posLLM: L15080-L15121
-  handleIncomingMessage: L15125-L15518
+  bodyLLM: L7548-L14621
+  posLLM: L15116-L15157
+  handleIncomingMessage: L15161-L15554
 focal_refs:
-  amenities_structured_handoff_guard: L6879-L6888
+  explicit_recall_history: L6324-L6356
+  kb_fastpath_propagation: L13305-L13314
+  knowledge_agent_contract: L28-L35
+  knowledge_agent_messages: L129-L133
 runtime_map:
   applies: true
   conceptual_change: false
@@ -64,29 +68,27 @@ runtime_map:
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Web automatic amenities/handoff queda sent
-      - Web supervised permanece pending
-      - categoria publica amenities preservada
-      - categoria sensible permanece pending
-      - canales, grants y corredores de reservas cubiertos
+      - Recall explicito, antecedente, roles y limite verificados
+      - FAQ normal, clasificacion y retrieval preservados
+      - Aislamiento multicanal y guards transaccionales cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
 
 El refresh es exclusivamente fisico: preserva cajas, relaciones, taxonomia y
-diagramas. El final real de `handleIncomingMessage` es EOF L15518; el scanner
+diagramas. El final real de `handleIncomingMessage` es EOF L15554; el scanner
 lo subestima por la firma multilinea. Los rangos internos no entregados por
 Guardian no se presentan como actuales.
 

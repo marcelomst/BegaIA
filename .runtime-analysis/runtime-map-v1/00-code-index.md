@@ -67,13 +67,14 @@ Por eso:
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c46da699802d21561198594ca82c456dc4bc97ff
-repository_baseline_head: c46da699802d21561198594ca82c456dc4bc97ff
-source_code_commit: c46da699802d21561198594ca82c456dc4bc97ff
-messageHandler_lines: 15518
+commit_base: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+repository_baseline_head: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+source_code_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
-baseline_status: fix_guest_web_amenities_autosend_policy_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_conversational_context_kb_fastpath_01_at_28e23cc4bf8235b940df44bbac72d3ac56e48e10
+baseline_status: fix_conversational_context_kb_fastpath_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -100,48 +101,50 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: amenities structured handoff autosend policy
+## Evidencia focal actual: conversational context KB fastpath
 
 ```yaml
-hito_id: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
-technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
+hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+technical_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
 technical_push: confirmed
-messageHandler_lines: 15518
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Web automatic amenities/handoff queda sent
-      - Web supervised permanece pending
-      - categoria publica amenities preservada
-      - categoria sensible permanece pending
-      - canales, grants y corredores de reservas cubiertos
+      - Recall explicito, antecedente, roles y limite verificados
+      - FAQ normal, clasificacion y retrieval preservados
+      - Aislamiento multicanal y guards transaccionales cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 top_level_code_refs:
   preLLM: L6062-L6274
-  bodyLLM: L7514-L14585
-  posLLM: L15080-L15121
-  handleIncomingMessage: L15125-L15518
+  bodyLLM: L7548-L14621
+  posLLM: L15116-L15157
+  handleIncomingMessage: L15161-L15554
 focal_code_refs:
-  amenities_structured_handoff_guard: L6879-L6888
+  explicit_recall_history: L6324-L6356
+  kb_fastpath_propagation: L13305-L13314
+  knowledge_agent_contract: L28-L35
+  knowledge_agent_messages: L129-L133
 conceptual_change: false
 internal_code_refs_status: needs_refresh
 global_freshness_claim_allowed: false
 ```
 
 Guardian entrego exclusivamente los rangos top-level y focales anteriores. El
-final real de `handleIncomingMessage` es EOF L15518 pese a la subestimacion del
+final real de `handleIncomingMessage` es EOF L15554 pese a la subestimacion del
 scanner causada por la firma multilinea. Las demas
 referencias internas se conservan como evidencia historica y no se desplazan
 por inferencia; no se redefinen cajas ni diagramas.

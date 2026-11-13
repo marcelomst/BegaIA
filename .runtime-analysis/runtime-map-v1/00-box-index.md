@@ -43,11 +43,12 @@ Los `code_refs` pueden quedar desactualizados si cambia `messageHandler.ts`, por
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c46da699802d21561198594ca82c456dc4bc97ff
-messageHandler_lines: 15518
+commit_base: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
-baseline_status: fix_guest_web_amenities_autosend_policy_01_focal_evidence_refreshed
+analysis_scope: focal_refresh_fix_conversational_context_kb_fastpath_01_at_28e23cc4bf8235b940df44bbac72d3ac56e48e10
+baseline_status: fix_conversational_context_kb_fastpath_01_focal_evidence_refreshed
 global_freshness_claim_allowed: false
 ```
 
@@ -60,27 +61,25 @@ analysis_scope: focal_refresh_fix_demo_m6_discard_object_scope_01_at_3234f6456cc
 provenance: historical_focal_snapshot_preserved
 ```
 
-## Auditoría actual: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## Auditoría actual: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Web automatic amenities/handoff queda sent
-      - Web supervised permanece pending
-      - categoria publica amenities preservada
-      - categoria sensible permanece pending
-      - canales, grants y corredores de reservas cubiertos
+      - Recall explicito, antecedente, roles y limite verificados
+      - FAQ normal, clasificacion y retrieval preservados
+      - Aislamiento multicanal y guards transaccionales cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
@@ -93,16 +92,19 @@ runtime_map:
   global_freshness_claim_allowed: false
 top_level_code_refs:
   preLLM: L6062-L6274
-  bodyLLM: L7514-L14585
-  posLLM: L15080-L15121
-  handleIncomingMessage: L15125-L15518
+  bodyLLM: L7548-L14621
+  posLLM: L15116-L15157
+  handleIncomingMessage: L15161-L15554
 focal_code_refs:
-  amenities_structured_handoff_guard: L6879-L6888
+  explicit_recall_history: L6324-L6356
+  kb_fastpath_propagation: L13305-L13314
+  knowledge_agent_contract: L28-L35
+  knowledge_agent_messages: L129-L133
 ```
 
 Los 19 `box_id`, sus responsabilidades, relaciones y taxonomia permanecen
 intactos. Los rangos top-level y focales entregados por Guardian quedan
-frescos; `handleIncomingMessage` termina en EOF L15518 pese a la subestimacion
+frescos; `handleIncomingMessage` termina en EOF L15554 pese a la subestimacion
 del scanner por su firma multilinea. Los demas internos conservan estado
 `needs_refresh` y no se desplazan por inferencia.
 

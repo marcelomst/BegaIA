@@ -10,7 +10,22 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 1. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+
+- Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
+- Nombre: `propagate explicit recall history to KB fastpath`
+- Commit tecnico: `28e23cc4bf8235b940df44bbac72d3ac56e48e10`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Propaga historial opcional al KB fastpath solo ante
+  recall explicito con antecedente humano, preserva roles y aplica
+  `HISTORY_LIMIT=8` despues de excluir la pregunta actual; clasificacion y
+  retrieval siguen usando solo la pregunta actual, sin memoria ni
+  persistencia paralela y sin declarar verificacion backend/Astra ni demo
+  readiness.
+
+## 2. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -24,7 +39,7 @@ recent_hitos_count: 10
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
 
-## 2. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 3. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -37,7 +52,7 @@ recent_hitos_count: 10
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
 
-## 3. GUEST-WEB-CONVERSATION-CAPABILITY-01
+## 4. GUEST-WEB-CONVERSATION-CAPABILITY-01
 
 - Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
 - Nombre: `add secure Guest Web conversation capability`
@@ -50,7 +65,7 @@ recent_hitos_count: 10
   mantiene trusted ingress como precondicion, smoke controlado pendiente,
   despliegue y demo comercial no concedidos y Cancel deshabilitado.
 
-## 4. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 5. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -63,7 +78,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 5. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 6. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -76,7 +91,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 6. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 7. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -90,7 +105,7 @@ recent_hitos_count: 10
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
 
-## 7. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
+## 8. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
 
 - Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
 - Nombre: `close canonical post-Cancel projection`
@@ -104,7 +119,7 @@ recent_hitos_count: 10
   `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
   ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
 
-## 8. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
+## 9. TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01
 
 - Identificador: `TEST-OBS-M6-09-POST-CANCEL-CROSS-CONVERSATION-CAUSAL-CHARACTERIZATION-01`
 - Nombre: `characterize OBS-M6-09 post-Cancel cross-conversation divergence`
@@ -117,7 +132,7 @@ recent_hitos_count: 10
   incorrecta; preserva dos contratos pendientes mediante `it.fails`, confirma
   que `OBS-M6-09` persiste y requiere un hito separado para el fix productivo.
 
-## 9. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
+## 10. FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01
 
 - Identificador: `FIX-DEMO-M6-DISCARD-OBJECT-SCOPE-01`
 - Nombre: `harden M6 discard and cancel target scope`
@@ -130,17 +145,3 @@ recent_hitos_count: 10
   fail-closed la cancelacion anaforica sin target suficiente y preserva Cancel
   con target canonico strong; mantiene `OBS-M6-08`, `OBS-M6-09` y `OBS-M6-10`
   fuera de alcance.
-
-## 10. FIX-CANONICAL-READ-SAME-ID-HYDRATION-01
-
-- Identificador: `FIX-CANONICAL-READ-SAME-ID-HYDRATION-01`
-- Nombre: `correct canonical same-ID hydration after Modify discard`
-- Commit tecnico: `3443c7463f45a6d5b3537d1e51d7a961eab5a951`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Corrige la hidratacion canonica same-ID entre
-  Modify/Discard y Snapshot, preserva autoridad material local primero y
-  restringe el fallback guest-wide read-only a `hotelId`, `canonicalGuestId`
-  y `reservationId`; refresca rangos top-level del Runtime Map sin alterar sus
-  cajas ni el modelo conceptual.

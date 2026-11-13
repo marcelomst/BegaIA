@@ -17918,3 +17918,115 @@ Impacto:
   `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01` permanecen excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-13
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: propagar historial al KB fastpath solo ante recall explicito
+Commit tecnico: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- propaga historial opcional al KB fastpath exclusivamente ante recall
+  explicito con antecedente humano
+- excluye la pregunta actual antes de aplicar `HISTORY_LIMIT=8`
+- preserva los roles `HumanMessage` y `AIMessage`
+- mantiene clasificacion y retrieval restringidos a la pregunta actual
+- no crea estado, persistencia ni memoria paralela
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+technical_parent: 530a8d81c1de4c075d1942592f7c5526c8e2bb32
+technical_commit_message: "fix(kb): propagate explicit recall history to fastpath"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+technical_scope:
+  - lib/agents/knowledgeBaseAgent.ts
+  - lib/handlers/messageHandler.ts
+  - test/unit/kb.greetingFallback.spec.ts
+  - test/unit/messageHandler.routing_observability.spec.ts
+validation:
+  focal_suite: 26/26 PASS
+  guardian_parity_matrix: 122/122 PASS
+  reported_regression_suite: 144/144 PASS
+  ts_check: PASS
+  diff_check: PASS
+```
+
+Evidencia complementaria y limites:
+
+- smoke manual Docker local favorable con 5/5 respuestas observables,
+  spouse recall y check-in recall despues de reload aprobados
+- no se declara verificacion backend completa, persistencia Astra directa ni
+  demo readiness
+- no se ejecutaron operaciones de reservas
+
+Runtime Map:
+
+```yaml
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
+  reviewed:
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - Recall explicito, antecedente, roles y limite verificados
+      - FAQ normal, clasificacion y retrieval preservados
+      - Aislamiento multicanal y guards transaccionales cubiertos
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+- refresh fisico focal al commit
+  `28e23cc4bf8235b940df44bbac72d3ac56e48e10`
+- `messageHandler.ts`: 15554 lineas fisicas
+- `knowledgeBaseAgent.ts`: 158 lineas fisicas
+- `preLLM`: L6062-L6274
+- `bodyLLM`: L7548-L14621
+- `posLLM`: L15116-L15157
+- `handleIncomingMessage`: L15161-L15554; el scanner lo subestima por su
+  firma multilinea, pero la frontera canonica continua hasta EOF
+- recall explicito: L6324-L6356
+- propagacion al KB fastpath: L13305-L13314
+- contrato del agente KB: L28-L35
+- mensajes del agente KB: L129-L133
+- se preservan `box_id`, taxonomia, relaciones y diagramas conceptuales; los
+  rangos internos no entregados permanecen `needs_refresh`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `.runtime-analysis/runtime-map-v1/00-snapshot.md`
+- `.runtime-analysis/runtime-map-v1/01-phase-1-evidence-summary.md`
+- `.runtime-analysis/runtime-map-v1/00-code-index.md`
+- `.runtime-analysis/runtime-map-v1/00-box-index.md`
+
+Impacto:
+
+- canonicidad: mantiene; reutiliza el historial de preLLM para el mismo hotel,
+  conversacion y canal sin crear almacenamiento ni autoridad alternativa
+- `roadmap_impact: none`
+- refresh fisico del Runtime Map sin cambio conceptual de arquitectura
+- sin cambios documentales en roadmap, Operating Model o ADRs, ni cambios de
+  codigo o tests durante esta fase documental
+- los 43 archivos `scripts/semantic-normalization-spike/**` permanecen
+  completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

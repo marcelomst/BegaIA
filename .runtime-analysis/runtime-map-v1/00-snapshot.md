@@ -8,12 +8,13 @@
 map_id: runtime-map-v1
 repo: /home/marcelo/begasist
 base_file: lib/handlers/messageHandler.ts
-commit_base: c46da699802d21561198594ca82c456dc4bc97ff
-repository_baseline_head: c46da699802d21561198594ca82c456dc4bc97ff
-source_code_commit: c46da699802d21561198594ca82c456dc4bc97ff
-messageHandler_lines: 15518
+commit_base: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+repository_baseline_head: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+source_code_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 working_tree_status: expected_untracked_residual_present
-analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46da699802d21561198594ca82c456dc4bc97ff
+analysis_scope: focal_refresh_fix_conversational_context_kb_fastpath_01_at_28e23cc4bf8235b940df44bbac72d3ac56e48e10
 ```
 
 ---
@@ -21,8 +22,8 @@ analysis_scope: focal_refresh_fix_guest_web_amenities_autosend_policy_01_at_c46d
 ## Working tree al momento del snapshot
 
 ```text
-El refresh focal de `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01` parte de
-`HEAD = origin/main = c46da699802d21561198594ca82c456dc4bc97ff`, con indice
+El refresh focal de `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01` parte de
+`HEAD = origin/main = 28e23cc4bf8235b940df44bbac72d3ac56e48e10`, con indice
 limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ```
 
@@ -31,17 +32,21 @@ limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 ## Refresh focal actual
 
 ```yaml
-hito_id: FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
-technical_commit: c46da699802d21561198594ca82c456dc4bc97ff
+hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+technical_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
 technical_push: confirmed
-messageHandler_lines: 15518
+messageHandler_lines: 15554
+knowledgeBaseAgent_lines: 158
 functions:
   preLLM: L6062-L6274
-  bodyLLM: L7514-L14585
-  posLLM: L15080-L15121
-  handleIncomingMessage: L15125-L15518
+  bodyLLM: L7548-L14621
+  posLLM: L15116-L15157
+  handleIncomingMessage: L15161-L15554
 focal_refs:
-  amenities_structured_handoff_guard: L6879-L6888
+  explicit_recall_history: L6324-L6356
+  kb_fastpath_propagation: L13305-L13314
+  knowledge_agent_contract: L28-L35
+  knowledge_agent_messages: L129-L133
 conceptual_change: false
 global_freshness_claim_allowed: false
 ```
@@ -49,31 +54,29 @@ global_freshness_claim_allowed: false
 ```yaml
 runtime_boxes_audit:
   touched:
-    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
+    - runtime.messageHandler.bodyLLM.turnDecision
     - runtime.messageHandler.bodyLLM.operationalCorridors.faqPoliciesAmenities
   reviewed:
-    - runtime.messageHandler.bodyLLM.turnDecision
-    - runtime.messageHandler.handleIncomingMessage
+    - runtime.messageHandler.preLLM
+    - runtime.messageHandler.bodyLLM.operationalCorridors.graphClassifierPolicy
     - runtime.messageHandler.persistenceReply
   forbidden_touched: []
   undeclared_touched: []
   parity_tests:
     status: present
     details:
-      - Web automatic amenities/handoff queda sent
-      - Web supervised permanece pending
-      - categoria publica amenities preservada
-      - categoria sensible permanece pending
-      - canales, grants y corredores de reservas cubiertos
+      - Recall explicito, antecedente, roles y limite verificados
+      - FAQ normal, clasificacion y retrieval preservados
+      - Aislamiento multicanal y guards transaccionales cubiertos
   code_refs_status: needs_refresh
   runtime_map_refresh_required: true
   verdict: valid
 ```
 
-Los rangos top-level y el guard focal de amenities quedan refrescados con la
-evidencia entregada por Guardian. El scanner subestima
+Los rangos top-level y las referencias focales de recall y KB fastpath quedan
+refrescados con la evidencia entregada por Guardian. El scanner subestima
 `handleIncomingMessage` por su firma multilinea; el final verificado es EOF
-L15518. Los rangos internos no entregados permanecen `needs_refresh`.
+L15554. Los rangos internos no entregados permanecen `needs_refresh`.
 
 ---
 
