@@ -24,7 +24,7 @@ services:
     container_name: begasist-demo-suite
     command: pnpm exec next dev --turbopack -p 3000 -H 0.0.0.0
     env_file:
-      - .env
+      - "${BEGASIST_DEMO_ENV_FILE:-.env}"
     environment:
       NODE_ENV: development
       REDIS_URL: redis://redis:6379
@@ -143,7 +143,7 @@ services:
     container_name: begasist-demo-email
     command: sh -lc 'touch /tmp/email-worker.started && exec pnpm run dev:email'
     env_file:
-      - .env
+      - "${BEGASIST_DEMO_ENV_FILE:-.env}"
     environment:
       NODE_ENV: development
       HOTEL_ID: ${HOTEL_ID:-hotel999}
