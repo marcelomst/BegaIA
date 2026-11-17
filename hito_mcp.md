@@ -18320,3 +18320,77 @@ Impacto:
 - los 44 archivos untracked preexistentes permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-17
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: unificar la fuente del archivo de entorno para los comandos Demo
+Commit tecnico: ab607afd53bada3cbe2881dbefa231baec9885d5
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- consolida `BEGASIST_DEMO_ENV_FILE` como selector canónico de entorno Demo
+- deriva `COMPOSE_ENV_FILES` de la misma ruta
+- aplica el contrato a los nueve scripts Demo
+- preserva `.env` como fallback común sin variable externa
+- conserva nombres, argumentos y perfiles `email` y `public`
+- `demo:smoke` hereda el contrato en sus llamadas internas a Compose
+- no modifica código, runtime, Dockerfiles, servicios ni credenciales
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: ab607afd53bada3cbe2881dbefa231baec9885d5
+technical_parent: 9b0b47c9a8c799fcf9fd637b1db2948a7e7a9c4f
+technical_commit_message: "chore(demo): unify compose env source"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: ab607afd53bada3cbe2881dbefa231baec9885d5
+technical_scope:
+  - package.json
+validation:
+  diff_check: PASS
+  insertions: 9
+  deletions: 9
+  covered_scripts: 9
+  script_names_arguments_profiles_preserved: true
+  shared_path_resolution: PASS
+  default_fallback: .env
+  synthetic_external_path_check: PASS
+  docker_compose_config: PASS
+```
+
+Contrato operativo:
+
+- `BEGASIST_DEMO_ENV_FILE` es la fuente canónica y `COMPOSE_ENV_FILES` deriva
+  de ella
+- los nueve scripts Demo resuelven ambas variables a `.env` cuando no existe
+  un selector externo
+- la unificación de selección no completa el cutover operacional
+- mientras el worktree permanezca montado en `/app`, `dotenv.config()` puede
+  leer `/app/.env` y completar variables ausentes
+- `/dev/null` fue únicamente evidencia sintética y no una configuración
+  recomendada
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/development/demo-local-orchestration.md`
+
+Impacto:
+
+- canonicidad: fortalece; una fuente canónica gobierna la ruta y la variable de
+  Compose deriva de ella sin crear selección paralela
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- evolución operativa registrada en la guía existente, sin crear ADR
+- `.env` no fue retirado ni aislado y el cutover permanece incompleto
+- los 44 archivos untracked preexistentes permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

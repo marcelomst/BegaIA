@@ -135,6 +135,23 @@ Si la variable no está definida, el stack conserva `.env` como fallback. El
 valor puede apuntar a una ruta externa al repositorio, y ambos consumidores
 usan exactamente el mismo archivo.
 
+`BEGASIST_DEMO_ENV_FILE` es también la fuente canónica para los comandos Demo.
+Los nueve scripts derivan `COMPOSE_ENV_FILES` de la misma ruta:
+
+- `demo:up`
+- `demo:up:email`
+- `demo:up:public`
+- `demo:up:all`
+- `demo:down`
+- `demo:ps`
+- `demo:logs`
+- `demo:logs:service`
+- `demo:smoke`
+
+Sin selector externo, ambas variables resuelven `.env`. Los perfiles `email`
+y `public`, los nombres y los argumentos existentes permanecen intactos.
+`demo:smoke` hereda el mismo contrato para sus llamadas internas a Compose.
+
 Este selector habilita la externalización del `env_file`, pero no constituye
 por sí solo un cutover ni acredita aislamiento completo entre entornos.
 Mientras `.:/app` permanezca montado, `dotenv.config()` puede leer `/app/.env`
