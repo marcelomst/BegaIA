@@ -18,5 +18,38 @@ dist
 .git
 coverage
 
+# Credenciales y configuración privada identificadas
+.aws
+.cloudflared
+credenciales CQL
+.npmrc
+claves.txt
+
+# Sesiones de autenticación locales identificadas
+.local/wwebjs_auth
+.wa_baileys_auth
+.wwebjs_cache
+
+# Estado local de herramientas
+.agents
+.codex
+.cursor
+.tmp
+
+# Backups, exportaciones y dumps identificados
+exports
+docs/backups
+begasist_backup_2025-09-17.tgz
+hotel999_backup.json
+scripts/hotel_config-backup.json
+lib/agents/dump.txt
+lib/handlers/dump.txt
+respaldo rag bot funcionando.zip
+app/Proyecto Ragbot Hotel.zip
+
+# Artefactos experimentales no requeridos por el build
+.runtime-analysis
+scripts/semantic-normalization-spike
+
 # Evita incluir archivos de lock corruptos temporales
 pnpm-lock.yaml*~
