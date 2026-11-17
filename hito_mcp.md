@@ -18177,3 +18177,72 @@ Impacto:
   completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-17
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: impedir que activos sensibles identificados ingresen al contexto Docker
+Commit tecnico: dedbe0a7ee4ff68bd95e402f28fff298fb5719e8
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora 23 exclusiones nuevas en `.dockerignore`
+- preserva las reglas anteriores
+- limita el cambio al endurecimiento del contexto Docker
+- no modifica Dockerfiles, Docker Compose, runtime, credenciales ni datos
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: dedbe0a7ee4ff68bd95e402f28fff298fb5719e8
+technical_parent: 68e2cc386a35333abbd79e69f6933c2394a6de53
+technical_commit_message: "chore(docker): harden sensitive build context"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: dedbe0a7ee4ff68bd95e402f28fff298fb5719e8
+technical_scope:
+  - .dockerignore
+validation:
+  diff_check: PASS
+  insertions: 33
+  deletions: 0
+  new_rules: 23
+  previous_rules_preserved: true
+  docker_buildx_check:
+    Dockerfile.bots-node18: PASS
+    Dockerfile.channelbot: PASS
+    Dockerfile.dev: PASS
+```
+
+Limites y riesgos residuales:
+
+- las comprobaciones Docker validaron los Dockerfiles y la aceptacion del
+  contexto; la cobertura de rutas sensibles se verifico separadamente mediante
+  las 23 reglas literales
+- este hito no desversiona activos, no los elimina del historial Git y no
+  acredita rotacion de credenciales
+- versionado Git, historial, bind mounts y configuracion externa pertenecen a
+  hitos separados
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: fortalece; reduce la propagacion de activos sensibles hacia el
+  contexto Docker sin crear estado paralelo ni modificar fuentes de verdad
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- sin cambios documentales en roadmap, arquitectura u Operating Model, ni
+  cambios en codigo, Dockerfiles, Compose, configuracion o runtime durante esta
+  fase documental
+- los 44 archivos untracked preexistentes permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

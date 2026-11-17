@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+## 1. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+
+- Identificador: `SEC-INFRA-DOCKER-CONTEXT-HARDENING-01`
+- Nombre: `harden sensitive Docker build context`
+- Commit tecnico: `dedbe0a7ee4ff68bd95e402f28fff298fb5719e8`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Endurece el contexto Docker con 23 exclusiones nuevas
+  para impedir el ingreso de activos sensibles identificados; no modifica
+  Dockerfiles, Compose, runtime, credenciales ni datos, y no cubre versionado
+  Git, historial, bind mounts ni configuracion externa.
+
+## 2. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
 
 - Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
 - Nombre: `improve supervised conversation continuity`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
   preserva polling, decision backend e History API como fuente de verdad.
 
-## 2. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 3. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -37,7 +50,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 3. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 4. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -52,7 +65,7 @@ recent_hitos_count: 10
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
 
-## 4. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 5. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -66,7 +79,7 @@ recent_hitos_count: 10
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
 
-## 5. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 6. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -79,7 +92,7 @@ recent_hitos_count: 10
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
 
-## 6. GUEST-WEB-CONVERSATION-CAPABILITY-01
+## 7. GUEST-WEB-CONVERSATION-CAPABILITY-01
 
 - Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
 - Nombre: `add secure Guest Web conversation capability`
@@ -92,7 +105,7 @@ recent_hitos_count: 10
   mantiene trusted ingress como precondicion, smoke controlado pendiente,
   despliegue y demo comercial no concedidos y Cancel deshabilitado.
 
-## 7. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 8. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -105,7 +118,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 8. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 9. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -118,7 +131,7 @@ recent_hitos_count: 10
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
 
-## 9. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
+## 10. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
 
 - Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
 - Nombre: `evaluate SIN V2 local model profiles`
@@ -131,17 +144,3 @@ recent_hitos_count: 10
   salida generativa valida para SIN V2 ni fidelidad semantica demostrada.
   Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
   no versiona evidencia cruda.
-
-## 10. FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01
-
-- Identificador: `FIX-CANCEL-POSTTRANSACTION-CANONICAL-PROJECTION-01`
-- Nombre: `close canonical post-Cancel projection`
-- Commit tecnico: `c9af50c96ebb8f137e08a1687a11758cf6c7c7f1`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Preserva la reserva cancelada y persiste su proyeccion
-  canonica con identidad, estado y atributos materiales; mantiene la autoridad
-  de `cancelled` frente a material activo same-ID, conserva
-  `activeReservationContext.phase=cancelled`, convierte `OBS-M6-09` a pruebas
-  ordinarias y mantiene `OBS-M6-10` abierto y fuera de alcance.
