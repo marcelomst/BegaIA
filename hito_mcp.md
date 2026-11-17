@@ -18246,3 +18246,77 @@ Impacto:
 - los 44 archivos untracked preexistentes permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-17
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: seleccionar externamente el env_file compartido del stack Demo
+Commit tecnico: 3192cdd54ad11470d3a6bf0345f6a4298f7d4084
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- incorpora `BEGASIST_DEMO_ENV_FILE` como selector del `env_file` compartido
+- aplica el mismo valor a `suite` y `email-worker`
+- conserva `.env` como fallback cuando el selector no está definido
+- admite una ruta externa al repositorio
+- no modifica código, runtime, Dockerfiles, credenciales ni servicios
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 3192cdd54ad11470d3a6bf0345f6a4298f7d4084
+technical_parent: 2eb9794cdc61b820f950992f37155ab6fa4b20e8
+technical_commit_message: "chore(demo): add external env file contract"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 3192cdd54ad11470d3a6bf0345f6a4298f7d4084
+technical_scope:
+  - docker-compose.demo.yml
+validation:
+  diff_check: PASS
+  insertions: 2
+  deletions: 2
+  selector_occurrences: 2
+  consumers:
+    - suite
+    - email-worker
+  docker_compose_version: v5.5.0
+  default_fallback: .env
+  synthetic_external_path_check: PASS
+```
+
+Contrato operativo:
+
+- `${BEGASIST_DEMO_ENV_FILE:-.env}` selecciona el archivo común de ambos
+  consumidores
+- el selector habilita externalización, pero no constituye por sí solo un
+  cutover ni acredita aislamiento completo entre entornos
+- mientras `.:/app` permanezca montado, `dotenv.config()` puede leer
+  `/app/.env` y completar variables ausentes
+- el cutover deberá neutralizar esa ruta o modificar explícitamente la carga
+  de dotenv
+- `/dev/null` fue únicamente una ruta sintética de validación y no una
+  configuración operacional recomendada
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/development/demo-local-orchestration.md`
+
+Impacto:
+
+- canonicidad: fortalece; `suite` y `email-worker` comparten selector y
+  fallback sin crear fuentes de verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- evolución operativa registrada en la guía existente, sin crear ADR
+- `.env` no fue retirado, desversionado ni dejó de estar montado
+- los 44 archivos untracked preexistentes permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

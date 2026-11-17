@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+## 1. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
+
+- Identificador: `SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01`
+- Nombre: `add external Demo env file contract`
+- Commit tecnico: `3192cdd54ad11470d3a6bf0345f6a4298f7d4084`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora `BEGASIST_DEMO_ENV_FILE` como selector comun
+  para el `env_file` de `suite` y `email-worker`, con fallback compatible a
+  `.env` y soporte de rutas externas; habilita externalizacion, pero no
+  constituye un cutover ni acredita aislamiento completo.
+
+## 2. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
 
 - Identificador: `SEC-INFRA-DOCKER-CONTEXT-HARDENING-01`
 - Nombre: `harden sensitive Docker build context`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   Dockerfiles, Compose, runtime, credenciales ni datos, y no cubre versionado
   Git, historial, bind mounts ni configuracion externa.
 
-## 2. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+## 3. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
 
 - Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
 - Nombre: `improve supervised conversation continuity`
@@ -36,7 +49,7 @@ recent_hitos_count: 10
   siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
   preserva polling, decision backend e History API como fuente de verdad.
 
-## 3. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 4. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -50,7 +63,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 4. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 5. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -65,7 +78,7 @@ recent_hitos_count: 10
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
 
-## 5. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 6. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -79,7 +92,7 @@ recent_hitos_count: 10
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
 
-## 6. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 7. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -92,7 +105,7 @@ recent_hitos_count: 10
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
 
-## 7. GUEST-WEB-CONVERSATION-CAPABILITY-01
+## 8. GUEST-WEB-CONVERSATION-CAPABILITY-01
 
 - Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
 - Nombre: `add secure Guest Web conversation capability`
@@ -105,7 +118,7 @@ recent_hitos_count: 10
   mantiene trusted ingress como precondicion, smoke controlado pendiente,
   despliegue y demo comercial no concedidos y Cancel deshabilitado.
 
-## 8. SECURE-CONVERSATIONAL-FOUNDATION-01
+## 9. SECURE-CONVERSATIONAL-FOUNDATION-01
 
 - Identificador: `SECURE-CONVERSATIONAL-FOUNDATION-01`
 - Nombre: `establish secure conversational foundation`
@@ -118,7 +131,7 @@ recent_hitos_count: 10
   Cancel deshabilitado, Guest Web sin continuidad ni SSE, el hito de origen
   abierto y despliegue no autorizado.
 
-## 9. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
+## 10. SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15
 
 - Identificador: `SPIKE-SIN-V2-SEMANTIC-EVALUATION-PROTOCOL-15`
 - Nombre: `materialize SIN V2 semantic evaluation protocol`
@@ -130,17 +143,3 @@ recent_hitos_count: 10
   anotacion y la especificacion del instrumento para evaluar semanticamente
   SIN V2 offline. Mantiene Gate A pendiente, no declara dataset, gold, scorer
   ni ejecucion experimental y no modifica SIN V2, RDA o runtime productivo.
-
-## 10. SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14
-
-- Identificador: `SPIKE-SIN-V2-LOCAL-MODEL-EVALUATION-14`
-- Nombre: `evaluate SIN V2 local model profiles`
-- Commit tecnico: `6a745268bc34534d783c44f32c3234c2c0c8fbbf`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Evalua offline cinco perfiles cerrados de modelo local;
-  observa transporte viable y conformidad estructural parcial, pero ninguna
-  salida generativa valida para SIN V2 ni fidelidad semantica demostrada.
-  Preserva `BACKUP_PENDING` para el respaldo independiente de las capturas y
-  no versiona evidencia cruda.

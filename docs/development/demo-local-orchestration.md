@@ -122,6 +122,28 @@ El smoke no ejecuta reservas reales.
 
 ## Notas Operativas
 
+### Selección Del Archivo De Entorno
+
+`BEGASIST_DEMO_ENV_FILE` selecciona el `env_file` compartido por `suite` y
+`email-worker` mediante este contrato de Compose:
+
+```text
+${BEGASIST_DEMO_ENV_FILE:-.env}
+```
+
+Si la variable no está definida, el stack conserva `.env` como fallback. El
+valor puede apuntar a una ruta externa al repositorio, y ambos consumidores
+usan exactamente el mismo archivo.
+
+Este selector habilita la externalización del `env_file`, pero no constituye
+por sí solo un cutover ni acredita aislamiento completo entre entornos.
+Mientras `.:/app` permanezca montado, `dotenv.config()` puede leer `/app/.env`
+y completar variables ausentes. Un cutover deberá neutralizar esa ruta o
+modificar explícitamente la carga de dotenv.
+
+`/dev/null` se utilizó únicamente como ruta sintética para validar la
+resolución de Compose. No es una configuración operacional recomendada.
+
 Email requiere credenciales Gmail/IMAP válidas. Si el perfil `email` falla por autenticación, revisar primero:
 
 ```bash
