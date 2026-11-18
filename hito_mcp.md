@@ -18394,3 +18394,71 @@ Impacto:
 - los 44 archivos untracked preexistentes permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-18
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: diagnosticar conectividad y autenticacion IMAP/SMTP sin efectos de correo
+Commit tecnico: 0dc9ac0bedad375ac92f0ebe515e00784fc3a690
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora un diagnóstico CLI aislable para conectividad y autenticación
+  IMAP/SMTP
+- aplica selección de entorno externo fail-closed
+- valida TLS y certificados explícitamente para ambos protocolos
+- no abre INBOX, no ejecuta `sendMail` y no importa ni inicia Email Worker
+- cierra los clientes ante éxito, error y timeout
+- emite resultados categóricos sin credenciales, usuarios, hosts, `secretRef`
+  ni errores crudos
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 0dc9ac0bedad375ac92f0ebe515e00784fc3a690
+technical_parent: 05a36b993a8d5b0c693181e03984897d3637fcf3
+technical_commit_message: "feat(email): add secure connectivity probe"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 0dc9ac0bedad375ac92f0ebe515e00784fc3a690
+technical_scope:
+  - scripts/test-imap-smtp.ts
+  - lib/email/resolveEmailCredentials.ts
+  - test/unit/email.connectivityProbe.spec.ts
+validation:
+  probe_and_resolver_tests: 19/19 PASS
+  email_worker_regression: 2/2 PASS
+  typescript: PASS
+  diff_check: PASS
+```
+
+Contratos validados:
+
+- IMAP usa TLS con `rejectUnauthorized=true` y no abre INBOX
+- SMTP usa TLS directo con `secure=true`; con `secure=false` exige STARTTLS
+  mediante `requireTLS`; ambos modos validan certificados
+- la precedencia de credenciales conserva `secretRef`, inline legacy y
+  `EMAIL_PASS` únicamente ante fallo AUTH de credencial inline
+- los exit codes `0`, `10`, `20`, `21`, `30`, `31` y `40` permanecen definidos
+- sin selector, el entrypoint termina con exit `10` e IMAP/SMTP `NOT_RUN`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; preserva la precedencia canónica de credenciales y
+  añade diagnóstico sin alterar Email Worker ni sus efectos operativos
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- sin cambios documentales en arquitectura viva ni creación de ADR
+- los 44 archivos untracked preexistentes permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
