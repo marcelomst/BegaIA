@@ -28,7 +28,10 @@ export function emailSecretEnvVarName(ref: string) {
  * 2. password inline (legacy)
  * Si no existe password, retorna source:"none" con reason.
  */
-export function resolveEmailCredentials(email: EmailConfig | undefined): ResolvedEmailCredentials | undefined {
+export function resolveEmailCredentials(
+    email: EmailConfig | undefined,
+    environment: Record<string, string | undefined> = process.env,
+): ResolvedEmailCredentials | undefined {
     if (!email) return undefined;
 
     const base = {
@@ -40,7 +43,7 @@ export function resolveEmailCredentials(email: EmailConfig | undefined): Resolve
 
     if (email.secretRef) {
         const varName = emailSecretEnvVarName(email.secretRef);
-        const pass = process.env[varName];
+        const pass = environment[varName];
         if (pass) {
             return { ...base, pass, source: "env" };
         }
