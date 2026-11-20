@@ -167,6 +167,34 @@ Email requiere credenciales Gmail/IMAP válidas. Si el perfil `email` falla por 
 pnpm run email:diag
 ```
 
+### Diagnóstico Email Exact-Target
+
+Para diagnosticar exclusivamente la credencial de `hotel999` derivada de
+`demo-hotel999-main`, el comando admite el modo `exact-target`:
+
+```bash
+BEGASIST_DEMO_ENV_FILE=<ruta-absoluta-externa> pnpm run email:diag -- exact-target --hotelId=hotel999 --secretRef=demo-hotel999-main
+```
+
+Este modo acepta únicamente esa combinación de hotel y `secretRef`. Obtiene la
+variable mediante el helper de derivación y el resolver canónicos, y exige que
+`BEGASIST_DEMO_ENV_FILE` señale un archivo absoluto externo al repositorio,
+regular, propiedad del UID efectivo y con modo `0600`. La lectura usa un único
+descriptor abierto con `O_RDONLY|O_NOFOLLOW`, validado con `fstat` y leído a
+través de `/proc/self/fd`; luego cierra el descriptor y limpia el buffer.
+
+La credencial seleccionada se usa tanto para IMAP como para SMTP. No admite
+password inline, `EMAIL_PASS`, fallback ni prevalencia de `process.env`. IMAP
+se limita a autenticar y no abre buzones ni lee o modifica mensajes; SMTP usa
+`verify()` y no envía correo. El diagnóstico tampoco escribe Astra o Redis ni
+inicia Email Worker.
+
+La salida sanitizada clasifica el resultado como `PASS`, `AUTH_FAIL` o
+`INCONCLUSIVE`, sin incluir secretos ni errores crudos. La incorporación del
+modo no acredita una ejecución real: probar la credencial requiere autorización
+operacional independiente. Tampoco autoriza apply, rollback, escrituras Astra
+ni reinicios del Email Worker.
+
 Cloudflared es opcional. No es requisito para probar Web local.
 
 ## Trusted Ingress Guest Web

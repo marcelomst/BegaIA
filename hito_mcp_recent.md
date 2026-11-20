@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
+## 1. OPS-EMAIL-EXACT-TARGET-PROBE-01
+
+- Identificador: `OPS-EMAIL-EXACT-TARGET-PROBE-01`
+- Nombre: `add exact-target credential probe`
+- Commit tecnico: `bea2d872a2eeec62cab682f934e0f099b96f986b`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora un diagnóstico Email exact-target limitado a
+  `hotel999` y `demo-hotel999-main`, con lectura segura desde archivo externo,
+  autenticación sintética IMAP/SMTP y salida sanitizada; no acredita ejecución
+  real ni autoriza apply, rollback, escritura Astra o reinicio de Email Worker.
+
+## 2. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
 
 - Identificador: `SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01`
 - Nombre: `add secure email connectivity probe`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   salida categórica sin secretos; no abre INBOX, no envía correo ni inicia o
   modifica Email Worker.
 
-## 2. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
+## 3. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01`
 - Nombre: `unify Demo Compose env source`
@@ -36,7 +49,7 @@ recent_hitos_count: 10
   con fallback `.env`; preserva perfiles y argumentos, sin completar el
   cutover operacional ni aislar `.env`.
 
-## 3. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
+## 4. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01`
 - Nombre: `add external Demo env file contract`
@@ -49,7 +62,7 @@ recent_hitos_count: 10
   `.env` y soporte de rutas externas; habilita externalizacion, pero no
   constituye un cutover ni acredita aislamiento completo.
 
-## 4. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+## 5. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
 
 - Identificador: `SEC-INFRA-DOCKER-CONTEXT-HARDENING-01`
 - Nombre: `harden sensitive Docker build context`
@@ -62,7 +75,7 @@ recent_hitos_count: 10
   Dockerfiles, Compose, runtime, credenciales ni datos, y no cubre versionado
   Git, historial, bind mounts ni configuracion externa.
 
-## 5. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+## 6. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
 
 - Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
 - Nombre: `improve supervised conversation continuity`
@@ -75,7 +88,7 @@ recent_hitos_count: 10
   siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
   preserva polling, decision backend e History API como fuente de verdad.
 
-## 6. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 7. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -89,7 +102,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 7. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 8. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -104,7 +117,7 @@ recent_hitos_count: 10
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
 
-## 8. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 9. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -118,7 +131,7 @@ recent_hitos_count: 10
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
 
-## 9. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
+## 10. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
 
 - Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
 - Nombre: `add trusted ingress for guest web`
@@ -130,16 +143,3 @@ recent_hitos_count: 10
   Web con listeners local y Cloudflare separados, acreditacion TCP, asercion
   HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
   tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
-
-## 10. GUEST-WEB-CONVERSATION-CAPABILITY-01
-
-- Identificador: `GUEST-WEB-CONVERSATION-CAPABILITY-01`
-- Nombre: `add secure Guest Web conversation capability`
-- Commit tecnico: `92c0ee8592867f41ab66694a55ad4b63b791aa9a`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Incorpora continuidad Guest Web segura con identidad,
-  capability, grant y binding server-side, historial e idempotencia durable;
-  mantiene trusted ingress como precondicion, smoke controlado pendiente,
-  despliegue y demo comercial no concedidos y Cancel deshabilitado.

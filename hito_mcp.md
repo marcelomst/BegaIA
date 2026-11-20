@@ -18462,3 +18462,73 @@ Impacto:
 - los 44 archivos untracked preexistentes permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### OPS-EMAIL-EXACT-TARGET-PROBE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-20
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: diagnosticar de forma exacta y read-only la credencial de Email de hotel999
+Commit tecnico: bea2d872a2eeec62cab682f934e0f099b96f986b
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- incorpora un modo `exact-target` limitado a `hotel999` y
+  `demo-hotel999-main`
+- deriva la variable con el helper y resolver canónicos y excluye password
+  inline, `EMAIL_PASS`, fallback y prevalencia de `process.env`
+- obtiene la credencial desde un archivo absoluto externo al repositorio,
+  regular, propiedad del UID efectivo y con modo `0600`
+- valida el archivo mediante un descriptor único abierto con
+  `O_RDONLY|O_NOFOLLOW`, `fstat` y `/proc/self/fd`, con cierre y limpieza del
+  buffer
+- reutiliza la misma credencial para IMAP y SMTP; IMAP no abre buzones ni toca
+  mensajes y SMTP usa `verify()` sin enviar correo
+- no escribe Astra o Redis ni inicia Email Worker
+- emite únicamente `PASS`, `AUTH_FAIL` o `INCONCLUSIVE`, sin secretos ni
+  errores crudos
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: bea2d872a2eeec62cab682f934e0f099b96f986b
+technical_parent: eed15ee4a16fdefc385df6b9b2b2264e87f14b69
+technical_commit_message: "feat(email): add exact-target credential probe"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: bea2d872a2eeec62cab682f934e0f099b96f986b
+technical_scope:
+  - scripts/test-imap-smtp.ts
+  - test/unit/email.connectivityProbe.spec.ts
+validation:
+  synthetic_tests: 54/54 PASS
+  typescript_no_emit: PASS
+  diff_check: PASS
+  script_sha256: 4f900770fc812d9055df6a218952e244e50cb1e323f6deed211342f9ba06ffbd
+  tests_sha256: 646f84663755023d13f6f2e8d0eaddcfe3f6b60d61faa4041bc387e0a6fa323c
+  resolver_preserved_sha256: d9de3a0dda320673022eb960cbbda9bdb487fae63c50e46c09e6827b29a5655c
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/development/demo-local-orchestration.md`
+
+Impacto:
+
+- canonicidad: mantiene; reutiliza el helper y resolver canónicos y no crea
+  una fuente alternativa de credenciales
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- actualiza la guía existente de `email:diag`; no crea ADR ni documentación
+  arquitectónica paralela
+- no se ejecutó el diagnóstico real ni se autorizan apply, rollback, escritura
+  Astra o reinicio de Email Worker
+- la prueba real de credencial permanece sujeta a autorización operacional
+  independiente y apply requiere un gate posterior explícito y separado
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
