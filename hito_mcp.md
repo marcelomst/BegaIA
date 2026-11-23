@@ -18532,3 +18532,72 @@ Impacto:
   independiente y apply requiere un gate posterior explícito y separado
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-23
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: alinear la identidad TLS del probe IMAP con el host configurado
+Commit tecnico: bb711cf1a2dd567b7ba2fc4764e513b81f0097b3
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- agrega al probe IMAP un `servername` TLS derivado del mismo
+  `email.imapHost` usado como host de conexión
+- preserva `tls: true`, `rejectUnauthorized: true`, timeouts, resolución de
+  credenciales, fallback y restricciones `exact-target`
+- limita el cambio al diagnóstico existente y a su cobertura unitaria
+- no modifica Email Worker, runtime, persistencia ni arquitectura viva
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: bb711cf1a2dd567b7ba2fc4764e513b81f0097b3
+technical_parent: 8710ccae8c30b103762f3e7d85806890dd61e80e
+technical_commit_message: "fix(email): set IMAP probe TLS servername"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: bb711cf1a2dd567b7ba2fc4764e513b81f0097b3
+technical_scope:
+  - scripts/test-imap-smtp.ts
+  - test/unit/email.connectivityProbe.spec.ts
+validation:
+  focused_tests: 50/50 PASS
+  typescript: PASS
+  diff_check: PASS
+  tracked_worktree: clean
+  index: clean
+  external_imap_smtp_connections: not_performed
+```
+
+Hallazgo de seguridad separado:
+
+- Email Worker mantiene `tlsOptions.rejectUnauthorized: false` y no declara
+  `servername` en `lib/services/email.ts`; el riesgo informado es `high`
+- Email Worker permanece bloqueado para habilitación operacional hasta un hito
+  independiente, recomendado `SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01`
+- la corrección del worker queda expresamente fuera de este hito
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; host e identidad TLS derivan de
+  `email.imapHost`, sin agregar estado, fallback ni fuente de verdad paralela
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios documentales en arquitectura viva, Operating Model, roadmap o
+  ADRs, ni cambios en código o tests durante esta fase documental
+- no se ejecutaron conexiones IMAP/SMTP externas
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. OPS-EMAIL-EXACT-TARGET-PROBE-01
+## 1. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
+
+- Identificador: `FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01`
+- Nombre: `set IMAP probe TLS servername`
+- Commit tecnico: `bb711cf1a2dd567b7ba2fc4764e513b81f0097b3`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Alinea el `servername` TLS del probe IMAP con el mismo
+  `email.imapHost` usado como host, preservando validación de certificados,
+  timeouts, credenciales, fallback y `exact-target`; no corrige ni habilita el
+  Email Worker, cuyo hardening TLS permanece bloqueado para un hito separado.
+
+## 2. OPS-EMAIL-EXACT-TARGET-PROBE-01
 
 - Identificador: `OPS-EMAIL-EXACT-TARGET-PROBE-01`
 - Nombre: `add exact-target credential probe`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   autenticación sintética IMAP/SMTP y salida sanitizada; no acredita ejecución
   real ni autoriza apply, rollback, escritura Astra o reinicio de Email Worker.
 
-## 2. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
+## 3. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
 
 - Identificador: `SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01`
 - Nombre: `add secure email connectivity probe`
@@ -36,7 +49,7 @@ recent_hitos_count: 10
   salida categórica sin secretos; no abre INBOX, no envía correo ni inicia o
   modifica Email Worker.
 
-## 3. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
+## 4. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01`
 - Nombre: `unify Demo Compose env source`
@@ -49,7 +62,7 @@ recent_hitos_count: 10
   con fallback `.env`; preserva perfiles y argumentos, sin completar el
   cutover operacional ni aislar `.env`.
 
-## 4. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
+## 5. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01`
 - Nombre: `add external Demo env file contract`
@@ -62,7 +75,7 @@ recent_hitos_count: 10
   `.env` y soporte de rutas externas; habilita externalizacion, pero no
   constituye un cutover ni acredita aislamiento completo.
 
-## 5. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+## 6. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
 
 - Identificador: `SEC-INFRA-DOCKER-CONTEXT-HARDENING-01`
 - Nombre: `harden sensitive Docker build context`
@@ -75,7 +88,7 @@ recent_hitos_count: 10
   Dockerfiles, Compose, runtime, credenciales ni datos, y no cubre versionado
   Git, historial, bind mounts ni configuracion externa.
 
-## 6. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+## 7. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
 
 - Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
 - Nombre: `improve supervised conversation continuity`
@@ -88,7 +101,7 @@ recent_hitos_count: 10
   siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
   preserva polling, decision backend e History API como fuente de verdad.
 
-## 7. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 8. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -102,7 +115,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 8. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 9. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -117,7 +130,7 @@ recent_hitos_count: 10
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
 
-## 9. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
+## 10. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
 
 - Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
 - Nombre: `normalize amenities handoff autosend policy`
@@ -130,16 +143,3 @@ recent_hitos_count: 10
   publica `amenities` y mantiene Web supervised y categorias sensibles en
   supervision; refresca evidencia fisica del Runtime Map sin cambios
   conceptuales y no declara verificacion Astra directa ni demo readiness.
-
-## 10. DEMO-GUEST-WEB-TRUSTED-INGRESS-01
-
-- Identificador: `DEMO-GUEST-WEB-TRUSTED-INGRESS-01`
-- Nombre: `add trusted ingress for guest web`
-- Commit tecnico: `535367cddf5e0e55be1216f9e2902e3a63a1e438`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Incorpora una unica frontera trusted ingress para Guest
-  Web con listeners local y Cloudflare separados, acreditacion TCP, asercion
-  HMAC y sanitizacion HTTP bidireccional; mantiene smoke Docker, despliegue,
-  tunel publico y demo comercial sin aprobar, y Cancel deshabilitado.
