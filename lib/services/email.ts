@@ -30,6 +30,15 @@ type EmailBotStartup = {
   lockToken: string;
   cancelled: boolean;
 };
+type EmailWorkerReply = {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+};
+type EmailWorkerTransporter = {
+  sendMail: (reply: EmailWorkerReply) => Promise<unknown> | unknown;
+};
 const emailBotRuntimes = new Map<string, {
   hotelId: string;
   lockToken: string;
@@ -146,6 +155,19 @@ export function shouldAutoEnableEmailPollingOnStartup(
   emailEnabled = true,
 ): boolean {
   return mode === "watch" && emailEnabled !== false;
+}
+
+export async function sendEmailWorkerReply(
+  transporter: EmailWorkerTransporter,
+  reply: EmailWorkerReply,
+): Promise<boolean> {
+  if (!EMAIL_SENDING_ENABLED) {
+    console.warn("[email] EMAIL_SENDING_ENABLED=false: respuesta SMTP bloqueada.");
+    return false;
+  }
+
+  await transporter.sendMail(reply);
+  return true;
 }
 
 function newEmailBotLockToken(hotelId: string): string {
@@ -276,7 +298,7 @@ export async function processInboundEmailMessage(args: {
   raw?: Buffer | string;
   mode: "automatic" | "supervised";
   emailUser: string;
-  sendReply: (input: { to: string; subject: string; text: string }) => Promise<void>;
+  sendReply: (input: { to: string; subject: string; text: string }) => Promise<void | boolean>;
 }) {
   const { hotelId, parsed, raw, mode, emailUser, sendReply } = args;
 
@@ -362,12 +384,14 @@ export async function processInboundEmailMessage(args: {
     });
 
     if (result.status === "sent" && result.response.trim()) {
-      await sendReply({
+      const replySent = await sendReply({
         to: senderEmail || parsed.from?.text || emailUser,
         subject: "Re: " + (channelMsg.subject || parsed.subject || ""),
         text: result.response,
       });
-      console.log(`📤 [email] Respuesta enviada a ${senderEmail || parsed.from?.text}`);
+      if (replySent !== false) {
+        console.log(`📤 [email] Respuesta enviada a ${senderEmail || parsed.from?.text}`);
+      }
     }
 
     return { deduped: false as const, channelMsg, result };
@@ -688,7 +712,7 @@ export async function startEmailBot({
               mode,
               emailUser: EMAIL_USER,
               sendReply: async ({ to, subject, text }) => {
-                await transporter.sendMail({
+                return sendEmailWorkerReply(transporter, {
                   from: EMAIL_USER,
                   to,
                   subject,
