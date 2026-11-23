@@ -455,7 +455,10 @@ export async function startEmailBot({
         host: IMAP_HOST,
         port: Number(IMAP_PORT) || 993,
         tls: true,
-        tlsOptions: { rejectUnauthorized: false },
+        tlsOptions: {
+          rejectUnauthorized: true,
+          servername: IMAP_HOST,
+        },
         authTimeout: 10000,
       },
     });

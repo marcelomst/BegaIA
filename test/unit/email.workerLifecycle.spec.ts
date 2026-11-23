@@ -78,6 +78,18 @@ describe("email worker shutdown lifecycle", () => {
         } as any,
       });
 
+      expect(connectMock).toHaveBeenCalledWith({
+        imap: expect.objectContaining({
+          host: "imap.example.com",
+          port: 993,
+          tls: true,
+          tlsOptions: {
+            rejectUnauthorized: true,
+            servername: "imap.example.com",
+          },
+          authTimeout: 10000,
+        }),
+      });
       await expect(acquireEmailBotLock("hotel-restart-1", "other-worker")).resolves.toBe(false);
 
       await stopAllEmailBotRuntimes("signal_SIGTERM");
@@ -104,6 +116,48 @@ describe("email worker shutdown lifecycle", () => {
     })).rejects.toThrow("IMAP unavailable");
 
     await expect(acquireEmailBotLock("hotel-startup-error-1", "next-worker")).resolves.toBe(true);
+  });
+
+  it("no habilita fallback ni runtime cuando falla la validacion TLS", async () => {
+    const intervalSpy = vi.spyOn(global, "setInterval");
+    const sendMail = vi.fn();
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const previousEmailPass = process.env.EMAIL_PASS;
+    process.env.EMAIL_PASS = "must-not-be-used";
+    createTransportMock.mockReturnValueOnce({ sendMail });
+    connectMock.mockRejectedValueOnce(
+      Object.assign(new Error("certificate hostname mismatch"), {
+        code: "ERR_TLS_CERT_ALTNAME_INVALID",
+      }),
+    );
+
+    try {
+      await expect(startEmailBot({
+        hotelId: "hotel-tls-error-1",
+        emailConf: {
+          dirEmail: "hotel@example.com",
+          imapHost: "imap.example.com",
+          imapPort: 993,
+          smtpHost: "smtp.example.com",
+          password: "inline-secret",
+          enabled: true,
+        } as any,
+      })).rejects.toMatchObject({ code: "ERR_TLS_CERT_ALTNAME_INVALID" });
+
+      expect(connectMock).toHaveBeenCalledOnce();
+      expect(intervalSpy).not.toHaveBeenCalled();
+      expect(heartbeatMock.startChannelHeartbeat).not.toHaveBeenCalled();
+      expect(sendMail).not.toHaveBeenCalled();
+      await expect(acquireEmailBotLock("hotel-tls-error-1", "next-worker")).resolves.toBe(true);
+    } finally {
+      consoleErrorSpy.mockRestore();
+      intervalSpy.mockRestore();
+      if (previousEmailPass === undefined) {
+        delete process.env.EMAIL_PASS;
+      } else {
+        process.env.EMAIL_PASS = previousEmailPass;
+      }
+    }
   });
 
   it("no promueve un startup cancelado mientras IMAP sigue conectando", async () => {

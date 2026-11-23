@@ -87,6 +87,14 @@ describe("email SMTP auth fallback", () => {
         expect.objectContaining({
           imap: expect.objectContaining({
             password: "inline-legacy-pass",
+            host: "imap.gmail.com",
+            port: 993,
+            tls: true,
+            tlsOptions: {
+              rejectUnauthorized: true,
+              servername: "imap.gmail.com",
+            },
+            authTimeout: 10000,
           }),
         }),
       );
@@ -95,6 +103,14 @@ describe("email SMTP auth fallback", () => {
         expect.objectContaining({
           imap: expect.objectContaining({
             password: "env-fallback-pass",
+            host: "imap.gmail.com",
+            port: 993,
+            tls: true,
+            tlsOptions: {
+              rejectUnauthorized: true,
+              servername: "imap.gmail.com",
+            },
+            authTimeout: 10000,
           }),
         }),
       );
