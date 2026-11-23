@@ -105,7 +105,10 @@ describe("secure email connectivity probe", () => {
       expect.objectContaining({
         imap: expect.objectContaining({
           tls: true,
-          tlsOptions: { rejectUnauthorized: true },
+          tlsOptions: {
+            rejectUnauthorized: true,
+            servername: baseEmail.imapHost,
+          },
         }),
       }),
     );
@@ -743,11 +746,26 @@ describe("exact-target hotel999 credential probe", () => {
     expect(harness.connectImap).not.toHaveBeenCalled();
   });
 
-  it("projects hotel_config without selecting its inline password", async () => {
+  it("projects hotel_config with strict IMAP TLS identity without selecting its inline password", async () => {
     const harness = createExactTargetHarness();
     await executeExactTargetProbe(harness.dependencies, exactTargetRequest);
 
-    const imapConfig = harness.connectImap.mock.calls[0]?.[0] as { imap: { password: string } };
+    const imapConfig = harness.connectImap.mock.calls[0]?.[0] as {
+      imap: {
+        host: string;
+        password: string;
+        tls: boolean;
+        tlsOptions: { rejectUnauthorized: boolean; servername: string };
+      };
+    };
+    expect(imapConfig.imap).toMatchObject({
+      host: baseEmail.imapHost,
+      tls: true,
+      tlsOptions: {
+        rejectUnauthorized: true,
+        servername: baseEmail.imapHost,
+      },
+    });
     expect(imapConfig.imap.password).toBe("selected-target-credential");
     expect(imapConfig.imap.password).not.toBe("inline-must-not-be-selected");
   });

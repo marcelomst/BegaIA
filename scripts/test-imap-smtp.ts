@@ -295,6 +295,7 @@ async function checkImap(
       tls: true,
       tlsOptions: {
         rejectUnauthorized: true,
+        servername: email.imapHost,
       },
       authTimeout: 10_000,
       connTimeout: 10_000,
