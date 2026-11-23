@@ -18672,3 +18672,79 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-23
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: impedir envios SMTP cuando EMAIL_SENDING_ENABLED es false
+Commit tecnico: 6bbad30c63da015e96e73ac2c8ee3fc620ea0907
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora un gate único que impide `transporter.sendMail` cuando
+  `EMAIL_SENDING_ENABLED=false`
+- con el flag habilitado conserva remitente, destinatario, asunto, texto y
+  comportamiento anterior
+- respuestas `pending`, `failed` o vacías no envían correo
+- una respuesta bloqueada no genera un log falso de envío exitoso
+- preserva intacto el resultado del pipeline y no deja bypass SMTP productivo
+- las pruebas controlan el flag cargado a nivel de módulo
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 6bbad30c63da015e96e73ac2c8ee3fc620ea0907
+technical_parent: 9f3d94af287be1b3cb17b24cf6adf35c992dbb26
+technical_commit_message: "fix(email): enforce sending-disabled SMTP gate"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 6bbad30c63da015e96e73ac2c8ee3fc620ea0907
+technical_scope:
+  - lib/services/email.ts
+  - test/unit/email.sendingDisabledGate.spec.ts
+validation:
+  focused_test_files: 6
+  focused_tests: 38/38 PASS
+  typescript: PASS
+  diff_check: PASS
+  tracked_worktree: clean
+  index: clean
+  external_connections: not_performed
+```
+
+Alcance de seguridad preservado:
+
+- IMAP y TLS permanecen sin cambios
+- `SecretRef`, resolución de credenciales y fallback de autenticación
+  permanecen sin cambios
+- polling, locks Redis, Docker y dependencias permanecen sin cambios
+
+Limitaciones operacionales:
+
+- no se realizaron conexiones IMAP o SMTP reales
+- no se inició Email Worker
+- este cierre no declara readiness operacional ni comercial
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; la única llamada productiva a `sendMail` queda bajo
+  un gate único, sin crear transporters, pipelines, estado ni fuentes paralelas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios documentales en arquitectura viva, Operating Model, roadmap o
+  ADRs, ni cambios en código o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
