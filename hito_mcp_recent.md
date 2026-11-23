@@ -10,7 +10,20 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
+## 1. SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
+
+- Identificador: `SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01`
+- Nombre: `enforce strict IMAP TLS in worker`
+- Commit tecnico: `96c9fef2f1dae1a2412b6d9d47312099586ba691`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Endurece el único constructor IMAP del Email Worker con
+  TLS y validación de certificados estrictos, usando `IMAP_HOST` como host y
+  `servername` para conexión inicial y fallback; no acredita conexiones reales,
+  compatibilidad multihotel, sanitización de logs ni habilitación operacional.
+
+## 2. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
 
 - Identificador: `FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01`
 - Nombre: `set IMAP probe TLS servername`
@@ -23,7 +36,7 @@ recent_hitos_count: 10
   timeouts, credenciales, fallback y `exact-target`; no corrige ni habilita el
   Email Worker, cuyo hardening TLS permanece bloqueado para un hito separado.
 
-## 2. OPS-EMAIL-EXACT-TARGET-PROBE-01
+## 3. OPS-EMAIL-EXACT-TARGET-PROBE-01
 
 - Identificador: `OPS-EMAIL-EXACT-TARGET-PROBE-01`
 - Nombre: `add exact-target credential probe`
@@ -36,7 +49,7 @@ recent_hitos_count: 10
   autenticación sintética IMAP/SMTP y salida sanitizada; no acredita ejecución
   real ni autoriza apply, rollback, escritura Astra o reinicio de Email Worker.
 
-## 3. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
+## 4. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
 
 - Identificador: `SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01`
 - Nombre: `add secure email connectivity probe`
@@ -49,7 +62,7 @@ recent_hitos_count: 10
   salida categórica sin secretos; no abre INBOX, no envía correo ni inicia o
   modifica Email Worker.
 
-## 4. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
+## 5. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01`
 - Nombre: `unify Demo Compose env source`
@@ -62,7 +75,7 @@ recent_hitos_count: 10
   con fallback `.env`; preserva perfiles y argumentos, sin completar el
   cutover operacional ni aislar `.env`.
 
-## 5. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
+## 6. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01`
 - Nombre: `add external Demo env file contract`
@@ -75,7 +88,7 @@ recent_hitos_count: 10
   `.env` y soporte de rutas externas; habilita externalizacion, pero no
   constituye un cutover ni acredita aislamiento completo.
 
-## 6. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
+## 7. SEC-INFRA-DOCKER-CONTEXT-HARDENING-01
 
 - Identificador: `SEC-INFRA-DOCKER-CONTEXT-HARDENING-01`
 - Nombre: `harden sensitive Docker build context`
@@ -88,7 +101,7 @@ recent_hitos_count: 10
   Dockerfiles, Compose, runtime, credenciales ni datos, y no cubre versionado
   Git, historial, bind mounts ni configuracion externa.
 
-## 7. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
+## 8. UX-GUEST-WEB-SUPERVISED-CONTINUITY-01
 
 - Identificador: `UX-GUEST-WEB-SUPERVISED-CONTINUITY-01`
 - Nombre: `improve supervised conversation continuity`
@@ -101,7 +114,7 @@ recent_hitos_count: 10
   siguientes, retiro al aprobar o expirar y reinicio por nueva conversacion;
   preserva polling, decision backend e History API como fuente de verdad.
 
-## 8. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
+## 9. FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01
 
 - Identificador: `FIX-GUEST-WEB-SUPERVISED-APPROVAL-VISIBILITY-01`
 - Nombre: `poll approved supervised replies`
@@ -115,7 +128,7 @@ recent_hitos_count: 10
   una aprobacion posterior al plazo requiere recuperacion posterior, por
   ejemplo mediante recarga.
 
-## 9. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
+## 10. FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
 
 - Identificador: `FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01`
 - Nombre: `propagate explicit recall history to KB fastpath`
@@ -129,17 +142,3 @@ recent_hitos_count: 10
   retrieval siguen usando solo la pregunta actual, sin memoria ni
   persistencia paralela y sin declarar verificacion backend/Astra ni demo
   readiness.
-
-## 10. FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01
-
-- Identificador: `FIX-GUEST-WEB-AMENITIES-AUTOSEND-POLICY-01`
-- Nombre: `normalize amenities handoff autosend policy`
-- Commit tecnico: `c46da699802d21561198594ca82c456dc4bc97ff`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Restringe la normalizacion `amenities` a
-  `amenities_info` al guard de structured handoff, preserva la categoria
-  publica `amenities` y mantiene Web supervised y categorias sensibles en
-  supervision; refresca evidencia fisica del Runtime Map sin cambios
-  conceptuales y no declara verificacion Astra directa ni demo readiness.

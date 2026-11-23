@@ -18601,3 +18601,74 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-23
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: aplicar TLS IMAP estricto en el Email Worker legacy
+Commit tecnico: 96c9fef2f1dae1a2412b6d9d47312099586ba691
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- el único constructor IMAP del Email Worker usa `tls: true`,
+  `rejectUnauthorized: true` y `servername: IMAP_HOST`
+- `IMAP_HOST` deriva de `emailConf.imapHost` y se usa también como host
+- la conexión inicial y el fallback de credenciales comparten
+  `buildImapConfig`, sin fallback TLS inseguro ni constructor paralelo
+- un certificado inválido falla de forma cerrada y no activa fallback de
+  credenciales, apertura de INBOX, heartbeat, polling ni envío de correo
+- el fallo libera el lock de startup
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 96c9fef2f1dae1a2412b6d9d47312099586ba691
+technical_parent: 88f29f2f6860cb156b81d6e129c071ff51bf92a6
+technical_commit_message: "fix(email): enforce strict IMAP TLS in worker"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 96c9fef2f1dae1a2412b6d9d47312099586ba691
+technical_scope:
+  - lib/services/email.ts
+  - test/unit/email.workerLifecycle.spec.ts
+  - test/unit/email.smtpAuthFallback.spec.ts
+validation:
+  focused_test_files: 5
+  focused_tests: 33/33 PASS
+  typescript: PASS
+  diff_check: PASS
+  tracked_worktree: clean
+  index: clean
+  external_connections: not_performed
+```
+
+Limitaciones operacionales:
+
+- no se realizaron conexiones IMAP o SMTP reales
+- no se validó compatibilidad con endpoints de otros hoteles
+- no se auditó sanitización de logs
+- este cierre no declara habilitación operacional del Email Worker
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; ambos intentos IMAP conservan un único constructor,
+  sin agregar estado, dependencias ni fuentes de verdad paralelas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios documentales en arquitectura viva, Operating Model, roadmap o
+  ADRs, ni cambios en código o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
