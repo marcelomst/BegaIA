@@ -39,6 +39,16 @@ type EmailWorkerReply = {
 type EmailWorkerTransporter = {
   sendMail: (reply: EmailWorkerReply) => Promise<unknown> | unknown;
 };
+type EmailWorkerRecipientPolicy =
+  | { state: "absent" }
+  | { state: "invalid" }
+  | { state: "valid"; recipients: ReadonlySet<string> };
+type EmailWorkerRecipientBlockReason =
+  | "invalid_allowlist"
+  | "ambiguous_recipient"
+  | "recipient_not_allowed";
+const EMAIL_WORKER_REPLY_KEYS = new Set(["from", "to", "subject", "text"]);
+const CONSERVATIVE_EMAIL_ADDRESS_RE = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
 const emailBotRuntimes = new Map<string, {
   hotelId: string;
   lockToken: string;
@@ -90,6 +100,30 @@ type EmailLegacyContainmentConfig = {
 
 function normalizeEmailAddress(value: unknown): string {
   return String(value ?? "").trim().toLowerCase();
+}
+
+function isConservativeEmailAddress(value: string): boolean {
+  if (value.length > 254) return false;
+  const separator = value.lastIndexOf("@");
+  if (separator < 1 || separator > 64) return false;
+  return CONSERVATIVE_EMAIL_ADDRESS_RE.test(value);
+}
+
+function getEmailWorkerRecipientPolicy(): EmailWorkerRecipientPolicy {
+  const raw = process.env.EMAIL_WORKER_ALLOWED_RECIPIENTS;
+  if (raw === undefined) return { state: "absent" };
+
+  const recipients = raw.split(",").map((item) => normalizeEmailAddress(item));
+  if (!recipients.length || recipients.some((item) => !isConservativeEmailAddress(item))) {
+    return { state: "invalid" };
+  }
+
+  return { state: "valid", recipients: new Set(recipients) };
+}
+
+function blockEmailWorkerRecipient(reason: EmailWorkerRecipientBlockReason): false {
+  console.warn(`[email] EMAIL_WORKER_ALLOWED_RECIPIENTS: respuesta SMTP bloqueada. reason=${reason}`);
+  return false;
 }
 
 function formatImapDate(date: Date): string {
@@ -164,6 +198,25 @@ export async function sendEmailWorkerReply(
   if (!EMAIL_SENDING_ENABLED) {
     console.warn("[email] EMAIL_SENDING_ENABLED=false: respuesta SMTP bloqueada.");
     return false;
+  }
+
+  const recipientPolicy = getEmailWorkerRecipientPolicy();
+  if (recipientPolicy.state === "invalid") {
+    return blockEmailWorkerRecipient("invalid_allowlist");
+  }
+  if (recipientPolicy.state === "valid") {
+    const replyRecord = reply as unknown as Record<string, unknown>;
+    const hasUnexpectedFields = Object.keys(replyRecord).some((key) => !EMAIL_WORKER_REPLY_KEYS.has(key));
+    const recipient = typeof replyRecord.to === "string"
+      ? normalizeEmailAddress(replyRecord.to)
+      : "";
+
+    if (hasUnexpectedFields || !isConservativeEmailAddress(recipient)) {
+      return blockEmailWorkerRecipient("ambiguous_recipient");
+    }
+    if (!recipientPolicy.recipients.has(recipient)) {
+      return blockEmailWorkerRecipient("recipient_not_allowed");
+    }
   }
 
   await transporter.sendMail(reply);

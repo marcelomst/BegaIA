@@ -59,9 +59,14 @@ const parsedEmail = {
   messageId: "<smtp-gate@example.com>",
 };
 
-async function loadEmailService(sendingEnabled: boolean) {
+async function loadEmailService(sendingEnabled: boolean, allowedRecipients?: string) {
   vi.resetModules();
   process.env.EMAIL_SENDING_ENABLED = String(sendingEnabled);
+  if (allowedRecipients === undefined) {
+    delete process.env.EMAIL_WORKER_ALLOWED_RECIPIENTS;
+  } else {
+    process.env.EMAIL_WORKER_ALLOWED_RECIPIENTS = allowedRecipients;
+  }
   return import("@/lib/services/email");
 }
 
@@ -96,6 +101,7 @@ describe("email worker sending disabled gate", () => {
 
   afterEach(() => {
     delete process.env.EMAIL_SENDING_ENABLED;
+    delete process.env.EMAIL_WORKER_ALLOWED_RECIPIENTS;
     vi.restoreAllMocks();
   });
 
@@ -104,7 +110,7 @@ describe("email worker sending disabled gate", () => {
       status: "sent",
       response: "Respuesta automática",
     });
-    const service = await loadEmailService(false);
+    const service = await loadEmailService(false, "guest@example.com");
     const sendMail = vi.fn(async () => ({ accepted: ["guest@example.com"] }));
     const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const sendReply = vi.fn(async (input) => service.sendEmailWorkerReply(
@@ -158,7 +164,7 @@ describe("email worker sending disabled gate", () => {
     expect(sendMail).not.toHaveBeenCalled();
   });
 
-  it("preserva sendMail cuando el pipeline retorna sent y el flag es true", async () => {
+  it("preserva sendMail sin allowlist cuando el pipeline retorna sent y el flag es true", async () => {
     handleChannelMessageMock.mockResolvedValue({
       status: "sent",
       response: "Respuesta automática",
@@ -187,5 +193,124 @@ describe("email worker sending disabled gate", () => {
       subject: "Re: Consulta",
       text: "Respuesta automática",
     });
+  });
+
+  it("permite un destinatario explícitamente autorizado y preserva el payload", async () => {
+    const service = await loadEmailService(true, "guest@example.com,other@example.com");
+    const sendMail = vi.fn(async (_reply: unknown) => ({ accepted: ["guest@example.com"] }));
+    const reply = {
+      from: "hotel@example.com",
+      to: "guest@example.com",
+      subject: "Re: Consulta",
+      text: "Respuesta automática",
+    };
+
+    await expect(service.sendEmailWorkerReply({ sendMail }, reply)).resolves.toBe(true);
+    expect(sendMail).toHaveBeenCalledOnce();
+    expect(sendMail.mock.calls[0]?.[0]).toBe(reply);
+  });
+
+  it("normaliza espacios y mayúsculas/minúsculas para la coincidencia exacta", async () => {
+    const service = await loadEmailService(true, "  Guest@Example.COM  ");
+    const sendMail = vi.fn(async (_reply: unknown) => ({ accepted: ["guest@example.com"] }));
+    const reply = {
+      from: "hotel@example.com",
+      to: "  GUEST@example.com  ",
+      subject: "Re: Consulta",
+      text: "Respuesta automática",
+    };
+
+    await expect(service.sendEmailWorkerReply({ sendMail }, reply)).resolves.toBe(true);
+    expect(sendMail).toHaveBeenCalledOnce();
+    expect(sendMail.mock.calls[0]?.[0]).toBe(reply);
+  });
+
+  it("bloquea un destinatario no autorizado con log sanitizado", async () => {
+    const service = await loadEmailService(true, "allowed@example.com");
+    const sendMail = vi.fn();
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(service.sendEmailWorkerReply(
+      { sendMail },
+      {
+        from: "hotel@example.com",
+        to: "other@example.com",
+        subject: "Re: Consulta",
+        text: "Respuesta automática",
+      },
+    )).resolves.toBe(false);
+
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "[email] EMAIL_WORKER_ALLOWED_RECIPIENTS: respuesta SMTP bloqueada. reason=recipient_not_allowed",
+    );
+  });
+
+  it.each(["", "   "])("bloquea una allowlist presente pero vacía: %j", async (allowedRecipients) => {
+    const service = await loadEmailService(true, allowedRecipients);
+    const sendMail = vi.fn();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(service.sendEmailWorkerReply(
+      { sendMail },
+      {
+        from: "hotel@example.com",
+        to: "allowed@example.com",
+        subject: "Re: Consulta",
+        text: "Respuesta automática",
+      },
+    )).resolves.toBe(false);
+
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "allowed@example.com,not-an-email",
+    "Allowed <allowed@example.com>",
+    "allowed@example.com;other@example.com",
+    "allowed@example.com,",
+  ])("bloquea una allowlist malformada: %j", async (allowedRecipients) => {
+    const service = await loadEmailService(true, allowedRecipients);
+    const sendMail = vi.fn();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(service.sendEmailWorkerReply(
+      { sendMail },
+      {
+        from: "hotel@example.com",
+        to: "allowed@example.com",
+        subject: "Re: Consulta",
+        text: "Respuesta automática",
+      },
+    )).resolves.toBe(false);
+
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["destinatarios separados por coma", { to: "allowed@example.com,other@example.com" }],
+    ["destinatarios separados por punto y coma", { to: "allowed@example.com;other@example.com" }],
+    ["display name", { to: "Allowed <allowed@example.com>" }],
+    ["lista de destinatarios", { to: ["allowed@example.com"] }],
+    ["CC", { to: "allowed@example.com", cc: "other@example.com" }],
+    ["BCC", { to: "allowed@example.com", bcc: "other@example.com" }],
+    ["envelope SMTP", { to: "allowed@example.com", envelope: { to: "other@example.com" } }],
+  ])("bloquea un destinatario ambiguo mediante %s", async (_caseName, recipientFields) => {
+    const service = await loadEmailService(true, "allowed@example.com");
+    const sendMail = vi.fn();
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const reply = {
+      from: "hotel@example.com",
+      subject: "Re: Consulta",
+      text: "Respuesta automática",
+      ...recipientFields,
+    } as any;
+
+    await expect(service.sendEmailWorkerReply({ sendMail }, reply)).resolves.toBe(false);
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "[email] EMAIL_WORKER_ALLOWED_RECIPIENTS: respuesta SMTP bloqueada. reason=ambiguous_recipient",
+    );
   });
 });
