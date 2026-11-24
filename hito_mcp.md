@@ -18748,3 +18748,71 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-24
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: aplicar una allowlist SMTP opcional con fallo cerrado
+Commit tecnico: 8663e8f3d0889137b1500782bab34daba78172e0
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- aplica la allowlist opcional de destinatarios en el único punto productivo
+  de envío SMTP
+- ante configuración inválida o destinatarios ambiguos, el envío falla de
+  forma cerrada
+- preserva IMAP, persistencia y pipeline sin cambios
+- no crea transporters, estado persistente ni fuentes de verdad paralelas
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 8663e8f3d0889137b1500782bab34daba78172e0
+technical_parent: 855aeb2d76b0c5aedafd8bd14b820f35fca8d261
+technical_commit_message: "fix(email): enforce SMTP recipient allowlist"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 8663e8f3d0889137b1500782bab34daba78172e0
+technical_scope:
+  - lib/services/email.ts
+  - test/unit/email.sendingDisabledGate.spec.ts
+validation:
+  focused_test: 21/21 PASS
+  typescript: PASS
+  exact_scope: true
+  index: clean
+  hito_worktree: clean
+  residual_worktree: exact_match
+  external_smtp_connections: not_performed
+```
+
+Limitaciones operacionales:
+
+- no se ejecutó el Email Worker
+- no se realizaron conexiones ni envíos SMTP reales
+- este cierre no acredita configuración operacional de
+  `EMAIL_WORKER_ALLOWED_RECIPIENTS`
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; la política se aplica en el único punto productivo de
+  `sendMail`, sin crear transporters, estado persistente ni fuentes paralelas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios documentales en arquitectura viva, Operating Model, roadmap o
+  ADRs, ni cambios en código o tests durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
