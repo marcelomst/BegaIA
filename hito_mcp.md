@@ -18816,3 +18816,65 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### DOC-AGPT-TASK-TRACKING-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-24
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar un tracker operativo auxiliar para planificacion y continuidad de AGPT
+Commit tecnico: b2695259c95ee473a3322f8c49a4f9828297c70d
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora `docs/development/TASK.md` como tracker operativo auxiliar de
+  planificacion y continuidad de AGPT
+- subordina expresamente el tracker al System Operating Model y evita crear
+  autoridad documental paralela
+- separa planificacion, evidencia operacional Email y backlog historico
+- no autoriza implementacion, Git write, configuracion externa ni despliegues
+- mantiene los identificadores `ENV-01` a `ENV-06` como auxiliares, sin
+  presentarlos como hitos aprobados
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: b2695259c95ee473a3322f8c49a4f9828297c70d
+technical_parent: fdca37b43ad28c34800402dc3a706dc61977e9b8
+technical_commit_message: "docs(development): add AGPT operational task tracker"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: b2695259c95ee473a3322f8c49a4f9828297c70d
+technical_scope:
+  - docs/development/TASK.md
+validation:
+  exact_scope: true
+  source_correspondence: PASS
+  markdown_integrity: PASS
+  document_authority_audit: PASS
+  index: clean
+  hito_worktree: clean
+  residual_worktree: exact_match
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el tracker declara tipo operacional, queda
+  subordinado al System Operating Model y no reemplaza fuentes canonicas
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios en arquitectura viva, README, Operating Model, roadmap, ADRs ni
+  en el archivo tecnico ya publicado durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
