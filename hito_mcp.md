@@ -18878,3 +18878,71 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### DOC-AGPT-TASK-UPDATE-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-24
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: actualizar el tracker operativo auxiliar de AGPT a la version 0.8
+Commit tecnico: b656e6d1d0b97569ddb66b5659fb4b58cd9ae237
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- actualiza `docs/development/TASK.md` a la version 0.8
+- registra `ENV-01` como `ANALYSIS_COMPLETE` sin presentar el aislamiento
+  como implementado
+- registra `INFRA-DEMO-CODE-ISOLATION-01` como recomendado, con
+  `IMPLEMENTATION_NOT_AUTHORIZED`
+- incorpora `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` como observacion P2 pendiente,
+  separada del primer hito de aislamiento
+- distingue polling administrativo, heartbeat, lock, runtime efectivo y
+  healthcheck nominal, sin declarar defecto SMTP ni demostrar un segundo worker
+- no autoriza implementacion, Git write, configuracion externa ni despliegues
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: b656e6d1d0b97569ddb66b5659fb4b58cd9ae237
+technical_parent: cdf5f67a8a5e33fecdb32f35e9e1ff62ae80bc2c
+technical_commit_message: "docs(development): update AGPT operational task tracker"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: b656e6d1d0b97569ddb66b5659fb4b58cd9ae237
+technical_scope:
+  - docs/development/TASK.md
+validation:
+  exact_scope: true
+  expected_diff: "79 insertions, 15 deletions"
+  document_authority_audit: PASS
+  env_01_audit: PASS
+  email_observation_audit: PASS
+  historical_backlog_audit: PASS
+  markdown_integrity: PASS
+  index: clean
+  hito_worktree: clean
+  residual_worktree: exact_match
+```
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el tracker conserva su tipo operacional y su
+  subordinacion al System Operating Model, sin convertir analisis,
+  recomendaciones u observaciones en implementacion autorizada
+- `roadmap_impact: none`
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios en arquitectura viva, README, Operating Model, roadmap, ADRs ni
+  en el archivo tecnico ya publicado durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
