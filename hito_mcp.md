@@ -19127,3 +19127,84 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### DOC-AGPT-TASK-REPRIORITIZATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-25
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: registrar la repriorizacion de la estabilizacion funcional de
+la Demo multicanal existente
+Commit tecnico: c203eeb0b29e1887e7c30cb3656ef4b01c2ca2e6
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- actualiza el tracker auxiliar TASK de v0.8 a v0.9
+- registra la decision de AGPT de priorizar diagnostico y estabilizacion
+  funcional de la Demo multicanal existente
+- pausa temporalmente Frozen y el aislamiento de entornos, sin revertir los
+  contratos Docker y Astra ya publicados
+- preserva la distincion entre evidencia historica, estado operacional real,
+  trabajo pausado y objetivo futuro
+- mantiene TASK subordinado al System Operating Model
+- no diagnostica una regresion, implementa un correctivo ni autoriza acciones
+  funcionales u operacionales
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: c203eeb0b29e1887e7c30cb3656ef4b01c2ca2e6
+technical_parent: 9ecb0740e3d4e659ff935804f4b12b538fb259af
+technical_commit_message: "docs(development): reprioritize Demo functional stabilization"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: c203eeb0b29e1887e7c30cb3656ef4b01c2ca2e6
+technical_scope:
+  - docs/development/TASK.md
+validation:
+  exact_scope: PASS
+  diff_summary: "156 insertions, 86 deletions"
+  markdown_structure: PASS
+  git_references: PASS
+  whitespace: PASS
+  postcommit_identity: PASS
+  remote_push: PASS
+  functional_tests: NOT_RUN
+  external_services: NOT_RUN
+```
+
+Limites y gates pendientes:
+
+- no se diagnostico ninguna regresion funcional ni se autorizo o implemento
+  un correctivo
+- conectividad historica y el procedimiento comercial informado no certifican
+  estabilidad funcional
+- Frozen permanece pausado, no revertido ni desplegado
+- Astra Demo no fue inicializado y no existe aislamiento operacional acreditado
+- el tracker no autoriza ejecutar el script de wipe
+- cualquier implementacion o accion operacional requiere autorizacion
+  independiente
+- una regresion requiere diagnostico reproducible antes de diseñar correctivos
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; TASK sigue subordinado al Operating Model y la
+  repriorizacion no altera hitos cerrados ni contratos tecnicos publicados
+- `roadmap_impact: none`; la pausa es de planificacion y no modifica el roadmap
+  canonico
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios en TASK, README, arquitectura, roadmap, Operating Model, Runtime
+  Map, ADRs, codigo o infraestructura durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

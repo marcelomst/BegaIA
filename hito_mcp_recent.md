@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01
+## 1. DOC-AGPT-TASK-REPRIORITIZATION-01
+
+- Identificador: `DOC-AGPT-TASK-REPRIORITIZATION-01`
+- Nombre: `record Demo stabilization reprioritization`
+- Commit tecnico: `c203eeb0b29e1887e7c30cb3656ef4b01c2ca2e6`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Actualiza el tracker auxiliar a v0.9 para priorizar el
+  diagnostico y la estabilizacion funcional de la Demo multicanal existente y
+  pausar temporalmente Frozen y el aislamiento de entornos; no diagnostica ni
+  corrige regresiones, autoriza implementacion o acredita readiness,
+  despliegue Frozen, inicializacion Astra o aislamiento operacional.
+
+## 2. INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01
 
 - Identificador: `INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01`
 - Nombre: `record synthetic Astra baseline contract`
@@ -24,7 +38,7 @@ recent_hitos_count: 10
   API; no provisiona un keyspace real, no habilita apply, no acredita
   aislamiento Astra ni concede promocion, cutover o Demo Comercial congelada.
 
-## 2. INFRA-DEMO-CODE-ISOLATION-01
+## 3. INFRA-DEMO-CODE-ISOLATION-01
 
 - Identificador: `INFRA-DEMO-CODE-ISOLATION-01`
 - Nombre: `record Demo code isolation contract`
@@ -38,7 +52,7 @@ recent_hitos_count: 10
   acredita una imagen final, publicacion, promocion, cutover ni Demo Comercial
   congelada.
 
-## 3. DOC-AGPT-TASK-UPDATE-01
+## 4. DOC-AGPT-TASK-UPDATE-01
 
 - Identificador: `DOC-AGPT-TASK-UPDATE-01`
 - Nombre: `record AGPT task tracker update`
@@ -51,7 +65,7 @@ recent_hitos_count: 10
   `INFRA-DEMO-CODE-ISOLATION-01` sin autorizacion de implementacion e incorpora
   `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` como observacion P2 pendiente y separada.
 
-## 4. DOC-AGPT-TASK-TRACKING-01
+## 5. DOC-AGPT-TASK-TRACKING-01
 
 - Identificador: `DOC-AGPT-TASK-TRACKING-01`
 - Nombre: `record AGPT operational task tracker`
@@ -64,7 +78,7 @@ recent_hitos_count: 10
   planificacion, evidencia operacional Email y backlog historico sin autorizar
   implementacion, Git write, configuracion externa ni despliegues.
 
-## 5. SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01
+## 6. SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01
 
 - Identificador: `SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01`
 - Nombre: `enforce SMTP recipient allowlist`
@@ -77,7 +91,7 @@ recent_hitos_count: 10
   destinatarios ambiguos; no acredita ejecución del Email Worker, conexiones
   o envíos SMTP reales ni configuración operacional de la allowlist.
 
-## 6. FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01
+## 7. FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01
 
 - Identificador: `FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01`
 - Nombre: `enforce sending-disabled SMTP gate`
@@ -90,7 +104,7 @@ recent_hitos_count: 10
   registrar como enviada una respuesta bloqueada; no acredita conexiones
   reales, ejecución del Email Worker ni readiness operacional o comercial.
 
-## 7. SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
+## 8. SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
 
 - Identificador: `SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01`
 - Nombre: `enforce strict IMAP TLS in worker`
@@ -103,7 +117,7 @@ recent_hitos_count: 10
   `servername` para conexión inicial y fallback; no acredita conexiones reales,
   compatibilidad multihotel, sanitización de logs ni habilitación operacional.
 
-## 8. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
+## 9. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
 
 - Identificador: `FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01`
 - Nombre: `set IMAP probe TLS servername`
@@ -116,7 +130,7 @@ recent_hitos_count: 10
   timeouts, credenciales, fallback y `exact-target`; no corrige ni habilita el
   Email Worker, cuyo hardening TLS permanece bloqueado para un hito separado.
 
-## 9. OPS-EMAIL-EXACT-TARGET-PROBE-01
+## 10. OPS-EMAIL-EXACT-TARGET-PROBE-01
 
 - Identificador: `OPS-EMAIL-EXACT-TARGET-PROBE-01`
 - Nombre: `add exact-target credential probe`
@@ -128,16 +142,3 @@ recent_hitos_count: 10
   `hotel999` y `demo-hotel999-main`, con lectura segura desde archivo externo,
   autenticación sintética IMAP/SMTP y salida sanitizada; no acredita ejecución
   real ni autoriza apply, rollback, escritura Astra o reinicio de Email Worker.
-
-## 10. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
-
-- Identificador: `SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01`
-- Nombre: `add secure email connectivity probe`
-- Commit tecnico: `0dc9ac0bedad375ac92f0ebe515e00784fc3a690`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Incorpora un diagnóstico CLI seguro de conectividad y
-  autenticación IMAP/SMTP, con TLS validado, selección externa fail-closed y
-  salida categórica sin secretos; no abre INBOX, no envía correo ni inicia o
-  modifica Email Worker.
