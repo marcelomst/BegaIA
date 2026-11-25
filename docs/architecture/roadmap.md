@@ -11,6 +11,38 @@ ADR: `ADR-PIPELINE-RUNTIME-TARGET.md`
 
 ---
 
+## CHECKPOINT — DEMO ASTRA BASELINE CONTRACT 2026-11-25
+
+```yaml
+demo_astra_baseline_contract:
+  hito_id: INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01
+  technical_commit: 1cacceac24730f690adcc2ae396f851da28df1ea
+  manifest_objects: 16
+  contract_status: versioned_and_simulated
+  real_keyspace: not_provisioned
+  vector_schema: unverified
+  write_rbac: not_accredited
+  operational_apply: blocked
+  data_isolation: not_accredited
+  promotion: not_performed
+  cutover: not_performed
+  commercial_demo_readiness: not_granted
+  runtime_map_refresh_required: false
+```
+
+El contrato versionado permite describir, planificar, verificar y simular un
+baseline Astra sintetico de Demo con controles fail-closed de identidad e
+inventario. Incluye schema vectorial triestado, CLI y adaptador Data API, sin
+modificar el runtime conversacional ni crear una fuente operacional paralela.
+
+Permanecen pendientes el keyspace real, la acreditacion del schema vectorial y
+de permisos RBAC, apply y verify operacionales autorizados, promocion,
+rollback y cutover. Este checkpoint registra avance parcial del aislamiento de
+datos; no acredita aislamiento Astra, readiness operacional ni Demo Comercial
+congelada.
+
+---
+
 ## CHECKPOINT — GUEST WEB TRUSTED INGRESS 2026-11-12
 
 ```yaml

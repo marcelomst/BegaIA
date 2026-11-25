@@ -19042,3 +19042,88 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-25
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar un contrato versionado para un baseline Astra
+sintetico de Demo
+Commit tecnico: 1cacceac24730f690adcc2ae396f851da28df1ea
+Push tecnico: CONFIRMED
+Clasificacion documental: HITO_PLUS_EVOLUCION
+
+Resultado:
+
+- incorpora un manifest de 16 objetos para describir el baseline sintetico
+- permite describir, planificar, verificar y simular la inicializacion sin
+  habilitar apply operacional
+- incorpora controles fail-closed de identidad e inventario, schema vectorial
+  triestado, CLI, adaptador Data API, tests y documentacion
+- reutiliza schemas y fuentes existentes; `baseline_control` funciona solo
+  como marcador de inicializacion y no como fuente operacional paralela
+- no modifica el runtime conversacional
+- no provisiona un keyspace real ni acredita schema vectorial, permisos RBAC,
+  aislamiento Astra, promocion, cutover o Demo Comercial congelada
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: 1cacceac24730f690adcc2ae396f851da28df1ea
+technical_parent: 0033cefa4b9764a3e6e23b4bad5b7e34aabe1d08
+technical_commit_message: "infra(demo): add synthetic Astra baseline contract"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: 1cacceac24730f690adcc2ae396f851da28df1ea
+technical_scope:
+  - package.json
+  - lib/demoAstraBaseline/manifest.ts
+  - lib/demoAstraBaseline/contract.ts
+  - lib/demoAstraBaseline/astraAdapter.ts
+  - scripts/demo-astra-baseline.ts
+  - test/unit/demoAstraBaseline.spec.ts
+  - docs/development/demo-astra-baseline.md
+validation:
+  focused_tests: 21/21 PASS
+  typescript: PASS
+  focal_eslint: PASS
+  whitespace: PASS
+  postcommit_scope: PASS
+  remote_push: PASS
+  astra_external_operations: NOT_RUN
+  docker_operations: NOT_RUN
+```
+
+Limites y gates pendientes:
+
+- `hotel999_collection` conserva schema fisico `unverified`
+- permisos RBAC de escritura y keyspace Demo real no acreditados
+- apply real permanece bloqueado, no es globalmente atomico y conserva riesgos
+  TOCTOU y de inicializacion parcial
+- KB vectorial y embeddings no fueron ingeridos
+- cualquier recurso Astra real requiere autorizacion operacional independiente
+- plan, apply y verify reales requieren un hito operacional autorizado
+- promocion, rollback y cutover permanecen fuera de alcance
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+- `docs/architecture/roadmap.md`
+
+Impacto:
+
+- canonicidad: fortalece; documenta una capacidad versionada real, reutiliza
+  fuentes existentes y mantiene bloqueados schema y escritura no acreditados
+- roadmap: avance parcial del aislamiento de datos Demo; el contrato existe y
+  fue simulado, pero no existe readiness operacional
+- Runtime Map: no aplica
+- `architecture_docs_candidates: [docs/architecture/roadmap.md]`
+- sin cambios en TASK, Operating Model, Runtime Map, ADRs ni archivos tecnicos
+  durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)
