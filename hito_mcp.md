@@ -18946,3 +18946,99 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+### INFRA-DEMO-CODE-ISOLATION-01
+
+Estado: DOCUMENTACION_PREPARADA
+Fecha: 2026-11-25
+Clasificacion del cambio: EXISTING_REPO_CHANGE
+Intencion unica: incorporar un contrato alternativo de aislamiento de codigo
+para la Demo
+Commit tecnico: bdcc555ecef56bfac12e371f952ac6146659fb2d
+Push tecnico: CONFIRMED
+Clasificacion documental: SOLO_HITO
+
+Resultado:
+
+- incorpora un Dockerfile alternativo para construir una imagen Demo
+  identificada por el commit fuente
+- establece que el contexto futuro procede de `git archive`, excluyendo
+  cambios locales del workspace Developer
+- incorpora un Compose alternativo sin build automatico ni bind mounts de
+  codigo
+- mantiene inactivos y sin reemplazo `docker-compose.demo.yml` y
+  `begasist-suite:dev`
+- no construye todavia el artefacto definitivo ni acredita una imagen frozen,
+  RepoDigest, publicacion, promocion, cutover o Demo Comercial congelada
+
+Materializacion tecnica:
+
+```yaml
+technical_commit: bdcc555ecef56bfac12e371f952ac6146659fb2d
+technical_parent: 9d53fd49f58d9ccac817a4f1c90f618c3c15d0de
+technical_commit_message: "infra(demo): add commit-bound frozen image contract"
+technical_push: confirmed
+branch: main
+remote_ref: origin/main
+remote_hash: bdcc555ecef56bfac12e371f952ac6146659fb2d
+technical_scope:
+  - .dockerignore
+  - Dockerfile.demo-frozen
+  - docker-compose.demo-frozen.yml
+  - scripts/build-demo-frozen-image.sh
+  - docs/development/demo-frozen-artifact.md
+validation:
+  exact_scope: PASS
+  parent: PASS
+  subject: PASS
+  branch: PASS
+  remote_push: PASS
+  hito_worktree_clean: PASS
+  residual_worktree_preserved: PASS
+  dockerfile_buildkit_check: PASS
+  docker_runtime_build_validation: PASS
+  frozen_install_validation: PASS
+  next_standalone_build: PASS
+  next_internal_typecheck: PASS
+  generated_static_pages: 126/126
+  trusted_ingress_esm: PASS
+  compose_config: PASS
+  repository_ts_check: PASS
+  core_tests: "209 files and 1659 tests PASS"
+  eslint: "controlled exception; repository baseline remains FAIL with 4 errors and 3429 warnings"
+```
+
+Gates operacionales pendientes:
+
+- construccion autorizada desde
+  `bdcc555ecef56bfac12e371f952ac6146659fb2d`
+- captura y verificacion de image ID local, labels OCI, source tree y hashes
+- smoke controlado del artefacto sin cutover
+- confirmacion posterior de preservacion de `begasist-suite:dev` y del stack
+  actual
+- publicacion en registry y verificacion de RepoDigest solo bajo autorizacion
+  separada
+- aislamiento de datos, configuracion y efectos externos en hitos posteriores
+- cutover y promocion bajo autorizacion operacional independiente
+
+Documentacion de cierre preparada:
+
+- `hito_mcp.md`
+- `hito_mcp_recent.md`
+
+Impacto:
+
+- canonicidad: mantiene; el contrato es alternativo e inactivo, no reemplaza
+  el stack actual ni crea fuentes paralelas de datos, configuracion o promocion
+- `roadmap_impact: bounded_progress`; materializa el contrato de aislamiento de
+  codigo recomendado por ENV-01, sin completar aislamiento de datos,
+  configuracion, proveedores, promocion, rollback o cutover ni acreditar
+  readiness comercial
+- Runtime Map: no aplica
+- `architecture_docs_candidates: []`
+- sin cambios documentales en README, TASK, arquitectura viva, Operating Model,
+  roadmap, Runtime Map o archivos tecnicos durante esta fase documental
+- `scripts/semantic-normalization-spike/` y el archivo `Zone.Identifier`
+  declarado permanecen completamente excluidos
+- cierre definitivo sujeto a documentation commit, push y validacion
+  read-only posterior mediante HDOC(CLOSE)

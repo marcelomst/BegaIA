@@ -10,7 +10,21 @@ No reemplaza el historial completo.
 
 recent_hitos_count: 10
 
-## 1. DOC-AGPT-TASK-UPDATE-01
+## 1. INFRA-DEMO-CODE-ISOLATION-01
+
+- Identificador: `INFRA-DEMO-CODE-ISOLATION-01`
+- Nombre: `record Demo code isolation contract`
+- Commit tecnico: `bdcc555ecef56bfac12e371f952ac6146659fb2d`.
+- Push tecnico: confirmado sobre `origin/main`.
+- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
+  validacion postcommit mediante HDOC(CLOSE).
+- Descripcion breve: Incorpora un contrato Docker alternativo para construir
+  una imagen Demo identificada por el commit fuente, con contexto futuro desde
+  `git archive` y Compose sin build automatico ni bind mounts de codigo; no
+  acredita una imagen final, publicacion, promocion, cutover ni Demo Comercial
+  congelada.
+
+## 2. DOC-AGPT-TASK-UPDATE-01
 
 - Identificador: `DOC-AGPT-TASK-UPDATE-01`
 - Nombre: `record AGPT task tracker update`
@@ -23,7 +37,7 @@ recent_hitos_count: 10
   `INFRA-DEMO-CODE-ISOLATION-01` sin autorizacion de implementacion e incorpora
   `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` como observacion P2 pendiente y separada.
 
-## 2. DOC-AGPT-TASK-TRACKING-01
+## 3. DOC-AGPT-TASK-TRACKING-01
 
 - Identificador: `DOC-AGPT-TASK-TRACKING-01`
 - Nombre: `record AGPT operational task tracker`
@@ -36,7 +50,7 @@ recent_hitos_count: 10
   planificacion, evidencia operacional Email y backlog historico sin autorizar
   implementacion, Git write, configuracion externa ni despliegues.
 
-## 3. SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01
+## 4. SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01
 
 - Identificador: `SEC-EMAIL-WORKER-SMTP-RECIPIENT-ALLOWLIST-01`
 - Nombre: `enforce SMTP recipient allowlist`
@@ -49,7 +63,7 @@ recent_hitos_count: 10
   destinatarios ambiguos; no acredita ejecución del Email Worker, conexiones
   o envíos SMTP reales ni configuración operacional de la allowlist.
 
-## 4. FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01
+## 5. FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01
 
 - Identificador: `FIX-EMAIL-WORKER-SENDING-DISABLED-GATE-01`
 - Nombre: `enforce sending-disabled SMTP gate`
@@ -62,7 +76,7 @@ recent_hitos_count: 10
   registrar como enviada una respuesta bloqueada; no acredita conexiones
   reales, ejecución del Email Worker ni readiness operacional o comercial.
 
-## 5. SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
+## 6. SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01
 
 - Identificador: `SEC-EMAIL-WORKER-IMAP-TLS-HARDENING-01`
 - Nombre: `enforce strict IMAP TLS in worker`
@@ -75,7 +89,7 @@ recent_hitos_count: 10
   `servername` para conexión inicial y fallback; no acredita conexiones reales,
   compatibilidad multihotel, sanitización de logs ni habilitación operacional.
 
-## 6. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
+## 7. FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01
 
 - Identificador: `FIX-EMAIL-IMAP-PROBE-TLS-SERVERNAME-01`
 - Nombre: `set IMAP probe TLS servername`
@@ -88,7 +102,7 @@ recent_hitos_count: 10
   timeouts, credenciales, fallback y `exact-target`; no corrige ni habilita el
   Email Worker, cuyo hardening TLS permanece bloqueado para un hito separado.
 
-## 7. OPS-EMAIL-EXACT-TARGET-PROBE-01
+## 8. OPS-EMAIL-EXACT-TARGET-PROBE-01
 
 - Identificador: `OPS-EMAIL-EXACT-TARGET-PROBE-01`
 - Nombre: `add exact-target credential probe`
@@ -101,7 +115,7 @@ recent_hitos_count: 10
   autenticación sintética IMAP/SMTP y salida sanitizada; no acredita ejecución
   real ni autoriza apply, rollback, escritura Astra o reinicio de Email Worker.
 
-## 8. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
+## 9. SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01
 
 - Identificador: `SEC-INFRA-EMAIL-CONNECTIVITY-PROBE-01`
 - Nombre: `add secure email connectivity probe`
@@ -114,7 +128,7 @@ recent_hitos_count: 10
   salida categórica sin secretos; no abre INBOX, no envía correo ni inicia o
   modifica Email Worker.
 
-## 9. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
+## 10. SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01
 
 - Identificador: `SEC-INFRA-DEMO-COMPOSE-ENV-SOURCE-CONTRACT-01`
 - Nombre: `unify Demo Compose env source`
@@ -126,16 +140,3 @@ recent_hitos_count: 10
   para los nueve scripts Demo y deriva `COMPOSE_ENV_FILES` de la misma ruta,
   con fallback `.env`; preserva perfiles y argumentos, sin completar el
   cutover operacional ni aislar `.env`.
-
-## 10. SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01
-
-- Identificador: `SEC-INFRA-DEMO-ENV-EXTERNAL-PATH-CONTRACT-01`
-- Nombre: `add external Demo env file contract`
-- Commit tecnico: `3192cdd54ad11470d3a6bf0345f6a4298f7d4084`.
-- Push tecnico: confirmado sobre `origin/main`.
-- Estado documental: `DOCUMENTACION_PREPARADA`; cierre sujeto a commit, push y
-  validacion postcommit mediante HDOC(CLOSE).
-- Descripcion breve: Incorpora `BEGASIST_DEMO_ENV_FILE` como selector comun
-  para el `env_file` de `suite` y `email-worker`, con fallback compatible a
-  `.env` y soporte de rutas externas; habilita externalizacion, pero no
-  constituye un cutover ni acredita aislamiento completo.
