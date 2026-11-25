@@ -4,14 +4,14 @@ DOCUMENT_TYPE: OPERATIONAL_TRACKER
 
 # BEGAIA — TASK
 
-Versión: 0.8
-Fecha de actualización: 2026-11-24
+Versión: 0.9
+Fecha de actualización: 2026-11-25
 Responsable de planificación: AGPT
 Responsable de control y operaciones Git: AH / operador conforme al Operating Model
-Frente prioritario: Arquitectura de tres entornos — Demo Comercial / Developer / Experimental
+Frente prioritario: Estabilización funcional de la Demo multicanal existente
 Estado: Documento auxiliar de continuidad y coordinación.
 Autoridad documental: subordinada a `docs/architecture/system_operating_model.md`; no sustituye ni modifica fuentes canónicas.
-Sesión: ACTIVE — ENV-01 completado; implementación de aislamiento NO autorizada
+Sesión: ACTIVE — diagnóstico de regresiones funcionales pendiente; Frozen y aislamiento pausados
 
 Regla de continuidad: este TASK dirige la conversación y conserva decisiones, pero no sustituye la comprobación de GitHub, el estado local ni el System Operating Model. No autoriza por sí solo implementación, configuración externa, commit, push o despliegues.
 
@@ -19,33 +19,54 @@ Regla de actualización versionable: toda modificación de este archivo se rige 
 
 ## 1. Objetivo principal y decisión vigente
 
-Materializar una Demo Comercial congelada, identificable, reproducible e independiente del workspace de desarrollo y experimentación, manteniendo el desarrollo normal de BegaIA y un corredor separado para experimentos.
+`PRIORITY: FUNCTIONAL_DEMO_STABILIZATION`
 
-| Entorno | Propósito | Condición de aceptación principal |
-| --- | --- | --- |
-| Demo Comercial | Presentar BegaIA a hoteles con comportamiento previsible | Baseline inmutable, despliegue aislado, datos/configuración controlados, promoción y rollback verificables |
-| Developer | Evolución del SaaS en el repositorio canónico | Cambios bajo Operating Model sin afectar la Demo activa |
-| Experimental | SIN/RDA, Copilot, modelos locales y benchmarks | Aislamiento de código, datos y efectos; sin acceso accidental a Demo |
+Objetivo P0: restablecer y verificar los comportamientos funcionales de BegaIA
+necesarios para una presentación comercial multicanal confiable.
 
-Prioridad P0: evaluar la autorización del primer hito implementable recomendado por ENV-01, `INFRA-DEMO-CODE-ISOLATION-01`, sin presentarlo como implementado ni como baseline comercial aprobado. No abrir nuevos hitos funcionales de Email ni de Cancel como prerrequisito automático. Los defectos relevantes para los casos concretos de demo se analizarán y decidirán expresamente.
+Contexto operacional informado por Marcelo:
 
-Decisión de AGPT, 2026-11-24: retomar el objetivo tripartito original. Los trabajos de Email son habilitadores ya demostrados, no el destino de esta línea de trabajo.
+- La Demo existente ha sido utilizada en presentaciones.
+- Web, Email y WhatsApp pudieron conectarse y utilizarse.
+- Se observaron regresiones en comportamientos previamente resueltos.
+- Todavía no existe un inventario reproducible ni un diagnóstico confirmado de
+  esas regresiones.
+- La conectividad de los canales no acredita que todos los recorridos
+  funcionales estén estables.
+
+No se consideran resueltas las regresiones ni se les atribuye una causa hasta
+obtener evidencia reproducible. Por decisión de AGPT del 2026-11-25, el
+desarrollo de Demo Frozen y del aislamiento de entornos queda temporalmente en
+pausa mientras se diagnostica y estabiliza la Demo multicanal existente.
 
 ## 2. Fuentes de verdad y baseline
 
 - Repositorio canónico: `marcelomst/BegaIA`, rama `main`.
-- HEAD de `main` verificado el 2026-11-24 para esta actualización: `cdf5f67a8a5e33fecdb32f35e9e1ff62ae80bc2c`.
+- HEAD de `main` verificado local y remotamente el 2026-11-25 para esta
+  actualización: `9ecb0740e3d4e659ff935804f4b12b538fb259af`.
+- Commit técnico del contrato Docker Frozen:
+  `bdcc555ecef56bfac12e371f952ac6146659fb2d`.
+- Commit técnico del contrato Astra sintético:
+  `1cacceac24730f690adcc2ae396f851da28df1ea`.
+- Commit documental actual de `main`:
+  `9ecb0740e3d4e659ff935804f4b12b538fb259af`. HDOC informó `CLOSED` para el
+  último hito; ese cierre documental no convierte un artefacto técnico en una
+  validación operacional.
 - Commit documental del hito Email allowlist: `fdca37b43ad28c34800402dc3a706dc61977e9b8`; HDOC reportó `STATUS: CLOSED` y push confirmado.
 - Commit técnico asociado: `8663e8f3d0889137b1500782bab34daba78172e0`.
 - Documentos prioritarios: `README.md`, `docs/architecture/system_operating_model.md`, `docs/architecture/roadmap.md`, `docs/architecture/message_pipeline.md`, `hito_mcp_recent.md`, `hito_mcp.md` y ADRs relacionados con despliegue/canales.
 - Configuración efectiva local, contenedores, secretos, proveedores, datos y agentes: verificar directamente en el entorno correspondiente; GitHub no la prueba.
 - Archivos adjuntos a Hotel Assistant: auxiliares; pueden estar desactualizados. No requieren sincronización manual periódica.
-- TASK: esta versión se preparó desde el documento v0.6 adjunto. Su presencia en el working tree no acredita integración, commit, push ni publicación; esos estados deben verificarse en Git.
+- TASK: este tracker auxiliar no acredita por sí mismo integración, commit,
+  push, publicación ni estado operacional; esos estados deben verificarse en
+  Git y en el entorno correspondiente.
 - Al abrir una nueva sesión o invocar este documento: reverificar HEAD remoto, README, Operating Model, hitos recientes y estado local antes de proponer hito o atribuir vigencia a los estados aquí registrados.
 
 ## 3. Estado operacional demostrado — Email (2026-11-24)
 
 Capacidad funcional demostrada, NO equivalente a Demo congelada.
+La evidencia de conectividad aquí conservada no prueba estabilidad actual de
+todos los recorridos funcionales ni sustituye el diagnóstico de regresiones.
 
 - Hotel de prueba: `hotel999`.
 - Cuenta de hotel: `begamshop.ventas@gmail.com`.
@@ -61,6 +82,22 @@ Capacidad funcional demostrada, NO equivalente a Demo congelada.
 - No se acredita operación multihotel, despliegue productivo, aislamiento de Demo o estabilidad prolongada.
 - El servicio actual se monta desde el workspace mediante `.:/app:cached` y reutiliza la imagen `begasist-suite:dev`. Por ello no es una versión congelada independiente. Cambios en `lib/` pueden afectar el proceso en ejecución/reiniciado mediante nodemon. Es un riesgo activo mientras se desarrolla.
 - Nota de operación: mientras esté activo el worker watch con SMTP, mantener ambos filtros restringidos y no lanzar pruebas/deploys paralelos sobre la misma cuenta de correo sin control. Una acción de aislamiento deberá decidir expresamente el destino y la parada/migración de este servicio.
+
+### Procedimiento comercial existente informado
+
+Este procedimiento fue informado por Marcelo como práctica operacional; no es
+un test automatizado ni acredita por sí mismo estabilidad funcional:
+
+1. ejecutar `wipe-conversations-and-messages.ts` para limpiar el estado
+   conversacional previo;
+2. preparar una reserva mediante una conversación real por Email, siguiendo la
+   chuleta comercial;
+3. realizar la presentación mostrando Web, Email y WhatsApp.
+
+La conversación por Email y su reserva deben permanecer visibles. El objetivo
+comercial conserva la multicanalidad y la supervisión operativa. Antes de
+reutilizar el wipe sobre un destino diferente deben verificarse su seguridad,
+su alcance efectivo y el destino exacto. Este tracker no autoriza ejecutarlo.
 
 ### Observaciones operacionales pendientes
 
@@ -96,72 +133,76 @@ Pendiente:
 
 Restricción: no se declara demostrada la causa original de detención ni la identidad del proceso concreto que renovó el heartbeat.
 
-Dependencia: resolver antes de acreditar Email como canal operacional de la futura Demo Comercial congelada. Esta observación no bloquea `INFRA-DEMO-CODE-ISOLATION-01`.
+Dependencia: conservar como observación independiente P2. No está resuelta, pero
+no se convierte automáticamente en bloqueo de cualquier prueba funcional de
+Email; cada prueba debe controlar su alcance y evidencia efectiva.
 
-## 4. Diagnóstico de los tres entornos — ENV-01 completado, no implementación
+## 4. Demo Frozen y aislamiento de entornos — pausa temporal
 
-El análisis diferencial de `arquitecto_sistema` finalizó el 2026-11-24.
+`FROZEN_WORKSTREAM: PAUSED_BY_AGPT`
+`REASON: FUNCTIONAL_REGRESSIONS_TAKE_PRIORITY`
 
-| Entorno | Resultado ENV-01 |
-| --- | --- |
-| Demo Comercial | `NOT_FROZEN` |
-| Developer | `CANONICAL_BUT_COUPLED_TO_DEMO` |
-| Experimental | `NOT_ISOLATED` |
+La arquitectura tripartita continúa como intención futura: Developer, Demo
+Comercial Frozen y Experimental. Su desarrollo queda pausado, sin revertir
+código, eliminar artefactos ni modificar los contratos publicados.
 
-Conclusiones:
+Evidencia preservada de `INFRA-DEMO-CODE-ISOLATION-01`:
 
-- El código Demo depende del workspace Developer.
-- La separación de Astra y de los efectos externos continúa pendiente de acreditación.
-- La primera separación recomendada es un artefacto Demo inmutable sin bind mounts del workspace.
-- Estas conclusiones no acreditan implementación, aislamiento efectivo ni aprobación de un baseline comercial.
+- Contrato Docker Frozen versionado en el commit técnico publicado
+  `bdcc555ecef56bfac12e371f952ac6146659fb2d`.
+- Imagen local construida desde
+  `0033cefa4b9764a3e6e23b4bad5b7e34aabe1d08`.
+- Image ID observado:
+  `sha256:8d2f5498ca613caef81fd3b5c02f8ef40177d4e3fc47250c2a77357478ddd2b9`.
+- Arquitectura observada de la imagen: `amd64`.
+- El arranque funcional de Frozen no fue acreditado.
+- Compose Frozen no incluye actualmente Email Worker ni WhatsApp.
 
-| Dimensión | Demo Comercial actual | Developer | Experimental | Acción requerida |
-| --- | --- | --- | --- | --- |
-| Código | Compose usa bind mount `.:/app:cached` y tag de imagen dev | Workspace WSL canónico | Residuales de `scripts/semantic-normalization-spike/` observados | Diseñar fuente inmutable de Demo y límites físicos de workspace |
-| Procesos | Suite y worker Email de demo actual, no congelados | Servicios y agentes sobre el mismo repositorio | Herramientas/prototipos según sesión | Inventariar procesos, redes, puertos y dependencias reales |
-| Datos | `hotel999`, Astra y Redis operativos | Separación no acreditada | Aislamiento de datos no acreditado | Identificar namespaces, credenciales, volúmenes, dataset demo y posibles escrituras cruzadas |
-| Canales | Email controlado, Web y WhatsApp según cobertura vigente | Conectores de desarrollo | Sin garantía general de aislamiento | Definir endpoints, proveedores, webhooks y políticas de envío por entorno |
-| Versionado | Falta baseline comercial congelado comprobado | `main` es línea integrada canónica | Trabajo experimental separado por política, aislamiento efectivo no verificado | Definir promoción, rollback y verificación por hash |
-| Secretos | `runtime.env` privado externo para demo actual; SecretRef Email probado | Contratos documentados | Estado efectivo por auditar | Inventario sanitizado y separación de efectos/credenciales |
+Evidencia preservada de `INFRA-DEMO-ASTRA-BASELINE-CONTRACT-01`:
 
-Ninguna celda «por auditar» concede readiness o prueba por inferencia. Evitar duplicar infraestructura innecesariamente: preferir la mínima separación suficiente y comprobable.
+- Contrato Astra sintético versionado en el commit técnico publicado
+  `1cacceac24730f690adcc2ae396f851da28df1ea`.
+- Manifest de 16 objetos.
+- El adaptador real mantiene `apply` bloqueado.
+- No se creó ni inicializó un keyspace Demo acreditado.
+- No se demostró aislamiento real de datos.
+
+`ENV-01` permanece como análisis completado. Para el trabajo futuro no se toma
+todavía una decisión definitiva entre keyspace Astra separado, base Astra
+independiente o infraestructura Astra compartida con separación lógica por
+`hotelId`. Mantener `hotel999` en Developer y crear otro hotel para Demo es una
+alternativa pendiente de análisis, no una decisión aprobada. No se exige una
+segunda base Astra sin justificación y no se considera suficiente el
+aislamiento lógico hasta verificar filtrado por `hotelId`, scripts destructivos
+y enrutamiento multicanal.
 
 ## 5. Backlog prioritario — línea de trabajo vigente
 
-| ID de seguimiento AGPT | Prioridad | Trabajo | Estado | Agente / intervención prevista |
-| --- | --- | --- | --- | --- |
-| ENV-01 | P0 | Auditoría diferencial real de dependencias Demo/Developer/Experimental y requisitos mínimos de independencia | `ANALYSIS_COMPLETE` | `arquitecto_sistema`; análisis completado el 2026-11-24 |
-| ENV-02 | P0 condicional a ENV-01 | Diseño acotado del baseline Demo congelado, configuración, procesos, datos y rollback | `PENDING_DESIGN` | `arquitecto_sistema`; AGPT decide hito específico |
-| ENV-03 | P0 condicional a diseño aprobado | Implementación y verificación del aislamiento de Demo sin afectar Developer | `NOT_AUTHORIZED` | `asistente_tecnico` y `repo_guardian` según Operating Model |
-| ENV-04 | P1 | Definir corredor Experimental y protección frente a Demo/Developer | `PENDING_ASSESSMENT` | `arquitecto_sistema`, con contrato operacional efectivo |
-| ENV-05 | P1 | Promoción controlada Developer → Demo, smoke, rollback y evidencia de reproducibilidad | `PENDING_DESIGN` | Agentes definidos después de ENV-01/02 |
-| ENV-06 | P1 | Selección de recorrido comercial y pruebas sobre baseline Demo final | `PENDING_BASELINE` | AGPT / ejecución humana con evidencia |
+| ID de seguimiento AGPT | Prioridad | Trabajo | Estado |
+| --- | --- | --- | --- |
+| DEMO-FUNCTIONAL | P0 | Diagnóstico y estabilización de regresiones funcionales de la Demo multicanal | `ACTIVE_PRIORITY` |
+| DEMO-REGRESSION-INVENTORY | P0 | Inventario reproducible, priorización y definición del primer hito correctivo | `PENDING` |
+| ENV-01 | Histórico | Auditoría diferencial Demo/Developer/Experimental | `ANALYSIS_COMPLETE` |
+| ENV-02 | En pausa | Diseño de baseline, configuración, procesos, datos y rollback | `PAUSED_BY_AGPT` |
+| ENV-03 | En pausa | Implementación y verificación del aislamiento de Demo | `PAUSED_BY_AGPT` |
+| ENV-04 | En pausa | Corredor Experimental y sus protecciones | `PAUSED_BY_AGPT` |
+| ENV-05 | En pausa | Promoción, smoke, rollback y reproducibilidad | `PAUSED_BY_AGPT` |
+| ENV-06 | En pausa | Recorrido comercial sobre baseline Frozen | `PAUSED_BY_AGPT` |
 
-Estos IDs son identificadores auxiliares de planificación de AGPT, no hitos aprobados o registrados en `hito_mcp.md`. No autorizar automáticamente los hitos siguientes por completar un análisis.
-
-### Resultado de ENV-01
-
-Estado: `ANALYSIS_COMPLETE`.
-
-Primer hito implementable recomendado:
-
-- Identificador: `INFRA-DEMO-CODE-ISOLATION-01`.
-- Estado: `RECOMMENDED — IMPLEMENTATION_NOT_AUTHORIZED`.
-- Intención propuesta: producir un artefacto Demo inmutable sin bind mounts del workspace Developer.
-- Límite: no está implementado, no constituye un baseline comercial aprobado y requiere un hito autorizado antes de cualquier cambio.
-
-### Condiciones evaluadas en ENV-01
-
-- Enumerar qué comparte hoy Demo con Developer y Experimental: directorios, bind mounts, imágenes, procesos, redes, volúmenes, Redis, Astra, secretos, puertos y endpoints.
-- Distinguir evidencia GitHub de evidencia WSL/Docker y recursos privados no inspeccionados.
-- Identificar rutas de contaminación: cambios en código, reinicios de nodemon, escrituras en datos de demostración, pruebas de agentes y correos automáticos.
-- Proponer 1 opción mínima preferida y alternativas sólo si son materialmente distintas, con costos/riesgos, dependencias y rollback.
-- Distinguir requisito indispensable de mejora diferible; definir condiciones de aceptación verificables.
-- Recomendar el primer hito implementable con una sola intención, pero no implementarlo.
+Los IDs `ENV-01` a `ENV-06` siguen siendo auxiliares de planificación. ENV-01
+conserva su análisis completado; la pausa de ENV-02 a ENV-06 no altera sus
+alcances originales ni elimina los hitos técnicos y documentales publicados.
+La prioridad inmediata es producir evidencia reproducible de las regresiones,
+no inferir causas ni implementar correctivos antes de un hito autorizado.
 
 ## 6. Backlog funcional heredado de TASK v0.6 — conservado, NO revalidado
 
-El documento aportado de fecha 2026-11-05 registraba la estabilización funcional como prioridad inmediata. Esa priorización queda sustituida por ENV-01, no borrada ni declarada resuelta. No transportar los estados históricos a hechos actuales sin cotejarlos con main, hito_mcp_recent.md/`hito_mcp.md` y pruebas vigentes.
+El documento aportado de fecha 2026-11-05 registraba la estabilización
+funcional como prioridad inmediata. La decisión del 2026-11-25 retoma ese
+frente, pero no convierte los estados históricos en hechos vigentes ni declara
+resuelto ningún defecto. Cada observación de Cancel, Modify y los demás
+recorridos debe cotejarse con `main`, contratos, hitos y pruebas actuales antes
+de incorporarse al inventario reproducible.
 
 | Seguimiento histórico | Estado en v0.6 (2026-11-05) | Tratamiento en esta línea |
 | --- | --- | --- |
@@ -186,31 +227,45 @@ Otros diferidos históricos: refresh global de Runtime Map V1, refactor Nivel 4,
 - Aplicar `CODE → COMMIT → HASH → PUSH → DOC` cuando se autoricen cambios versionables.
 - `asistente_tecnico`: implementación acotada; `arquitecto_sistema`: análisis cross-slice; `repo_guardian`: auditoría; `hdoc`: documentación.
 - Codex Profile V2: no usar `@workspace`; verificar agente, sandbox, permisos y sesión efectivos. Copilot de VS Code: comenzar con `@workspace`.
-- El análisis completado ENV-01 y la recomendación `INFRA-DEMO-CODE-ISOLATION-01` no autorizan crear worktrees, imágenes, redes, volúmenes, secretos, servicios, commits ni modificar configuraciones.
+- La existencia de contratos Frozen y Astra publicados no autoriza cutover,
+  promoción, creación de recursos, servicios, secretos ni cambios de
+  configuración; ese workstream está pausado.
 - No compartir secretos ni solicitar su contenido; usar evidencias sanitizadas del entorno local.
 - No prometer aislamiento por tener contenedores llamados «demo». Verificar que código, datos y efectos externos estén realmente separados.
 - No promover tests sintéticos a validación operacional; no elevar demo controlada a producción comercial sin gates específicos.
-- No repetir los hitos Email cerrados ni iniciar el diagnóstico de `$push/$slice` salvo justificación de impacto en la separación.
-- No cambiar `messageHandler` ni migrar a `mhFlowGraph` dentro de este análisis.
+- No promover conectividad histórica de Email, Web o WhatsApp a estabilidad
+  funcional actual sin evidencia.
+- No refactorizar `messageHandler`, migrar a `mhFlowGraph` ni modificar otros
+  componentes por anticipado durante el diagnóstico.
 - Preservar `scripts/semantic-normalization-spike/` y otros residuales locales ajenos; no asumir estado Git limpio.
 
 ## 8. Secuencia de continuidad e invocación de AGPT
 
 Forma sugerida de invocación al iniciar otro hilo:
 
-> AGPT, continuemos BegaIA desde TASK.md v0.8. ENV-01 está `ANALYSIS_COMPLETE` y recomienda `INFRA-DEMO-CODE-ISOLATION-01`, todavía `IMPLEMENTATION_NOT_AUTHORIZED`. Primero verificá HEAD de main, Operating Model, hito_mcp_recent.md y estado efectivo. Conservá `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` como P2 pendiente, sin tratar el heartbeat como prueba de procesamiento ni bloquear el aislamiento de código Demo. No implementar ni iniciar servicios sin un nuevo hito autorizado.
+> AGPT, continuemos BegaIA desde TASK.md v0.9. La prioridad actual es estabilizar funcionalmente la Demo multicanal Web, Email y WhatsApp. Frozen y el aislamiento de entornos están pausados por decisión expresa. Verificá HEAD de main, Operating Model, hitos recientes y evidencias efectivas. Primero identifiquemos las regresiones observadas; no implementar correcciones sin diagnóstico y hito autorizado.
 
 ### Primer paso al reanudar
 
 - Verificar `main` y documentos canónicos en GitHub.
 - Leer este TASK como agenda auxiliar, sin asumir vigencia de hashes, observaciones operacionales o pendientes históricos.
-- Recuperar evidencias efectivas sanitizadas de WSL/Docker sólo cuando sean necesarias.
-- Revisar el resultado completado de ENV-01 y decidir si se autoriza un hito independiente para `INFRA-DEMO-CODE-ISOLATION-01`.
-- Mantener `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` separado como P2 y resolverlo antes de acreditar Email como canal operacional de la Demo congelada.
-- Si AGPT autoriza el candidato, emitir un hito de una sola intención con clasificación y alcance canónicos; no implementar desde este tracker.
+- Identificar una regresión funcional observada y recuperar el comportamiento
+  previamente esperado.
+- Localizar contratos, pruebas e hitos anteriores pertinentes.
+- Reproducir el defecto con evidencia y determinar si comparte causa con otros
+  defectos.
+- Diseñar un hito correctivo de intención acotada e implementar sólo después de
+  autorización.
+- Validar cada corrección con pruebas de regresión y Guardian.
+- Mantener `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` como observación P2 independiente,
+  sin declararla resuelta ni convertirla automáticamente en bloqueo de toda
+  prueba funcional Email.
 - Actualizar TASK después de un cambio material de estado con fecha, hashes revisados, decisiones, evidencia, pendientes y siguiente acción.
 
-## 9. Criterios de cierre de la línea tripartita
+## 9. Criterios futuros de la línea tripartita — en pausa
+
+Estos criterios se conservan como antecedentes del workstream Frozen y no son
+la acción vigente:
 
 - Baseline Demo congelado, hash/tag/artefacto reproducible y origen verificados.
 - Código Demo sin dependencia mutable del workspace Developer.
@@ -231,9 +286,24 @@ Forma sugerida de invocación al iniciar otro hilo:
 | 0.1–0.6 | 2026-11-02 a 2026-11-05 | Backlog funcional y correctivos Cancel; conservado como fuente histórica adjunta |
 | 0.7 | 2026-11-24 | Reorientación al objetivo tripartito; evidencia Email once y watch; baseline GitHub actualizado; backlog histórico separado de la prioridad vigente; ruta de invocación AGPT |
 | 0.8 | 2026-11-24 | ENV-01 marcado `ANALYSIS_COMPLETE`; `INFRA-DEMO-CODE-ISOLATION-01` registrado como recomendado no autorizado; observación `OBS-EMAIL-HEARTBEAT-WITHOUT-LOCK` incorporada como P2 pendiente |
+| 0.9 | 2026-11-25 | Prioridad P0 reorientada al diagnóstico y estabilización funcional multicanal; Frozen y ENV-02 a ENV-06 pausados; contratos publicados y backlog histórico preservados |
 
-### Próxima decisión AGPT
+### Próxima acción operativa
 
-AGPT debe decidir si autoriza un hito independiente para `INFRA-DEMO-CODE-ISOLATION-01`. La observación Email permanece diferible y separada, pero debe resolverse antes de acreditar Email como canal operacional de la Demo congelada.
+`NEXT_ACTION: DEMO_MULTICHANNEL_REGRESSION_DIAGNOSIS`
 
-Estado de referencia: TRIPARTITE_OBJECTIVE_RESTORED — ENV_01_ANALYSIS_COMPLETE — INFRA_DEMO_CODE_ISOLATION_RECOMMENDED_NOT_AUTHORIZED — OBS_EMAIL_HEARTBEAT_WITHOUT_LOCK_PENDING_FIX_DESIGN — DEMO_FREEZE_NOT_VERIFIED.
+Procedimiento:
+
+1. identificar una regresión funcional observada;
+2. recuperar el comportamiento previamente esperado;
+3. localizar contratos, pruebas e hitos anteriores pertinentes;
+4. reproducir el defecto con evidencia;
+5. determinar si existe causa compartida con otros defectos;
+6. diseñar un hito correctivo de intención acotada;
+7. implementar sólo después de autorización;
+8. validar con pruebas de regresión y Guardian.
+
+Estado de referencia: `FUNCTIONAL_DEMO_STABILIZATION` —
+`DEMO_MULTICHANNEL_REGRESSION_DIAGNOSIS` — `FROZEN_WORKSTREAM_PAUSED_BY_AGPT`
+— `ENV_01_ANALYSIS_COMPLETE` —
+`OBS_EMAIL_HEARTBEAT_WITHOUT_LOCK_PENDING_FIX_DESIGN`.
