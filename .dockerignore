@@ -13,6 +13,7 @@ dist
 .env
 .env.*
 *.log
+*:Zone.Identifier
 .vscode
 .DS_Store
 .git
@@ -24,6 +25,11 @@ coverage
 credenciales CQL
 .npmrc
 claves.txt
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.pem
+**/secure-connect-*.zip
 
 # Sesiones de autenticación locales identificadas
 .local/wwebjs_auth

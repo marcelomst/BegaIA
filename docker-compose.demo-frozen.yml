@@ -1,0 +1,149 @@
+# Path: /docker-compose.demo-frozen.yml
+name: begasist-demo-frozen
+
+x-suite-image: &suite-image "${BEGASIST_FROZEN_IMAGE:?Set BEGASIST_FROZEN_IMAGE to the commit tag or registry digest produced by the frozen build contract}"
+
+services:
+  redis:
+    image: redis:7.2.9-alpine@sha256:fce236b99c58ef7196c4e243e43f533b404d5c17239cae4e6e262b729a1952b3
+    container_name: begasist-demo-frozen-redis
+    volumes:
+      - frozen_redis_data:/data
+    restart: unless-stopped
+    networks:
+      - app-backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  suite:
+    image: *suite-image
+    container_name: begasist-demo-frozen-suite
+    command: ["node", "server.js"]
+    env_file:
+      - "${BEGASIST_FROZEN_ENV_FILE:?Set BEGASIST_FROZEN_ENV_FILE to an external Demo environment file}"
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      REDIS_URL: redis://redis:6379
+      USE_MCP_RESERVATIONS: "true"
+      MCP_ENDPOINT: http://suite:3000/api/mcp
+      ASTRA_DB_SECURE_BUNDLE: /run/secrets/astra/secure-connect.zip
+      ASTRA_DB_SECURE_CONNECT_BUNDLE: /run/secrets/astra/secure-connect.zip
+    volumes:
+      - type: bind
+        source: "${BEGASIST_FROZEN_ASTRA_BUNDLE_FILE:?Set BEGASIST_FROZEN_ASTRA_BUNDLE_FILE to the external Astra secure bundle}"
+        target: /run/secrets/astra/secure-connect.zip
+        read_only: true
+    depends_on:
+      redis:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
+    restart: unless-stopped
+    networks:
+      - app-backend
+      - app-egress
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  trusted-ingress:
+    image: *suite-image
+    container_name: begasist-demo-frozen-trusted-ingress
+    command:
+      - sh
+      - -ec
+      - export GUEST_WEB_PROXY_TRUST_SECRET="$$(cat /run/secrets/guest_web_proxy_trust_secret)"; exec node dist/trustedIngress.mjs
+    environment:
+      NODE_ENV: production
+      TRUSTED_INGRESS_UPSTREAM: http://suite:3000
+      TRUSTED_INGRESS_LOCAL_PORT: "3000"
+      TRUSTED_INGRESS_LOCAL_BIND_ADDRESS: "172.31.253.2"
+      TRUSTED_INGRESS_LOCAL_PEER_ADDRESS: "172.31.253.1"
+      TRUSTED_INGRESS_TUNNEL_PORT: "3001"
+      TRUSTED_INGRESS_TUNNEL_BIND_ADDRESS: "172.31.254.2"
+      TRUSTED_INGRESS_TUNNEL_PEER_HOST: cloudflared
+    ports:
+      - "127.0.0.1:3100:3000"
+    expose:
+      - "3001"
+    secrets:
+      - guest_web_proxy_trust_secret
+    depends_on:
+      suite:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 10s
+    restart: unless-stopped
+    networks:
+      local-ingress:
+        ipv4_address: 172.31.253.2
+        priority: 1000
+        gw_priority: 1
+      app-backend: {}
+      tunnel-ingress:
+        ipv4_address: 172.31.254.2
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://172.31.253.2:3000/__trusted-ingress/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  hotel-demo:
+    image: *suite-image
+    container_name: begasist-demo-frozen-hotel
+    command: ["node", "scripts/serve-hotel-demo.mjs"]
+    environment:
+      NODE_ENV: production
+      HOTEL_DEMO_HOST: 0.0.0.0
+      HOTEL_DEMO_PORT: "8081"
+    ports:
+      - "127.0.0.1:8181:8081"
+    depends_on:
+      suite:
+        condition: service_healthy
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 10s
+    restart: unless-stopped
+    networks:
+      - hotel-static
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8081/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+secrets:
+  guest_web_proxy_trust_secret:
+    file: "${BEGASIST_FROZEN_PROXY_SECRET_FILE:?Set BEGASIST_FROZEN_PROXY_SECRET_FILE to the external proxy trust secret file}"
+
+volumes:
+  frozen_redis_data:
+
+networks:
+  app-backend:
+    internal: true
+  app-egress: {}
+  hotel-static: {}
+  local-ingress:
+    ipam:
+      config:
+        - subnet: 172.31.253.0/29
+          gateway: 172.31.253.1
+  tunnel-ingress:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.254.0/29
+          gateway: 172.31.254.1

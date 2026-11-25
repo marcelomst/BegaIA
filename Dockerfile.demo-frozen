@@ -1,0 +1,82 @@
+# Path: /Dockerfile.demo-frozen
+
+FROM node:20.19.6-bookworm@sha256:66d2eb8b463114d1f416d61dbd5fa9cea83e8fc250feb997338467728a06124b AS base
+
+ENV PNPM_HOME=/pnpm
+ENV PATH="${PNPM_HOME}:${PATH}"
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
+RUN corepack enable \
+  && corepack prepare pnpm@10.12.3 --activate \
+  && pnpm --version | grep -Fx '10.12.3'
+
+WORKDIR /app
+
+FROM base AS dependencies
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+
+ARG SOURCE_COMMIT
+ARG SOURCE_TREE
+ARG LOCKFILE_SHA256
+ARG BUILD_CONFIG_SHA256
+
+RUN case "${SOURCE_COMMIT}" in (*[!0-9a-f]*|'') exit 1;; esac \
+  && test "${#SOURCE_COMMIT}" -eq 40 \
+  && case "${SOURCE_TREE}" in (*[!0-9a-f]*|'') exit 1;; esac \
+  && test "${#SOURCE_TREE}" -eq 40 \
+  && case "${LOCKFILE_SHA256}" in (*[!0-9a-f]*|'') exit 1;; esac \
+  && test "${#LOCKFILE_SHA256}" -eq 64 \
+  && case "${BUILD_CONFIG_SHA256}" in (*[!0-9a-f]*|'') exit 1;; esac \
+  && test "${#BUILD_CONFIG_SHA256}" -eq 64
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+
+RUN NEXT_PRIVATE_STANDALONE=true pnpm exec next build --no-lint
+RUN pnpm exec esbuild lib/infra/trustedIngress.ts \
+  --bundle \
+  --format=esm \
+  --platform=node \
+  --target=node20 \
+  --outfile=dist/trustedIngress.mjs
+
+FROM node:20.19.6-bookworm@sha256:66d2eb8b463114d1f416d61dbd5fa9cea83e8fc250feb997338467728a06124b AS runtime
+
+ARG SOURCE_COMMIT
+ARG SOURCE_TREE
+ARG LOCKFILE_SHA256
+ARG BUILD_CONFIG_SHA256
+
+LABEL org.opencontainers.image.title="BegaIA Demo frozen runtime"
+LABEL org.opencontainers.image.description="Commit-bound BegaIA Demo runtime; not a commercial release"
+LABEL org.opencontainers.image.source="https://github.com/marcelomst/BegaIA"
+LABEL org.opencontainers.image.revision="${SOURCE_COMMIT}"
+LABEL io.begasist.source.tree="${SOURCE_TREE}"
+LABEL io.begasist.lockfile.sha256="${LOCKFILE_SHA256}"
+LABEL io.begasist.build.config.sha256="${BUILD_CONFIG_SHA256}"
+LABEL io.begasist.build.dockerfile="/Dockerfile.demo-frozen"
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+WORKDIR /app
+
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/dist/trustedIngress.mjs ./dist/trustedIngress.mjs
+COPY --from=builder --chown=node:node /app/scripts/serve-hotel-demo.mjs ./scripts/serve-hotel-demo.mjs
+COPY --from=builder --chown=node:node /app/examples/hotel-demo ./examples/hotel-demo
+
+USER node
+
+EXPOSE 3000 3001 8081
+
+CMD ["node", "server.js"]
