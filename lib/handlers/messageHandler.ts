@@ -8318,7 +8318,12 @@ async function bodyLLM(pre: PreLLMResult): Promise<any> {
       hasCompleteModifyDatesFast &&
       !contextualMissingSideFast &&
       !fastTemporalSideIntent;
-    if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath) {
+    // Let the normal Create corridor handle both explicit dates before any single-date repair.
+    const hasExplicitCreateRangeFast =
+      fastPathSubFlow === "create" &&
+      explicitCreateIntentFast &&
+      Boolean(explicitTurnSlotsFast.checkIn && explicitTurnSlotsFast.checkOut);
+    if (hasOneDateOnly && hasContext && !shouldDeferSingleDateFastPath && !hasExplicitCreateRangeFast) {
       if (singleFastISO && reservationContextualMissingSideFast) {
         const createSingleDateSideFast =
           fastPathSubFlow === "create" && explicitCheckOutFast

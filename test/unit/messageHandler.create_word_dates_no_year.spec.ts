@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { futureMonthDayReservationRange } from "../utils/reservationDates";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { formatDateISO, futureMonthDayReservationRange } from "../utils/reservationDates";
 
 let currentState: any = null;
 let guestRecord: any = null;
@@ -7,6 +7,48 @@ let lastAvailabilityGuestSnapshot: { name?: string; firstName?: string } | null 
 let lastAvailabilitySlotsSnapshot: Record<string, unknown> | null = null;
 let persistedMessages: any[] = [];
 let usePersistedHistory = false;
+let reproStateScope: { hotelId: string; conversationId: string } | null = null;
+
+const commonBinding = vi.hoisted(() => vi.fn());
+const twilioBinding = vi.fn();
+const sendTwilioReply = vi.fn(async (_input: { body: string }) => ({ sid: "SM_SYNTHETIC_OUT" }));
+const modifyReservationMock = vi.hoisted(() => vi.fn(async () => ({ ok: true, message: "ok" })));
+
+vi.mock("@/lib/pipeline/handleChannelMessage", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/pipeline/handleChannelMessage")>();
+  return { ...actual, handleChannelMessage: vi.fn(actual.handleChannelMessage) };
+});
+vi.mock("@/lib/adapters/registry", () => ({ getAdapter: () => null }));
+vi.mock("@/lib/pipeline/resolveGuestIdentity", () => ({
+  resolveGuestIdentity: async ({ rawGuestId }: { rawGuestId: string }) => ({ guestId: rawGuestId }),
+}));
+vi.mock("@/lib/services/messages", () => ({
+  getMessagesByConversationService: async (hotelId: string, channel: string, conversationId: string) =>
+    persistedMessages.filter((message) =>
+      message.hotelId === hotelId && message.channel === channel && message.conversationId === conversationId
+    ),
+}));
+vi.mock("@/lib/db/conversationBinding", () => ({ getConversationIdByGuestPhone: twilioBinding }));
+vi.mock("@/lib/db/whatsappTwilioRouting", () => ({
+  resolveHotelIdByTwilioTo: async ({ to }: { to: string }) =>
+    to === "whatsapp:+15550100001" ? "hotel999" : null,
+}));
+vi.mock("@/lib/channels/whatsapp/twilioValidateSignature", () => ({
+  validateTwilioSignature: () => true,
+}));
+vi.mock("@/lib/channels/whatsapp/twilioSendMessage", () => ({
+  twilioSendWhatsAppMessage: sendTwilioReply,
+}));
+vi.mock("@/lib/db/messagesDedupe", () => ({
+  hasInboundMessageBySourceMsgId: async (key: { hotelId: string; channel: string; sourceMsgId: string }) =>
+    persistedMessages.some((message) =>
+      message.hotelId === key.hotelId && message.channel === key.channel && message.sourceMsgId === key.sourceMsgId
+    ),
+}));
+
+function fixtureQuote(roomLabel: string, guestName: string) {
+  return `Tengo ${roomLabel} disponible para ${guestName}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+}
 
 const runAvailabilityCheckMock = vi.hoisted(() =>
   vi.fn(async (pre: any, slots: any, ciISO: string, coISO: string) => {
@@ -27,7 +69,7 @@ const runAvailabilityCheckMock = vi.hoisted(() =>
       checkIn: ciISO,
       checkOut: coISO,
     };
-    const finalText = `Tengo ${roomLabel} disponible para ${String(slots.guestName || "el huésped")}. Tarifa por noche: 100 USD. Total 2 noches: 200 USD.\n\n¿Confirmás la reserva? Respondé “CONFIRMAR”.`;
+    const finalText = fixtureQuote(roomLabel, String(slots.guestName || "el huésped"));
     const snapshot = { ...slots, checkIn: ciISO, checkOut: coISO };
     const toolCallAt = new Date().toISOString();
     const richProposal = {
@@ -92,6 +134,7 @@ vi.mock("@/lib/db/messages", () => ({
 vi.mock("@/lib/db/conversations", () => ({
   getOrCreateConversation: vi.fn(async () => {}),
   appendConversationReplyTrace: vi.fn(async () => {}),
+  findActiveConversationByGuestId: commonBinding,
 }));
 vi.mock("@/lib/db/guests", () => ({
   getGuest: vi.fn(async () => guestRecord),
@@ -107,7 +150,16 @@ vi.mock("@/lib/db/guests", () => ({
   }),
 }));
 vi.mock("@/lib/db/convState", () => ({
-  getConvState: vi.fn(async () => currentState),
+  getConvState: vi.fn(async (hotelId: string, conversationId: string) => {
+    if (reproStateScope && (hotelId !== reproStateScope.hotelId || conversationId !== reproStateScope.conversationId)) {
+      return null;
+    }
+    return reproStateScope ? structuredClone(currentState) : currentState;
+  }),
+  createConversationWriterGuard: vi.fn((input) => ({ ...input, contractVersion: "test", token: "synthetic-token" })),
+  acquireConversationOwnership: vi.fn(async (_hotelId, _conversationId, guard) => ({ status: "acquired", guard })),
+  assertConversationOwnership: vi.fn(async () => ({ status: "owned" })),
+  releaseConversationOwnership: vi.fn(async () => ({ status: "released" })),
   initializeCreateDraftIfLatest: vi.fn(async (
     hotelId: string,
     conversationId: string,
@@ -199,7 +251,7 @@ vi.mock("@/lib/agents/stateUpdaterAgent", () => ({
 }));
 vi.mock("@/lib/agents/reservations", () => ({
   confirmAndCreate: confirmAndCreateMock,
-  modifyReservation: vi.fn(async () => ({ ok: true, message: "ok" })),
+  modifyReservation: modifyReservationMock,
 }));
 vi.mock("@/lib/handlers/pipeline/availability", async () => {
   const actual = await vi.importActual<typeof import("@/lib/handlers/pipeline/availability")>("@/lib/handlers/pipeline/availability");
@@ -237,7 +289,19 @@ vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class { constructor(_c: any) {} async invoke() { return { content: "Respuesta base" }; } },
 }));
 
+import { debugLog } from "@/lib/utils/debugLog";
+import { getConvState } from "@/lib/db/convState";
+import { getMessagesByConversation } from "@/lib/db/messages";
+import { extractSlotsFromText } from "@/lib/agents/helpers";
+import { parseEmailToChannelMessage } from "@/lib/parsers/emailParser";
+import { standardCleanup } from "@/lib/utils/emailCleanup";
+import { simpleParser } from "mailparser";
 import { handleIncomingMessage } from "@/lib/handlers/messageHandler";
+
+function resetAvailabilitySnapshots() {
+  lastAvailabilityGuestSnapshot = null;
+  lastAvailabilitySlotsSnapshot = null;
+}
 
 function restoreEnv(name: string, value: string | undefined) {
   if (typeof value === "undefined") {
@@ -284,8 +348,7 @@ describe("messageHandler create word dates without explicit year", () => {
   beforeEach(() => {
     currentState = null;
     guestRecord = null;
-    lastAvailabilityGuestSnapshot = null;
-    lastAvailabilitySlotsSnapshot = null;
+    resetAvailabilitySnapshots();
     persistedMessages = [];
     usePersistedHistory = false;
     vi.clearAllMocks();
@@ -949,5 +1012,241 @@ describe("messageHandler create word dates without explicit year", () => {
       restoreEnv("USE_PRE_POS_PIPELINE", prevUsePrePos);
       restoreEnv("CREATE_WORD_DATES_TRACE", prevTrace);
     }
+  });
+});
+
+describe("reproducción multicanal de reservas con fechas sin año explícito", () => {
+  const hotelId = "hotel999";
+  const date = "2026-11-25T15:00:00.000Z";
+  const email = "martin@example.test";
+  const phone = "whatsapp:+15550100002";
+  const A1 = "Hola, soy Martín P. Quisiera reservar una triple del 25 al 27 de diciembre para tres personas, a nombre de Ana Perez.";
+  const B = "Hola. Quisiera reservar una triple del 25 al 27 de diciembre para tres personas, a nombre de Ana Langueniz.";
+  let dates: { checkIn: string; checkOut: string };
+  let slots: { checkIn: string; checkOut: string; roomType: string; numGuests: string };
+  let oldCheckIn: string;
+
+  beforeEach(async () => {
+    const previous = process.env.FORCE_GENERATION;
+    // Only the common pipeline needs to skip its module-level test shortcut.
+    process.env.FORCE_GENERATION = "1";
+    try {
+      await import("@/lib/pipeline/handleChannelMessage");
+    } finally {
+      restoreEnv("FORCE_GENERATION", previous);
+    }
+    currentState = null;
+    guestRecord = null;
+    persistedMessages = [];
+    usePersistedHistory = true;
+    resetAvailabilitySnapshots();
+    vi.clearAllMocks();
+    commonBinding.mockReset();
+    twilioBinding.mockReset();
+    vi.stubEnv("USE_CHRONO_LAYER", "1");
+    vi.stubEnv("USE_MH_FLOW_GRAPH", "0");
+    vi.stubEnv("USE_ORCHESTRATOR_AGENT", "0");
+    vi.stubEnv("USE_PRE_POS_PIPELINE", "0");
+    vi.stubEnv("TWILIO_SIGNATURE_ENFORCE", "0");
+    vi.stubEnv("WA_PENDING_ACK_ENABLED", "0");
+    vi.spyOn(console, "log");
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(date));
+    const range = futureMonthDayReservationRange(12, 25, 27);
+    dates = { checkIn: range.checkInISO, checkOut: range.checkOutISO };
+    slots = { ...dates, roomType: "triple", numGuests: "3" };
+    oldCheckIn = formatDateISO(new Date(Date.UTC(range.checkIn.getUTCFullYear(), 11, 10)));
+  });
+
+  afterEach(() => {
+    reproStateScope = null;
+    vi.mocked(console.log).mockRestore();
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  async function submitEmail(content: string, conversationId: string, id: string) {
+    const originalMessageId = `<${id}@example.test>`;
+    const raw = [
+      `From: Martín P. <${email}>`,
+      "To: reservas@example.test",
+      "Subject: Reserva",
+      `Message-ID: ${originalMessageId}`,
+      "MIME-Version: 1.0",
+      "Content-Type: text/plain; charset=utf-8",
+      "",
+      content,
+    ].join("\r\n");
+    const message = await parseEmailToChannelMessage({ parsed: await simpleParser(raw), hotelId, raw });
+    expect(message).toMatchObject({ sender: email, originalMessageId, channel: "email", hotelId });
+    const query = standardCleanup(message.content);
+    expect(query).toBe(content);
+    reproStateScope = { hotelId, conversationId };
+    commonBinding.mockResolvedValue({ conversationId });
+    const { handleChannelMessage } = await import("@/lib/pipeline/handleChannelMessage");
+    return handleChannelMessage({
+      query, hotelId, channel: "email", sourceMsgId: id, sender: email, guestId: email,
+      mode: "automatic", lang: "es", subject: message.subject, originalMessageId,
+    });
+  }
+
+  async function submitWhatsApp(id: string) {
+    const { POST } = await import("@/app/api/webhooks/whatsapp/twilio/route");
+    const result = await POST(new Request("http://localhost/api/webhooks/whatsapp/twilio", {
+      method: "POST",
+      body: new URLSearchParams({
+        From: phone, To: "whatsapp:+15550100001", Body: B, MessageSid: id,
+      }),
+    }));
+    expect(result.status).toBe(200);
+    return result.json();
+  }
+
+  function expectTurn(channel: string, conversationId: string, content: string, sender: string) {
+    expect(persistedMessages.find((message) => message.content === content)).toMatchObject({
+      hotelId, channel, conversationId, content, sender, detectedLanguage: "es",
+    });
+    expect(getConvState).toHaveBeenCalledWith(hotelId, conversationId);
+    expect(debugLog).toHaveBeenCalledWith(
+      "[FlujoCHKI][handleIncomingMessage] IN",
+      expect.objectContaining({ msg: expect.objectContaining({ hotelId, channel, conversationId, content, sender }) }),
+    );
+    expect(getMessagesByConversation).toHaveBeenCalledWith(expect.objectContaining({ hotelId, conversationId }));
+  }
+
+  function expectCreateQuote(guestName: string, reply: string, actor?: "Martín") {
+    const expectedSlots = { ...slots, guestName };
+    const quote = fixtureQuote(slots.roomType, guestName);
+    const expectedText = actor ? `${actor}, ${quote.charAt(0).toLowerCase()}${quote.slice(1)}` : quote;
+
+    expect(confirmAndCreateMock).not.toHaveBeenCalled();
+    expect(modifyReservationMock).not.toHaveBeenCalled();
+    const mergedSlots = vi.mocked(console.log).mock.calls
+      .findLast(([label]) => label === "[DEBUG-numGuests] currSlots:")?.[1];
+    expect(mergedSlots ? JSON.parse(String(mergedSlots)) : undefined, "merge inicial")
+      .toMatchObject(expectedSlots);
+
+    const body = vi.mocked(debugLog).mock.calls
+      .findLast(([label]) => label === "[handleIncomingMessage] bodyLLM/body")?.[1];
+    expect.soft(body?.nextCategory, "categoría de bodyLLM").toBe("reservation");
+    expect.soft(body?.nextSlots, "rango y titular en bodyLLM").toMatchObject(expectedSlots);
+    expect.soft(currentState?.reservationSlots, "borrador persistido").toMatchObject(expectedSlots);
+    expect.soft(runAvailabilityCheckMock, "consultas de disponibilidad").toHaveBeenCalledTimes(1);
+    expect.soft(runAvailabilityCheckMock.mock.calls[0]?.slice(0, 4), "datos de disponibilidad").toEqual([
+      expect.objectContaining({ msg: expect.objectContaining({ hotelId }) }),
+      expect.objectContaining(expectedSlots),
+      dates.checkIn,
+      dates.checkOut,
+    ]);
+    const availability = runAvailabilityCheckMock.mock.settledResults[0];
+    expect.soft(availability, "resultado del mock de disponibilidad").toMatchObject({
+      type: "fulfilled",
+      value: { status: "available", finalText: quote },
+    });
+    expect.soft(currentState, "propuesta persistida").toMatchObject({
+      activeFlow: "reservation",
+      desiredAction: "create",
+      salesStage: "quote",
+      conversationStage: "reservation_quoted",
+      activeReservationContext: { kind: "draft", phase: "quoted" },
+      lastProposal: {
+        text: expectedText,
+        available: true,
+        availabilityStatus: "available",
+        snapshot: expectedSlots,
+        options: [{ roomType: slots.roomType, pricePerNight: 100, currency: "USD" }],
+        toolCall: {
+          name: "checkAvailability",
+          input: { hotelId, ...dates, roomType: slots.roomType, numGuests: Number(slots.numGuests) },
+          outputSummary: "available:true",
+        },
+      },
+    });
+    expect.soft(body?.finalText, "cotización de bodyLLM").toBe(expectedText);
+    expect.soft(reply, "cotización entregada").toBe(expectedText);
+  }
+
+  it("Email limpio conserva al actor y cotiza para el titular", async () => {
+    const conversationId = "repro-email";
+    const result = await submitEmail(A1, conversationId, "f0-email");
+    expectTurn("email", conversationId, A1, email);
+    expect(guestRecord).toMatchObject({
+      hotelId, name: expect.stringMatching(/^Martín P\.?$/), firstName: "Martín",
+    });
+    expectCreateQuote("Ana Perez", result.response, "Martín");
+  });
+
+  it.each([
+    { id: "f1-common", explicit: false, material: false },
+    { id: "f1-explicit", explicit: true, material: false },
+    { id: "f2-material", explicit: true, material: true },
+  ])("$id conserva el rango completo de una nueva solicitud Create", async ({ id, explicit, material }) => {
+    const conversationId = explicit ? "repro-wa-explicit" : "repro-wa-common";
+    const guestName = "Ana Langueniz";
+    const previousSlots = { ...slots, checkIn: oldCheckIn, guestName };
+    if (material) {
+      currentState = {
+        salesStage: "close", conversationStage: "reservation_confirmed", lastCategory: "reservation",
+        lastReservation: { ...previousSlots, reservationId: "R-SYNTHETIC", status: "created" },
+        activeReservationContext: { kind: "reservation", reservationId: "R-SYNTHETIC", updatedAt: date },
+      };
+    }
+
+    reproStateScope = { hotelId, conversationId };
+    const before = structuredClone(currentState);
+    const lookupId = "repro-wa-common";
+    const previousMessage = "Quisiera consultar por una habitación.";
+    for (const candidate of [lookupId, "repro-wa-explicit"]) {
+      persistedMessages.push({
+        hotelId, channel: "whatsapp", conversationId: candidate, sender: phone, role: "user",
+        content: previousMessage, timestamp: "2026-11-25T13:00:00.000Z",
+        guestPhone: explicit && candidate === "repro-wa-explicit" ? phone : undefined,
+      });
+    }
+    commonBinding.mockImplementation(async (key) =>
+      key.hotelId === hotelId && key.channel === "whatsapp" && key.guestId === phone
+        ? { conversationId: lookupId }
+        : null
+    );
+    twilioBinding.mockImplementation(async (key) =>
+      persistedMessages.find((message) =>
+        message.hotelId === key.hotelId && message.channel === key.channel && message.guestPhone === key.guestPhone
+      )?.conversationId ?? null
+    );
+    // A matching source ID in a different hotel must not suppress this request.
+    persistedMessages.push({ hotelId: "other-hotel", channel: "whatsapp", sourceMsgId: id });
+
+    expect(extractSlotsFromText(B, "es")).toMatchObject(dates);
+    expect(await submitWhatsApp(id)).toMatchObject({ ok: true });
+    const { handleChannelMessage } = await import("@/lib/pipeline/handleChannelMessage");
+    expect(twilioBinding).toHaveBeenCalledWith({ hotelId, channel: "whatsapp", guestPhone: phone });
+    expect(handleChannelMessage).toHaveBeenCalledTimes(1);
+    const [pipelineInput] = vi.mocked(handleChannelMessage).mock.calls[0]!;
+    expect(pipelineInput).toMatchObject({ hotelId, channel: "whatsapp", query: B, guestId: phone, sourceMsgId: id });
+    expect(pipelineInput.conversationId).toBe(explicit ? conversationId : undefined);
+    if (explicit) {
+      expect(commonBinding).not.toHaveBeenCalled();
+    } else {
+      expect(commonBinding).toHaveBeenCalledWith({ hotelId, channel: "whatsapp", guestId: phone });
+    }
+    expectTurn("whatsapp", conversationId, B, phone);
+    expect(await vi.mocked(getConvState).mock.results[0]?.value).toEqual(before);
+    const historyRead = vi.mocked(getMessagesByConversation).mock.calls.findLastIndex(([key]) =>
+      key.hotelId === hotelId && key.conversationId === conversationId
+    );
+    const history = await vi.mocked(getMessagesByConversation).mock.results[historyRead]?.value;
+    expect(history?.every((message: { conversationId?: string }) => message.conversationId === conversationId)).toBe(true);
+    expect(history).toContainEqual(expect.objectContaining({ content: B, conversationId }));
+    expect(history).toContainEqual(expect.objectContaining({ content: previousMessage, conversationId }));
+    expect(await submitWhatsApp(id)).toMatchObject({ ok: true, deduped: true });
+    expect(handleChannelMessage).toHaveBeenCalledTimes(1);
+    expect(sendTwilioReply).toHaveBeenCalledTimes(1);
+    expect(persistedMessages.filter((message) => message.hotelId === hotelId && message.sourceMsgId === id)).toHaveLength(1);
+
+    const reply = sendTwilioReply.mock.calls.at(-1)?.[0].body ?? "";
+    if (material) {
+      expect(currentState?.lastReservation).toEqual(before.lastReservation);
+    }
+    expectCreateQuote(guestName, reply);
   });
 });
