@@ -19208,3 +19208,55 @@ Impacto:
   declarado permanecen completamente excluidos
 - cierre definitivo sujeto a documentation commit, push y validacion
   read-only posterior mediante HDOC(CLOSE)
+
+---
+
+### FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+
+- Fecha del commit técnico: 2026-11-27.
+- Clasificación del cambio: `existing_repo_change`.
+- Clasificación documental: `hito_plus_evolucion` por el refresh de evidencia física del Runtime Map.
+- Canonicidad: `fortalece` la trazabilidad de la caja Create mediante paridad y referencias recalculadas. El guard reutiliza intención y slots existentes.
+- Estado documental: `DOCUMENTACION_PREPARADA`. El cierre requiere commit, push y validación HDOC(CLOSE).
+
+Preserva el rango explícito de Create frente a una lectura temporal parcial. La regresión sintética verificó una cotización coherente y conservó la reserva previa. Guardian informó 1684 pruebas core aprobadas. F3 queda pendiente como hito independiente.
+
+```yaml
+technical_commit: 1a0a34e3b766457e4859c1d541d3a0ca65607a40
+technical_parent: 4ba5c264caffe4f983c04b6a9d7799e700b46442
+technical_subject: "fix(reservations): preserve explicit create date ranges"
+technical_push: confirmed
+remote_ref: refs/heads/main
+technical_files:
+  - lib/handlers/messageHandler.ts
+  - test/unit/messageHandler.create_word_dates_no_year.spec.ts
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - F2 RED/GREEN, fechas dinámicas y quote gating
+      - Multirreserva, reparación de fecha única e ingestión de slots
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+**Evidencia validada por Guardian**
+
+- F2 RED con el guard desactivado en memoria y GREEN con el fix. Rango del 25 al 27 de diciembre de 2026, una consulta, estado `quoted`, cotización coherente, `lastReservation` intacta y cero llamadas a Confirm y Modify.
+- Suite focal con 53 PASS y paridad adicional de multirreserva, fecha única e ingestión con 42 PASS. Core con 210 archivos, 1684 PASS y salida 0 en entorno sanitizado con permiso acotado para loopback y temporales.
+- Archivo histórico con SHA-256 del parche verificado, restauración exacta sobre el HEAD original y rojo ordinario F2 archivado. F3 sigue recuperable.
+- WhatsApp `PASS_OBSERVABLE`. Una segunda solicitud en la misma conversación recibió cotización completa tras la confirmación observable de la primera. La segunda quedó sin confirmar.
+- Email con recorrido favorable según la transcripción aportada, que carece del total para dos noches. La integridad material de la reserva histórica permanece `NOT_VERIFIED`.
+- Causa operativa del incidente del 25/11 indeterminada. Readiness operacional fuera del alcance.
+
+**Refresh documental**
+
+El scan de Guardian fija 15559 líneas en `messageHandler.ts`, cinco más que el snapshot previo. Se actualizaron los rangos de `preLLM`, `bodyLLM`, `posLLM` y `handleIncomingMessage`. Las referencias internas quedan `needs_refresh`. El mapa conceptual y el roadmap conservan su alcance.

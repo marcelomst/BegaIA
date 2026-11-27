@@ -15,7 +15,31 @@ Su objetivo es consolidar la evidencia actual del runtime para que los niveles p
 
 ---
 
-## Snapshot base
+## Refresh focal vigente — FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+
+```yaml
+hito_id: FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+commit_base: 1a0a34e3b766457e4859c1d541d3a0ca65607a40
+technical_push: confirmed
+previous_snapshot_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15559
+previous_messageHandler_lines: 15554
+scanned_file: lib/handlers/messageHandler.ts
+top_level_code_refs_status: fresh
+internal_code_refs_status: needs_refresh
+global_freshness_claim_allowed: false
+functions:
+  preLLM: L6062-L6274
+  bodyLLM: L7548-L14626
+  posLLM: L15121-L15162
+  handleIncomingMessage: L15166-L15559
+```
+
+El código añade cinco líneas en `bodyLLM`. Guardian recalculó los cuatro rangos de funciones indicados. Las referencias internas, incluidas las de Create, requieren recálculo antes de usarse sobre este commit.
+
+La paridad informada por Guardian incluye F2 RED/GREEN, 53 PASS focales, 42 PASS adicionales y 1684 PASS en core (210 archivos).
+
+## Snapshot base histórico
 
 ```yaml
 map_id: runtime-map-v1
@@ -38,7 +62,7 @@ validation_scope: documentation_and_guardian_scan_only
 global_freshness_claim_allowed: false
 ```
 
-## Evidencia focal actual
+## Evidencia focal histórica — KB fastpath
 
 ```yaml
 hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
@@ -107,7 +131,7 @@ functions:
   handleIncomingMessage: L14263-L14592
 ```
 
-## Auditoría histórica preservada y refresh focal actual
+## Auditoría y refresh focal históricos
 
 ```yaml
 runtime_boxes_audit:
@@ -258,7 +282,7 @@ validation:
   - git diff --check: PASS
 ```
 
-## Funciones clave historicas y top-level actuales
+## Funciones clave y rangos top-level históricos
 
 Las cuatro filas top-level (`preLLM`, `bodyLLM`, `posLLM` y
 `handleIncomingMessage`) permanecen verificadas para la baseline actual. Las demás filas se

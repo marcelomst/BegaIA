@@ -1,5 +1,28 @@
 # bodyLLM internal scan
 
+## Evidencia focal vigente — FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+
+```yaml
+hito_id: FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+commit_base: 1a0a34e3b766457e4859c1d541d3a0ca65607a40
+previous_snapshot_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15559
+previous_messageHandler_lines: 15554
+scanned_file: lib/handlers/messageHandler.ts
+top_level_code_refs_status: fresh
+internal_code_refs_status: needs_refresh
+global_freshness_claim_allowed: false
+functions:
+  preLLM: L6062-L6274
+  bodyLLM: L7548-L14626
+  posLLM: L15121-L15162
+  handleIncomingMessage: L15166-L15559
+```
+
+El rango vigente de bodyLLM abarca 7079 líneas. Los buckets y marcadores del scan histórico quedan como evidencia de ese scan y requieren un nuevo cálculo para el commit F2.
+
+**Scan histórico**
+
 Archivo: `lib/handlers/messageHandler.ts`
 Rango analizado: L6283-L13045
 Tamaño estimado: 6763 líneas

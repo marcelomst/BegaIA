@@ -36,7 +36,7 @@ Este archivo registra `code_refs` actuales para el working tree analizado.
 
 Si `messageHandler.ts` cambia, este archivo debe refrescarse antes de usar sus rangos como evidencia para un hito técnico.
 
-Para el hito actual:
+Para el refresh focal vigente:
 
 ```yaml
 code_refs_status: top_level_fresh_internal_needs_refresh
@@ -54,14 +54,36 @@ runtime_map:
 
 Por eso:
 
-- los blobs y referencias focales se actualizan con el scan de Guardian
+- el commit fuente y los rangos de funciones se registran con el scan de Guardian
 - los rangos top-level quedan frescos; rangos internos no entregados permanecen `needs_refresh`
 - se preservan los `box_id` y el mapa conceptual
 - no se afirma frescura para referencias no focales
 
 ---
 
-## Snapshot base
+## Refresh focal vigente — FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+
+```yaml
+hito_id: FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+commit_base: 1a0a34e3b766457e4859c1d541d3a0ca65607a40
+technical_push: confirmed
+previous_snapshot_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15559
+previous_messageHandler_lines: 15554
+scanned_file: lib/handlers/messageHandler.ts
+top_level_code_refs_status: fresh
+internal_code_refs_status: needs_refresh
+global_freshness_claim_allowed: false
+functions:
+  preLLM: L6062-L6274
+  bodyLLM: L7548-L14626
+  posLLM: L15121-L15162
+  handleIncomingMessage: L15166-L15559
+```
+
+El código añade cinco líneas en `bodyLLM`. Guardian recalculó los cuatro rangos de funciones indicados. Las referencias internas, incluidas las de Create, requieren recálculo antes de usarse sobre este commit.
+
+## Snapshot base histórico
 
 ```yaml
 map_id: runtime-map-v1
@@ -101,7 +123,7 @@ sin modificarlos durante esta fase.
 
 ---
 
-## Evidencia focal actual: conversational context KB fastpath
+## Evidencia focal histórica: conversational context KB fastpath
 
 ```yaml
 hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
@@ -193,7 +215,7 @@ internal_code_refs_status: not_recalculated_by_guardian
 global_freshness_claim_allowed: false
 ```
 
-## Evidencia focal actual: modify preview
+## Evidencia focal histórica: modify preview
 
 ```yaml
 hito_id: REF-RUNTIME-MAP-MODIFY-PREVIEW-01

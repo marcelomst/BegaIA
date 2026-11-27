@@ -2,7 +2,45 @@
 
 # Runtime Map V1 — Snapshot
 
-## Estado del análisis
+## Refresh focal vigente — FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+
+```yaml
+hito_id: FIX-MULTICHANNEL-CREATE-DATE-PRESERVATION-F2-01
+commit_base: 1a0a34e3b766457e4859c1d541d3a0ca65607a40
+technical_push: confirmed
+previous_snapshot_commit: 28e23cc4bf8235b940df44bbac72d3ac56e48e10
+messageHandler_lines: 15559
+previous_messageHandler_lines: 15554
+scanned_file: lib/handlers/messageHandler.ts
+top_level_code_refs_status: fresh
+internal_code_refs_status: needs_refresh
+global_freshness_claim_allowed: false
+functions:
+  preLLM: L6062-L6274
+  bodyLLM: L7548-L14626
+  posLLM: L15121-L15162
+  handleIncomingMessage: L15166-L15559
+runtime_boxes_audit:
+  touched:
+    - runtime.messageHandler.bodyLLM.operationalCorridors.reservation.create
+  reviewed:
+    - runtime.messageHandler.bodyLLM.turnDecision
+    - runtime.messageHandler.persistenceReply
+  forbidden_touched: []
+  undeclared_touched: []
+  parity_tests:
+    status: present
+    details:
+      - F2 RED/GREEN, fechas dinámicas y quote gating
+      - Multirreserva, reparación de fecha única e ingestión de slots
+  code_refs_status: needs_refresh
+  runtime_map_refresh_required: true
+  verdict: valid
+```
+
+El código añade cinco líneas en `bodyLLM`. Guardian recalculó los cuatro rangos de funciones indicados. Las referencias internas, incluidas las de Create, requieren recálculo antes de usarse sobre este commit.
+
+## Estado del análisis histórico
 
 ```yaml
 map_id: runtime-map-v1
@@ -29,7 +67,7 @@ limpio y el residual ajeno esperado `?? scripts/semantic-normalization-spike/`.
 
 ---
 
-## Refresh focal actual
+## Refresh focal histórico — KB fastpath
 
 ```yaml
 hito_id: FIX-CONVERSATIONAL-CONTEXT-KB-FASTPATH-01
@@ -256,7 +294,7 @@ code_refs = recalculables
 
 ---
 
-## Refresh actual
+## Refresh histórico
 
 Refresh aplicado:
 
